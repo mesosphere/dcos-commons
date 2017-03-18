@@ -10,7 +10,9 @@ set +e
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
-# GitHub notifier config
+# GitHub notifier: reset any statuses from prior builds for this commit
+$REPO_ROOT_DIR/tools/github_update.py reset
+
 _notify_github() {
     $REPO_ROOT_DIR/tools/github_update.py $1 build:sdk $2
 }

@@ -16,6 +16,8 @@ import pprint
 import re
 import sys
 import subprocess
+import tempfile
+import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -26,11 +28,17 @@ except ImportError:
     # Python 2
     from httplib import HTTPSConnection
 
-class GithubStatusUpdater(object):
+'''reserved contexts which may not be modified by this script'''
+BLACKLISTED_CONTEXT_LABELS = ['velocity'] # not set by us, do not update
 
-    def __init__(self, context_label):
-        self._context_label = context_label
+'''the pending/incomplete state'''
+PENDING_STATE = 'pending'
 
+'''list of all valid states'''
+VALID_STATES = [PENDING_STATE, 'success', 'error', 'failure']
+
+
+class RepoInfo(object):
 
     def _get_dotgit_path(self):
         '''returns the path to the .git directory for the repo'''
@@ -48,7 +56,7 @@ class GithubStatusUpdater(object):
                         'Run this command within the git repo, or provide GIT_REPOSITORY_ROOT')
 
 
-    def _get_commit_sha(self):
+    def commit_sha(self):
         '''returns the sha1 of the commit being reported upon'''
         # 1. try 'ghprbActualCommit', 'GIT_COMMIT', and 'sha1' envvars:
         commit_sha = os.environ.get('ghprbActualCommit', '')
@@ -73,7 +81,7 @@ class GithubStatusUpdater(object):
         return commit_sha
 
 
-    def _get_repo_path(self):
+    def repo_orgname(self):
         '''returns the repository path, in the form "mesosphere/some-repo"'''
         repo_path = os.environ.get('GITHUB_REPO_PATH', '')
         if repo_path:
@@ -96,118 +104,232 @@ class GithubStatusUpdater(object):
         return re_match.group(1)
 
 
-    def _get_details_link_url(self, details_url):
-        '''returns the url to be included as the details link in the status'''
-        if not details_url:
-            details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL', '') # custom URL via env
-        if not details_url:
-            details_url = os.environ.get('BUILD_URL', '') # provided by jenkins
-            if details_url:
-                details_url += 'console'
-        if not details_url:
-            raise Exception(
-                'Failed to determine URL for details link. ' +
-                'Provide either GITHUB_COMMIT_STATUS_URL or BUILD_URL in env.')
-        return details_url
+class GithubStatusUpdater(object):
+
+    def __init__(self, default_context_label = ''):
+        info = RepoInfo()
+        self._repo_orgname = info.repo_orgname()
+        self._commit_sha = info.commit_sha()
+        self._github_token = _get_auth_token()
+        self._default_context_label = default_context_label
 
 
-    def _get_auth_token(self):
-        github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
-        if not github_token:
-            github_token = os.environ.get('GITHUB_TOKEN', '')
-        if not github_token:
-            raise Exception(
-                'Failed to determine auth token to use with GitHub. ' +
-                'Provide either GITHUB_TOKEN or GITHUB_TOKEN_REPO_STATUS in env.')
-        encoded_tok = base64.encodestring(github_token.encode('utf-8'))
-        return encoded_tok.decode('utf-8').rstrip('\n')
-
-
-    def _build_request(self, state, message, details_url = ''):
-        '''returns everything needed for the HTTP request, except the auth token'''
+    def _build_post_update_request(self, context_label, state, message, details_url):
+        '''returns everything needed for an HTTP request to update repo status, except the auth token'''
+        payload = {
+            'context': context_label,
+            'state': state
+        }
+        if message:
+            payload['description'] = message
+        if details_url:
+            payload['target_url'] = details_url
         return {
             'method': 'POST',
-            'path': '/repos/{}/commits/{}/statuses'.format(
-                self._get_repo_path(),
-                self._get_commit_sha()),
+            'path': '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha),
             'headers': {
                 'User-Agent': 'github_update.py',
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic HIDDENTOKEN'}, # replaced within update_query
-            'payload': {
-                'context': self._context_label,
-                'state': state,
-                'description': message,
-                'target_url': self._get_details_link_url(details_url)
-            }
+            'payload': payload
+        }
+
+
+    def _build_get_list_request(self):
+        '''returns everything needed for an HTTP request to retrieve repo statuses, except the auth token'''
+        return {
+            'method': 'GET',
+            'path': '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha),
+            'headers': {
+                'User-Agent': 'github_update.py',
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic HIDDENTOKEN'} # replaced within update_query
         }
 
 
     def _send_request(self, request, debug = False):
-        '''sends the provided request which was created by _build_request()'''
+        '''sends the provided request which was created by _build_post_update_request()'''
+        # note: we insert the auth header at the very last minute,
+        #       to ensure that upstream doesn't log the auth header
         request_headers_with_auth = request['headers'].copy()
-        request_headers_with_auth['Authorization'] = 'Basic {}'.format(self._get_auth_token())
+        if len(self._github_token) > 0:
+            encoded_tok = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
+            request_headers_with_auth['Authorization'] = 'Basic {}'.format(encoded_tok)
         conn = HTTPSConnection('api.github.com')
         if debug:
             conn.set_debuglevel(999)
-        conn.request(
-            request['method'],
-            request['path'],
-            body = json.dumps(request['payload']).encode('utf-8'),
-            headers = request_headers_with_auth)
+        if 'payload' in request:
+            conn.request(
+                request['method'],
+                request['path'],
+                body = json.dumps(request['payload']).encode('utf-8'),
+                headers = request_headers_with_auth)
+        else:
+            conn.request(
+                request['method'],
+                request['path'],
+                headers = request_headers_with_auth)
         return conn.getresponse()
 
 
-    def update(self, state, message, details_url = ''):
-        '''sends an update to github.
-        returns True on success or False otherwise.
-        state should be one of 'pending', 'success', 'error', or 'failure'.'''
-        logger.info('[STATUS] {} {}: {}'.format(self._context_label, state, message))
-        if details_url:
-            logger.info('[STATUS] URL: {}'.format(details_url))
+    def _pretty_duration(self, seconds):
+        """ Returns a user-friendly representation of the provided duration in seconds.
+        For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
+        """
+        ret = ''
+        if seconds >= 86400:
+            ret += '{:.0f}d'.format(int(seconds / 86400))
+            seconds = seconds % 86400
+        if seconds >= 3600:
+            ret += '{:.0f}h'.format(int(seconds / 3600))
+            seconds = seconds % 3600
+        if seconds >= 60:
+            ret += '{:.0f}m'.format(int(seconds / 60))
+            seconds = seconds % 60
+        if seconds > 0:
+            ret += '{:.1f}s'.format(seconds)
+        return ret
 
-        if not 'WORKSPACE' in os.environ:
-            # not running in CI. skip actually sending anything to GitHub
+
+    def _check_success(self, response, request, request_type):
+        if 200 <= response.status < 300:
             return True
-        if os.environ.get('GITHUB_DISABLE', ''):
-            # environment has notifications disabled. skip actually sending anything to GitHub
-            return True
-        if not (os.environ.get('GITHUB_COMMIT_STATUS_URL') or os.environ.get('BUILD_URL')):
-            # CI job did not come from GITHUB
-            return True
+        # log failure, but don't abort the build
+        logger.error('Got {} response to {} request:'.format(response.status, request_type))
+        logger.error('Request:')
+        logger.error(pprint.pformat(request))
+        logger.error('Response:')
+        logger.error(pprint.pformat(response.read().decode('utf-8')))
+        return False
 
 
-        request = self._build_request(state, message, details_url)
+    def list_contexts(self):
+        '''returns a list of context labels of all statuses in a given commit'''
+        request = self._build_get_list_request()
         response = self._send_request(request)
-        if response.status < 200 or response.status >= 300:
-            # log failure, but don't abort the build
-            logger.error('Got {} response to update request:'.format(response.status))
-            logger.error('Request:')
-            logger.error(pprint.pformat(request))
-            logger.error('Response:')
-            logger.error(pprint.pformat(response.read()))
+        if not self._check_success(response, request, 'status list'):
+            return []
+        return set([status['context'] for status in json.loads(response.read().decode('utf-8'))])
+
+
+    def update(self, state, message='', details_url='', context_label=''):
+        '''sends a commit status update to github.
+        returns True on success or False otherwise.
+        state should be one of the values in 'VALID_STATES'.'''
+        if not context_label:
+            context_label = self._default_context_label
+        if not context_label:
+            raise Exception('Either update() call must provide a context, ' +
+                            'or a default context must have been set')
+
+        start_time_path = os.path.join(
+            tempfile.gettempdir(),
+            'github_update-{}'.format(re.sub('[^0-9a-zA-Z]+', '_', context_label)))
+        if state == PENDING_STATE:
+            start_time_file = open(start_time_path, 'w')
+            start_time_file.write('{}\n'.format(str(time.time())))
+            start_time_file.flush()
+            start_time_file.close()
+        elif os.path.isfile(start_time_path):
+            try:
+                start_time = float(open(start_time_path).read().strip())
+                message = '[{}] {}'.format(self._pretty_duration(time.time() - start_time), message)
+                os.remove(start_time_path)
+            except:
+                message = '[?] {}'.format(message)
+
+        request = self._build_post_update_request(context_label, state, message, details_url)
+        response = self._send_request(request)
+        if not self._check_success(response, request, 'status update'):
             return
-        logger.info('Updated GitHub PR with status: {}'.format(request['path']))
+
+
+def _get_details_link_url():
+    '''returns the url to be included as the details link in the status'''
+    details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL', '') # custom URL via env
+    if not details_url:
+        details_url = os.environ.get('BUILD_URL', '') # provided by jenkins
+        if details_url:
+            details_url += 'console'
+    return details_url
+
+
+def _get_auth_token():
+    github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
+    if not github_token:
+        github_token = os.environ.get('GITHUB_TOKEN', '')
+    if not github_token:
+        raise Exception(
+            'Failed to determine auth token to use with GitHub. ' +
+            'Provide either GITHUB_TOKEN or GITHUB_TOKEN_REPO_STATUS in env.')
+    return github_token
+
+
+def _should_access_github():
+    if not 'WORKSPACE' in os.environ:
+        # not running in CI. skip actually sending anything to GitHub
+        return False
+    if os.environ.get('GITHUB_DISABLE', ''):
+        # environment has notifications disabled. skip actually sending anything to GitHub
+        return False
+    if not (os.environ.get('GITHUB_COMMIT_STATUS_URL') or os.environ.get('BUILD_URL')):
+        # CI job was not triggered by a PR
+        return False
+    return True
 
 
 def print_help(argv):
-    logger.info('Syntax: {} <state: pending|success|error|failure> <context_label> <status message>'.format(argv[0]))
+    logger.info('Syntax:')
+    logger.info('- Update: {} <state: {}> <context_label> [a status message ...]'.format(
+        argv[0], '|'.join(VALID_STATES)))
+    logger.info('- Reset pending: {} reset [a replacement message ...]'.format(argv[0]))
 
 
 def main(argv):
-    if len(argv) < 4:
+    if len(argv) < 2:
         print_help(argv)
         return 1
+
+    updater = GithubStatusUpdater()
     state = argv[1]
-    if state != 'pending' \
-            and state != 'success' \
-            and state != 'error' \
-            and state != 'failure':
+    if state == 'reset':
+        if not _should_access_github():
+            return
+
+        message = ' '.join(argv[2:])
+        contexts = [context for context in updater.list_contexts() if not context in BLACKLISTED_CONTEXT_LABELS]
+        if not contexts:
+            return
+
+        contexts.sort()
+        logger.info('[GH-STATUS] Resetting {} statuses: {}'.format(len(contexts), ', '.join(contexts)))
+        for context_label in contexts:
+            updater.update(PENDING_STATE, message=message, context_label=context_label)
+    elif state in VALID_STATES:
+        if len(argv) < 4:
+            print_help(argv)
+            return 1
+
+        context_label = argv[2]
+        if context_label in BLACKLISTED_CONTEXT_LABELS:
+            logger.error('Requested context label is on the blacklisted list: {}'.format(BLACKLISTED_CONTEXT_LABELS))
+            print_help(argv)
+            return 1
+
+        message = ' '.join(argv[3:])
+        details_url = _get_details_link_url()
+        if details_url:
+            logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
+        else:
+            logmsg = '{} {}: {}'.format(context_label, state, message)
+
+        if _should_access_github():
+            logger.info('[GH-STATUS] {}'.format(logmsg))
+            updater.update(state, message=message, context_label=context_label, details_url=details_url)
+        else:
+            logger.info('[STATUS] {}'.format(logmsg))
+    else:
         print_help(argv)
-        return 1
-    context_label = argv[2]
-    message = ' '.join(argv[3:])
-    GithubStatusUpdater(context_label).update(state, message)
 
 
 if __name__ == '__main__':
