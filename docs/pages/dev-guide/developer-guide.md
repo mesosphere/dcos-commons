@@ -157,6 +157,7 @@ pods:
 
 * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
+
 ### Summary
 
 A set of pods defines *what* your service is. Pods are composed of task definitions.
@@ -258,7 +259,7 @@ plans:
         pod: world-pod
 ```
 
-A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps.
+A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
 
 ![image alt text](image_0.png)
 
@@ -915,14 +916,13 @@ name: "hello-world"
 pods:
   hello:
     count: 1
-    container:
-      image-name: ubuntu
-      networks:
-        dcos: {}
-      rlimits:
-        RLIMIT_NOFILE:
-          soft: 1024
-          hard: 2048
+    image: ubuntu
+    networks:
+      dcos: {}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 1024
+        hard: 2048
     tasks:
       server:
         goal: RUNNING
@@ -1414,8 +1414,7 @@ The proxy allows you to expose more than one endpoint through Admin Router. The 
 web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 pods:
   proxylite:
-    container:
-      image-name: mesosphere/proxylite:2.1.0
+    image: mesosphere/proxylite:2.1.0
     count: 1
     tasks:
       server:

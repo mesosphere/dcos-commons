@@ -29,6 +29,8 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
+
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
  * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
@@ -164,6 +166,20 @@ public class DefaultService implements Service {
         return this.serviceSpec;
     }
 
+    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return DEFAULT_GPU_POLICY;
+    }
+
     protected void startApiServer(
             DefaultScheduler defaultScheduler,
             int apiPort,
@@ -246,6 +262,11 @@ public class DefaultService implements Service {
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
+        }
+
+        if (serviceSpecRequestsGpuResources(serviceSpec)) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
         return fwkInfoBuilder.build();

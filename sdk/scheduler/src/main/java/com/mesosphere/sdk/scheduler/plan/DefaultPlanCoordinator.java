@@ -50,14 +50,14 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
         dirtiedAssets.addAll(planManagers.stream()
-                .filter(planManager -> !planManager.getPlan().isWaiting())
+                .filter(planManager -> !planManager.getPlan().isInterrupted())
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
         LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
 
         for (final PlanManager planManager : getPlanManagers()) {
-            if (planManager.getPlan().isWaiting()) {
+            if (planManager.getPlan().isInterrupted()) {
                 LOGGER.info("Skipping interrupted plan: {}", planManager.getPlan().getName());
                 continue;
             }

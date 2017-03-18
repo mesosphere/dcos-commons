@@ -54,7 +54,8 @@ public class DcosCluster {
      */
     private static URI getUriUnchecked(String path) {
         try {
-            return new URI(path);
+            URI ret = new URI(path);
+            return ret;
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Unable to parse internal URL: " + path, e);
         }

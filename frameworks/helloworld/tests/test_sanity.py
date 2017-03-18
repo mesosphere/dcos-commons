@@ -8,6 +8,7 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
+import sdk_test_upgrade
 
 from tests.config import (
     PACKAGE_NAME,
@@ -184,7 +185,7 @@ def test_state_properties_get():
     def check_for_nonempty_properties():
         stdout = cmd.run_cli('hello-world state properties')
         return len(json.loads(stdout)) > 0
-    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
+    shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
 
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
@@ -221,7 +222,7 @@ def test_state_refresh_disable_cache():
             if "failed: 409 Conflict" in e.args[0]:
                 return True
         return False
-    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
+    shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
@@ -234,7 +235,7 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
         return cmd.run_cli('hello-world state refresh_cache')
-    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
+    stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout
 
 @pytest.mark.sanity
@@ -272,3 +273,10 @@ def test_lock():
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
+
+
+@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
+@pytest.mark.upgrade
+@pytest.mark.sanity
+def test_upgrade_downgrade():
+    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT)
