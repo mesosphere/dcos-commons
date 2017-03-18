@@ -13,10 +13,8 @@ package com.mesosphere.sdk.scheduler.plan;
  * generally not a legal operation so attempting to create a {@link Step} {@link Element} to accomplish this work would
  * result in a {@link Step} with an ERROR state.
  *
- * The WAITING state indicates that some outside entity as interacted with an {@link Element} and indicated that
- * operation should be halted.  This is normally peformed by interrupting the
- * {@link com.mesosphere.sdk.scheduler.plan.strategy.Strategy} associated with an {@link Element}.  Clearing that
- * interruption should return the {@link Element} to an appropriate state, most likely the PENDING state.
+ * The WAITING is a special state only used to show propagating effect of interrupted elements.  It indicates that either current {@link Element} is interrupted or at least one of its children is interrepted. It is only returned by PlanUtils.getStatus(). Status will never set to WAITING and should never be comparating whether it is WAITING or not. 
+Internally, interrupt is a separate state, and isInterrupted() call is used to check whether an {@link Element} is interrupted or not. 
  */
 public enum Status {
 
@@ -28,7 +26,9 @@ public enum Status {
     /**
      * Execution has been interrupted.
      *
-     * This value is only returned and never set to a variable.
+     * This value is only returned by PlanUtils.getStatus.
+     * Status is NEVER set to WAITING. Do not compare whether it is WAITING or not. 
+     * Use isInterrupted() call, interrupt is a separate state internally.
      */
     WAITING,
 
