@@ -34,8 +34,8 @@ import static com.mesosphere.sdk.api.ResponseUtils.plainOkResponse;
 public class EndpointsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsResource.class);
 
-    private static final String RESPONSE_KEY_DIRECT = "direct";
-    private static final String RESPONSE_KEY_NATIVE = "native";
+    private static final String RESPONSE_KEY_DNS = "dns";
+    private static final String RESPONSE_KEY_ADDRESS = "address";
     private static final String RESPONSE_KEY_VIP = "vip";
 
     private final StateStore stateStore;
@@ -189,8 +189,8 @@ public class EndpointsResource {
             String serviceName,
             Map<String, JSONObject> endpointsByName,
             TaskInfo taskInfo,
-            String mesosDnsHostPort,
-            String nativeHostPort,
+            String dnsHostPort,
+            String addressHostPort,
             List<Label> portLabels) throws TaskException {
         // Search for any VIPs to add the above host:port against:
         boolean foundAnyVips = false;
@@ -208,9 +208,9 @@ public class EndpointsResource {
                 endpointsByName.put(vipInfo.name, vipEndpoint);
             }
 
-            // append entry to 'direct' array for this task:
-            vipEndpoint.append(RESPONSE_KEY_DIRECT, mesosDnsHostPort);
-            vipEndpoint.append(RESPONSE_KEY_NATIVE, nativeHostPort);
+            // append entry to 'dns' and 'address' arrays for this task:
+            vipEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
+            vipEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
             // populate 'vip' field if not yet populated (due to another task with the same vip):
             vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.%s:%d",
                     vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port));
@@ -227,8 +227,8 @@ public class EndpointsResource {
             }
 
             // append entry to 'direct' array for this task:
-            taskEndpoint.append(RESPONSE_KEY_DIRECT, mesosDnsHostPort);
-            taskEndpoint.append(RESPONSE_KEY_NATIVE, nativeHostPort);
+            taskEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
+            taskEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
         }
     }
 
