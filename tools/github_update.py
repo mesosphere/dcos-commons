@@ -174,20 +174,23 @@ class GithubStatusUpdater(object):
 
     def _pretty_duration(self, seconds):
         """ Returns a user-friendly representation of the provided duration in seconds.
-        For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
+        For example: 62.8 => "1m3s", or 129837.8 => "1d12h"
         """
-        ret = ''
         if seconds >= 86400:
-            ret += '{:.0f}d'.format(int(seconds / 86400))
-            seconds = seconds % 86400
+            # >= 1day: just do XdYh without minutes/seconds. int cast on days to avoid rounding up.
+            return '{:.0f}d{:.0f}h'.format(int(seconds / 86400), (seconds % 86400) / 3600)
         if seconds >= 3600:
-            ret += '{:.0f}h'.format(int(seconds / 3600))
-            seconds = seconds % 3600
+            # >= 1hr: just do XhYm without seconds. int cast on hours to avoid rounding up.
+            return '{:.0f}h{:.0f}m'.format(int(seconds / 3600), (seconds % 3600) / 60)
+
+        ret = ''
         if seconds >= 60:
+            # int cast to avoid rounding up:
             ret += '{:.0f}m'.format(int(seconds / 60))
             seconds = seconds % 60
         if seconds > 0:
-            ret += '{:.1f}s'.format(seconds)
+            # round to nearest second:
+            ret += '{:.0f}s'.format(seconds)
         return ret
 
 
