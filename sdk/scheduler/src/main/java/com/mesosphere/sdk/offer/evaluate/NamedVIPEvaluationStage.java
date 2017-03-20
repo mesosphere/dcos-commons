@@ -92,6 +92,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
                     portBuilder.setNumber(
                             (int) getResourceRequirement().getResource().getRanges().getRange(0).getBegin());
+                    portBuilder.setVisibility(visibility);
+                    portBuilder.setProtocol(protocol);
                     return true;
                 }
             }
