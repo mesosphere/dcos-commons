@@ -172,6 +172,7 @@ public class YAMLToInternalMappers {
                     })
                     .collect(Collectors.toList()));
         }
+
         // Parse the TaskSpecs
         List<TaskSpec> taskSpecs = new ArrayList<>();
         for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
@@ -217,6 +218,8 @@ public class YAMLToInternalMappers {
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
+            // XXX TODO Left off here, add resourceSets to the rawNetwork -> networkSpec from()?
+            // NO! add just the ports! Then make sure that port mapping isn't specified and map the ports 1:1
             WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
             final Collection<NetworkSpec> networks = new ArrayList<>();
             if (MapUtils.isNotEmpty(rawNetworks)) {
@@ -365,18 +368,23 @@ public class YAMLToInternalMappers {
     }
 
     private static DefaultNetworkSpec from(String networkName, RawNetwork rawNetwork) throws IllegalArgumentException {
-        if (rawNetwork.getContainerPorts().size() != rawNetwork.getHostPorts().size()) {
-            throw new IllegalArgumentException("You need to specify the same number of host ports and container ports");
+        DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder().networkName(networkName);
+        if (rawNetwork.numberOfPortMappings() > 0) {
+            Map<Integer, Integer> portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
+                    .boxed()
+                    .collect(Collectors
+                            .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+            builder.portMappings(portMap);
         }
 
-        Map<Integer, Integer> portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
-                .boxed()
-                .collect(Collectors
-                        .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+        if (rawNetwork.getNetgroups() != null) {
+            Set<String> netgrpupSet = new HashSet<>(rawNetwork.getNetgroups());
+            if (netgrpupSet.size() != rawNetwork.getNetgroups().size()) {
+                throw new IllegalArgumentException("Cannot have repeat netgroups");
+            }
+            builder.netgroups(netgrpupSet);
+        }
 
-        DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder()
-                .networkName(networkName)
-                .portMappings(portMap);
         return builder.build();
     }
 }

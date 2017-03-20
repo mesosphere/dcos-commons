@@ -44,6 +44,9 @@ public class TestConstants {
     public static final int HOST_PORT = 4040;
     public static final int CONTAINER_PORT = 8080;
     public static final int NUMBER_OF_PORT_MAPPINGS = 1;
+    public static final String NETGROUP1 = "mygroup";
+    public static final String NETGROUP2 = "hellogroup";
+
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

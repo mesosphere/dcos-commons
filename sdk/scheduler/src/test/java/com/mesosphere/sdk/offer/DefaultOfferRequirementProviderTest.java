@@ -154,6 +154,9 @@ public class DefaultOfferRequirementProviderTest {
             Assert.assertEquals(TestConstants.HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
             Assert.assertEquals(TestConstants.CONTAINER_PORT, networkInfo
                     .getPortMappings(0).getContainerPort());
+            Assert.assertEquals(2, networkInfo.getGroupsCount());  // ["mygroup", "hellogroup"]
+            Assert.assertTrue(networkInfo.getGroups(0).equals(TestConstants.NETGROUP1));
+            Assert.assertTrue(networkInfo.getGroups(1).equals(TestConstants.NETGROUP2));
         } else {
             Assert.fail();
         }

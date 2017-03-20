@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.fasterxml.jackson.dataformat.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import com.google.common.collect.Iterables;
 
 import org.apache.commons.collections.MapUtils;
@@ -43,6 +44,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import sun.nio.ch.Net;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static com.mesosphere.sdk.testutils.TestConstants.*;
@@ -222,6 +224,76 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validMinimalNetgroups() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-netgroups.yml").getFile());
+        // parse the YAML and check it
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawServiceSpec);
+
+        // get the RawNetwork object and check that the netgroups are correct
+        WriteOnceLinkedHashMap<String, RawNetwork> networks = rawServiceSpec.getPods()
+                .get("meta-data")
+                .getNetworks();
+        Assert.assertTrue(networks.size() == 1);
+        Assert.assertTrue("Didn't find default overlay network 'dcos'",
+                networks.containsKey(OVERLAY_NETWORK_NAME));
+        List<String> netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
+        Assert.assertTrue(netgroups.size() == 2);  // ["mygroup", "testgroup"]
+        Assert.assertTrue(netgroups.get(0).equals("mygroup"));
+        Assert.assertTrue(netgroups.get(1).equals("testgroup"));
+
+        networks = rawServiceSpec.getPods()
+                .get("meta-data-anothergroup")
+                .getNetworks();
+        Assert.assertTrue(networks.size() == 1);
+        Assert.assertTrue("Didn't find default overlay network 'dcos'",
+                networks.containsKey(OVERLAY_NETWORK_NAME));
+        netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
+        Assert.assertTrue(netgroups.size() == 2);  // ["mygroup", "anothergroup"]
+        Assert.assertTrue(netgroups.get(0).equals("mygroup"));
+        Assert.assertTrue(netgroups.get(1).equals("anothergroup"));
+
+        networks = rawServiceSpec.getPods()
+                .get("meta-data-joins-all")
+                .getNetworks();
+        Assert.assertTrue(networks.size() == 1);
+        Assert.assertTrue("Didn't find default overlay network 'dcos'",
+                networks.containsKey(OVERLAY_NETWORK_NAME));
+        netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
+        Assert.assertTrue(netgroups.size() == 0);
+
+        // Now we check the ServiceSpec object
+        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        Assert.assertNotNull(serviceSpec);
+
+        // test that the pods have the correct groups
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            for (NetworkSpec networkSpec : podSpec.getNetworks()) {
+                if (networkSpec.getNetgroups().size() > 0) {
+                    Assert.assertTrue(networkSpec.getNetgroups().size() == 2);
+                    Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
+                    Assert.assertTrue(networkSpec.getNetgroups().contains("anothergroup")
+                            || networkSpec.getNetgroups().contains("testgroup"));
+                } else {
+                    Assert.assertTrue(networkSpec.getNetgroups().size() == 0);
+                }
+            }
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidDuplicateNetgroup() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-netgroup.yml").getFile());
+        generateServiceSpec(generateRawSpecFromYAML(file));
+    }
+
+
+    // TODO port resources to port mapping
+    //
+
+    @Test
     public void invalidDuplicatePodName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
@@ -357,7 +429,8 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
-        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
+        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+                .getName());
     }
 
     @Test
@@ -365,7 +438,8 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
-        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
+        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+                .getName());
     }
 
     @Test(expected = UnrecognizedPropertyException.class)

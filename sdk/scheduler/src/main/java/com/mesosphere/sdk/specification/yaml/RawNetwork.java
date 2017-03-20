@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.AbstractCollection;
 import java.util.List;
 
 /**
@@ -10,12 +11,15 @@ import java.util.List;
 public class RawNetwork {
     private final List<Integer> hostPorts;
     private final List<Integer> containerPorts;
+    private final List<String> netgroups;
 
     private RawNetwork(
+            @JsonProperty("groups") List<String> netgroups,
             @JsonProperty("host-ports") List<Integer> hostPorts,
             @JsonProperty("container-ports") List<Integer> containerPorts) {
-        this.hostPorts = hostPorts;
+        this.hostPorts      = hostPorts;
         this.containerPorts = containerPorts;
+        this.netgroups      = netgroups;
     }
 
     public List<Integer> getHostPorts() {
@@ -26,8 +30,20 @@ public class RawNetwork {
         return containerPorts;
     }
 
-    public Integer numberOfPortMappings() {
-        return Math.min(hostPorts.size(), containerPorts.size());
+    public int numberOfPortMappings() throws IllegalArgumentException {
+        if (hostPorts == null || containerPorts == null) {
+            return 0;
+        }
+        if (hostPorts.size() != containerPorts.size()) {
+            throw new IllegalStateException("You need to specify the same number of host ports and container ports");
+        }
+
+        return hostPorts.size();
     }
+
+    public List<String> getNetgroups() {
+        return netgroups;
+    }
+
 }
 

@@ -7,7 +7,10 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Default implementation of {@link NetworkSpec}. This class encapsulates the Container Network Interface
@@ -18,18 +21,23 @@ public class DefaultNetworkSpec implements NetworkSpec {
     private String networkName;  // name of the overlay network to join, usually 'dcos'
 
     @Valid
+    private Set<String> netgroups;
+
+    @Valid
     private Map<Integer, Integer> portMappings;  // key: host port, value: container port
 
     @JsonCreator
     public DefaultNetworkSpec(
             @JsonProperty("network-name") String networkName,
+            @JsonProperty("netgroups") Set<String> netgroups,
             @JsonProperty("port-mappings") Map<Integer, Integer> portMapings) {
         this.networkName  = networkName;
-        this.portMappings = portMapings;
+        this.netgroups    = netgroups == null ? Collections.emptySet() : netgroups;
+        this.portMappings = portMapings == null ? Collections.emptyMap() : portMapings;
     }
 
     private DefaultNetworkSpec(Builder builder) {
-        this(builder.networkName, builder.portMap);
+        this(builder.networkName, builder.netgroups, builder.portMap);
         ValidationUtils.validate(this);
     }
 
@@ -40,7 +48,8 @@ public class DefaultNetworkSpec implements NetworkSpec {
     public static Builder newBuilder(NetworkSpec copy) {
         Builder builder = new Builder();
         builder.networkName = copy.getName();
-        builder.portMap = copy.getPortMappings();
+        builder.netgroups   = copy.getNetgroups();
+        builder.portMap     = copy.getPortMappings();
 
         return builder;
     }
@@ -48,6 +57,11 @@ public class DefaultNetworkSpec implements NetworkSpec {
     @Override
     public String getName() {
         return networkName;
+    }
+
+    @Override
+    public Set<String> getNetgroups() {
+        return netgroups;
     }
 
     @Override
@@ -71,6 +85,7 @@ public class DefaultNetworkSpec implements NetworkSpec {
     public static final class Builder {
         private Map<Integer, Integer> portMap;
         private String networkName;
+        private Set<String> netgroups;
 
         private Builder() { }
 
@@ -80,7 +95,19 @@ public class DefaultNetworkSpec implements NetworkSpec {
         }
 
         /**
-         * Sets the CNI port mappings.
+         * Sets the netgroups mappings.
+         *
+         * @param netgroups a set of netgroups (identifiers), only containers sharing netgroups will be allowed to
+         *                  communicate with each other.
+         * @return a reference to this builder
+         */
+        public Builder netgroups(Set<String> netgroups) {
+            this.netgroups = netgroups;
+            return this;
+        }
+
+        /**
+         * Sets the host-to-container port mappings.
          *
          * @param portMappings Port mappings to set, host ports are the keys and the container ports are the values
          * @return a reference to this builder

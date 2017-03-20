@@ -572,15 +572,23 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
-        for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
-            Integer hostPort = e.getKey();
-            Integer containerPort = e.getValue();
-            netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
-                    .setHostPort(hostPort)
-                    .setContainerPort(containerPort)
-                    .build());
 
+        if (!networkSpec.getPortMappings().isEmpty()) {
+            for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
+                Integer hostPort = e.getKey();
+                Integer containerPort = e.getValue();
+                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                        .setHostPort(hostPort)
+                        .setContainerPort(containerPort)
+                        .build());
+
+            }
         }
+
+        if (!networkSpec.getNetgroups().isEmpty()) {
+            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
+        }
+
         return netInfoBuilder.build();
     }
 
