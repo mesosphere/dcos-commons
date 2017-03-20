@@ -56,8 +56,8 @@ public class CuratorStateStore implements StateStore {
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
-    private final Persister curator;
-    private final TaskPathMapper taskPathMapper;
+    protected final Persister curator;
+    protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
 
@@ -411,7 +411,10 @@ public class CuratorStateStore implements StateStore {
 
     // Internals
 
-    private static class TaskPathMapper {
+    /**
+     * TaskPathMapper
+     */
+    protected static class TaskPathMapper {
         private final String tasksRootPath;
 
         private TaskPathMapper(String rootPath) {
@@ -422,7 +425,7 @@ public class CuratorStateStore implements StateStore {
             return CuratorUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
         }
 
-        private String getTaskStatusPath(String taskName) {
+        public String getTaskStatusPath(String taskName) {
             return CuratorUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
         }
 

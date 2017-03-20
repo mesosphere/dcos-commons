@@ -1,0 +1,15 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 10
+        memory: 0
+        volumes:
+          index:
+            path: "index-container-path"
+            type: MOUNT
+            size: 10

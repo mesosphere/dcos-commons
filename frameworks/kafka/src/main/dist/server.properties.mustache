@@ -27,7 +27,7 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
-listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
+listeners=PLAINTEXT://:{{KAFKA_PORT}}
 
 # Hostname and port the broker will advertise to producers and consumers. If not set, 
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
@@ -127,7 +127,7 @@ external.kafka.statsd.metrics.exclude_regex=
 advertised.host.name={{LIBPROCESS_IP}}
 {{/KAFKA_ADVERTISE_HOST}}
 
-port={{KAFKA_BROKER_PORT}}
+port={{KAFKA_PORT}}
 
 auto.create.topics.enable={{KAFKA_AUTO_CREATE_TOPICS_ENABLE}}
 auto.leader.rebalance.enable={{KAFKA_AUTO_LEADER_REBALANCE_ENABLE}}

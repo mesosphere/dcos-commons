@@ -62,4 +62,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testYmlWebUrl() throws Exception {
         testYaml("examples/web-url.yml");
     }
+
+    @Test
+    public void testGpuResource() throws Exception {
+        testYaml("examples/gpu_resource.yml");
+    }
 }

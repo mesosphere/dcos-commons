@@ -42,16 +42,18 @@ public class TaskTestUtils {
                 }
             }
 
-            if (!resourceId.isEmpty() && Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
+            if (Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
                 String portValue = dynamicPortAssignment == null ?
                         Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
-                builder.getCommandBuilder()
-                        .getEnvironmentBuilder()
-                        .addVariablesBuilder()
-                        .setName(TestConstants.PORT_ENV_NAME)
-                        .setValue(portValue);
 
-                if (vipAssignment != null) {
+                if (!resourceId.isEmpty()) {
+                    builder.getCommandBuilder()
+                            .getEnvironmentBuilder()
+                            .addVariablesBuilder()
+                            .setName(TestConstants.PORT_ENV_NAME)
+                            .setValue(portValue);
+                }
+                if (!resourceId.isEmpty() && vipAssignment != null) {
                     Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
                     discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
                     discoveryBuilder.setName(builder.getName());
