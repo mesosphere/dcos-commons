@@ -320,6 +320,9 @@ public class ResourceUtils {
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
+        // Ensure Discovery visibility is always CLUSTER.
+        // This is to update visibility if prior info coming from a prior version (old service)is different.
+        builder.setVisibility(DiscoveryInfo.Visibility.CLUSTER);
         return builder;
     }
 
