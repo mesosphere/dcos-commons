@@ -6,7 +6,6 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_tasks as tasks
 
 
@@ -68,7 +67,7 @@ def upgrade_or_downgrade(package_name, running_task_count):
     marathon.destroy_app(package_name)
     install.install(package_name, running_task_count)
     print('Waiting for upgrade / downgrade deployment to complete')
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))
     print('Checking that all tasks have restarted')
     tasks.check_tasks_updated(package_name, '', task_ids)
@@ -105,4 +104,4 @@ def add_last_repo(repo_name, repo_url, prev_version, package_name):
 
 
 def new_default_version_available(prev_version, package_name):
-    spin.time_wait_noisy(lambda: get_pkg_version(package_name) != prev_version)
+    shakedown.wait_for(lambda: get_pkg_version(package_name) != prev_version)
