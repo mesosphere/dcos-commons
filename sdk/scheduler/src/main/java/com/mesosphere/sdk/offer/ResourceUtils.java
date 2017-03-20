@@ -320,7 +320,6 @@ public class ResourceUtils {
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
-        builder.setVisibility(DiscoveryInfo.Visibility.CLUSTER);
         return builder;
     }
 
