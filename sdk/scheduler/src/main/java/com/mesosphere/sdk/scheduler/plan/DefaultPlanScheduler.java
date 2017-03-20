@@ -79,6 +79,11 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return Collections.emptyList();
         }
 
+        if (!(step.isPending() || step.isPrepared())) {
+            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
+            return Collections.emptyList();
+        }
+
         logger.info("Processing resource offers for step: {}", step.getName());
         Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
         if (!podInstanceRequirementOptional.isPresent()) {
