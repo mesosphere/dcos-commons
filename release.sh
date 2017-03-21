@@ -9,6 +9,8 @@ cd $REPO_ROOT_DIR
 # Build and upload Java library to Maven repo:
 ./build.sh
 ./gradlew publish
+./tools/build_publishable.sh
+./tools/release_artifacts.sh
 
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
 # This ensures that builds against different tags don't step on each other.
