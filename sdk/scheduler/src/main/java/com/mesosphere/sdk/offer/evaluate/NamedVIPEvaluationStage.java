@@ -51,6 +51,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
         // If this is an existing TaskInfo or ExecutorInfo with the VIP already set, we don't have to do anything.
         if (getTaskName().isPresent() ) {
+
             boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getTaskBuilder(getTaskName().get()));
 
             if (!didUpdate) {
@@ -58,7 +59,11 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
                 ResourceUtils.addVIP(taskBuilder, vipName, vipPort, protocol, visibility, resource);
             }
-        } else if (podInfoBuilder.getExecutorBuilder().isPresent()) {
+
+        }
+        // TODO(mb): Disabling executor VIPs
+        // - keep the code below for a while till we make sure VIP is not needed in executor
+        /* else if (podInfoBuilder.getExecutorBuilder().isPresent()) {
             boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getExecutorBuilder().get());
 
             if (!didUpdate) {
@@ -66,8 +71,9 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
                 ResourceUtils.addVIP(executorBuilder, vipName, vipPort, protocol, visibility, resource);
             }
-        }
+        }*/
     }
+
 
     private boolean maybeUpdateVIP(Protos.TaskInfo.Builder builder) {
         if (!builder.hasDiscovery()) {
@@ -77,13 +83,17 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return maybeUpdateVIP(builder.getDiscoveryBuilder());
     }
 
-    private boolean maybeUpdateVIP(Protos.ExecutorInfo.Builder builder) {
+    // TODO(mb): Disabling executor VIPs
+    //  - keep the code below for a while till we make sure VIP is not needed in executor
+    /* private boolean maybeUpdateVIP(Protos.ExecutorInfo.Builder builder) {
         if (!builder.hasDiscovery()) {
             return false;
         }
 
         return maybeUpdateVIP(builder.getDiscoveryBuilder());
     }
+    */
+
 
     private boolean maybeUpdateVIP(Protos.DiscoveryInfo.Builder builder) {
         for (Protos.Port.Builder portBuilder : builder.getPortsBuilder().getPortsBuilderList()) {
@@ -101,4 +111,5 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
         return false;
     }
+
 }
