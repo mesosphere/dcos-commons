@@ -92,10 +92,12 @@ def test_losing_and_regaining_index_health(default_populated_index):
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
     shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "master__.*Elasticsearch")
-    check_new_elasticsearch_master_elected(initial_master)
+    new_master = get_elasticsearch_master()
+    assert new_master.startswith("master") and new_master != initial_master
 
 
 @pytest.mark.recovery
