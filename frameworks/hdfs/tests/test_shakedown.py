@@ -8,9 +8,12 @@ import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
 import sdk_utils as utils
+import sdk_spin as spin
+import json
+import traceback
+
 from tests.config import (
     PACKAGE_NAME,
-    check_healthy,
     DEFAULT_TASK_COUNT
 )
 
@@ -370,3 +373,34 @@ def find_java_home(host):
     java_home = output.rstrip()
     print("java_home: {}".format(java_home))
     return java_home
+    
+    
+def check_healthy(count=DEFAULT_TASK_COUNT):
+    service_plan_complete("deploy")
+    service_plan_complete("recovery")
+    tasks.check_running(PACKAGE_NAME, count)
+
+    
+def service_plan_complete(plan_name):
+    def fun():
+        try:
+            pl = service_cli('plan show {}'.format(plan_name))
+            print('Running service_plan_complete for plan {}'.format(plan_name))
+            print(pl)
+            print('status = {}'.format(pl['status']))
+            if pl['status'] == 'COMPLETE':
+                return True
+        except:
+            traceback.print_exc()
+            return False
+        print('Plan {} is not complete ({})'.format(plan_name, pl['status']))
+        return False
+
+    return spin.time_wait_return(fun)
+
+
+def service_cli(cmd_str):
+    full_cmd = '{} {}'.format(PACKAGE_NAME, cmd_str)
+    ret_str = cmd.run_cli(full_cmd)
+    return json.loads(ret_str)
+

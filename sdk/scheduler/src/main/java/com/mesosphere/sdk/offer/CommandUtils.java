@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.CommandSpec;
+import org.apache.mesos.Protos;
+
+import java.util.Map;
 
 /**
  * This class provides utility methods for the construction of {@link org.apache.mesos.Protos.CommandInfo} protobufs
@@ -9,12 +11,13 @@ import com.mesosphere.sdk.specification.CommandSpec;
  */
 public class CommandUtils {
 
-    public static Protos.CommandInfo addEnvVar(
-            Protos.CommandInfo command,
+    public static Protos.CommandInfo setEnvVar(
+            Protos.CommandInfo.Builder builder,
             String key,
             String value) {
-        Protos.CommandInfo.Builder builder = command.toBuilder();
-        builder.getEnvironmentBuilder().addVariablesBuilder().setName(key).setValue(value);
+        Map<String, String> envMap = CommonTaskUtils.fromEnvironmentToMap(builder.getEnvironment());
+        envMap.put(key, value);
+        builder.setEnvironment(CommonTaskUtils.fromMapToEnvironment(envMap));
         return builder.build();
     }
 

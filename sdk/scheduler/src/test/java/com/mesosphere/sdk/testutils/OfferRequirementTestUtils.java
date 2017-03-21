@@ -149,14 +149,30 @@ public class OfferRequirementTestUtils {
 
     public static final EnvironmentVariables getApiPortEnvironment() {
         EnvironmentVariables env = new EnvironmentVariables();
-        env.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        for (Map.Entry<String, String> entry : getApiPortMap().entrySet()) {
+            env.set(entry.getKey(), entry.getValue());
+        }
         return env;
     }
 
     public static EnvironmentVariables getOfferRequirementProviderEnvironment() {
-        EnvironmentVariables env = getApiPortEnvironment();
-        env.set("EXECUTOR_URI", "test-executor-uri");
-        env.set("LIBMESOS_URI", "test-libmesos-uri");
+        EnvironmentVariables env = new EnvironmentVariables();
+        for (Map.Entry<String, String> entry : getOfferRequirementProviderMap().entrySet()) {
+            env.set(entry.getKey(), entry.getValue());
+        }
+        return env;
+    }
+
+    public static final Map<String, String> getApiPortMap() {
+        Map<String, String> env = new HashMap<>();
+        env.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        return env;
+    }
+
+    public static Map<String, String> getOfferRequirementProviderMap() {
+        Map<String, String> env = getApiPortMap();
+        env.put("EXECUTOR_URI", "test-executor-uri");
+        env.put("LIBMESOS_URI", "test-libmesos-uri");
         return env;
     }
 }

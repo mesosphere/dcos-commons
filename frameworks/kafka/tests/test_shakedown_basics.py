@@ -9,6 +9,8 @@ import dcos
 import dcos.config
 import dcos.http
 
+import urllib
+
 from tests.test_utils import (
     DEFAULT_PARTITION_COUNT,
     DEFAULT_REPLICATION_FACTOR,
@@ -43,12 +45,12 @@ def teardown_module(module):
 def test_endpoints_address():
     def fun():
         ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
-        if len(ret['native']) == DEFAULT_BROKER_COUNT:
+        if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
     address = spin.time_wait_return(fun)
     assert len(address) == 3
-    assert len(address['direct']) == DEFAULT_BROKER_COUNT
+    assert len(address['dns']) == DEFAULT_BROKER_COUNT
 
 
 @pytest.mark.smoke
@@ -268,7 +270,7 @@ def test_pods_cli():
 
 
 @pytest.mark.smoke
-@pytest.mark.smoke
+@pytest.mark.sanity
 def test_suppress():
     dcos_url = dcos.config.get_config_val('core.dcos_url')
     suppressed_url = urllib.parse.urljoin(dcos_url,
