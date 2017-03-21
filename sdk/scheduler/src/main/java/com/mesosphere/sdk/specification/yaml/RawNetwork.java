@@ -31,10 +31,6 @@ public class RawNetwork {
         this(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
-    //private RawNetwork(@JsonProperty("groups") List<String> netgroups) {
-    //    this(netgroups, Collections.emptyList(), Collections.emptyList());
-    //}
-
     public List<Integer> getHostPorts() {
         return hostPorts;
     }
