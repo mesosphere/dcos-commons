@@ -155,9 +155,13 @@ public class DefaultResourceSet implements ResourceSet {
             return addScalarResource(cpus, "cpus");
         }
 
-        public Builder gpus(Double gpus) { return addScalarResource(gpus, "gpus"); }
+        public Builder gpus(Double gpus) {
+            return addScalarResource(gpus, "gpus");
+        }
 
-        public Builder memory(Double memory) { return addScalarResource(memory, "mem"); }
+        public Builder memory(Double memory) {
+            return addScalarResource(memory, "mem");
+        }
 
         public Builder addVolume(String volumeType,
                                  Double size,

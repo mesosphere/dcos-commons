@@ -84,12 +84,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         if (getTaskName().isPresent()) {
             String taskName = getTaskName().get();
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-            taskBuilder.setCommand(withPortEnvironmentVariable(taskBuilder.getCommand(), port));
+            setPortEnvironmentVariable(taskBuilder.getCommandBuilder(), port);
 
             // Add port to the health check (if defined)
             if (taskBuilder.hasHealthCheck()) {
-                taskBuilder.getHealthCheckBuilder().setCommand(
-                        withPortEnvironmentVariable(taskBuilder.getHealthCheckBuilder().getCommand(), port));
+                setPortEnvironmentVariable(taskBuilder.getHealthCheckBuilder().getCommandBuilder(), port);
             } else {
                 LOGGER.info("Health check is not defined for task: {}", taskName);
             }
@@ -98,10 +97,10 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             try {
                 Optional<Protos.HealthCheck> readinessCheck = CommonTaskUtils.getReadinessCheck(taskBuilder.build());
                 if (readinessCheck.isPresent()) {
-                    Protos.HealthCheck readinessCheckWithPort = Protos.HealthCheck.newBuilder(readinessCheck.get())
-                            .setCommand(withPortEnvironmentVariable(readinessCheck.get().getCommand(), port))
-                            .build();
-                    CommonTaskUtils.setReadinessCheck(taskBuilder, readinessCheckWithPort);
+                    Protos.HealthCheck.Builder readinessCheckWithPortBuilder =
+                            Protos.HealthCheck.newBuilder(readinessCheck.get());
+                    setPortEnvironmentVariable(readinessCheckWithPortBuilder.getCommandBuilder(), port);
+                    CommonTaskUtils.setReadinessCheck(taskBuilder, readinessCheckWithPortBuilder.build());
                 } else {
                     LOGGER.info("Readiness check is not defined for task: {}", taskName);
                 }
@@ -111,7 +110,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            executorBuilder.setCommand(withPortEnvironmentVariable(executorBuilder.getCommand(), port));
+            setPortEnvironmentVariable(executorBuilder.getCommandBuilder(), port);
             resourceBuilder = ResourceUtils.getResourceBuilder(executorBuilder, resource);
         }
 
@@ -164,8 +163,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         return dynamicPort;
     }
 
-    private Protos.CommandInfo withPortEnvironmentVariable(Protos.CommandInfo commandInfo, long port) {
-        return CommandUtils.addEnvVar(commandInfo, getPortEnvironmentVariable(), Long.toString(port));
+    private void setPortEnvironmentVariable(Protos.CommandInfo.Builder commandInfoBuilder, long port) {
+        CommandUtils.setEnvVar(commandInfoBuilder, getPortEnvironmentVariable(), Long.toString(port));
     }
 
     /**
