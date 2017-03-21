@@ -4,14 +4,14 @@ pods:
     count: 1
     networks:
       dcos:
-        groups: ["mygroup", "hellogroup"]
-        host-ports: [4040]
-        container-ports: [8080]
     tasks:
       meta-data-task:
         goal: RUNNING
         cmd: "./task-cmd"
         cpus: 0.1
+        ports:
+          http:
+            port: 8080
         memory: 512
         discovery:
           prefix: meta-data

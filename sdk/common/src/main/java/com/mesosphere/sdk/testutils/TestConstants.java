@@ -46,6 +46,8 @@ public class TestConstants {
     public static final int NUMBER_OF_PORT_MAPPINGS = 1;
     public static final String NETGROUP1 = "mygroup";
     public static final String NETGROUP2 = "hellogroup";
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    public static final String IPADDRESS1 = "172.16.254.1";
 
 
     public static final Protos.MasterInfo MASTER_INFO =

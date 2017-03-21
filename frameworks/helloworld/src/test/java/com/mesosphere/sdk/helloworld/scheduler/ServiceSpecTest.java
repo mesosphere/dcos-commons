@@ -65,6 +65,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @Test
     public void testNetwork() throws Exception {
-        testYaml("examples/cni.yml");
+        testYaml("examples/cni-minimal.yml");
     }
 }

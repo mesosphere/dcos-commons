@@ -152,7 +152,6 @@ public class YAMLToInternalMappers {
                 .type(podName)
                 .user(rawPod.getUser());
 
-        List<Integer> ports = new ArrayList<>();
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
@@ -172,10 +171,6 @@ public class YAMLToInternalMappers {
                                 principal);
                     })
                     .collect(Collectors.toList()));
-            // collect the ports from the resource sets to add to the port-mapping later
-            rawResourceSets.values()
-                    .forEach(rawResourceSet -> rawResourceSet.getPorts().values()
-                            .forEach(rawPort -> ports.add(rawPort.getPort())));
         }
 
         // Parse the TaskSpecs
@@ -230,10 +225,7 @@ public class YAMLToInternalMappers {
                         .map(rawNetworkEntry -> {
                             String networkName = rawNetworkEntry.getKey();
                             RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            rawPod.getTasks().values()
-                                    .forEach(rawTask -> rawTask.getPorts().values()
-                                            .forEach(rawPort -> ports.add(rawPort.getPort())));
-                            return from(networkName, rawNetwork, ports);
+                            return from(networkName, rawNetwork, collatePorts(rawPod));
                         })
                         .collect(Collectors.toList()));
             }
@@ -380,22 +372,20 @@ public class YAMLToInternalMappers {
         DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder().networkName(networkName);
         Map<Integer, Integer> portMap = new HashMap<>();
         if (rawNetwork.numberOfPortMappings() > 0) {
-            // zip the host and container ports together in a map
+            // zip the host and container ports together
             portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
                     .boxed().collect(Collectors
                             .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
-            builder.portMappings(portMap);
         }
-
         if (ports.size() > 0) {
             for (Integer port : ports) {
-                // check if we have the container port mapped to something,
-                // if not, do a 1:1 (host:container) mapping
+                // iterate over the task ports and if they aren't being remapped do a 1:1 (host:container) mapping
                 if (!portMap.values().contains(port)) {
                     portMap.put(port, port);
                 }
             }
         }
+        builder.portMappings(portMap);
 
         if (rawNetwork.getNetgroups() != null) {
             Set<String> netgrpupSet = new HashSet<>(rawNetwork.getNetgroups());
@@ -405,6 +395,35 @@ public class YAMLToInternalMappers {
             builder.netgroups(netgrpupSet);
         }
 
+        if (rawNetwork.getIpAddresses() != null) {
+            Set<String> ipAddressSet = new HashSet<>(rawNetwork.getIpAddresses());
+            if (ipAddressSet.size() != rawNetwork.getIpAddresses().size()) {
+                throw new IllegalArgumentException("Cannot have repeat IP address requests");
+            }
+            builder.ipAddresses(ipAddressSet);
+        }
+
         return builder.build();
+    }
+
+    private static Collection<Integer> collatePorts(RawPod rawPod) {
+        List<Integer> ports = new ArrayList<>();
+        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
+        if (MapUtils.isNotEmpty(rawResourceSets)) {
+            // iterate over the resource sets and add the ports to our collection, if there are any
+            for (RawResourceSet rawResourceSet : rawResourceSets.values()) {
+                if (rawResourceSet.getPorts() != null) {
+                    rawResourceSet.getPorts().values().forEach(rawPort -> ports.add(rawPort.getPort()));
+                }
+            }
+        }
+
+        for (RawTask rawTask : rawPod.getTasks().values()) {
+            WriteOnceLinkedHashMap<String, RawPort> rawPorts = rawTask.getPorts();
+            if (rawPorts != null) {
+                rawPorts.values().forEach(rawPort -> ports.add(rawPort.getPort()));
+            }
+        }
+        return ports;
     }
 }

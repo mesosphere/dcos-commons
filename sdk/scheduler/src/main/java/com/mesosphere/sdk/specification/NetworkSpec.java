@@ -19,4 +19,7 @@ public interface NetworkSpec {
 
     @JsonProperty("netgroups")
     Set<String> getNetgroups();
+
+    @JsonProperty("ip-addresses")
+    Set<String> getIpAddresses();
 }

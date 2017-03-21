@@ -581,12 +581,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
                         .build());
-
             }
         }
 
         if (!networkSpec.getNetgroups().isEmpty()) {
             netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
+        }
+
+        if (!networkSpec.getIpAddresses().isEmpty()) {
+            Collection<Protos.NetworkInfo.IPAddress> ipAddresses = new ArrayList<>();
+            for (String ipAddressString : networkSpec.getIpAddresses()) {
+                ipAddresses.add(Protos.NetworkInfo.IPAddress.newBuilder()
+                    .setIpAddress(ipAddressString).build());
+            }
+            netInfoBuilder.addAllIpAddresses(ipAddresses);
         }
 
         return netInfoBuilder.build();

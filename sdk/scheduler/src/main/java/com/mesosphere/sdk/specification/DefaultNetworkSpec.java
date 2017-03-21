@@ -7,7 +7,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -26,18 +25,23 @@ public class DefaultNetworkSpec implements NetworkSpec {
     @Valid
     private Map<Integer, Integer> portMappings;  // key: host port, value: container port
 
+    @Valid
+    private Set<String> ipAddresses;  // container requests for specific IP addresses
+
     @JsonCreator
     public DefaultNetworkSpec(
             @JsonProperty("network-name") String networkName,
             @JsonProperty("netgroups") Set<String> netgroups,
-            @JsonProperty("port-mappings") Map<Integer, Integer> portMapings) {
+            @JsonProperty("port-mappings") Map<Integer, Integer> portMapings,
+            @JsonProperty("ip-addresses") Set<String> ipAddresses) {
         this.networkName  = networkName;
         this.netgroups    = netgroups == null ? Collections.emptySet() : netgroups;
         this.portMappings = portMapings == null ? Collections.emptyMap() : portMapings;
+        this.ipAddresses  = ipAddresses == null ? Collections.emptySet() : ipAddresses;
     }
 
     private DefaultNetworkSpec(Builder builder) {
-        this(builder.networkName, builder.netgroups, builder.portMap);
+        this(builder.networkName, builder.netgroups, builder.portMap, builder.ipAddresses);
         ValidationUtils.validate(this);
     }
 
@@ -50,6 +54,7 @@ public class DefaultNetworkSpec implements NetworkSpec {
         builder.networkName = copy.getName();
         builder.netgroups   = copy.getNetgroups();
         builder.portMap     = copy.getPortMappings();
+        builder.ipAddresses = copy.getIpAddresses();
 
         return builder;
     }
@@ -62,6 +67,11 @@ public class DefaultNetworkSpec implements NetworkSpec {
     @Override
     public Set<String> getNetgroups() {
         return netgroups;
+    }
+
+    @Override
+    public Set<String> getIpAddresses() {
+        return ipAddresses;
     }
 
     @Override
@@ -86,6 +96,7 @@ public class DefaultNetworkSpec implements NetworkSpec {
         private Map<Integer, Integer> portMap;
         private String networkName;
         private Set<String> netgroups;
+        private Set<String> ipAddresses;
 
         private Builder() { }
 
@@ -114,6 +125,17 @@ public class DefaultNetworkSpec implements NetworkSpec {
          */
         public Builder portMappings(Map<Integer, Integer> portMappings) {
             this.portMap = portMappings;
+            return this;
+        }
+
+        /**
+         * Sets the IP/Container addresses that this network is going to request.
+         *
+         * @param ipAddresses list of IP addresses for the container to request
+         * @return a reference to this builder
+         */
+        public Builder ipAddresses(Set<String> ipAddresses) {
+            this.ipAddresses = ipAddresses;
             return this;
         }
 

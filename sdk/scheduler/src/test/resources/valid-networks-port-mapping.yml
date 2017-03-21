@@ -1,10 +1,11 @@
+# exhaustive network (CNI) service spec yaml
 name: "hello-world"
 pods:
   pod-type:
     count: 1
-    image: group/image
     networks:
       dcos:
+        groups: ["mygroup", "hellogroup"]
         ip-addresses: ["172.16.254.1"]
         host-ports: [4040]
         container-ports: [8080]

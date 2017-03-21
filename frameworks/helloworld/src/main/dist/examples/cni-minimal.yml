@@ -4,9 +4,7 @@ pods:
     count: {{HELLO_COUNT}}
     networks:
       dcos:
-        #groups: ["mygroup"]
-        host-ports: [4040]
-        container-ports: [8080]
+        groups: ["mygroup"]
     resource-sets:
       hello-resource:
         cpus: {{HELLO_CPUS}}

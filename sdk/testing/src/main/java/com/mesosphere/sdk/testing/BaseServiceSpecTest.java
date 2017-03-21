@@ -40,7 +40,9 @@ public class BaseServiceSpecTest {
 
     protected void deserializeServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        //DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());

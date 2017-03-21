@@ -26,7 +26,6 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.when;
 
 import javax.validation.ConstraintViolation;
@@ -290,7 +289,7 @@ public class DefaultServiceSpecTest {
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         Assert.assertNotNull(rawServiceSpec);
         Assert.assertEquals(rawServiceSpec
-                .getPods().get("meta-data")
+                .getPods().get("pod-type")
                 .getNetworks().get(OVERLAY_NETWORK_NAME)
                 .numberOfPortMappings(), 0);
         Assert.assertTrue(rawServiceSpec
@@ -302,9 +301,62 @@ public class DefaultServiceSpecTest {
                 .getNetworks().get(OVERLAY_NETWORK_NAME)
                 .numberOfPortMappings() == 2);
 
+        // Check that the raw service spec was correctly translated into the ServiceSpec
         ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
         Assert.assertNotNull(serviceSpec);
+        Assert.assertTrue(serviceSpec.getPods().size() == 4);
+        // check the first pod
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        Assert.assertTrue(podSpec.getNetworks().size() == 1);
+        NetworkSpec networkSpec = Iterables.get(podSpec.getNetworks(), 0);
+        Assert.assertTrue(networkSpec.getNetgroups().size() == 0);
+        Assert.assertTrue(networkSpec.getPortMappings().size() == 1);
+        Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
+        // check the second pod
+        podSpec = serviceSpec.getPods().get(1);
+        Assert.assertTrue(podSpec.getNetworks().size() == 1);
+        networkSpec = Iterables.get(podSpec.getNetworks(), 0);
+        Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
+        Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
+        Assert.assertTrue(networkSpec.getPortMappings().get(8081) == 8081);
+        // check the third pod
+        podSpec = serviceSpec.getPods().get(2);
+        Assert.assertTrue(podSpec.getNetworks().size() == 1);
+        networkSpec = Iterables.get(podSpec.getNetworks(), 0);
+        Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
+        Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
+        Assert.assertTrue(networkSpec.getPortMappings().get(8081) == 8081);
+        Assert.assertTrue(networkSpec.getNetgroups().size() == 1);
+        Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
+        // check the fourth and final
+        podSpec = serviceSpec.getPods().get(3);
+        Assert.assertTrue(podSpec.getNetworks().size() == 1);
+        networkSpec = Iterables.get(podSpec.getNetworks(), 0);
+        Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
+        Assert.assertTrue(networkSpec.getPortMappings().get(4040)== 8080);
+        Assert.assertTrue(networkSpec.getPortMappings().get(4041) == 8081);
+        Assert.assertTrue(networkSpec.getNetgroups().size() == 1);
+        Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
+    }
 
+    @Test
+    public void validIpContainerMapping() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-ip-container-mapping.yml").getFile());
+        // parse the YAML and make sure it's correct
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawServiceSpec);
+        Assert.assertTrue(rawServiceSpec.getPods().get("meta-data").getNetworks().size() == 1);
+        RawNetwork rawNetwork = Iterables
+                .get(rawServiceSpec.getPods().get("meta-data").getNetworks().values(), 0);
+        Assert.assertTrue(rawNetwork.getIpAddresses().size() == 1);
+        Assert.assertTrue(rawNetwork.getIpAddresses().get(0).equals(IPADDRESS1));
+
+        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        Assert.assertNotNull(serviceSpec);
+        NetworkSpec networkSpec = Iterables.get(serviceSpec.getPods().get(0).getNetworks(), 0);
+        Assert.assertTrue(networkSpec.getIpAddresses().size() == 1);
+        Assert.assertTrue(networkSpec.getIpAddresses().contains(IPADDRESS1));
     }
 
     @Test(expected = IllegalArgumentException.class)
