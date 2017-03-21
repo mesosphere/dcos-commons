@@ -777,7 +777,6 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(step.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
-
         defaultScheduler.resourceOffers(mockSchedulerDriver, offers);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
                 (Collection<Protos.OfferID>) Matchers.argThat(contains(offerId)),

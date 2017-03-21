@@ -104,11 +104,6 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public String getMessage() {
-        return PlanUtils.getMessage(this);
-    }
-
-    @Override
     public List<String> getErrors() {
         return errors;
     }

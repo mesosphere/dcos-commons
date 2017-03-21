@@ -45,12 +45,12 @@ def teardown_module(module):
 def test_endpoints_address():
     def fun():
         ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
-        if len(ret['native']) == DEFAULT_BROKER_COUNT:
+        if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
     address = spin.time_wait_return(fun)
     assert len(address) == 3
-    assert len(address['direct']) == DEFAULT_BROKER_COUNT
+    assert len(address['dns']) == DEFAULT_BROKER_COUNT
 
 
 @pytest.mark.smoke

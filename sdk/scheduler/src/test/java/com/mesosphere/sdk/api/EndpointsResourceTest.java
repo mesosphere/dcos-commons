@@ -176,46 +176,46 @@ public class EndpointsResourceTest {
         JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1", null).getEntity());
         assertEquals(3, vip1.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
-        JSONArray direct = vip1.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
-        assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
-        JSONArray native_ = vip1.getJSONArray("native");
-        assertEquals(2, native_.length());
-        assertEquals(TestConstants.HOSTNAME + ":2345", native_.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3456", native_.get(1));
+        JSONArray dns = vip1.getJSONArray("dns");
+        assertEquals(2, dns.length());
+        assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
+        assertEquals("vips-2.svc-name.mesos:3456", dns.get(1));
+        JSONArray address = vip1.getJSONArray("address");
+        assertEquals(2, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
 
         JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", null).getEntity());
         assertEquals(3, vip2.length());
         assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
-        direct = vip2.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals("vips-1.svc-name.mesos:2346", direct.get(0));
-        assertEquals("vips-2.svc-name.mesos:3457", direct.get(1));
-        native_ = vip2.getJSONArray("native");
-        assertEquals(2, native_.length());
-        assertEquals(TestConstants.HOSTNAME + ":2346", native_.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3457", native_.get(1));
+        dns = vip2.getJSONArray("dns");
+        assertEquals(2, dns.length());
+        assertEquals("vips-1.svc-name.mesos:2346", dns.get(0));
+        assertEquals("vips-2.svc-name.mesos:3457", dns.get(1));
+        address = vip2.getJSONArray("address");
+        assertEquals(2, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":2346", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3457", address.get(1));
 
         JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type", null).getEntity());
         assertEquals(2, taskType.length());
-        direct = taskType.getJSONArray("direct");
-        assertEquals(6, direct.length());
-        assertEquals("ports-1.svc-name.mesos:1234", direct.get(0));
-        assertEquals("ports-1.svc-name.mesos:1235", direct.get(1));
+        dns = taskType.getJSONArray("dns");
+        assertEquals(6, dns.length());
+        assertEquals("ports-1.svc-name.mesos:1234", dns.get(0));
+        assertEquals("ports-1.svc-name.mesos:1235", dns.get(1));
         // This task's DiscoveryInfo doesn't have a name set, so it should use the task name for its Mesos-DNS prefix.
-        assertEquals("with-ports-2.svc-name.mesos:1243", direct.get(2));
-        assertEquals("with-ports-2.svc-name.mesos:1244", direct.get(3));
-        assertEquals("vips-1.svc-name.mesos:2348", direct.get(4));
-        assertEquals("vips-2.svc-name.mesos:3459", direct.get(5));
-        native_ = taskType.getJSONArray("native");
-        assertEquals(6, native_.length());
-        assertEquals(TestConstants.HOSTNAME + ":1234", native_.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":1235", native_.get(1));
-        assertEquals(TestConstants.HOSTNAME + ":1243", native_.get(2));
-        assertEquals(TestConstants.HOSTNAME + ":1244", native_.get(3));
-        assertEquals(TestConstants.HOSTNAME + ":2348", native_.get(4));
-        assertEquals(TestConstants.HOSTNAME + ":3459", native_.get(5));
+        assertEquals("with-ports-2.svc-name.mesos:1243", dns.get(2));
+        assertEquals("with-ports-2.svc-name.mesos:1244", dns.get(3));
+        assertEquals("vips-1.svc-name.mesos:2348", dns.get(4));
+        assertEquals("vips-2.svc-name.mesos:3459", dns.get(5));
+        address = taskType.getJSONArray("address");
+        assertEquals(6, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":1235", address.get(1));
+        assertEquals(TestConstants.HOSTNAME + ":1243", address.get(2));
+        assertEquals(TestConstants.HOSTNAME + ":1244", address.get(3));
+        assertEquals(TestConstants.HOSTNAME + ":2348", address.get(4));
+        assertEquals(TestConstants.HOSTNAME + ":3459", address.get(5));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -227,14 +227,14 @@ public class EndpointsResourceTest {
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 3, json.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
-        JSONArray direct = json.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
-        assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
-        JSONArray native_ = json.getJSONArray("native");
-        assertEquals(2, native_.length());
-        assertEquals(TestConstants.HOSTNAME + ":2345", native_.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3456", native_.get(1));
+        JSONArray dns = json.getJSONArray("dns");
+        assertEquals(2, dns.length());
+        assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
+        assertEquals("vips-2.svc-name.mesos:3456", dns.get(1));
+        JSONArray address = json.getJSONArray("address");
+        assertEquals(2, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
     }
 
     @Test

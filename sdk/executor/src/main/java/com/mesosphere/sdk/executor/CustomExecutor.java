@@ -148,7 +148,7 @@ public class CustomExecutor implements Executor {
                     try {
                         Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
                         if (optionalHealthCheckStats.isPresent()) {
-                            LOGGER.error("Check exited with statistics: {}", optionalHealthCheckStats.get());
+                            LOGGER.info("Check exited with statistics: {}", optionalHealthCheckStats.get());
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         LOGGER.error("Failed to get check stats with exception: ", e);
