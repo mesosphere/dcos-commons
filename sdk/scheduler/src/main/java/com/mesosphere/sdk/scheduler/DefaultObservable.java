@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation of the Observable interface.
@@ -10,7 +10,7 @@ public class DefaultObservable implements Observable {
     private Set<Observer> observers;
 
     public DefaultObservable() {
-        observers = new HashSet<>();
+        observers = ConcurrentHashMap.newKeySet();
     }
 
     @Override

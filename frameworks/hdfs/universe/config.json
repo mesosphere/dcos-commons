@@ -218,6 +218,11 @@
           "description": "The HTTP port for HDFS Name Nodes. ",
           "default": 9002
         },
+        "zkfc_port": {
+          "type": "integer",
+          "description": "The port for ZKFC Nodes. ",
+          "default": 8019
+        },
         "journal_node_rpc_port": {
           "type": "integer",
           "description": "The RPC port used by Journal Nodes.",
