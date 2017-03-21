@@ -77,6 +77,7 @@ public class Main {
         return CommonTaskUtils.applyEnvToMustache(fileStr, env);
     }
 
+
     private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
             throws Exception {
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
@@ -91,18 +92,13 @@ public class Main {
                 .placementRule(new AndRule(TaskTypeRule.avoid("name"), TaskTypeRule.avoid("journal")))
                 .build();
 
-        // ZKFC nodes avoid themselves and colocate with name nodes.
-        PodSpec zkfc = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "zkfc"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("zkfc"), TaskTypeRule.colocateWith("name")))
-                .build();
-
         // Data nodes avoid themselves.
         PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "data"))
                 .placementRule(TaskTypeRule.avoid("data"))
                 .build();
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
-                .pods(Arrays.asList(journal, name, zkfc, data))
+                .pods(Arrays.asList(journal, name, data))
                 .build();
     }
 

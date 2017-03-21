@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.Observable;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
@@ -50,33 +49,8 @@ public class DefaultPhase extends ChainedObserver implements Phase {
     }
 
     @Override
-    public Status getStatus() {
-        return PlanUtils.getStatus(this);
-    }
-
-    @Override
-    public void update(Protos.TaskStatus status) {
-        PlanUtils.update(this, status);
-    }
-
-    @Override
-    public void restart() {
-        PlanUtils.restart(this);
-    }
-
-    @Override
-    public void forceComplete() {
-        PlanUtils.forceComplete(this);
-    }
-
-    @Override
-    public String getMessage() {
-        return PlanUtils.getMessage(this);
-    }
-
-    @Override
     public List<String> getErrors() {
-        return PlanUtils.getErrors(errors, this);
+        return getErrors(errors);
     }
 
     @Override

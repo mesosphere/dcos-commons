@@ -59,7 +59,9 @@ public class RawTask {
         return cpus;
     }
 
-    public Double getGpus() { return gpus; }
+    public Double getGpus() {
+        return gpus;
+    }
 
     public Integer getMemory() {
         return memory;

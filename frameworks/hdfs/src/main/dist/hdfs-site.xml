@@ -95,6 +95,11 @@
         <value>0.0.0.0</value>
     </property>
 
+    <property>
+        <name>dfs.ha.zkfc.port</name>
+        <value>{{ZKFC_PORT}}</value>
+    </property>
+
     <!-- journalnode -->
     <property>
         <name>dfs.journalnode.rpc-address</name>

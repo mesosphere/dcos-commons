@@ -33,7 +33,9 @@ public class RawResourceSet {
         return cpus;
     }
 
-    public Double getGpus() { return gpus; }
+    public Double getGpus() {
+        return gpus;
+    }
 
     public Integer getMemory() {
         return memory;
