@@ -412,7 +412,7 @@ public class CuratorStateStore implements StateStore {
     // Internals
 
     /**
-     * TaskPathMapper
+     * TaskPathMapper.
      */
     protected static class TaskPathMapper {
         private final String tasksRootPath;
