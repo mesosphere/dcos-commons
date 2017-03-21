@@ -32,6 +32,7 @@ public class CapabilityValidatorTest {
     @Test
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
@@ -43,6 +44,7 @@ public class CapabilityValidatorTest {
     @Test
     public void testSpecSucceedsWithRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
@@ -58,6 +60,7 @@ public class CapabilityValidatorTest {
     @Test(expected = CapabilityValidator.CapabilityValidationException.class)
     public void testSpecFailsWithRLimitsButWithoutCapability() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
@@ -68,5 +71,44 @@ public class CapabilityValidatorTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
 
         capabilityValidator.validate(serviceSpec);
+    }
+
+    // TODO (arand) needs to be updated for GPU resource set
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenGpuResourceNotSupported() throws Exception {
+        when(mockCapabilities.supportsGpuResource()).thenReturn(false);
+        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+
+        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+
+        File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
+
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    // TODO (arand) needs to be updated for GPU resource set
+    @Test
+    public void testSpecSucceedsWhenGpuResourceIsSupported() throws Exception {
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
+        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+
+        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+
+        File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
+
+        capabilityValidator.validate(serviceSpec);
+
+        when(mockCapabilities.supportsRLimits()).thenReturn(true);
+        File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
+        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), mockFileReader);
+
+        capabilityValidator.validate(serviceSpec);
+
     }
 }

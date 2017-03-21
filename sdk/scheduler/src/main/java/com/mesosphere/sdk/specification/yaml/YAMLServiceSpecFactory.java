@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Generates {@link ServiceSpec} from a given YAML definition.
@@ -35,16 +36,26 @@ public class YAMLServiceSpecFactory {
     @VisibleForTesting
     public static class FileReader {
         public String read(String path) throws IOException {
-            return FileUtils.readFileToString(new File(path), "UTF-8");
+            return FileUtils.readFileToString(new File(path), CHARSET);
         }
     }
 
     public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml) throws Exception {
-        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET));
+        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET), System.getenv());
+    }
+
+    public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml, Map<String, String> env)
+            throws Exception {
+        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET), env);
     }
 
     public static final RawServiceSpec generateRawSpecFromYAML(final String yaml) throws Exception {
-        final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
+        return generateRawSpecFromYAML(yaml, System.getenv());
+    }
+
+    public static final RawServiceSpec generateRawSpecFromYAML(final String yaml, Map<String, String> env)
+            throws Exception {
+        final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, env);
         LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
         if (!CommonTaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");

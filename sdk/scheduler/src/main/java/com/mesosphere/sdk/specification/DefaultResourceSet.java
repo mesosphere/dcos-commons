@@ -132,6 +132,27 @@ public class DefaultResourceSet implements ResourceSet {
             volumes = new LinkedList<>();
         }
 
+        private Builder addScalarResource(Double r, String resourceId) {
+            DefaultResourceSpec resource = DefaultResourceSpec.newBuilder()
+                    .name(resourceId)
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(r))
+                            .build())
+                    .build();
+            if (resources.stream()
+                    .anyMatch(resourceSpecification -> Objects.equals(resourceSpecification.getName(), resourceId))) {
+                String msg = String.format("Cannot configure multiple %s resources in a single ResourceSet",
+                        resourceId);
+                throw new IllegalStateException(msg);
+            }
+
+            resources.add(resource);
+            return this;
+        }
+
         /**
          * Sets the {@code id} and returns a reference to this Builder so that the methods can be chained together.
          *
@@ -144,40 +165,15 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         public Builder cpus(Double cpus) {
-            DefaultResourceSpec cpuResource = DefaultResourceSpec.newBuilder()
-                    .name("cpus")
-                    .role(role)
-                    .principal(principal)
-                    .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.SCALAR)
-                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
-                            .build())
-                    .build();
-            if (resources.stream()
-                    .anyMatch(resourceSpecification -> Objects.equals(resourceSpecification.getName(), "cpus"))) {
-                throw new IllegalStateException("Cannot configure multiple cpus resources in a single ResourceSet");
-            }
+            return addScalarResource(cpus, "cpus");
+        }
 
-            resources.add(cpuResource);
-            return this;
+        public Builder gpus(Double gpus) {
+            return addScalarResource(gpus, "gpus");
         }
 
         public Builder memory(Double memory) {
-            DefaultResourceSpec memoryResource = DefaultResourceSpec.newBuilder()
-                    .name("mem")
-                    .role(role)
-                    .principal(principal)
-                    .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.SCALAR)
-                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
-                            .build())
-                    .build();
-            if (resources.stream()
-                    .anyMatch(resourceSpecification -> Objects.equals(resourceSpecification.getName(), "mem"))) {
-                throw new IllegalStateException("Cannot configure multiple memory resources in a single ResourceSet");
-            }
-            resources.add(memoryResource);
-            return this;
+            return addScalarResource(memory, "mem");
         }
 
         public Builder addVolume(String volumeType,
