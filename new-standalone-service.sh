@@ -50,6 +50,7 @@ debug "Scaffolding $PROJECT_NAME from template"
 
 cp -R frameworks/template $PROJECT_PATH/$PROJECT_NAME
 cp -R tools $PROJECT_PATH/$PROJECT_NAME/tools
+cp -R testing $PROJECT_PATH/$PROJECT_NAME/testing
 cp ./.gitignore $PROJECT_PATH/$PROJECT_NAME
 rm -rf $PROJECT_PATH/$PROJECT_NAME/build
 rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/*.whl
@@ -77,8 +78,39 @@ ${FRAMEWORK_DIR}/tools/build_framework.sh $PUBLISH_STEP $REPO_NAME $FRAMEWORK_DI
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1
 EOF
-
 chmod +x $PROJECT_PATH/$PROJECT_NAME/build.sh
+
+cat > $PROJECT_PATH/$PROJECT_NAME/settings.gradle << EOF
+rootProject.name = '$PROJECT_NAME'
+EOF
+
+cat > $PROJECT_PATH/$PROJECT_NAME/tests/__init__.py << EOF
+import sys
+import os.path
+
+# Add /testing/ to PYTHONPATH:
+this_file_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.normpath(os.path.join(this_file_dir, '..', 'testing')))
+EOF
+
+cat > $PROJECT_PATH/$PROJECT_NAME/test.sh << 'EOF'
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z "$CLUSTER_URL" ]; then
+    if [ -z "$1" ]; then
+        echo "Syntax: $0 <cluster-url>, or CLUSTER_URL=<cluster-url> $0"
+        exit 1
+    fi
+    export CLUSTER_URL=$1
+fi
+
+REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${REPO_ROOT_DIR}/tests/
+EOF
+chmod +x $PROJECT_PATH/$PROJECT_NAME/test.sh
+
 mv $PROJECT_PATH/$PROJECT_NAME/cli/dcos-template $PROJECT_PATH/$PROJECT_NAME/cli/dcos-$PROJECT_NAME
 mv $PROJECT_PATH/$PROJECT_NAME/src/main/java/com/mesosphere/sdk/template/ $PROJECT_PATH/$PROJECT_NAME/src/main/java/com/mesosphere/sdk/$PROJECT_NAME/
 mv $PROJECT_PATH/$PROJECT_NAME/src/test/java/com/mesosphere/sdk/template/ $PROJECT_PATH/$PROJECT_NAME/src/test/java/com/mesosphere/sdk/$PROJECT_NAME/
