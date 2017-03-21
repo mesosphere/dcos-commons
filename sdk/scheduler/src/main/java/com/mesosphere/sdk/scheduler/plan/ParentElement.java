@@ -88,8 +88,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
      * @return a combined list of all errors from the parent and all its children.
      */
     default List<String> getErrors(List<String> parentErrors) {
-        // Note that this function MUST NOT call parent.getErrors() as that creates a circular call.
-        List<String> errors = new ArrayList<>(); // copy list to avoid modifying parentErrors in-place
+        List<String> errors = new ArrayList<>();
         errors.addAll(parentErrors);
         Collection<? extends Element> children = getChildren();
         children.forEach(element -> errors.addAll(element.getErrors()));
