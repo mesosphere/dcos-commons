@@ -124,7 +124,7 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
             }
         }
 
-        return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
+        return getPlan().getCandidates(dirtyAssets).stream()
                 .filter(step ->
                         launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryType()))
                 .collect(Collectors.toList());

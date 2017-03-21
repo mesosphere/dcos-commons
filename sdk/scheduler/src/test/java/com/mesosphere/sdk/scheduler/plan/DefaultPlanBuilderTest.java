@@ -11,6 +11,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Collection;
 import java.util.Collections;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -53,11 +54,15 @@ public class DefaultPlanBuilderTest {
         planBuilder.addDependency(phase1, phase0);
         DefaultPlan plan = planBuilder.build();
 
+        when(phase0.isComplete()).thenReturn(false);
+        when(phase0.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase0, getCandidates(plan).iterator().next());
 
         when(phase0.isComplete()).thenReturn(true);
-        when(phase0.isPending()).thenReturn(false);
+        when(phase0.isEligible(any(Collection.class))).thenReturn(false);
+        when(phase1.isComplete()).thenReturn(false);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase1, getCandidates(plan).iterator().next());
 
@@ -66,12 +71,14 @@ public class DefaultPlanBuilderTest {
         Assert.assertEquals(phase1, getCandidates(plan).iterator().next());
 
         when(phase1.isComplete()).thenReturn(true);
-        when(phase1.isPending()).thenReturn(false);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(false);
+        when(phase2.isComplete()).thenReturn(false);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase2, getCandidates(plan).iterator().next());
 
         when(phase2.isComplete()).thenReturn(true);
-        when(phase2.isPending()).thenReturn(false);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertTrue(getCandidates(plan).isEmpty());
     }
 
@@ -82,22 +89,25 @@ public class DefaultPlanBuilderTest {
         planBuilder.add(phase2);
         DefaultPlan plan = planBuilder.build();
 
+        when(phase0.isEligible(any(Collection.class))).thenReturn(true);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(true);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(3, getCandidates(plan).size());
 
         when(phase0.isComplete()).thenReturn(true);
-        when(phase0.isPending()).thenReturn(false);
+        when(phase0.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertEquals(2, getCandidates(plan).size());
 
         // Try again, shouldn't change.
         Assert.assertEquals(2, getCandidates(plan).size());
 
         when(phase2.isComplete()).thenReturn(true);
-        when(phase2.isPending()).thenReturn(false);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase1, getCandidates(plan).iterator().next());
 
         when(phase1.isComplete()).thenReturn(true);
-        when(phase1.isPending()).thenReturn(false);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertTrue(getCandidates(plan).isEmpty());
     }
 
@@ -109,15 +119,18 @@ public class DefaultPlanBuilderTest {
         planBuilder.addDependency(phase2, phase0);
         DefaultPlan plan = planBuilder.build();
 
+        when(phase0.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase0, getCandidates(plan).iterator().next());
 
         when(phase0.isComplete()).thenReturn(true);
-        when(phase0.isPending()).thenReturn(false);
+        when(phase0.isEligible(any(Collection.class))).thenReturn(false);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(true);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(2, getCandidates(plan).size());
 
         when(phase1.isComplete()).thenReturn(true);
-        when(phase1.isPending()).thenReturn(false);
+        when(phase1.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase2, getCandidates(plan).iterator().next());
 
@@ -126,12 +139,13 @@ public class DefaultPlanBuilderTest {
         Assert.assertEquals(phase2, getCandidates(plan).iterator().next());
 
         when(phase2.isComplete()).thenReturn(true);
-        when(phase2.isPending()).thenReturn(false);
+        when(phase2.isEligible(any(Collection.class))).thenReturn(false);
+        when(phase3.isEligible(any(Collection.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(plan).size());
         Assert.assertEquals(phase3, getCandidates(plan).iterator().next());
 
         when(phase3.isComplete()).thenReturn(true);
-        when(phase3.isPending()).thenReturn(false);
+        when(phase3.isEligible(any(Collection.class))).thenReturn(false);
         Assert.assertTrue(getCandidates(plan).isEmpty());
     }
 
