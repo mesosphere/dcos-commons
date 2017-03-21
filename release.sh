@@ -9,6 +9,8 @@ cd $REPO_ROOT_DIR
 # Build and upload Java library to Maven repo:
 ./build.sh
 ./gradlew publish
+
+# Scripts below expects S3_BUCKET and SDK_VERSION env vars. To be supplied by Jenkins.
 ./tools/build_publishable.sh
 ./tools/release_artifacts.sh
 
