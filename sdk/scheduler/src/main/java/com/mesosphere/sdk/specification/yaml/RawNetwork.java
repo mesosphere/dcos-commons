@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,6 +16,7 @@ public class RawNetwork {
     private final List<Integer> containerPorts;
     private final List<String> netgroups;
 
+    @JsonCreator
     private RawNetwork(
             @JsonProperty("groups") List<String> netgroups,
             @JsonProperty("host-ports") List<Integer> hostPorts,
@@ -20,6 +24,14 @@ public class RawNetwork {
         this.hostPorts      = hostPorts;
         this.containerPorts = containerPorts;
         this.netgroups      = netgroups;
+    }
+
+    private RawNetwork(String name) {
+        this(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    }
+
+    private RawNetwork(@JsonProperty("groups") List<String> netgroups) {
+        this(netgroups, Collections.emptyList(), Collections.emptyList());
     }
 
     public List<Integer> getHostPorts() {

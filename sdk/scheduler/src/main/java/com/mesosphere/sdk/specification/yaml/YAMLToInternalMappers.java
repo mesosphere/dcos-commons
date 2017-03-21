@@ -152,6 +152,7 @@ public class YAMLToInternalMappers {
                 .type(podName)
                 .user(rawPod.getUser());
 
+        List<Integer> ports = new ArrayList<>();
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
@@ -171,6 +172,10 @@ public class YAMLToInternalMappers {
                                 principal);
                     })
                     .collect(Collectors.toList()));
+            // collect the ports from the resource sets to add to the port-mapping later
+            rawResourceSets.values()
+                    .forEach(rawResourceSet -> rawResourceSet.getPorts().values()
+                            .forEach(rawPort -> ports.add(rawPort.getPort())));
         }
 
         // Parse the TaskSpecs
@@ -218,8 +223,6 @@ public class YAMLToInternalMappers {
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
-            // XXX TODO Left off here, add resourceSets to the rawNetwork -> networkSpec from()?
-            // NO! add just the ports! Then make sure that port mapping isn't specified and map the ports 1:1
             WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
             final Collection<NetworkSpec> networks = new ArrayList<>();
             if (MapUtils.isNotEmpty(rawNetworks)) {
@@ -227,7 +230,10 @@ public class YAMLToInternalMappers {
                         .map(rawNetworkEntry -> {
                             String networkName = rawNetworkEntry.getKey();
                             RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            return from(networkName, rawNetwork);
+                            rawPod.getTasks().values()
+                                    .forEach(rawTask -> rawTask.getPorts().values()
+                                            .forEach(rawPort -> ports.add(rawPort.getPort())));
+                            return from(networkName, rawNetwork, ports);
                         })
                         .collect(Collectors.toList()));
             }
@@ -367,14 +373,28 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultNetworkSpec from(String networkName, RawNetwork rawNetwork) throws IllegalArgumentException {
+    private static DefaultNetworkSpec from(
+            String networkName,
+            RawNetwork rawNetwork,
+            Collection<Integer> ports) throws IllegalArgumentException {
         DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder().networkName(networkName);
+        Map<Integer, Integer> portMap = new HashMap<>();
         if (rawNetwork.numberOfPortMappings() > 0) {
-            Map<Integer, Integer> portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
-                    .boxed()
-                    .collect(Collectors
+            // zip the host and container ports together in a map
+            portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
+                    .boxed().collect(Collectors
                             .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
             builder.portMappings(portMap);
+        }
+
+        if (ports.size() > 0) {
+            for (Integer port : ports) {
+                // check if we have the container port mapped to something,
+                // if not, do a 1:1 (host:container) mapping
+                if (!portMap.values().contains(port)) {
+                    portMap.put(port, port);
+                }
+            }
         }
 
         if (rawNetwork.getNetgroups() != null) {

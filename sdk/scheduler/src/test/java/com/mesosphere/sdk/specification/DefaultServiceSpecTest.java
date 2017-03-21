@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import com.google.common.collect.Iterables;
 
 import org.apache.commons.collections.MapUtils;
@@ -26,6 +25,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.when;
 
 import javax.validation.ConstraintViolation;
@@ -44,7 +45,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import sun.nio.ch.Net;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static com.mesosphere.sdk.testutils.TestConstants.*;
@@ -282,16 +282,37 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test
+    public void validCniPortForwarding() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-automatic-cni-port-mapping.yml").getFile());
+        // load the raw service spec and check that it parsed correctly
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawServiceSpec);
+        Assert.assertEquals(rawServiceSpec
+                .getPods().get("meta-data")
+                .getNetworks().get(OVERLAY_NETWORK_NAME)
+                .numberOfPortMappings(), 0);
+        Assert.assertTrue(rawServiceSpec
+                .getPods().get("meta-data-with-group")
+                .getNetworks().get(OVERLAY_NETWORK_NAME)
+                .getNetgroups().contains("mygroup"));
+        Assert.assertTrue(rawServiceSpec
+                .getPods().get("meta-data-with-port-mapping")
+                .getNetworks().get(OVERLAY_NETWORK_NAME)
+                .numberOfPortMappings() == 2);
+
+        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        Assert.assertNotNull(serviceSpec);
+
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void invalidDuplicateNetgroup() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-netgroup.yml").getFile());
         generateServiceSpec(generateRawSpecFromYAML(file));
     }
-
-
-    // TODO port resources to port mapping
-    //
 
     @Test
     public void invalidDuplicatePodName() throws Exception {

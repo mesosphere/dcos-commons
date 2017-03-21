@@ -11,9 +11,6 @@ pods:
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
         cpus: 0.1
         memory: 512
-        ports:
-          http:
-            port: 8080
         volume:
           path: "meta-data-container-path"
           type: ROOT
