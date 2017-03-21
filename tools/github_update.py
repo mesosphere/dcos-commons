@@ -8,6 +8,7 @@
 #   GITHUB_REPO_PATH (optional): path to repo to update (e.g. mesosphere/spark)
 
 import base64
+import datetime
 import json
 import logging
 import os
@@ -104,14 +105,24 @@ class RepoInfo(object):
         return re_match.group(1)
 
 
-class GithubStatusUpdater(object):
+    def github_auth_token(self):
+        github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
+        if not github_token:
+            github_token = os.environ.get('GITHUB_TOKEN', '')
+        if not github_token:
+            raise Exception(
+                'Failed to determine auth token to use with GitHub. ' +
+                'Provide either GITHUB_TOKEN or GITHUB_TOKEN_REPO_STATUS in env.')
+        return github_token
 
-    def __init__(self, default_context_label = ''):
+
+class GithubAPI(object):
+
+    def __init__(self, repo_orgname, commit_sha, github_token):
         info = RepoInfo()
-        self._repo_orgname = info.repo_orgname()
-        self._commit_sha = info.commit_sha()
-        self._github_token = _get_auth_token()
-        self._default_context_label = default_context_label
+        self._repo_orgname = repo_orgname
+        self._commit_sha = commit_sha
+        self._github_token = github_token
 
 
     def _build_post_update_request(self, context_label, state, message, details_url):
@@ -148,7 +159,7 @@ class GithubStatusUpdater(object):
 
 
     def _send_request(self, request, debug = False):
-        '''sends the provided request which was created by _build_post_update_request()'''
+        '''sends the provided request which was created by _build_post_update_request() or _build_get_list_request()'''
         # note: we insert the auth header at the very last minute,
         #       to ensure that upstream doesn't log the auth header
         request_headers_with_auth = request['headers'].copy()
@@ -172,28 +183,6 @@ class GithubStatusUpdater(object):
         return conn.getresponse()
 
 
-    def _pretty_duration(self, seconds):
-        """ Returns a user-friendly representation of the provided duration in seconds.
-        For example: 62.8 => "1m3s", or 129837.8 => "1d12h"
-        """
-        if seconds >= 86400:
-            # >= 1day: just do XdYh without minutes/seconds. int cast on days to avoid rounding up.
-            return '{:.0f}d{:.0f}h'.format(int(seconds / 86400), (seconds % 86400) / 3600)
-        if seconds >= 3600:
-            # >= 1hr: just do XhYm without seconds. int cast on hours to avoid rounding up.
-            return '{:.0f}h{:.0f}m'.format(int(seconds / 3600), (seconds % 3600) / 60)
-
-        ret = ''
-        if seconds >= 60:
-            # int cast to avoid rounding up:
-            ret += '{:.0f}m'.format(int(seconds / 60))
-            seconds = seconds % 60
-        if seconds > 0:
-            # round to nearest second:
-            ret += '{:.0f}s'.format(seconds)
-        return ret
-
-
     def _check_success(self, response, request, request_type):
         if 200 <= response.status < 300:
             return True
@@ -206,13 +195,31 @@ class GithubStatusUpdater(object):
         return False
 
 
-    def list_contexts(self):
-        '''returns a list of context labels of all statuses in a given commit'''
+    def get_commit_statuses(self):
         request = self._build_get_list_request()
         response = self._send_request(request)
         if not self._check_success(response, request, 'status list'):
             return []
-        return set([status['context'] for status in json.loads(response.read().decode('utf-8'))])
+        return json.loads(response.read().decode('utf-8'))
+
+
+    def set_commit_status(self, context_label, state, message, details_url):
+        self._build_post_update_request(context_label, state, message, details_url)
+        self._send_request(request)
+        self._check_success(response, request, 'status update'):
+
+
+class GithubStatusUpdater(object):
+
+    def __init__(self, default_context_label = ''):
+        info = RepoInfo()
+        self._api = GithubAPI(info.repo_orgname(), info.commit_sha(), info.github_auth_token())
+        self._default_context_label = default_context_label
+
+
+    def list_contexts(self):
+        '''returns a set of context labels of all statuses in a given commit'''
+        return set([status['context'] for status in self._api.get_commit_statuses()])
 
 
     def update(self, state, message='', details_url='', context_label=''):
@@ -229,22 +236,22 @@ class GithubStatusUpdater(object):
             tempfile.gettempdir(),
             'github_update-{}'.format(re.sub('[^0-9a-zA-Z]+', '_', context_label)))
         if state == PENDING_STATE:
+            # store start time to tmp file:
             start_time_file = open(start_time_path, 'w')
             start_time_file.write('{}\n'.format(str(time.time())))
             start_time_file.flush()
             start_time_file.close()
         elif os.path.isfile(start_time_path):
+            # when available, get start time from tmp file and include duration in message:
             try:
                 start_time = float(open(start_time_path).read().strip())
-                message = '[{}] {}'.format(self._pretty_duration(time.time() - start_time), message)
+                # omit fractional seconds from duration:
+                message = '[{}] {}'.format(datetime.timedelta(seconds=round(time.time()) - start_time), message)
                 os.remove(start_time_path)
             except:
                 message = '[?] {}'.format(message)
 
-        request = self._build_post_update_request(context_label, state, message, details_url)
-        response = self._send_request(request)
-        if not self._check_success(response, request, 'status update'):
-            return
+        self._api.set_commit_status(context_label, state, message, details_url)
 
 
 def _get_details_link_url():
@@ -255,17 +262,6 @@ def _get_details_link_url():
         if details_url:
             details_url += 'console'
     return details_url
-
-
-def _get_auth_token():
-    github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
-    if not github_token:
-        github_token = os.environ.get('GITHUB_TOKEN', '')
-    if not github_token:
-        raise Exception(
-            'Failed to determine auth token to use with GitHub. ' +
-            'Provide either GITHUB_TOKEN or GITHUB_TOKEN_REPO_STATUS in env.')
-    return github_token
 
 
 def _should_access_github():
@@ -288,51 +284,59 @@ def print_help(argv):
     logger.info('- Reset pending: {} reset [a replacement message ...]'.format(argv[0]))
 
 
+def reset_states(message):
+    if not _should_access_github():
+        # reset disabled due to local build, exit silently
+        return 0
+
+    contexts = [context for context in updater.list_contexts() if not context in BLACKLISTED_CONTEXT_LABELS]
+    if not contexts:
+        # nothing to reset, exit silently
+        return 0
+
+    contexts.sort()
+    logger.info('[GH-STATUS] Resetting {} statuses: {}'.format(len(contexts), ', '.join(contexts)))
+    for context_label in contexts:
+        updater.update(PENDING_STATE, message=message, context_label=context_label)
+    return 0
+
+
+def set_state(state, context_label, message):
+    if context_label in BLACKLISTED_CONTEXT_LABELS:
+        logger.error('Requested context label is on the blacklisted list: {}'.format(BLACKLISTED_CONTEXT_LABELS))
+        return 1
+
+    details_url = _get_details_link_url()
+    if details_url:
+        logmsg = '{} {}: {} ({})'.format(context_label, command, message, details_url)
+    else:
+        logmsg = '{} {}: {}'.format(context_label, command, message)
+
+    if _should_access_github():
+        logger.info('[GH-STATUS] {}'.format(logmsg))
+        updater.update(command, message=message, context_label=context_label, details_url=details_url)
+    else:
+        logger.info('[STATUS] {}'.format(logmsg))
+    return 0
+
+
 def main(argv):
     if len(argv) < 2:
         print_help(argv)
         return 1
 
     updater = GithubStatusUpdater()
-    state = argv[1]
-    if state == 'reset':
-        if not _should_access_github():
-            return
-
-        message = ' '.join(argv[2:])
-        contexts = [context for context in updater.list_contexts() if not context in BLACKLISTED_CONTEXT_LABELS]
-        if not contexts:
-            return
-
-        contexts.sort()
-        logger.info('[GH-STATUS] Resetting {} statuses: {}'.format(len(contexts), ', '.join(contexts)))
-        for context_label in contexts:
-            updater.update(PENDING_STATE, message=message, context_label=context_label)
-    elif state in VALID_STATES:
+    command = argv[1]
+    if command == 'reset':
+        return reset_states(' '.join(argv[2:]))
+    elif command in VALID_STATES:
         if len(argv) < 4:
             print_help(argv)
             return 1
-
-        context_label = argv[2]
-        if context_label in BLACKLISTED_CONTEXT_LABELS:
-            logger.error('Requested context label is on the blacklisted list: {}'.format(BLACKLISTED_CONTEXT_LABELS))
-            print_help(argv)
-            return 1
-
-        message = ' '.join(argv[3:])
-        details_url = _get_details_link_url()
-        if details_url:
-            logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
-        else:
-            logmsg = '{} {}: {}'.format(context_label, state, message)
-
-        if _should_access_github():
-            logger.info('[GH-STATUS] {}'.format(logmsg))
-            updater.update(state, message=message, context_label=context_label, details_url=details_url)
-        else:
-            logger.info('[STATUS] {}'.format(logmsg))
+        return set_state(command, argv[2], ' '.join(argv[3:]))
     else:
         print_help(argv)
+        return 1
 
 
 if __name__ == '__main__':
