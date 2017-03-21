@@ -79,6 +79,6 @@ def test_upgrade():
      
     address = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
     assert len(address) == 3     
-    assert len(address['native']) == DEFAULT_BROKER_COUNT
-    assert len(address['direct']) == DEFAULT_BROKER_COUNT
+    assert len(address['dns']) == DEFAULT_BROKER_COUNT
+    assert len(address['address']) == DEFAULT_BROKER_COUNT
 
