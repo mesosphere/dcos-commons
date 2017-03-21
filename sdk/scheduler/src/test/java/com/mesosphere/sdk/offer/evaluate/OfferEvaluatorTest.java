@@ -2,7 +2,9 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -12,11 +14,15 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.testutils.*;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -1026,6 +1032,18 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 deploymentStep.start().get(),
                 Arrays.asList(sufficientOffer));
         Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
+
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
