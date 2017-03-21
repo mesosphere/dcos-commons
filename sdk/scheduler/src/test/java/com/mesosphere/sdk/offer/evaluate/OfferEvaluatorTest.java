@@ -2,7 +2,9 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -14,7 +16,6 @@ import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import org.junit.*;
 import org.mockito.Mock;
 
@@ -973,6 +974,58 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+    }
+
+    @Test
+    public void testReplaceDeployStep() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal-volume.yml").getFile());
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.create(podInstance, Arrays.asList("task-name"));
+        DeploymentStep deploymentStep = new DeploymentStep(
+                "test-step",
+                Status.PENDING,
+                podInstanceRequirement,
+                Collections.emptyList());
+
+        Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
+                ResourceUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceUtils.getUnreservedScalar("mem", 1024),
+                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                deploymentStep.start().get(),
+                Arrays.asList(sufficientOffer));
+
+        Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
+        Operation launchOperation = recommendations.get(4).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        recordOperations(recommendations);
+
+        deploymentStep.updateOfferStatus(recommendations);
+        Assert.assertEquals(Status.STARTING, deploymentStep.getStatus());
+
+        // Simulate an initial failure to deploy.  Perhaps the CREATE operation failed
+        deploymentStep.update(
+                TaskStatus.newBuilder()
+                        .setTaskId(taskInfo.getTaskId())
+                        .setState(TaskState.TASK_ERROR)
+                        .build());
+
+        Assert.assertEquals(Status.PENDING, deploymentStep.getStatus());
+        stateStore.storeTasks(Arrays.asList(FailureUtils.markFailed(taskInfo)));
+
+        Assert.assertTrue(FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskInfo.getName()).get()));
+
+        recommendations = evaluator.evaluate(
+                deploymentStep.start().get(),
+                Arrays.asList(sufficientOffer));
+        Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
