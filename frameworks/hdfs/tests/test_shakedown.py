@@ -393,7 +393,7 @@ def service_plan_complete(plan_name):
         print('Plan {} is not complete ({})'.format(plan_name, pl['status']))
         return False
 
-    return shakedown.wait_for(fun)
+    return shakedown.wait_for(fun, timeout_seconds=15*60)
 
 
 def service_cli(cmd_str):
