@@ -1,7 +1,7 @@
 ---
 post_title: Install and Customize
 menu_order: 10
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 

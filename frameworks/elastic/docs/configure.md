@@ -1,7 +1,7 @@
 ---
 post_title: Configuring
 menu_order: 30
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 

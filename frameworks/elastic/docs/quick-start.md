@@ -1,14 +1,15 @@
 ---
 post_title: Quick Start
 menu_order: 0
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
-1. Install an Elasticsearch cluster with Kibana and log on to the Mesos master node.
+1. Perform a default installation by following the instructions in the Install and Customize section of this topic.
+
+1. SSH into the master node.
 
   ```bash
-  dcos package install --app elastic
   dcos node ssh --master-proxy --leader
   ```
 

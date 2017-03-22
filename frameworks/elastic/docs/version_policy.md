@@ -1,7 +1,7 @@
 ---
 post_title: Version Policy
 menu_order: 48
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
