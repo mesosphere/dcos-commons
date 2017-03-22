@@ -84,7 +84,6 @@ def _launch_cluster(launch_config=None):
     cluster_info = launch_ccm_cluster.start_cluster(launcher, github_label,
                                                     start_stop_attempts,
                                                     launch_config)
-    print(cluster_info) # XXX
     cluster = ClusterInfo(cluster_info["url"], cluster_info["auth_token"],
             cluster_id=cluster_info["id"])
     return cluster

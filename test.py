@@ -183,7 +183,6 @@ def _action_wrapper(action_name, framework, function, *args):
         return val
     except:
         framework.finish_action_fail(action_name)
-        # TODO: maybe make some choice re reraise vs return None or some other marker
         raise
 
 def build_and_upload(run_attrs=parse_args([])):
@@ -201,6 +200,7 @@ def build_and_upload(run_attrs=parse_args([])):
         _action_wrapper("build %s" % framework.name,
                 framework, func, *args)
 
+# TODO: consider moving this to Nexus
 def _upload_proxylite(framework):
     logger.info("trying to push proxylite to docker [1/2]")
     cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
