@@ -54,6 +54,9 @@ function run_framework_tests {
 echo "Beginning integration tests at "`date`
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# XXX -- test only; to test this in the PR
+exec $REPO_ROOT_DIR/test.py "$@"
 cd $REPO_ROOT_DIR
 
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
