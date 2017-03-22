@@ -9,16 +9,29 @@ Specifically:
 """
 
 import os
+import time
 
 import launch_ccm_cluster
 
 # holds info objects
 _clusters = []
 
-def start_cluster(launch_config=None):
-    cluster = _launch_cluster(launch_config)
+def start_cluster(launch_config=None, reporting_name=None):
+    if not reporting_name:
+        reporting_name="only_cluster"
+
+    _launch_recorder.start(reporting_name)
+    try:
+        cluster = _launch_cluster(launch_config)
+        _launch_recorder.finish_ok(reporting_name, cluster)
+    except:
+        _launch_recorder.finish_fail(reporting_name)
+        raise
     _clusters.append(cluster)
     return cluster
+
+def get_launch_attempts():
+    return _launch_recorder.get_list()
 
 def add_running_cluster(url, auth_token):
     cluster = ClusterInfo(url, auth_token, external=True)
@@ -97,3 +110,48 @@ class ClusterInfo(object):
 
     def is_running(self):
         return True
+
+
+class _LaunchRecorder(object):
+    class Entry(object):
+        def __init__(self, name):
+            self.name = name
+            self.launch_succeeded = None
+            self.clust_info = None
+            self.start_time = time.time()
+            self.end_time = None
+
+    def __init__(self):
+        self.launch_list = []
+
+    def get_list(self):
+        return self.launch_list
+
+    def get_ent(self, name):
+        for ent in self.launch_list:
+            if ent.name == name:
+                return ent
+        return None
+
+    def start(self, name):
+        if self.get_ent(name):
+            raise Exception("No duplicate launch names.")
+        entry = self.Entry(name)
+        self.launch_list.append(entry)
+
+    def finish_ok(self, name, cluster):
+        ent = self.get_ent(name)
+        if not ent:
+            raise Exception("finish_ok() called on unknown name=%s" % name)
+        ent.end_time = time.time()
+        ent.launch_succeeded = True
+        ent.cluster = cluster
+
+    def finish_fail(self, name):
+        ent = self.get_ent(name)
+        if not ent:
+            raise Exception("finish_fail() called on unknown name=%s" % name)
+        ent.end_time = time.time()
+        ent.launch_succeeded = False
+
+_launch_recorder = _LaunchRecorder()
