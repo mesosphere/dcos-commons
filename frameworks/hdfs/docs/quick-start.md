@@ -1,6 +1,6 @@
 ---
 post_title: Kick the Tires
-menu_order: 0
+menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
 ---
