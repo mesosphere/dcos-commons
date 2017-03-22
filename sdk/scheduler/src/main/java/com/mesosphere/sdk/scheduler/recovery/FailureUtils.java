@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,8 +37,7 @@ public class FailureUtils {
         if (isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }
-        taskInfo = ResourceUtils.clearResourceIds(taskInfo);
-        taskInfo = ResourceUtils.clearPersistence(taskInfo);
+        taskInfo = TaskUtils.clearReservations(Arrays.asList(taskInfo)).stream().findFirst().get();
         return Protos.TaskInfo.newBuilder(taskInfo)
                 .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
                         .addLabels(Protos.Label.newBuilder()
