@@ -42,11 +42,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
                 podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
-        String taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable());
+        Optional<String> taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable());
         int assignedPort = port;
 
-        if (assignedPort == 0 && taskPort != null) {
-            assignedPort = Integer.parseInt(taskPort);
+        if (assignedPort == 0 && taskPort.isPresent()) {
+            assignedPort = Integer.parseInt(taskPort.get());
         } else if (assignedPort == 0) {
             Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
             if (!dynamicPort.isPresent()) {

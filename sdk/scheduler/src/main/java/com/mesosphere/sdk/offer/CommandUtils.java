@@ -4,6 +4,7 @@ import com.mesosphere.sdk.specification.CommandSpec;
 import org.apache.mesos.Protos;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class provides utility methods for the construction of {@link org.apache.mesos.Protos.CommandInfo} protobufs
@@ -24,18 +25,18 @@ public class CommandUtils {
     }
 
     /**
-     * Returns the value of the provided environment variable, or {@code null} if no matching environment variable was
-     * found.
+     * Returns the value of the provided environment variable, or an empty {@link Optional} if no matching environment
+     * variable was found.
      */
-    public static String getEnvVar(Protos.CommandInfo command, String key) {
+    public static Optional<String> getEnvVar(Protos.CommandInfo command, String key) {
         if (command.hasEnvironment()) {
             for (Protos.Environment.Variable v : command.getEnvironment().getVariablesList()) {
                 if (v.getName().equals(key)) {
-                    return v.getValue();
+                    return Optional.of(v.getValue());
                 }
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 }

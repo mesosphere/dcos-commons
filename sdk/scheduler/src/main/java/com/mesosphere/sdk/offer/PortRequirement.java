@@ -11,7 +11,6 @@ import org.apache.mesos.Protos;
  * A {@link PortRequirement} encapsulates a needed {@link MesosResource} representing a port.
  */
 public class PortRequirement extends ResourceRequirement {
-
     private final String portName;
     private final int port;
     private final Optional<String> customEnvKey;
