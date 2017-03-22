@@ -124,7 +124,7 @@ class UniversePackageBuilder(object):
         # look for any 'sha256:filename' template params, and get shas for those.
         # this avoids calculating shas unless they're requested by the template.
         orig_content = open(filepath, 'r').read()
-        for shafilename in re.findall('{{sha256:(.+)}}', orig_content):
+        for shafilename in re.findall('{{sha256:(.+?)}}', orig_content):
             # somefile.txt => sha256:somefile.txt
             shafilepath = self._artifact_files.get(shafilename, '')
             if not shafilepath:

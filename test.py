@@ -536,7 +536,6 @@ def emit_junit_xml():
         junit_xml.TestSuite.to_file(f, fake_suites)
 
 
-
 def main():
     run_attrs = parse_args()
     try:

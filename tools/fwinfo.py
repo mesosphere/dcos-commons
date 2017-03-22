@@ -16,7 +16,7 @@ import time
 logger = logging.getLogger(__name__)
 #logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(module)s %(message)s")
 
-# holds info objects -- TODO: need ordering
+# holds info objects
 _framework_infos = []
 
 _repo_root=None

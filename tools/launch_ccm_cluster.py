@@ -204,6 +204,7 @@ class CCMLauncher(object):
 
     def _start(self, config):
         is_17_cluster = config.ccm_channel in self._DCOS_17_CHANNELS
+        template_url = None
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
         elif config.cf_template.startswith('ee.'):

@@ -50,7 +50,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         super.setProtos(podInfoBuilder, resource);
 
         // If this is an existing TaskInfo or ExecutorInfo with the VIP already set, we don't have to do anything.
-        if (getTaskName().isPresent() ) {
+        if (getTaskName().isPresent()) {
             boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getTaskBuilder(getTaskName().get()));
 
             if (!didUpdate) {
@@ -92,6 +92,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
                     portBuilder.setNumber(
                             (int) getResourceRequirement().getResource().getRanges().getRange(0).getBegin());
+                    portBuilder.setVisibility(visibility);
+                    portBuilder.setProtocol(protocol);
                     return true;
                 }
             }

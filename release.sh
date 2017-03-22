@@ -10,5 +10,9 @@ cd $REPO_ROOT_DIR
 ./build.sh
 ./gradlew publish
 
+# Scripts below expects S3_BUCKET and SDK_VERSION env vars. To be supplied by Jenkins.
+./tools/build_publishable.sh
+./tools/release_artifacts.sh
+
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
 # This ensures that builds against different tags don't step on each other.

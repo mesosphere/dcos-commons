@@ -1,0 +1,14 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      task-name:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 1.0
+        memory: 512
+        volume:
+          path: container-path
+          size: 10
+          type: ROOT
