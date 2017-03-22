@@ -62,10 +62,10 @@ public class CanaryStrategy implements Strategy<Step> {
     public CanaryStrategy(Strategy<Step> postCanaryStrategy, int requiredProceeds, List<Step> steps) {
         this.requiredProceeds = requiredProceeds;
         this.strategy = postCanaryStrategy;
-        this.canarySteps = getCanarySteps(steps);
+        this.canarySteps = interruptCanarySteps(steps);
     }
 
-    private List<Step> getCanarySteps(List<Step> steps) {
+    private List<Step> interruptCanarySteps(List<Step> steps) {
         List<Step> canarySteps = steps.stream()
                 .filter(step -> (step.isPending() || step.isInterrupted()))
                 .limit(requiredProceeds)
