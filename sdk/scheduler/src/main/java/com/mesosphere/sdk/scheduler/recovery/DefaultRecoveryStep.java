@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -11,12 +10,10 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An extension of {@link DeploymentStep} meant for use with {@link DefaultRecoveryPlanManager}.
@@ -44,17 +41,6 @@ public class DefaultRecoveryStep extends DeploymentStep {
         this.recoveryType = recoveryType;
         this.launchConstrainer = launchConstrainer;
         this.stateStore = stateStore;
-    }
-
-    @Override
-    public Optional<PodInstanceRequirement> start() {
-        if (recoveryType == RecoveryType.PERMANENT) {
-            Collection<Protos.TaskInfo> taskInfos = TaskUtils.getPodTasks(
-                    podInstanceRequirement.getPodInstance(),
-                    stateStore);
-            stateStore.storeTasks(TaskUtils.clearReservations(taskInfos));
-        }
-        return super.start();
     }
 
     @Override
