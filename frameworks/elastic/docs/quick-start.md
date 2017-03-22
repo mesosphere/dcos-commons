@@ -87,6 +87,6 @@ curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/node
 
 1. Then, go to this URL:
   ```
-  http://$DCOS_URL/service/{{cluster-name}}/kibana/login
+  http://$DCOS_URL/service/elastic/kibana/login
   ```
   And log in with `elastic`/`changeme`
