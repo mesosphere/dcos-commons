@@ -15,6 +15,7 @@ import boto3
 import botocore
 import logging
 import os
+import os.path
 import pprint
 import sys
 import time
@@ -70,7 +71,7 @@ def filter_instances_private(instances):
 
 def create_volume(client, zone):
     response = client.create_volume(
-        Size=12,
+        Size=24,
         AvailabilityZone=zone,
         VolumeType='gp2',
         Encrypted=False
@@ -136,23 +137,32 @@ def detach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
     return response
 
 
-def configure_instance():
+def configure_instance(device='/dev/xvdm'):
     """
-    Format the attached EBS volume and adds an entry into fstab
+    Format the attached EBS volume as two MOUNT volumes and adds entries into fstab.
+    DC/OS will autodetect the '/dcos/volume#' volumes.
     """
+    device_name = os.path.basename(device)
+    run('until [[ "$(lsblk -o NAME -r | grep {} | wc -l)" -gt "0" ]]; do echo "Waiting for {}"; sleep 2; done'.format(device_name, device_name))
+    run('sudo parted -s {} mklabel gpt'.format(device))
+
+    run('sudo parted -s {} mkpart primary ext4 0% 50%'.format(device))
+    run('sudo mkfs -t ext4 {}1'.format(device))
     run('sudo mkdir -p /dcos/volume0')
-    run('until [[ "$(lsblk -o NAME -r | grep xvdm | wc -l)" -gt "0" ]]; do echo "Waiting for /dev/xvdm"; sleep 2; done')
-    run('sudo parted -s /dev/xvdm mklabel gpt mkpart primary ext4 0% 100%')
-    run('sudo mkfs -t ext4 /dev/xvdm1')
-    run('sudo mount /dev/xvdm1 /dcos/volume0')
-    run('sudo sh -c "echo \'/dev/xvdm1 /dcos/volume0 ext4 defaults 0 2\' >> /etc/fstab"')
+    run('sudo mount {}1 /dcos/volume0'.format(device))
+    run('sudo sh -c "echo \'{}1 /dcos/volume0 ext4 defaults 0 2\' >> /etc/fstab"'.format(device))
+
+    run('sudo parted -s {} mkpart primary ext4 50% 100%'.format(device))
+    run('sudo mkfs -t ext4 {}2'.format(device))
+    run('sudo mkdir -p /dcos/volume1')
+    run('sudo mount {}2 /dcos/volume1'.format(device))
+    run('sudo sh -c "echo \'{}2 /dcos/volume1 ext4 defaults 0 2\' >> /etc/fstab"'.format(device))
 
 
 def configure_mesos():
     """
     Configures the newly created EBS volume as a Mesos agent resource
     """
-
     run("sudo systemctl stop dcos-mesos-slave")
     run("sudo rm -f /var/lib/mesos/slave/meta/slaves/latest")
     run("sudo rm -f /var/lib/dcos/mesos-resources")
