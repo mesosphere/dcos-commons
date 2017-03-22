@@ -1,0 +1,2 @@
+Third-party code used by the build and/or test tooling that are for some
+reason very inconvenient to fetch dynamically.
