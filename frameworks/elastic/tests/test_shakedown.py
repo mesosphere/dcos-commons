@@ -1,11 +1,13 @@
+import time
+
 import pytest
 
-from tests.config import *
 import sdk_install as install
-import sdk_tasks as tasks
 import sdk_marathon as marathon
-import sdk_utils as utils
+import sdk_tasks as tasks
 import sdk_test_upgrade
+import sdk_utils as utils
+from tests.config import *
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -96,6 +98,8 @@ def test_losing_and_regaining_index_health(default_populated_index):
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
     shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "master__.*Elasticsearch")
+    # Master re-election can take up to 3 seconds by default
+    time.sleep(3)
     new_master = get_elasticsearch_master()
     assert new_master.startswith("master") and new_master != initial_master
 
