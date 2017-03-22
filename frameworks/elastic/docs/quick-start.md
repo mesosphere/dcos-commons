@@ -1,19 +1,21 @@
 ---
 post_title: Quick Start
 menu_order: 0
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
-1. Install an Elasticsearch cluster with Kibana using DC/OS CLI:
+1. Perform a default installation by following the instructions in the Install and Customize section of this topic.
 
-    **Note:** Your DC/OS cluster must have at least 3 private agent nodes.
-
-        $ dcos package install elastic
-        
-    Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deploy via the CLI:
+1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 
         $ dcos elastic plan show deploy
+
+1. SSH into the master node.
+
+  ```bash
+  dcos node ssh --master-proxy --leader
+  ```
 
 1. Retrieve client endpoint information by running the `endpoints` command:
         
