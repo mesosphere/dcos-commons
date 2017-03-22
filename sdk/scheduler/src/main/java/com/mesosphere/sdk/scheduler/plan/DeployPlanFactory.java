@@ -12,17 +12,17 @@ import java.util.stream.Collectors;
 import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 
 /**
- * Given a StateStore and a PlanSpecification the DefaultPlanFactory can generate a Plan.
+ * Given a StateStore and a PlanSpecification the DeployPlanFactory can generate a Plan.
  */
-public class DefaultPlanFactory implements PlanFactory {
+public class DeployPlanFactory implements PlanFactory {
     private final StrategyGenerator<Phase> strategyGenerator;
     private final PhaseFactory phaseFactory;
 
-    public DefaultPlanFactory(PhaseFactory phaseFactory) {
+    public DeployPlanFactory(PhaseFactory phaseFactory) {
         this(phaseFactory, new SerialStrategy.Generator<>());
     }
 
-    public DefaultPlanFactory(PhaseFactory phaseFactory, StrategyGenerator<Phase> strategyGenerator) {
+    public DeployPlanFactory(PhaseFactory phaseFactory, StrategyGenerator<Phase> strategyGenerator) {
         this.phaseFactory = phaseFactory;
         this.strategyGenerator = strategyGenerator;
     }
