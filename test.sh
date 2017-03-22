@@ -58,6 +58,23 @@ cd $REPO_ROOT_DIR
 
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
 if [ -z "$CLUSTER_URL" ]; then
+    if [ "$SECURITY" = "strict" ]; then
+        # in launch_ccm_cluster, for strict, we run
+        # tools/create_service_account.sh which depends on the dcos binary.
+        if ! which dcos >/dev/null 2>&1; then
+            echo "Will fetch dcos binary for use by strict mode cluster setup"
+            dcos_cli_bindir="$REPO_ROOT_DIR"/tmp/dcos_bin
+            if [ -d $dcos_cli_bindir ]; then
+                echo "Wiping prior dcos bin dir $dcos_cli_bindir"
+                rm -rf "$dcos_cli_bindir"
+            fi
+            mkdir -p "$dcos_cli_bindir"
+            echo "curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output $dcos_cli_bindir/dcos"
+            curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output "$dcos_cli_bindir/dcos"
+            export PATH="$PATH":"$dcos_cli_bindir"
+        fi
+    fi
+
     echo "CLUSTER_URL is empty/unset, launching new cluster."
     export CCM_AGENTS=5
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
