@@ -119,7 +119,6 @@ class RepoInfo(object):
 class GithubAPI(object):
 
     def __init__(self, repo_orgname, commit_sha, github_token):
-        info = RepoInfo()
         self._repo_orgname = repo_orgname
         self._commit_sha = commit_sha
         self._github_token = github_token
@@ -204,9 +203,9 @@ class GithubAPI(object):
 
 
     def set_commit_status(self, context_label, state, message, details_url):
-        self._build_post_update_request(context_label, state, message, details_url)
-        self._send_request(request)
-        self._check_success(response, request, 'status update'):
+        request = self._build_post_update_request(context_label, state, message, details_url)
+        response = self._send_request(request)
+        self._check_success(response, request, 'status update')
 
 
 class GithubStatusUpdater(object):
@@ -265,7 +264,7 @@ def _get_details_link_url():
 
 
 def _should_access_github():
-    if not 'WORKSPACE' in os.environ:
+    if 'WORKSPACE' not in os.environ:
         # not running in CI. skip actually sending anything to GitHub
         return False
     if os.environ.get('GITHUB_DISABLE', ''):
@@ -284,12 +283,12 @@ def print_help(argv):
     logger.info('- Reset pending: {} reset [a replacement message ...]'.format(argv[0]))
 
 
-def reset_states(message):
+def reset_states(updater, message):
     if not _should_access_github():
         # reset disabled due to local build, exit silently
         return 0
 
-    contexts = [context for context in updater.list_contexts() if not context in BLACKLISTED_CONTEXT_LABELS]
+    contexts = [context for context in updater.list_contexts() if context not in BLACKLISTED_CONTEXT_LABELS]
     if not contexts:
         # nothing to reset, exit silently
         return 0
@@ -301,20 +300,20 @@ def reset_states(message):
     return 0
 
 
-def set_state(state, context_label, message):
+def set_state(updater, state, context_label, message):
     if context_label in BLACKLISTED_CONTEXT_LABELS:
         logger.error('Requested context label is on the blacklisted list: {}'.format(BLACKLISTED_CONTEXT_LABELS))
         return 1
 
     details_url = _get_details_link_url()
     if details_url:
-        logmsg = '{} {}: {} ({})'.format(context_label, command, message, details_url)
+        logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
     else:
-        logmsg = '{} {}: {}'.format(context_label, command, message)
+        logmsg = '{} {}: {}'.format(context_label, state, message)
 
     if _should_access_github():
         logger.info('[GH-STATUS] {}'.format(logmsg))
-        updater.update(command, message=message, context_label=context_label, details_url=details_url)
+        updater.update(state, message=message, context_label=context_label, details_url=details_url)
     else:
         logger.info('[STATUS] {}'.format(logmsg))
     return 0
@@ -328,12 +327,12 @@ def main(argv):
     updater = GithubStatusUpdater()
     command = argv[1]
     if command == 'reset':
-        return reset_states(' '.join(argv[2:]))
+        return reset_states(updater, ' '.join(argv[2:]))
     elif command in VALID_STATES:
         if len(argv) < 4:
             print_help(argv)
             return 1
-        return set_state(command, argv[2], ' '.join(argv[3:]))
+        return set_state(updater, command, argv[2], ' '.join(argv[3:]))
     else:
         print_help(argv)
         return 1
