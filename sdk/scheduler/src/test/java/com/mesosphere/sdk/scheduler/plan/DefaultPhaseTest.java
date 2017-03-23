@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -19,10 +20,11 @@ public class DefaultPhaseTest {
     public void testGetStatus() {
         Step step1 = Mockito.mock(DeploymentStep.class);
         Step step2 = Mockito.mock(DeploymentStep.class);
+        List<Step> steps = Arrays.asList(step1, step2);
 
         final DefaultPhase serialPhase = new DefaultPhase(
                 "serial-phase",
-                Arrays.asList(step1, step2),
+                steps,
                 new SerialStrategy<>(),
                 Collections.emptyList());
 
@@ -40,8 +42,8 @@ public class DefaultPhaseTest {
 
         final DefaultPhase canaryPhase = new DefaultPhase(
                 "canary-phase",
-                Arrays.asList(step1, step2),
-                new CanaryStrategy(new SerialStrategy<>()),
+                steps,
+                new CanaryStrategy(new SerialStrategy<>(), steps),
                 Collections.emptyList());
 
         Assert.assertEquals(Status.WAITING, canaryPhase.getStatus());
