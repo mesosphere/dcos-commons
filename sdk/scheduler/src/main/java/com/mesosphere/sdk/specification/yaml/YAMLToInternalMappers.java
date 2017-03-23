@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
@@ -37,11 +38,11 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-        
         String role = null;
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
+
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
@@ -84,6 +85,7 @@ public class YAMLToInternalMappers {
                     taskConfigRouter.getConfig(entry.getKey()),
                     role,
                     principal));
+
         }
         builder.pods(pods);
 
@@ -163,6 +165,7 @@ public class YAMLToInternalMappers {
                         return from(
                                 rawResourceSetName,
                                 rawResourceSet.getCpus(),
+                                rawResourceSet.getGpus(),
                                 rawResourceSet.getMemory(),
                                 rawResourceSet.getPorts(),
                                 rawResourceSet.getVolume(),
@@ -305,6 +308,7 @@ public class YAMLToInternalMappers {
             builder.resourceSet(from(
                     taskName + "-resource-set",
                     rawTask.getCpus(),
+                    rawTask.getGpus(),
                     rawTask.getMemory(),
                     rawTask.getPorts(),
                     rawTask.getVolume(),
@@ -319,6 +323,7 @@ public class YAMLToInternalMappers {
     private static DefaultResourceSet from(
             String id,
             Double cpus,
+            Double gpus,
             Integer memory,
             WriteOnceLinkedHashMap<String, RawPort> rawEndpoints,
             RawVolume rawSingleVolume,
@@ -350,6 +355,10 @@ public class YAMLToInternalMappers {
 
         if (cpus != null) {
             resourceSetBuilder.cpus(cpus);
+        }
+
+        if (gpus != null) {
+            resourceSetBuilder.gpus(gpus);
         }
 
         if (memory != null) {

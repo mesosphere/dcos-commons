@@ -333,9 +333,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             // For use by bootstrap process: an environment variable pointing to (comma-separated):
             // a. where the template file was downloaded (by the mesos fetcher)
             // b. where the rendered result should go
-            commandInfoBuilder.getEnvironmentBuilder().addVariablesBuilder()
-                    .setName(String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())))
-                    .setValue(String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
+            CommandUtils.setEnvVar(
+                    commandInfoBuilder,
+                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
+                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
         }
     }
 

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -44,6 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -148,7 +150,7 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static final DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
+    private static DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
@@ -156,6 +158,16 @@ public class DefaultSchedulerTest {
                 .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(pods));
+    }
+
+    private static Capabilities getCapabilities(Boolean enableGpu) throws Exception {
+        Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(enableGpu);
+        return capabilities;
+    }
+
+    private static Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
+        return getCapabilities(DEFAULT_GPU_POLICY);
     }
 
     private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB).build();
@@ -186,6 +198,7 @@ public class DefaultSchedulerTest {
         defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
     }
@@ -288,13 +301,14 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updatePerTaskASpecification() throws InterruptedException, IOException {
+    public void updatePerTaskASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
         defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -303,13 +317,14 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updatePerTaskBSpecification() throws InterruptedException, IOException {
+    public void updatePerTaskBSpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
         defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -318,7 +333,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updateTaskTypeASpecification() throws InterruptedException, IOException {
+    public void updateTaskTypeASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
@@ -326,6 +341,7 @@ public class DefaultSchedulerTest {
         defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -494,6 +510,7 @@ public class DefaultSchedulerTest {
         defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
         defaultScheduler.reconciler.forceComplete();
@@ -547,6 +564,7 @@ public class DefaultSchedulerTest {
         defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
 
         // Ensure prior target configuration is still intact
@@ -758,7 +776,6 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(step.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
-
         defaultScheduler.resourceOffers(mockSchedulerDriver, offers);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
                 (Collection<Protos.OfferID>) Matchers.argThat(contains(offerId)),

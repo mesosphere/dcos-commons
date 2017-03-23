@@ -39,10 +39,14 @@ public class BaseServiceSpecTest {
     }
 
     protected void deserializeServiceSpec(String fileName) throws Exception {
-        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
-        //DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        File file;
+        try {
+            file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+        } catch (NullPointerException e) {
+            throw new Exception("Did not find file: " + fileName + " perhaps you forgot to link it in the Resources" +
+                    "folder?");
+        }
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -57,6 +61,7 @@ public class BaseServiceSpecTest {
         StateStoreCache.resetInstanceForTests();
 
         Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
@@ -68,5 +73,4 @@ public class BaseServiceSpecTest {
                 .build();
         testingServer.close();
     }
-
 }

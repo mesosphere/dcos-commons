@@ -67,4 +67,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testNetwork() throws Exception {
         testYaml("examples/cni.yml");
     }
+
+    @Test
+    public void testGpuResource() throws Exception {
+        testYaml("examples/gpu_resource.yml");
+    }
 }

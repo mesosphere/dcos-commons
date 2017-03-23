@@ -50,6 +50,13 @@ public interface Step extends Element, Interruptible {
         return isPrepared() || isStarting();
     }
 
+    @Override
+    default boolean isEligible(Collection<String> dirtyAssets) {
+        return Element.super.isEligible(dirtyAssets) &&
+                !isInterrupted() &&
+                !(getAsset().isPresent() && dirtyAssets.contains(getAsset().get()));
+    }
+
     /**
      * Thrown on invalid Step construction attempt.
      */

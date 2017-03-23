@@ -528,7 +528,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private Collection<PlanManager> getOtherPlanManagers() {
         return plans.stream()
-                .filter(plan -> !PlanUtils.isDeployPlan(plan))
+                .filter(plan -> !plan.isDeployPlan())
                 .map(plan -> new DefaultPlanManager(plan))
                 .collect(Collectors.toList());
     }
@@ -550,7 +550,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing deployment plan...");
         Optional<Plan> deploy = plans.stream()
-                .filter(plan -> PlanUtils.isDeployPlan(plan))
+                .filter(plan -> plan.isDeployPlan())
                 .findFirst();
         Plan deployPlan;
         if (!deploy.isPresent()) {

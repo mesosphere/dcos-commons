@@ -14,6 +14,7 @@ public class RawTask {
     private final Map<String, String> env;
     private final WriteOnceLinkedHashMap<String, RawConfig> configs;
     private final Double cpus;
+    private final Double gpus;
     private final Integer memory;
     private final WriteOnceLinkedHashMap<String, RawPort> ports;
     private final RawHealthCheck healthCheck;
@@ -29,6 +30,7 @@ public class RawTask {
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
             @JsonProperty("cpus") Double cpus,
+            @JsonProperty("gpus") Double gpus,
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
             @JsonProperty("health-check") RawHealthCheck healthCheck,
@@ -42,6 +44,7 @@ public class RawTask {
         this.env = env;
         this.configs = configs;
         this.cpus = cpus;
+        this.gpus = gpus;
         this.memory = memory;
         this.ports = ports;
         this.healthCheck = healthCheck;
@@ -54,6 +57,10 @@ public class RawTask {
 
     public Double getCpus() {
         return cpus;
+    }
+
+    public Double getGpus() {
+        return gpus;
     }
 
     public Integer getMemory() {

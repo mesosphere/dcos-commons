@@ -86,14 +86,16 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
 
             taskBuilder.setCommand(
-                    CommandUtils.addEnvVar(
-                            taskBuilder.getCommand(), getPortEnvironmentVariable(envKey), Long.toString(port)));
+                    CommandUtils.setEnvVar(
+                            taskBuilder.getCommand().toBuilder(),
+                            getPortEnvironmentVariable(envKey),
+                            Long.toString(port)));
 
             // Add port to the health check (if defined)
             if (taskBuilder.hasHealthCheck()) {
                 taskBuilder.getHealthCheckBuilder().setCommand(
-                        CommandUtils.addEnvVar(
-                                taskBuilder.getHealthCheckBuilder().getCommand(),
+                        CommandUtils.setEnvVar(
+                                taskBuilder.getHealthCheckBuilder().getCommand().toBuilder(),
                                 getPortEnvironmentVariable(envKey),
                                 Long.toString(port)));
             } else {
@@ -105,8 +107,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 Optional<Protos.HealthCheck> readinessCheck = CommonTaskUtils.getReadinessCheck(taskBuilder.build());
                 if (readinessCheck.isPresent()) {
                     Protos.HealthCheck readinessCheckToMutate = readinessCheck.get();
-                    Protos.CommandInfo readinessCommandWithPort = CommandUtils.addEnvVar(
-                            readinessCheckToMutate.getCommand(),
+                    Protos.CommandInfo readinessCommandWithPort = CommandUtils.setEnvVar(
+                            readinessCheckToMutate.getCommand().toBuilder(),
                             getPortEnvironmentVariable(envKey),
                             Long.toString(port));
                     Protos.HealthCheck readinessCheckWithPort = Protos.HealthCheck.newBuilder(readinessCheckToMutate)
@@ -122,8 +124,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.setCommand(
-                    CommandUtils.addEnvVar(
-                            executorBuilder.getCommand(),
+                    CommandUtils.setEnvVar(
+                            executorBuilder.getCommand().toBuilder(),
                             getPortEnvironmentVariable(envKey),
                             Long.toString(port)));
 

@@ -13,7 +13,9 @@ from tests.test_utils import (
     PACKAGE_NAME,
     DEFAULT_BROKER_COUNT,
     DEFAULT_POD_TYPE,
-    SERVICE_NAME
+    SERVICE_NAME,
+    DEFAULT_TASK_NAME,
+    service_cli
 )
 
 
@@ -74,4 +76,9 @@ def test_upgrade():
     print('All task are restarted')
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
+     
+    address = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
+    assert len(address) == 3     
+    assert len(address['dns']) == DEFAULT_BROKER_COUNT
+    assert len(address['address']) == DEFAULT_BROKER_COUNT
 

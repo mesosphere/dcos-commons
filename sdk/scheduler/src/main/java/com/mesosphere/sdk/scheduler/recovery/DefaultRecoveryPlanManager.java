@@ -77,7 +77,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         synchronized (planLock) {
             updatePlan(dirtyAssets);
-            return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
+            return getPlan().getCandidates(dirtyAssets).stream()
                     .filter(step ->
                             launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryType()))
                     .collect(Collectors.toList());

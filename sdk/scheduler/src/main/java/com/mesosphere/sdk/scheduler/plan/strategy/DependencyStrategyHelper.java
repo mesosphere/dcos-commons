@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,7 +53,7 @@ public class DependencyStrategyHelper<C extends Element> {
             return Collections.emptyList();
         }
         return dependencies.entrySet().stream()
-                .filter(entry -> PlanUtils.isEligibleCandidate(entry.getKey(), dirtyAssets))
+                .filter(entry -> entry.getKey().isEligible(dirtyAssets))
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());

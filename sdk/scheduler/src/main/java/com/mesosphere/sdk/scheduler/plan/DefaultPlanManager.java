@@ -28,7 +28,7 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
 
     @Override
     public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
-        return PlanUtils.getCandidates(plan, dirtyAssets);
+        return plan.getCandidates(dirtyAssets);
     }
 
     @Override

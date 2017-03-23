@@ -10,7 +10,11 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
-
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.PortRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 import org.apache.curator.test.TestingServer;
@@ -26,15 +30,10 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.when;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import com.mesosphere.sdk.specification.yaml.RawNetwork;
 import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
 import com.mesosphere.sdk.config.ConfigStore;
@@ -45,6 +44,8 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
+import static org.mockito.Mockito.*;
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static com.mesosphere.sdk.testutils.TestConstants.*;
 
@@ -54,6 +55,7 @@ public class DefaultServiceSpecTest {
     @Mock private FileReader mockFileReader;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private StateStore mockStateStore;
+    @Mock private Capabilities capabilities;
 
     @Before
     public void beforeEach() {
@@ -88,6 +90,29 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
+        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        validateServiceSpec("valid-simple.yml", DEFAULT_GPU_POLICY);
+    }
+
+    @Test
+    public void validGpuResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
+        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        validateServiceSpec("valid-gpu-resource.yml", true);
+    }
+
+    @Test
+    public void validGpuResourceSet() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
+        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
     }
 
     @Test
@@ -137,12 +162,12 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void validReadinessCheck() throws Exception {
-        validateServiceSpec("readiness-check.yml");
-
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("readiness-check.yml").getFile());
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+
+        Assert.assertNotNull(serviceSpec);
 
         Optional<ReadinessCheckSpec> readinessCheckSpecOptional =
                 serviceSpec.getPods().get(0).getTasks().get(0).getReadinessCheck();
@@ -153,6 +178,7 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(5 == readinessCheckSpec.getInterval());
         Assert.assertTrue(0 == readinessCheckSpec.getDelay());
         Assert.assertTrue(10 == readinessCheckSpec.getTimeout());
+        validateServiceSpec("readiness-check.yml", DEFAULT_GPU_POLICY);
     }
 
     @Test
@@ -650,10 +676,13 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
     }
 
-    private void validateServiceSpec(String fileName) throws Exception {
+    private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
@@ -667,7 +696,9 @@ public class DefaultServiceSpecTest {
         DefaultScheduler.newBuilder(serviceSpec)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(capabilities)
                 .build();
         testingServer.close();
+
     }
 }

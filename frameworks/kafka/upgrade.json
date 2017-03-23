@@ -1,8 +1,0 @@
-{
-  "service": {
-    "config_upgrade": {
-	"enable": true,
-	"cleanup": true
-	}
-  }
-}

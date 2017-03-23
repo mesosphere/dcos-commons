@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification.validation;
 import java.io.IOException;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
@@ -19,8 +20,21 @@ public class CapabilityValidator {
     }
 
     public void validate(ServiceSpec serviceSpec) throws CapabilityValidationException {
+        validateGpuPolicy(serviceSpec);
         for (PodSpec podSpec : serviceSpec.getPods()) {
             validate(podSpec);
+        }
+    }
+
+    private void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
+        try {
+            if (DefaultService.serviceSpecRequestsGpuResources(serviceSpec)
+                    && !capabilities.supportsGpuResource()) {
+                throw new CapabilityValidationException(
+                        "This cluster's DC/OS version does not support setting GPU_RESOURCE");
+            }
+        } catch (IOException e) {
+            throw new CapabilityValidationException("Failed to determine capabilities: " + e.getMessage());
         }
     }
 
