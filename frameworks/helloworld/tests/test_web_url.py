@@ -10,12 +10,12 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
+
     options = {
         "service": {
             "spec_file": "examples/web-url.yml"
         }
     }
-
     # this config produces 1 hello's + 0 world's:
     install.install(PACKAGE_NAME, 1, additional_options=options)
 

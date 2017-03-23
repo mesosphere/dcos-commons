@@ -10,12 +10,12 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
+
     options = {
         "service": {
             "spec_file": "examples/sidecar.yml"
         }
     }
-
     # this yml has 2 hello's + 0 world's:
     install.install(PACKAGE_NAME, 2, additional_options=options)
 

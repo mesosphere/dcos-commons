@@ -6,7 +6,6 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_test_upgrade as upgrade
-import sdk_utils as utils
 import sdk_tasks as tasks
 
 from tests.test_utils import (
@@ -21,7 +20,6 @@ from tests.test_utils import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
 
 
 def teardown_module(module):

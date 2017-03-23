@@ -1,16 +1,14 @@
 import time
 
+import json
 import pytest
 import shakedown
+import traceback
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
-import sdk_utils as utils
-import sdk_spin as spin
-import json
-import traceback
 
 from tests.config import (
     PACKAGE_NAME,
@@ -27,7 +25,6 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
@@ -373,14 +370,14 @@ def find_java_home(host):
     java_home = output.rstrip()
     print("java_home: {}".format(java_home))
     return java_home
-    
-    
+
+
 def check_healthy(count=DEFAULT_TASK_COUNT):
     service_plan_complete("deploy")
     service_plan_complete("recovery")
     tasks.check_running(PACKAGE_NAME, count)
 
-    
+
 def service_plan_complete(plan_name):
     def fun():
         try:
@@ -396,7 +393,7 @@ def service_plan_complete(plan_name):
         print('Plan {} is not complete ({})'.format(plan_name, pl['status']))
         return False
 
-    return spin.time_wait_return(fun)
+    return shakedown.wait_for(fun, timeout_seconds=15*60)
 
 
 def service_cli(cmd_str):

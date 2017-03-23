@@ -3,7 +3,6 @@ import pytest
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_marathon as marathon
-import sdk_utils as utils
 
 
 
@@ -20,7 +19,6 @@ from tests.test_utils import (
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
 
 
 def teardown_module(module):

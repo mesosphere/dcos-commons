@@ -4,7 +4,6 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME,
@@ -45,7 +44,7 @@ def test_deploy():
         return False
 
     try:
-        spin.time_wait_noisy(lambda: fn(), timeout_seconds=wait_time)
+        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time)
     except shakedown.TimeoutExpired:
         print('Timeout reached as expected')
 

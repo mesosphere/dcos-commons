@@ -1,8 +1,9 @@
 import pytest
 
 import json
+import shakedown
+
 import sdk_cmd as command
-import sdk_spin as spin
 
 from tests.config import (
     DEFAULT_PARTITION_COUNT,
@@ -40,7 +41,7 @@ def broker_count_check(count):
             pass
         return False
 
-    spin.time_wait_return(fun)
+    shakedown.wait_for(fun)
 
 
 # Only use if need to wait for plan resource to start
@@ -51,4 +52,4 @@ def service_plan_wait(plan_name):
         except:
             return False
 
-    return spin.time_wait_return(fun)
+    return shakedown.wait_for(fun)

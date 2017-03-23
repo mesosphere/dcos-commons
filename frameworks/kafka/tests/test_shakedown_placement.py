@@ -2,8 +2,6 @@ import pytest
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_spin as spin
-import sdk_utils as utils
 import shakedown
 
 
@@ -18,14 +16,12 @@ from tests.test_utils import (
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
 
 
-# gc_frameworks to make sure after each uninstall
 def teardown_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
-    
+
 # --------- Placement -------------
 
 
@@ -86,7 +82,7 @@ def test_marathon_rack_not_found():
     except:
         pass  # expected to fail
 
-    pl = spin.time_wait_return(fun)
+    pl = shakedown.wait_for(fun)
 
     # check that first node is still (unsuccessfully) looking for a match:
     assert pl['status'] == 'IN_PROGRESS'

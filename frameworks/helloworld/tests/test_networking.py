@@ -1,9 +1,8 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
-import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -12,13 +11,12 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+
     options = {
         "service": {
             "spec_file": "examples/cni.yml"
         }
     }
-
     install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
@@ -43,5 +41,5 @@ def test_joins_overlay_network():
 
     The logic for this is in the task itself, which will check the container IP address
     and fail if incorrect, thus preventing the plan from reaching the COMPLETE state."""
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         plan.get_deployment_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))

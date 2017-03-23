@@ -1,10 +1,10 @@
 import pytest
+import shakedown
 
 from tests.config import *
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_marathon as marathon
-import sdk_utils as utils
 import sdk_test_upgrade
 
 DEFAULT_NUMBER_OF_SHARDS = 1
@@ -23,7 +23,6 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 

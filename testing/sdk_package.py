@@ -2,7 +2,6 @@
 
 import shakedown
 import sdk_cmd
-import sdk_spin
 
 import re
 
@@ -33,4 +32,4 @@ def add_repo(repo_name, repo_url, package_name, prev_version):
 def check_default_version_available(package_name, prev_version):
     def fn():
         return get_pkg_version(package_name) != prev_version
-    sdk_spin.time_wait_noisy(lambda: fn())
+    shakedown.wait_for(lambda: fn())

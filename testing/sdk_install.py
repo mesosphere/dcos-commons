@@ -3,75 +3,43 @@
 import collections
 import dcos.errors
 import dcos.marathon
-import sdk_spin
-import sdk_tasks
 import shakedown
 
 import os
 import time
 
 
-def install(package_name, running_task_count, service_name=None, additional_options={}, package_version=None):
+def install(
+        package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        package_version=None):
+    # small addition over shakedown: automatically include secure mode config when needed
+    shakedown.install_package_and_wait(
+        package_name,
+        package_version=package_version,
+        service_name=service_name,
+        options_json=get_package_options(additional_options),
+        expected_running_tasks=running_task_count)
+
+
+def uninstall(package_name, service_name=None, wipe_agents=True):
     if not service_name:
         service_name = package_name
-    start = time.time()
-    merged_options = get_package_options(additional_options)
-    print('Installing {} with options={} version={}'.format(package_name, merged_options, package_version))
-    # install_package_and_wait silently waits for all marathon deployments to clear.
-    # to give some visibility, install in the following order:
-    # 1. install package
-    shakedown.install_package(package_name, package_version=package_version, options_json=merged_options)
-    # 2. wait for expected tasks to come up
-    print("Waiting for expected tasks to come up...")
-    sdk_tasks.check_running(service_name, running_task_count)
-    # 3. check service health
-    marathon_client = dcos.marathon.create_client()
-
-    def fn():
-        # TODO(nickbp): upstream fix to shakedown, which currently checks for ANY deployments rather
-        #               than the one we care about
-        deploying_apps = set([])
-        print("Getting deployments")
-        deployments = marathon_client.get_deployments()
-        print("Found {} deployments".format(len(deployments)))
-        for d in deployments:
-            print("Deployment: {}".format(d))
-            for a in d.get('affectedApps', []):
-                print("Adding {}".format(a))
-                deploying_apps.add(a)
-        print('Checking deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
-        return not '/{}'.format(service_name) in deploying_apps
-    sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=30)
-    print('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
+    if wipe_agents:
+        framework_id = shakedown.get_service_framework_id(service_name)
+    shakedown.uninstall_package_and_data(package_name, service_name)
+    if wipe_agents and framework_id is not None:
+        gc_frameworks(framework_id)
 
 
-def uninstall(service_name, package_name=None):
-    start = time.time()
-
-    if package_name is None:
-        package_name = service_name
-    print('Uninstalling/janitoring {}'.format(service_name))
-    try:
-        shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
-    except (dcos.errors.DCOSException, ValueError) as e:
-        print('Got exception when uninstalling package, ' +
-              'continuing with janitor anyway: {}'.format(e))
-
-    janitor_start = time.time()
-
-    janitor_cmd = (
-        'docker run mesosphere/janitor /janitor.py '
-        '-r {svc}-role -p {svc}-principal -z dcos-service-{svc} --auth_token={auth}')
-    shakedown.run_command_on_master(janitor_cmd.format(
-        svc=service_name,
-        auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
-
-    finish = time.time()
-
-    print('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-        sdk_spin.pretty_time(janitor_start - start),
-        sdk_spin.pretty_time(finish - janitor_start),
-        sdk_spin.pretty_time(finish - start)))
+def gc_frameworks(framework_id):
+    '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
+    for host in shakedown.get_private_agents():
+        shakedown.run_command(
+            host,
+            "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/{}/".format(framework_id))
 
 
 def get_package_options(additional_options={}):

@@ -2,12 +2,12 @@ import pytest
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_spin as spin
 import sdk_cmd as command
-import sdk_utils as utils
+
 import dcos
 import dcos.config
 import dcos.http
+import shakedown
 
 import urllib
 
@@ -29,8 +29,7 @@ from tests.test_utils import (
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(PACKAGE_NAME,  DEFAULT_BROKER_COUNT, service_name = SERVICE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_BROKER_COUNT, service_name = SERVICE_NAME)
 
 
 def teardown_module(module):
@@ -48,7 +47,7 @@ def test_endpoints_address():
         if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
-    address = spin.time_wait_return(fun)
+    address = shakedown.wait_for(fun)
     assert len(address) == 3
     assert len(address['dns']) == DEFAULT_BROKER_COUNT
 
@@ -281,6 +280,6 @@ def test_suppress():
         response.raise_for_status()
         return response.text == "true"
 
-    spin.time_wait_noisy(fun)
+    shakedown.wait_for(fun)
 
 

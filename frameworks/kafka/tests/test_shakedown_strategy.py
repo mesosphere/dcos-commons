@@ -2,8 +2,6 @@ import pytest
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_spin as spin
-import sdk_utils as utils
 import sdk_marathon as marathon
 import shakedown
 import dcos
@@ -31,7 +29,6 @@ from tests.test_utils import (
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
     shakedown.install_package(PACKAGE_NAME,
                               service_name=SERVICE_NAME,
                               options_json=install.get_package_options(
@@ -203,7 +200,7 @@ def test_increase_cpu():
     config['env']['BROKER_CPUS'] = str(0.1 + float(config['env']['BROKER_CPUS']))
     marathon.update_app(SERVICE_NAME, config)
 
-    spin.time_wait_return(plan_waiting)
+    shakedown.wait_for(plan_waiting)
 
     pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'WAITING'
@@ -242,7 +239,7 @@ def test_increase_cpu():
 
     tasks.check_tasks_updated(SERVICE_NAME, '{}-1-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_ids)
 
-    spin.time_wait_return(plan_complete)
+    shakedown.wait_for(plan_complete)
 
     pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
 

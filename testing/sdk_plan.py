@@ -1,7 +1,6 @@
 '''Utilities relating to interaction with service plans'''
 
 import dcos
-import sdk_spin
 import shakedown
 
 
@@ -27,5 +26,4 @@ def get_plan(service_name, plan):
         response = dcos.http.get("{}/v1/plans/{}".format(shakedown.dcos_service_url(service_name), plan))
         response.raise_for_status()
         return response
-
-    return sdk_spin.time_wait_return(lambda: fn())
+    return shakedown.wait_for(lambda: fn())
