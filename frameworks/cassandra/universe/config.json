@@ -480,11 +480,6 @@
           "description": "The maximum throughput of all streaming file transfers between datacenters",
           "default": 200
         },
-        "streaming_socket_timeout_in_ms": {
-          "type": "integer",
-          "description": "The socket timeout for streaming operations",
-          "default": 3600000
-        },
         "phi_convict_threshold": {
           "type": "integer",
           "description": "The sensitivity of the failure detector on an exponential scale",
