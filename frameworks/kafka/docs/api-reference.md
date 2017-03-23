@@ -400,7 +400,16 @@ Note the warning in the output from the commands above. You can change the indic
     {
         "message": ""
     }
-    
+
+# Service Status
+
+Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if Kafka is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources. 
+
+You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed.
+
+```
+curl -H "Authorization: token=$AUTH_TOKEN" "<master-IP>/service/kfka/v1/state/properties/suppressed"
+```
 
 # Config History
 
