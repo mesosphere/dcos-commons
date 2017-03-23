@@ -5,8 +5,6 @@ pods:
     # Define networks directly on the pod
     networks:
       test:
-        host-ports: [4040]
-        container-ports: [4041]
     tasks:
       server:
         goal: RUNNING

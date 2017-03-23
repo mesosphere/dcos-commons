@@ -6,8 +6,6 @@ pods:
     container:
       networks:
         test:
-          host-ports: [4040]
-          container-ports: [4041]
     tasks:
       server:
         goal: RUNNING

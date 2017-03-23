@@ -246,6 +246,7 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(portsMap.size() == 2);
         Assert.assertTrue(portsMap.get(HOST_PORT) == CONTAINER_PORT);
         Assert.assertTrue(portsMap.get(4041) == 8081);
+        validateServiceSpec("valid-cni.yml", DEFAULT_GPU_POLICY);
     }
 
     @Test
@@ -683,6 +684,7 @@ public class DefaultServiceSpecTest {
 
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
+        when(capabilities.supportCniPortMapping()).thenReturn(true);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
