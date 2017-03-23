@@ -84,7 +84,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-simple.yml", DEFAULT_GPU_POLICY);
     }
 
