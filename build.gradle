@@ -26,7 +26,7 @@ allprojects {
     // at ANY TIME as changes are merged into master. They represent a fully unstable API.
     // ---
     group = "mesosphere"
-    version = "0.13.1"
+    version = "0.13.2"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
