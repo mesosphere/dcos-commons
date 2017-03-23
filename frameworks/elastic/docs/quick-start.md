@@ -5,7 +5,7 @@ feature_maturity: experimental
 enterprise: 'no'
 ---
 
-1. Install a Elasticsearch cluster with Kibana using DC/OS CLI:
+1. Install an Elasticsearch cluster with Kibana using DC/OS CLI:
 
     **Note:** Your DC/OS cluster must have at least 3 private agent nodes.
 
