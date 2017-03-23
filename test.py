@@ -320,6 +320,8 @@ def handle_test_completions():
             all_tests_ok = False
 
         framework.running = False
+        logger.info("%s unclaiming cluster id %s", framework.name,
+                framework.cluster.cluster_id)
         framework.cluster.unclaim(framework)
         framework.cluster = None
 
