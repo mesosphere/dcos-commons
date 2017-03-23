@@ -251,7 +251,7 @@ def build_and_upload_single(framework, run_attrs):
     logger.info("Starting build & upload for %s", framework.name)
 
     if framework.name == 'proxylite':
-        func = upload_proxylite
+        func = _upload_proxylite
         args = framework,
         _action_wrapper("upload proxylite",
                 framework, func, *args)
