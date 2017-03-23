@@ -358,6 +358,10 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     avail_cluster = clustinfo.start_cluster(start_config,
                             reporting_name="Cluster %s" % human_count)
                 else:
+                    for cluster in clustinfo._clusters:
+                        logger.info("Cluster id=%s in use by %s.",
+                                cluster.cluster_id,
+                                cluster.in_use())
                     logger.info("Sleeping to wait for available cluster to launch %s.",
                                   next_test)
                     # echo status
