@@ -25,6 +25,11 @@
           "type": "string",
           "default": "core"
         },
+        "zk_servers": {
+          "description": "The comma-separated hostnames for the zookeeper clusters to retain scheduler state in",
+          "type": "string",
+          "default": "master.mesos:2181"
+        },
         "mesos_api_version" : {
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type":"string",
@@ -64,6 +69,11 @@
           "type": "string",
           "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT]",
           "default": "ROOT"
+        },
+        "placement_constraint": {
+          "type": "string",
+          "description": "The Marathon-style placement constraint string controlling node placement",
+          "default": ""
         },
         "heap": {
           "type": "object",
