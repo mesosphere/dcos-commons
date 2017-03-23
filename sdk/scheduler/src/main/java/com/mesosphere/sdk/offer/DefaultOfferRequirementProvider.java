@@ -592,7 +592,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Collection<Protos.NetworkInfo.IPAddress> ipAddresses = new ArrayList<>();
             for (String ipAddressString : networkSpec.getIpAddresses()) {
                 ipAddresses.add(Protos.NetworkInfo.IPAddress.newBuilder()
-                    .setIpAddress(ipAddressString).build());
+                    .setIpAddress(ipAddressString)
+                        .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
+                        .build());
             }
             netInfoBuilder.addAllIpAddresses(ipAddresses);
         }

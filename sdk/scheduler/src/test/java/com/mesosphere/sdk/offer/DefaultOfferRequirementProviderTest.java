@@ -157,6 +157,8 @@ public class DefaultOfferRequirementProviderTest {
             Assert.assertEquals(networkInfo.getIpAddressesCount(), correctNumberOfIpAddresses);
             if (correctNumberOfIpAddresses > 0) {
                 Assert.assertEquals(networkInfo.getIpAddresses(0).getIpAddress(), TestConstants.IPADDRESS1);
+                Assert.assertEquals(networkInfo.getIpAddresses(0).getProtocol(),
+                        Protos.NetworkInfo.Protocol.IPv4);
             }
 
             if (checkPortMapping) {
