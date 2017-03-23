@@ -33,9 +33,11 @@ def test_deploy():
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     print("deployment_plan: " + str(deployment_plan))
 
-    assert(len(deployment_plan['phases']) == 1)
-    assert(deployment_plan['phases'][0]['name'] == 'all-deploy')
+    assert(len(deployment_plan['phases']) == 2)
+    assert(deployment_plan['phases'][0]['name'] == 'hello-deploy')
     assert(len(deployment_plan['phases'][0]['steps']) == 2)
+    assert(deployment_plan["phases"][1]["name"] == "world-deploy")
+    assert(len(deployment_plan["phases"][1]["steps"]) == 2)
 
 
 @pytest.mark.sanity

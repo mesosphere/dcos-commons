@@ -4,7 +4,6 @@ pods:
     count: {{HELLO_COUNT}}
     networks:
       dcos:
-        groups: ["mygroup"]
     resource-sets:
       hello-resource:
         cpus: {{HELLO_CPUS}}
@@ -12,7 +11,7 @@ pods:
     tasks:
       network-test:
         goal: FINISHED
-        cmd: "ip addr show eth0 | grep -Eo 'inet 9\\.[0-9\\.]+' >> output"
+        cmd: "ip addr show | grep -Eo 'inet 9\\.[0-9\\.]+' >> output && (($(wc -l < output) == 1)) >> test"
         resource-set: hello-resource
       server:
         goal: RUNNING
@@ -20,12 +19,35 @@ pods:
         resource-set: hello-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+  world:
+    count: {{HELLO_COUNT}}
+    resource-sets:
+      hello-resource:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+    tasks:
+      network-test:
+        goal: FINISHED
+        cmd: "ip addr show | grep -Eo 'inet 9\\.[0-9\\.]+' >> output && (($(wc -l < output) == 2)) >> test"
+        resource-set: hello-resource
+      server:
+        goal: RUNNING
+        cmd: "echo world >> output && sleep $SLEEP_DURATION"
+        resource-set: hello-resource
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+
 plans:
   deploy:
     strategy: serial
     phases:
-      all-deploy:
+      hello-deploy:
         strategy: serial
         pod: hello
+        steps:
+          - default: [[network-test], [server]]
+      world-deploy:
+        strategy: serial
+        pod: world
         steps:
           - default: [[network-test], [server]]
