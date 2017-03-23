@@ -29,14 +29,14 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.
 
 ```bash
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plans/deploy
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy
 ```
 ## Pause Installation
 
 The installation will pause after completing installation of the current node and wait for user input.
 
 ```bash
-$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resume Installation
@@ -50,11 +50,11 @@ $ curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
 # Connection API
 
 ```bash
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/endpoints/hdfs-site.xml
+$ curl -H "Authorization:token=$auth_token" dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
 ```
 
 ```bash
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
 ```
 
 You will see a response similar to the following:
@@ -294,7 +294,7 @@ $ dcos hdfs pods list
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
 [
     "data-0",
     "data-1",
@@ -314,7 +314,7 @@ $ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods
 You can retrieve node information by sending a GET request to `/v1/pods/<node-id>/info`:
 
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
 ```
 
 CLI Example
@@ -324,7 +324,7 @@ $ dcos hdfs pods info journalnode-0
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/journalnode-0/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journalnode-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -729,7 +729,7 @@ $ dcos hdfs pods replace <node-id>
 
 HTTP Example
 ```
-$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -745,7 +745,7 @@ $ dcos hdfs pods restart <node-id>
 
 HTTP Example
 ```bash
-$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.
@@ -765,7 +765,7 @@ $ dcos hdfs config target
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/configurations/target
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/target
 {
 	name: "hdfs",
 	role: "hdfs-role",
@@ -2029,7 +2029,7 @@ $ dcos hdfs config list
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/configurations
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations
 [
     "9a8d4308-ab9d-4121-b460-696ec3368ad6"
 ]
@@ -2046,8 +2046,15 @@ $ dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 {
     ... same format as target config above ...
 }
+```
+
+# Service Status Info
+Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if HDFS is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources.
+You can use this request to troubleshoot: if you think Cassandra should be receiving resource offers, but is not, you can use this API call to see if Cassandra is suppressed.
+```
+curl -H "Authorization: token=$auth_token" "<dcos_url>/service/hdfs/v1/state/properties/suppressed"
 ```
