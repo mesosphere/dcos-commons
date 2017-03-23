@@ -19,7 +19,7 @@ public class PlanUtils {
     private PlanUtils() {
         // do not instantiate
     }
-    
+
     public static boolean allHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().allMatch(element -> element.getStatus() == status);
     }

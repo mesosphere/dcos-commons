@@ -126,7 +126,6 @@ public class PlansResource extends PrettyJsonResource {
                 return ELEMENT_NOT_FOUND_RESPONSE;
             }
 
-            
             phases.forEach(p -> p.proceed());
         } else {
             planManagerOptional.get().getPlan().proceed();
