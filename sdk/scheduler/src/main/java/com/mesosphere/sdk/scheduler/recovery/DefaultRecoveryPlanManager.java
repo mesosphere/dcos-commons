@@ -131,7 +131,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     private Plan createPlan(List<Step> steps) {
         Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, steps, new RandomStrategy<>());
-        return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
+        return DeployPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
     private List<Step> createSteps(Collection<String> dirtyAssets) throws TaskException {
