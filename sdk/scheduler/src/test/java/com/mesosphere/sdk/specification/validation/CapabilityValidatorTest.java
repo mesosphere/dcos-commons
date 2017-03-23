@@ -45,6 +45,7 @@ public class CapabilityValidatorTest {
     public void testSpecSucceedsWithRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
+        when(mockCapabilities.supportCniPortMapping()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
@@ -83,13 +84,17 @@ public class CapabilityValidatorTest {
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
+        // check that it works when GPUs are specified at the task level
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
+        capabilityValidator.validate(serviceSpec);
 
+        // check that it works when GPUs are specified at the resourceSet level
+        file = new File(getClass().getClassLoader().getResource("valid-gpu-resourceset.yml").getFile());
+        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
         capabilityValidator.validate(serviceSpec);
     }
 
-    // TODO (arand) needs to be updated for GPU resource set
     @Test
     public void testSpecSucceedsWhenGpuResourceIsSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -105,10 +110,26 @@ public class CapabilityValidatorTest {
         capabilityValidator.validate(serviceSpec);
 
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
+        when(mockCapabilities.supportCniPortMapping()).thenReturn(true);
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
         serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), mockFileReader);
 
         capabilityValidator.validate(serviceSpec);
+    }
 
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenCniPortMappingIsNotSupported() throws Exception {
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
+        when(mockCapabilities.supportsRLimits()).thenReturn(true);
+
+        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+
+        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+
+        File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), mockFileReader);
+        capabilityValidator.validate(serviceSpec);
     }
 }
