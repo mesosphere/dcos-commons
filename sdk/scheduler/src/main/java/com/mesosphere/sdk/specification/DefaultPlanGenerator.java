@@ -89,7 +89,10 @@ public class DefaultPlanGenerator implements PlanGenerator {
                 }
             }
         }
-        return DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(rawPhase.getStrategy()));
+        return DefaultPhaseFactory.getPhase(
+                phaseName,
+                steps,
+                StrategyFactory.generateForSteps(rawPhase.getStrategy(), steps));
     }
 
     private void validateSingletonStepMaps(
