@@ -27,21 +27,24 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
-@pytest.mark.cni
+@pytest.mark.smoke
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     print("deployment_plan: " + str(deployment_plan))
 
+    # deploy two pods serially
     assert(len(deployment_plan['phases']) == 2)
     assert(deployment_plan['phases'][0]['name'] == 'hello-deploy')
-    assert(len(deployment_plan['phases'][0]['steps']) == 2)
     assert(deployment_plan["phases"][1]["name"] == "world-deploy")
+
+    # they both have two steps, network-task and server
+    assert(len(deployment_plan['phases'][0]['steps']) == 2)
     assert(len(deployment_plan["phases"][1]["steps"]) == 2)
 
 
 @pytest.mark.sanity
-@pytest.mark.cni
+@pytest.mark.smoke
 def test_joins_overlay_network():
     """Verify that the container joined the dcos subnet at 9.0.0.0/24.
 
