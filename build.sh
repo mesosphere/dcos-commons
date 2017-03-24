@@ -7,6 +7,20 @@
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
 
+PULLREQUEST="false"
+while getopts 'p' opt; do
+    case $opt in
+        p)
+            PULLREQUEST="true"
+            ;;
+        \?)
+            echo "Unknown option. supported: -p for pull request" >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
@@ -14,6 +28,14 @@ cd $REPO_ROOT_DIR
 _notify_github() {
     $REPO_ROOT_DIR/tools/github_update.py $1 build:sdk $2
 }
+
+if [ x$PULLREQUEST = "xtrue" ]; then
+  echo "Merging master into pull request branch."
+  if ! git merge master; then
+    _notify_github failure "Merge from master branch failed"
+    exit 1
+  fi
+fi
 
 # Build steps for SDK libraries:
 
