@@ -12,7 +12,13 @@ from tests.config import (
 num_private_agents = len(shakedown.get_private_agents())
 
 
-def setup_module(module):
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_unidirectional_constraint():
     install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
@@ -28,15 +34,6 @@ def setup_module(module):
     }
 
     install.install(PACKAGE_NAME, num_total_tasks(), additional_options=options)
-
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
-
-
-@pytest.mark.sanity
-@pytest.mark.recovery
-def test_deploy():
     # hello deploys first so Marathon placement constraint is satisfied. One "world" task will end up placed with it.
     plan.get_deployment_plan(PACKAGE_NAME)
 
@@ -52,6 +49,34 @@ def test_deploy():
     except shakedown.TimeoutExpired:
         print("Passed: hello-0 did not get staged")
         pass
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_no_colocation():
+    install.uninstall(PACKAGE_NAME)
+    options = {
+        "hello": {
+            "count": 2,
+            "placement": "hostname:UNIQUE"
+        },
+        "world": {
+            "count": num_private_agents - 2,
+            "placement": "hostname:UNIQUE"
+        }
+    }
+
+    install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
+    plan.get_deployment_plan(PACKAGE_NAME)
+    # check that no two tasks of _any_ type are colocated on the same agent
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    agents = []
+    for task in all_tasks:
+        if task['name'].startswith('hello-') or task['name'].startswith('world-'):
+            agents.append(task['slave_id'])
+        else:
+            assert False, "Unknown task: " + task['name']
+    assert len(agents) == len(set(agents))
 
 
 def num_total_tasks():
