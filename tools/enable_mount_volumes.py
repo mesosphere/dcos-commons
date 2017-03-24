@@ -137,7 +137,17 @@ def detach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
     return response
 
 
-def configure_instance(device='/dev/xvdm'):
+def configure_partition(device, partition_index, start, end):
+    device_partition = '{}{}'.format(device, partition_index) # e.g. /dev/xvdm1
+    mount_location = '/dcos/volume{}'.format(partition_index - 1) # e.g. /dcos/volume0
+    run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end))
+    run('sudo mkfs -t ext4 {}{}'.format(device_partition))
+    run('sudo mkdir -p {}'.format(mount_location))
+    run('sudo mount {} {}'.format(device_partition, mount_location))
+    run('sudo sh -c "echo \'{} {} ext4 defaults 0 2\' >> /etc/fstab"'.format(device_partition, mount_location))
+
+
+def configure_device(device='/dev/xvdm'):
     """
     Format the attached EBS volume as two MOUNT volumes and adds entries into fstab.
     DC/OS will autodetect the '/dcos/volume#' volumes.
@@ -146,17 +156,8 @@ def configure_instance(device='/dev/xvdm'):
     run('until [[ "$(lsblk -o NAME -r | grep {} | wc -l)" -gt "0" ]]; do echo "Waiting for {}"; sleep 2; done'.format(device_name, device_name))
     run('sudo parted -s {} mklabel gpt'.format(device))
 
-    run('sudo parted -s {} mkpart primary ext4 0% 50%'.format(device))
-    run('sudo mkfs -t ext4 {}1'.format(device))
-    run('sudo mkdir -p /dcos/volume0')
-    run('sudo mount {}1 /dcos/volume0'.format(device))
-    run('sudo sh -c "echo \'{}1 /dcos/volume0 ext4 defaults 0 2\' >> /etc/fstab"'.format(device))
-
-    run('sudo parted -s {} mkpart primary ext4 50% 100%'.format(device))
-    run('sudo mkfs -t ext4 {}2'.format(device))
-    run('sudo mkdir -p /dcos/volume1')
-    run('sudo mount {}2 /dcos/volume1'.format(device))
-    run('sudo sh -c "echo \'{}2 /dcos/volume1 ext4 defaults 0 2\' >> /etc/fstab"'.format(device))
+    configure_partition(device, 1, "0%", "50%")
+    configure_partition(device, 2, "50%", "100%")
 
 
 def configure_mesos():
@@ -294,11 +295,11 @@ def main(stack_id = ''):
         env.gateway = gateway_ip
         env.user = 'core'
 
-        logger.info('Configuring instance for partition: {}'.format(private_ip))
+        logger.info('Creating partitions on agent: {}'.format(private_ip))
         execute(configure_instance)
 
-        logger.info('Configuring instance for mesos resources: {}'.format(private_ip))
-        execute(configure_mesos)
+        logger.info('Restarting agent so that it sees the partitions: {}'.format(private_ip))
+        execute(restart_mesos)
 
     logger.info('Mount volumes enabled. Exiting now...')
     return 0
