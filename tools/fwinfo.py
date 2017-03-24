@@ -11,6 +11,7 @@ Specifically:
 import collections
 import logging
 import os
+import random
 import time
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ _repo_root=None
 def init_repo_root(repo_root):
     global _repo_root
     _repo_root=repo_root
+
 
 def add_framework(framework_name, repo_root=None):
     if not repo_root:
@@ -64,8 +66,12 @@ def autodiscover_frameworks(repo_root=None):
     for framework in frameworks:
         add_framework(framework, repo_root)
 
+def shuffle_order():
+    random.shuffle(_framework_infos)
+
 def running_frameworks():
     return [framework for framework in get_frameworks() if framework.running]
+
 
 class FrameworkTestInfo(object):
     def __init__(self, framework_name, repo_root):
@@ -84,7 +90,8 @@ class FrameworkTestInfo(object):
         self.actions = collections.OrderedDict() # succeeded and failed steps land here
 
     def __repr__(self):
-        return "{%s %s}" % (self.__class__.__name__, self.name)
+        # <classname frameworkname>
+        return "<%s %s>" % (self.__class__.__name__, self.name)
 
     def start_action(self, name):
         self.actions[name] = {'start': time.time()}

@@ -4,7 +4,6 @@ import sys
 
 import argparse
 import logging
-import random
 import shutil
 import subprocess
 import tempfile
@@ -171,12 +170,16 @@ def get_cluster():
     "Bring up a cluster and return, or return an already running cluster"
     pass
 
-def setup_frameworks(framework_list):
-    if not framework_list:
+def setup_frameworks(run_attrs):
+    if not run_attrs.test:
         fwinfo.autodiscover_frameworks()
     else:
-        for framework in framework_list:
+        for framework in run_attrs.test:
             fwinfo.add_framework(framework)
+
+    if run_attrs.order == "random":
+        fwinfo.shuffle_order()
+
     fw_names = fwinfo.get_framework_names()
     logger.info("Frameworks initialized: %s", ", ".join(fw_names))
 
@@ -355,25 +358,27 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
         while True:
             if not next_test and test_list:
                 next_test = test_list.pop(0)
-                logger.info("Pulled test %s from list", next_test)
+                logger.info("Next test to run: %s", next_test)
             if next_test:
                 avail_cluster = clustinfo.get_idle_cluster()
-                logger.info("Cluster is available: %s", avail_cluster)
+                logger.debug("avail_cluster=%s", avail_cluster)
                 if not avail_cluster and clustinfo.running_count() < run_attrs.cluster_count:
                     human_count = clustinfo.running_count()+1
                     logger.info("Launching cluster %s towards count %s",
                                   human_count, run_attrs.cluster_count)
+                    # TODO: retry cluster launches
                     start_config = launch_ccm_cluster.StartConfig(private_agents=6)
                     avail_cluster = clustinfo.start_cluster(start_config,
                             reporting_name="Cluster %s" % human_count)
                 elif not avail_cluster:
+                    info_bits = []
                     for cluster in clustinfo._clusters:
-                        logger.info("Cluster id=%s in use by %s.",
-                                cluster.cluster_id,
-                                cluster.in_use())
-                    logger.info("Sleeping to wait for available cluster to launch %s.",
-                                  next_test)
-                    # echo status
+                        template = "cluster_id=%s in use by frameworks=%s"
+                        info_bits.append(template % (cluster.cluster_id,
+                                                     cluster.in_use()))
+                    logger.info("Waiting for cluster to launch %s; %s",
+                                  next_test, ", ".join(info_bits))
+                    # TODO: report .out sizes for running tests
                     time.sleep(30) # waiting for an available cluster
                     # meanwhile, a test might finish
                     all_ok = handle_test_completions()
@@ -381,7 +386,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                         logger.info("Some tests failed; aborting early") # TODO paramaterize
                         break
                     continue
-                logger.info("Launching test=%s in background on cluster=%s.",
+                logger.info("Testing framework=%s in background on cluster=%s.",
                              next_test, avail_cluster.cluster_id)
                 framework = fwinfo.get_framework(next_test)
                 func = start_test_background
@@ -392,9 +397,9 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 avail_cluster = None
             else:
                 if not fwinfo.running_frameworks():
-                    logger.info("No frameworks running.  All done.")
+                    logger.info("No framework tests running.  All done.")
                     break # all tests done
-                logger.info("No frameworks to launch, waiting for completions.")
+                logger.info("No framework tests to launch, waiting for completions.")
                 # echo status
                 time.sleep(30) # waiting for tests to complete
 
@@ -561,11 +566,7 @@ def main():
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
 
-    test_list = run_attrs.test[:]
-    if run_attrs.order == "random":
-        random.shuffle(test_list)
-
-    setup_frameworks(test_list)
+    setup_frameworks(run_attrs)
 
     try:
         if run_attrs.run_build:
