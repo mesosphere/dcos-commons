@@ -13,10 +13,10 @@ enterprise: 'no'
 
 1. SSH into the master node.
 
-  ```bash
-  dcos node ssh --master-proxy --leader
-  ```
-
+    ```bash
+    dcos node ssh --master-proxy --leader
+    ```
+        
 1. Retrieve client endpoint information by running the `endpoints` command:
         
         $ dcos elastic endpoints coordinator
