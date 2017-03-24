@@ -21,9 +21,6 @@ while getopts 'p' opt; do
 done
 shift $((OPTIND-1))
 
-# XXX for testing
-PULLREQUEST="true"
-
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
