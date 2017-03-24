@@ -15,8 +15,6 @@ enterprise: 'no'
     ```bash
     dcos node ssh --master-proxy --leader
     ```
-
-        $ dcos package install elastic
         
     Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deploy via the CLI:
 
