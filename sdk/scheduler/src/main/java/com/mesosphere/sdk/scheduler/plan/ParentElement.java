@@ -1,18 +1,15 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 
 import static com.mesosphere.sdk.config.YAMLConfigurationLoader.LOGGER;
 import static com.mesosphere.sdk.scheduler.plan.PlanUtils.allHaveStatus;
 import static com.mesosphere.sdk.scheduler.plan.PlanUtils.anyHaveStatus;
+
 
 /**
  * A type of {@link Element} which itself is a collection of child {@link Element}s.
@@ -20,6 +17,7 @@ import static com.mesosphere.sdk.scheduler.plan.PlanUtils.anyHaveStatus;
  * @param <C> the type of the child elements
  */
 public interface ParentElement<C extends Element> extends Element, Interruptible {
+
 
     /**
      * Gets the children of this Element.
@@ -100,19 +98,19 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         // Ordering matters throughout this method.  Modify with care.
         // Also note that this function MUST NOT call parent.getStatus() as that creates a circular call.
 
-        final Collection<? extends Element> children = getChildren();
+        final List<C> children = getChildren();
         if (children == null) {
             LOGGER.error("Parent element returned null list of children: {}", getName());
             return Status.ERROR;
         }
 
+        final Collection<? extends Element> candidateChildren =
+                getStrategy().getCandidates(children, Collections.emptyList());
+
         Status result;
-        if (!getErrors().isEmpty()) {
+        if (!getErrors().isEmpty() || anyHaveStatus(Status.ERROR, children)) {
             result = Status.ERROR;
-            LOGGER.debug("({} status={}) Elements contains errors", getName(), result);
-        } else if (CollectionUtils.isEmpty(children)) {
-            result = Status.COMPLETE;
-            LOGGER.debug("({} status={}) Empty collection of elements encountered.", getName(), result);
+            LOGGER.debug("({} status={}) Elements contain errors.", getName(), result);
         } else if (allHaveStatus(Status.COMPLETE, children)) {
             result = Status.COMPLETE;
             LOGGER.debug("({} status={}) All elements have status: {}",
@@ -120,27 +118,32 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         } else if (isInterrupted()) {
             result = Status.WAITING;
             LOGGER.info("({} status={}) Parent element is interrupted", getName(), result);
-        } else if (anyHaveStatus(Status.WAITING, children)) {
-            result = Status.WAITING;
-            LOGGER.debug("({} status={}) At least one element has status: {}",
-                    getName(), result, Status.WAITING);
-        } else if (allHaveStatus(Status.PENDING, children)) {
-            result = Status.PENDING;
-            LOGGER.debug("({} status={}) All elements have status: {}",
-                    getName(), result, Status.PENDING);
         } else if (anyHaveStatus(Status.PREPARED, children)) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one phase has status: {}",
                     getName(), result, Status.PREPARED);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, children)) {
+        }  else if (anyHaveStatus(Status.WAITING, candidateChildren)) {
+            result = Status.WAITING;
+            LOGGER.debug("({} status={}) At least one element has status: {}",
+                    getName(), result, Status.WAITING);
+        } else if (anyHaveStatus(Status.IN_PROGRESS, candidateChildren)) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one phase has status: {}",
                     getName(), result, Status.IN_PROGRESS);
-        } else if (anyHaveStatus(Status.COMPLETE, children) && (anyHaveStatus(Status.PENDING, children))) {
+        } else if (anyHaveStatus(Status.COMPLETE, children) &&
+                (anyHaveStatus(Status.PENDING, candidateChildren))) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
                     getName(), result, Status.COMPLETE, Status.PENDING);
-        } else if (anyHaveStatus(Status.STARTING, children)) {
+        } else if (!candidateChildren.isEmpty() && anyHaveStatus(Status.PENDING, candidateChildren)) {
+            result = Status.PENDING;
+            LOGGER.debug("({} status={}) At least one element has status: {}",
+                    getName(), result, Status.PENDING);
+        } else if (anyHaveStatus(Status.WAITING, children)) {
+            result = Status.WAITING;
+            LOGGER.debug("({} status={}) At least one element has status: {}",
+                    getName(), result, Status.WAITING);
+        } else if (anyHaveStatus(Status.STARTING, candidateChildren)) {
             result = Status.STARTING;
             LOGGER.debug("({} status={}) At least one element has status '{}'",
                     getName(), result, Status.STARTING);

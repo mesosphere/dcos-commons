@@ -39,7 +39,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testSerialCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -83,7 +83,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testLongSerialCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), 3);
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), 3, steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -131,7 +131,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testParallelCanaryExecution() {
-        CanaryStrategy strategy = new CanaryStrategy(new ParallelStrategy<>());
+        CanaryStrategy strategy = new CanaryStrategy(new ParallelStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -167,7 +167,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testLongParallelCanaryExecution() {
-        CanaryStrategy strategy = new CanaryStrategy(new ParallelStrategy<>(), 3);
+        CanaryStrategy strategy = new CanaryStrategy(new ParallelStrategy<>(), 3, steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -211,7 +211,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testManualInterruptCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -276,7 +276,7 @@ public class CanaryStrategyTest {
         // These steps should be totally skipped over by the canary:
         markComplete(step0, step2);
 
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -310,7 +310,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testSomeDirtyCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());
@@ -359,7 +359,7 @@ public class CanaryStrategyTest {
 
     @Test
     public void testSingleElementCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
         Collection<Step> steps = Arrays.asList(step0);
 
         // Initially no candidates should be returned
@@ -379,8 +379,8 @@ public class CanaryStrategyTest {
 
     @Test
     public void testEmptyCanaryExecution() {
-        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>());
-        Collection<Step> steps = Collections.emptyList();
+        List<Step> steps = Collections.emptyList();
+        Strategy<Step> strategy = new CanaryStrategy(new SerialStrategy<>(), steps);
 
         // Initially no candidates should be returned
         Assert.assertTrue(getCandidates(steps, strategy).isEmpty());

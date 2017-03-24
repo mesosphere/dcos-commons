@@ -5,89 +5,57 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-1. Perform a default installation by following the instructions in the Install and Customize section of this topic.
+
+1. Perform a default installation of an an Elasticsearch cluster with Kibana by following the instructions in the Install and Customize section of this topic.
+
+    **Note:** Your DC/OS cluster must have at least 3 private agent nodes.
 
 1. SSH into the master node.
 
-  ```bash
-  dcos node ssh --master-proxy --leader
-  ```
+    ```bash
+    dcos node ssh --master-proxy --leader
+    ```
 
-1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. If you try to access the cluster too soon, you may get an empty response or an authentication error like this:
+        $ dcos package install elastic
+        
+    Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deploy via the CLI:
 
-  ```json
-  {"error":{"root_cause":[{"type":"security_exception","reason":"failed to authenticate user [elastic]","header":{"WWW-Authenticate":"Basic realm=\"security\" charset=\"UTF-8\""}}],"type":"security_exception","reason":"failed to authenticate user [elastic]","header":{"WWW-Authenticate":"Basic realm=\"security\""}}}
-  ```
+        $ dcos elastic plan show deploy
 
-1. You can check the status of the deployment via the CLI:
+1. Retrieve client endpoint information by running the `endpoints` command:
+        
+        $ dcos elastic endpoints coordinator
+        {
+            "direct": ["coordinator-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
+            "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200"
+        }
 
-  ```bash
-  dcos elastic plan show deploy
-  ```
+1. [SSH into a DC/OS node][1]:
 
-1. Explore your cluster.
+        $ dcos node ssh --master-proxy --leader
 
-  ```bash
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
-  ```
+    Now that you are inside your DC/OS cluster, you can connect to your Elasticsearch cluster directly.
 
-1. Create and check indices.
+1. Create an indice:
 
-  ```bash
-  curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
-  ```
-
-1. Store and retrieve data.
-
-  ```bash
-  curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
-  {
-    "name": "John Doe"
-  }'
-  curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
-  ```
-
-1. Check status.
-
-  ```bash
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
-  curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
-  ```
+        $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
 
 
-**Note:** If you did not install any coordinator nodes, you should direct all queries to your data nodes instead:
+1. Store data in your indice:
 
-```bash
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
-```
+        $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
+        {
+            "name": "John Doe"
+        }'
+        
+1. Retrieve data from your indice:
 
-# Access Kibana
+        $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+        
+1. Browse Kibana:
 
-1. Log into your DC/OS cluster so that you can see the Dashboard. You should see your Elastic service running under Services.
+        http://<dcos-url>/service/elastic/kibana/login
 
-1. Make sure Kibana is ready for use. The `kibana-deploy` phase should be marked as `COMPLETE` when you check the plan status:
-
-  ```bash
-  dcos elastic plan show deploy
-  ```
-
-  Depending on your Kibana node’s resources, it can take ~10 minutes to launch. If you look in the stdout log for the Kibana task, you will see this line takes the longest:
-
-  ```
-  Optimizing and caching browser bundles...
-  ```
-
-  Then you’ll see this:
-
-  ```
-  {"type":"log","@timestamp":"2016-12-08T22:37:46Z","tags":["listening","info"],"pid":12263,"message":"Server running at http://0.0.0.0:5601"}
-  ```
-
-1. Then, go to this URL:
-  ```
-  http://$DCOS_URL/service/elastic/kibana/login
-  ```
-  And log in with `elastic`/`changeme`
+  Log in with `elastic`/`changeme`
+  
+[1]: https://docs.mesosphere.com/1.9/administration/access-node/sshcluster/

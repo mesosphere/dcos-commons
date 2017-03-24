@@ -29,8 +29,6 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
-
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
  * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
@@ -177,7 +175,7 @@ public class DefaultService implements Service {
                 }
             }
         }
-        return DEFAULT_GPU_POLICY;
+        return false;
     }
 
     protected void startApiServer(
