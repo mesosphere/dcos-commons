@@ -14,6 +14,7 @@ public class RawTask {
     private final Map<String, String> env;
     private final WriteOnceLinkedHashMap<String, RawConfig> configs;
     private final Double cpus;
+    private final Double gpus;
     private final Integer memory;
     private final WriteOnceLinkedHashMap<String, RawPort> ports;
     private final RawHealthCheck healthCheck;
@@ -21,6 +22,7 @@ public class RawTask {
     private final RawVolume volume;
     private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
     private final String resourceSet;
+    private final RawDiscovery discovery;
 
     private RawTask(
             @JsonProperty("goal") String goal,
@@ -28,18 +30,21 @@ public class RawTask {
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
             @JsonProperty("cpus") Double cpus,
+            @JsonProperty("gpus") Double gpus,
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
             @JsonProperty("health-check") RawHealthCheck healthCheck,
             @JsonProperty("readiness-check") RawReadinessCheck readinessCheck,
             @JsonProperty("volume") RawVolume volume,
             @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
-            @JsonProperty("resource-set") String resourceSet) {
+            @JsonProperty("resource-set") String resourceSet,
+            @JsonProperty("discovery") RawDiscovery discovery) {
         this.goal = goal;
         this.cmd = cmd;
         this.env = env;
         this.configs = configs;
         this.cpus = cpus;
+        this.gpus = gpus;
         this.memory = memory;
         this.ports = ports;
         this.healthCheck = healthCheck;
@@ -47,10 +52,15 @@ public class RawTask {
         this.volume = volume;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
+        this.discovery = discovery;
     }
 
     public Double getCpus() {
         return cpus;
+    }
+
+    public Double getGpus() {
+        return gpus;
     }
 
     public Integer getMemory() {
@@ -59,6 +69,10 @@ public class RawTask {
 
     public String getResourceSet() {
         return resourceSet;
+    }
+
+    public RawDiscovery getDiscovery() {
+        return discovery;
     }
 
     public RawHealthCheck getHealthCheck() {

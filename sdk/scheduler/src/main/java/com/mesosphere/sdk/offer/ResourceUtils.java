@@ -261,6 +261,7 @@ public class ResourceUtils {
                     builder.getDiscoveryBuilder(),
                     vipName,
                     protocol,
+                    visibility,
                     vipPort,
                     (int) resource.getRanges().getRange(0).getBegin());
         } else {
@@ -288,6 +289,7 @@ public class ResourceUtils {
                     builder.getDiscoveryBuilder(),
                     vipName,
                     protocol,
+                    visibility,
                     vipPort,
                     (int) resource.getRanges().getRange(0).getBegin());
         } else {
@@ -304,14 +306,23 @@ public class ResourceUtils {
     }
 
     private static DiscoveryInfo.Builder addVIP(
-            DiscoveryInfo.Builder builder, String vipName, String protocol, Integer vipPort, int destPort) {
+            DiscoveryInfo.Builder builder,
+            String vipName,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            Integer vipPort,
+            int destPort) {
         builder.getPortsBuilder()
                 .addPortsBuilder()
                 .setNumber(destPort)
                 .setProtocol(protocol)
+                .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
+        // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info 
+        // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
+        builder.setVisibility(DiscoveryInfo.Visibility.CLUSTER);
         return builder;
     }
 
@@ -323,12 +334,13 @@ public class ResourceUtils {
             DiscoveryInfo.Visibility visibility,
             Resource r) {
         DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
-                .setVisibility(visibility)
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .setName(taskName);
 
         discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
                 .setNumber((int) r.getRanges().getRange(0).getBegin())
                 .setProtocol(protocol)
+                .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
@@ -396,8 +408,9 @@ public class ResourceUtils {
         List<Protos.Resource> resources = new ArrayList<>();
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
-                resource = Protos.Resource.newBuilder(resource).setDisk(
-                    Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                resource = Protos.Resource.newBuilder(resource)
+                        .setDisk(resource.getDisk().toBuilder()
+                                .setPersistence(Persistence.newBuilder().setId(""))
                 ).build();
             }
             resources.add(resource);

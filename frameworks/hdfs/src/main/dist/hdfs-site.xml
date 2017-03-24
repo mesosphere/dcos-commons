@@ -13,7 +13,16 @@
         <name>dfs.ha.namenodes.hdfs</name>
         <value>name-0-node,name-1-node</value>
     </property>
-
+    <property>
+        <name>dfs.cluster.administrators</name>
+        <value>{{ADMINISTRATORS}}</value>
+    </property>
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.http.policy</name>
+        <value>HTTP_AND_HTTPS</value>
+    </property>
+    {{/TLS_ENABLED}}
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
@@ -84,6 +93,11 @@
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
+    </property>
+
+    <property>
+        <name>dfs.ha.zkfc.port</name>
+        <value>{{ZKFC_PORT}}</value>
     </property>
 
     <!-- journalnode -->

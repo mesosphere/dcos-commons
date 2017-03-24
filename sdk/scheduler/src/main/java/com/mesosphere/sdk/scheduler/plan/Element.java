@@ -4,6 +4,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos.TaskStatus;
 import com.mesosphere.sdk.scheduler.Observable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -46,11 +47,6 @@ public interface Element extends Observable {
     void forceComplete();
 
     /**
-     * Returns a user-visible message describing this Element.
-     */
-    String getMessage();
-
-    /**
      * Returns a list of user-visible descriptive error messages associated with this Element.
      */
     List<String> getErrors();
@@ -84,13 +80,6 @@ public interface Element extends Observable {
     }
 
     /**
-     * Indicates whether this Element is waiting for external input to proceed.
-     */
-    default boolean isWaiting() {
-        return getStatus().equals(Status.WAITING);
-    }
-
-    /**
      * Indicates whether this Element is complete.
      */
     default boolean isComplete() {
@@ -98,8 +87,23 @@ public interface Element extends Observable {
     }
 
     /**
+     * Indicates whether this Element is capable of being started.
+     */
+    default boolean isEligible(Collection<String> dirtyAssets) {
+        return !isComplete() && !hasErrors();
+    }
+
+    /**
      * Provides the Element with a set of named string parameters that it can either use on start or provide to
      * children, if it has any.
      */
     default void updateParameters(Map<String, String> parameters) { }
+
+    /**
+     * Returns a reasonable user-visible status message.
+     */
+    default String getMessage() {
+        return String.format("%s: '%s [%s]' has status: '%s'.",
+                getClass().getName(), getName(), getId(), getStatus());
+    }
 }

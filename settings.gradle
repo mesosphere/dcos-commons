@@ -33,5 +33,8 @@ project(":frameworks/prototype").name = "prototype"
 include 'frameworks/proxylite'
 project(":frameworks/proxylite").name = "proxylite"
 
-include 'frameworks/rethinkdb'
-project(":frameworks/rethinkdb").name = "rethinkdb"
+include 'frameworks/cassandra'
+project(":frameworks/cassandra").name = "cassandra"
+
+include 'frameworks/spark'
+project(":frameworks/spark").name = "spark"

@@ -38,6 +38,11 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
   name:
@@ -59,6 +64,12 @@ pods:
           path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+      zkfc-resources:
+        cpus: {{ZKFC_CPUS}}
+        memory: {{ZKFC_MEM}}
+        ports:
+          zkfc-port:
+            port: {{TASKCFG_ALL_ZKFC_PORT}}
     tasks:
       node:
         goal: RUNNING
@@ -84,6 +95,11 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
@@ -103,6 +119,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
@@ -122,21 +143,15 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
-  zkfc:
-    count: 2
-    uris:
-      - {{HDFS_URI}}
-      - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-    resource-sets:
-      zkfc-resources:
-        cpus: {{ZKFC_CPUS}}
-        memory: {{ZKFC_MEM}}
-    tasks:
-      node:
+      zkfc:
         goal: RUNNING
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
@@ -152,10 +167,15 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
           ZKFC: true
-      format:
+      zkfc-format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
@@ -171,6 +191,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
           ZKFC: true
@@ -216,16 +241,27 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           DATANODE: true
+        # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
+        readiness-check:
+          cmd: MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $LIBPROCESS_IP | wc -l)" && [ $MATCH -gt 1 ]
+          interval: 10
+          delay: 120
+          timeout: 60
 
 plans:
   deploy:
     strategy: serial
     phases:
       jn-deploy:
-        strategy: {{JOURNAL_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: journal
       nn-deploy:
         strategy: serial
@@ -235,12 +271,12 @@ plans:
           - 1: [[bootstrap], [node]]
       zkfc-deploy:
         strategy: serial
-        pod: zkfc
+        pod: name
         steps:
-          - 0: [[format], [node]]
-          - 1: [[node]]
+          - 0: [[zkfc-format], [zkfc]]
+          - 1: [[zkfc]]
       dn-deploy:
-        strategy: {{DATA_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: data
 
   replace-nn:
@@ -250,5 +286,5 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - 0: [[bootstrap], [node]]
-          - 1: [[bootstrap], [node]]
+          - 0: [[bootstrap], [node, zkfc]]
+          - 1: [[bootstrap], [node, zkfc]]

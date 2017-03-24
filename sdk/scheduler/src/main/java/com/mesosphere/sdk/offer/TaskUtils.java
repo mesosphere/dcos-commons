@@ -263,7 +263,7 @@ public class TaskUtils {
     public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
         return taskInfoBuilder
                 .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
-                        GOAL_STATE_KEY,
+                        GOAL_STATE_LABEL,
                         taskSpec.getGoal().name()));
     }
 

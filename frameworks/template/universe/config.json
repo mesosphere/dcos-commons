@@ -15,15 +15,20 @@
             "type":"number",
             "default":1000
           },
-          "spec_file" : {
-            "description":"The name of the service spec yaml file.",
+          "secret_name": {
+            "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type":"string",
-            "default":"svc.yml"
+            "default":""
           },
-          "cmd_prefix" : {
-            "description":"A generic prefix to start the scheduler.",
-            "type":"string",
-            "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
+          "user": {
+            "description": "The user that the service will run as.",
+            "type": "string",
+            "default": "root"
+          },
+          "principal": {
+            "description": "The principal for the service instance.",
+            "type": "string",
+            "default": ""
           }
         }
       },

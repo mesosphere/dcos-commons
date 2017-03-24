@@ -127,12 +127,9 @@ public class ProcessTask implements ExecutorTask {
 
             LOGGER.info(exitMessage);
             if (exitOnTermination) {
-                LOGGER.info("Executor is exiting because exitOnTermination: " + exitOnTermination);
-                if (exitValue == 0) {
-                    driver.stop();
-                } else {
-                    driver.abort();
-                }
+                LOGGER.info("Executor is exiting with code {} because exitOnTermination: {}",
+                        exitValue, exitOnTermination);
+                System.exit(exitValue);
             }
         } catch (Throwable e) {
             LOGGER.error("Process task failed.", e);

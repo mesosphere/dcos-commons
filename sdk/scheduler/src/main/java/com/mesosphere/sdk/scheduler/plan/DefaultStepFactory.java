@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -67,12 +68,31 @@ public class DefaultStepFactory implements StepFactory {
                 .map(taskSpec -> taskSpec.getResourceSet().getId())
                 .collect(Collectors.toList());
 
-        if (new HashSet<>(resourceSetIds).size() < resourceSetIds.size()) {
+        if (hasDuplicates(resourceSetIds)) {
             throw new Step.InvalidStepException(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
                     "These tasks should either be run in separate steps or use different resource set ids",
                     tasksToLaunch, podInstance.getName(), resourceSetIds));
         }
+
+        List<String> dnsPrefixes = taskSpecsToLaunch.stream()
+                .map(taskSpec -> taskSpec.getDiscovery())
+                .filter(discovery -> discovery.isPresent())
+                .map(discovery -> discovery.get().getPrefix())
+                .filter(prefix -> prefix.isPresent())
+                .map(prefix -> prefix.get())
+                .collect(Collectors.toList());
+
+        if (hasDuplicates(dnsPrefixes)) {
+            throw new Step.InvalidStepException(String.format(
+                    "Attempted to simultaneously launch tasks: %s in pod: %s using the same DNS name: %s. " +
+                            "These tasks should either be run in separate steps or use different DNS names",
+                    tasksToLaunch, podInstance.getName(), dnsPrefixes));
+        }
+    }
+
+    private <T> boolean hasDuplicates(Collection<T> collection) {
+        return new HashSet<T>(collection).size() < collection.size();
     }
 
     private Status getStatus(PodInstance podInstance, List<Protos.TaskInfo> taskInfos)
@@ -107,10 +127,11 @@ public class DefaultStepFactory implements StepFactory {
             }
         }
 
-        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {}.",
-                taskInfo.getName(), isOnTarget, hasReachedGoal);
+        boolean hasPermanentlyFailed = FailureUtils.isLabeledAsFailed(taskInfo);
+        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {} or has permanently failed: {}.",
+                taskInfo.getName(), isOnTarget, hasReachedGoal, hasPermanentlyFailed);
 
-        if (isOnTarget && hasReachedGoal) {
+        if ((isOnTarget && hasReachedGoal) || hasPermanentlyFailed) {
             return Status.COMPLETE;
         } else {
             return Status.PENDING;

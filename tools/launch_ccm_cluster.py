@@ -49,9 +49,10 @@ class CCMLauncher(object):
         4: 'DELETING',
         5: 'DELETED',
         6: 'DELETION_FAIL',
-        7: 'CREATING_ERROR'
+        7: 'CREATING_ERROR',
+        8: 'RUNNING_NEEDS_INFO'
     }
-    # Reverse:
+    # Reverse (name => number):
     _CCM_STATUS_LABELS = {v: k for k, v in _CCM_STATUSES.items()}
 
     _CCM_HOST = 'ccm.mesosphere.com'
@@ -136,11 +137,11 @@ class CCMLauncher(object):
         return response
 
 
-    def wait_for_status(self, cluster_id, pending_status_label, complete_status_label, timeout_minutes):
+    def wait_for_status(self, cluster_id, pending_status_labels, complete_status_label, timeout_minutes):
         logger.info('Waiting {} minutes for cluster {} to transition from {} to {}'.format(
-            timeout_minutes, cluster_id, pending_status_label, complete_status_label))
+            timeout_minutes, cluster_id, ', '.join(pending_status_labels), complete_status_label))
 
-        pending_state_code = self._CCM_STATUS_LABELS[pending_status_label]
+        pending_state_codes = [self._CCM_STATUS_LABELS[label] for label in pending_status_labels]
         complete_state_code = self._CCM_STATUS_LABELS[complete_status_label]
 
         start_time = time.time()
@@ -172,7 +173,7 @@ class CCMLauncher(object):
                     else:
                         logger.error('Cluster {} has entered state {}, but lacks cluster_info...'.format(
                             cluster_id, status_label))
-                elif status_code != pending_state_code:
+                elif status_code not in pending_state_codes:
                     logger.error('Cluster {} has entered state {}. Giving up.'.format(
                         cluster_id, status_label))
                     return None
@@ -203,16 +204,28 @@ class CCMLauncher(object):
 
     def _start(self, config):
         is_17_cluster = config.ccm_channel in self._DCOS_17_CHANNELS
+        template_url = None
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
         elif config.cf_template.startswith('ee.'):
-            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise'
+            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise-aws-advanced'
+            # format is different for enterprise security modes.
+            if config.permissions:
+                mode = 'strict'
+            else:
+                mode = 'permissive'
+            template_url = 'https://{}/{}/{}/cloudformation/{}'.format(
+                hostrepo, config.ccm_channel, mode, config.cf_template)
         else:
             hostrepo = 's3-us-west-2.amazonaws.com/downloads.dcos.io/dcos'
-        template_url = 'https://{}/{}/cloudformation/{}'.format(
-            hostrepo, config.ccm_channel, config.cf_template)
+        # non-ee mode
+        if not template_url:
+            template_url = 'https://{}/{}/cloudformation/{}'.format(
+                hostrepo, config.ccm_channel, config.cf_template)
+        # external override from DCOS_TEMPLATE_URL
         if config.template_url:
             template_url = config.template_url
+            logger.info("Accepting externally provided template_url from environment.")
         cluster_name = config.name_prefix + self._rand_str(8)
         payload = {
             'template_url': template_url,
@@ -233,14 +246,16 @@ class CCMLauncher(object):
   mountvols={}
   permissions={}
   channel={}
-  template={}'''.format(
+  template={}
+  template_url={}'''.format(
       cluster_name,
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
       config.permissions,
       config.ccm_channel,
-      config.cf_template))
+      config.cf_template,
+      template_url))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
@@ -254,7 +269,11 @@ class CCMLauncher(object):
         if not stack_id:
             raise Exception('No Stack ID returned in cluster creation response: {}'.format(response_content))
 
-        cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', config.start_timeout_mins)
+        cluster_info = self.wait_for_status(
+            cluster_id,
+            ['CREATING', 'RUNNING_NEEDS_INFO'], # pending states
+            'RUNNING', # desired state
+            config.start_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster creation failed or timed out')
         dns_address = cluster_info.get('DnsAddress', '')
@@ -283,12 +302,9 @@ class CCMLauncher(object):
 
             def run_script(scriptname, args = []):
                 logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
-                # force total redirect to stderr:
-                stdout = sys.stdout
-                sys.stdout = sys.stderr
                 script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
-                subprocess.check_call(['bash', script_path] + args)
-                sys.stdout = stdout
+                # redirect stdout to stderr:
+                subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
 
             run_script('create_service_account.sh', [dcos_url, auth_token, '--strict'])
             # Examples of what individual tests should run. See respective projects' "test.sh":
@@ -318,7 +334,11 @@ class CCMLauncher(object):
         if not response:
             raise Exception('CCM cluster deletion request failed')
         if wait:
-            cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
+            cluster_info = self.wait_for_status(
+                config.cluster_id,
+                ['DELETING'],
+                'DELETED',
+                config.stop_timeout_mins)
             if not cluster_info:
                 raise Exception('CCM cluster deletion failed or timed out')
             logger.info(pprint.pformat(cluster_info))
@@ -389,15 +409,32 @@ def _write_jenkins_config(github_label, cluster_info, error = None):
     properties_file.close()
 
 
+def determine_github_label():
+    label =os.environ.get('CCM_GITHUB_LABEL', '')
+    if not label:
+        label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
+    return label
+
+def start_cluster(launcher, github_label, start_stop_attempts, config=None):
+    if not config:
+        config=StartConfig()
+    try:
+        cluster_info = launcher.start(config, start_stop_attempts)
+        # print to stdout (the rest of this script only writes to stderr):
+        print(json.dumps(cluster_info))
+        _write_jenkins_config(github_label, cluster_info)
+    except Exception as e:
+        _write_jenkins_config(github_label, {}, e)
+        raise
+    return cluster_info
+
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
     if not ccm_token:
         raise Exception('CCM_AUTH_TOKEN is required')
 
     # used for status and for jenkins .properties file:
-    github_label = os.environ.get('CCM_GITHUB_LABEL', '')
-    if not github_label:
-        github_label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
+    github_label = determine_github_label()
 
     # error detection (and retry) for either a start or a stop operation:
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
@@ -423,7 +460,10 @@ def main(argv):
                 # piggy-back off of StopConfig's env handling:
                 stop_config = StopConfig(argv[2])
                 cluster_info = launcher.wait_for_status(
-                    stop_config.cluster_id, argv[3], argv[4], stop_config.stop_timeout_mins)
+                    stop_config.cluster_id,
+                    [argv[3]],
+                    argv[4],
+                    stop_config.stop_timeout_mins)
                 if not cluster_info:
                     return 1
                 # print to stdout (the rest of this script only writes to stderr):
@@ -436,14 +476,7 @@ def main(argv):
             logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
-    try:
-        cluster_info = launcher.start(StartConfig(), start_stop_attempts)
-        # print to stdout (the rest of this script only writes to stderr):
-        print(json.dumps(cluster_info))
-        _write_jenkins_config(github_label, cluster_info)
-    except Exception as e:
-        _write_jenkins_config(github_label, {}, e)
-        raise
+    start_cluster(launcher, github_label, start_stop_attempts)
     return 0
 
 

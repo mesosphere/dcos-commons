@@ -104,6 +104,9 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertFalse(taskInfo.hasContainer());
         Assert.assertTrue(taskInfo.hasCommand());
 
+        Assert.assertEquals(taskInfo.getDiscovery().getVisibility(), Protos.DiscoveryInfo.Visibility.CLUSTER);
+        Assert.assertEquals(taskInfo.getDiscovery().getName(), "meta-data-0");
+
         // Task command: what to run and envvars
         CommandInfo taskCommand = taskInfo.getCommand();
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
@@ -141,7 +144,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testNewOfferRequirementDocker() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
                 PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
@@ -175,7 +178,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testEnvironmentVariablesAddedToNewOfferRequirement() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
 

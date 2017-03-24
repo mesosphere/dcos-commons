@@ -7,11 +7,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -42,8 +40,13 @@ public class SerialStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
+        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+
         steps = Arrays.asList(el0, el1, el2);
     }
+
 
     @Test
     public void testSerialExecution() {
@@ -51,41 +54,18 @@ public class SerialStrategyTest {
         Assert.assertEquals(el0, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el0.isComplete()).thenReturn(true);
-        when(el0.isPending()).thenReturn(false);
+        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
         Assert.assertEquals(el1, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el1.isComplete()).thenReturn(true);
-        when(el1.isPending()).thenReturn(false);
+        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
         Assert.assertEquals(el2, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el2.isComplete()).thenReturn(true);
-        when(el2.isPending()).thenReturn(false);
+        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertTrue(strategy.getCandidates(steps, Collections.emptyList()).isEmpty());
-    }
-
-    @Test
-    public void testDirtyAssetAvoidance() {
-        // Can't launch because asset is dirty
-        Assert.assertEquals(0, strategy.getCandidates(steps, Arrays.asList(el0.getName())).size());
-        // Can launch now
-        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
-        Assert.assertEquals(el0, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
-
-        when(el0.isComplete()).thenReturn(true);
-        when(el0.isPending()).thenReturn(false);
-        // Can launch because element 0 is dirty, but it's complete now.
-        Assert.assertEquals(1, strategy.getCandidates(steps, Arrays.asList(el0.getName())).size());
-        // Can't launch because asset is dirty
-        Assert.assertEquals(0, strategy.getCandidates(steps, Arrays.asList(el1.getName())).size());
-        // Can't launch because asset is dirty
-        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
-
-        when(el1.isComplete()).thenReturn(true);
-        when(el1.isPending()).thenReturn(false);
-        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
-        Assert.assertEquals(el2, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
     }
 
     @Test

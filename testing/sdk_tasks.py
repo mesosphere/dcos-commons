@@ -1,12 +1,11 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.errors
-import sdk_cmd
 import sdk_spin
 import shakedown
 
 
-def check_running(service_name, expected_task_count):
+def check_running(service_name, expected_task_count, timeout_seconds=-1):
     def fn():
         try:
             tasks = shakedown.get_service_tasks(service_name)
@@ -26,7 +25,11 @@ def check_running(service_name, expected_task_count):
             running_task_names,
             other_tasks))
         return len(running_task_names) >= expected_task_count
-    sdk_spin.time_wait_noisy(lambda: fn())
+
+    if timeout_seconds <= 0:
+        sdk_spin.time_wait_noisy(lambda: fn())
+    else:
+        sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=timeout_seconds)
 
 
 def get_task_ids(service_name, task_prefix):
@@ -35,7 +38,7 @@ def get_task_ids(service_name, task_prefix):
     return [t['id'] for t in matching_tasks]
 
 
-def check_tasks_updated(service_name, prefix, old_task_ids):
+def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=-1):
     def fn():
         try:
             task_ids = get_task_ids(service_name, prefix)
@@ -53,7 +56,10 @@ def check_tasks_updated(service_name, prefix, old_task_ids):
             all_updated = False
         return all_updated
 
-    sdk_spin.time_wait_noisy(lambda: fn())
+    if timeout_seconds <= 0:
+        sdk_spin.time_wait_noisy(lambda: fn())
+    else:
+        sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=timeout_seconds)
 
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):

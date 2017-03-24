@@ -4,6 +4,7 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_plan as plan
+import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME,
@@ -13,7 +14,17 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
+    utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
+@pytest.mark.smoke
+def test_install():
+    pass # Setup makes sure install has completed
 
 
 @pytest.mark.sanity
@@ -29,6 +40,11 @@ def test_google():
 @pytest.mark.sanity
 def test_httpd():
     cmd.request('get', '{}/httpd'.format(shakedown.dcos_service_url('proxylite')))
+
+
+@pytest.mark.sanity
+def test_httpd():
+    cmd.request('get', '{}/pyhttpsd'.format(shakedown.dcos_service_url('proxylite')))
 
 
 @pytest.mark.sanity

@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 public class DcosClusterTest {
 
     private static final String EXPECTED_URI = DcosConstants.MESOS_MASTER_URI + DcosCluster.DCOS_VERSION_PATH;
-    private static final String TEST_VERSION = "1.8-dev";
+    private static final String TEST_VERSION = "1.9-dev";
     public static final String TEST_BOOTSTRAP_ID = "test-bootstrap-id";
     public static final String TEST_DCOS_IMAGE_COMMIT = "test-dcos-image-commit";
     private static final String RESPONSE_TEMPLATE =
@@ -52,7 +52,7 @@ public class DcosClusterTest {
         Assert.assertNotNull(dcosVersion);
         Assert.assertEquals(TEST_VERSION, dcosVersion.getVersion());
         Assert.assertEquals(1, dcosVersion.getElements().getFirstElement());
-        Assert.assertEquals(8, dcosVersion.getElements().getSecondElement());
+        Assert.assertEquals(9, dcosVersion.getElements().getSecondElement());
     }
 
     @Test(expected = NumberFormatException.class)

@@ -9,6 +9,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 /**
  * This class provides a default implementation of the VolumeSpec interface.
@@ -18,6 +20,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
+
+    /** Regexp in @Pattern will detect blank string. No need to use @NotEmpty or @NotBlank. */
+    @NotNull
+    @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
     private final String containerPath;
 
     public DefaultVolumeSpec(

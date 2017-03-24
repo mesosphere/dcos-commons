@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
@@ -10,7 +11,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -40,6 +43,9 @@ type args struct {
 	templateEnabled bool
 	// Max supported bytes or 0 for no limit
 	templateMaxBytes int64
+
+	// Install certs from .ssl into JRE/lib/security/cacerts
+	installCerts bool
 }
 
 func parseArgs() args {
@@ -64,6 +70,9 @@ func parseArgs() args {
 			"env vars.", configTemplatePrefix))
 	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024 * 1024,
 		"Largest template file that may be processed, or zero for no limit.")
+	flag.BoolVar(&args.installCerts, "install-certs", true,
+		"Whether to install certs from .ssl to the JRE.")
+
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
@@ -166,14 +175,14 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 // template download/read and render
 
 func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
-	info, err := os.Stat(inPath)
+	sandboxDir, found := os.LookupEnv("MESOS_SANDBOX")
+	if !found {
+		log.Fatalf("Missing required envvar: MESOS_SANDBOX")
+	}
+	templatePath := path.Join(sandboxDir, inPath)
+	info, err := os.Stat(templatePath)
 	if err != nil && os.IsNotExist(err) {
-		cwd, err := os.Getwd()
-		if err != nil {
-			cwd = err.Error()
-		}
-		log.Fatalf("Path from %s doesn't exist: %s (cwd=%s)",
-			source, inPath, cwd)
+		log.Fatalf("Path from %s doesn't exist: %s", source, templatePath)
 	}
 	if !info.Mode().IsRegular() {
 		cwd, err := os.Getwd()
@@ -181,16 +190,16 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 			cwd = err.Error()
 		}
 		log.Fatalf("Path from %s is not a regular file: %s (cwd=%s)",
-			source, inPath, cwd)
+			source, templatePath, cwd)
 	}
 	if templateMaxBytes != 0 && info.Size() > templateMaxBytes {
 		log.Fatalf("File '%s' from %s is %d bytes, exceeds maximum %d bytes",
-			inPath, source, info.Size(), templateMaxBytes)
+			templatePath, source, info.Size(), templateMaxBytes)
 	}
 
-	data, err := ioutil.ReadFile(inPath)
+	data, err := ioutil.ReadFile(templatePath)
 	if err != nil {
-		log.Fatalf("Failed to read file from %s at '%s': %s", source, inPath, err)
+		log.Fatalf("Failed to read file from %s at '%s': %s", source, templatePath, err)
 	}
 	return data
 }
@@ -251,6 +260,75 @@ func renderTemplates(templateMaxBytes int64) {
 	}
 }
 
+func installDCOSCertIntoJRE() {
+	mesosSandbox := os.Getenv("MESOS_SANDBOX")
+	sslDir := filepath.Join(mesosSandbox, ".ssl")
+
+	// Check if .ssl directory is present
+	sslDirExists, err := isDir(sslDir)
+	if !sslDirExists || err != nil {
+		log.Printf("No $MESOS_SANDBOX/.ssl directory found. Cannot install certificate. Error: %s", err)
+		return
+	}
+
+	// Check if .ssl/ca.crt certificate is present
+	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+	certExists, err := isFile(certPath)
+	if !certExists || err != nil {
+		log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate. Error: %s", err)
+		return
+	}
+
+	javaHome := os.Getenv("JAVA_HOME")
+	if len(javaHome) == 0 {
+		log.Printf("No JAVA_HOME provided. Cannot install certs.")
+		return
+	}
+
+	cacertsPath := filepath.Join(javaHome, "lib", "security", "cacerts")
+	keytoolPath := filepath.Join(javaHome, "bin", "keytool")
+	cmd := exec.Command(keytoolPath, "-importcert", "-noprompt", "-alias", "dcoscert", "-keystore", cacertsPath,
+		"-file", certPath, "-storepass", "changeit")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		log.Printf("Failed to install the certificate. Error: %s", err)
+		return
+	}
+	log.Println("Successfully installed the certificate.")
+}
+
+func isDir(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	mode := fi.Mode()
+	if mode.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func isFile(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	mode := fi.Mode()
+	if mode.IsRegular() {
+		return true, nil
+	}
+	return false, nil
+}
+
 // main
 
 func main() {
@@ -272,5 +350,9 @@ func main() {
 		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
 	}
 
-	log.Printf("Bootstrap successful.")
+	if (args.installCerts) {
+		installDCOSCertIntoJRE()
+	}
+
+	log.Printf("SDK Bootstrap successful.")
 }

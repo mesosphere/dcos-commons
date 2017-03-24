@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,21 +58,24 @@ public class DefaultPhaseBuilderTest {
         phaseBuilder.addDependency(step1, step0);
         DefaultPhase phase = phaseBuilder.build();
 
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(true);;
         Assert.assertEquals(step0, getCandidates(phase).iterator().next());
 
         when(step0.isComplete()).thenReturn(true);
-        when(step0.isPending()).thenReturn(false);
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         // Try again, shouldn't change.
         Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         when(step1.isComplete()).thenReturn(true);
-        when(step1.isPending()).thenReturn(false);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
-        when(step2.isComplete()).thenReturn(true);
-        when(step2.isPending()).thenReturn(false);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(step1.isComplete()).thenReturn(true);
         Assert.assertTrue(getCandidates(phase).isEmpty());
     }
 
@@ -82,22 +86,25 @@ public class DefaultPhaseBuilderTest {
         phaseBuilder.add(step2);
         DefaultPhase phase = phaseBuilder.build();
 
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(3, getCandidates(phase).size());
 
         when(step0.isComplete()).thenReturn(true);
-        when(step0.isPending()).thenReturn(false);
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(2, getCandidates(phase).size());
 
         // Try again, shouldn't change.
         Assert.assertEquals(2, getCandidates(phase).size());
 
         when(step2.isComplete()).thenReturn(true);
-        when(step2.isPending()).thenReturn(false);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates(phase).size());
         Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         when(step1.isComplete()).thenReturn(true);
-        when(step1.isPending()).thenReturn(false);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertTrue(getCandidates(phase).isEmpty());
     }
 
@@ -109,15 +116,18 @@ public class DefaultPhaseBuilderTest {
         phaseBuilder.addDependency(step2, step0);
         DefaultPhase phase = phaseBuilder.build();
 
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(phase).size());
         Assert.assertEquals(step0, getCandidates(phase).iterator().next());
 
         when(step0.isComplete()).thenReturn(true);
-        when(step0.isPending()).thenReturn(false);
+        when(step0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(2, getCandidates(phase).size());
 
         when(step1.isComplete()).thenReturn(true);
-        when(step1.isPending()).thenReturn(false);
+        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates(phase).size());
         Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
@@ -126,12 +136,13 @@ public class DefaultPhaseBuilderTest {
         Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
         when(step2.isComplete()).thenReturn(true);
-        when(step2.isPending()).thenReturn(false);
+        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(step3.isEligible(anyCollectionOf(String.class))).thenReturn(true);
         Assert.assertEquals(1, getCandidates(phase).size());
         Assert.assertEquals(step3, getCandidates(phase).iterator().next());
 
         when(step3.isComplete()).thenReturn(true);
-        when(step3.isPending()).thenReturn(false);
+        when(step3.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertTrue(getCandidates(phase).isEmpty());
     }
 

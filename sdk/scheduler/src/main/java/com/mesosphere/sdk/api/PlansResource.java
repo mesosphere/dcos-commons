@@ -1,10 +1,13 @@
 package com.mesosphere.sdk.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,15 +17,17 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
+import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
+
 /**
  * API for management of Plan(s).
  */
 @Path("/v1")
-@Produces(MediaType.APPLICATION_JSON)
-public class PlansResource {
-    static final Response ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
-            .entity("Element not found")
-            .build();
+public class PlansResource extends PrettyJsonResource {
+
+    static final Response ELEMENT_NOT_FOUND_RESPONSE = plainResponse("Element not found", Response.Status.NOT_FOUND);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -37,11 +42,8 @@ public class PlansResource {
      */
     @GET
     @Path("/plans")
-    public Response getPlansInfo() {
-        return Response
-                .status(200)
-                .entity(getPlanNames())
-                .build();
+    public Response listPlans() {
+        return jsonOkResponse(new JSONArray(getPlanNames()));
     }
 
     /**
@@ -52,11 +54,10 @@ public class PlansResource {
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
-            PlanManager planManager = planManagerOptional.get();
-            return Response
-                    .status(planManager.getPlan().isComplete() ? 200 : 503)
-                    .entity(PlanInfo.forPlan(planManager.getPlan()))
-                    .build();
+            Plan plan = planManagerOptional.get().getPlan();
+            return jsonResponseBean(
+                    PlanInfo.forPlan(plan),
+                    plan.isComplete() ? Response.Status.OK : Response.Status.SERVICE_UNAVAILABLE);
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -85,9 +86,7 @@ public class PlansResource {
             }
 
             plan.proceed();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: start"))
-                    .build();
+            return jsonOkResponse(getCommandResult("start"));
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -105,9 +104,7 @@ public class PlansResource {
             Plan plan = planManagerOptional.get().getPlan();
             plan.interrupt();
             plan.restart();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: stop"))
-                    .build();
+            return jsonOkResponse(getCommandResult("stop"));
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -115,119 +112,99 @@ public class PlansResource {
 
     @POST
     @Path("/plans/{planName}/continue")
-    public Response continueCommand(@PathParam("planName") String planName) {
+    public Response continueCommand(
+            @PathParam("planName") String planName,
+            @QueryParam("phase") String phase) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            planManagerOptional.get().getPlan().proceed();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: continue"))
-                    .build();
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
-    }
 
-    @POST
-    @Path("/plans/{planName}/{phaseName}/continue")
-    public Response continueCommand(@PathParam("planName") String planName,
-                                     @PathParam("phaseName") String phaseName) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            List<Phase> phases = plan.getChildren().stream()
-                    .filter(p -> p.getName().toString().equals(phaseName))
-                    .collect(Collectors.toList());
-            phases.forEach(p -> p.getStrategy().interrupt());
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: continue"))
-                    .build();
+        if (phase != null) {
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
+            if (phases.isEmpty()) {
+                return ELEMENT_NOT_FOUND_RESPONSE;
+            }
+
+            phases.forEach(p -> p.getStrategy().proceed());
         } else {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            planManagerOptional.get().getPlan().proceed();
         }
+
+        return jsonOkResponse(getCommandResult("continue"));
     }
 
     @POST
     @Path("/plans/{planName}/interrupt")
-    public Response interruptCommand(@PathParam("planName") String planName) {
+    public Response interruptCommand(
+            @PathParam("planName") String planName,
+            @QueryParam("phase") String phase) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            planManagerOptional.get().getPlan().interrupt();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: interrupt"))
-                    .build();
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
-    }
 
-    @POST
-    @Path("/plans/{planName}/{phaseName}/interrupt")
-    public Response interruptCommand(@PathParam("planName") String planName,
-                                     @PathParam("phaseName") String phaseName) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            List<Phase> phases = plan.getChildren().stream()
-                    .filter(p -> p.getName().toString().equals(phaseName))
-                    .collect(Collectors.toList());
+        if (phase != null) {
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
+            if (phases.isEmpty()) {
+                return ELEMENT_NOT_FOUND_RESPONSE;
+            }
+
             phases.forEach(p -> p.getStrategy().interrupt());
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: interrupt"))
-                    .build();
         } else {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            planManagerOptional.get().getPlan().interrupt();
         }
+
+        return jsonOkResponse(getCommandResult("interrupt"));
     }
 
     @POST
     @Path("/plans/{planName}/forceComplete")
     public Response forceCompleteCommand(
             @PathParam("planName") String planName,
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
+            @QueryParam("phase") String phase,
+            @QueryParam("step") String step) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Optional<Step> step = getStep(planManagerOptional.get(), phaseId, stepId);
-            if (step.isPresent()) {
-                step.get().forceComplete();
-                return Response.status(Response.Status.OK)
-                        .entity(new CommandResultInfo("Received cmd: forceComplete"))
-                        .build();
-            } else {
-                return ELEMENT_NOT_FOUND_RESPONSE;
-            }
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
+
+        Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
+        if (!stepOptional.isPresent()) {
+            return ELEMENT_NOT_FOUND_RESPONSE;
+        }
+
+        stepOptional.get().forceComplete();
+
+        return jsonOkResponse(getCommandResult("forceComplete"));
     }
 
     @POST
     @Path("/plans/{planName}/restart")
     public Response restartCommand(
             @PathParam("planName") String planName,
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
+            @QueryParam("phase") String phase,
+            @QueryParam("step") String step) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            if (phaseId == null && stepId == null) {
-                Plan plan = planManagerOptional.get().getPlan();
-                plan.restart();
-                plan.proceed();
-            } else {
-                Optional<Step> step = getStep(planManagerOptional.get(), phaseId, stepId);
-                if (step.isPresent()) {
-                    step.get().restart();
-                } else {
-                    return ELEMENT_NOT_FOUND_RESPONSE;
-                }
-            }
-
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: restart"))
-                    .build();
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
+
+        if (phase == null && step == null) {
+            Plan plan = planManagerOptional.get().getPlan();
+            plan.restart();
+            plan.proceed();
+        } else if (phase == null || step == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } else {
+            Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
+            if (!stepOptional.isPresent()) {
+                return ELEMENT_NOT_FOUND_RESPONSE;
+            }
+            stepOptional.get().restart();
+        }
+
+        return jsonOkResponse(getCommandResult("restart"));
     }
 
     @GET
@@ -241,14 +218,14 @@ public class PlansResource {
     @Deprecated
     @Path("/plan/continue")
     public Response continueCommand() {
-        return continueCommand("deploy");
+        return continueCommand("deploy", null);
     }
 
     @POST
     @Deprecated
     @Path("/plan/interrupt")
     public Response interruptCommand() {
-        return interruptCommand("deploy");
+        return interruptCommand("deploy", null);
     }
 
     @POST
@@ -257,7 +234,6 @@ public class PlansResource {
     public Response forceCompleteCommand(
             @QueryParam("phase") String phaseId,
             @QueryParam("step") String stepId) {
-
         return forceCompleteCommand("deploy", phaseId, stepId);
     }
 
@@ -270,24 +246,39 @@ public class PlansResource {
         return restartCommand("deploy", phaseId, stepId);
     }
 
-    private Optional<Step> getStep(PlanManager manager, String phaseId, String stepId) {
-        List<Phase> phases = manager.getPlan().getChildren().stream()
-                .filter(phase -> phase.getId().equals(UUID.fromString(phaseId)))
-                .collect(Collectors.toList());
-
-        if (phases.size() == 1) {
-            List<Step> steps = phases.get(0).getChildren().stream()
-                    .filter(step -> step.getId().equals(UUID.fromString(stepId)))
+    private static List<Phase> getPhases(PlanManager manager, String phaseIdOrName) {
+        try {
+            UUID phaseId = UUID.fromString(phaseIdOrName);
+            return manager.getPlan().getChildren().stream()
+                    .filter(phase -> phase.getId().equals(phaseId))
                     .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            // couldn't parse as UUID: fall back to treating phase identifier as a name
+            return manager.getPlan().getChildren().stream()
+                    .filter(phase -> phase.getName().equals(phaseIdOrName))
+                    .collect(Collectors.toList());
+        }
+    }
 
-            if (steps.size() == 1) {
-                return steps.stream().findFirst();
-            } else {
-                logger.error("Expected 1 Step, found: " + steps);
-                return Optional.empty();
-            }
+    private Optional<Step> getStep(List<Phase> phases, String stepIdOrName) {
+        List<Step> steps;
+        try {
+            UUID stepId = UUID.fromString(stepIdOrName);
+            steps = phases.stream().map(phase -> phase.getChildren())
+                    .flatMap(List::stream)
+                    .filter(step -> step.getId().equals(stepId))
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            // couldn't parse as UUID: fall back to treating step identifier as a name
+            steps = phases.stream().map(phase -> phase.getChildren())
+                    .flatMap(List::stream)
+                    .filter(step -> step.getName().equals(stepIdOrName))
+                    .collect(Collectors.toList());
+        }
+        if (steps.size() == 1) {
+            return Optional.of(steps.get(0));
         } else {
-            logger.error("Expected 1 Phase, found: " + phases);
+            logger.error("Expected 1 step '{}' across {} phases, got: {}", stepIdOrName, phases.size(), steps);
             return Optional.empty();
         }
     }
@@ -305,9 +296,9 @@ public class PlansResource {
     }
 
     private static Response invalidParameterResponse(String message) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Couldn't parse parameters: " + message)
-                .build();
+        return plainResponse(
+                String.format("Couldn't parse parameters: %s", message),
+                Response.Status.BAD_REQUEST);
     }
 
     private static void validate(Map<String, String> parameters) throws ValidationException {
@@ -319,22 +310,15 @@ public class PlansResource {
         }
     }
 
-    static class ValidationException extends Exception {
+    private static class ValidationException extends Exception {
         public ValidationException(String message) {
             super(message);
         }
     }
 
-    static class CommandResultInfo {
-        private final String msg;
-
-        CommandResultInfo(String msg) {
-            this.msg = msg;
-        }
-
-        @JsonProperty("message")
-        public String getMessage() {
-            return msg;
-        }
+    private static JSONObject getCommandResult(String command) {
+        return new JSONObject(Collections.singletonMap(
+                "message",
+                String.format("Received cmd: %s", command)));
     }
 }

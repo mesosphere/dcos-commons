@@ -1,7 +1,11 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.ResourceUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class provides utility methods for the handling of failed Tasks.
@@ -33,13 +37,29 @@ public class FailureUtils {
         if (isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }
-        taskInfo = ResourceUtils.clearResourceIds(taskInfo);
-        taskInfo = ResourceUtils.clearPersistence(taskInfo);
+        taskInfo = TaskUtils.clearReservations(Arrays.asList(taskInfo)).stream().findFirst().get();
         return Protos.TaskInfo.newBuilder(taskInfo)
                 .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
                         .addLabels(Protos.Label.newBuilder()
                                 .setKey(PERMANENTLY_FAILED_KEY)
                                 .setValue(String.valueOf(true))))
+                .build();
+    }
+
+    /**
+     * Remove the permanently failed label from the TaskInfo.
+     */
+    public static Protos.TaskInfo clearFailed(Protos.TaskInfo taskInfo) {
+        if (!isLabeledAsFailed(taskInfo)) {
+            return taskInfo;
+        }
+
+        List<Protos.Label> labels = taskInfo.getLabels().getLabelsList().stream()
+                .filter(label -> label.hasKey() && !label.getKey().equals(PERMANENTLY_FAILED_KEY))
+                .collect(Collectors.toList());
+
+        return Protos.TaskInfo.newBuilder(taskInfo)
+                .setLabels(Protos.Labels.newBuilder().addAllLabels(labels))
                 .build();
     }
 }

@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.*;
@@ -23,19 +23,20 @@ import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
+import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
@@ -90,17 +91,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    /**
-     * Minimum duration to wait in milliseconds before deciding that a task has failed,
-     * or zero to disable this detection.
-     */
-    protected final Optional<Integer> permanentFailureTimeoutMs;
-    /**
-     * Minimum duration to wait in milliseconds between destructive recovery operations,
-     * such as destroying a failed task.
-     */
-    protected final int destructiveRecoveryDelayMs;
     private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -316,9 +308,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
             if (!configUpdateResult.errors.isEmpty()) {
-                throw new IllegalStateException(String.format(
-                        "Failed to update configuration due to errors with configuration %s: %s",
-                        configUpdateResult.targetId, configUpdateResult.errors));
+                LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
+                        configUpdateResult.targetId, configUpdateResult.errors);
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:
@@ -369,7 +360,12 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
-        return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
+        StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
+        if (System.getenv(Constants.DISABLE_STATE_CACHE_SCHEDENV) != null) {
+            return stateStore;
+        } else {
+            return StateStoreCache.getInstance(stateStore);
+        }
     }
 
     /**
@@ -493,19 +489,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
         this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
-        ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
-        if (replacementFailurePolicy != null) {
-            // interpret unset/null as disabled:
-            this.permanentFailureTimeoutMs =
-                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMins());
-            // interpret unset/null as zero delay:
-            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMins() == null
-                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
-        } else {
-            // default values if policy section is unset:
-            this.permanentFailureTimeoutMs = Optional.of(ReplacementFailurePolicy.PERMANENT_FAILURE_DELAY_MS);
-            this.destructiveRecoveryDelayMs = ReplacementFailurePolicy.DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
-        }
+        this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -538,14 +522,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeRecoveryPlanManager();
         initializePlanCoordinator();
         initializeResources();
-        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
 
     private Collection<PlanManager> getOtherPlanManagers() {
         return plans.stream()
-                .filter(plan -> !PlanUtils.isDeployPlan(plan))
+                .filter(plan -> !plan.isDeployPlan())
                 .map(plan -> new DefaultPlanManager(plan))
                 .collect(Collectors.toList());
     }
@@ -567,14 +550,15 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing deployment plan...");
         Optional<Plan> deploy = plans.stream()
-                .filter(plan -> PlanUtils.isDeployPlan(plan))
+                .filter(plan -> plan.isDeployPlan())
                 .findFirst();
         Plan deployPlan;
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
-             deployPlan = new DefaultPlanFactory(
-                     new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)))
-                     .getPlan(serviceSpec);
+            deployPlan =
+                    new DeployPlanFactory(
+                            new DefaultPhaseFactory(
+                                    new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
         } else {
             deployPlan = deploy.get();
         }
@@ -592,11 +576,18 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeRecoveryPlanManager() {
         LOGGER.info("Initializing recovery plan...");
-        LaunchConstrainer launchConstrainer = new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs));
-        FailureMonitor failureMonitor =
-                permanentFailureTimeoutMs.isPresent()
-                        ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
-                        : new NeverFailureMonitor();
+        LaunchConstrainer launchConstrainer;
+        FailureMonitor failureMonitor;
+        if (failurePolicyOptional.isPresent()) {
+            ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
+            failureMonitor = new TimedFailureMonitor(Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()));
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
+
         if (recoveryPlanManagerFactoryOptional.isPresent()) {
             LOGGER.info("Using custom recovery plan manager.");
             this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
@@ -640,7 +631,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             resources.add(new PodsResource(taskKiller, stateStore));
         }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
+        //resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
+        resources.add(new PodsResource(taskKiller, stateStore));
         // use add() instead of put(): throw exception instead of waiting indefinitely
         resourcesQueue.add(resources);
     }
@@ -777,7 +769,16 @@ public class DefaultScheduler implements Scheduler, Observer {
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
 
-                    if (stateStore.isSuppressed()
+                    if (status.getState().equals(Protos.TaskState.TASK_RUNNING)
+                            || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
+                        String taskName = CommonTaskUtils.toTaskName(status.getTaskId());
+                        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+                        if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
+                            stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));
+                        }
+                    }
+
+                    if (StateStoreUtils.isSuppressed(stateStore)
                             && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
                         revive();
                     }
@@ -841,13 +842,13 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void suppressOrRevive() {
         if (planCoordinator.hasOperations()) {
-            if (stateStore.isSuppressed()) {
+            if (StateStoreUtils.isSuppressed(stateStore)) {
                 revive();
             } else {
                 LOGGER.info("Already revived.");
             }
         } else {
-            if (stateStore.isSuppressed()) {
+            if (StateStoreUtils.isSuppressed(stateStore)) {
                 LOGGER.info("Already suppressed.");
             } else {
                 suppress();
@@ -858,13 +859,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void suppress() {
         LOGGER.info("Suppressing offers.");
         driver.suppressOffers();
-        stateStore.setSuppressed(true);
+        StateStoreUtils.setSuppressed(stateStore, true);
     }
 
     private void revive() {
         LOGGER.info("Reviving offers.");
         driver.reviveOffers();
-        stateStore.setSuppressed(false);
+        StateStoreUtils.setSuppressed(stateStore, false);
     }
 
     @Override

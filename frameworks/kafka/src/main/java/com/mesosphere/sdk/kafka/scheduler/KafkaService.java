@@ -1,75 +1,65 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.kafka.api.BrokerController;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.kafka.api.*;
+import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
+import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
+import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
+import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.*;
 
 /**
  * Kafka Service.
  */
-public class KafkaService extends  DefaultService {
-    protected static final int FAILOVER_TIMEOUT_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final int LOCK_ATTEMPTS = 3;
-    protected static final String USER = "root";
-    protected static final String LOCK_PATH = "lock";
-
+public class KafkaService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
 
     public KafkaService(File pathToYamlSpecification) throws Exception {
-        super();
-
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
-
         DefaultScheduler.Builder schedulerBuilder =
                 DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
-
         schedulerBuilder.setPlansFrom(rawServiceSpec);
 
-        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
-        curatorClient.start();
+        /* Upgrade */
+        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
+        CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
+        schedulerBuilder.setStateStore(stateStore);
+        /* Upgrade */
 
-        InterProcessMutex curatorMutex = super.lock(curatorClient, schedulerBuilder.getServiceSpec().getName(),
-                LOCK_PATH, LOCK_ATTEMPTS);
-        try {
-            registerAndRun(schedulerBuilder);
-        } finally {
-            super.unlock(curatorMutex);
-            curatorClient.close();
-        }
+        schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
+                schedulerBuilder.getServiceSpec().getZookeeperConnection() +
+                        DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
+
+        initService(schedulerBuilder);
     }
 
-    public void registerAndRun(DefaultScheduler.Builder schedulerBuilder){
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-        DefaultScheduler scheduler = schedulerBuilder.build();
+    @Override
+    protected void startApiServer(DefaultScheduler defaultScheduler,
+                                  int apiPort,
+                                  Collection<Object> additionalResources) {
+        final Collection<Object> apiResources = new ArrayList<>();
 
-        String zookeeperConnection = serviceSpec.getZookeeperConnection();
-        Collection<Object> jsonResources = new ArrayList<>();
+        KafkaZKClient kafkaZKClient = new KafkaZKClient(super.getServiceSpec().getZookeeperConnection(),
+                DcosConstants.SERVICE_ROOT_PATH_PREFIX + super.getServiceSpec().getName());
 
-        //TODO: do error handling if env var does not exist
-        jsonResources.add(new BrokerController(System.getenv("TASKCFG_ALL_KAFKA_ZOOKEEPER_URI")));
-        startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);
+        apiResources.add(new BrokerResource(kafkaZKClient));
+        apiResources.add(new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
+                kafkaZKClient));
 
-        Protos.FrameworkInfo frameworkInfo =
-                super.getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore(), USER, FAILOVER_TIMEOUT_SEC);
+        apiResources.addAll(additionalResources);
 
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        new SchedulerDriverFactory().create(scheduler,
-                    frameworkInfo,
-                    String.format("zk://%s/mesos", zookeeperConnection)).run();
+        LOGGER.info("Starting API server with additional resources: {}", apiResources);
+        super.startApiServer(defaultScheduler, apiPort, apiResources);
     }
 }

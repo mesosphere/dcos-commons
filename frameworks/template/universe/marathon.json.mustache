@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && ./template-scheduler/bin/template ./template-scheduler/{{service.spec_file}}",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./template-scheduler/bin/template ./template-scheduler/svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -13,14 +13,28 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
+  {{#service.secret_name}}
+  "secrets": {
+    "serviceCredential": {
+      "source": "{{service.secret_name}}"
+    }
+  },
+  {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
+    "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
+    "FRAMEWORK_USER": "{{service.user}}",
     "TEMPLATE_COUNT": "{{template.count}}",
     "TEMPLATE_CPUS": "{{template.cpus}}",
     "TEMPLATE_MEM": "{{template.mem}}",
     "TEMPLATE_DISK": "{{template.disk}}",
     "SLEEP_DURATION": "{{service.sleep}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    {{#service.secret_name}}
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
+    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    {{/service.secret_name}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   },
   "uris": [
@@ -37,7 +51,7 @@
       "port": 0,
       "protocol": "tcp",
       "name": "api",
-      "labels": {}
+      "labels": { "VIP_0": "/api.{{service.name}}:80" }
     }
   ]
 }

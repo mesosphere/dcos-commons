@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,6 +48,10 @@ public class ParallelStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
+        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+
         steps = Arrays.asList(el0, el1, el2);
     }
 
@@ -55,45 +60,16 @@ public class ParallelStrategyTest {
         Assert.assertEquals(3, getCandidates().size());
 
         when(el0.isComplete()).thenReturn(true);
-        when(el0.isPending()).thenReturn(false);
+        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(2, getCandidates().size());
 
         when(el1.isComplete()).thenReturn(true);
-        when(el1.isPending()).thenReturn(false);
+        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates().size());
         Assert.assertEquals(el2, getCandidates().iterator().next());
 
         when(el2.isComplete()).thenReturn(true);
-        when(el2.isPending()).thenReturn(false);
-        Assert.assertTrue(getCandidates().isEmpty());
-    }
-
-    @Test
-    public void testDirtyAssetAvoidance() {
-        // Can't launch because all assets are dirty
-        Assert.assertTrue(strategy.getCandidates(
-                steps,
-                Arrays.asList(el0.getName(), el1.getName(), el2.getName())).isEmpty());
-
-        // Can launch all now
-        Assert.assertEquals(3, getCandidates().size());
-
-        when(el0.isComplete()).thenReturn(true);
-        when(el0.isPending()).thenReturn(false);
-        // Can launch two because element 0 is dirty, but it's complete now.
-        Assert.assertEquals(2, strategy.getCandidates(steps, Arrays.asList(el0.getName())).size());
-        // Can launch el2 because el1 is dirty and el0 is complete
-        Assert.assertEquals(1, strategy.getCandidates(steps, Arrays.asList(el1.getName())).size());
-        Assert.assertEquals(el2, strategy.getCandidates(steps, Arrays.asList(el1.getName())).iterator().next());
-
-        when(el1.isComplete()).thenReturn(true);
-        when(el1.isPending()).thenReturn(false);
-        // Can launch el2 because it's the last pending step.
-        Assert.assertEquals(1, getCandidates().size());
-        Assert.assertEquals(el2, getCandidates().iterator().next());
-
-        when(el2.isComplete()).thenReturn(true);
-        when(el2.isPending()).thenReturn(false);
+        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
         Assert.assertTrue(getCandidates().isEmpty());
     }
 

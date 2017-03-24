@@ -28,6 +28,7 @@ public class TestConstants {
     public static final String HEALTH_CHECK_CMD = "./health-check";
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
+    public static final String TASK_DNS_PREFIX = "task-prefix";
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
     public static final String PORT_ENV_NAME = "TEST_PORT_NAME";
@@ -66,4 +67,17 @@ public class TestConstants {
             Protos.CommandInfo.newBuilder()
             .setValue("echo test")
             .build();
+
+    public static final Protos.TaskInfo TASK_INFO =
+            Protos.TaskInfo.newBuilder()
+            .setName(TASK_NAME)
+            .setTaskId(TASK_ID)
+            .setSlaveId(AGENT_ID)
+            .build();
+
+    public static final Protos.TaskStatus TASK_STATUS =
+            Protos.TaskStatus.newBuilder()
+                    .setTaskId(TASK_ID)
+                    .setState(Protos.TaskState.TASK_RUNNING)
+                    .build();
 }

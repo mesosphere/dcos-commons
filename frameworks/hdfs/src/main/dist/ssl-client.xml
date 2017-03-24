@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Example file -->
+<configuration>
+    <property>
+        <name>ssl.client.truststore.password</name>
+        <value>changeit</value>
+    </property>
+    <property>
+        <name>ssl.client.truststore.type</name>
+        <value>jks</value>
+    </property>
+    <property>
+        <name>ssl.client.truststore.location</name>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+    </property>
+</configuration>

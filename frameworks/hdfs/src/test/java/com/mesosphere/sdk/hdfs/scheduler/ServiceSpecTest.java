@@ -46,8 +46,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("LIBMESOS_URI", "");
         ENV_VARS.set("HDFS_URI", "");
         ENV_VARS.set("BOOTSTRAP_URI", "");
+        ENV_VARS.set("TASKCFG_ALL_ADMINISTRATORS", "core,centos,azureuser");
         ENV_VARS.set("TASKCFG_ALL_NAME_NODE_RPC_PORT","9001");
         ENV_VARS.set("TASKCFG_ALL_NAME_NODE_HTTP_PORT","9002");
+        ENV_VARS.set("TASKCFG_ALL_ZKFC_PORT","8019");
         ENV_VARS.set("TASKCFG_ALL_JOURNAL_NODE_RPC_PORT","8485");
         ENV_VARS.set("TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT","8480");
         ENV_VARS.set("TASKCFG_ALL_DATA_NODE_RPC_PORT","9003");
@@ -100,7 +102,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         String fileStr = new String(bytes, Charset.defaultCharset());
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         Map<String, String> updatedEnv = new HashMap<>(allEnv);
-        updatedEnv.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+        updatedEnv.put(Constants.FRAMEWORK_NAME_TASKENV, System.getenv(Constants.FRAMEWORK_NAME_TASKENV));
 
         String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));

@@ -71,11 +71,12 @@ public class Main {
         }
 
         Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
-        env.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+        env.put(Constants.FRAMEWORK_NAME_TASKENV, System.getenv(Constants.FRAMEWORK_NAME_TASKENV));
 
         String fileStr = new String(bytes, Charset.defaultCharset());
         return CommonTaskUtils.applyEnvToMustache(fileStr, env);
     }
+
 
     private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
             throws Exception {
@@ -91,23 +92,13 @@ public class Main {
                 .placementRule(new AndRule(TaskTypeRule.avoid("name"), TaskTypeRule.avoid("journal")))
                 .build();
 
-        // ZKFC nodes avoid themselves and colocate with name nodes.
-        PodSpec zkfc = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "zkfc"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("zkfc"), TaskTypeRule.colocateWith("name")))
-                .build();
-
         // Data nodes avoid themselves.
         PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "data"))
                 .placementRule(TaskTypeRule.avoid("data"))
                 .build();
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
-                .pods(Arrays.asList(journal, name, zkfc, data))
-                .replacementFailurePolicy(
-                        ReplacementFailurePolicy.newBuilder()
-                                .permanentFailureTimoutMs(null)
-                                .minReplaceDelayMs(0)
-                                .build())
+                .pods(Arrays.asList(journal, name, data))
                 .build();
     }
 

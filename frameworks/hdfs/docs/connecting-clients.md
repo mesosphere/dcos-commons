@@ -1,7 +1,7 @@
 ---
 post_title: Connecting Clients
 menu_order: 40
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -15,7 +15,7 @@ Executed the following command from the DC/OS CLI to retrieve the `hdfs-site.xml
 
 ```
 $ dcos hdfs --name=<service-name> endpoints hdfs-site.xml
-... 
+...
 $ dcos hdfs --name=<service-name> endpoints core-site.xml
 ...
 ```
