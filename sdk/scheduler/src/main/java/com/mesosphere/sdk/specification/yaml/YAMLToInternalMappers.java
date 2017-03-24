@@ -198,7 +198,7 @@ public class YAMLToInternalMappers {
                 .uris(podUris)
                 .user(rawPod.getUser());
 
-        PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
+        PlacementRule placementRule = MarathonConstraintParser.parse(podName, rawPod.getPlacement());
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }

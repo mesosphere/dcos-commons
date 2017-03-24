@@ -234,6 +234,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 OrRule.class,
                 PassthroughRule.class,
                 RegexMatcher.class,
+                RoundRobinByHostnameRule.class,
+                RoundRobinByAttributeRule.class,
                 TaskTypeRule.class,
                 TaskTypeLabelConverter.class,
                 DefaultResourceSpec.class,
