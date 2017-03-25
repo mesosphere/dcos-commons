@@ -1,2 +1,2 @@
 PACKAGE_NAME = 'spark-standalone'
-DEFAULT_TASK_COUNT = 3
+DEFAULT_TASK_COUNT = 4

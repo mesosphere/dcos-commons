@@ -111,7 +111,7 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_txt=None, pytest_types='sanity'):
         normal_path = test_dirs.rstrip(os.sep)
         framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
@@ -125,7 +125,7 @@ class CITester(object):
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                            framework, 'shakedown_env')
             jenkins_args = ''
-        if requirements_txt:
+        if requirements_txt is not None:
             logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
         else:
             # generate default requirements:
@@ -280,7 +280,7 @@ def main(argv):
                 requirements_txt = argv[3]
             else:
                 # use default requirements
-                requirements_txt = ''
+                requirements_txt = None
             tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]
