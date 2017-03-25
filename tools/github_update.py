@@ -29,13 +29,13 @@ except ImportError:
     # Python 2
     from httplib import HTTPSConnection
 
-'''reserved contexts which may not be modified by this script'''
+# reserved contexts which may not be modified by this script
 BLACKLISTED_CONTEXT_LABELS = ['velocity'] # not set by us, do not update
 
-'''the pending/incomplete state'''
+# the pending/incomplete state
 PENDING_STATE = 'pending'
 
-'''list of all valid states'''
+# list of all valid states
 VALID_STATES = [PENDING_STATE, 'success', 'error', 'failure']
 
 
@@ -49,7 +49,7 @@ class RepoInfo(object):
             startdir = os.getcwd()
         # starting at 'startdir' search up the tree for a directory named '.git':
         checkdir = os.path.join(startdir, gitdir)
-        while not checkdir == '/' + gitdir:
+        while checkdir != '/' + gitdir:
             if os.path.isdir(checkdir):
                 return checkdir
             checkdir = os.path.join(os.path.dirname(os.path.dirname(checkdir)), gitdir)
@@ -112,14 +112,14 @@ class RepoInfo(object):
 
 class GithubAPI(object):
 
-    def __init__(self, repo_orgname, commit_sha, github_token, debug_requests = False):
+    def __init__(self, repo_orgname, commit_sha, github_token, debug_requests=False):
         self._repo_orgname = repo_orgname
         self._commit_sha = commit_sha
         self._github_token = github_token
         self._debug_requests = debug_requests
 
 
-    def _send_request(self, method, path, json_payload = None):
+    def _send_request(self, method, path, json_payload=None):
         '''sends the provided request to api.github.com and returns the response, or None if the request failed'''
         if json_payload:
             body = json.dumps(json_payload).encode('utf-8')
@@ -135,7 +135,7 @@ class GithubAPI(object):
         conn = HTTPSConnection('api.github.com')
         if self._debug_requests:
             conn.set_debuglevel(999)
-        conn.request(method, path, body = body, headers = headers)
+        conn.request(method, path, body=body, headers=headers)
         response = conn.getresponse()
         if response.status < 200 or response.status >= 300:
             # log failure, but don't abort the build
@@ -171,7 +171,7 @@ class GithubAPI(object):
 
 class GithubStatusUpdater(object):
 
-    def __init__(self, default_context_label = ''):
+    def __init__(self, default_context_label=''):
         info = RepoInfo()
         self._api = GithubAPI(info.repo_orgname(), info.commit_sha(), info.github_auth_token())
         self._default_context_label = default_context_label
