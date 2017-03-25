@@ -408,8 +408,9 @@ public class ResourceUtils {
         List<Protos.Resource> resources = new ArrayList<>();
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
-                resource = Protos.Resource.newBuilder(resource).setDisk(
-                    Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                resource = Protos.Resource.newBuilder(resource)
+                        .setDisk(resource.getDisk().toBuilder()
+                                .setPersistence(Persistence.newBuilder().setId(""))
                 ).build();
             }
             resources.add(resource);

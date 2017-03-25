@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 import static org.mockito.Mockito.when;
@@ -80,5 +81,19 @@ public class DefaultStepTest {
                 .build());
 
         Assert.assertTrue(step.isComplete());
+    }
+
+    @Test
+    public void testIsEligible() {
+        DeploymentStep step = new DeploymentStep(
+                TEST_STEP_NAME,
+                Status.PENDING,
+                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
+                Collections.emptyList());
+
+        Assert.assertTrue(step.isEligible(Arrays.asList()));
+
+        Collection<String> dirtyAssets = Arrays.asList(step.getAsset().get());
+        Assert.assertFalse(step.isEligible(dirtyAssets));
     }
 }

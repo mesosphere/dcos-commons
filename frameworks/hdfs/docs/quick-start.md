@@ -1,29 +1,20 @@
 ---
-post_title: Quick Start
+post_title: Kick the Tires
 menu_order: 0
 feature_maturity: preview
 enterprise: 'no'
 ---
 
-1. Install HDFS from the DC/OS CLI.
+1. Perform a default installation of HDFS by following the instructions in the Install and Customize section of this topic.
+  **Note:** Your cluster must have a minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
 
-    If you are using open source DC/OS, install an HDFS cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
-
-    **Note:** Your cluster must have at least 5 private nodes.
-
-    ```bash
-    $ dcos package install hdfs
-    ```
-
-    **Note:** Alternatively, you can [install HDFS from the DC/OS GUI](https://docs.mesosphere.com/1.9/usage/managing-services/install/).
-
-1. [SSH into a DC/OS Node](https://docs.mesosphere.com/1.9/administration/sshcluster/)
+1. [SSH into a DC/OS node](https://docs.mesosphere.com/1.9/administration/sshcluster/).
 
     ```bash
     $ dcos node ssh --leader --master-proxy
     ```
 
-1. Run the hadoop client
+1. Run the Hadoop client.
 
     ```bash
     $ docker run -it mesosphere/hdfs-client:1.0.0-2.6.0 bash
@@ -36,10 +27,10 @@ By default, the client is configured to be configured to connect to an HDFS serv
 $ ./bin/hdfs dfs -ls /
 ```
 
-If an HDFS cluster has been installed which does not use the default name of `hdfs`, the client must be configured before use.
+If an HDFS cluster has been installed that does not use the default name of `hdfs`, you must configure the client before use.
 
 ```bash
-$ HDFS_SERVICE_NAME=hdfs-alternate-name /configure-hdfs.sh
+$ HDFS_SERVICE_NAME=<hdfs-alternate-name> /configure-hdfs.sh
 $ ./bin/hdfs dfs -ls /
 ```
 

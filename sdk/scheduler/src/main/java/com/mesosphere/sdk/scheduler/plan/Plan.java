@@ -1,5 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
+
 /**
  * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
  * processing those {@link Phase}s. The Plan is a representation of any work that is currently being
@@ -15,4 +20,18 @@ package com.mesosphere.sdk.scheduler.plan;
  * If any errors occurred during the rollout, the process would pause and the Plan would contain a
  * list of one or more error messages to be shown to the user,
  */
-public interface Plan extends ParentElement<Phase> {}
+public interface Plan extends ParentElement<Phase> {
+    default Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
+        Collection<Phase> candidatePhases = getStrategy().getCandidates(getChildren(), dirtyAssets);
+        Collection<Step> candidateSteps = candidatePhases.stream()
+                .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
+                .flatMap(steps -> steps.stream())
+                .collect(Collectors.toList());
+
+        return candidateSteps;
+    }
+
+    default boolean isDeployPlan() {
+        return getName().equals(DEPLOY_PLAN_NAME);
+    }
+}

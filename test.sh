@@ -77,7 +77,7 @@ if [ -z "$CLUSTER_URL" ]; then
     fi
 
     echo "CLUSTER_URL is empty/unset, launching new cluster."
-    export CCM_AGENTS=5
+    export CCM_AGENTS=6
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
     echo "Launched cluster: ${CLUSTER_INFO}"
     # jq emits json strings by default: "value".  Use --raw-output to get value without quotes

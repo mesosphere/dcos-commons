@@ -39,7 +39,16 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
-        cmd: ./bootstrap && exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra -f
+        cmd: >
+                ./bootstrap
+
+                ARGS='-f'
+
+                if [ -n "$STATSD_UDP_HOST" ]; then
+                    ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"
+                fi
+
+                exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
             template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
@@ -47,6 +56,9 @@ pods:
           jvm:
             template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
+          metrics:
+            template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
         readiness-check:
           cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $LIBPROCESS_IP"
           interval: 5
