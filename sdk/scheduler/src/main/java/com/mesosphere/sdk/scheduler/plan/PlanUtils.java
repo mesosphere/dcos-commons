@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import org.slf4j.LoggerFactory;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;

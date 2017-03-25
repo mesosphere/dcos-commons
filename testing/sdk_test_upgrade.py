@@ -39,7 +39,7 @@ def upgrade_downgrade(package_name, running_task_count):
     print('Found Universe version: {}'.format(universe_version))
 
     print('Installing Universe version')
-    install.install(package_name, running_task_count)
+    install.install(package_name, running_task_count, check_suppression=False)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
@@ -66,7 +66,7 @@ def upgrade_downgrade(package_name, running_task_count):
 def upgrade_or_downgrade(package_name, running_task_count):
     task_ids = tasks.get_task_ids(package_name, '')
     marathon.destroy_app(package_name)
-    install.install(package_name, running_task_count)
+    install.install(package_name, running_task_count, check_suppression=False)
     print('Waiting for upgrade / downgrade deployment to complete')
     spin.time_wait_noisy(lambda: (
         plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))
