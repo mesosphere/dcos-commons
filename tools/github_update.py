@@ -44,7 +44,7 @@ class RepoInfo(object):
     def _get_dotgit_path(self):
         '''returns the path to the .git directory for the repo'''
         gitdir = '.git'
-        startdir = os.environ.get('GIT_REPOSITORY_ROOT', '')
+        startdir = os.environ.get('GIT_REPOSITORY_ROOT')
         if not startdir:
             startdir = os.getcwd()
         # starting at 'startdir' search up the tree for a directory named '.git':
@@ -60,14 +60,10 @@ class RepoInfo(object):
     def commit_sha(self):
         '''returns the sha1 of the commit being reported upon'''
         # 1. try 'ghprbActualCommit', 'GIT_COMMIT', and 'sha1' envvars:
-        commit_sha = os.environ.get('ghprbActualCommit', '')
-        if not commit_sha:
-            commit_sha = os.environ.get('GIT_COMMIT', '')
-        if not commit_sha:
-            commit_sha = os.environ.get('sha1', '')
+        commit_sha = os.environ.get('ghprbActualCommit') or os.environ.get('GIT_COMMIT') or os.environ.get('sha1')
         if not commit_sha and 'GIT_COMMIT_ENV_NAME' in os.environ:
             # 2. grab the commit from the specified custom envvar
-            commit_sha = os.environ.get(os.environ['GIT_COMMIT_ENV_NAME'], '')
+            commit_sha = os.environ.get(os.environ['GIT_COMMIT_ENV_NAME'])
             if not commit_sha:
                 raise Exception('Unable to retrieve git commit id from envvar named "{}". Env is: {}'.format(
                     os.environ['GIT_COMMIT_ENV_NAME'], os.environ))
@@ -84,7 +80,7 @@ class RepoInfo(object):
 
     def repo_orgname(self):
         '''returns the repository path, in the form "mesosphere/some-repo"'''
-        repo_path = os.environ.get('GITHUB_REPO_PATH', '')
+        repo_path = os.environ.get('GITHUB_REPO_PATH')
         if repo_path:
             return repo_path
         dotgit_path = self._get_dotgit_path()
@@ -106,9 +102,7 @@ class RepoInfo(object):
 
 
     def github_auth_token(self):
-        github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
-        if not github_token:
-            github_token = os.environ.get('GITHUB_TOKEN', '')
+        github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS') or os.environ.get('GITHUB_TOKEN')
         if not github_token:
             raise Exception(
                 'Failed to determine auth token to use with GitHub. ' +
@@ -118,14 +112,49 @@ class RepoInfo(object):
 
 class GithubAPI(object):
 
-    def __init__(self, repo_orgname, commit_sha, github_token):
+    def __init__(self, repo_orgname, commit_sha, github_token, debug_requests = False):
         self._repo_orgname = repo_orgname
         self._commit_sha = commit_sha
         self._github_token = github_token
+        self._debug_requests = debug_requests
 
 
-    def _build_post_update_request(self, context_label, state, message, details_url):
-        '''returns everything needed for an HTTP request to update repo status, except the auth token'''
+    def _send_request(self, method, path, json_payload = None):
+        '''sends the provided request to api.github.com and returns the response, or None if the request failed'''
+        if json_payload:
+            body = json.dumps(json_payload).encode('utf-8')
+        else:
+            body = None
+
+        encoded_tok = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
+        headers = {
+            'User-Agent': 'github_update.py',
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic {}'.format(encoded_tok)}
+
+        conn = HTTPSConnection('api.github.com')
+        if self._debug_requests:
+            conn.set_debuglevel(999)
+        conn.request(method, path, body = body, headers = headers)
+        response = conn.getresponse()
+        if response.status < 200 or response.status >= 300:
+            # log failure, but don't abort the build
+            logger.error('Got {} response with content:'.format(response.status))
+            logger.error(pprint.pformat(response.read().decode('utf-8')))
+            return None
+        return response
+
+
+    def get_commit_statuses(self):
+        response = self._send_request(
+            'GET',
+            '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha))
+        if not response:
+            return []
+        return json.loads(response.read().decode('utf-8'))
+
+
+    def set_commit_status(self, context_label, state, message, details_url):
         payload = {
             'context': context_label,
             'state': state
@@ -134,78 +163,10 @@ class GithubAPI(object):
             payload['description'] = message
         if details_url:
             payload['target_url'] = details_url
-        return {
-            'method': 'POST',
-            'path': '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha),
-            'headers': {
-                'User-Agent': 'github_update.py',
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic HIDDENTOKEN'}, # replaced within update_query
-            'payload': payload
-        }
-
-
-    def _build_get_list_request(self):
-        '''returns everything needed for an HTTP request to retrieve repo statuses, except the auth token'''
-        return {
-            'method': 'GET',
-            'path': '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha),
-            'headers': {
-                'User-Agent': 'github_update.py',
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic HIDDENTOKEN'} # replaced within update_query
-        }
-
-
-    def _send_request(self, request, debug = False):
-        '''sends the provided request which was created by _build_post_update_request() or _build_get_list_request()'''
-        # note: we insert the auth header at the very last minute,
-        #       to ensure that upstream doesn't log the auth header
-        request_headers_with_auth = request['headers'].copy()
-        if len(self._github_token) > 0:
-            encoded_tok = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
-            request_headers_with_auth['Authorization'] = 'Basic {}'.format(encoded_tok)
-        conn = HTTPSConnection('api.github.com')
-        if debug:
-            conn.set_debuglevel(999)
-        if 'payload' in request:
-            conn.request(
-                request['method'],
-                request['path'],
-                body = json.dumps(request['payload']).encode('utf-8'),
-                headers = request_headers_with_auth)
-        else:
-            conn.request(
-                request['method'],
-                request['path'],
-                headers = request_headers_with_auth)
-        return conn.getresponse()
-
-
-    def _check_success(self, response, request, request_type):
-        if 200 <= response.status < 300:
-            return True
-        # log failure, but don't abort the build
-        logger.error('Got {} response to {} request:'.format(response.status, request_type))
-        logger.error('Request:')
-        logger.error(pprint.pformat(request))
-        logger.error('Response:')
-        logger.error(pprint.pformat(response.read().decode('utf-8')))
-        return False
-
-
-    def get_commit_statuses(self):
-        request = self._build_get_list_request()
-        response = self._send_request(request)
-        if not self._check_success(response, request, 'status list'):
-            return []
-        return json.loads(response.read().decode('utf-8'))
-
-
-    def set_commit_status(self, context_label, state, message, details_url):
-        request = self._build_post_update_request(context_label, state, message, details_url)
-        response = self._send_request(request)
-        self._check_success(response, request, 'status update')
+        self._send_request(
+            'POST',
+            '/repos/{}/commits/{}/statuses'.format(self._repo_orgname, self._commit_sha),
+            payload)
 
 
 class GithubStatusUpdater(object):
@@ -245,7 +206,7 @@ class GithubStatusUpdater(object):
             try:
                 start_time = float(open(start_time_path).read().strip())
                 # omit fractional seconds from duration:
-                message = '[{}] {}'.format(datetime.timedelta(seconds=round(time.time()) - start_time), message)
+                message = '[{}] {}'.format(datetime.timedelta(seconds=round(time.time() - start_time)), message)
                 os.remove(start_time_path)
             except:
                 message = '[?] {}'.format(message)
@@ -255,9 +216,9 @@ class GithubStatusUpdater(object):
 
 def _get_details_link_url():
     '''returns the url to be included as the details link in the status'''
-    details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL', '') # custom URL via env
+    details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL') # custom URL via env
     if not details_url:
-        details_url = os.environ.get('BUILD_URL', '') # provided by jenkins
+        details_url = os.environ.get('BUILD_URL') # provided by jenkins
         if details_url:
             details_url += 'console'
     return details_url
@@ -288,12 +249,11 @@ def reset_states(updater, message):
         # reset disabled due to local build, exit silently
         return 0
 
-    contexts = [context for context in updater.list_contexts() if context not in BLACKLISTED_CONTEXT_LABELS]
+    contexts = sorted([context for context in updater.list_contexts() if context not in BLACKLISTED_CONTEXT_LABELS])
     if not contexts:
         # nothing to reset, exit silently
         return 0
 
-    contexts.sort()
     logger.info('[GH-STATUS] Resetting {} statuses: {}'.format(len(contexts), ', '.join(contexts)))
     for context_label in contexts:
         updater.update(PENDING_STATE, message=message, context_label=context_label)
