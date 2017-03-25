@@ -112,16 +112,18 @@ class CITester(object):
 
 
     def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
+        normal_path = test_dirs.rstrip(os.sep)
+        framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'shakedown_env')
             # produce test report for consumption by Jenkins:
-            partial_path = test_dirs.split(os.sep)[-3:]
-            path_based_name = "%s-%s" % ("_".join(partial_path), "shakedown-report.xml")
+            path_based_name = "%s-%s" % (framework, "shakedown-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                           framework, 'shakedown_env')
             jenkins_args = ''
         if requirements_txt:
             logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
@@ -173,15 +175,17 @@ py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
+        normal_path = test_dirs.rstrip(os.sep)
+        framework = os.path.basename(os.path.dirname(normal_path))
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'dcostests_env')
             # produce test report for consumption by Jenkins:
-            partial_path = test_dirs.split(os.sep)[-3:]
-            path_based_name = "%s-%s" % ("_".join(partial_path), "dcostests-report.xml")
+            path_based_name = "%s-%s" % (framework, "dcostests-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                           framework, 'dcostests_env')
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_dcos_tests.sh')

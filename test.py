@@ -21,7 +21,6 @@ import clustinfo
 import fwinfo
 import launch_ccm_cluster
 import junit_xml
-
 work_dir = None
 def get_work_dir():
     global work_dir
