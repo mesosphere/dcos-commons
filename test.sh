@@ -71,6 +71,7 @@ if [ -z "$CLUSTER_URL" ]; then
             mkdir -p "$dcos_cli_bindir"
             echo "curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output $dcos_cli_bindir/dcos"
             curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output "$dcos_cli_bindir/dcos"
+            chmod a+x "$dcos_cli_bindir/dcos"
             export PATH="$PATH":"$dcos_cli_bindir"
         fi
     fi
