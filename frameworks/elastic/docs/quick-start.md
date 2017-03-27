@@ -6,10 +6,13 @@ enterprise: 'no'
 ---
 
 1. Perform a default installation by following the instructions in the Install and Customize section of this topic.
+	**Note:** Your DC/OS cluster must have at least 3 private agent nodes.
 
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
-
-        $ dcos elastic plan show deploy
+	
+```
+	$ dcos elastic plan show deploy
+	```
 
 1. SSH into the master node.
 
@@ -52,6 +55,7 @@ enterprise: 'no'
         http://<dcos-url>/service/elastic/kibana/login
 
   Log in with `elastic`/`changeme`
+<<<<<<< HEAD
 
 	```bash
 	curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
@@ -85,4 +89,7 @@ enterprise: 'no'
   ```
   And log in with `elastic`/`changeme`
 
+=======
+  
+>>>>>>> ae2e694beb8f25938d41c00d79f44b9067e836cd
 [1]: https://docs.mesosphere.com/1.9/administration/access-node/sshcluster/
