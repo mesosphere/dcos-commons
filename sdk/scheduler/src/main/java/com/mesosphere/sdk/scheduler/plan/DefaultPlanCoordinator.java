@@ -69,8 +69,9 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
 
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(relevantDirtyAssets);
-                LOGGER.info("Attempting to process candidates: {}",
-                        candidateSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
+                LOGGER.info("Attempting to process candidates: {}, from plan: {}",
+                        candidateSteps.stream().map(step -> step.getName()).collect(Collectors.toList()),
+                        planManager.getPlan().getName());
 
                 // Try scheduling candidate steps using the available offers
                 Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateSteps);
@@ -98,7 +99,14 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
 
     @Override
     public boolean hasOperations() {
-        return planManagers.stream().anyMatch(manager -> !manager.getPlan().isComplete());
+        boolean ret = false;
+        for (final PlanManager planManager : planManagers) {
+            LOGGER.debug("Plan: name={} status={}",
+                    planManager.getPlan().getName(),
+                    planManager.getPlan().getStatus());
+            ret = ret || planManager.getPlan().isRunning();
+        }
+        return ret;
     }
 
     @Override

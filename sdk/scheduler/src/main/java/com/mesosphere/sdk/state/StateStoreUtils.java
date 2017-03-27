@@ -219,11 +219,15 @@ public class StateStoreUtils {
     public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
         byte[] bytes = fetchPropertyOrEmptyArray(stateStore, SUPPRESSED_PROPERTY_KEY);
 
-        try {
-            return new JsonSerializer().deserialize(bytes, Boolean.class);
-        } catch (IOException e){
-            LOGGER.error(String.format("Error converting property '%s' to boolean.", SUPPRESSED_PROPERTY_KEY), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+        if (bytes.length == 0) {
+            return false;
+        } else {
+            try {
+                return new JsonSerializer().deserialize(bytes, Boolean.class);
+            } catch (IOException e) {
+                LOGGER.error(String.format("Error converting property '%s' to boolean.", SUPPRESSED_PROPERTY_KEY), e);
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+            }
         }
     }
 

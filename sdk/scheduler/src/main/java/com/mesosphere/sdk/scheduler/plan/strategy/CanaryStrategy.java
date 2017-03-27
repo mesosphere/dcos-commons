@@ -2,8 +2,11 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +29,8 @@ import java.util.stream.Collectors;
  */
 public class CanaryStrategy implements Strategy<Step> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CanaryStrategy.class);
+
     /**
      * One proceed() to launch the first block, then a second proceed() to launch all the rest.
      */
@@ -42,8 +47,8 @@ public class CanaryStrategy implements Strategy<Step> {
      *
      * @param postCanaryStrategy the strategy to use after the canary stage has completed
      */
-    public CanaryStrategy(Strategy<Step> postCanaryStrategy) {
-        this(postCanaryStrategy, DEFAULT_PROCEED_COUNT);
+    public CanaryStrategy(Strategy<Step> postCanaryStrategy, List<Step> steps) {
+        this(postCanaryStrategy, DEFAULT_PROCEED_COUNT, steps);
     }
 
     /**
@@ -54,23 +59,23 @@ public class CanaryStrategy implements Strategy<Step> {
      * @param requiredProceeds the number of {@link #proceed()} calls to require before the provided strategy is
      *     executed
      */
-    public CanaryStrategy(Strategy<Step> postCanaryStrategy, int requiredProceeds) {
+    public CanaryStrategy(Strategy<Step> postCanaryStrategy, int requiredProceeds, List<Step> steps) {
         this.requiredProceeds = requiredProceeds;
         this.strategy = postCanaryStrategy;
-        this.canarySteps = null;
+        this.canarySteps = interruptCanarySteps(steps);
+    }
+
+    private List<Step> interruptCanarySteps(List<Step> steps) {
+        List<Step> canarySteps = steps.stream()
+                .filter(step -> (step.isPending() || step.isInterrupted()))
+                .limit(requiredProceeds)
+                .collect(Collectors.toList());
+        canarySteps.forEach(step -> step.interrupt());
+        return canarySteps;
     }
 
     @Override
     public Collection<Step> getCandidates(Collection<Step> steps, Collection<String> dirtyAssets) {
-        if (canarySteps == null) {
-            // Create the N initial canary steps by marking them as interrupted.
-            canarySteps = steps.stream()
-                    .filter(step -> (step.isPending() || step.isInterrupted()))
-                    .limit(requiredProceeds)
-                    .collect(Collectors.toList());
-            canarySteps.forEach(step -> step.interrupt());
-        }
-
         if (getNextCanaryStep() != null) {
             // Still in canary. Only return subset of canary steps which are now eligible due to proceed() calls.
             return canarySteps.stream()
@@ -104,17 +109,13 @@ public class CanaryStrategy implements Strategy<Step> {
 
     @Override
     public boolean isInterrupted() {
-        Step canaryStep = getNextCanaryStep();
-        if (canaryStep != null && getNextProceedStep() == null) {
+        if (getNextCanaryStep() != null && getNextProceedStep() == null) {
             return true;
         }
         return strategy.isInterrupted();
     }
 
     private Step getNextProceedStep() {
-        if (canarySteps == null) {
-            return null;
-        }
         for (Step proceedStep : canarySteps) {
             if (!proceedStep.isInterrupted() && !proceedStep.isComplete()) {
                 return proceedStep;
@@ -124,9 +125,6 @@ public class CanaryStrategy implements Strategy<Step> {
     }
 
     private Step getNextCanaryStep() {
-        if (canarySteps == null) {
-            return null;
-        }
         for (Step canaryStep : canarySteps) {
             if (canaryStep.isInterrupted()) {
                 return canaryStep;
@@ -144,6 +142,7 @@ public class CanaryStrategy implements Strategy<Step> {
 
         private final int requiredProceeds;
         private final Strategy<Step> postCanaryStrategy;
+        private final List<Step> steps;
 
         /**
          * Creates a new generator which will require 2 {@link #proceed()} calls from a user before following the
@@ -151,8 +150,8 @@ public class CanaryStrategy implements Strategy<Step> {
          *
          * @param postCanaryStrategy the strategy to use after the canary stage has completed
          */
-        public Generator(Strategy<Step> postCanaryStrategy) {
-            this(postCanaryStrategy, DEFAULT_PROCEED_COUNT);
+        public Generator(Strategy<Step> postCanaryStrategy, List<Step> steps) {
+            this(postCanaryStrategy, DEFAULT_PROCEED_COUNT, steps);
         }
 
         /**
@@ -163,14 +162,15 @@ public class CanaryStrategy implements Strategy<Step> {
          * @param requiredProceeds the number of {@link #proceed()} calls to require before the provided strategy is
          *     executed
          */
-        public Generator(Strategy<Step> postCanaryStrategy, int requiredProceeds) {
+        public Generator(Strategy<Step> postCanaryStrategy, int requiredProceeds, List<Step> steps) {
             this.requiredProceeds = requiredProceeds;
             this.postCanaryStrategy = postCanaryStrategy;
+            this.steps = steps;
         }
 
         @Override
         public Strategy<Step> generate() {
-            return new CanaryStrategy(postCanaryStrategy, requiredProceeds);
+            return new CanaryStrategy(postCanaryStrategy, requiredProceeds, steps);
         }
     }
 }

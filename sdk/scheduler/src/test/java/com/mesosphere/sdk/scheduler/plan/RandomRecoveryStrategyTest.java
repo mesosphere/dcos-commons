@@ -9,11 +9,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -29,13 +28,13 @@ public class RandomRecoveryStrategyTest {
         when(pendingStep.getName()).thenReturn("mock-step");
         when(pendingStep.getAsset()).thenReturn(Optional.of("pending-step"));
         when(pendingStep.isPending()).thenReturn(true);
-        when(pendingStep.isEligible(any(Collection.class))).thenReturn(true);
+        when(pendingStep.isEligible(anyCollectionOf(String.class))).thenReturn(true);
 
         when(completeStep.getName()).thenReturn("mock-step");
         when(completeStep.getAsset()).thenReturn(Optional.of("complete-step"));
         when(completeStep.isPending()).thenReturn(false);
         when(completeStep.isComplete()).thenReturn(true);
-        when(completeStep.isEligible(any(Collection.class))).thenReturn(false);
+        when(completeStep.isEligible(anyCollectionOf(String.class))).thenReturn(false);
     }
 
 

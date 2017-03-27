@@ -66,7 +66,7 @@ public interface Element extends Observable {
     }
 
     /**
-     * Indicates whether this Element is in progress.
+     * Indicates whether this Element is prepared.
      */
     default boolean isPrepared() {
         return getStatus().equals(Status.PREPARED);
@@ -91,6 +91,13 @@ public interface Element extends Observable {
      */
     default boolean isEligible(Collection<String> dirtyAssets) {
         return !isComplete() && !hasErrors();
+    }
+
+    /**
+     * Indicates whether this Element is running.
+     */
+    default boolean isRunning() {
+        return getStatus().isRunning();
     }
 
     /**
