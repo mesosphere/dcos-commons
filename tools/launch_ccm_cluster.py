@@ -20,10 +20,13 @@ import os
 import pprint
 import random
 import string
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
+import cli_install
 import dcos_login
 import github_update
 
@@ -300,13 +303,24 @@ class CCMLauncher(object):
         if config.permissions:
             logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
 
-            def run_script(scriptname, args = []):
+            def run_script(scriptname, args = [], env=None):
                 logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
                 script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
                 # redirect stdout to stderr:
-                subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
+                subprocess.check_call(['bash', script_path] + args,
+                                      stdout=sys.stderr, env=env)
 
-            run_script('create_service_account.sh', [dcos_url, auth_token, '--strict'])
+
+            # create_service_account relies on dcos cli, which we may not have
+            # at this point.
+            tempdir = tempfile.mkdtemp(prefix="ccm_clustbin")
+            cli_install(dcos_url, tempdir)
+            custom_env = os.environ[:]
+            custom_env['PATH'] = tempdir + os.pathsep + os.environ['PATH']
+
+            run_script('create_service_account.sh',
+                       [dcos_url, auth_token, '--strict'], env=custom_env)
+            shutil.rmtree(tempdir)
             # Examples of what individual tests should run. See respective projects' "test.sh":
             #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
             #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
