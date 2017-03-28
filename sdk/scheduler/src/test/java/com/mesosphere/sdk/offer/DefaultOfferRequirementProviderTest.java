@@ -138,9 +138,7 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     private void testOfferRequirementHasCorrectNetworkInfo(OfferRequirement offerRequirement,
-                                                           int correctNumberOfNetgroups,
-                                                           int correctNumberOfIpAddresses,
-                                                           boolean checkPortMapping) {
+            int correctNumberOfNetgroups, int correctNumberOfIpAddresses, boolean checkPortMapping) {
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
             // Check for exactly 1 NetworkInfo
             Assert.assertEquals(1,

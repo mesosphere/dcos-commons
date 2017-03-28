@@ -397,11 +397,11 @@ public class YAMLToInternalMappers {
         builder.portMappings(portMap);
 
         if (rawNetwork.getNetgroups() != null) {
-            Set<String> netgrpupSet = new HashSet<>(rawNetwork.getNetgroups());
-            if (netgrpupSet.size() != rawNetwork.getNetgroups().size()) {
+            Set<String> netgroupSet = new HashSet<>(rawNetwork.getNetgroups());
+            if (netgroupSet.size() != rawNetwork.getNetgroups().size()) {
                 throw new IllegalArgumentException("Cannot have repeat netgroups");
             }
-            builder.netgroups(netgrpupSet);
+            builder.netgroups(netgroupSet);
         }
 
         if (rawNetwork.getIpAddresses() != null) {

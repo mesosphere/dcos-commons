@@ -714,6 +714,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }
+
             // Coordinate amongst all the plans via PlanCoordinator.
             final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
             acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));

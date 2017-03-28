@@ -590,14 +590,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         if (!networkSpec.getIpAddresses().isEmpty()) {
-            Collection<Protos.NetworkInfo.IPAddress> ipAddresses = new ArrayList<>();
             for (String ipAddressString : networkSpec.getIpAddresses()) {
-                ipAddresses.add(Protos.NetworkInfo.IPAddress.newBuilder()
-                    .setIpAddress(ipAddressString)
-                        .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-                        .build());
+                netInfoBuilder.addIpAddresses(
+                        Protos.NetworkInfo.IPAddress.newBuilder()
+                                .setIpAddress(ipAddressString)
+                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
+                                .build());
             }
-            netInfoBuilder.addAllIpAddresses(ipAddresses);
         }
 
         return netInfoBuilder.build();

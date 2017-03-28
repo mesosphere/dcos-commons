@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public class DefaultNetworkSpec implements NetworkSpec {
     @Valid
-    private String networkName;  // name of the overlay network to join, usually 'dcos'
+    private String networkName;
 
     @Valid
     private Set<String> netgroups;
@@ -34,10 +34,10 @@ public class DefaultNetworkSpec implements NetworkSpec {
             @JsonProperty("netgroups") Set<String> netgroups,
             @JsonProperty("port-mappings") Map<Integer, Integer> portMapings,
             @JsonProperty("ip-addresses") Set<String> ipAddresses) {
-        this.networkName  = networkName;
-        this.netgroups    = netgroups == null ? Collections.emptySet() : netgroups;
+        this.networkName = networkName;
+        this.netgroups = netgroups == null ? Collections.emptySet() : netgroups;
         this.portMappings = portMapings == null ? Collections.emptyMap() : portMapings;
-        this.ipAddresses  = ipAddresses == null ? Collections.emptySet() : ipAddresses;
+        this.ipAddresses = ipAddresses == null ? Collections.emptySet() : ipAddresses;
     }
 
     private DefaultNetworkSpec(Builder builder) {
@@ -52,8 +52,8 @@ public class DefaultNetworkSpec implements NetworkSpec {
     public static Builder newBuilder(NetworkSpec copy) {
         Builder builder = new Builder();
         builder.networkName = copy.getName();
-        builder.netgroups   = copy.getNetgroups();
-        builder.portMap     = copy.getPortMappings();
+        builder.netgroups = copy.getNetgroups();
+        builder.portMap = copy.getPortMappings();
         builder.ipAddresses = copy.getIpAddresses();
 
         return builder;
@@ -100,6 +100,11 @@ public class DefaultNetworkSpec implements NetworkSpec {
 
         private Builder() { }
 
+        /**
+         *
+         * @param networkName name of the overlay network to join, usually "dcos"
+         * @return
+         */
         public Builder networkName(String networkName) {
             this.networkName = networkName;
             return this;

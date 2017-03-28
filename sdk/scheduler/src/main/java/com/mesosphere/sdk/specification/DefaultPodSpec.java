@@ -133,7 +133,9 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public List<TaskSpec> getTasks() { return tasks; }
+    public List<TaskSpec> getTasks() {
+        return tasks;
+    }
 
     @Override
     public Optional<PlacementRule> getPlacementRule() {

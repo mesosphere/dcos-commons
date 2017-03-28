@@ -62,6 +62,7 @@ public class BaseServiceSpecTest {
 
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
+        when(capabilities.supportCniPortMapping()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
