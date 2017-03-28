@@ -23,7 +23,10 @@ public class SchedulerUtils {
      * Returns the default role to use for a service named {@code frameworkName}.
      */
     public static String nameToRole(String frameworkName) {
-        return frameworkName + ROLE_SUFFIX;
+        int hashCode = frameworkName.hashCode();
+        String role = frameworkName.substring(frameworkName.lastIndexOf("/") + 1);
+        role += hashCode + ROLE_SUFFIX;
+        return role;
     }
 
     /**
