@@ -52,7 +52,7 @@ class CITester(object):
         if local_path:
             cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
-            cli_filepath = cli_install.download_cli(self.dcos_url, self._sandbox_path)
+            cli_filepath = cli_install.download_cli(self._dcos_url, self._sandbox_path)
         return cli_filepath
 
 

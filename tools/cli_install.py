@@ -44,6 +44,8 @@ def get_download_platform():
 
 
 def get_cluster_version(dcos_url):
+    """Given a cluster url, return its version string, such as 1.7, 1.8, 1.9,
+    1.9-dev, etc"""
     version_url = "%s/%s" % (dcos_url, "dcos-metadata/dcos-version.json")
     # Since our test clusters have weird certs that won't validate, turn off
     # validation
@@ -71,7 +73,6 @@ def get_cluster_version(dcos_url):
     response = urlopen(version_url, context=noverify_context)
     json_s = response.read()
     ver_s = json.loads(json_s)['version']
-    ver_s, _ = ver_s.split('-', 1) # "1.9-dev" -> 1.9
     return ver_s
 
 def _get_tempfilename(a_dir):
@@ -84,6 +85,8 @@ def _mark_executable(path):
     os.chmod(path, 0o755)
 
 def install_cli(src_file, write_dir):
+    """Copy an existing cli to a target directory path, updating the target
+    atomically."""
     output_filepath = os.path.join(write_dir, get_cli_filename())
     logger.info('Copying {} to {}'.format(src_file, output_filepath))
     try:
@@ -100,8 +103,12 @@ def install_cli(src_file, write_dir):
     return output_filepath
 
 def download_cli(dcos_url, write_dir):
+    """Download the correct cli version for a given cluster url, placing it in
+    a target directory and causing the target executable to update atomically"""
     url_template = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/dcos-{}/{}'
     cluster_version = get_cluster_version(dcos_url)
+    # we only care about the target release number
+    cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
     cli_url = url_template.format(get_download_platform(), cluster_version,
                                   get_cli_filename())
     # actually download to unique filename, then rename into place atomically.
