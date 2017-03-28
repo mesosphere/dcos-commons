@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -46,7 +47,7 @@ public class AndRule implements PlacementRule {
         return EvaluationOutcome.create(
                 passingCount == rules.size(),
                 this,
-                null,
+                Collections.emptyList(),
                 children,
                 "%d of %d rules are passing:", passingCount, rules.size());
     }
