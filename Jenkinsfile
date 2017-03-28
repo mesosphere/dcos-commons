@@ -1,7 +1,11 @@
-agent {
-    label 'infinity'
-}
+pipeline {
+    agent {
+        label 'infinity'
+    }
 
-node {
-    sh "echo hi mom"
+    stage('whatever') {
+        steps {
+            echo "hi mom"
+        }
+    }
 }
