@@ -273,4 +273,21 @@ public class DefaultPlanCoordinatorTest {
         Assert.assertTrue(planB.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.STARTING));
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
     }
+
+    @Test
+    public void testHasOperations() throws Exception {
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final PlanManager planManagerA = new DefaultPlanManager(planA);
+        final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Arrays.asList(planManagerA),
+                planScheduler);
+
+        Assert.assertFalse(coordinator.hasOperations());
+
+        planManagerA.getPlan().proceed();
+        Assert.assertTrue(coordinator.hasOperations());
+
+        planManagerA.getPlan().getChildren().get(0).getChildren().get(0).forceComplete();
+        Assert.assertFalse(coordinator.hasOperations());
+    }
 }

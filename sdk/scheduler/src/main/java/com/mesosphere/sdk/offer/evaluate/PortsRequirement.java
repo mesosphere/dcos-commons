@@ -28,7 +28,7 @@ public class PortsRequirement extends ResourceRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new PortsEvaluationStage(
+        return new MultiEvaluationStage(
                 portRequirements.stream().map(r -> r.getEvaluationStage(taskName)).collect(Collectors.toList()));
     }
 

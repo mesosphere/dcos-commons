@@ -106,13 +106,17 @@ public class OfferRequirementTestUtils {
                     int port = (int) resource.getRanges().getRange(0).getBegin();
                     if (ResourceUtils.getLabel(resource, TestConstants.HAS_VIP_LABEL) == null) {
                         portRequirements.add(new PortRequirement(
-                                resource, getIndexedName(TestConstants.PORT_ENV_NAME, numPorts), port));
+                                resource,
+                                "port-name-" + numPorts,
+                                port,
+                                Optional.of(getIndexedName(TestConstants.PORT_ENV_NAME, numPorts))));
                     } else {
                         resource = ResourceUtils.removeLabel(resource, TestConstants.HAS_VIP_LABEL);
                         portRequirements.add(new NamedVIPRequirement(
                                 resource,
-                                getIndexedName(TestConstants.PORT_ENV_NAME, numPorts),
+                                "port-name-" + numPorts,
                                 port,
+                                Optional.of(getIndexedName(TestConstants.PORT_ENV_NAME, numPorts)),
                                 TestConstants.VIP_PROTOCOL,
                                 TestConstants.VIP_VISIBILITY,
                                 getIndexedName(TestConstants.VIP_NAME, numVips),
