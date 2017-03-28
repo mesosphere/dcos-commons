@@ -172,13 +172,32 @@ class GithubAPI(object):
 class GithubStatusUpdater(object):
 
     def __init__(self, default_context_label=''):
-        info = RepoInfo()
-        self._api = GithubAPI(info.repo_orgname(), info.commit_sha(), info.github_auth_token())
+        if self._should_access_github():
+            info = RepoInfo()
+            self._api = GithubAPI(info.repo_orgname(), info.commit_sha(), info.github_auth_token())
+        else:
+            self._api = None
         self._default_context_label = default_context_label
+
+
+    def _should_access_github(self):
+        '''returns whether the local environment appears to be running in CI'''
+        if 'WORKSPACE' not in os.environ:
+            # not running in CI. skip actually sending anything to GitHub
+            return False
+        if os.environ.get('GITHUB_DISABLE', ''):
+            # environment has notifications disabled. skip actually sending anything to GitHub
+            return False
+        if not (os.environ.get('GITHUB_COMMIT_STATUS_URL') or os.environ.get('BUILD_URL')):
+            # CI job was not triggered by a PR
+            return False
+        return True
 
 
     def list_contexts(self):
         '''returns a set of context labels of all statuses in a given commit'''
+        if not self._api:
+            return set([])
         return set([status['context'] for status in self._api.get_commit_statuses()])
 
 
@@ -186,6 +205,16 @@ class GithubStatusUpdater(object):
         '''sends a commit status update to github.
         returns True on success or False otherwise.
         state should be one of the values in 'VALID_STATES'.'''
+        if details_url:
+            logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
+        else:
+            logmsg = '{} {}: {}'.format(context_label, state, message)
+        if not self._api:
+            # github api not available: just log the status and exit
+            logger.info('[STATUS] {}'.format(logmsg))
+            return
+        logger.info('[GH-STATUS] {}'.format(logmsg))
+
         if not context_label:
             context_label = self._default_context_label
         if not context_label:
@@ -224,19 +253,6 @@ def _get_details_link_url():
     return details_url
 
 
-def _should_access_github():
-    if 'WORKSPACE' not in os.environ:
-        # not running in CI. skip actually sending anything to GitHub
-        return False
-    if os.environ.get('GITHUB_DISABLE', ''):
-        # environment has notifications disabled. skip actually sending anything to GitHub
-        return False
-    if not (os.environ.get('GITHUB_COMMIT_STATUS_URL') or os.environ.get('BUILD_URL')):
-        # CI job was not triggered by a PR
-        return False
-    return True
-
-
 def print_help(argv):
     logger.info('Syntax:')
     logger.info('- Update: {} <state: {}> <context_label> [a status message ...]'.format(
@@ -245,10 +261,6 @@ def print_help(argv):
 
 
 def reset_states(updater, message):
-    if not _should_access_github():
-        # reset disabled due to local build, exit silently
-        return 0
-
     contexts = sorted([context for context in updater.list_contexts() if context not in BLACKLISTED_CONTEXT_LABELS])
     if not contexts:
         # nothing to reset, exit silently
@@ -266,16 +278,7 @@ def set_state(updater, state, context_label, message):
         return 1
 
     details_url = _get_details_link_url()
-    if details_url:
-        logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
-    else:
-        logmsg = '{} {}: {}'.format(context_label, state, message)
-
-    if _should_access_github():
-        logger.info('[GH-STATUS] {}'.format(logmsg))
-        updater.update(state, message=message, context_label=context_label, details_url=details_url)
-    else:
-        logger.info('[STATUS] {}'.format(logmsg))
+    updater.update(state, message=message, context_label=context_label, details_url=details_url)
     return 0
 
 
