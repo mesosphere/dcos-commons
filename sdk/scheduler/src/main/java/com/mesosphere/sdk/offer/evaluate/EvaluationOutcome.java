@@ -34,15 +34,8 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the pass reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome pass(
-            Object source,
-            String reasonFormat,
-            Object... reasonArgs) {
-        return pass(
-                source,
-                null,
-                reasonFormat,
-                reasonArgs);
+    public static EvaluationOutcome pass(Object source, String reasonFormat, Object... reasonArgs) {
+        return pass(source, Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
@@ -69,7 +62,7 @@ public class EvaluationOutcome {
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
     public static EvaluationOutcome fail(Object source, String reasonFormat, Object... reasonArgs) {
-        return create(false, source, null, Collections.emptyList(), reasonFormat, reasonArgs);
+        return create(false, source, Collections.emptyList(), Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
@@ -130,12 +123,11 @@ public class EvaluationOutcome {
     }
 
     public Collection<OfferRecommendation> getOfferRecommendations() {
-        Collection<OfferRecommendation> recommendations = offerRecommendations == null ?
-                new ArrayList<>() : offerRecommendations;
+        Collection<OfferRecommendation> recommendations = new ArrayList<>();
+        recommendations.addAll(offerRecommendations);
         for (EvaluationOutcome outcome : getChildren()) {
             recommendations.addAll(outcome.getOfferRecommendations());
         }
-
         return recommendations;
     }
 

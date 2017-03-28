@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  */
 public class OfferRequirement {
     private final String type;
-    private Map<String, TaskRequirement> taskRequirements;
-    private Optional<ExecutorRequirement> executorRequirementOptional;
-    private Optional<PlacementRule> placementRuleOptional;
+    private final Map<String, TaskRequirement> taskRequirements;
+    private final Optional<ExecutorRequirement> executorRequirementOptional;
+    private final Optional<PlacementRule> placementRuleOptional;
     private final int index;
 
     /**

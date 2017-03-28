@@ -13,6 +13,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class NamedVIPEvaluationStageTest {
@@ -30,6 +31,7 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-port",
                 10000,
+                Optional.empty(),
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
@@ -68,6 +70,7 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-port",
                 10000,
+                Optional.empty(),
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
@@ -109,6 +112,7 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-port",
                 8000,
+                Optional.empty(),
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",

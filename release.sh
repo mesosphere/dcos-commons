@@ -11,8 +11,11 @@ cd $REPO_ROOT_DIR
 ./gradlew publish
 
 # Scripts below expects S3_BUCKET and SDK_VERSION env vars. To be supplied by Jenkins.
-./tools/build_publishable.sh
-./tools/release_artifacts.sh
+
+# INFINITY-1208: Disable build and publish for now as it requires changes coming in
+# the self-hosted branch. 3-27-17 bwood
+# ./tools/build_publishable.sh
+# ./tools/release_artifacts.sh
 
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
 # This ensures that builds against different tags don't step on each other.

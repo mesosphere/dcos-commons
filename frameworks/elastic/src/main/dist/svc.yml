@@ -43,7 +43,7 @@ pods:
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
         health-check:
           cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
-          interval: 5
+          interval: 30
           grace-period: 900
           max-consecutive-failures: 3
           delay: 0
@@ -102,7 +102,7 @@ pods:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
           grace-period: 180
           interval: 1
-          max-consecutive-failures: 1
+          max-consecutive-failures: 5
           delay: 0
           timeout: 10
         readiness-check:
@@ -159,7 +159,7 @@ pods:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
           grace-period: 180
           interval: 1
-          max-consecutive-failures: 1
+          max-consecutive-failures: 5
           delay: 0
           timeout: 10
         readiness-check:
@@ -216,7 +216,7 @@ pods:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
           grace-period: 180
           interval: 1
-          max-consecutive-failures: 1
+          max-consecutive-failures: 5
           delay: 0
           timeout: 10
         readiness-check:
@@ -273,7 +273,7 @@ pods:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
           grace-period: 180
           interval: 1
-          max-consecutive-failures: 1
+          max-consecutive-failures: 5
           delay: 0
           timeout: 10
         readiness-check:

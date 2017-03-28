@@ -54,6 +54,7 @@ function run_framework_tests {
 echo "Beginning integration tests at "`date`
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 cd $REPO_ROOT_DIR
 
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
@@ -71,6 +72,7 @@ if [ -z "$CLUSTER_URL" ]; then
             mkdir -p "$dcos_cli_bindir"
             echo "curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output $dcos_cli_bindir/dcos"
             curl https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos --output "$dcos_cli_bindir/dcos"
+            chmod a+x "$dcos_cli_bindir/dcos"
             export PATH="$PATH":"$dcos_cli_bindir"
         fi
     fi

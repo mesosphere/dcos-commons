@@ -34,7 +34,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
         final List<Phase> phases = rawPlan.getPhases().entrySet().stream()
                 .map(entry-> from(entry.getValue(), entry.getKey(), podsSpecs))
                 .collect(Collectors.toList());
-        return DefaultPlanFactory.getPlan(planName, phases,
+        return DeployPlanFactory.getPlan(planName, phases,
                 StrategyFactory.generateForPhase(rawPlan.getStrategy()));
     }
 
