@@ -71,7 +71,15 @@ def get_cluster_version(dcos_url):
             noverify_context =  ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
     response = urlopen(version_url, context=noverify_context)
-    json_s = response.read()
+    encoding = 'utf-8' # default
+    try:
+        #python3
+        provided_encoding = response.headers.get_content_charset()
+        if provided_encoding:
+            encoding =  provided_encoding
+    except:
+        pass
+    json_s = response.read().decode(encoding)
     ver_s = json.loads(json_s)['version']
     return ver_s
 
