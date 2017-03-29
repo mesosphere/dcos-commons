@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
@@ -40,12 +39,7 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-        List<OfferRecommendation> recommendations = Collections.emptyList();
         for (int i = 0; i < offers.size(); ++i) {
-            if (!recommendations.isEmpty()) {
-                break;
-            }
-
             List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(offerRequirement);
 
             Offer offer = offers.get(i);
@@ -55,35 +49,37 @@ public class OfferEvaluator {
             int failedOutcomeCount = 0;
 
             for (OfferEvaluationStage evaluationStage : evaluationStages) {
-                EvaluationOutcome outcome =
-                        evaluationStage.evaluate(resourcePool, podInfoBuilder);
+                EvaluationOutcome outcome = evaluationStage.evaluate(resourcePool, podInfoBuilder);
                 outcomes.add(outcome);
                 if (!outcome.isPassing()) {
                     failedOutcomeCount++;
                 }
             }
 
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("\n");
+            StringBuilder outcomeDetails = new StringBuilder();
             for (EvaluationOutcome outcome : outcomes) {
-                logOutcome(stringBuilder, outcome, "");
+                logOutcome(outcomeDetails, outcome, "");
             }
-            logger.info(stringBuilder.toString().trim());
+            if (outcomeDetails.length() != 0) {
+                // trim extra trailing newline:
+                outcomeDetails.deleteCharAt(outcomeDetails.length() - 1);
+            }
 
             if (failedOutcomeCount != 0) {
-                recommendations.clear();
-                logger.info("- {}: failed {} of {} evaluation stages.",
-                        i + 1, failedOutcomeCount, evaluationStages.size());
-
-                continue;
+                logger.info("Offer {}: failed {} of {} evaluation stages:\n{}",
+                        i + 1, failedOutcomeCount, evaluationStages.size(), outcomeDetails.toString());
+            } else {
+                List<OfferRecommendation> recommendations = outcomes.stream()
+                        .map(outcome -> outcome.getOfferRecommendations())
+                        .flatMap(xs -> xs.stream())
+                        .collect(Collectors.toList());
+                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
+                        i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
+                return recommendations;
             }
-
-            recommendations = getRecommendations(outcomes);
-            logger.info("- {}: passed all {} evaluation stages, returning {} recommendations: {}",
-                    i + 1, evaluationStages.size(), recommendations.size(), TextFormat.shortDebugString(offer));
         }
 
-        return recommendations;
+        return Collections.emptyList();
     }
 
     public List<OfferEvaluationStage> getEvaluationPipeline(OfferRequirement offerRequirement) {
@@ -107,13 +103,6 @@ public class OfferEvaluator {
         evaluationPipeline.add(new ReservationEvaluationStage(offerRequirement.getResourceIds()));
 
         return evaluationPipeline;
-    }
-
-    private static List<OfferRecommendation> getRecommendations(Collection<EvaluationOutcome> outcomes) {
-        return outcomes.stream()
-                .map(outcome -> outcome.getOfferRecommendations())
-                .flatMap(xs -> xs.stream())
-                .collect(Collectors.toList());
     }
 
     private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {

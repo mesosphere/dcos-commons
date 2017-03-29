@@ -2,6 +2,9 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.NamedVIPEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+
+import java.util.Optional;
+
 import org.apache.mesos.Protos;
 
 /**
@@ -16,13 +19,14 @@ public class NamedVIPRequirement extends PortRequirement {
 
     public NamedVIPRequirement(
             Protos.Resource resource,
-            String envKey,
+            String portName,
             int port,
+            Optional<String> customEnvKey,
             String protocol,
             Protos.DiscoveryInfo.Visibility visibility,
             String vipName,
             int vipPort) {
-        super(resource, envKey, port);
+        super(resource, portName, port, customEnvKey);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -50,8 +54,9 @@ public class NamedVIPRequirement extends PortRequirement {
         return new NamedVIPEvaluationStage(
                 getResource(),
                 taskName,
-                getEnvKey(),
+                getPortName(),
                 getPort(),
+                getCustomEnvKey(),
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
@@ -90,7 +89,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-simple.yml", DEFAULT_GPU_POLICY);
     }
 
@@ -134,9 +133,9 @@ public class DefaultServiceSpecTest {
 
        Assert.assertEquals(3, portReqList.size());
 
-       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey());
-       Assert.assertEquals(Constants.PORT_NAME_TASKENV_PREFIX + "name2", ((PortRequirement) portReqList.get(1)).getEnvKey());
-       Assert.assertEquals(Constants.PORT_NAME_TASKENV_PREFIX  + "name3", ((PortRequirement) portReqList.get(2)).getEnvKey());
+       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getCustomEnvKey().get());
+       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getCustomEnvKey().isPresent());
+       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getCustomEnvKey().isPresent());
 
     }
 

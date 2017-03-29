@@ -2,35 +2,22 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.Constants;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.DiscoveryInfo;
-
-import com.mesosphere.sdk.specification.yaml.RawPort;
-import com.mesosphere.sdk.specification.yaml.RawVip;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * Default implementation of {@link ResourceSet}.
  */
 public class DefaultResourceSet implements ResourceSet {
-
-    private static final String DEFAULT_VIP_PROTOCOL = "tcp";
-    public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
 
     @NotNull
     @Size(min = 1)
@@ -203,64 +190,14 @@ public class DefaultResourceSet implements ResourceSet {
             return this;
         }
 
-        public Builder addPorts(Map<String, RawPort> ports) {
-            Collection<PortSpec> portSpecs = new ArrayList<>();
-            Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
-            String envKey = null;
-            for (Map.Entry<String, RawPort> portEntry : ports.entrySet()) {
-                String name = portEntry.getKey();
-                RawPort rawPort = portEntry.getValue();
-                Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.RANGES);
-                portValueBuilder.getRangesBuilder().addRangeBuilder()
-                        .setBegin(rawPort.getPort())
-                        .setEnd(rawPort.getPort());
-                portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
-                if (envKey == null) {
-                    envKey = rawPort.getEnvKey();
-                }
-
-                if (rawPort.getVip() != null) {
-                    final RawVip rawVip = rawPort.getVip();
-                    final String protocol =
-                            StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
-                    final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
-                    portSpecs.add(new NamedVIPSpec(
-                            Constants.PORTS_RESOURCE_TYPE,
-                            portValueBuilder.build(),
-                            role,
-                            principal,
-                            rawPort.getEnvKey(),
-                            name,
-                            protocol,
-                            toVisibility(rawVip.isAdvertised()),
-                            vipName,
-                            rawVip.getPort()));
-                } else {
-                    portSpecs.add(new PortSpec(
-                            Constants.PORTS_RESOURCE_TYPE,
-                            portValueBuilder.build(),
-                            role,
-                            principal,
-                            rawPort.getEnvKey(),
-                            name));
-                }
-            }
-            resources.add(new PortsSpec(
-                    Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs));
-
-            return this;
-        }
-
         /**
-         * Sets the {@code resources} and returns a reference to this Builder so that the methods can be chained
-         * together.
+         * Adds {@code resource} and returns a reference to this Builder so that the methods can be chained together.
          *
-         * @param resources the {@code resources} to set
+         * @param resource the {@code resource} to add
          * @return a reference to this Builder
          */
-        public Builder resources(Collection<ResourceSpec> resources) {
-            this.resources = resources;
+        public Builder addResource(ResourceSpec resource) {
+            resources.add(resource);
             return this;
         }
 
@@ -283,16 +220,5 @@ public class DefaultResourceSet implements ResourceSet {
         public DefaultResourceSet build() {
             return new DefaultResourceSet(this);
         }
-    }
-
-    /**
-     * This visibility information isn't currently used by DC/OS Service Discovery. At the moment it's only enforced in
-     * our own {@link com.mesosphere.sdk.api.EndpointsResource}.
-     */
-    private static DiscoveryInfo.Visibility toVisibility(Boolean rawIsVisible) {
-        if (rawIsVisible == null) {
-            return PUBLIC_VIP_VISIBILITY;
-        }
-        return rawIsVisible ? DiscoveryInfo.Visibility.EXTERNAL : DiscoveryInfo.Visibility.CLUSTER;
     }
 }

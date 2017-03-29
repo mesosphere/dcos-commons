@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -18,7 +17,7 @@ import java.util.Optional;
 /**
  * This class represents a single port, with associated environment name.
  */
-public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
+public class PortSpec extends DefaultResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String portName;
@@ -48,25 +47,15 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
         return Optional.ofNullable(envKey);
     }
 
-    /**
-     *  if env key is not present: "PORT_" is added to the beginning of port name.
-     */
-    protected String generateEnvKey() {
-        Optional<String> envKey = getEnvKey();
-        if (envKey.isPresent()) {
-            return envKey.get();
-        }
-        return Constants.PORT_NAME_TASKENV_PREFIX + getPortName();
-    }
-
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
         return new PortRequirement(
                 resource == null ?
                         ResourceUtils.getDesiredResource(this) :
                         ResourceUtils.withValue(resource, getValue()),
-                generateEnvKey(),
-                (int) getValue().getRanges().getRange(0).getBegin());
+                getPortName(),
+                (int) getValue().getRanges().getRange(0).getBegin(),
+                getEnvKey());
     }
 
     @Override
