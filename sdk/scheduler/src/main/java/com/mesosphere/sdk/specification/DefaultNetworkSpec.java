@@ -32,11 +32,11 @@ public class DefaultNetworkSpec implements NetworkSpec {
     public DefaultNetworkSpec(
             @JsonProperty("network-name") String networkName,
             @JsonProperty("netgroups") Set<String> netgroups,
-            @JsonProperty("port-mappings") Map<Integer, Integer> portMapings,
+            @JsonProperty("port-mappings") Map<Integer, Integer> portMappings,
             @JsonProperty("ip-addresses") Set<String> ipAddresses) {
         this.networkName = networkName;
         this.netgroups = netgroups == null ? Collections.emptySet() : netgroups;
-        this.portMappings = portMapings == null ? Collections.emptyMap() : portMapings;
+        this.portMappings = portMappings == null ? Collections.emptyMap() : portMappings;
         this.ipAddresses = ipAddresses == null ? Collections.emptySet() : ipAddresses;
     }
 
