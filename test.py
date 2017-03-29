@@ -369,6 +369,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     start_config = launch_ccm_cluster.StartConfig(private_agents=6)
                     avail_cluster = clustinfo.start_cluster(start_config,
                             reporting_name="Cluster %s" % human_count)
+                    logger.info("launched cluster info: %s", avail_cluster)
                 elif not avail_cluster:
                     info_bits = []
                     for cluster in clustinfo._clusters:
