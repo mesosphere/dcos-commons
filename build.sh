@@ -34,6 +34,7 @@ if [ x$PULLREQUEST = "xtrue" ]; then
   if ! git pull origin master; then
     _notify_github failure "Merge from master branch failed"
     exit 1
+  else
     _notify_github pending "Merge from master branch done"
   fi
 fi
