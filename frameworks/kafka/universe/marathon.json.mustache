@@ -55,14 +55,6 @@
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.1.0",
     "MESOS_ZOOKEEPER_URI": "master.mesos:2181",
 
-    {{#brokers.jmx.enable}}
-    "TASKCFG_ALL_KAKFA_JMX_OPTS": "-Dcom.sun.management.jmxremote={{brokers.jmx.remote}} -Dcom.sun.management.jmxremote.registry.ssl={{brokers.jmx.remote_registry_ssl}} -Dcom.sun.management.jmxremote.ssl={{brokers.jmx.remote_ssl}} -Dcom.sun.management.jmxremote.ssl.need.client.auth={{brokers.jmx.remote_ssl_need_client_auth}} -Dcom.sun.management.jmxremote.authenticate={{brokers.jmx.remote_authenticate}} {{brokers.additional_kafka_jmx_opts}}"
-    "BROKER_JMX_PORT": "{{brokers.jmx.remote_port}}",
-    {{/brokers.jmx.enable}}
-
-    "TASKCFG_ALL_BROKER_STATSD_HOST": "{{brokers.statsd.host}}",
-    "TASKCFG_ALL_BROKER_STATSD_PORT": "{{brokers.statsd.port}}",
-
     {{#kafka.kafka_advertise_host_ip}}
     "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
     {{/kafka.kafka_advertise_host_ip}}

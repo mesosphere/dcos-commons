@@ -18,7 +18,7 @@ import javax.validation.constraints.Size;
 /**
  * This class represents a port mapped to a DC/OS named VIP.
  */
-public class NamedVIPSpec extends PortSpec implements ResourceSpec {
+public class NamedVIPSpec extends PortSpec {
     @NotNull
     @Size(min = 1)
     private final String protocol;
@@ -78,8 +78,9 @@ public class NamedVIPSpec extends PortSpec implements ResourceSpec {
                 ResourceUtils.withValue(resource, getValue());
         return new NamedVIPRequirement(
                 portResource,
-                generateEnvKey(),
+                getPortName(),
                 (int) getValue().getRanges().getRange(0).getBegin(),
+                getEnvKey(),
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

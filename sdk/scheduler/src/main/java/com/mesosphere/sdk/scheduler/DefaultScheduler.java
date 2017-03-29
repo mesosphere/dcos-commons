@@ -682,17 +682,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         this.driver = driver;
-        reconciler.start();
-        reconciler.reconcile(driver);
-        revive();
+        postRegister();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        reconciler.start();
-        reconciler.reconcile(driver);
-        suppressOrRevive();
+        postRegister();
     }
 
     @Override
@@ -865,6 +861,12 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Reviving offers.");
         driver.reviveOffers();
         StateStoreUtils.setSuppressed(stateStore, false);
+    }
+
+    private void postRegister() {
+        reconciler.start();
+        reconciler.reconcile(driver);
+        suppressOrRevive();
     }
 
     @Override

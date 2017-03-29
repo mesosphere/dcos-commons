@@ -9,18 +9,25 @@ import subprocess
 import tempfile
 import time
 
-
 def get_repo_root():
     return os.path.dirname(sys.argv[0])
-
 
 logger = logging.getLogger("dcos-commons-test")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
 sys.path.append(os.path.join(get_repo_root(), 'tools'))
+sys.path.append(os.path.join(get_repo_root(), 'tools', 'contrib'))
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
+import junit_xml
+work_dir = None
+def get_work_dir():
+    global work_dir
+    if not work_dir:
+        work_dir = tempfile.mkdtemp(prefix='test_workdir_', dir=get_repo_root())
+        logger.info("Using %s for test run files", work_dir)
+    return work_dir
 
 work_dir = None
 def get_work_dir():
@@ -42,7 +49,7 @@ def parse_args(args=sys.argv):
                  "Number of clusters to run tests on. "
                  "Large values are likely to break CCM.")
     parser.add_argument("--order", choices=('random', 'ordered'), default='random',
-            help="Run tests in randomr order, or the order given on the command line.  "
+            help="Run tests in random order, or the order given on the command line.  "
             "In the case of no tests listed, ordered means alpha order.")
     parser.add_argument("--cluster-url", help="Use this already existing cluster, "
             "don't bring up new ones.")
@@ -162,15 +169,29 @@ def get_cluster():
     "Bring up a cluster and return, or return an already running cluster"
     pass
 
-def setup_frameworks(framework_list):
-    if not framework_list:
+def setup_frameworks(run_attrs):
+    if not run_attrs.test:
         fwinfo.autodiscover_frameworks()
     else:
-        for framework in framework_list:
+        for framework in run_attrs.test:
             fwinfo.add_framework(framework)
+
+    if run_attrs.order == "random":
+        fwinfo.shuffle_order()
+
     fw_names = fwinfo.get_framework_names()
     logger.info("Frameworks initialized: %s", ", ".join(fw_names))
 
+
+def _action_wrapper(action_name, framework, function, *args):
+    framework.start_action(action_name)
+    try:
+        val = function(*args)
+        framework.finish_action_ok(action_name)
+        return val
+    except:
+        framework.finish_action_fail(action_name)
+        raise
 
 def build_and_upload(run_attrs=parse_args([])):
     """
@@ -182,39 +203,31 @@ def build_and_upload(run_attrs=parse_args([])):
     """
     for framework_name in fwinfo.get_framework_names():
         framework = fwinfo.get_framework(framework_name)
-        build_and_upload_single(framework, run_attrs)
+        func = build_and_upload_single
+        args = framework, run_attrs
+        _action_wrapper("build %s" % framework.name,
+                framework, func, *args)
 
-def build_and_upload_single(framework, run_attrs):
-    """Build a framework scheduler and put it at URL so a cluster can use it.
-    build() and upload()should be two different functions, but that's a
-    project for another day.
-    """
-    logger.info("Starting build & upload for %s", framework.name)
-
-    #call_thing = partial(framework=framework)
-    #
-    #call_thing(desc="doing xyz",
-    #        func=upload_proxylite)
-    if framework.name == 'proxylite':
-        logger.info("trying to push proxylite to docker [1/2]")
-        cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
+# TODO: consider moving this to Nexus
+def _upload_proxylite(framework):
+    logger.info("trying to push proxylite to docker [1/2]")
+    cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
+    completed_cmd = subprocess.run(cmd_args)
+    if completed_cmd.returncode == 0:
+        logger.info("docker push succeeded.")
+    else:
+        logger.info("docker push failed; sleeping 5 seconds (XXX)")
+        time.sleep(5)
+        logger.info("trying to push proxylite to docker [2/2]")
         completed_cmd = subprocess.run(cmd_args)
         if completed_cmd.returncode == 0:
             logger.info("docker push succeeded.")
         else:
-            logger.info("docker push failed; sleeping 5 seconds (XXX)")
-            time.sleep(5)
-            logger.info("trying to push proxylite to docker [2/2]")
-            completed_cmd = subprocess.run(cmd_args)
-            if completed_cmd.returncode == 0:
-                logger.info("docker push succeeded.")
-            else:
-                logger.info("docker push failed; aborting proxylite test")
-                raise CommandFailure(cmd_args)
-        logger.info("Push of proxylite to docker complete.")
+            logger.info("docker push failed; aborting proxylite test")
+            raise CommandFailure(cmd_args)
+    logger.info("Push of proxylite to docker complete.")
 
-    # TODO handle stub universes?  Only for single?
-
+def _build_upload_aws(framework):
     # Gross hack to just get a return value, hopfully kill this soon.
     custom_env = os.environ.copy()
     url_textfile_path = os.path.join(framework.dir, "%s-framework-url" % framework.name)
@@ -236,11 +249,31 @@ def build_and_upload_single(framework, run_attrs):
         raise CommandFailure(cmd_args)
     with open(url_textfile_path) as url_file:
         stub_url = url_file.read().strip()
+    framework.stub_universe_url = stub_url
 
-    logger.info("Build and push for %s completed, stub_url=%s.", framework.name, stub_url)
-    # XXX: record stub_url in some framework state object thing
+def build_and_upload_single(framework, run_attrs):
+    """Build a framework scheduler and put it at URL so a cluster can use it.
+    build() and upload()should be two different functions, but that's a
+    project for another day.
+    """
+    logger.info("Starting build & upload for %s", framework.name)
 
-    logger.info("Finished build & upload for %s", framework.name)
+    if framework.name == 'proxylite':
+        func = _upload_proxylite
+        args = framework,
+        _action_wrapper("upload proxylite",
+                framework, func, *args)
+
+    # TODO handle stub universes?  Only for single?
+
+    # TODO build and push should probably be broken out as two recorded actions
+    func = _build_upload_aws
+    args = framework,
+    _action_wrapper("upload %s to aws" % framework.name,
+            framework, func, *args)
+
+    logger.info("Built/uploladed framework=%s stub_universe_url=%s.",
+            framework.name, framework.stub_universe_url)
 
 
 def setup_clusters(run_attrs):
@@ -255,25 +288,27 @@ def setup_clusters(run_attrs):
     elif count > 1 and (run_attrs.cluster_url):
         sys.exit("Sorry, no support for multiple externally set up clusters yet.")
     for i in range(count):
-        clustinfo.start_cluster()
+        human_count = i+1
+        clustinfo.start_cluster(reporting_name="cluster number %s" % human_count)
 
 def teardown_clusters():
     logger.info("Shutting down all clusters.")
     clustinfo.shutdown_clusters()
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
-    start_config = launch_ccm_cluster.StartConfig(private_agents=5)
+    start_config = launch_ccm_cluster.StartConfig(private_agents=6)
     clustinfo.start_cluster(start_config)
 
     cluster = clustinfo._clusters[0]
-    for framework_name in fwinfo.get_framework_names():
-        framework = fwinfo.get_framework(framework_name)
-        run_test(framework, cluster, repo_root)
+    for framework in fwinfo.get_frameworks():
+        func = run_test
+        args = framework, cluster, repo_root
+        _action_wrapper("Run %s tests" % framework.name,
+                framework, func, *args)
 
 def handle_test_completions():
     all_tests_ok = True
-    for framework_name in fwinfo.get_framework_names():
-        framework = fwinfo.get_framework(framework_name)
+    for framework in fwinfo.get_frameworks():
         if not framework.running:
             # never started
             continue
@@ -281,6 +316,8 @@ def handle_test_completions():
         if pollval == None:
             # probably still running; try again later
             continue
+        action_name = "Test %s completed" % framework.name
+        framework.start_action(action_name)
         logger.info("%s test exit code: %s", framework.name, pollval)
         if pollval == 0:
             # test exited with success
@@ -291,16 +328,24 @@ def handle_test_completions():
             all_tests_ok = False
 
         framework.running = False
+        logger.info("%s unclaiming cluster id %s", framework.name,
+                framework.cluster.cluster_id)
         framework.cluster.unclaim(framework)
         framework.cluster = None
 
         logger.info("%s test output follows ------------>>>>>>", framework.name)
         framework.output_file.seek(0)
         for line in framework.output_file:
-            sys.stdout.bytes.write(line)
+            sys.stdout.buffer.write(line)
         sys.stdout.flush()
         framework.output_file.close()
         logger.info("<<<<<<------------ end %s test output", framework.name)
+
+        if pollval == 0:
+            framework.finish_action_ok(action_name)
+        else:
+            framework.finish_action_fail(action_name)
+
     return all_tests_ok
 
 
@@ -312,18 +357,27 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
         while True:
             if not next_test and test_list:
                 next_test = test_list.pop(0)
-                logger.info("Pulled test %s from list", next_test)
+                logger.info("Next test to run: %s", next_test)
             if next_test:
                 avail_cluster = clustinfo.get_idle_cluster()
+                logger.debug("avail_cluster=%s", avail_cluster)
                 if not avail_cluster and clustinfo.running_count() < run_attrs.cluster_count:
+                    human_count = clustinfo.running_count()+1
                     logger.info("Launching cluster %s towards count %s",
-                                  clustinfo.running_count()+1, run_attrs.cluster_count)
-                    start_config = launch_ccm_cluster.StartConfig(private_agents=5)
-                    avail_cluster = clustinfo.start_cluster(start_config)
-                else:
-                    logger.info("Sleeping to wait for available cluster to launch %s.",
-                                  next_test)
-                    # echo status
+                                  human_count, run_attrs.cluster_count)
+                    # TODO: retry cluster launches
+                    start_config = launch_ccm_cluster.StartConfig(private_agents=6)
+                    avail_cluster = clustinfo.start_cluster(start_config,
+                            reporting_name="Cluster %s" % human_count)
+                elif not avail_cluster:
+                    info_bits = []
+                    for cluster in clustinfo._clusters:
+                        template = "cluster_id=%s in use by frameworks=%s"
+                        info_bits.append(template % (cluster.cluster_id,
+                                                     cluster.in_use()))
+                    logger.info("Waiting for cluster to launch %s; %s",
+                                  next_test, ", ".join(info_bits))
+                    # TODO: report .out sizes for running tests
                     time.sleep(30) # waiting for an available cluster
                     # meanwhile, a test might finish
                     all_ok = handle_test_completions()
@@ -331,17 +385,20 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                         logger.info("Some tests failed; aborting early") # TODO paramaterize
                         break
                     continue
-                logger.info("Launching test=%s in background on cluster=%s.",
+                logger.info("Testing framework=%s in background on cluster=%s.",
                              next_test, avail_cluster.cluster_id)
                 framework = fwinfo.get_framework(next_test)
-                start_test_background(framework, avail_cluster, repo_root)
+                func = start_test_background
+                args = framework, avail_cluster, repo_root
+                _action_wrapper("Launch %s tests" % framework.name,
+                        framework, func, *args)
                 next_test = None
                 avail_cluster = None
             else:
                 if not fwinfo.running_frameworks():
-                    logger.info("No frameworks running.  All done.")
+                    logger.info("No framework tests running.  All done.")
                     break # all tests done
-                logger.info("No frameworks to launch, waiting for completions.")
+                logger.info("No framework tests to launch, waiting for completions.")
                 # echo status
                 time.sleep(30) # waiting for tests to complete
 
@@ -371,9 +428,13 @@ def run_tests(run_attrs, repo_root):
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
         raise
+    finally:
+        for cluster in clustinfo._clusters:
+            logger.debug("Cluster still running: url=%s id=%s auth_token=%s",
+                         cluster.url, cluster.cluster_id, cluster.auth_token)
 
 
-def _setup_strict(framework, cluster):
+def _setup_strict(framework, cluster, repo_root):
     security = os.environ.get('SECURITY', '')
     logger.info("SECURITY set to: '%s'", security)
     if security == "strict":
@@ -397,14 +458,19 @@ def _setup_strict(framework, cluster):
         logger.info("%s role setup script(s) completed", framework.name)
 
 def start_test_background(framework, cluster, repo_root):
+    """Start one test on a cluster as a subprocess.
+    The state of these subprocesses lives in the framework objects stored in
+    the fwinfo module
+    """
     logger.info("Starting cluster configure & test run for %s (will background)",
                 framework.name)
-    _setup_strict(framework, cluster)
+    _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown for %s", framework.name)
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
+    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
@@ -427,11 +493,13 @@ def start_test_background(framework, cluster, repo_root):
     logger.info("Shakedown for %s now running in background", framework.name)
 
 def run_test(framework, cluster, repo_root):
+    "Run one test on a cluster in a blocking fashion"
     logger.info("Starting cluster configure & test run for %s", framework.name)
-    _setup_strict(framework, cluster)
+    _setup_strict(framework, cluster, repo_root)
 
     logger.info("launching shakedown for %s", framework.name)
     custom_env = os.environ.copy()
+    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
@@ -445,6 +513,47 @@ def run_test(framework, cluster, repo_root):
         logger.info(msg, runtests_script, framework.name)
         raise CommandFailure(cmd_args)
 
+def emit_junit_xml():
+    launch_fake_testcases = []
+    for launch_attempt in clustinfo.get_launch_attempts():
+        attempt_duration = launch_attempt.end_time - launch_attempt.start_time
+        fake_test = junit_xml.TestCase(launch_attempt.name,
+                                       elapsed_sec=attempt_duration)
+        if launch_attempt.launch_succeeded:
+            fake_test.stdout = "Launch worked"
+        else:
+            fake_test.add_failure_info("Launch failed")
+        launch_fake_testcases.append(fake_test)
+
+    launch_suite = junit_xml.TestSuite("Cluster launches",
+            launch_fake_testcases)
+
+    fake_suites = []
+    fake_suites.append(launch_suite)
+
+    for framework in fwinfo.get_frameworks():
+        framework_testcases = []
+        for action_name, action in framework.actions.items():
+            action_duration = action['finish'] - action['start']
+            fake_test = junit_xml.TestCase(action_name,
+                                           elapsed_sec=action_duration,
+                                           stdout = action['stdout'],
+                                           stderr = action['stderr'])
+            if not action['ok']:
+                message = action['error_message']
+                if not message:
+                    message = "%s failed" % action_name
+                fake_test.add_failure_info(message, action['error_output'])
+            framework_testcases.append(fake_test)
+        framework_suite = junit_xml.TestSuite("%s actions" % framework.name,
+                framework_testcases)
+        fake_suites.append(framework_suite)
+
+    with open("junit_testpy.xml", "w") as f:
+        junit_xml.TestSuite.to_file(f, fake_suites)
+
+
+
 def main():
     run_attrs = parse_args()
     try:
@@ -456,12 +565,16 @@ def main():
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
 
-    setup_frameworks(run_attrs.test)
+    setup_frameworks(run_attrs)
 
-    build_and_upload(run_attrs)
+    try:
+        if run_attrs.run_build:
+            build_and_upload(run_attrs)
 
-    run_tests(run_attrs, repo_root)
-
+        if run_attrs.run_tests:
+            run_tests(run_attrs, repo_root)
+    finally:
+        emit_junit_xml()
 
 if __name__ == "__main__":
     main()

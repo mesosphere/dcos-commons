@@ -1,7 +1,7 @@
 ---
 post_title: API Reference
 menu_order: 38
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -10,10 +10,10 @@ The DC/OS Elastic Service implements a REST API that may be accessed from outsid
 <a name="#rest-auth"></a>
 # REST API Authentication
 REST API requests must be authenticated. This authentication is only applicable for interacting with the Elastic REST API directly. You do not need the token to access the Elasticsearch nodes themselves.
- 
+
 If you are using Enterprise DC/OS, follow these instructions to [create a service account and an authentication token](https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/service-auth/custom-service-auth/). You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also [get the authentication token without a service account](https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/iam-api/), but you will need to manually refresh the token.
 
-If you are using open source DC/OS, follow these instructions to [pass your HTTP API token to the DC/OS endpoint](https://dcos.io/docs/1.9/administration/id-and-access-mgt/iam-api/). 
+If you are using open source DC/OS, follow these instructions to [pass your HTTP API token to the DC/OS endpoint](https://dcos.io/docs/1.9/administration/id-and-access-mgt/iam-api/).
 
 Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:
 
@@ -57,7 +57,7 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```
-$ dcos elastic pods list 
+$ dcos elastic pods list
 ```
 
 HTTP Example

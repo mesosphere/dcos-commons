@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.mesosphere.sdk.config.ConfigNamespace;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.config.TaskConfigRouter;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -13,8 +14,7 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
+    private static final String DEFAULT_VIP_PROTOCOL = "tcp";
+
+    public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
 
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
@@ -201,19 +203,19 @@ public class YAMLToInternalMappers {
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }
-        
+
         RawContainerInfoProvider containerInfoProvider = null;
-        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) { 
+        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
             if (rawPod.getContainer() != null) {
                 throw new IllegalArgumentException(String.format("You may define container settings directly under the "
                         + "pod %s or under %s:container, but not both.", podName, podName));
             }
-            
+
             containerInfoProvider = rawPod;
         } else if (rawPod.getContainer() != null) {
             containerInfoProvider = rawPod.getContainer();
         }
-        
+
         if (containerInfoProvider != null) {
             List<RLimit> rlimits = new ArrayList<>();
             for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
@@ -319,7 +321,7 @@ public class YAMLToInternalMappers {
             Double cpus,
             Double gpus,
             Integer memory,
-            WriteOnceLinkedHashMap<String, RawPort> rawEndpoints,
+            WriteOnceLinkedHashMap<String, RawPort> rawPorts,
             RawVolume rawSingleVolume,
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
@@ -359,12 +361,70 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
-        if (rawEndpoints != null) {
-            resourceSetBuilder.addPorts(rawEndpoints);
+        if (rawPorts != null) {
+            resourceSetBuilder.addResource(from(role, principal, rawPorts));
         }
 
         return resourceSetBuilder
                 .id(id)
                 .build();
+    }
+
+    private static ResourceSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts) {
+        Collection<PortSpec> portSpecs = new ArrayList<>();
+        Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
+        String envKey = null;
+        for (Map.Entry<String, RawPort> portEntry : rawPorts.entrySet()) {
+            String name = portEntry.getKey();
+            RawPort rawPort = portEntry.getValue();
+            Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
+                    .setType(Protos.Value.Type.RANGES);
+            portValueBuilder.getRangesBuilder().addRangeBuilder()
+                    .setBegin(rawPort.getPort())
+                    .setEnd(rawPort.getPort());
+            portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
+            if (envKey == null) {
+                envKey = rawPort.getEnvKey();
+            }
+
+            if (rawPort.getVip() != null) {
+                final RawVip rawVip = rawPort.getVip();
+                final String protocol =
+                        StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
+                final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
+                portSpecs.add(new NamedVIPSpec(
+                        Constants.PORTS_RESOURCE_TYPE,
+                        portValueBuilder.build(),
+                        role,
+                        principal,
+                        rawPort.getEnvKey(),
+                        name,
+                        protocol,
+                        toVisibility(rawVip.isAdvertised()),
+                        vipName,
+                        rawVip.getPort()));
+            } else {
+                portSpecs.add(new PortSpec(
+                        Constants.PORTS_RESOURCE_TYPE,
+                        portValueBuilder.build(),
+                        role,
+                        principal,
+                        rawPort.getEnvKey(),
+                        name));
+            }
+        }
+        return new PortsSpec(
+                Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
+    }
+
+    /**
+     * This visibility information isn't currently used by DC/OS Service Discovery. At the moment it's only enforced in
+     * our own {@link com.mesosphere.sdk.api.EndpointsResource}.
+     */
+    private static DiscoveryInfo.Visibility toVisibility(Boolean rawIsVisible) {
+        if (rawIsVisible == null) {
+            return PUBLIC_VIP_VISIBILITY;
+        }
+        return rawIsVisible ? DiscoveryInfo.Visibility.EXTERNAL : DiscoveryInfo.Visibility.CLUSTER;
     }
 }

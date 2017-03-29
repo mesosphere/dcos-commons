@@ -20,10 +20,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Thread-safe caching layer for an underlying {@link StateStore}.
+ * Thread-safe write-through cache for an underlying {@link StateStore}.
  * <p>
- * Writes are automatically forwarded to the underlying instance, while reads prioritize the local
- * instance. In order to maintain consistency, there should only be one StateStoreCache object per
+ * In order to maintain consistency, there should only be one StateStoreCache object per
  * process. In practice this works because there should only be one scheduler task/process
  * accessing the state data at any given time.
  * <p>

@@ -13,6 +13,7 @@ Kafka is available in the Universe and can be installed by using either the web 
 	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
+- Your cluster must have at least three private nodes.
   
 # Default Installation
 
