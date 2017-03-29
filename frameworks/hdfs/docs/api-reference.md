@@ -2054,7 +2054,7 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configura
 
 # Service Status Info
 Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if HDFS is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources.
-You can use this request to troubleshoot: if you think Cassandra should be receiving resource offers, but is not, you can use this API call to see if Cassandra is suppressed.
+You can use this request to troubleshoot: if you think HDFS should be receiving resource offers, but is not, you can use this API call to see if HDFS is suppressed.
 ```
 curl -H "Authorization: token=$auth_token" "<dcos_url>/service/hdfs/v1/state/properties/suppressed"
 ```
