@@ -560,7 +560,7 @@ def main():
         detect_requirements()
     except TestRequirementsNotMet:
         logger.error("Aborting run.")
-        return
+        return False
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
@@ -575,6 +575,8 @@ def main():
             run_tests(run_attrs, repo_root)
     finally:
         emit_junit_xml()
+    return True
 
 if __name__ == "__main__":
-    main()
+    if not main():
+        sys.exit(1)
