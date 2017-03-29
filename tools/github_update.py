@@ -287,6 +287,9 @@ def main(argv):
         print_help(argv)
         return 1
 
+    logger.info("I am a banana")
+
+
     updater = GithubStatusUpdater()
     command = argv[1]
     if command == 'reset':
