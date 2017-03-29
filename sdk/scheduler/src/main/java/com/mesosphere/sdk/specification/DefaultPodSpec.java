@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.mesosphere.sdk.offer.Constants.EXECUTOR_URI_SCHEDENV;
+
 /**
  * Default implementation of {@link PodSpec}.
  */
@@ -306,6 +308,20 @@ public class DefaultPodSpec implements PodSpec {
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
+
+            // Inject the executor URI as one of the pods URIs. This ensures
+            // that the scheduler properly tracks changes to executors
+            // (reflected in changes to the executor URI)
+            String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
+            if (executorUri == null) {
+                throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
+            }
+
+            URI actualURI = URI.create(executorUri);
+            if (this.uris == null || !this.uris.contains(actualURI)) {
+                this.addUri(actualURI);
+            }
+
             DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
             return defaultPodSpec;
         }

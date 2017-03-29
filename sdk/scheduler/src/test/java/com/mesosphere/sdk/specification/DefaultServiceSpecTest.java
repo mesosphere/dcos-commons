@@ -54,6 +54,7 @@ public class DefaultServiceSpecTest {
 
     @Before
     public void beforeEach() {
+        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
         MockitoAnnotations.initMocks(this);
     }
 
@@ -463,11 +464,8 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
 
-        // Set the executor URI to test that it is injected to the pod.
-        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "test-executor-uri");
-
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
-        Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
+        Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("executor-test-uri")));
     }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {

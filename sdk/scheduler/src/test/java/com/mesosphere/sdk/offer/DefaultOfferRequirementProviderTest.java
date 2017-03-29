@@ -126,20 +126,20 @@ public class DefaultOfferRequirementProviderTest {
         CommandInfo executorCommand =
                 offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getCommand();
         List<URI> uris = executorCommand.getUrisList();
-        Assert.assertEquals(6, uris.size());
-        Assert.assertEquals("test-executor-uri", uris.get(0).getValue());
-        Assert.assertEquals("test-libmesos-uri", uris.get(1).getValue());
-        Assert.assertEquals("https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz", uris.get(2).getValue());
+        Assert.assertEquals(5, uris.size());
+        Assert.assertEquals("test-executor-uri", uris.get(2).getValue());
+        Assert.assertEquals("test-libmesos-uri", uris.get(0).getValue());
+        Assert.assertEquals("https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz", uris.get(1).getValue());
         String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
                 TestConstants.SERVICE_NAME,
                 ResourceUtils.VIP_HOST_TLD,
                 uuid.toString(),
                 podInstance.getPod().getType(),
                 tasksToLaunch.get(0));
-        Assert.assertEquals(artifactDirUrl + "config-one", uris.get(4).getValue());
-        Assert.assertEquals("config-templates/config-one", uris.get(4).getOutputFile());
-        Assert.assertEquals(artifactDirUrl + "config-two", uris.get(5).getValue());
-        Assert.assertEquals("config-templates/config-two", uris.get(5).getOutputFile());
+        Assert.assertEquals(artifactDirUrl + "config-one", uris.get(3).getValue());
+        Assert.assertEquals("config-templates/config-one", uris.get(3).getOutputFile());
+        Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
+        Assert.assertEquals("config-templates/config-two", uris.get(4).getOutputFile());
     }
 
     @Test

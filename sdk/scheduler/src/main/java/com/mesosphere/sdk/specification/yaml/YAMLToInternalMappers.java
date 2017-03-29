@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.EXECUTOR_URI_SCHEDENV;
-
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
@@ -191,17 +189,6 @@ public class YAMLToInternalMappers {
         Collection<URI> podUris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
             podUris.add(new URI(uriStr));
-        }
-
-        // Inject the executor URI into every pod as a dependency
-        // so that changes to the executor (reflected in a new URI)
-        // will result in tasks being restarted as necessary.
-        String executorURI = System.getenv(EXECUTOR_URI_SCHEDENV);
-        if (executorURI != null) {
-            URI uri = URI.create(executorURI);
-            if (!podUris.contains(uri)) {
-                podUris.add(uri);
-            }
         }
 
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
