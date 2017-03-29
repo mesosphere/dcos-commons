@@ -201,8 +201,7 @@ def build_and_upload(run_attrs=parse_args([])):
 
     run_attrs takes defaults from the argument parser with no arguments
     """
-    for framework_name in fwinfo.get_framework_names():
-        framework = fwinfo.get_framework(framework_name)
+    for framework in fwinfo.get_frameworks():
         func = build_and_upload_single
         args = framework, run_attrs
         _action_wrapper("build %s" % framework.name,
@@ -227,10 +226,13 @@ def _upload_proxylite(framework):
             raise CommandFailure(cmd_args)
     logger.info("Push of proxylite to docker complete.")
 
+def _make_url_path(framework):
+    return os.path.join(framework.dir, "%s-framework-url" % framework.name)
+
 def _build_upload_aws(framework):
     # Gross hack to just get a return value, hopfully kill this soon.
     custom_env = os.environ.copy()
-    url_textfile_path = os.path.join(framework.dir, "%s-framework-url" % framework.name)
+    url_textfile_path = _make_url_path(framework)
     if os.path.isfile(url_textfile_path):
         logger.info("Removing stale url textfile (%s) from prior run", url_textfile_path)
         os.unlink(url_textfile_path)
@@ -250,6 +252,23 @@ def _build_upload_aws(framework):
     with open(url_textfile_path) as url_file:
         stub_url = url_file.read().strip()
     framework.stub_universe_url = stub_url
+
+def _recover_stub_urls(run_attrs, repo_root)
+    """If run with test_only, acquire the stub_universe urls from the
+    filesystem.
+    Will fail with exception if they're not present.
+    """
+    for framework in fwinfo.get_frameworks():
+        url_textfile_path = _make_url_path(framework)
+        try:
+            with open(url_textfile_path) as url_file:
+                stub_url = url_file.read().strip()
+            framework.stub_universe_url = stub_url
+        except:
+            logger.error("Failed to open universe url_file=%s for framework=%s",
+                    url_textfile_path, framework.name)
+            raise
+
 
 def build_and_upload_single(framework, run_attrs):
     """Build a framework scheduler and put it at URL so a cluster can use it.
@@ -573,6 +592,10 @@ def main():
             build_and_upload(run_attrs)
 
         if run_attrs.run_tests:
+            # if we're only testing, use stub_universes from before (they're
+            # normally calculated during the build)
+            if not run_attrs.run_build:
+                _recover_stub_urls(run_attrs, repo_root)
             run_tests(run_attrs, repo_root)
     finally:
         emit_junit_xml()
