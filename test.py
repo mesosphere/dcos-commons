@@ -253,7 +253,7 @@ def _build_upload_aws(framework):
         stub_url = url_file.read().strip()
     framework.stub_universe_url = stub_url
 
-def _recover_stub_urls(run_attrs, repo_root)
+def _recover_stub_urls(run_attrs, repo_root):
     """If run with test_only, acquire the stub_universe urls from the
     filesystem.
     Will fail with exception if they're not present.
