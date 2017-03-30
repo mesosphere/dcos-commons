@@ -27,6 +27,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
+@pytest.mark.cni
 @pytest.mark.smoke
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
@@ -44,6 +45,7 @@ def test_deploy():
 
 
 @pytest.mark.sanity
+@pytest.mark.cni
 @pytest.mark.smoke
 def test_joins_overlay_network():
     """Verify that the container joined the dcos subnet at 9.0.0.0/24.
