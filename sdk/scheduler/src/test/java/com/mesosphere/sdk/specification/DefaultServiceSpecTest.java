@@ -4,22 +4,23 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
+
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.test.TestingServer;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,15 +33,16 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.Set;
-import java.util.Optional;
+import java.net.URI;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 
 public class DefaultServiceSpecTest {
@@ -52,6 +54,7 @@ public class DefaultServiceSpecTest {
 
     @Before
     public void beforeEach() {
+        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
         MockitoAnnotations.initMocks(this);
     }
 
@@ -84,7 +87,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
-        validateServiceSpec("valid-simple.yml", DEFAULT_GPU_POLICY);
+        validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
     @Test
@@ -171,7 +174,7 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(5 == readinessCheckSpec.getInterval());
         Assert.assertTrue(0 == readinessCheckSpec.getDelay());
         Assert.assertTrue(10 == readinessCheckSpec.getTimeout());
-        validateServiceSpec("readiness-check.yml", DEFAULT_GPU_POLICY);
+        validateServiceSpec("readiness-check.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
     @Test
@@ -454,6 +457,15 @@ public class DefaultServiceSpecTest {
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
+    }
+
+    @Test
+    public void executorUriInjection() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+
+        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("executor-test-uri")));
     }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {

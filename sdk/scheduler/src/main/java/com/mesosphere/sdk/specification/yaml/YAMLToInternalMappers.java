@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
