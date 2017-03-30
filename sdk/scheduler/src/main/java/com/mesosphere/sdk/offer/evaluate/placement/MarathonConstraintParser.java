@@ -189,7 +189,8 @@ public class MarathonConstraintParser {
      * Interface for generating a PlacementRule for a given marathon operator such as UNIQUE or CLUSTER.
      */
     private interface Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> parameter) throws IOException;
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> parameter) throws IOException;
     }
 
     /**
@@ -198,7 +199,8 @@ public class MarathonConstraintParser {
      * on each host for some task type: {@code [["hostname", "UNIQUE"]]}
      */
     private static class UniqueOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> ignoredParameter) {
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> ignoredParameter) {
             StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
             if (isHostname(fieldName)) {
                 return new MaxPerHostnameRule(1, taskFilter);
@@ -222,8 +224,8 @@ public class MarathonConstraintParser {
      * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
      */
     private static class ClusterOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> requiredParameter)
-                throws IOException {
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
                 return HostnameRule.require(ExactMatcher.create(parameter));
@@ -280,8 +282,8 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class LikeOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> requiredParameter)
-                throws IOException {
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
                 return HostnameRule.require(RegexMatcher.create(parameter));
@@ -298,8 +300,8 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class UnlikeOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> requiredParameter)
-                throws IOException {
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
                 return HostnameRule.avoid(RegexMatcher.create(parameter));
@@ -317,8 +319,8 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class MaxPerOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> requiredParameter)
-                throws IOException {
+        public PlacementRule run(String podName, String fieldName, String operatorName,
+                                 Optional<String> requiredParameter) throws IOException {
             final int max;
             try {
                 max = Integer.parseInt(validateRequiredParameter(operatorName, requiredParameter));
