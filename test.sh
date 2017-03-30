@@ -54,7 +54,6 @@ function run_framework_tests {
 echo "Beginning integration tests at "`date`
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 cd $REPO_ROOT_DIR
 
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
