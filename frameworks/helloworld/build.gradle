@@ -20,8 +20,8 @@ ext {
 }
 
 dependencies {
-    compile project(":scheduler")
-    compile project(":executor")
+    compile "mesosphere:scheduler:0.13.2"
+    compile "mesosphere:executor:0.13.2"
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     testCompile project(":testing")
 }
