@@ -1,12 +1,12 @@
 import json
+
 import pytest
 import shakedown
-import time
 
 import sdk_cmd as cmd
 import sdk_install as install
+import sdk_marathon as marathon
 import sdk_tasks as tasks
-
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -80,4 +80,17 @@ def test_pods_replace():
     stdout = cmd.run_cli('hello-world pods info world-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
-    #assert old_agent != new_agent
+    # assert old_agent != new_agent
+
+
+@pytest.mark.recovery
+def test_scheduler_died():
+    tasks.kill_task_with_pattern('helloworld.scheduler.Main', marathon.get_scheduler_host(PACKAGE_NAME))
+    check_running()
+
+
+@pytest.mark.recovery
+def test_all_executors_killed():
+    for host in shakedown.get_service_ips(PACKAGE_NAME):
+        tasks.kill_task_with_pattern('helloworld.executor.Main', host)
+    check_running()
