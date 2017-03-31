@@ -378,7 +378,6 @@ Install your package using the following commands:
 dcos package repo remove hello-world-aws
 dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
 dcos package install --yes hello-world
-$
 ```
 
 The build.sh script takes an optional argument of aws or local:
@@ -431,19 +430,16 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
 
 ```
 {
-...
     "env": {
         "FRAMEWORK_NAME": "{{service.name}}",
         "HELLO_COUNT": "{{hello.count}}",
         "HELLO_CPUS": "{{hello.cpus}}",
-...
+        "...": "..."
     },
     "uris": [
-...
         "{{resource.assets.uris.scheduler-zip}}",
-...
+        "..."
     ],
-...
     "portDefinitions": [
         {
             "port": 0,
@@ -451,7 +447,8 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
             "name": "api",
             "labels": { "VIP_0": "/api.{{service.name}}:80" }
         }
-    ]
+    ],
+    "...": "..."
 }
 ```
 
@@ -466,29 +463,32 @@ The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/framewo
             "description": "DC/OS service configuration properties",
             "properties":{
                 "name" : {
-                "description":"The name of the service instance",
-                "type":"string",
-                "default":"hello-world"
-            },
-...
+                    "description":"The name of the service instance",
+                    "type":"string",
+                    "default":"hello-world"
+                },
+                "...": "..."
+            }
+        },
+        "hello":{
+            "type":"object",
+            "description":"Hello Pod configuration properties",
+            "properties":{
+                "cpus":{
+                    "description":"Hello Pod cpu requirements",
+                    "type":"number",
+                    "default":0.1
+                },
+                "count":{
+                    "description":"Number of Hello Pods to run",
+                    "type":"integer",
+                    "default":1
+                },
+                "...": "..."
+            }
         }
-
-    },
-    "hello":{
-        "description":"Hello Pod configuration properties",
-        "type":"object",
-        "properties":{
-            "cpus":{
-                "description":"Hello Pod cpu requirements",
-                "type":"number",
-                "default":0.1
-            },
-...
-            "count":{
-                "description":"Number of Hello Pods to run",
-                "type":"integer",
-                "default":1
-            },
+    }
+}
 ```
 
 The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
@@ -497,13 +497,11 @@ The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frame
 {
   "assets": {
     "uris": {
-...
       "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
-...
+      "...": "..."
     }
   },
-...
-  "cli":{
+  "...": "..."
 }
 ```
 
@@ -518,15 +516,15 @@ The following is the typical flow of configuration values as represented by envi
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 
 ```yaml
-...
+// ...
 pods:
     hello:
         count: {{HELLO_COUNT}}
         tasks:
             server:
-...
+                // ...
                 cpus: {{HELLO_CPUS}}
-...
+                // ...
 ```
 
 The port definition in `marathon.json.mustache` makes the `PORT0` environment variables available to the scheduler. The `HELLO_COUNT` and `HELLO_CPUS` environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered `marathon.json.mustache` template.
@@ -570,19 +568,19 @@ Recall the [rendered `ServiceSpec` from above](#rendered-spec). A single pod con
 
 ```
 {
-    phases: [{
-        id: "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
-        ame: "hello",
-        steps: [{
-            id: "2e3dde39-3ea3-408b-8e00-3346bef93054",
-            status: "COMPLETE",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    "phases": [{
+        "id": "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
+        "name": "hello",
+        "steps": [{
+            "id": "2e3dde39-3ea3-408b-8e00-3346bef93054",
+            "status": "COMPLETE",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
         }],
-        status: "COMPLETE"
+        "status": "COMPLETE"
     }],
-    errors: [],
-    status: "COMPLETE"
+    "errors": [],
+    "status": "COMPLETE"
 }
 ```
 
@@ -609,15 +607,13 @@ In the marathon.json.mustache template we defined an environment variable named 
 ```
 {
     "id": "/hello-world",
-    ...
     "env": {
-        ...
         "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "1"
+        "HELLO_COUNT": "1",
         "SLEEP_DURATION": "1000",
-        ...
+        "...": "..."
     },
-    ...
+    "...": "..."
 }
 ```
 
@@ -644,19 +640,19 @@ A new plan is then generated and execution begins:
 
 ```
 {
-    phases: [{
-        id: "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
-        name: "hello",
-        steps: [{
-            id: "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
-            status: "STARTING",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
+    "phases": [{
+        "id": "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
+        "name": "hello",
+        "steps": [{
+            "id": "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
+            "status": "STARTING",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
         }],
-        status: "STARTING"
+        "status": "STARTING"
     }],
-    errors: [],
-    status: "STARTING"
+    "errors": [],
+    "status": "STARTING"
 }
 ```
 
@@ -669,41 +665,38 @@ In the previous example, the change in target configuration affected currently r
 ```
 {
     "id": "/hello-world",
-    ...
     "env": {
-        ...
         "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "2"
+        "HELLO_COUNT": "2",
         "SLEEP_DURATION": "1000",
-        ...
+        "...": "..."
     },
-    ...
+    "...": "..."
 }
 ```
 
-This generates the following plan:
+This generates the following Plan:
 
 ```
 {
-
-    phases: [{
-        id: "25e741c8-a775-481e-9247-d9073002bb3d",
-        name: "hello",
-        steps: [{
-            id: "6780372e-9154-419b-91c4-e0347ca961af",
-            status: "COMPLETE",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    "phases": [{
+        "id": "25e741c8-a775-481e-9247-d9073002bb3d",
+        "name": "hello",
+        "steps": [{
+            "id": "6780372e-9154-419b-91c4-e0347ca961af",
+            "status": "COMPLETE",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
         }, {
-            id: "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
-            status: "PENDING",
-            name: "hello-1:[server]",
-            message: "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
+            "id": "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
+            "status": "PENDING",
+            "name": "hello-1:[server]",
+            "message": "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
         }],
-        status: "STARTING"
+        "status": "STARTING"
     }],
-    errors: [],
-    status: "STARTING"
+    "errors": [],
+    "status": "STARTING"
 }
 ```
 
@@ -886,7 +879,7 @@ You can run integration tests manually using the [test.sh](https://github.com/me
 ```python
 @pytest.mark.special
 def test_upgrade_downgrade():
-    ...
+    pass # ...
 ```
 
 If the following command was entered in the shell:
@@ -1282,11 +1275,9 @@ Including `bootstrap` in your tasks is a manual but straightforward operation. F
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-VERSION-linux-x64.tar.gz",
-      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-VERSION.tar.gz",
-      ...
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip", # include bootstrap.zip in package resources
-      ...
+      "...": "...",
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "...": "..."
     }
   }
 }
@@ -1299,11 +1290,9 @@ Including `bootstrap` in your tasks is a manual but straightforward operation. F
   "id": "{{service.name}}",
   "cpus": 1.0,
   "mem": 2048,
-  ...
   "env": {
-    ...
-    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}", # add url to scheduler env
-    ...
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    "...": "..."
   }
 }
 ```
@@ -1594,7 +1583,7 @@ Then steps can be grouped in a phase with an accompanying strategy.
 
 ```java
 Phase phase = new DefaultPhase(
-        “phase-name”,
+        "phase-name",
         steps,
         new SerialStrategy<>(),
         Collections.emptyList()); // No errors
@@ -1604,7 +1593,7 @@ The phase defined above will execute its steps in a serial order. The phase can 
 
 ```java
 Plan customPlan = new DefaultPlan(
-        “plan-name”,
+        "plan-name",
         Arrays.asList(phase),
         new ParallelStrategy<>());
 ```
