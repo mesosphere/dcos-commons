@@ -10,7 +10,9 @@ import sdk_tasks as tasks
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
-    check_running
+    check_running,
+    bump_cpu_count_config,
+    get_node_host
 )
 
 
@@ -93,4 +95,84 @@ def test_scheduler_died():
 def test_all_executors_killed():
     for host in shakedown.get_service_ips(PACKAGE_NAME):
         tasks.kill_task_with_pattern('helloworld.executor.Main', host)
+    check_running()
+
+
+@pytest.mark.focus
+def test_master_killed():
+    tasks.kill_task_with_pattern('mesos-master')
+    check_running()
+
+
+@pytest.mark.focus
+def test_zk_killed():
+    tasks.kill_task_with_pattern('zookeeper')
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_kill_task_in_node():
+    host = get_node_host()
+    run_planned_operation(
+        bump_cpu_count_config,
+        lambda: tasks.kill_task_with_pattern('echo hello', host)
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_kill_all_task_in_node():
+    hosts = shakedown.get_service_ips(PACKAGE_NAME)
+    run_planned_operation(
+        bump_cpu_count_config,
+        lambda: [tasks.kill_task_with_pattern('echo hello', h) for h in hosts]
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_scheduler_died():
+    host = marathon.get_scheduler_host()
+    run_planned_operation(
+        bump_cpu_count_config,
+        lambda: tasks.kill_task_with_pattern('cassandra.scheduler.Main', host)
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_executor_killed():
+    host = get_node_host()
+    run_planned_operation(
+        bump_cpu_count_config,
+        lambda: tasks.kill_task_with_pattern('cassandra.executor.Main', host)
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_all_executors_killed():
+    hosts = shakedown.get_service_ips(PACKAGE_NAME)
+    run_planned_operation(
+        bump_cpu_count_config,
+        lambda: [
+            tasks.kill_task_with_pattern('cassandra.executor.Main', h) for h in hosts
+            ]
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_master_killed():
+    run_planned_operation(
+        bump_cpu_count_config, lambda: tasks.kill_task_with_pattern('mesos-master')
+    )
+    check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_then_zk_killed():
+    run_planned_operation(
+        bump_cpu_count_config, lambda: tasks.kill_task_with_pattern('zookeeper')
+    )
     check_running()
