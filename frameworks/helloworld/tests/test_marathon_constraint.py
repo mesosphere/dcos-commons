@@ -78,11 +78,11 @@ def test_rr_by_hostname():
         },
         "hello": {
             "count": num_private_agents * 2,
-            "placement": "hostname:GROUP_BY:5"
+            "placement": "hostname:GROUP_BY:{}".format(num_private_agents)
         },
         "world": {
             "count": num_private_agents * 2,
-            "placement": "hostname:GROUP_BY:5"
+            "placement": "hostname:GROUP_BY:{}".format(num_private_agents)
         }
     }
 
@@ -111,7 +111,7 @@ def test_cluster():
 
     install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
-    ensure_multiple_per_agent(hello=5, world=0)
+    ensure_multiple_per_agent(hello=num_private_agents, world=0)
 
 
 def ensure_multiple_per_agent(hello, world):
