@@ -17,6 +17,7 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
   world:
     count: {{WORLD_COUNT}}
+    placement: {{WORLD_PLACEMENT}}
     tasks:
       server:
         goal: RUNNING
