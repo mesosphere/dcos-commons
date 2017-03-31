@@ -148,7 +148,9 @@ requests==2.10.0
 #!/bin/bash
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-virtualenv -p $(which python3) --always-copy {venv_path}
+if  [ ! -f {venv_path}/bin/python3 ] ; then
+    virtualenv -p $(which python3) --always-copy {venv_path}
+fi
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
@@ -196,7 +198,9 @@ set -e
 cd {dcos_tests_dir}
 echo "{dcos_url}" > docker-context/dcos-url.txt
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-virtualenv -p $(which python3) --always-copy {venv_path}
+if  [ ! -f {venv_path}/bin/python3 ] ; then
+    virtualenv -p $(which python3) --always-copy {venv_path}
+fi
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
