@@ -26,6 +26,7 @@ paths:
       tags:
       - "endpoints"
       summary: "Returns connection information for all endpoints."
+      operationId: "endpointsList"
       produces:
       - "application/json"
       parameters:
@@ -44,6 +45,7 @@ paths:
       tags:
       - "endpoints"
       summary: "Returns connection information for the requested endpoint."
+      operationId: "endpointsGet"
       produces:
       - "application/json"
       parameters:
@@ -69,6 +71,7 @@ paths:
       tags:
       - "plans"
       summary: "Returns list of all configured plans."
+      operationId: "plansList"
       parameters: []
       responses:
         200:
@@ -80,6 +83,7 @@ paths:
       tags:
       - "plans"
       summary: "Returns a full list of the Plan's contents (incl all Phases/Steps)."
+      operationId: "plansGet"
       parameters:
       - name: "name"
         in: "path"
@@ -96,6 +100,7 @@ paths:
       tags:
       - "plans"
       summary: "Restarts or resumes the execution of the plan. If the plan is complete, it is restarted. If the plan is stopped, its progress is resumed. If the plan is already in progress this has no effect."
+      operationId: "plansStart"
       parameters:
       - name: "name"
         in: "path"
@@ -112,6 +117,7 @@ paths:
       tags:
       - "plans"
       summary: "Stops and resets the execution of the plan."
+      operationId: "plansStop"
       parameters:
       - name: "name"
         in: "path"
@@ -128,6 +134,7 @@ paths:
       tags:
       - "plans"
       summary: "Continues the execution of the plan."
+      operationId: "plansContinue"
       parameters:
       - name: "plan"
         in: "path"
@@ -144,6 +151,7 @@ paths:
       tags:
       - "plans"
       summary: "Continues the execution of the phase."
+      operationId: "plansPhaseContinue"
       parameters:
       - name: "plan"
         in: "path"
@@ -165,6 +173,7 @@ paths:
       tags:
       - "plans"
       summary: "Force complete your plan."
+      operationId: "plansForcecomplete"
       parameters:
       - name: "plan"
         in: "path"
@@ -191,6 +200,7 @@ paths:
       tags:
       - "plans"
       summary: "Interrupts the execution of the specified plan."
+      operationId: "plansInterrupt"
       parameters:
       - name: "plan"
         in: "path"
@@ -207,6 +217,7 @@ paths:
       tags:
       - "plans"
       summary: "Interrupts the execution of the specified phase."
+      operationId: "plansPhaseInterrupt"
       parameters:
       - name: "plan"
         in: "path"
@@ -228,6 +239,7 @@ paths:
       tags:
       - "plans"
       summary: "Restarts the specified plan or step regardless of its current state."
+      operationId: "plansRestart"
       parameters:
       - name: "plan"
         in: "path"
@@ -256,6 +268,7 @@ paths:
       tags:
       - "pods"
       summary: "Produces a listing of the names of all pods."
+      operationId: "podsList"
       produces:
       - "application/json"
       parameters: []
@@ -269,6 +282,7 @@ paths:
       tags:
       - "pods"
       summary: "Produces a summarized listing of all pod statuses."
+      operationId: "podsListStatus"
       produces:
       - "application/json"
       parameters: []
@@ -282,6 +296,7 @@ paths:
       tags:
       - "pods"
       summary: "Returns information about the specified pod."
+      operationId: "podsGet"
       produces:
       - "application/json"
       parameters:
@@ -302,6 +317,7 @@ paths:
       tags:
       - "pods"
       summary: "Restarts a pod and attempts to relaunch it on the same cluster node."
+      operationId: "podsRestart"
       parameters:
       - name: "name"
         in: "path"
@@ -322,6 +338,7 @@ paths:
       tags:
       - "pods"
       summary: "Restarts a pod and attempts to relaunch it on the next available cluster node."
+      operationId: "podsReplace"
       parameters:
       - name: "name"
         in: "path"
@@ -342,6 +359,7 @@ paths:
       tags:
       - "pods"
       summary: "Produces the status for the requested pod name."
+      operationId: "podsStatus"
       produces:
       - "application/json"
       parameters:
@@ -362,6 +380,7 @@ paths:
       tags:
       - "artifacts"
       summary: "Produces the content of a configuration file with mustache templating for rendering and use at a task."
+      operationId: "artifactsGet"
       produces:
       - "text/plain"
       parameters:
@@ -397,6 +416,7 @@ paths:
       tags:
       - "configurations"
       summary: "Produces an ID listing of all stored configurations."
+      operationId: "configurationsList"
       produces:
       - "application/json"
       parameters: []
@@ -410,6 +430,7 @@ paths:
       tags:
       - "configurations"
       summary: "Produces the content of the requested configuration ID."
+      operationId: "configurationsGet"
       produces:
       - "application/json"
       parameters:
@@ -432,6 +453,7 @@ paths:
       tags:
       - "configurations"
       summary: "Produces the ID of the current target configuration."
+      operationId: "configurationsTargetidGet"
       produces:
       - "application/json"
       responses:
@@ -446,6 +468,7 @@ paths:
       tags:
       - "configurations"
       summary: "Produces the content of the current target configuration."
+      operationId: "configurationsTargetGet"
       produces:
       - "application/json"
       responses:
@@ -460,6 +483,7 @@ paths:
       tags:
       - "state"
       summary: "Produces the currently registered Mesos Framework ID."
+      operationId: "stateFrameworkidGet"
       produces:
       - "application/json"
       responses:
@@ -474,6 +498,7 @@ paths:
       tags:
       - "state"
       summary: "Lists any custom property keys in persistent storage."
+      operationId: "statePropertiesList"
       produces:
       - "application/json"
       responses:
@@ -486,6 +511,7 @@ paths:
       tags:
       - "state"
       summary: "Produces the content of the requested property key."
+      operationId: "statePropertiesGet"
       produces:
       - "application/json"
       parameters:
@@ -508,6 +534,7 @@ paths:
       tags:
       - "state"
       summary: "Refreshes the state cache. Should only be needed for debugging or if zk was manually edited while the scheduler is running."
+      operationId: "stateRefreshCache"
       produces:
       - "application/json"
       responses:

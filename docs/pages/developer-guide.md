@@ -1,7 +1,7 @@
 ---
-layout: dev-basic
 title: SDK Developer Guide
 ---
+
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
@@ -190,22 +190,22 @@ The example below defines a service with two types of pods, each of which deploy
 ```yaml
 name: "hello-world"
 pods:
-    hello-pod:
-        count: 2
-        tasks:
-            hello-task:
-            goal: RUNNING
-            cmd: "echo hello && sleep 1000"
-            cpus: 0.1
-            memory: 512
-    world-pod:
-        count: 2
-        tasks:
-            world-task:
-            goal: RUNNING
-            cmd: "echo world && sleep 1000"
-            cpus: 0.1
-            memory: 512
+  hello-pod:
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
+  world-pod:
+    count: 2
+    tasks:
+      world-task:
+        goal: RUNNING
+        cmd: "echo world && sleep 1000"
+        cpus: 0.1
+        memory: 512
 ```
 
 There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying.
@@ -261,7 +261,7 @@ plans:
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
 
-![image alt text](image_0.png)
+![plans vs services](img/dev-guide-plans-vs-services.png)
 
 A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.
 
@@ -284,7 +284,7 @@ The pod parameter references the pod definition earlier in the `ServiceSpec`. Th
 
 The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.
 
-![image alt text](image_1.png)
+![deployment steps](img/dev-guide-deployment-steps.png)
 
 The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
 
@@ -513,7 +513,7 @@ The `marathon.json.mustache` template pulls values from `config.json` and `resou
 
 The following is the typical flow of configuration values as represented by environment variables:
 
-![image alt text](image_2.png)
+![configuration values across files](img/dev-guide-configuration-values-across-files.png)
 
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 
@@ -1523,7 +1523,7 @@ The YAML-based definition of plans is limited to defining custom deployment plan
 
 Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
 
-![image alt text](image_3.png)
+![plans and the offer cycle](img/dev-guide-plans-and-the-offer-cycle.png)
 
 There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
 

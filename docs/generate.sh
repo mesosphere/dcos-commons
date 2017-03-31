@@ -5,11 +5,19 @@
 # 2. Regenerates all docs into that copy
 # 3. Pushes the changes to github (if 'upload' argument is specified)
 
-# Where to put stuff:
+DOCS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DOCS_DIR
+
+# Inputs (relative to dcos-commons/docs/):
+PAGES_PATH=${DOCS_DIR}/pages
+PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
+JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
+
+# Output directory:
 DEST_DIR_NAME=dcos-commons-gh-pages
 
 # Swagger build to fetch if needed:
-SWAGGER_CODEGEN_VERSION=2.2.1
+SWAGGER_CODEGEN_VERSION=2.2.2
 SWAGGER_OUTPUT_DIR=swagger-api
 SWAGGER_JAR=swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar
 SWAGGER_URL=http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
@@ -34,9 +42,6 @@ if [ "${1:-}" = "upload" ]; then
     UPLOAD_ENABLED="y"
 fi
 
-DOCS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DOCS_DIR
-
 if [ $UPLOAD_ENABLED ]; then
     # Fetch copy of gh-pages branch for output
     if [ -d ${DEST_DIR_NAME} ]; then
@@ -49,17 +54,24 @@ fi
 
 # 1. Generate static jekyll pages
 # gem install jekyll
-# Workaround: '--layouts' flag seems to be ignored in 3.3.1. cd into pages dir to generate.
-pushd pages/
-run_cmd jekyll build --destination ../${DEST_DIR_NAME}
+
+# 1. Generate common + framework docs
+# Workaround: '--layouts' flag seems to be ignored. cd into pages dir to generate.
+pushd $PAGES_PATH
+rm -rf services
+mkdir -p services
+for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
+    framework=$(echo $dir | awk -F "/" '{print $(NF-2)}')
+    ln -s -v $dir services/$framework
+done
+run_cmd jekyll build --destination ${DOCS_DIR}/${DEST_DIR_NAME}
 popd
 
-# 2. Generate javadocs in api/ subdir
-run_cmd javadoc \
-    -d ${DEST_DIR_NAME}/api/ \
-    $(find ../ -name *.java | grep "/main/" ) || echo "Ignoring javadoc exit code"
+# 2. Generate javadocs to api/ subdir
+javadoc -quiet -package -d ${DEST_DIR_NAME}/api/ \
+    $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
 
-# 3. Generate swagger html in swagger-api/ subdir
+# 3. Generate swagger html to swagger-api/ subdir
 if [ ! -f ${SWAGGER_JAR} ]; then
     curl -O ${SWAGGER_URL}
 fi

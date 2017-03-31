@@ -3,24 +3,16 @@ defaults:
     scope:
       path: ""
     values:
-      layout: default
-  -
-    scope:
-      path: "docs"
-    values:
-      layout: docs
-      tab: docs
-
+      layout: "gh-basic"
+      menu_order: 999
 sass:
   sass_dir: _sass
   style: :compressed
-
-baseurl: "/marathon"
 highlighter: rouge
 lsi: false
 markdown: kramdown
 kramdown:
-  extensions: [with_toc_data, tables]
-safe: true
+  input: GFM
+  hard_wrap: false
+  extensions: [tables]
 source: .
-exclude: [vendor/bundle]
