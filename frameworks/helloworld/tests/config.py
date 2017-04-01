@@ -1,5 +1,3 @@
-import shakedown
-
 import sdk_marathon as marathon
 import sdk_tasks as tasks
 
@@ -25,35 +23,17 @@ def check_running():
     tasks.check_running(PACKAGE_NAME, configured_task_count())
 
 
-def get_node_host():
-    return shakedown.get_service_ips(PACKAGE_NAME).pop()
+def bump_hello_cpus():
+    bump_cpu_count_config('HELLO_CPUS')
 
 
-def bump_cpu_count_config():
+def bump_world_cpus():
+    bump_cpu_count_config('WORLD_CPUS')
+
+
+def bump_cpu_count_config(key_name):
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_CPUS'] = str(
-        float(config['env']['HELLO_CPUS']) + 0.1
+    config['env'][key_name] = str(
+        float(config['env'][key_name]) + 0.1
     )
     marathon.update_app(PACKAGE_NAME, config)
-
-
-# TODO replace this?
-def run_planned_operation(operation, failure=lambda: None):
-    plan = get_and_verify_plan()
-
-    operation()
-    pred = lambda p: (
-        plan['phases'][1]['id'] != p['phases'][1]['id'] or
-        len(plan['phases']) < len(p['phases']) or
-        p['status'] == 'InProgress'
-    )
-    next_plan = get_and_verify_plan(
-        lambda p: (
-            plan['phases'][1]['id'] != p['phases'][1]['id'] or
-            len(plan['phases']) < len(p['phases']) or
-            p['status'] == 'InProgress'
-        )
-    )
-
-    failure()
-    completed_plan = get_and_verify_plan(lambda p: p['status'] == 'Complete')

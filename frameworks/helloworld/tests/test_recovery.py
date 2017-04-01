@@ -11,8 +11,8 @@ from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
     check_running,
-    bump_cpu_count_config,
-    get_node_host
+    bump_world_cpus,
+    bump_hello_cpus
 )
 
 
@@ -98,13 +98,13 @@ def test_all_executors_killed():
     check_running()
 
 
-@pytest.mark.focus
+@pytest.mark.recovery
 def test_master_killed():
     tasks.kill_task_with_pattern('mesos-master')
     check_running()
 
 
-@pytest.mark.focus
+@pytest.mark.recovery
 def test_zk_killed():
     tasks.kill_task_with_pattern('zookeeper')
     check_running()
@@ -112,67 +112,67 @@ def test_zk_killed():
 
 @pytest.mark.recovery
 def test_config_update_then_kill_task_in_node():
-    host = get_node_host()
-    run_planned_operation(
-        bump_cpu_count_config,
-        lambda: tasks.kill_task_with_pattern('echo hello', host)
-    )
+    # kill 1 of 2 world tasks
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
+    tasks.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(PACKAGE_NAME))
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_kill_all_task_in_node():
+    #  kill both world tasks
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
     hosts = shakedown.get_service_ips(PACKAGE_NAME)
-    run_planned_operation(
-        bump_cpu_count_config,
-        lambda: [tasks.kill_task_with_pattern('echo hello', h) for h in hosts]
-    )
+    [tasks.kill_task_with_pattern('world', h) for h in hosts]
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_scheduler_died():
-    host = marathon.get_scheduler_host()
-    run_planned_operation(
-        bump_cpu_count_config,
-        lambda: tasks.kill_task_with_pattern('cassandra.scheduler.Main', host)
-    )
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    host = marathon.get_scheduler_host(PACKAGE_NAME)
+    bump_world_cpus()
+    tasks.kill_task_with_pattern('helloworld.scheduler.Main', host)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_executor_killed():
-    host = get_node_host()
-    run_planned_operation(
-        bump_cpu_count_config,
-        lambda: tasks.kill_task_with_pattern('cassandra.executor.Main', host)
-    )
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
+    tasks.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(PACKAGE_NAME))
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
 @pytest.mark.recovery
-def test_config_update_then_all_executors_killed():
+def test_config_updates_then_all_executors_killed():
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
     hosts = shakedown.get_service_ips(PACKAGE_NAME)
-    run_planned_operation(
-        bump_cpu_count_config,
-        lambda: [
-            tasks.kill_task_with_pattern('cassandra.executor.Main', h) for h in hosts
-            ]
-    )
+    [tasks.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
-@pytest.mark.recovery
+@pytest.mark.focus
 def test_config_update_then_master_killed():
-    run_planned_operation(
-        bump_cpu_count_config, lambda: tasks.kill_task_with_pattern('mesos-master')
-    )
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
+    tasks.kill_task_with_pattern('mesos-master')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
 
-@pytest.mark.recovery
+@pytest.mark.focus
 def test_config_update_then_zk_killed():
-    run_planned_operation(
-        bump_cpu_count_config, lambda: tasks.kill_task_with_pattern('zookeeper')
-    )
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    bump_world_cpus()
+    tasks.kill_task_with_pattern('zookeeper')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
