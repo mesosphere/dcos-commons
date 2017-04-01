@@ -1,3 +1,5 @@
+import shakedown
+
 import sdk_marathon as marathon
 import sdk_tasks as tasks
 
@@ -33,7 +35,9 @@ def bump_world_cpus():
 
 def bump_cpu_count_config(key_name):
     config = marathon.get_config(PACKAGE_NAME)
-    config['env'][key_name] = str(
-        float(config['env'][key_name]) + 0.1
-    )
+    config['env'][key_name] = str(float(config['env'][key_name]) + 0.1)
     marathon.update_app(PACKAGE_NAME, config)
+
+
+def get_node_host():
+    return shakedown.get_service_ips(PACKAGE_NAME).pop()
