@@ -160,7 +160,7 @@ def test_config_updates_then_all_executors_killed():
     check_running()
 
 
-@pytest.mark.focus
+@pytest.mark.recovery
 def test_config_update_then_master_killed():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
     bump_world_cpus()
@@ -169,7 +169,7 @@ def test_config_update_then_master_killed():
     check_running()
 
 
-@pytest.mark.focus
+@pytest.mark.recovery
 def test_config_update_then_zk_killed():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
     bump_world_cpus()

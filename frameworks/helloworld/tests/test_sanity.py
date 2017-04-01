@@ -17,7 +17,9 @@ from tests.config import (
     configured_task_count,
     hello_task_count,
     world_task_count,
-    check_running
+    check_running,
+    bump_hello_cpus,
+    bump_world_cpus
 )
 
 
@@ -66,12 +68,7 @@ def test_bump_hello_cpus():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['HELLO_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
-
+    bump_hello_cpus()
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
 
@@ -89,11 +86,7 @@ def test_bump_world_cpus():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
     print('world ids: ' + str(world_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['WORLD_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['WORLD_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
+    bump_world_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
