@@ -12,7 +12,7 @@ from tests.config import (
     DEFAULT_TASK_COUNT,
     check_running,
     bump_world_cpus,
-    get_node_host
+    bump_hello_cpus
 )
 
 
@@ -171,17 +171,9 @@ def test_config_update_then_master_killed():
 
 @pytest.mark.recovery
 def test_config_update_then_zk_killed():
-    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    bump_hello_cpus()
     tasks.kill_task_with_pattern('zookeeper')
-    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
 
-
-# WIP
-@pytest.mark.focus
-def test_partition():
-    host = get_node_host()
-    shakedown.partition_agent(host)
-    shakedown.reconnect_agent(host)
-    check_running()
