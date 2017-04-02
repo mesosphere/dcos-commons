@@ -1,23 +1,15 @@
 import pytest
+import shakedown
 
 import sdk_install as install
-import sdk_tasks as tasks
-import sdk_spin as spin
-import sdk_utils as utils
 import sdk_marathon as marathon
-import shakedown
-import dcos
-import dcos.config
-import dcos.http
-
+import sdk_spin as spin
+import sdk_tasks as tasks
+import sdk_utils as utils
 from tests.test_utils import (
-    DEFAULT_PARTITION_COUNT,
-    DEFAULT_REPLICATION_FACTOR,
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_BROKER_COUNT,
-    DEFAULT_TOPIC_NAME,
-    EPHEMERAL_TOPIC_NAME,
     DEFAULT_POD_TYPE,
     DEFAULT_PLAN_NAME,
     DEFAULT_PHASE_NAME,
@@ -50,7 +42,6 @@ def teardown_module(module):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_init():
-
     pl = service_plan_wait(DEFAULT_PLAN_NAME)
     brokers = service_cli('broker list')
     assert brokers == []
@@ -67,7 +58,6 @@ def test_canary_init():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_first():
- 
     service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
 
     tasks.check_running(SERVICE_NAME, 1)
@@ -84,15 +74,13 @@ def test_canary_first():
     assert pl['phases'][0]['steps'][0]['status'] == 'COMPLETE'
     assert pl['phases'][0]['steps'][1]['status'] == 'WAITING'
 
-    if DEFAULT_BROKER_COUNT >2:
+    if DEFAULT_BROKER_COUNT > 2:
         assert pl['phases'][0]['steps'][2]['status'] == 'PENDING'
-
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_second():
-
     service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
 
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
@@ -110,7 +98,6 @@ def test_canary_second():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_no_change():
-
     broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
     plan1 = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
 
@@ -140,7 +127,6 @@ def test_no_change():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_count():
-
     config = marathon.get_config(SERVICE_NAME)
     config['env']['BROKER_COUNT'] = str(int(config['env']['BROKER_COUNT']) + 1)
     marathon.update_app(SERVICE_NAME, config)
@@ -199,9 +185,7 @@ def test_increase_cpu():
             pass
         return False
 
-    config = marathon.get_config(SERVICE_NAME)
-    config['env']['BROKER_CPUS'] = str(0.1 + float(config['env']['BROKER_CPUS']))
-    marathon.update_app(SERVICE_NAME, config)
+    marathon.bump_cpu_count_config(SERVICE_NAME, 'BROKER_CPUS')
 
     spin.time_wait_return(plan_waiting)
 
@@ -211,7 +195,7 @@ def test_increase_cpu():
 
     assert pl['phases'][0]['steps'][0]['status'] == 'WAITING'
     assert pl['phases'][0]['steps'][1]['status'] == 'WAITING'
-    for step in range (2, DEFAULT_BROKER_COUNT +1 ):
+    for step in range(2, DEFAULT_BROKER_COUNT + 1):
         assert pl['phases'][0]['steps'][step]['status'] == 'PENDING'
 
     # all tasks are still running
@@ -252,4 +236,3 @@ def test_increase_cpu():
         assert pl['phases'][0]['steps'][step]['status'] == 'COMPLETE'
 
     broker_count_check(DEFAULT_BROKER_COUNT + 1)
-

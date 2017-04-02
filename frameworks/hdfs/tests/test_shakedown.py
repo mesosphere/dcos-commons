@@ -1,4 +1,6 @@
+import json
 import time
+import traceback
 
 import pytest
 import shakedown
@@ -6,12 +8,9 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
+import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_utils as utils
-import sdk_spin as spin
-import json
-import traceback
-
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
@@ -204,12 +203,7 @@ def test_bump_journal_cpus():
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     print('journal ids: ' + str(journal_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    print('marathon config: ')
-    print(config)
-    cpus = float(config['env']['JOURNAL_CPUS'])
-    config['env']['JOURNAL_CPUS'] = str(cpus + 0.1)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.bump_cpu_count_config(PACKAGE_NAME, 'JOURNAL_CPUS')
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
     check_healthy()

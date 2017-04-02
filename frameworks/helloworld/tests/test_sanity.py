@@ -1,7 +1,8 @@
-import dcos.marathon
 import json
-import pytest
 import re
+
+import dcos.marathon
+import pytest
 import shakedown
 
 import sdk_cmd as cmd
@@ -10,7 +11,6 @@ import sdk_marathon as marathon
 import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_test_upgrade
-
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -68,7 +68,8 @@ def test_bump_hello_cpus():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    bump_hello_cpus()
+    updated_cpus = bump_hello_cpus()
+
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
 
@@ -86,7 +87,7 @@ def test_bump_world_cpus():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
     print('world ids: ' + str(world_ids))
 
-    bump_world_cpus()
+    updated_cpus = bump_world_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
@@ -179,6 +180,7 @@ def test_state_properties_get():
     def check_for_nonempty_properties():
         stdout = cmd.run_cli('hello-world state properties')
         return len(json.loads(stdout)) > 0
+
     spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
 
     stdout = cmd.run_cli('hello-world state properties')
@@ -201,7 +203,6 @@ def test_state_refresh_disable_cache():
     assert "Received cmd: refresh" in stdout
 
     config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
     config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
@@ -216,10 +217,10 @@ def test_state_refresh_disable_cache():
             if "failed: 409 Conflict" in e.args[0]:
                 return True
         return False
+
     spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
     config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
     del config['env']['DISABLE_STATE_CACHE']
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
@@ -229,8 +230,10 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
         return cmd.run_cli('hello-world state refresh_cache')
+
     stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout
+
 
 @pytest.mark.sanity
 def test_lock():
@@ -262,11 +265,13 @@ def test_lock():
     def fn():
         timestamp = marathon_client.get_app(app_id).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
+
     spin.time_wait_noisy(lambda: fn())
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
+
 
 @pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
 @pytest.mark.upgrade

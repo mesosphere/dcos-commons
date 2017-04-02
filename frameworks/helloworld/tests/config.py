@@ -10,13 +10,16 @@ def configured_task_count():
 
 
 def hello_task_count():
-    config = marathon.get_config(PACKAGE_NAME)
-    return int(config['env']['HELLO_COUNT'])
+    return task_count('HELLO_COUNT')
 
 
 def world_task_count():
+    return task_count('WORLD_COUNT')
+
+
+def task_count(key_name):
     config = marathon.get_config(PACKAGE_NAME)
-    return int(config['env']['WORLD_COUNT'])
+    return int(config['env'][key_name])
 
 
 def check_running():
@@ -24,14 +27,8 @@ def check_running():
 
 
 def bump_hello_cpus():
-    bump_cpu_count_config('HELLO_CPUS')
+    return marathon.bump_cpu_count_config(PACKAGE_NAME, 'HELLO_CPUS')
 
 
 def bump_world_cpus():
-    bump_cpu_count_config('WORLD_CPUS')
-
-
-def bump_cpu_count_config(key_name):
-    config = marathon.get_config(PACKAGE_NAME)
-    config['env'][key_name] = str(float(config['env'][key_name]) + 0.1)
-    marathon.update_app(PACKAGE_NAME, config)
+    return marathon.bump_cpu_count_config(PACKAGE_NAME, 'WORLD_CPUS')

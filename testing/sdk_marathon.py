@@ -1,8 +1,9 @@
 '''Utilities relating to interaction with Marathon'''
 
+import shakedown
+
 import sdk_cmd
 import sdk_spin
-import shakedown
 
 
 def get_config(app_name):
@@ -38,3 +39,11 @@ def api_url_with_param(basename, path_param):
 
 def get_scheduler_host(package_name):
     return shakedown.get_service_ips('marathon', package_name).pop()
+
+
+def bump_cpu_count_config(package_name, key_name, delta=0.1):
+    config = get_config(package_name)
+    updated_cpus = float(config['env'][key_name]) + delta
+    config['env'][key_name] = str(updated_cpus)
+    update_app(package_name, config)
+    return updated_cpus
