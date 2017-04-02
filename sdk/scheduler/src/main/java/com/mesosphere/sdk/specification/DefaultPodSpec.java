@@ -75,8 +75,8 @@ public class DefaultPodSpec implements PodSpec {
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count,
-                builder.image, builder.networks, builder.rlimits,
-                builder.uris, builder.tasks, builder.placementRule);
+             builder.image, builder.networks, builder.rlimits,
+             builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
     }
 
