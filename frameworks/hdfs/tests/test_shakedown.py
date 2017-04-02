@@ -216,10 +216,7 @@ def test_bump_data_nodes():
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
     print('data ids: ' + str(data_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    node_count = int(config['env']['DATA_COUNT']) + 1
-    config['env']['DATA_COUNT'] = str(node_count)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.bump_task_count_config(PACKAGE_NAME, 'DATA_COUNT')
 
     check_healthy(DEFAULT_TASK_COUNT + 1)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)

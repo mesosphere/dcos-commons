@@ -47,3 +47,10 @@ def bump_cpu_count_config(package_name, key_name, delta=0.1):
     config['env'][key_name] = str(updated_cpus)
     update_app(package_name, config)
     return updated_cpus
+
+
+def bump_task_count_config(package_name, key_name, delta=1):
+    config = get_config(package_name)
+    updated_node_count = int(config['env'][key_name]) + delta
+    config['env'][key_name] = str(updated_node_count)
+    update_app(package_name, config)

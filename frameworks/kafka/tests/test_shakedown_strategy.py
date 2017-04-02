@@ -127,9 +127,7 @@ def test_no_change():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_count():
-    config = marathon.get_config(SERVICE_NAME)
-    config['env']['BROKER_COUNT'] = str(int(config['env']['BROKER_COUNT']) + 1)
-    marathon.update_app(SERVICE_NAME, config)
+    marathon.bump_task_count_config(SERVICE_NAME, 'BROKER_COUNT')
 
     try:
         tasks.check_running(PACKAGE_NAME, DEFAULT_BROKER_COUNT + 1, timeout_seconds=60)

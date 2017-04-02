@@ -107,10 +107,7 @@ def test_bump_hello_nodes():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    node_count = int(config['env']['HELLO_COUNT']) + 1
-    config['env']['HELLO_COUNT'] = str(node_count)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
