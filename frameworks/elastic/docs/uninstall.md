@@ -1,7 +1,7 @@
 ---
 post_title: Uninstall
 menu_order: 20
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -17,7 +17,7 @@ Then, use the [framework cleaner script](https://docs.mesosphere.com/1.8/usage/m
 - `framework_principal` is `<service-name>-principal`.
 - `zk_path` is `dcos-service-<service-name>`.
 
-These values may vary if you customized them during installation. For instance, if you changed the Elastic service name to `customers`, then instead of 
+These values may vary if you customized them during installation. For instance, if you changed the Elastic service name to `customers`, then instead of
 
 - `framework_role` is `elastic-role`.
 - `framework_principal` is `elastic-principal`.

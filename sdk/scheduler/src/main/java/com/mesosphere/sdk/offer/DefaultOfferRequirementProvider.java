@@ -646,13 +646,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // URIs:
 
         // Required in scheduler env.
-        String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
-        if (executorUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(executorUri);
-
-        // Required in scheduler env.
         String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);
         if (libmesosUri == null) {
             throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI_SCHEDENV);
