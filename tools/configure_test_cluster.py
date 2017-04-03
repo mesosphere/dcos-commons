@@ -80,7 +80,7 @@ class ClusterInitializer(object):
             venvutil.run_cmd(venv_path, configure_cmd)
         else:
             venvutil.create_venv(venv_path)
-            venvutil.active_venv(venv_path)
+            venvutil.activate_venv(venv_path)
             venvutil.pip_install(requirements_file)
 
             # import delayed until dependencies exist
