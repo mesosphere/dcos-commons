@@ -157,7 +157,7 @@ echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
 echo "Modifying master envvars..."
-python {tools_path}/modify_master.py
+#python {tools_path}/modify_master.py
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
