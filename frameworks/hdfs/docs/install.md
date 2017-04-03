@@ -28,7 +28,7 @@ This command creates a new HDFS cluster with two name nodes, three journal nodes
 
 The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
 
-**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/CLI subcommands separately. From the DC/OS CLI, enter:
+**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
 dcos package install hdfs --cli
