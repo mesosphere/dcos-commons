@@ -105,6 +105,9 @@ def run_cmd(path, cmd, *args, **kwargs):
     else:
         custom_env = os.environ.copy()
     custom_env['PATH'] = venv_bin + os.pathsep + os.environ.get('PATH', '')
+    if 'PYTHONHOME' in custom_env:
+        del custom_env['PYTHONHOME']
+    # TODO specially handle #!/usr/bin/python commands
     logger.info("Running command %s with PATH set to %s", cmd,
                  custom_env['PATH'])
     kwargs['env'] = custom_env
