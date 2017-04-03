@@ -10,11 +10,11 @@
 
 <head>
 <title>Kafka: Troubleshooting</title>
-<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
-<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
-<script src="../../Dropdown.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
 <style type="text/css">
 /* set the background color of menu items */
 .dropdown, .dropdown ul { background: #555555; clear: both; }
@@ -22,6 +22,8 @@
 .dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
 /* pad items, set their text color, and fade their background color */
 .dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
 
 /* toc style: remove extra margin between elements */
 #markdown-toc ul { margin: 0; }
@@ -50,6 +52,8 @@
       <li><a href="../../faq.html">Frequently Asked Questions</a></li>
       
       <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../yaml-reference.html">YAML Reference</a></li>
       
       <li><a href="../../swagger-api/index.html">REST APIs</a></li>
       <li><a href="../../api/index.html">Javadoc Reference</a></li>
@@ -173,6 +177,7 @@
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
 <h1>Kafka: Troubleshooting</h1>
+<div id="content">
 <p>The Kafka service will be listed as “Unhealthy” when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
 
 <p>Possible repair actions include <code class="highlighter-rouge">dcos kafka broker restart &lt;broker-id&gt;</code> and <code class="highlighter-rouge">dcos kafka broker replace &lt;broker-id&gt;</code>. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.</p>
@@ -246,6 +251,7 @@ GET /service/kafka/v1/plan HTTP/1.1
 </div>
 
 
+</div>
 </div>
 </body>
 

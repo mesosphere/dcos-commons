@@ -10,11 +10,11 @@
 
 <head>
 <title>SDK Developer Guide</title>
-<link rel="stylesheet" type="text/css" media="all" href="./gh-basic.css" />
+<link rel="stylesheet" type="text/css" media="all" href="./style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
-<link rel="stylesheet" type="text/css" media="all" href="./Dropdown.css" />
-<script src="./Dropdown.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="./style/Dropdown.css" />
+<script src="./style/Dropdown.js"></script>
 <style type="text/css">
 /* set the background color of menu items */
 .dropdown, .dropdown ul { background: #555555; clear: both; }
@@ -22,6 +22,8 @@
 .dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
 /* pad items, set their text color, and fade their background color */
 .dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
 
 /* toc style: remove extra margin between elements */
 #markdown-toc ul { margin: 0; }
@@ -50,6 +52,8 @@
       <li><a href="./faq.html">Frequently Asked Questions</a></li>
       
       <li><a href="./glossary.html">Glossary</a></li>
+      
+      <li><a href="./yaml-reference.html">YAML Reference</a></li>
       
       <li><a href="./swagger-api/index.html">REST APIs</a></li>
       <li><a href="./api/index.html">Javadoc Reference</a></li>
@@ -173,6 +177,7 @@
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
 <h1>SDK Developer Guide</h1>
+<div id="content">
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
 <ul id="markdown-toc">
   <li><a href="#dcos-component-overview" id="markdown-toc-dcos-component-overview">DC/OS Component Overview</a>    <ul>
@@ -1966,6 +1971,7 @@ hello
 
 <p>All plans provided in the register call will be executed.</p>
 
+</div>
 </div>
 </body>
 

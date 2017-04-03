@@ -10,11 +10,11 @@
 
 <head>
 <title>Kafka: Uninstall</title>
-<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
-<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
-<script src="../../Dropdown.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
 <style type="text/css">
 /* set the background color of menu items */
 .dropdown, .dropdown ul { background: #555555; clear: both; }
@@ -22,6 +22,8 @@
 .dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
 /* pad items, set their text color, and fade their background color */
 .dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
 
 /* toc style: remove extra margin between elements */
 #markdown-toc ul { margin: 0; }
@@ -50,6 +52,8 @@
       <li><a href="../../faq.html">Frequently Asked Questions</a></li>
       
       <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../yaml-reference.html">YAML Reference</a></li>
       
       <li><a href="../../swagger-api/index.html">REST APIs</a></li>
       <li><a href="../../api/index.html">Javadoc Reference</a></li>
@@ -173,6 +177,7 @@
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
 <h1>Kafka: Uninstall</h1>
+<div id="content">
 <p>Run the following command from the DC/OS CLI to uninstall Kafka. Alternatively, you can uninstall Kafka from the DC/OS web interface. <a href="https://docs.mesosphere.com/1.9/usage/managing-services/uninstall/">More information about uninstalling DC/OS services</a>.</p>
 
 <p>Replace <code class="highlighter-rouge">name</code> with the name of the kafka instance to be uninstalled.</p>
@@ -189,6 +194,7 @@
   <li><code class="highlighter-rouge">zk_path</code> is <code class="highlighter-rouge">dcos-service-&lt;name&gt;</code>.</li>
 </ul>
 
+</div>
 </div>
 </body>
 

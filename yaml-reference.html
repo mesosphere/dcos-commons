@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>YAML Reference</title>
+<link rel="stylesheet" type="text/css" media="all" href="./style/yaml-reference.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="./style/Dropdown.css" />
+<script src="./style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="./index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="./index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="./developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="./faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="./glossary.html">Glossary</a></li>
+      
+      <li><a href="./yaml-reference.html">YAML Reference</a></li>
+      
+      <li><a href="./swagger-api/index.html">REST APIs</a></li>
+      <li><a href="./api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="./services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="./services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="./services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="./services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="./services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="./services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="./services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="./services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="./services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="./services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="./services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="./services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="./services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="./services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="./services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="./services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>YAML Reference</h1>
+<div id="content">
+<p>This reference document is a field-by-field listing of the YAML schema used for <a href="developer-guide.html#introduction-to-dcos-service-definitions">Service Specifications</a>. For an example of a YAML Service Spec, see the <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml">svc.yml for hello-world</a>.</p>
+
+<p>This documentation effectively reflects the Java object tree under <a href="api/index.html?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html">RawServiceSpec</a>, which is what’s used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the <a href="developer-guide.html">SDK Developer Guide</a>.</p>
+
+<h2 id="fields">Fields</h2>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">name</code></p>
+
+    <p>TODO</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">web-url</code></p>
+
+    <p>TODO</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">scheduler</code></p>
+
+    <p>TODO</p>
+
+    <ul>
+      <li>
+        <p><code class="highlighter-rouge">role</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">principal</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">api-port</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">zookeeper</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">user</code></p>
+
+        <p>TODO</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">pods</code></p>
+
+    <p>TODO</p>
+
+    <ul>
+      <li>
+        <p><code class="highlighter-rouge">resource-sets</code></p>
+
+        <p>Resource sets allow defining a single set of resources to be reused across multiple tasks, where only one task may use the resource set at a time. This can be useful when defining maintenance operations. A single resource set can be created, and then assigned to multiple operations such as backup, restore, rebuild, etc… In this scenario, only one operation may be active at a time, as that task has ownership of the resource set.</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">cpus</code>, <code class="highlighter-rouge">gpus</code>, <code class="highlighter-rouge">memory</code>, <code class="highlighter-rouge">ports</code>, <code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
+
+            <p>These resource values are identical in function to their sister fields in a <a href="#tasks">task definition</a>.</p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">placement</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">count</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">container</code></p>
+
+        <p>TODO</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">image-name</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">networks</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">rlimits</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">soft</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">hard</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">image</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">networks</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">rlimits</code></p>
+
+        <p>TODO</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">soft</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">hard</code></p>
+
+            <p>TODO</p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">strategy</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">uris</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">tasks</code></p>
+
+        <p>TODO</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">goal</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">cmd</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">env</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">configs</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">template</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">dest</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">cpus</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">gpus</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">memory</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">ports</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">port</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">env-key</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">vip</code></p>
+
+                <p>TODO</p>
+
+                <ul>
+                  <li>
+                    <p><code class="highlighter-rouge">port</code></p>
+
+                    <p>TODO</p>
+                  </li>
+                  <li>
+                    <p><code class="highlighter-rouge">prefix</code></p>
+
+                    <p>TODO</p>
+                  </li>
+                  <li>
+                    <p><code class="highlighter-rouge">protocol</code></p>
+
+                    <p>TODO</p>
+                  </li>
+                  <li>
+                    <p><code class="highlighter-rouge">advertise</code></p>
+
+                    <p>TODO</p>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">health-check</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">cmd</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">interval</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">grace-period</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">max-consecutive-failures</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">delay</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">timeout</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">readiness-check</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">cmd</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">interval</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">delay</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">timeout</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">path</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">type</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">size</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">resource-set</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">discovery</code></p>
+
+            <p>TODO</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">prefix</code></p>
+
+                <p>TODO</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">visibility</code></p>
+
+                <p>TODO</p>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">user</code></p>
+
+        <p>TODO</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">plans</code></p>
+
+    <p>TODO</p>
+
+    <ul>
+      <li>
+        <p><code class="highlighter-rouge">strategy</code></p>
+
+        <p>TODO</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">phases</code></p>
+
+        <p>TODO</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">strategy</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">pod</code></p>
+
+            <p>TODO</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">steps</code></p>
+
+            <p>TODO</p>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+</div>
+</div>
+</body>
+
+</html>
