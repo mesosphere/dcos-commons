@@ -142,6 +142,8 @@ requests==2.10.0
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
+
+        tools_dir = os.path.dirname(__file__)
         # TODO(nick): remove this inlined script with external templating
         #             (or find a way of entering the virtualenv that doesn't involve a shell script)
         script_file.write('''
@@ -156,13 +158,16 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
+echo "Modifying master envvars..."
+python {tools_path}/modify_master.py
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,
-           test_dirs=test_dirs))
+           test_dirs=test_dirs,
+           tools_path=tools_dir))
         script_file.flush()
         script_file.close()
         try:
