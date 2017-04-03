@@ -4,6 +4,7 @@ defaults:
       path: ""
     values:
       layout: "gh-basic"
+      stylesheet: "gh-basic.css"
       menu_order: 999
 sass:
   sass_dir: _sass

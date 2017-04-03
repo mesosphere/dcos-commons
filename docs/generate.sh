@@ -87,7 +87,7 @@ if [ $UPLOAD_ENABLED ]; then
     pushd ${DEST_DIR_NAME}
     git checkout -- README.md # recover gh-pages README *after* generating docs -- otherwise it's removed via generation
     if [ $(git ls-files -m | wc -l) -eq 0 ]; then
-        echo "No changes detected, skipping commit to gh-pages"
+        echo "No docs changes detected, skipping commit to gh-pages"
     else
         echo "Pushing $(git ls-files -m | wc -l) changed files to gh-pages:"
         echo "--- CHANGED FILES START"
