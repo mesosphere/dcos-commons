@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Kafka: API Reference</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: API Reference</h1>
+<p><a name="#rest-auth"></a></p>
+<h1 id="rest-api-authentication">REST API Authentication</h1>
+<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Kafka REST API directly. You do not need the token to access the Kafka nodes themselves.</p>
+
+<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+
+<p>If you are using open source DC/OS, follow these instructions to <a href="https://dcos.io/docs/1.9/administration/id-and-access-mgt/iam-api/">pass your authentication token to the DC/OS endpoint</a>.</p>
+
+<p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ export auth_token=uSeR_t0k3n
+</code></pre>
+</div>
+
+<p>The <code class="highlighter-rouge">curl</code> examples in this document assume that an auth token has been stored in an environment variable named <code class="highlighter-rouge">auth_token</code>.</p>
+
+<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/1.9/administration/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/1.9/administration/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
+
+<p>For ongoing maintenance of the Kafka cluster itself, the Kafka service exposes an HTTP API whose structure is designed to roughly match the tools provided by the Kafka distribution, such as <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
+
+<p>The examples here provide equivalent commands using both the <a href="https://github.com/mesosphere/dcos-cli">DC/OS CLI</a> (with the <code class="highlighter-rouge">kafka</code> CLI module installed) and <code class="highlighter-rouge">curl</code>. These examples assume a service named <code class="highlighter-rouge">kafka</code> (the default), and the <code class="highlighter-rouge">curl</code> examples assume a DC/OS cluster path of <code class="highlighter-rouge">&lt;dcos_url&gt;</code>. Replace these with appropriate values as needed.</p>
+
+<p>The <code class="highlighter-rouge">dcos kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument, allowing the user to specify which Kafka instance to query. The value defaults to <code class="highlighter-rouge">kafka</code>, so it’s technically redundant to specify <code class="highlighter-rouge">--name=kafka</code> in these examples.</p>
+
+<h1 id="connection-information">Connection Information</h1>
+
+<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/connection</code> endpoint:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/connection"
+GET /service/kafka/v1/connection HTTP/1.1
+
+{
+    "address": [
+        "10.0.0.211:9843",
+        "10.0.0.217:10056",
+        "10.0.0.214:9689"
+    ],
+    "dns": [
+        "broker-0.kafka.mesos:9843",
+        "broker-1.kafka.mesos:10056",
+        "broker-2.kafka.mesos:9689"
+    ],
+    "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "zookeeper": "master.mesos:2181/dcos-service-kafka"
+}
+</code></pre>
+</div>
+
+<p>The same information can be retrieved through the DC/OS CLI:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka connection
+{
+    "address": [
+        "10.0.0.211:9843",
+        "10.0.0.217:10056",
+        "10.0.0.214:9689"
+    ],
+    "dns": [
+        "broker-0.kafka.mesos:9843",
+        "broker-1.kafka.mesos:10056",
+        "broker-2.kafka.mesos:9689"
+    ],
+    "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "zookeeper": "master.mesos:2181/dcos-service-kafka"
+}
+</code></pre>
+</div>
+
+<h1 id="broker-operations">Broker Operations</h1>
+
+<h2 id="add-broker">Add Broker</h2>
+
+<p>Increase the <code class="highlighter-rouge">BROKER_COUNT</code> value via Marathon. This should be rolled as in any other configuration update.</p>
+
+<h2 id="list-all-brokers">List All Brokers</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker list
+{
+    "brokers": [
+        "0",
+        "1",
+        "2"
+    ]
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers"
+GET /service/kafka/v1/brokers HTTP/1.1
+
+{
+    "brokers": [
+        "0",
+        "1",
+        "2"
+    ]
+}
+</code></pre>
+</div>
+
+<h2 id="restart-single-broker">Restart Single Broker</h2>
+
+<p>Restarts the broker in-place.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker restart 0
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+
+
+$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/0"
+PUT /service/kafka/v1/brokers/0 HTTP/1.1
+
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+</code></pre>
+</div>
+
+<h2 id="replace-single-broker">Replace Single Broker</h2>
+
+<p>Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker replace 0
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+
+
+$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/0?replace=true"
+PUT /service/kafka/v1/brokers/0 HTTP/1.1
+
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+</code></pre>
+</div>
+
+<h1 id="topic-operations">Topic Operations</h1>
+
+<p>These operations mirror what is available with <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
+
+<h2 id="list-topics">List Topics</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic list
+[
+    "topic1",
+    "topic0"
+]
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics"
+GET /service/kafka/v1/topics HTTP/1.1
+
+[
+    "topic1",
+    "topic0"
+]
+</code></pre>
+</div>
+
+<h2 id="describe-topic">Describe Topic</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic describe topic1
+{
+    "partitions": [
+        {
+            "0": {
+                "controller_epoch": 1,
+                "isr": [
+                    0,
+                    1,
+                    2
+                ],
+                "leader": 0,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "1": {
+                "controller_epoch": 1,
+                "isr": [
+                    1,
+                    2,
+                    0
+                ],
+                "leader": 1,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "2": {
+                "controller_epoch": 1,
+                "isr": [
+                    2,
+                    0,
+                    1
+                ],
+                "leader": 2,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        }
+    ]
+}
+
+
+$ curl -X POST -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"
+GET /service/kafka/v1/topics/topic1 HTTP/1.1
+
+{
+    "partitions": [
+        {
+            "0": {
+                "controller_epoch": 1,
+                "isr": [
+                    0,
+                    1,
+                    2
+                ],
+                "leader": 0,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "1": {
+                "controller_epoch": 1,
+                "isr": [
+                    1,
+                    2,
+                    0
+                ],
+                "leader": 1,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "2": {
+                "controller_epoch": 1,
+                "isr": [
+                    2,
+                    0,
+                    1
+                ],
+                "leader": 2,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        }
+    ]
+}
+</code></pre>
+</div>
+
+<h2 id="create-topic">Create Topic</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
+{
+    "message": "Output: Created topic "topic1".n"
+}
+
+
+$ curl -X POST -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics?name=topic1&amp;partitions=3&amp;replication=3"
+POST /service/kafka/v1/topics?replication=3&amp;name=topic1&amp;partitions=3 HTTP/1.1
+
+{
+    "message": "Output: Created topic "topic1".n"
+}
+</code></pre>
+</div>
+
+<h2 id="view-topic-offsets">View Topic Offsets</h2>
+
+<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell">described in the Kafka documentation</a>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic offsets topic1 --time=last
+[
+    {
+        "2": "334"
+    },
+    {
+        "1": "333"
+    },
+    {
+        "0": "333"
+    }
+]
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1/offsets?time=last"
+GET /service/kafka/v1/topics/topic1/offsets?time=last HTTP/1.1
+
+[
+    {
+        "2": "334"
+    },
+    {
+        "1": "333"
+    },
+    {
+        "0": "333"
+    }
+]
+</code></pre>
+</div>
+
+<h2 id="alter-topic-partition-count">Alter Topic Partition Count</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic partitions topic1 2
+{
+    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
+}
+
+
+$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2"
+PUT /service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2 HTTP/1.1
+
+{
+    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
+}
+</code></pre>
+</div>
+
+<h2 id="run-producer-test-on-topic">Run Producer Test on Topic</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic producer_test topic1 10
+
+{
+    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+}
+
+
+$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=producer-test&amp;messages=10"
+PUT /service/kafka/v1/topics/topic1?operation=producer-test&amp;messages=10 HTTP/1.1
+
+{
+    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+}
+</code></pre>
+</div>
+
+<p>Runs the equivalent of the following command from the machine running the Kafka Scheduler:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>kafka-producer-perf-test.sh
+    --topic &lt;topic&gt;
+    --num-records &lt;messages&gt;
+    --throughput 100000
+    --record-size 1024
+    --producer-props bootstrap.servers=&lt;current broker endpoints&gt;
+</code></pre>
+</div>
+
+<h2 id="delete-topic">Delete Topic</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic delete topic1
+
+{
+    "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
+}
+
+
+$ curl -X DELETE -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"
+DELETE /service/kafka/v1/topics/topic1 HTTP/1.1
+
+{
+    "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
+}
+</code></pre>
+</div>
+
+<p>Note the warning in the output from the commands above. You can change the indicated “delete.topic.enable” configuration value as a configuration change.</p>
+
+<h2 id="list-under-replicated-partitions">List Under Replicated Partitions</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic under_replicated_partitions
+
+{
+    "message": ""
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/under_replicated_partitions"
+GET /service/kafka/v1/topics/under_replicated_partitions HTTP/1.1
+
+{
+    "message": ""
+}
+</code></pre>
+</div>
+
+<h2 id="list-unavailable-partitions">List Unavailable Partitions</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic unavailable_partitions
+
+{
+    "message": ""
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/unavailable_partitions"
+GET /service/kafka/v1/topics/unavailable_partitions HTTP/1.1
+
+{
+    "message": ""
+}
+</code></pre>
+</div>
+
+<h1 id="service-status">Service Status</h1>
+
+<p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if Kafka is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.</p>
+
+<p>You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed. You will receive a response of <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/state/properties/suppressed"
+</code></pre>
+</div>
+
+<h1 id="config-history">Config History</h1>
+
+<p>These operations relate to viewing the service’s configuration history.</p>
+
+<h2 id="list-configuration-ids">List Configuration IDs</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config list
+
+[
+    "319ebe89-42e2-40e2-9169-8568e2421023",
+    "294235f2-8504-4194-b43d-664443f2132b"
+]
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations"
+GET /service/kafka/v1/configurations HTTP/1.1
+
+[
+    "319ebe89-42e2-40e2-9169-8568e2421023",
+    "294235f2-8504-4194-b43d-664443f2132b"
+]
+</code></pre>
+</div>
+
+<h2 id="describe-configuration">Describe Configuration</h2>
+
+<p>This configuration shows a default per-broker memory allocation of 2048 (configured via the <code class="highlighter-rouge">BROKER_MEM</code> parameter):</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config describe 319ebe89-42e2-40e2-9169-8568e2421023
+
+{
+    "brokerConfiguration": {
+        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
+        "cpus": 1,
+        "disk": 5000,
+        "diskType": "ROOT",
+        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
+        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
+        "mem": 2048, // &lt;&lt;--
+        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
+    },
+    "kafkaConfiguration": {
+        [...]
+    },
+    "serviceConfiguration": {
+        "count": 3,
+        "name": "kafka",
+        "phaseStrategy": "INSTALL",
+        "placementStrategy": "NODE",
+        "principal": "kafka-principal",
+        "role": "kafka-role",
+        "user": ""
+    }
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+GET /service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023 HTTP/1.1
+
+{
+    "brokerConfiguration": {
+        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
+        "cpus": 1,
+        "disk": 5000,
+        "diskType": "ROOT",
+        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
+        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
+        "mem": 2048, // &lt;&lt;--
+        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
+    },
+    "kafkaConfiguration": {
+        [...]
+    },
+    "serviceConfiguration": {
+        "count": 3,
+        "name": "kafka",
+        "phaseStrategy": "INSTALL",
+        "placementStrategy": "NODE",
+        "principal": "kafka-principal",
+        "role": "kafka-role",
+        "user": ""
+    }
+}
+</code></pre>
+</div>
+
+<h2 id="describe-target-configuration">Describe Target Configuration</h2>
+
+<p>The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as <code class="highlighter-rouge">BROKER_MEM</code>):</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config target
+
+{
+    "brokerConfiguration": {
+        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
+        "cpus": 1,
+        "disk": 5000,
+        "diskType": "ROOT",
+        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
+        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
+        "mem": 4096, // &lt;&lt;--
+        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
+    },
+    "kafkaConfiguration": {
+        [...]
+    },
+    "serviceConfiguration": {
+        "count": 3,
+        "name": "kafka",
+        "phaseStrategy": "INSTALL",
+        "placementStrategy": "NODE",
+        "principal": "kafka-principal",
+        "role": "kafka-role",
+        "user": ""
+    }
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/target"
+GET /service/kafka/v1/configurations/target HTTP/1.1
+
+{
+    "brokerConfiguration": {
+        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
+        "cpus": 1,
+        "disk": 5000,
+        "diskType": "ROOT",
+        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
+        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
+        "mem": 4096, // &lt;&lt;--
+        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
+    },
+    "kafkaConfiguration": {
+        [...]
+    },
+    "serviceConfiguration": {
+        "count": 3,
+        "name": "kafka",
+        "phaseStrategy": "INSTALL",
+        "placementStrategy": "NODE",
+        "principal": "kafka-principal",
+        "role": "kafka-role",
+        "user": ""
+    }
+}
+</code></pre>
+</div>
+
+<h1 id="config-updates">Config Updates</h1>
+
+<p>These options relate to viewing and controlling rollouts and configuration updates.</p>
+
+<h2 id="view-plan-status">View Plan Status</h2>
+
+<p>Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan
+GET /service/kafka/v1/plan HTTP/1.1
+
+{
+  "phases": [
+    {
+      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
+      "name": "Reconciliation",
+      "steps": [
+        {
+          "id": "9854a67d-7803-46d0-b278-402785fe3199",
+          "status": "COMPLETE",
+          "name": "Reconciliation",
+          "message": "Reconciliation complete"
+        }
+      ],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
+      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
+      "steps": [
+        {
+          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
+          "status": "COMPLETE",
+          "name": "broker-0",
+          "message": "Broker-0 is COMPLETE"
+        },
+        {
+          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
+          "status": "IN_PROGRESS",
+          "name": "broker-1",
+          "message": "Broker-1 is IN_PROGRESS"
+        },
+        {
+          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
+          "status": "PENDING",
+          "name": "broker-2",
+          "message": "Broker-2 is PENDING"
+        }
+      ],
+      "status": "IN_PROGRESS"
+    }
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+
+
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan"
+GET /service/kafka/v1/plan HTTP/1.1
+
+{
+  "phases": [
+    {
+      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
+      "name": "Reconciliation",
+      "steps": [
+        {
+          "id": "9854a67d-7803-46d0-b278-402785fe3199",
+          "status": "COMPLETE",
+          "name": "Reconciliation",
+          "message": "Reconciliation complete"
+        }
+      ],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
+      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
+      "steps": [
+        {
+          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
+          "status": "COMPLETE",
+          "name": "broker-0",
+          "message": "Broker-0 is COMPLETE"
+        },
+        {
+          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
+          "status": "COMPLETE",
+          "name": "broker-1",
+          "message": "Broker-1 is COMPLETE"
+        },
+        {
+          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
+          "status": "COMPLETE",
+          "name": "broker-2",
+          "message": "Broker-2 is COMPLETE"
+        }
+      ],
+      "status": "COMPLETE"
+    }
+  ],
+  "errors": [],
+  "status": "COMPLETE"
+}
+</code></pre>
+</div>
+
+<h2 id="upgrade-interaction">Upgrade Interaction</h2>
+
+<p>These operations are only applicable when <code class="highlighter-rouge">PHASE_STRATEGY</code> is set to <code class="highlighter-rouge">STAGE</code>, they have no effect when it is set to <code class="highlighter-rouge">INSTALL</code>. See the Changing Configuration at Runtime part of the Configuring section for more information.</p>
+
+<h3 id="continue">Continue</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka continue
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/continue"
+</code></pre>
+</div>
+
+<h3 id="interrupt">Interrupt</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka interrupt
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/interrupt"
+</code></pre>
+</div>
+
+
+</div>
+</body>
+
+</html>

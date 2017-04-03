@@ -3,7 +3,7 @@
   <head>
     <title>DC/OS SDK API Reference</title>
     <style type="text/css">
-      body { 
+      body {
 	font-family: Trebuchet MS, sans-serif;
 	font-size: 15px;
 	color: #444;
@@ -25,7 +25,6 @@ hr	{
 	border: 0;
 	color: #ddd;
 	background-color: #ddd;
-	display: none;
 }
 
 .app-desc {
@@ -176,6 +175,7 @@ font-style: italic;
   display: inline-block;
   text-decoration: none;
 }
+
     </style>
   </head>
   <body>
@@ -192,43 +192,60 @@ font-style: italic;
   <h2><a name="__Methods">Methods</a></h2>
   [ Jump to <a href="#__Models">Models</a> ]
 
-  <h2>Table of Contents </h2>
+  <h3>Table of Contents </h3>
   <div class="method-summary"></div>
-  <ol>
-  <li><a href="#artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet"><code><span class="http-method">get</span> /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}</code></a></li>
-  <li><a href="#configurationsConfigurationIdGet"><code><span class="http-method">get</span> /configurations/{configurationId}</code></a></li>
-  <li><a href="#configurationsGet"><code><span class="http-method">get</span> /configurations</code></a></li>
+  <h4><a href="#Artifacts">Artifacts</a></h4>
+  <ul>
+  <li><a href="#artifactsGet"><code><span class="http-method">get</span> /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}</code></a></li>
+  </ul>
+  <h4><a href="#Configurations">Configurations</a></h4>
+  <ul>
+  <li><a href="#configurationsGet"><code><span class="http-method">get</span> /configurations/{configurationId}</code></a></li>
+  <li><a href="#configurationsList"><code><span class="http-method">get</span> /configurations</code></a></li>
   <li><a href="#configurationsTargetGet"><code><span class="http-method">get</span> /configurations/target</code></a></li>
-  <li><a href="#configurationsTargetIdGet"><code><span class="http-method">get</span> /configurations/targetId</code></a></li>
-  <li><a href="#endpointsGet"><code><span class="http-method">get</span> /endpoints</code></a></li>
-  <li><a href="#endpointsNameGet"><code><span class="http-method">get</span> /endpoints/{name}</code></a></li>
-  <li><a href="#plansGet"><code><span class="http-method">get</span> /plans</code></a></li>
-  <li><a href="#plansNameGet"><code><span class="http-method">get</span> /plans/{name}</code></a></li>
-  <li><a href="#plansNameStartPost"><code><span class="http-method">post</span> /plans/{name}/start</code></a></li>
-  <li><a href="#plansNameStopPost"><code><span class="http-method">post</span> /plans/{name}/stop</code></a></li>
-  <li><a href="#plansPlanContinuePost"><code><span class="http-method">post</span> /plans/{plan}/continue</code></a></li>
-  <li><a href="#plansPlanForceCompletePost"><code><span class="http-method">post</span> /plans/{plan}/forceComplete</code></a></li>
-  <li><a href="#plansPlanInterruptPost"><code><span class="http-method">post</span> /plans/{plan}/interrupt</code></a></li>
-  <li><a href="#plansPlanPhaseContinuePost"><code><span class="http-method">post</span> /plans/{plan}/{phase}/continue</code></a></li>
-  <li><a href="#plansPlanPhaseInterruptPost"><code><span class="http-method">post</span> /plans/{plan}/{phase}/interrupt</code></a></li>
-  <li><a href="#plansPlanRestartPost"><code><span class="http-method">post</span> /plans/{plan}/restart</code></a></li>
-  <li><a href="#podsGet"><code><span class="http-method">get</span> /pods</code></a></li>
-  <li><a href="#podsNameInfoGet"><code><span class="http-method">get</span> /pods/{name}/info</code></a></li>
-  <li><a href="#podsNameReplacePost"><code><span class="http-method">post</span> /pods/{name}/replace</code></a></li>
-  <li><a href="#podsNameRestartPost"><code><span class="http-method">post</span> /pods/{name}/restart</code></a></li>
-  <li><a href="#podsNameStatusGet"><code><span class="http-method">get</span> /pods/{name}/status</code></a></li>
-  <li><a href="#podsStatusGet"><code><span class="http-method">get</span> /pods/status</code></a></li>
-  <li><a href="#stateFrameworkIdGet"><code><span class="http-method">get</span> /state/frameworkId</code></a></li>
-  <li><a href="#statePropertiesGet"><code><span class="http-method">get</span> /state/properties</code></a></li>
-  <li><a href="#statePropertiesKeyGet"><code><span class="http-method">get</span> /state/properties/{key}</code></a></li>
-  <li><a href="#stateRefreshPut"><code><span class="http-method">put</span> /state/refresh</code></a></li>
-  </ol>
+  <li><a href="#configurationsTargetidGet"><code><span class="http-method">get</span> /configurations/targetId</code></a></li>
+  </ul>
+  <h4><a href="#Endpoints">Endpoints</a></h4>
+  <ul>
+  <li><a href="#endpointsGet"><code><span class="http-method">get</span> /endpoints/{name}</code></a></li>
+  <li><a href="#endpointsList"><code><span class="http-method">get</span> /endpoints</code></a></li>
+  </ul>
+  <h4><a href="#Plans">Plans</a></h4>
+  <ul>
+  <li><a href="#plansContinue"><code><span class="http-method">post</span> /plans/{plan}/continue</code></a></li>
+  <li><a href="#plansForcecomplete"><code><span class="http-method">post</span> /plans/{plan}/forceComplete</code></a></li>
+  <li><a href="#plansGet"><code><span class="http-method">get</span> /plans/{name}</code></a></li>
+  <li><a href="#plansInterrupt"><code><span class="http-method">post</span> /plans/{plan}/interrupt</code></a></li>
+  <li><a href="#plansList"><code><span class="http-method">get</span> /plans</code></a></li>
+  <li><a href="#plansPhaseContinue"><code><span class="http-method">post</span> /plans/{plan}/{phase}/continue</code></a></li>
+  <li><a href="#plansPhaseInterrupt"><code><span class="http-method">post</span> /plans/{plan}/{phase}/interrupt</code></a></li>
+  <li><a href="#plansRestart"><code><span class="http-method">post</span> /plans/{plan}/restart</code></a></li>
+  <li><a href="#plansStart"><code><span class="http-method">post</span> /plans/{name}/start</code></a></li>
+  <li><a href="#plansStop"><code><span class="http-method">post</span> /plans/{name}/stop</code></a></li>
+  </ul>
+  <h4><a href="#Pods">Pods</a></h4>
+  <ul>
+  <li><a href="#podsGet"><code><span class="http-method">get</span> /pods/{name}/info</code></a></li>
+  <li><a href="#podsList"><code><span class="http-method">get</span> /pods</code></a></li>
+  <li><a href="#podsListStatus"><code><span class="http-method">get</span> /pods/status</code></a></li>
+  <li><a href="#podsReplace"><code><span class="http-method">post</span> /pods/{name}/replace</code></a></li>
+  <li><a href="#podsRestart"><code><span class="http-method">post</span> /pods/{name}/restart</code></a></li>
+  <li><a href="#podsStatus"><code><span class="http-method">get</span> /pods/{name}/status</code></a></li>
+  </ul>
+  <h4><a href="#State">State</a></h4>
+  <ul>
+  <li><a href="#stateFrameworkidGet"><code><span class="http-method">get</span> /state/frameworkId</code></a></li>
+  <li><a href="#statePropertiesGet"><code><span class="http-method">get</span> /state/properties/{key}</code></a></li>
+  <li><a href="#statePropertiesList"><code><span class="http-method">get</span> /state/properties</code></a></li>
+  <li><a href="#stateRefreshCache"><code><span class="http-method">put</span> /state/refresh</code></a></li>
+  </ul>
 
-  <div class="method"><a name="artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet"/>
+  <h1><a name="Artifacts">Artifacts</a></h1>
+  <div class="method"><a name="artifactsGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}</code></pre></div>
-    <div class="method-summary">Produces the content of a configuration file with mustache templating for rendering and use at a task. (<span class="nickname">artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet</span>)</div>
+    <div class="method-summary">Produces the content of a configuration file with mustache templating for rendering and use at a task. (<span class="nickname">artifactsGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -272,11 +289,12 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="configurationsConfigurationIdGet"/>
+  <h1><a name="Configurations">Configurations</a></h1>
+  <div class="method"><a name="configurationsGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations/{configurationId}</code></pre></div>
-    <div class="method-summary">Produces the content of the requested configuration ID. (<span class="nickname">configurationsConfigurationIdGet</span>)</div>
+    <div class="method-summary">Produces the content of the requested configuration ID. (<span class="nickname">configurationsGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -317,11 +335,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="configurationsGet"/>
+  <div class="method"><a name="configurationsList"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations</code></pre></div>
-    <div class="method-summary">Produces an ID listing of all stored configurations. (<span class="nickname">configurationsGet</span>)</div>
+    <div class="method-summary">Produces an ID listing of all stored configurations. (<span class="nickname">configurationsList</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -386,11 +404,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="configurationsTargetIdGet"/>
+  <div class="method"><a name="configurationsTargetidGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations/targetId</code></pre></div>
-    <div class="method-summary">Produces the ID of the current target configuration. (<span class="nickname">configurationsTargetIdGet</span>)</div>
+    <div class="method-summary">Produces the ID of the current target configuration. (<span class="nickname">configurationsTargetidGet</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -422,50 +440,12 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Endpoints">Endpoints</a></h1>
   <div class="method"><a name="endpointsGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /endpoints</code></pre></div>
-    <div class="method-summary">Returns connection information for all endpoints. (<span class="nickname">endpointsGet</span>)</div>
-    <div class="method-notes"></div>
-
-
-
-
-
-    <h3 class="field-label">Query parameters</h3>
-    <div class="field-items">
-      <div class="param">format (optional)</div>
-
-      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The hostname format in the returned data, either unset for hostnames or &#39;native&#39; for IPs. </div>
-    </div>  <!-- field-items -->
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Connection information for all endpoints.
-        <a href="#"></a>
-    <h4 class="field-label">500</h4>
-    Failed to retrieve connection information.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="endpointsNameGet"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /endpoints/{name}</code></pre></div>
-    <div class="method-summary">Returns connection information for the requested endpoint. (<span class="nickname">endpointsNameGet</span>)</div>
+    <div class="method-summary">Returns connection information for the requested endpoint. (<span class="nickname">endpointsGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -509,137 +489,51 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansGet"/>
+  <div class="method"><a name="endpointsList"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /plans</code></pre></div>
-    <div class="method-summary">Returns list of all configured plans. (<span class="nickname">plansGet</span>)</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /endpoints</code></pre></div>
+    <div class="method-summary">Returns connection information for all endpoints. (<span class="nickname">endpointsList</span>)</div>
     <div class="method-notes"></div>
 
 
 
 
 
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    List of plans.
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plans not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansNameGet"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /plans/{name}</code></pre></div>
-    <div class="method-summary">Returns a full list of the Plan&#39;s contents (incl all Phases/Steps). (<span class="nickname">plansNameGet</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
+    <h3 class="field-label">Query parameters</h3>
     <div class="field-items">
-      <div class="param">name (required)</div>
+      <div class="param">format (optional)</div>
 
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The hostname format in the returned data, either unset for hostnames or &#39;native&#39; for IPs. </div>
     </div>  <!-- field-items -->
 
 
 
-
-
-
-
     <!--Todo: process Response Object and its headers, schema, examples -->
 
 
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
 
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
-    List of the plan&#39;s contents.
+    Connection information for all endpoints.
         <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansNameStartPost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/start</code></pre></div>
-    <div class="method-summary">Restarts or resumes the execution of the plan. If the plan is complete, it is restarted. If the plan is stopped, its progress is resumed. If the plan is already in progress this has no effect. (<span class="nickname">plansNameStartPost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd: start
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
+    <h4 class="field-label">500</h4>
+    Failed to retrieve connection information.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansNameStopPost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/stop</code></pre></div>
-    <div class="method-summary">Stops and resets the execution of the plan. (<span class="nickname">plansNameStopPost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd: stop
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansPlanContinuePost"/>
+  <h1><a name="Plans">Plans</a></h1>
+  <div class="method"><a name="plansContinue"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/continue</code></pre></div>
-    <div class="method-summary">Continues the execution of the plan. (<span class="nickname">plansPlanContinuePost</span>)</div>
+    <div class="method-summary">Continues the execution of the plan. (<span class="nickname">plansContinue</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -668,11 +562,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansPlanForceCompletePost"/>
+  <div class="method"><a name="plansForcecomplete"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/forceComplete</code></pre></div>
-    <div class="method-summary">Force complete your plan. (<span class="nickname">plansPlanForceCompletePost</span>)</div>
+    <div class="method-summary">Force complete your plan. (<span class="nickname">plansForcecomplete</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -709,11 +603,44 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansPlanInterruptPost"/>
+  <div class="method"><a name="plansGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /plans/{name}</code></pre></div>
+    <div class="method-summary">Returns a full list of the Plan&#39;s contents (incl all Phases/Steps). (<span class="nickname">plansGet</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of the plan&#39;s contents.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansInterrupt"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/interrupt</code></pre></div>
-    <div class="method-summary">Interrupts the execution of the specified plan. (<span class="nickname">plansPlanInterruptPost</span>)</div>
+    <div class="method-summary">Interrupts the execution of the specified plan. (<span class="nickname">plansInterrupt</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -742,11 +669,38 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansPlanPhaseContinuePost"/>
+  <div class="method"><a name="plansList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /plans</code></pre></div>
+    <div class="method-summary">Returns list of all configured plans. (<span class="nickname">plansList</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of plans.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plans not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPhaseContinue"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/{phase}/continue</code></pre></div>
-    <div class="method-summary">Continues the execution of the phase. (<span class="nickname">plansPlanPhaseContinuePost</span>)</div>
+    <div class="method-summary">Continues the execution of the phase. (<span class="nickname">plansPhaseContinue</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -781,11 +735,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansPlanPhaseInterruptPost"/>
+  <div class="method"><a name="plansPhaseInterrupt"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/{phase}/interrupt</code></pre></div>
-    <div class="method-summary">Interrupts the execution of the specified phase. (<span class="nickname">plansPlanPhaseInterruptPost</span>)</div>
+    <div class="method-summary">Interrupts the execution of the specified phase. (<span class="nickname">plansPhaseInterrupt</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -820,11 +774,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansPlanRestartPost"/>
+  <div class="method"><a name="plansRestart"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/restart</code></pre></div>
-    <div class="method-summary">Restarts the specified plan or step regardless of its current state. (<span class="nickname">plansPlanRestartPost</span>)</div>
+    <div class="method-summary">Restarts the specified plan or step regardless of its current state. (<span class="nickname">plansRestart</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -864,13 +818,19 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsGet"/>
+  <div class="method"><a name="plansStart"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods</code></pre></div>
-    <div class="method-summary">Produces a listing of the names of all pods. (<span class="nickname">podsGet</span>)</div>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/start</code></pre></div>
+    <div class="method-summary">Restarts or resumes the execution of the plan. If the plan is complete, it is restarted. If the plan is stopped, its progress is resumed. If the plan is already in progress this has no effect. (<span class="nickname">plansStart</span>)</div>
     <div class="method-notes"></div>
 
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
 
 
 
@@ -881,27 +841,55 @@ font-style: italic;
     <!--Todo: process Response Object and its headers, schema, examples -->
 
 
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
 
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
-    List of pods.
+    Received cmd: start
         <a href="#"></a>
-    <h4 class="field-label">500</h4>
-    Failed to fetch list of pod names.
+    <h4 class="field-label">404</h4>
+    Plan not found.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsNameInfoGet"/>
+  <div class="method"><a name="plansStop"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/stop</code></pre></div>
+    <div class="method-summary">Stops and resets the execution of the plan. (<span class="nickname">plansStop</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd: stop
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="Pods">Pods</a></h1>
+  <div class="method"><a name="podsGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/{name}/info</code></pre></div>
-    <div class="method-summary">Returns information about the specified pod. (<span class="nickname">podsNameInfoGet</span>)</div>
+    <div class="method-summary">Returns information about the specified pod. (<span class="nickname">podsGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -939,11 +927,77 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsNameReplacePost"/>
+  <div class="method"><a name="podsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods</code></pre></div>
+    <div class="method-summary">Produces a listing of the names of all pods. (<span class="nickname">podsList</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of pods.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to fetch list of pod names.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="podsListStatus"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/status</code></pre></div>
+    <div class="method-summary">Produces a summarized listing of all pod statuses. (<span class="nickname">podsListStatus</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of pod statuses.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to fetch list of pod statuses.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="podsReplace"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /pods/{name}/replace</code></pre></div>
-    <div class="method-summary">Restarts a pod and attempts to relaunch it on the next available cluster node. (<span class="nickname">podsNameReplacePost</span>)</div>
+    <div class="method-summary">Restarts a pod and attempts to relaunch it on the next available cluster node. (<span class="nickname">podsReplace</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -978,11 +1032,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsNameRestartPost"/>
+  <div class="method"><a name="podsRestart"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /pods/{name}/restart</code></pre></div>
-    <div class="method-summary">Restarts a pod and attempts to relaunch it on the same cluster node. (<span class="nickname">podsNameRestartPost</span>)</div>
+    <div class="method-summary">Restarts a pod and attempts to relaunch it on the same cluster node. (<span class="nickname">podsRestart</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -1017,11 +1071,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsNameStatusGet"/>
+  <div class="method"><a name="podsStatus"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/{name}/status</code></pre></div>
-    <div class="method-summary">Produces the status for the requested pod name. (<span class="nickname">podsNameStatusGet</span>)</div>
+    <div class="method-summary">Produces the status for the requested pod name. (<span class="nickname">podsStatus</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -1059,44 +1113,12 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsStatusGet"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/status</code></pre></div>
-    <div class="method-summary">Produces a summarized listing of all pod statuses. (<span class="nickname">podsStatusGet</span>)</div>
-    <div class="method-notes"></div>
-
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    List of pod statuses.
-        <a href="#"></a>
-    <h4 class="field-label">500</h4>
-    Failed to fetch list of pod statuses.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="stateFrameworkIdGet"/>
+  <h1><a name="State">State</a></h1>
+  <div class="method"><a name="stateFrameworkidGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /state/frameworkId</code></pre></div>
-    <div class="method-summary">Produces the currently registered Mesos Framework ID. (<span class="nickname">stateFrameworkIdGet</span>)</div>
+    <div class="method-summary">Produces the currently registered Mesos Framework ID. (<span class="nickname">stateFrameworkidGet</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -1131,41 +1153,8 @@ font-style: italic;
   <div class="method"><a name="statePropertiesGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /state/properties</code></pre></div>
-    <div class="method-summary">Lists any custom property keys in persistent storage. (<span class="nickname">statePropertiesGet</span>)</div>
-    <div class="method-notes"></div>
-
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-    <h3 class="field-label">Produces</h3>
-    This API call produces the following media types according to the <span class="header">Accept</span> request header;
-    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
-    <ul>
-      <li><code>application/json</code></li>
-    </ul>
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    The list of custom property keys.
-        <a href="#"></a>
-    <h4 class="field-label">500</h4>
-    Unable to fetch list of properties.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="statePropertiesKeyGet"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /state/properties/{key}</code></pre></div>
-    <div class="method-summary">Produces the content of the requested property key. (<span class="nickname">statePropertiesKeyGet</span>)</div>
+    <div class="method-summary">Produces the content of the requested property key. (<span class="nickname">statePropertiesGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -1206,11 +1195,44 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="stateRefreshPut"/>
+  <div class="method"><a name="statePropertiesList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /state/properties</code></pre></div>
+    <div class="method-summary">Lists any custom property keys in persistent storage. (<span class="nickname">statePropertiesList</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The list of custom property keys.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Unable to fetch list of properties.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="stateRefreshCache"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="put"><code class="huge"><span class="http-method">put</span> /state/refresh</code></pre></div>
-    <div class="method-summary">Refreshes the state cache. Should only be needed for debugging or if zk was manually edited while the scheduler is running. (<span class="nickname">stateRefreshPut</span>)</div>
+    <div class="method-summary">Refreshes the state cache. Should only be needed for debugging or if zk was manually edited while the scheduler is running. (<span class="nickname">stateRefreshCache</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -1247,7 +1269,7 @@ font-style: italic;
   <h2><a name="__Models">Models</a></h2>
   [ Jump to <a href="#__Methods">Methods</a> ]
 
-  <h2>Table of Contents</h2>
+  <h3>Table of Contents</h3>
   <ol>
   </ol>
 

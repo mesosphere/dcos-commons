@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Configure</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Configure</h1>
+<p><a name="changing-configuration-at-runtime"></a></p>
+
+<h1 id="changing-configuration-at-runtime">Changing Configuration at Runtime</h1>
+
+<p>You can customize your cluster in-place when it is up and running.</p>
+
+<p>The Kafka scheduler runs as a Marathon process and can be reconfigured by changing values from the DC/OS web interface. These are the general steps to follow:</p>
+
+<ol>
+  <li>Go to the <code class="highlighter-rouge">Services</code> tab of the DC/OS web interface.</li>
+  <li>Click the name of the Kafka service to be updated.</li>
+  <li>Within the Kafka instance details view, click the menu in the upper right, then choose <strong>Edit</strong>.</li>
+  <li>In the dialog that appears, click the <strong>Environment</strong> tab and update any field(s) to their desired value(s). For example, to <a href="#broker-count">increase the number of Brokers</a>, edit the value for <code class="highlighter-rouge">BROKER_COUNT</code>. Do not edit the value for <code class="highlighter-rouge">FRAMEWORK_NAME</code> or <code class="highlighter-rouge">BROKER_DISK</code> or <code class="highlighter-rouge">PLACEMENT_STRATEGY</code>.</li>
+  <li>A <code class="highlighter-rouge">PHASE_STRATEGY</code> of <code class="highlighter-rouge">STAGE</code> should also be set. See “Configuration Deployment Strategy” below for more details.</li>
+  <li>Click <strong>REVIEW &amp; RUN</strong> to apply any changes and cleanly reload the Kafka scheduler. The Kafka cluster itself will persist across the change.</li>
+</ol>
+
+<h2 id="configuration-deployment-strategy">Configuration Deployment Strategy</h2>
+
+<p>Configuration updates are rolled out through execution of Update Plans. You can configure the way these plans are executed.</p>
+
+<h2 id="configuration-update-plans">Configuration Update Plans</h2>
+
+<p>In brief, “plans” are composed of “phases,” which are in turn composed of “steps.” Two possible configuration update strategies specify how the steps are executed. These strategies are specified by setting the <code class="highlighter-rouge">PHASE_STRATEGY</code> environment variable on the scheduler. By default, the strategy is <code class="highlighter-rouge">INSTALL</code>, which rolls changes out to one broker at a time with no pauses.</p>
+
+<p>The alternative is the <code class="highlighter-rouge">STAGE</code> strategy. This strategy injects two mandatory human decision points into the configuration update process. Initially, no configuration update will take place: the service waits for a human to confirm the update plan is correct. You may then decide to either continue the configuration update through a REST API call, or roll back the configuration update by replacing the original configuration through the DC/OS web interface in exactly the same way as a configuration update is specified above.</p>
+
+<p>After specifying that an update should continue, one step representing one broker will be updated and the configuration update will again pause. At this point, you have a second opportunity to roll back or continue. If you decide to continue a second time, the rest of the brokers will be updated one at a time until all the brokers are using the new configuration. You may interrupt an update at any point. After interrupting, you can choose to continue or roll back. Consult the “Configuration Update REST API” for these operations.</p>
+
+<h2 id="configuration-update-rest-api">Configuration Update REST API</h2>
+
+<p>There are two phases in the update plans for Kafka: Mesos task reconciliation and update. Mesos task reconciliation is always executed without need for human interaction.</p>
+
+<p>Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
+GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+
+{
+  "phases": [
+    {
+      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
+      "name": "Reconciliation",
+      "steps": [
+        {
+          "id": "9854a67d-7803-46d0-b278-402785fe3199",
+          "status": "COMPLETE",
+          "name": "Reconciliation",
+          "message": "Reconciliation complete"
+        }
+      ],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
+      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
+      "steps": [
+        {
+          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
+          "status": "COMPLETE",
+          "name": "broker-0",
+          "message": "Broker-0 is COMPLETE"
+        },
+        {
+          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
+          "status": "COMPLETE",
+          "name": "broker-1",
+          "message": "Broker-1 is COMPLETE"
+        },
+        {
+          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
+          "status": "COMPLETE",
+          "name": "broker-2",
+          "message": "Broker-2 is COMPLETE"
+        }
+      ],
+      "status": "COMPLETE"
+    }
+  ],
+  "errors": [],
+  "status": "COMPLETE"
+}
+</code></pre>
+</div>
+
+<p>When using the <code class="highlighter-rouge">STAGE</code> deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
+GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+
+{
+  "phases": [
+    {
+      "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
+      "name": "Reconciliation",
+      "steps": [
+        {
+          "id": "2d137273-249b-455e-a65c-3c83228890b3",
+          "status": "COMPLETE",
+          "name": "Reconciliation",
+          "message": "Reconciliation complete"
+        }
+      ],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
+      "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
+      "steps": [
+        {
+          "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
+          "status": "PENDING",
+          "name": "broker-0",
+          "message": "Broker-0 is WAITING"
+        },
+        {
+          "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
+          "status": "PENDING",
+          "name": "broker-1",
+          "message": "Broker-1 is WAITIN"
+        },
+        {
+          "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
+          "status": "PENDING",
+          "name": "broker-2",
+          "message": "Broker-2 is PENDING"
+        }
+      ],
+      "status": "WAITING"
+    }
+  ],
+  "errors": [],
+  "status": "WAITING"
+}
+</code></pre>
+</div>
+
+<p><strong>Note:</strong> After a configuration update, you may see an error from Mesos-DNS; this will go away 10 seconds after the update.</p>
+
+<p>Enter the <code class="highlighter-rouge">continue</code> command to execute the first step:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X PUT -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan?cmd=continue"
+PUT $DCOS_URI/service/kafka/v1/continue HTTP/1.1
+
+{
+    "Result": "Received cmd: continue"
+}
+</code></pre>
+</div>
+
+<p>After you execute the continue operation, the plan will look like this:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
+GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+
+{
+  "phases": [
+    {
+      "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
+      "name": "Reconciliation",
+      "steps": [
+        {
+          "id": "2d137273-249b-455e-a65c-3c83228890b3",
+          "status": "COMPLETE",
+          "name": "Reconciliation",
+          "message": "Reconciliation complete"
+        }
+      ],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
+      "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
+      "steps": [
+        {
+          "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
+          "status": "IN_PROGRESS",
+          "name": "broker-0",
+          "message": "Broker-0 is IN_PROGRESS"
+        },
+        {
+          "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
+          "status": "WAITING",
+          "name": "broker-1",
+          "message": "Broker-1 is WAITING"
+        },
+        {
+          "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
+          "status": "PENDING",
+          "name": "broker-2",
+          "message": "Broker-2 is PENDING"
+        }
+      ],
+      "status": "IN_PROGRESS"
+    }
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}   
+</code></pre>
+</div>
+
+<p>If you enter <code class="highlighter-rouge">continue</code> a second time, the rest of the plan will be executed without further interruption. If you want to interrupt a configuration update that is in progress, enter the <code class="highlighter-rouge">interrupt</code> command:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X PUT -H "Authorization: token=$AUTH_TOKEN"  "$DCOS_URI/service/kafka/v1/plan?cmd=interrupt"
+PUT $DCOS_URI/service/kafka/v1/interrupt HTTP/1.1
+
+{
+    "Result": "Received cmd: interrupt"
+}
+</code></pre>
+</div>
+
+<p><strong>Note:</strong> The interrupt command can’t stop a step that is <code class="highlighter-rouge">InProgress</code>, but it will stop the change on the subsequent steps.</p>
+
+<h1 id="configuration-options">Configuration Options</h1>
+
+<p>The following describes the most commonly used features of the Kafka service and how to configure them via the DC/OS CLI and from the DC/OS web interface. View the <a href="https://github.com/mesosphere/universe/tree/1-7ea/repo/packages/K/kafka/6">default <code class="highlighter-rouge">config.json</code> in DC/OS Universe</a> to see all possible configuration options.</p>
+
+<h2 id="service-name">Service Name</h2>
+
+<p>The name of this Kafka instance in DC/OS. This is an option that cannot be changed once the Kafka cluster is started: it can only be configured via the DC/OS CLI <code class="highlighter-rouge">--options</code> flag when the Kafka instance is created.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">name</code>: string (default: <code class="highlighter-rouge">kafka</code>)</li>
+  <li><strong>DC/OS web interface</strong>: The service name cannot be changed after the cluster has started.</li>
+</ul>
+
+<h2 id="broker-count">Broker Count</h2>
+
+<p>Configure the number of brokers running in a given Kafka cluster. The default count at installation is three brokers. This number may be increased, but not decreased, after installation.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">broker-count</code>: integer (default: <code class="highlighter-rouge">3</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BROKER_COUNT</code>: <code class="highlighter-rouge">integer</code></li>
+</ul>
+
+<h2 id="broker-port">Broker Port</h2>
+
+<p>Configure the port number that the brokers listen on. If the port is set to a particular value, this will be the port used by all brokers. The default port is 9092.  Note that this requires that <code class="highlighter-rouge">placement-strategy</code> be set to <code class="highlighter-rouge">NODE</code> to take effect, since having every broker listening on the same port requires that they be placed on different hosts. Setting the port to 0 indicates that each Broker should have a random port in the 9092-10092 range.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">broker-port</code>: integer (default: <code class="highlighter-rouge">9092</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BROKER_PORT</code>: <code class="highlighter-rouge">integer</code></li>
+</ul>
+
+<h2 id="configure-broker-placement-strategy">Configure Broker Placement Strategy</h2>
+
+<p><code class="highlighter-rouge">ANY</code> allows brokers to be placed on any node with sufficient resources, while <code class="highlighter-rouge">NODE</code> ensures that all brokers within a given Kafka cluster are never colocated on the same node. This is an option that cannot be changed once the Kafka cluster is started: it can only be configured via the DC/OS CLI <code class="highlighter-rouge">--options</code> flag when the Kafka instance is created.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">placement-strategy</code>: <code class="highlighter-rouge">ANY</code> or <code class="highlighter-rouge">NODE</code> (default: <code class="highlighter-rouge">ANY</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">PLACEMENT_STRATEGY</code>: <code class="highlighter-rouge">ANY</code> or <code class="highlighter-rouge">NODE</code></li>
+</ul>
+
+<h2 id="configure-kafka-broker-properties">Configure Kafka Broker Properties</h2>
+
+<p>Kafka Brokers are configured through settings in a server.properties file deployed with each Broker. The settings here can be specified at installation time or during a post-deployment configuration update. They are set in the DC/OS Universe’s config.json as options such as:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>"log_retention_hours": {
+    "title": "log.retention.hours",
+    "description": "Override log.retention.hours: The number of hours to keep a log file before deleting it (in hours), tertiary to log.retention.ms property",
+    "type": "integer",
+    "default": 168
+},
+</code></pre>
+</div>
+
+<p>The defaults can be overridden at install time by specifying an options.json file with a format like this:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"log_retention_hours"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>These same values are also represented as environment variables for the scheduler in the form <code class="highlighter-rouge">KAFKA_OVERRIDE_LOG_RETENTION_HOURS</code> and may be modified through the DC/OS web interface and deployed during a rolling upgrade as <a href="#changing-configuration-at-runtime">described here</a>.</p>
+
+<p><a name="disk-type"></a></p>
+<h2 id="disk-type">Disk Type</h2>
+
+<p>The type of disks that can be used for storing broker data are: <code class="highlighter-rouge">ROOT</code> (default) and <code class="highlighter-rouge">MOUNT</code>.  The type of disk may only be specified at install time.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">ROOT</code>: Broker data is stored on the same volume as the agent work directory. Broker tasks will use the configured amount of disk space.</li>
+  <li><code class="highlighter-rouge">MOUNT</code>: Broker data will be stored on a dedicated volume attached to the agent. Dedicated MOUNT volumes have performance advantages and a disk error on these MOUNT volumes will be correctly reported to Kafka.</li>
+</ul>
+
+<p>Configure Kafka service to use dedicated disk volumes:</p>
+<ul>
+  <li><strong>DC/OS cli options.json</strong>:</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"disk_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MOUNT"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">DISK_TYPE</code>: <code class="highlighter-rouge">MOUNT</code></li>
+</ul>
+
+<p>When configured to <code class="highlighter-rouge">MOUNT</code> disk type, the scheduler selects a disk on an agent whose capacity is equal to or greater than the configured <code class="highlighter-rouge">disk</code> value.</p>
+
+<h2 id="jvm-heap-size">JVM Heap Size</h2>
+
+<p>Kafka service allows configuration of JVM Heap Size for the broker JVM process. To configure it:</p>
+<ul>
+  <li><strong>DC/OS cli options.json</strong>:</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"heap"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEAP_MB</code>: <code class="highlighter-rouge">2000</code></li>
+</ul>
+
+<p><strong>Note</strong>: The total memory allocated for the Mesos task is specified by the <code class="highlighter-rouge">BROKER_MEM</code> configuration parameter. The value for <code class="highlighter-rouge">BROKER_HEAP_MB</code> should not be greater than <code class="highlighter-rouge">BROKER_MEM</code> value. Also, if <code class="highlighter-rouge">BROKER_MEM</code> is greater than <code class="highlighter-rouge">BROKER_HEAP_MB</code> then the Linux operating system will use <code class="highlighter-rouge">BROKER_MEM</code> - <code class="highlighter-rouge">BROKER_HEAP_MB</code> for <a href="https://en.wikipedia.org/wiki/Page_cache">PageCache</a>.</p>
+
+<h2 id="alternate-zookeeper">Alternate ZooKeeper</h2>
+
+<p>By default the Kafka framework uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time.
+To configure it:</p>
+<ul>
+  <li><strong>DC/OS CLI options.json</strong>:</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"kafka_zookeeper_uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"zookeeper.marathon.mesos:2181"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>This configuration option cannot be changed after installation.</p>
+
+<h2 id="recovery-and-health-checks">Recovery and Health Checks</h2>
+
+<p>You can enable automated replacement of brokers and configure the circumstances under which they are replaced.</p>
+
+<h3 id="enable-broker-replacement">Enable Broker Replacement</h3>
+
+<p>To enable automated replacement:</p>
+
+<ul>
+  <li><strong>DC/OS CLI options.json</strong>:</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"enable_replacement"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"Enable automated replacement of Brokers. WARNING: May cause data loss. See documentation."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"boolean"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="kc">false</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">ENABLE_REPLACEMENT</code>: <code class="highlighter-rouge">true</code> to enable replacement.</li>
+</ul>
+
+<p><strong>Warning:</strong> The replacement mechanism is unaware of whether the broker it is destructively replacing had the latest copy of data. Depending on your replication policy and the degree and duration of the permanent failures, you may lose data.</p>
+
+<p>The following configuration options control the circumstances under which a broker is replaced.</p>
+
+<h3 id="minumum-grace-period">Minumum Grace Period</h3>
+
+<p>Configure the minimum amount of time before a broker should be replaced:</p>
+
+<ul>
+  <li><strong>DC/OS CLI options.json</strong>:</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">   
+        </span><span class="nt">"recover_in_place_grace_period_secs"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The minimum amount of time (in minutes) which must pass before a Broker may be destructively replaced."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">1200</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">RECOVERY_GRACE_PERIOD_SEC</code>: <code class="highlighter-rouge">1200</code></li>
+</ul>
+
+<h3 id="minumum-delay-between-replacements">Minumum Delay Between Replacements</h3>
+
+<p>Configure the minimum amount of time between broker replacements.</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"min_delay_between_recovers_secs"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The minimum amount of time (in seconds) which must pass between destructive replacements of Brokers."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">600</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">REPLACE_DELAY_SEC</code>: <code class="highlighter-rouge">600</code></li>
+</ul>
+
+<p>The following configurations control the health checks that determine when a broker has failed:</p>
+
+<h3 id="enable-health-check">Enable Health Check</h3>
+
+<p>Enable health checks on brokers:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"enable_health_check"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"Enable automated detection of Broker failures which did not result in a Broker process exit."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"boolean"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="kc">true</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">ENABLE_BROKER_HEALTH_CHECK</code>: <code class="highlighter-rouge">true</code></li>
+</ul>
+
+<h3 id="health-check-delay">Health Check Delay</h3>
+
+<p>Set the amount of time before the health check begins:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"health_check_delay_sec"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The period of time (in seconds) waited before the health-check begins execution."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">15</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEALTH_CHECK_DELAY_SEC</code>: <code class="highlighter-rouge">15</code></li>
+</ul>
+
+<h3 id="health-check-interval">Health Check Interval</h3>
+
+<p>Set the interval between health checks:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"health_check_interval_sec"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The period of time (in seconds) between health-check executions."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">10</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEALTH_CHECK_INTERVAL_SEC</code>: <code class="highlighter-rouge">10</code></li>
+</ul>
+
+<h3 id="health-check-timeout">Health Check Timeout</h3>
+
+<p>Set the time a health check can take to complete before it is considered a failed check:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"health_check_timeout_sec"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The duration (in seconds) allowed for a health-check to complete before it is considered a failure."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">20</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEALTH_CHECK_TIMEOUT_SEC</code>: <code class="highlighter-rouge">20</code></li>
+</ul>
+
+<h3 id="health-check-grace-period">Health Check Grace Period</h3>
+
+<p>Set the amount of time after the delay before health check failures count toward the maximum number of consecutive failures:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"health_check_grace_period_sec"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The period of time after the delay (in seconds) before health-check failures count towards the maximum consecutive failures."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">10</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEALTH_CHECK_GRACE_SEC</code>: <code class="highlighter-rouge">10</code></li>
+</ul>
+
+<h3 id="maximum-consecutive-health-check-failures">Maximum Consecutive Health Check Failures</h3>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"health_check_max_consecutive_failures"</span><span class="p">:{</span><span class="w">
+            </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"The the number of consecutive failures which cause a Broker process to exit."</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">3</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li><strong>DC/OS web interface</strong>: Set the environment variable <code class="highlighter-rouge">BROKER_HEALTH_CHECK_MAX_FAILURES</code>: <code class="highlighter-rouge">3</code></li>
+</ul>
+
+
+</div>
+</body>
+
+</html>

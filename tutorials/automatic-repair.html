@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Automatic Repair</title>
+<link rel="stylesheet" type="text/css" media="all" href="../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../Dropdown.css" />
+<script src="../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../glossary.html">Glossary</a></li>
+      
+      <li><a href="../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Automatic Repair</h1>
+<h1 id="integrating-the-automatic-repair-scheduler-feature">Integrating the Automatic Repair Scheduler Feature</h1>
+
+<p>dcos-commons provides a framework to add automatic repairs to your scheduler.
+Automatic repairs means that we can detect when a container crashes and restart it attached to the same resources if possible, and otherwise start it elsewhere on the cluster.</p>
+
+<h2 id="terminology">Terminology</h2>
+
+<p>Here we’ll collect some of the terms used throughout the code.</p>
+
+<h3 id="stopped-task">Stopped task</h3>
+
+<p>A task is considered stopped when it first transitions to a terminal state.
+Stopped tasks might have undergone a transient issue; because of this, they will be attempted to be restarted in place.
+This allows them to use any persistent data they’ve written to disk–critical for a database!</p>
+
+<h3 id="failed-task">Failed task</h3>
+
+<p>A task is considered failed when it is definitely not going to be launched again in place.
+Failed tasks represent situations where the machine or data is corrupt, and we need to perform heavier-weight recovery.
+Failed tasks have lost all their data.</p>
+
+<h2 id="usage">Usage</h2>
+
+<p>The main entrypoint for the automatic repair functionality is the <code class="highlighter-rouge">RepairScheduler</code>.
+Once you create a <code class="highlighter-rouge">RepairScheduler</code>, you simple call <code class="highlighter-rouge">resourceOffers</code> whenever you’d like the repairs to run.</p>
+
+<p>You may also create a <code class="highlighter-rouge">RepairController</code> to expose an API to interact with the RepairScheduler.</p>
+
+<h3 id="developer-steps">Developer Steps</h3>
+
+<p>To integrate the repair scheduler, you’ll first need to implement 2 interfaces: <code class="highlighter-rouge">RecoveryRequirementProvider</code> and <code class="highlighter-rouge">TaskFailureListener</code>.
+These are specific to your framework.</p>
+
+<p>At this point, you’ll be able to create a <code class="highlighter-rouge">PlanManager</code> which implements a repair schedule.
+Some users may wish to build custom <code class="highlighter-rouge">LaunchConstrainer</code>s or <code class="highlighter-rouge">FailureMonitor</code>s if the included behaviors don’t meet your needs.</p>
+
+<p>Most of the parameters to the <code class="highlighter-rouge">RepairScheduler</code> are self-explanatory.
+We’ll elaborate on a few of the APIs specific to the <code class="highlighter-rouge">RepairScheduler</code>.</p>
+
+<h3 id="repairofferrequirementprovider"><code class="highlighter-rouge">RepairOfferRequirementProvider</code></h3>
+
+<p>The <code class="highlighter-rouge">RepairOfferRequirementProvider</code> has 2 methods to create new <code class="highlighter-rouge">OfferRequirement</code>s to relaunch stopped and failed tasks.</p>
+
+<p><code class="highlighter-rouge">getReplacementOfferRequirement</code> takes the terminated task as an argument and returns a new <code class="highlighter-rouge">OfferRequirement</code> that will relaunch that task using the resources from the terminated task.</p>
+
+<p><code class="highlighter-rouge">maybeGetNewOfferRequirement</code> has the flexibility to decide, based on the current <code class="highlighter-rouge">Block</code>, the current configuration, and any failed tasks its learned of via the <code class="highlighter-rouge">TaskFailureListener</code> to make an <code class="highlighter-rouge">OfferRequirement</code> to relaunch a task.
+If there’s nothing it wants to do, it should return an empty <code class="highlighter-rouge">Optional</code>.</p>
+
+<h3 id="taskfailurelistener"><code class="highlighter-rouge">TaskFailureListener</code></h3>
+
+<p><code class="highlighter-rouge">TaskFailureListener</code> is used to notify the framework when a failed task transitions to the failed state.
+This allows the framework to do whatever it needs to do in order be able to provider new offer requirements for relaunching the stopped task.</p>
+
+<h3 id="failuremonitor"><code class="highlighter-rouge">FailureMonitor</code></h3>
+
+<p>The <code class="highlighter-rouge">FailureMonitor</code> is responsible for determining when a stopped task should transition to the failed state.
+Many frameworks may prefer to use the <code class="highlighter-rouge">TimedFailureMonitor</code>, which allows you to express how many minutes to wait until the task can be trusted to be never coming back.
+There’s also a <code class="highlighter-rouge">TestingFailureMonitor</code>, which is useful for writing tests to control the behavior of the repair scheduler.</p>
+
+<h3 id="launchconstrainer"><code class="highlighter-rouge">LaunchConstrainer</code></h3>
+
+<p>The <code class="highlighter-rouge">LaunchConstrainer</code> is repsonsible for enforcing safety and performance constraints when relaunching stopped &amp; failed tasks.
+This way, you can ensure that relaunching doesn’t overload the replication mechanisms of the database, or occur at a bad time.
+By default, we include a constrainer that does simple rate limiting, and a constrainer designed for making it easy to write tests.
+You may wish to write your own constrainers that restrict launches to off-peak times, or observe internal database metrics to decide when it’s safe to launch.</p>
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Troubleshooting</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Troubleshooting</h1>
+<p>The Kafka service will be listed as “Unhealthy” when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
+
+<p>Possible repair actions include <code class="highlighter-rouge">dcos kafka broker restart &lt;broker-id&gt;</code> and <code class="highlighter-rouge">dcos kafka broker replace &lt;broker-id&gt;</code>. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.</p>
+
+<h1 id="configuration-update-errors">Configuration Update Errors</h1>
+
+<p>The bolded entries below indicate the necessary changes needed to create a valid configuration:</p>
+
+<pre>
+$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
+GET /service/kafka/v1/plan HTTP/1.1
+
+{
+    "phases": [
+        {
+             "id": "c26bec40-3290-4501-b3da-945d0abef55f",
+            "name": "Reconciliation",
+            "steps": [
+                {
+                    "id": "e56d2e4a-e05b-42ad-b4a0-d74b68d206af",
+                    "message": "Reconciliation complete",
+                    "name": "Reconciliation",
+                    "status": "COMPLETE"
+                },
+                "status": "COMPLETE"
+            ]
+        },
+        {
+            
+            "id": "226a780e-132f-4fea-b584-7712b07cf357",
+            "name": "Update to: 72cecf77-dbc5-4ae6-8f91-c88702b9a6a8",
+            "steps": [
+                {
+                    "id": "d4e72ee8-4608-423a-9566-1632ff0ab211",
+                    "message": "Broker-0 is COMPLETE",
+                    "name": "broker-0",
+                    "status": "COMPLETE"
+                },
+                {
+                    "id": "3ea30deb-9660-42f1-ad23-bd418d718999",
+                    "message": "Broker-1 is COMPLETE",
+                    "name": "broker-1",
+                    "status": "COMPLETE"
+                },
+                {
+                    "id": "4da21440-de73-4772-9c85-877f2677e62a",
+                    "message": "Broker-2 is COMPLETE",
+                    "name": "broker-2",
+                    "status": "COMPLETE"
+                }
+            ],
+            "status": "COMPLETE"
+        }
+    ],
+    
+    <b>"errors": [
+        "Validation error on field \"BROKER_COUNT\": Decreasing this value (from 3 to 2) is not supported."
+    ],</b>
+    <b>"status": "Error"</b>
+}
+</pre>
+
+<h1 id="replacing-a-permanently-failed-server">Replacing a Permanently Failed Server</h1>
+
+<p>If a machine has permanently failed, manual intervention is required to replace the broker or brokers that resided on that machine. Because DC/OS Kafka uses persistent volumes, the service continuously attempts to replace brokers where their data has been persisted. In the case where a machine has permanently failed, use the Kafka CLI to replace the brokers.</p>
+
+<p>In the example below, the broker with id <code class="highlighter-rouge">0</code> will be replaced on new machine as long as cluster resources are sufficient to satisfy the service’s placement constraints and resource requirements.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka broker replace 0
+</code></pre>
+</div>
+
+
+</div>
+</body>
+
+</html>

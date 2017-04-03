@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Install and Customize</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Install and Customize</h1>
+<p>Kafka is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.</p>
+
+<h2 id="prerequisites"><a name="install-enterprise"></a>Prerequisites</h2>
+
+<ul>
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+    <ul>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
+      <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
+    </ul>
+  </li>
+  <li>Your cluster must have at least three private nodes.</li>
+</ul>
+
+<h1 id="default-installation">Default Installation</h1>
+
+<p>To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="#install-enterprise">More information about installing Kafka on Enterprise DC/OS</a>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install kafka
+</code></pre>
+</div>
+
+<p>This command creates a new Kafka cluster with the default name <code class="highlighter-rouge">kafka</code>. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
+
+<p>All <code class="highlighter-rouge">dcos kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name kafka-dev &lt;cmd&gt;
+</code></pre>
+</div>
+
+<p><strong>Note:</strong> You can also <a href="https://docs.mesosphere.com/1.8/usage/managing-services/install/">install Kafka from the DC/OS GUI</a>.</p>
+
+<h1 id="minimal-installation">Minimal Installation</h1>
+
+<p>For development purposes, you may wish to install Kafka on a local DC/OS cluster. For this, you can use <a href="https://github.com/mesosphere/dcos-vagrant">dcos-vagrant</a>.</p>
+
+<p>To start a minimal cluster with a single broker, create a JSON options file named <code class="highlighter-rouge">sample-kafka-minimal.json</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka-minimal.json</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-kafka-minimal.json kafka
+</code></pre>
+</div>
+
+<p><a name="custom-installation"></a></p>
+<h1 id="custom-installation">Custom Installation</h1>
+
+<p>Customize the defaults by creating a JSON file. Then, pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
+
+<p>Sample JSON options file named <code class="highlighter-rouge">sample-kafka-custom.json</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sample-kafka-custom"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"placement_strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NODE"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"delete_topic_enable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"log_retention_hours"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka.json</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-kafka-custom.json kafka
+</code></pre>
+</div>
+
+<p>See <a href="https://docs.mesosphere.com/1.9/usage/service-guides/kafka/configure#configuration-options">Configuration Options</a> for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.</p>
+
+<h1 id="multiple-kafka-cluster-installation">Multiple Kafka cluster installation</h1>
+
+<p>Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique <code class="highlighter-rouge">name</code> is specified for each installation. For example:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cat kafka1.json
+{
+    "service": {
+        "name": "kafka1"
+    }
+}
+
+$ dcos package install kafka --options=kafka1.json
+</code></pre>
+</div>
+
+
+</div>
+</body>
+
+</html>

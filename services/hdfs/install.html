@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>HDFS: Install and Customize</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>HDFS: Install and Customize</h1>
+<p>HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="/1.9/administration/id-and-access-mgt/service-auth/hdfs-auth/">need to provision a service account</a> before installing HDFS. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+    <ul>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
+      <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
+    </ul>
+  </li>
+  <li>A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.</li>
+  <li>Each agent node must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.</li>
+</ul>
+
+<h1 id="default-installation">Default Installation</h1>
+
+<p>Install HDFS from the DC/OS CLI.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install hdfs
+</code></pre>
+</div>
+
+<p>This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the <code class="highlighter-rouge">name</code> at install time for each additional instance. See the Custom Installation section for more information.</p>
+
+<p>The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.</p>
+
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/1.9/usage/managing-services/install/">install HDFS from the DC/OS GUI</a>.</p>
+
+<h1 id="custom-installation">Custom Installation</h1>
+
+<p>If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
+
+<p>Sample JSON options file named <code class="highlighter-rouge">sample-hdfs.json</code>:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"data_node"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The command below creates a cluster using <code class="highlighter-rouge">sample-hdfs.json</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-hdfs.json hdfs
+</code></pre>
+</div>
+
+<p>This cluster will have 10 data nodes instead of the default value of 3.
+See the Configuration section for a list of fields that can be customized via a options JSON file when the HDFS cluster is created.</p>
+
+<h1 id="minimal-installation">Minimal Installation</h1>
+<p>Many of the other Infinity services currently support DC/OS Vagrant deployment. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.</p>
+
+<h1 id="multiple-hdfs-cluster-installation">Multiple HDFS cluster Installation</h1>
+
+<p>Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique <code class="highlighter-rouge">name</code> for each installation:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cat hdfs1.json
+
+{
+   "service": {
+       "name": "hdfs1"
+   }
+}
+
+$ dcos package install hdfs --options=hdfs1.json
+</code></pre>
+</div>
+
+<p>Use the <code class="highlighter-rouge">--name</code> argument after install time to specify which HDFS instance to query. All <code class="highlighter-rouge">dcos hdfs</code> CLI commands accept the <code class="highlighter-rouge">--name</code> argument. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">hdfs</code>.</p>
+
+<h1 id="colocation">Colocation</h1>
+
+<p>An individual HDFS deployment will colocate name nodes with journal nodes, but it will not colocate two name nodes or two journal nodes on the same agent node in the cluster. Data nodes may be colocated with both name nodes and journal nodes. If multiple clusters are installed, they may share the same agent nodes in the cluster provided that no ports specified in the service configurations conflict for those node types.</p>
+
+<h1 id="installation-plan">Installation Plan</h1>
+
+<p>When the DC/OS HDFS service is initially installed, it generates an installation plan as shown below.</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+	</span><span class="err">phases:</span><span class="w"> </span><span class="err">[{</span><span class="w">
+		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"0c64b701-6b8b-440e-93e1-6c43b05abfc2"</span><span class="err">,</span><span class="w">
+		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"jn-deploy"</span><span class="p">,</span><span class="w">
+		</span><span class="err">steps</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"ba608f90-32c6-42e0-93c7-a6b51fc2e52b"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETE"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"journal-0:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-0:[node] [ba608f90-32c6-42e0-93c7-a6b51fc2e52b]' has status: 'COMPLETE'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"f29c13d8-a477-4e2b-84ac-046cd8a7d283"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETE"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"journal-1:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-1:[node] [f29c13d8-a477-4e2b-84ac-046cd8a7d283]' has status: 'COMPLETE'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"75da5719-9296-4872-887a-cc1ab157191b"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETE"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"journal-2:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-2:[node] [75da5719-9296-4872-887a-cc1ab157191b]' has status: 'COMPLETE'."</span><span class="w">
+		</span><span class="p">}],</span><span class="w">
+		</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETE"</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"967aadc8-ef25-402e-b81a-9fcab0e57463"</span><span class="err">,</span><span class="w">
+		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"nn-deploy"</span><span class="p">,</span><span class="w">
+		</span><span class="err">steps</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"33d02aa7-0927-428b-82d7-cec93cfde090"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETE"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"name-0:[format]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[format] [33d02aa7-0927-428b-82d7-cec93cfde090]' has status: 'COMPLETE'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"62f048f4-7b6c-4ea0-8509-82b328d40e61"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"STARTING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"name-0:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[node] [62f048f4-7b6c-4ea0-8509-82b328d40e61]' has status: 'STARTING'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"e7b8aa27-39b2-4aba-9d87-3b47c752878f"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"name-1:[bootstrap]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[bootstrap] [e7b8aa27-39b2-4aba-9d87-3b47c752878f]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"cd633e0d-6aac-45a9-b764-296676fc228d"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"name-1:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[node] [cd633e0d-6aac-45a9-b764-296676fc228d]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">}],</span><span class="w">
+		</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"IN_PROGRESS"</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"248fa719-dc57-4ef9-9c48-5e6e1218b6c2"</span><span class="err">,</span><span class="w">
+		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"zkfc-deploy"</span><span class="p">,</span><span class="w">
+		</span><span class="err">steps</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"812ae290-e6a4-4128-b486-7288e855bfe6"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"zkfc-0:[format]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[format] [812ae290-e6a4-4128-b486-7288e855bfe6]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"8a401585-a5af-4540-94f0-dada95093329"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"zkfc-0:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[node] [8a401585-a5af-4540-94f0-dada95093329]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"7eabc15d-7feb-4546-8699-0fadac1f303b"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"zkfc-1:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-1:[node] [7eabc15d-7feb-4546-8699-0fadac1f303b]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">}],</span><span class="w">
+		</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"ddb20a39-830b-417b-a901-5b9027e459f7"</span><span class="err">,</span><span class="w">
+		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"dn-deploy"</span><span class="p">,</span><span class="w">
+		</span><span class="err">steps</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
+			</span><span class="err">id:</span><span class="w"> </span><span class="nt">"018deb17-8853-4d3b-820c-6b2caa55743f"</span><span class="err">,</span><span class="w">
+			</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+			</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"data-0:[node]"</span><span class="p">,</span><span class="w">
+			</span><span class="err">message</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'data-0:[node] [018deb17-8853-4d3b-820c-6b2caa55743f]' has status: 'PENDING'."</span><span class="w">
+		</span><span class="p">}],</span><span class="w">
+		</span><span class="err">status</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="w">
+	</span><span class="p">}</span><span class="err">],</span><span class="w">
+	</span><span class="err">errors:</span><span class="w"> </span><span class="p">[]</span><span class="err">,</span><span class="w">
+	</span><span class="err">status:</span><span class="w"> </span><span class="s2">"IN_PROGRESS"</span><span class="w">
+</span><span class="err">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<h2 id="viewing-the-installation-plan">Viewing the Installation Plan</h2>
+<p>The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
+</code></pre>
+</div>
+
+<h2 id="plan-errors">Plan Errors</h2>
+<p>The plan will display any errors that prevent installation in the errors list. The presence of any error indicates that the installation cannot progress. See the Troubleshooting section for information on resolving errors.</p>
+
+<h2 id="quorum-journal">Quorum Journal</h2>
+<p>The first phase of the installation is the Quorum Journal phase. This phase will deploy three journal nodes to provide a Quorum Journal for the HA name service. Each step in the phase represents an individual journal node.</p>
+
+<h2 id="name-service">Name Service</h2>
+<p>The second phase of the installation is deployment of the HA name service. This phase deploys two name nodes.  Needed format and bootstrap operations occur as necessary.</p>
+
+<h2 id="zkfc">ZKFC</h2>
+<p>The third phase of the installation is deployment of the ZKFC nodes. This phase deploys two ZKFC nodes to enable ZooKeeper failure detection. Each step represents an individual ZKFC node, and there are always exactly two.</p>
+
+<h2 id="distributed-storage">Distributed Storage</h2>
+<p>The final phase of the installation is deployment of the distributed storage service. This phase deploys the data nodes that are configured to act as storage for the cluster. The number of data nodes can be reconfigured post installation.</p>
+
+<h2 id="pausing-installation">Pausing Installation</h2>
+<p>To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+</code></pre>
+</div>
+
+<h2 id="resuming-installation">Resuming Installation</h2>
+<p>If the installation has been paused, the REST API request below will resume installation at the next pending node.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
+</code></pre>
+</div>
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>HDFS: Kick the Tires</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../Dropdown.css" />
+<script src="../../Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../../index.html">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../../index.html">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      <li><a href="../../swagger-api/index.html">REST APIs</a></li>
+      <li><a href="../../api/index.html">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>HDFS: Kick the Tires</h1>
+<ol>
+  <li>
+    <p>Perform a default installation of HDFS by following the instructions in the Install and Customize section of this topic.
+  <strong>Note:</strong> Your cluster must have a minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.</p>
+  </li>
+  <li>
+    <p><a href="https://docs.mesosphere.com/1.9/administration/sshcluster/">SSH into a DC/OS node</a>.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos node ssh --leader --master-proxy
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Run the Hadoop client.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>docker run -it mesosphere/hdfs-client:1.0.0-2.6.0 bash
+ <span class="nv">$ </span>./bin/hdfs dfs -ls /
+</code></pre>
+    </div>
+
+    <p>By default, the client is configured to be configured to connect to an HDFS service named <code class="highlighter-rouge">hdfs</code> and no further client configuration is required.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>./bin/hdfs dfs -ls /
+</code></pre>
+    </div>
+
+    <p>If an HDFS cluster has been installed that does not use the default name of <code class="highlighter-rouge">hdfs</code>, you must configure the client before use.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ HDFS_SERVICE_NAME</span><span class="o">=</span>&lt;hdfs-alternate-name&gt; /configure-hdfs.sh
+ <span class="nv">$ </span>./bin/hdfs dfs -ls /
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>To configure other clients, return to the DC/OS CLI. Retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> files with the <code class="highlighter-rouge">dcos hdfs endpoints</code> command and the <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> argument:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos hdfs endpoints hdfs-site.xml
+</code></pre>
+    </div>
+
+    <div class="language-xml highlighter-rouge"><pre class="highlight"><code> <span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+ <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span>
+ <span class="nt">&lt;configuration&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.nameservices<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.ha.namenodes.hdfs<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>name-0-node,name-1-node<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+     <span class="c">&lt;!-- namenode --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.shared.edits.dir<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>qjournal://journal-0-node.hdfs.mesos:8485;journal-1-node.hdfs.mesos:8485;journal-2-node.hdfs.mesos:8485/hdfs<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.name.dir<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>/name-data<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.safemode.threshold-pct<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.9<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.heartbeat.recheck-interval<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>60000<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.handler.count<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>20<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.invalidate.work.pct.per.iteration<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.95<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.replication.work.multiplier.per.iteration<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>4<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.datanode.registration.ip-hostname-check<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>false<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+
+     <span class="c">&lt;!-- name-0-node --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.mesos:9001<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.mesos:9002<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+
+     <span class="c">&lt;!-- name-1-node --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.mesos:9001<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.mesos:9002<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+     <span class="c">&lt;!-- journalnode --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.journalnode.rpc-address<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0:8485<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.journalnode.http-address<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0:8480<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.journalnode.edits.dir<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>/journal-data<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+     <span class="c">&lt;!-- datanode --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.address<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0:9003<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.http.address<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0:9004<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.ipc.address<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>0.0.0.0:9005<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.data.dir<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>/data-data<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.balance.bandwidthPerSec<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>41943040<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.datanode.handler.count<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>10<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+     <span class="c">&lt;!-- HA --&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>ha.zookeeper.quorum<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>master.mesos:2181<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.ha.fencing.methods<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>shell(/bin/true)<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.ha.automatic-failover.enabled<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.image.compress<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.image.compression.codec<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>org.apache.hadoop.io.compress.SnappyCodec<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit.streams.cache.size<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>1000<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>1000<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.client.failover.proxy.provider.hdfs<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.domain.socket.path<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>/var/lib/hadoop-hdfs/dn_socket<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>dfs.permissions.enabled<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>false<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+ <span class="nt">&lt;/configuration&gt;</span>
+</code></pre>
+    </div>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos hdfs endpoints hdfs-site.xml
+</code></pre>
+    </div>
+
+    <div class="language-xml highlighter-rouge"><pre class="highlight"><code> <span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+ <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span><span class="nt">&lt;configuration&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>fs.default.name<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>hdfs://hdfs<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.hue.hosts<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.hue.groups<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.root.hosts<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.root.groups<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.httpfs.groups<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.httpfs.hosts<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+     <span class="nt">&lt;property&gt;</span>
+         <span class="nt">&lt;name&gt;</span>ha.zookeeper.parent-znode<span class="nt">&lt;/name&gt;</span>
+         <span class="nt">&lt;value&gt;</span>/dcos-service-hdfs/hadoop-ha<span class="nt">&lt;/value&gt;</span>
+     <span class="nt">&lt;/property&gt;</span>
+
+ <span class="nt">&lt;/configuration&gt;</span>
+</code></pre>
+    </div>
+    <p>These commands returns XML files that can be used by clients of the HDFS cluster.</p>
+  </li>
+</ol>
+
+</div>
+</body>
+
+</html>
