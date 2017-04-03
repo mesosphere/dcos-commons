@@ -68,7 +68,7 @@ run_cmd jekyll build --destination ${DOCS_DIR}/${DEST_DIR_NAME}
 popd
 
 # 2. Generate javadocs to api/ subdir
-javadoc -quiet -package -d ${DEST_DIR_NAME}/api/ \
+javadoc -quiet -notimestamp -package -d ${DEST_DIR_NAME}/api/ \
     $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
 
 # 3. Generate swagger html to swagger-api/ subdir
