@@ -28,7 +28,7 @@ All `dcos kafka` CLI commands have a `--name` argument allowing the user to spec
 
     $ dcos kafka --name kafka-dev <cmd>
 
-**Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/CLI subcommands separately. From the DC/OS CLI, enter:
+**Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
 dcos package install kafka --cli
