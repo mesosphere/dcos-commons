@@ -27,6 +27,7 @@
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "CASSANDRA_VERSION": "3.0.10",
     "SERVICE_ZK_SERVERS": "{{service.zk_servers}}",
+    "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
@@ -129,6 +130,7 @@
     "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    "AWSCLI_URI": "{{resource.assets.uris.awscli-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
