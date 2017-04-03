@@ -200,6 +200,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
+        defaultScheduler.setApiServerDisabled(true);
         register();
     }
 
@@ -512,6 +513,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
+        defaultScheduler.setApiServerDisabled(true);
         register();
         defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();

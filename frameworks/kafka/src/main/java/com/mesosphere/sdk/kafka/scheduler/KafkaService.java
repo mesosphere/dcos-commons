@@ -42,24 +42,20 @@ public class KafkaService extends DefaultService {
                         DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
 
         initService(schedulerBuilder);
+        schedulerBuilder.setResources(getResources());
     }
 
-    @Override
-    protected void startApiServer(DefaultScheduler defaultScheduler,
-                                  int apiPort,
-                                  Collection<Object> additionalResources) {
-        final Collection<Object> apiResources = new ArrayList<>();
-
-        KafkaZKClient kafkaZKClient = new KafkaZKClient(super.getServiceSpec().getZookeeperConnection(),
+    private Collection<Object> getResources() {
+        KafkaZKClient kafkaZKClient = new KafkaZKClient(
+                super.getServiceSpec().getZookeeperConnection(),
                 DcosConstants.SERVICE_ROOT_PATH_PREFIX + super.getServiceSpec().getName());
 
+        final Collection<Object> apiResources = new ArrayList<>();
         apiResources.add(new BrokerResource(kafkaZKClient));
-        apiResources.add(new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
+        apiResources.add(new TopicResource(
+                new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
                 kafkaZKClient));
 
-        apiResources.addAll(additionalResources);
-
-        LOGGER.info("Starting API server with additional resources: {}", apiResources);
-        super.startApiServer(defaultScheduler, apiPort, apiResources);
+        return apiResources;
     }
 }
