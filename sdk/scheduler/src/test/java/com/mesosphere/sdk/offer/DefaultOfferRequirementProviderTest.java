@@ -75,6 +75,13 @@ public class DefaultOfferRequirementProviderTest {
         return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
 
+    private List<String> getTasksToLaunch(PodInstance podInst) {
+        return podInst.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                .map(TaskSpec::getName)
+                .collect(Collectors.toList());
+    }
+
     @Test
     public void testPlacementPassthru() throws InvalidRequirementException {
         List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
@@ -84,19 +91,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
-    @Test
-    public void testNewOfferRequirement() throws InvalidRequirementException {
-        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
-                .map(taskSpec -> taskSpec.getName())
-                .collect(Collectors.toList());
-
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
-        Assert.assertNotNull(offerRequirement);
-        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
-        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-
+    private void finishNewOfferTest(OfferRequirement offerRequirement, List<String> tasksToLaunch, PodInstance podInstance) throws InvalidRequirementException {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
@@ -127,9 +122,9 @@ public class DefaultOfferRequirementProviderTest {
                 offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getCommand();
         List<URI> uris = executorCommand.getUrisList();
         Assert.assertEquals(5, uris.size());
-        Assert.assertEquals("test-executor-uri", uris.get(0).getValue());
-        Assert.assertEquals("test-libmesos-uri", uris.get(1).getValue());
-        Assert.assertEquals("https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz", uris.get(2).getValue());
+        Assert.assertEquals("test-executor-uri", uris.get(2).getValue());
+        Assert.assertEquals("test-libmesos-uri", uris.get(0).getValue());
+        Assert.assertEquals("https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz", uris.get(1).getValue());
         String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
                 TestConstants.SERVICE_NAME,
                 ResourceUtils.VIP_HOST_TLD,
@@ -140,6 +135,110 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals("config-templates/config-one", uris.get(3).getOutputFile());
         Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
         Assert.assertEquals("config-templates/config-two", uris.get(4).getOutputFile());
+    }
+
+    private void testOfferRequirementHasCorrectNetworkInfo(OfferRequirement offerRequirement,
+            int correctNumberOfNetgroups, int correctNumberOfIpAddresses, boolean checkPortMapping) {
+        if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
+            // Check for exactly 1 NetworkInfo
+            Assert.assertEquals(1,
+                    offerRequirement.getExecutorRequirementOptional().get()
+                            .getExecutorInfo().getContainer().getNetworkInfosCount());
+            Protos.NetworkInfo networkInfo = offerRequirement
+                    .getExecutorRequirementOptional().get()
+                    .getExecutorInfo().getContainer()
+                    .getNetworkInfos(0);
+            // Check that it has the correct name
+            Assert.assertEquals(TestConstants.OVERLAY_NETWORK_NAME, networkInfo.getName());
+
+            // Check that it requests the correct IP address
+            Assert.assertEquals(networkInfo.getIpAddressesCount(), correctNumberOfIpAddresses);
+            if (correctNumberOfIpAddresses > 0) {
+                Assert.assertEquals(networkInfo.getIpAddresses(0).getIpAddress(), TestConstants.IPADDRESS1);
+                Assert.assertEquals(networkInfo.getIpAddresses(0).getProtocol(),
+                        Protos.NetworkInfo.Protocol.IPv4);
+            }
+
+            if (checkPortMapping) {
+                Assert.assertEquals(TestConstants.NUMBER_OF_PORT_MAPPINGS, networkInfo.getPortMappingsCount());
+                Assert.assertEquals(TestConstants.HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
+                Assert.assertEquals(TestConstants.CONTAINER_PORT, networkInfo
+                        .getPortMappings(0).getContainerPort());
+                Assert.assertEquals(networkInfo.getGroupsCount(), correctNumberOfNetgroups);
+            } else {
+                // same as above (with mapping) except that the container port should me mapped to the same port on
+                // the host
+                Assert.assertEquals(networkInfo.getPortMappingsCount(), TestConstants.NUMBER_OF_PORT_MAPPINGS);
+                Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(), TestConstants.CONTAINER_PORT);
+                Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(),
+                        networkInfo.getPortMappings(0).getContainerPort());
+            }
+
+            if (correctNumberOfNetgroups > 0) {
+                Assert.assertTrue(networkInfo.getGroups(0).equals(TestConstants.NETGROUP1));
+                Assert.assertTrue(networkInfo.getGroups(1).equals(TestConstants.NETGROUP2));
+            }
+       } else {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testNewOfferRequirement() throws InvalidRequirementException {
+        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
+
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementNetworks() throws Exception {
+        PodInstance networkPodInstance = getPodInstance("valid-networks-port-mapping.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 2, 1, true);
+        finishNewOfferTest(offerRequirement, tasksToLaunch, networkPodInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementNetworksPortForwarding() throws Exception {
+        PodInstance networkPodInstance = getPodInstance("valid-minimal-networks.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 0, 0, false);
+        finishNewOfferTest(offerRequirement, tasksToLaunch, networkPodInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementNetworksWithDocker() throws Exception {
+        PodInstance dockerNetworkPodInstance = getPodInstance("valid-minimal-networks-docker.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(dockerNetworkPodInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(dockerNetworkPodInstance, tasksToLaunch));
+
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 0, 1, true);
+        Protos.ContainerInfo containerInfo = offerRequirement
+                .getExecutorRequirementOptional().get().getExecutorInfo().getContainer();
+        Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
+        Assert.assertEquals(containerInfo.getMesos().getImage().getDocker().getName(), "group/image");
+        finishNewOfferTest(offerRequirement, tasksToLaunch, dockerNetworkPodInstance);
     }
 
     @Test

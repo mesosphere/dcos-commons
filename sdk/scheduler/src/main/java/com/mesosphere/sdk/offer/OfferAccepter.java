@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The OfferAccepter extracts the Mesos Operations encapsulated by the OfferRecommendation and accepts Offers with those
@@ -50,8 +51,11 @@ public class OfferAccepter {
             return new ArrayList<>();
         }
 
+        recommendations = getRecommendations(recommendations);
         List<OfferID> offerIds = getOfferIds(recommendations);
-        List<Operation> operations = getOperations(recommendations);
+        List<Operation> operations = recommendations.stream()
+                .map(offerRecommendation -> offerRecommendation.getOperation())
+                .collect(Collectors.toList());
 
         logOperations(operations);
 
@@ -79,8 +83,8 @@ public class OfferAccepter {
         }
     }
 
-    private static List<Operation> getOperations(List<OfferRecommendation> recommendations) {
-        List<Operation> operations = new ArrayList<>();
+    private static List<OfferRecommendation> getRecommendations(List<OfferRecommendation> recommendations) {
+        List<OfferRecommendation> filteredRecommendations = new ArrayList<>();
 
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof LaunchOfferRecommendation &&
@@ -88,11 +92,11 @@ public class OfferAccepter {
                 logger.info("Skipping launch of transient Operation: {}",
                         TextFormat.shortDebugString(recommendation.getOperation()));
             } else {
-                operations.add(recommendation.getOperation());
+                filteredRecommendations.add(recommendation);
             }
         }
 
-        return operations;
+        return filteredRecommendations;
     }
 
     private static List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {

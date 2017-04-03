@@ -6,7 +6,6 @@ Contributors Guide
 [__Contributing__](CONTRIBUTING.md) |
 [__Slack__](http://chat.dcos.io)
 
-==================
 Discuss contributions to DC/OS SDK using GitHub [issues](https://github.com/mesosphere/dcos-commons/issues) and make contributions with GitHub [pull requests](https://github.com/mesosphere/dcos-commons/pulls).
 
 ### Proposing Features

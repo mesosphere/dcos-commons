@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -25,6 +26,10 @@ import static org.mockito.Mockito.when;
 public class BaseServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
+
+    static {
+        ENV_VARS.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
+    }
 
     @Before
     public void beforeEach() {
@@ -62,6 +67,7 @@ public class BaseServiceSpecTest {
 
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
+        when(capabilities.supportCniPortMapping()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 

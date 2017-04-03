@@ -1,7 +1,8 @@
 ---
-layout: gh-basic
-title: Integrating the Automatic Repair Scheduler Feature
+title: Automatic Repair
 ---
+
+# Integrating the Automatic Repair Scheduler Feature
 
 dcos-commons provides a framework to add automatic repairs to your scheduler.
 Automatic repairs means that we can detect when a container crashes and restart it attached to the same resources if possible, and otherwise start it elsewhere on the cluster.

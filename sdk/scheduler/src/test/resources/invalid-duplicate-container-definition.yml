@@ -3,10 +3,14 @@ pods:
   server:
     count: 1
     networks:
-      test: {}
+      test:
+        host-ports: [4040]
+        container-ports: [4041]
     container:
       networks:
-        test: {}
+        test:
+          host-ports: [4040]
+          container-ports: [4040]
     tasks:
       server:
         goal: RUNNING

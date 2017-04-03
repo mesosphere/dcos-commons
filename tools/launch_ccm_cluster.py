@@ -409,32 +409,15 @@ def _write_jenkins_config(github_label, cluster_info, error = None):
     properties_file.close()
 
 
-def determine_github_label():
-    label =os.environ.get('CCM_GITHUB_LABEL', '')
-    if not label:
-        label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
-    return label
-
-def start_cluster(launcher, github_label, start_stop_attempts, config=None):
-    if not config:
-        config=StartConfig()
-    try:
-        cluster_info = launcher.start(config, start_stop_attempts)
-        # print to stdout (the rest of this script only writes to stderr):
-        print(json.dumps(cluster_info))
-        _write_jenkins_config(github_label, cluster_info)
-    except Exception as e:
-        _write_jenkins_config(github_label, {}, e)
-        raise
-    return cluster_info
-
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
     if not ccm_token:
         raise Exception('CCM_AUTH_TOKEN is required')
 
     # used for status and for jenkins .properties file:
-    github_label = determine_github_label()
+    github_label = os.environ.get('CCM_GITHUB_LABEL', '')
+    if not github_label:
+        github_label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
 
     # error detection (and retry) for either a start or a stop operation:
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
@@ -476,7 +459,14 @@ def main(argv):
             logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
-    start_cluster(launcher, github_label, start_stop_attempts)
+    try:
+        cluster_info = launcher.start(StartConfig(), start_stop_attempts)
+        # print to stdout (the rest of this script only writes to stderr):
+        print(json.dumps(cluster_info))
+        _write_jenkins_config(github_label, cluster_info)
+    except Exception as e:
+        _write_jenkins_config(github_label, {}, e)
+        raise
     return 0
 
 

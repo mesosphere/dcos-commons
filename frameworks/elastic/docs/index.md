@@ -1,7 +1,7 @@
 ---
 post_title: Elastic
 menu_order: 65
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 

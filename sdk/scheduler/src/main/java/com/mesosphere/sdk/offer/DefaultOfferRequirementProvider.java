@@ -570,7 +570,36 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
-        return Protos.NetworkInfo.newBuilder().setName(networkSpec.getName()).build();
+        LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
+        Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
+        netInfoBuilder.setName(networkSpec.getName());
+
+        if (!networkSpec.getPortMappings().isEmpty()) {
+            for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
+                Integer hostPort = e.getKey();
+                Integer containerPort = e.getValue();
+                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                        .setHostPort(hostPort)
+                        .setContainerPort(containerPort)
+                        .build());
+            }
+        }
+
+        if (!networkSpec.getNetgroups().isEmpty()) {
+            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
+        }
+
+        if (!networkSpec.getIpAddresses().isEmpty()) {
+            for (String ipAddressString : networkSpec.getIpAddresses()) {
+                netInfoBuilder.addIpAddresses(
+                        Protos.NetworkInfo.IPAddress.newBuilder()
+                                .setIpAddress(ipAddressString)
+                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
+                                .build());
+            }
+        }
+
+        return netInfoBuilder.build();
     }
 
     private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
@@ -597,14 +626,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-
+        // Populate ContainerInfo with the appropriate information from PodSpec
         Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
         if (containerInfo != null) {
             executorInfoBuilder.setContainer(containerInfo);
         }
 
         // command and user:
-
         Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
@@ -616,13 +644,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         // URIs:
-
-        // Required in scheduler env.
-        String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
-        if (executorUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(executorUri);
 
         // Required in scheduler env.
         String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);

@@ -1,7 +1,7 @@
 ---
 post_title: Connecting Clients
 menu_order: 32
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -30,8 +30,8 @@ The Elasticsearch REST APIs are exposed using JSON over HTTP. You simply send HT
   ```bash
   curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
   ```
-  
-The service address varies based on the name you assigned the framework when you installed it. 
+
+The service address varies based on the name you assigned the framework when you installed it.
 ```
 <node type>.<framework name>.l4lb.thisdcos.directory:9200
 ```

@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.config;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ConfigurationUpdaterTest {
+    @ClassRule public static final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
     private static final UUID TARGET_ID = UUID.randomUUID();
     private static final UUID NEW_ID = UUID.randomUUID();
     private static final UUID UNKNOWN_ID = UUID.randomUUID();
@@ -42,6 +44,10 @@ public class ConfigurationUpdaterTest {
 
     public static class UnknownConfig implements Configuration {
 
+    }
+
+    static {
+        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
     }
 
     private static final PodSpec podA = TestPodFactory.getPodSpec(
