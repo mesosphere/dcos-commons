@@ -5,6 +5,8 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
+<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
+
 The DC/OS HDFS Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the HDFS Service is deployed.
 
 <a name="#rest-auth"></a>
