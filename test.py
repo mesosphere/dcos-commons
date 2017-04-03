@@ -296,8 +296,12 @@ def teardown_clusters():
     clustinfo.shutdown_clusters()
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
-    start_config = launch_ccm_cluster.StartConfig(private_agents=6)
-    clustinfo.start_cluster(start_config)
+    if run_attrs.cluster_url:
+        clustinfo.add_running_cluster(run_attrs.cluster_url,
+                                      run_attrs.cluster_token)
+    else:
+        start_config = launch_ccm_cluster.StartConfig(private_agents=6)
+        clustinfo.start_cluster(start_config)
 
     cluster = clustinfo._clusters[0]
     for framework in fwinfo.get_frameworks():
@@ -470,7 +474,9 @@ def start_test_background(framework, cluster, repo_root):
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
+    if framework.stub_universe_url:
+        # XXX test-only broken here
+        custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
@@ -499,7 +505,9 @@ def run_test(framework, cluster, repo_root):
 
     logger.info("launching shakedown for %s", framework.name)
     custom_env = os.environ.copy()
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
+    if framework.stub_universe_url:
+        # XXX test-only broken here
+        custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
