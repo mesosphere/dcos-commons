@@ -91,11 +91,10 @@ except:
             script_text = script_file.read()
             exec(script_text, dict(__file__ = activate_script))
 
-def pip_install(requirements_filepath):
-    "Populate the current python environment with a given requirements"
-    # Import delayed since may not exist until activate_venv
-    import pip
-    pip.main(["install", "-r", requirements_filepath])
+def pip_install(path, requirements_filepath):
+    "Populate a venv with given requirements"
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', '-r', requirements_filepath])
 
 def run_cmd(path, cmd, *args, **kwargs):
     "Run an external command with a particular virtualenv"
