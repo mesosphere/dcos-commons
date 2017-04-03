@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+# shakedown requires python3
 
 import shakedown
 import logging
@@ -89,5 +91,9 @@ def restart_master():
         raise RuntimeError("Unable to restart master")
 
 
-# Note: This is a hack for now. Talk to bwood about it.
-set_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT', '100/20mins')
+def set_local_infinity_defaults():
+    # Note: This is a hack for now. Talk to bwood about it.
+    set_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT', '100/20mins')
+
+if __name__ == "__main__":
+    set_local_infinity_defaults()
