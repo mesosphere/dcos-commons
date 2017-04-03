@@ -10,4 +10,10 @@
             <PatternLayout pattern="${PATTERN}"/>
         </Console>
     </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT"/>
+        </Root>
+    </Loggers>
 </Configuration>
