@@ -5,7 +5,9 @@ import os
 import os.path
 import subprocess
 import sys
+import tempfile
 
+import dcos_login
 import venvutil
 
 # Things this needs: cluster_id, stack_id (???), auth_token, dns_address,
@@ -65,24 +67,45 @@ class ClusterInitializer(object):
         #run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
     def configure_master_settings(self):
-        venv_path = venvutil.shared_tools_venv()
-        requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
-        # needs shakedown, so needs python3
-        if sys.version_info < (3,4):
-            venvutil.create_venv(venv_path, py3=True)
-            venvutil.pip_install(venv_path, requirements_file)
+        saved_env = os.environ.copy()
+        try:
+            # TODO; track a cluster-specific working dir, and keep this in
+            # there; or use 1.10 features of dcos-cli to just specify a
+            # configfile if shakedown will allow it; or figure out how to ssh
+            # to the master using the cli, bypassing shakedown
+            with tempfile.NamedTemporaryFile() as config_f:
 
-            script = os.path.join(_tools_dir(), 'modify_master.py')
-            configure_cmd = ['python', script]
-            venvutil.run_cmd(venv_path, configure_cmd)
-        else:
-            venvutil.create_venv(venv_path)
-            venvutil.pip_install(venv_path, requirements_file)
-            venvutil.activate_venv(venv_path)
+                os.environ['DCOS_CONFIG'] = config_f.name
 
-            # import delayed until dependencies exist
-            import modify_master
-            modify_master.set_local_infinity_defaults()
+                subprocess.check_call(['which', 'docs'])
+                subprocess.check_call(['dcos' 'config', 'set', 'core.dcos_url', self.dcos_url])
+                subprocess.check_call(['dcos' 'config', 'set', 'core.reporting', 'True'])
+                subprocess.check_call(['dcos' 'config', 'set', 'core.ssl_verify', 'False'])
+                subprocess.check_call(['dcos' 'config', 'set', 'core.timeout', '5'])
+                subprocess.check_call(['dcos' 'config', 'show'])
+                dcos_login.DCOSLogin(self.dcos_url).login()
+
+                venv_path = venvutil.shared_tools_venv()
+                requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
+                # needs shakedown, so needs python3
+                if sys.version_info < (3,4):
+                    venvutil.create_venv(venv_path, py3=True)
+                    venvutil.pip_install(venv_path, requirements_file)
+
+                    script = os.path.join(_tools_dir(), 'modify_master.py')
+                    configure_cmd = ['python', script]
+                    venvutil.run_cmd(venv_path, configure_cmd)
+                else:
+                    venvutil.create_venv(venv_path)
+                    venvutil.pip_install(venv_path, requirements_file)
+                    venvutil.activate_venv(venv_path)
+
+                    # import delayed until dependencies exist
+                    import modify_master
+                    modify_master.set_local_infinity_defaults()
+        finally:
+            os.environ.clear()
+            os.environ.update(saved_env)
 
     def apply_default_config(self):
         self.create_service_account()
