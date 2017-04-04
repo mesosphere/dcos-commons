@@ -74,7 +74,10 @@ public class DefaultService implements Service {
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+    }
 
+    @Override
+    public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
 

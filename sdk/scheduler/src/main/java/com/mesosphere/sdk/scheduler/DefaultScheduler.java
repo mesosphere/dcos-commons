@@ -637,29 +637,31 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeApiServer() {
-        if (!apiServerDisabled.get()) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+        if (apiServerDisabled.get()) {
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LOGGER.info("Starting API server.");
+                    apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
+                    apiServer.start();
+                } catch (Exception e) {
+                    LOGGER.error("API Server failed with exception: ", e);
+                } finally {
+                    LOGGER.info("API Server exiting.");
                     try {
-                        LOGGER.info("Starting API server.");
-                        apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
-                        apiServer.start();
-                    } catch (Exception e) {
-                        LOGGER.error("API Server failed with exception: ", e);
-                    } finally {
-                        LOGGER.info("API Server exiting.");
-                        try {
-                            if (apiServer != null) {
-                                apiServer.stop();
-                            }
-                        } catch (Exception e) {
-                            LOGGER.error("Failed to stop API server with exception: ", e);
+                        if (apiServer != null) {
+                            apiServer.stop();
                         }
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to stop API server with exception: ", e);
                     }
                 }
-            }).start();
-        }
+            }
+        }).start();
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
@@ -717,10 +719,14 @@ public class DefaultScheduler implements Scheduler, Observer {
         postRegister();
     }
 
+    private boolean apiServerDisabled() {
+        return !apiServerDisabled.get() && (apiServer == null || !apiServer.isStarted());
+    }
+
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        if (!apiServerDisabled.get() && (apiServer == null || !apiServer.isStarted())) {
-            LOGGER.info("Waiting for API Server to start ...");
+        if (apiServerDisabled()) {
+            LOGGER.info("Declining all offers. Waiting for API Server to start ...");
             declineOffers(driver, Collections.emptyList(), offersToProcess);
             return;
         }

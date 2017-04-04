@@ -41,14 +41,17 @@ public class KafkaService extends DefaultService {
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +
                         DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
 
+        schedulerBuilder.setResources(
+                getResources(
+                        schedulerBuilder.getServiceSpec().getZookeeperConnection(),
+                        schedulerBuilder.getServiceSpec().getName()));
         initService(schedulerBuilder);
-        schedulerBuilder.setResources(getResources());
     }
 
-    private Collection<Object> getResources() {
+    private Collection<Object> getResources(String zookeeperConnection, String serviceName) {
         KafkaZKClient kafkaZKClient = new KafkaZKClient(
-                super.getServiceSpec().getZookeeperConnection(),
-                DcosConstants.SERVICE_ROOT_PATH_PREFIX + super.getServiceSpec().getName());
+                zookeeperConnection,
+                DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName);
 
         final Collection<Object> apiResources = new ArrayList<>();
         apiResources.add(new BrokerResource(kafkaZKClient));
