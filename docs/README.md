@@ -17,3 +17,7 @@ The following describe what's needed to manually generate the docs on your syste
 
 1. Run `./generate.sh` locally from the `docs/` folder.
 2. Visit the provided `file://` URL in your browser.
+
+# Notes
+
+The page uses the [Dropdown](http://code.stephenmorley.org/javascript/touch-friendly-drop-down-menus/) Javascript library by Stephen Morley for rendering the menus. This library is licensed [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/legalcode).

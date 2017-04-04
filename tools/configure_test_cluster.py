@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 
+import cli_install
 import dcos_login
 import venvutil
 
@@ -18,6 +19,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 def _tools_dir():
     return os.path.dirname(os.path.realpath(__file__))
+
+def _run_script(scriptname, args = []):
+    logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
+    script_path = os.path.join(_tools_dir(), scriptname)
+    # redirect stdout to stderr:
+    subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
+
 
 class ClusterInitializer(object):
     def __init__(self, cluster_id, stack_id, auth_token, dns_address,
@@ -32,6 +40,7 @@ class ClusterInitializer(object):
             self.dcos_url = 'http://%s' % dns_address
         else:
             self.dcos_url = 'https://%s' % dns_address
+        self._install_cli()
 
 
     def create_mount_volumes(self):
@@ -42,6 +51,22 @@ class ClusterInitializer(object):
         # force total redirect to stderr:
         enable_mount_volumes.main(self.stack_id, stdout=sys.stderr)
 
+    def _install_cli(self):
+        # create_service_account relies on dcos cli, which we may not have
+        # at this point.
+        self.cli_tempdir = tempfile.mkdtemp(prefix="conf_cluster")
+        cli_install.download_cli(dcos_url, self.cli_tempdir)
+
+    def _run_shellscript_with_cli(script, args, cmd)
+        custom_env = os.environ[:]
+        custom_env['PATH'] = self.cli_tempdir + os.pathsep + os.environ['PATH']
+
+        _run_script(script, args, env=custom_env)
+
+    def __del__(self):
+        if self.cli_tempdir:
+            shutil.rmtree(self.cli_tempdir)
+
     def create_service_account(self):
         if self.security != 'strict':
             fmt ="Skipping creation of service account for security mode {}"
@@ -51,20 +76,14 @@ class ClusterInitializer(object):
         fmt = 'Setting up permissions for cluster {} (stack id {})'
         logger.info(fmt.format(self.cluster_id, self.stack_id))
 
-        def run_script(scriptname, args = []):
-            logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
-            script_path = os.path.join(_tools_dir(), scriptname)
-            # redirect stdout to stderr:
-            subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
-
-        run_script('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
+        _run_shellscript_with_cli('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
 
 #   def setup_roles(self):
         # Examples of what individual tests should run. See respective projects' "test.sh":
-        #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
-        #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
-        #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
-        #run_script('setup_permissions.sh', 'nobody spark-role'.split())
+        #_run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
+        #_run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
+        #_run_script('setup_permissions.sh', 'nobody kafka-role'.split())
+        #_run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
     def configure_master_settings(self):
         saved_env = os.environ.copy()
@@ -111,3 +130,5 @@ class ClusterInitializer(object):
         self.create_service_account()
         self.configure_master_settings()
 
+# TODO: figure out how to determine all the necessary values from
+# CLUSTER_URL etc
