@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
@@ -49,7 +50,9 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -92,8 +95,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final ConfigStore<ServiceSpec> configStore;
     private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
+
     private JettyApiServer apiServer;
     private AtomicBoolean apiServerDisabled = new AtomicBoolean(false);
+    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -719,20 +724,33 @@ public class DefaultScheduler implements Scheduler, Observer {
         postRegister();
     }
 
-    private boolean apiServerDisabled() {
-        return !apiServerDisabled.get() && (apiServer == null || !apiServer.isStarted());
+    public boolean apiServerReady() {
+        boolean serverStarted = apiServer != null && apiServer.isStarted();
+
+        if (serverStarted || apiServerDisabled.get()) {
+            apiServerStopwatch.reset();
+            serverStarted = true;
+        } else if (
+                apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > SchedulerFlags.getApiServerTimeout().toMillis()) {
+            LOGGER.error(
+                    "API Server failed to start within {} seconds.",
+                    SchedulerFlags.getApiServerTimeout().getSeconds());
+            SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+        }
+
+        return serverStarted;
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        if (apiServerDisabled()) {
-            LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-            declineOffers(driver, Collections.emptyList(), offersToProcess);
-            return;
-        }
-
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
+            if (!apiServerReady()) {
+                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
+                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                return;
+            }
+
             LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
             for (int i = 0; i < offers.size(); ++i) {
                 LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
