@@ -1,22 +1,22 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.*;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.AttributeStringUtils;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.AttributeStringUtils;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.*;
 
 /**
- * Ensures that the given Offer’s attributes each have no more than N instances of tasks running on
- * them.
+ * Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
+ * running on them.
  *
  * For example, this can ensure that no more than N tasks are running against the 'rack:foo'
  * attribute (exact match), or it can ensure that no distinct 'rack:.*' value has more than N tasks
@@ -45,8 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * still have room. Therefore the PlacementRule will allow deployments given an attribute of
  * 'rack:b' or 'rack:c', and will block deployments onto 'rack:a'.
  *
- * In addition, this enforcement can be selectively applied by task name. By default the rule will
- * look at ALL tasks in the service, but with a task matcher we can only count e.g. tasks named
+ * This enforcement is applied by task name. By default the rule will only count e.g. tasks named
  * 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  * within the service.
  */
