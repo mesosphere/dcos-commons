@@ -1,22 +1,14 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-
 import jersey.repackaged.com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Implements support for generating {@link PlacementRule}s from Marathon-style constraint strings.
@@ -44,12 +36,37 @@ public class MarathonConstraintParser {
     }
 
     /**
+     * ANDs the provided marathon-style constraint string onto the provided hard-coded
+     * {@link PlacementRule}, or returns the provided {@link PlacementRule} as-is if the
+     * marathon-style constraint is {@code null} or empty.
+     *
+     * @param podName The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
+     * in a service is not supported.
+     * @param rule The hard-coded {@link PlacementRule}
+     * @param marathonConstraints the marathon-style constraint string, containing one or more
+     * nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
+     * or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
+     * or a {@code null} or empty value if no constraint is defined
+     * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
+     * content isn't valid or supported
+     */
+    public static PlacementRule parseWith(String podName, PlacementRule rule, String marathonConstraints)
+            throws IOException {
+        PlacementRule marathonRule = parse(podName, marathonConstraints);
+        if (marathonRule instanceof PassthroughRule) {
+            return rule; // pass-through original rule
+        }
+        return new AndRule(rule, marathonRule);
+    }
+
+    /**
      * Creates and returns a new {@link PlacementRule} against the provided marathon-style
      * constraint string. Returns a {@link PassthroughRule} if the provided constraint string is
      * {@code null} or empty.
      *
      *
-     * @param podName
+     * @param podName The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
+     *     in a service is not supported.
      * @param marathonConstraints the marathon-style constraint string, containing one or more
      *     nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
      *     or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
@@ -63,13 +80,14 @@ public class MarathonConstraintParser {
             return new PassthroughRule();
         }
         List<List<String>> rows = splitConstraints(marathonConstraints);
+        StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
         if (rows.size() == 1) {
             // skip AndRule:
-            return parseRow(podName, rows.get(0));
+            return parseRow(taskFilter, rows.get(0));
         }
         List<PlacementRule> rowRules = new ArrayList<>();
         for (List<String> row : rows) {
-            rowRules.add(parseRow(podName, row));
+            rowRules.add(parseRow(taskFilter, row));
         }
         return new AndRule(rowRules);
     }
@@ -78,11 +96,12 @@ public class MarathonConstraintParser {
      * Converts the provided marathon constraint entry to a PlacementRule.
      *
      *
-     * @param podName
+     * @param taskFilter The filter to apply across all tasks to limit the scope of the constraints
+     * (e.g. to a particular task type)
      * @param row a list with size 2 or 3
      * @throws IOException if the provided constraint entry is invalid
      */
-    private static PlacementRule parseRow(String podName, List<String> row) throws IOException {
+    private static PlacementRule parseRow(StringMatcher taskFilter, List<String> row) throws IOException {
         if (row.size() < 2 || row.size() > 3) {
             throw new IOException(String.format(
                     "Invalid number of entries in rule. Expected 2 or 3, got %s: %s",
@@ -99,7 +118,7 @@ public class MarathonConstraintParser {
                     "(expected one of: UNIQUE, CLUSTER, GROUP_BY, LIKE, UNLIKE, or MAX_PER)",
                     operatorName, row));
         }
-        PlacementRule rule = operator.run(podName, fieldName, operatorName, parameter);
+        PlacementRule rule = operator.run(taskFilter, fieldName, operatorName, parameter);
         LOGGER.info("Marathon-style row '{}' resulted in placement rule: '{}'", row, rule);
         return rule;
     }
@@ -186,10 +205,11 @@ public class MarathonConstraintParser {
     }
 
     /**
-     * Interface for generating a PlacementRule for a given marathon operator such as UNIQUE or CLUSTER.
+     * Interface for generating a PlacementRule for a given Marathon operator such as UNIQUE or CLUSTER
+     * across a filtered set of tasks.
      */
     private interface Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> parameter) throws IOException;
     }
 
@@ -199,9 +219,8 @@ public class MarathonConstraintParser {
      * on each host for some task type: {@code [["hostname", "UNIQUE"]]}
      */
     private static class UniqueOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> ignoredParameter) {
-            StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
             if (isHostname(fieldName)) {
                 return new MaxPerHostnameRule(1, taskFilter);
             } else {
@@ -224,7 +243,7 @@ public class MarathonConstraintParser {
      * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
      */
     private static class ClusterOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
@@ -254,8 +273,8 @@ public class MarathonConstraintParser {
      * attempt of comparing an incoming offer against the launched tasks.
      */
     private static class GroupByOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName, Optional<String> parameter)
-                throws IOException {
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
+                                 Optional<String> parameter) throws IOException {
             final Optional<Integer> num;
             try {
                 num = Optional.ofNullable(parameter.isPresent() ?
@@ -265,7 +284,6 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, parameter), e);
             }
-            StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
             if (isHostname(fieldName)) {
                 return new RoundRobinByHostnameRule(num, taskFilter);
             } else {
@@ -282,7 +300,7 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class LikeOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
@@ -300,7 +318,7 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class UnlikeOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
@@ -319,7 +337,7 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class MaxPerOperator implements Operator {
-        public PlacementRule run(String podName, String fieldName, String operatorName,
+        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
                                  Optional<String> requiredParameter) throws IOException {
             final int max;
             try {
@@ -329,7 +347,6 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, requiredParameter), e);
             }
-            StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
             if (isHostname(fieldName)) {
                 return new MaxPerHostnameRule(max, taskFilter);
             } else {

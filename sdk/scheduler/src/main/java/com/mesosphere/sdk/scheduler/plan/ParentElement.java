@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import java.util.*;
-
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
+
+import java.util.*;
 
 import static com.mesosphere.sdk.config.YAMLConfigurationLoader.LOGGER;
 import static com.mesosphere.sdk.scheduler.plan.PlanUtils.allHaveStatus;
@@ -57,7 +57,9 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         return Element.super.isEligible(dirtyAssets) && !isInterrupted();
     }
 
-    /** Updates children */
+    /**
+     * Updates children.
+     */
     @Override
     default void update(Protos.TaskStatus taskStatus) {
         Collection<? extends Element> children = getChildren();
