@@ -25,7 +25,8 @@ public class CassandraService extends DefaultService {
     @Override
     protected void startApiServer(DefaultScheduler scheduler, int apiPort, Collection<Object> additionalResources) {
         final Collection<Object> apiResources = new ArrayList<>();
-        Collection<String> configuredSeeds = Arrays.asList(System.getenv("TASKCFG_ALL_LOCAL_SEEDS").split(","));
+        Collection<String> configuredSeeds = new ArrayList<>(
+                Arrays.asList(System.getenv("TASKCFG_ALL_LOCAL_SEEDS").split(",")));
         String remoteSeeds = System.getenv("TASKCFG_ALL_REMOTE_SEEDS");
         if (!StringUtils.isEmpty(remoteSeeds)) {
             configuredSeeds.addAll(Arrays.asList(remoteSeeds.split(",")));
