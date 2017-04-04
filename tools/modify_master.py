@@ -2,8 +2,9 @@
 
 # shakedown requires python3
 
-import shakedown
 import logging
+import shakedown
+import time
 
 
 # Methods to modify the envvar settings of a mesos master and restart
@@ -48,17 +49,13 @@ def process_envvars(input):
     envvars = {}
     commented = []
     for line in lines:
-        if '#' in line:
+        if line.lstrip().startswith('#'):
             commented.append(line)
             continue
         if '=' not in line:
             continue
-        bits = line.split('=')
-        if len(bits) != 2:
-            raise ValueError('Envvar file had badly formatted line: {}\nfile: {}'.format(
-                line, input))
-        
-        envvars[bits[0]] = bits[1]
+        var, val = line.split('=', 1)
+        envvars[var] = val
 
     return envvars, commented
 
@@ -89,6 +86,11 @@ def restart_master():
     if success is not True:
         print("wtf...")
         raise RuntimeError("Unable to restart master")
+
+    sleeptime = 60 # seconds
+    msg = "Sleeping %s seconds to ensure cluster is happy again before proceeding"
+    logger.info(msg, sleeptime)
+    time.sleep(sleeptime)
 
 
 def set_local_infinity_defaults():
