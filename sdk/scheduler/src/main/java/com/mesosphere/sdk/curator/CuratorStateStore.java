@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
@@ -473,6 +474,9 @@ public class CuratorStateStore implements StateStore {
         }
 
         storeTasks(repairedTasks);
+        repairedStatuses = repairedStatuses.stream()
+                .filter(status -> !status.getTaskId().getValue().equals(""))
+                .collect(Collectors.toList());
         repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 }
