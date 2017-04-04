@@ -49,10 +49,6 @@ public class RawPod implements RawContainerInfoProvider {
         this.resourceSets = resourceSets;
     }
 
-    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
-        return resourceSets;
-    }
-
     public String getPlacement() {
         return placement;
     }
@@ -69,14 +65,13 @@ public class RawPod implements RawContainerInfoProvider {
         return image;
     }
 
-    public LinkedHashMap<String, RawNetwork> getNetworks() {
+    public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() {
         return networks;
     }
 
-    public LinkedHashMap<String, RawRLimit> getRLimits() {
+    public WriteOnceLinkedHashMap<String, RawRLimit> getRLimits() {
         return rlimits;
     }
-
 
     public String getStrategy() {
         return strategy;
@@ -92,5 +87,9 @@ public class RawPod implements RawContainerInfoProvider {
 
     public String getUser() {
         return user;
+    }
+
+    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
+        return resourceSets;
     }
 }

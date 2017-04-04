@@ -1,14 +1,10 @@
 ---
-layout: gh-basic
 title: Frequently Asked Questions
 ---
 
-Frequently Asked Questions
-======================
-
 #### __What is the DC/OS SDK?__
 
-  The DC/OS SDK is a collection of tools, libraries, and documentation for integrating stateful services with DC/OS. 
+  The DC/OS SDK is a collection of tools, libraries, and documentation for integrating stateful services with DC/OS.
 
 #### __When should I use the DC/OS SDK?__
 
@@ -20,7 +16,7 @@ Frequently Asked Questions
 
 #### __What is a DC/OS service?__
 
-  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is an instance of a service in a DC/OS cluster. 
+  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is an instance of a service in a DC/OS cluster.
 
 #### __What is a DC/OS package?__
 
@@ -29,7 +25,7 @@ Frequently Asked Questions
 #### __What is a Mesos framework?__
 
   In Mesos, a framework is the component responsible for the second level of scheduling in the [Apache Mesos two-level scheduler architecture](http://mesos.apache.org/documentation/latest/architecture/). Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.
-  
+
 #### __What are the advantages of using the DC/OS SDK vs. building a framework from scratch?__
 
   The SDK dramatically simplifies integrating stateful services with DC/OS and Mesosphere Enterprise DC/OS so that you can focus on your goals. In the past, integrating existing services with DC/OS meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating stateful services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex stateful services require only a few hundred lines of code to integrate with DC/OS.
@@ -45,15 +41,15 @@ Frequently Asked Questions
 #### __How can I distribute my DC/OS package?__
 
   You have can distribute your DC/OS package in several ways:
-  
+
   When you want to maximize reach, [DC/OS Universe](https://github.com/mesosphere/Universe) is the recommended distribution channel. DC/OS Universe is an online repository of DC/OS packages available to all community and commercial users. Users install packages with a few clicks from Universe.
-  
+
   When you need to control distribution, we recommend bypassing DC/OS Universe and distributing your DC/OS package directly to your users. Your users can add your DC/OS package to their DC/OS cluster, then install your package with a few clicks as usual.
 
 #### __Can I use the DC/OS SDK to build a proprietary DC/OS package?__
 
   Yes, you can use the SDK to build a proprietary package. The SDK is licensed under the Apache License 2.0, which permits proprietary derivative works.
-  
+
 #### __Can I contribute to the DC/OS SDK?__
 
   Yes, contributions are welcome. See [CONTRIBUTING](CONTRIBUTING.md).

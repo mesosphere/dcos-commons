@@ -10,8 +10,6 @@ ext {
 dependencies {
     compile project(":common")
     compile "com.googlecode.protobuf-java-format:protobuf-java-format:1.4"
-    compile "org.slf4j:log4j-over-slf4j:1.7.10"
-    compile "org.slf4j:slf4j-simple:1.6.2"
     compile "com.google.code.findbugs:annotations:${findbugsAnnotationsVer}"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"

@@ -89,8 +89,6 @@ dependencies {
     compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
     compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
     compile "org.apache.commons:commons-lang3:3.4"
-    compile "org.slf4j:log4j-over-slf4j:${slf4jVer}"
-    compile "org.slf4j:jcl-over-slf4j:${slf4jVer}"
     compile "com.googlecode.protobuf-java-format:protobuf-java-format:${protobufFormatVer}"
     compile "org.json:json:${jsonVer}"
     compile "com.google.inject:guice:${guiceVer}"

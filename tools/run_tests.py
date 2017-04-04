@@ -6,20 +6,14 @@ import os
 import os.path
 import random
 import shutil
-import stat
 import string
 import subprocess
 import sys
 import tempfile
 
+import cli_install
 import dcos_login
 import github_update
-
-try:
-    from urllib.request import URLopener
-except ImportError:
-    # Python 2
-    from urllib import URLopener
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -27,15 +21,16 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 class CITester(object):
 
-    def __init__(self, dcos_url, github_label):
-        self._CLI_URL_TEMPLATE = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/latest/{}'
+    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None):
         self._dcos_url = dcos_url
-        self._sandbox_path = ''
+        self._sandbox_path = sandbox_path
+        self._cli_path = cli_path
         self._github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
 
 
     def _configure_cli_sandbox(self):
-        self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
+        if not self._sandbox_path:
+            self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
         # must be custom for CLI to behave properly:
         custom_env['HOME'] = self._sandbox_path
@@ -52,26 +47,12 @@ class CITester(object):
 
 
     def _download_cli_to_sandbox(self):
-        cli_filename = 'dcos'
-        if sys.platform == 'win32':
-            cli_platform = 'windows'
-            cli_filename = 'dcos.exe'
-        elif sys.platform == 'linux2' or sys.platform == 'linux':
-            cli_platform = 'linux'
-        elif sys.platform == 'darwin':
-            cli_platform = 'darwin'
-        else:
-            raise Exception('Unsupported platform: {}'.format(sys.platform))
-        cli_url = self._CLI_URL_TEMPLATE.format(cli_platform, cli_filename)
-        cli_filepath = os.path.join(self._sandbox_path, cli_filename)
-        local_path = os.environ.get('DCOS_CLI_PATH', '')
+        # TODO: provide non-env interface to copy a dcos cli
+        local_path = os.environ.get('DCOS_CLI_PATH')
         if local_path:
-            logger.info('Copying {} to {}'.format(local_path, cli_filepath))
-            shutil.copyfile(local_path, cli_filepath)
+            cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
-            logger.info('Downloading {} to {}'.format(cli_url, cli_filepath))
-            URLopener().retrieve(cli_url, cli_filepath)
-        os.chmod(cli_filepath, 0o755)
+            cli_filepath = cli_install.download_cli(self._dcos_url, self._sandbox_path)
         return cli_filepath
 
 
@@ -142,27 +123,30 @@ requests==2.10.0
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
+
+        tools_dir = os.path.dirname(__file__)
         # TODO(nick): remove this inlined script with external templating
         #             (or find a way of entering the virtualenv that doesn't involve a shell script)
         script_file.write('''
 #!/bin/bash
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-if  [ ! -f {venv_path}/bin/python3 ] ; then
-    virtualenv -p $(which python3) --always-copy {venv_path}
-fi
+virtualenv -p $(which python3) --always-copy {venv_path}
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
+echo "Modifying master envvars..."
+python {tools_path}/modify_master.py
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,
-           test_dirs=test_dirs))
+           test_dirs=test_dirs,
+           tools_path=tools_dir))
         script_file.flush()
         script_file.close()
         try:
@@ -198,9 +182,7 @@ set -e
 cd {dcos_tests_dir}
 echo "{dcos_url}" > docker-context/dcos-url.txt
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-if  [ ! -f {venv_path}/bin/python3 ] ; then
-    virtualenv -p $(which python3) --always-copy {venv_path}
-fi
+virtualenv -p $(which python3) --always-copy {venv_path}
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
