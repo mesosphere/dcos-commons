@@ -3,6 +3,7 @@
 import logging
 import os
 import os.path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -55,9 +56,9 @@ class ClusterInitializer(object):
         # create_service_account relies on dcos cli, which we may not have
         # at this point.
         self.cli_tempdir = tempfile.mkdtemp(prefix="conf_cluster")
-        cli_install.download_cli(dcos_url, self.cli_tempdir)
+        cli_install.download_cli(self.dcos_url, self.cli_tempdir)
 
-    def _run_shellscript_with_cli(script, args, cmd)
+    def _run_shellscript_with_cli(self, script, args, cmd):
         custom_env = os.environ[:]
         custom_env['PATH'] = self.cli_tempdir + os.pathsep + os.environ['PATH']
 
@@ -76,7 +77,7 @@ class ClusterInitializer(object):
         fmt = 'Setting up permissions for cluster {} (stack id {})'
         logger.info(fmt.format(self.cluster_id, self.stack_id))
 
-        _run_shellscript_with_cli('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
+        self._run_shellscript_with_cli('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
 
 #   def setup_roles(self):
         # Examples of what individual tests should run. See respective projects' "test.sh":

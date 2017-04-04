@@ -142,7 +142,7 @@ py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,
            test_dirs=test_dirs,
-           tools_path=tools_dir))
+           ))
         script_file.flush()
         script_file.close()
         try:

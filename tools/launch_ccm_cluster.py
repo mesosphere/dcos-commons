@@ -22,11 +22,9 @@ import random
 import socket
 import string
 import sys
-import tempfile
 import time
 
 import configure_test_cluster
-import cli_install
 import dcos_login
 import github_update
 
