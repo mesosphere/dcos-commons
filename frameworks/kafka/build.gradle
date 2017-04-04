@@ -21,7 +21,6 @@ ext {
 
 dependencies {
     compile project(":scheduler")
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     testCompile project(":testing")
 }
 

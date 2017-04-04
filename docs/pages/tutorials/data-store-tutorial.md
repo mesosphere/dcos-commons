@@ -89,9 +89,6 @@ repositories {
 
 dependencies {
     compile "mesosphere:dcos-commons:0.7.10-SNAPSHOT"
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.8.1'
 }
 
 task wrapper(type: Wrapper) {
