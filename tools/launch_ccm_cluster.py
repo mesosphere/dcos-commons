@@ -213,9 +213,11 @@ class CCMLauncher(object):
         elif config.cf_template.startswith('ee.'):
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise-aws-advanced'
             # format is different for enterprise security modes.
-            if config.permissions:
-                mode = 'strict'
-            else:
+            mode = config.security_mode
+            if not mode:
+                logger.warning("No templates known for enterprise & "
+                        "default security (none). Cowardly bringing "
+                        "up a permissive cluster")
                 mode = 'permissive'
             template_url = 'https://{}/{}/{}/cloudformation/{}'.format(
                 hostrepo, config.ccm_channel, mode, config.cf_template)
@@ -255,7 +257,7 @@ class CCMLauncher(object):
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
-      config.permissions,
+      config.security_mode,
       config.ccm_channel,
       config.cf_template,
       template_url))
@@ -293,7 +295,7 @@ class CCMLauncher(object):
         is_enterprise = config.cf_template.startswith('ee.')
         clustinit = configure_test_cluster.ClusterInitializer(cluster_id,
                 stack_id, auth_token, dns_address, is_enterprise,
-                os.environ.get('SECURITY'))
+                config.security_mode)
         clustinit.apply_default_config()
 
         if config.mount_volumes:
@@ -347,8 +349,7 @@ class StartConfig(object):
             aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
-            mount_volumes = False,
-            permissions = False):
+            mount_volumes = False):
         self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
@@ -360,7 +361,12 @@ class StartConfig(object):
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
-        self.permissions = os.environ.get('SECURITY', '') == 'strict'
+        self.security_mode = os.environ.get('SECURITY')
+        if self.security_mode == 'default':
+           self.security_mode = None
+        if not self.security_mode in ('strict', 'permissive', None):
+            raise Exception("Unknown value for SECURITY: %s" %
+                    self.security_mode)
         self.template_url = os.environ.get('DCOS_TEMPLATE_URL', None)
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(

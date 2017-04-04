@@ -12,30 +12,28 @@ import cli_install
 import dcos_login
 import venvutil
 
-# Things this needs: cluster_id, stack_id (???), auth_token, dns_address,
-# strict mode or not
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 def _tools_dir():
     return os.path.dirname(os.path.realpath(__file__))
 
-def _run_script(scriptname, args = []):
+def _run_script(scriptname, args = [], **kwargs):
     logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
     script_path = os.path.join(_tools_dir(), scriptname)
     # redirect stdout to stderr:
-    subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
+    subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr,
+                          **kwargs)
 
 
 class ClusterInitializer(object):
-    def __init__(self, cluster_id, stack_id, auth_token, dns_address,
-            enterprise=False, security=None):
-        self.cluster_id = cluster_id
-        self.stack_id = stack_id
+    def __init__(self, ccm_cluster_id, aws_stack_id, auth_token, dns_address,
+            is_enterprise=False, security=None):
+        self.ccm_cluster_id = ccm_cluster_id
+        self.aws_stack_id = aws_stack_id
         self.auth_token = auth_token
         self.dns_address = dns_address
-        self.entperise = enterprise
+        self.is_enterprise = is_enterprise
         self.security = security
         if not security:
             self.dcos_url = 'http://%s' % dns_address
@@ -46,11 +44,11 @@ class ClusterInitializer(object):
 
     def create_mount_volumes(self):
         fmt = 'Enabling mount volumes for cluster {} (stack id {})'
-        logger.info(fmt.format(self.cluster_id, self.stack_id))
+        logger.info(fmt.format(self.ccm_cluster_id, self.aws_stack_id))
         import enable_mount_volumes
         # fabric spams to stdout, which causes problems with launch_ccm_cluster.
         # force total redirect to stderr:
-        enable_mount_volumes.main(self.stack_id, stdout=sys.stderr)
+        enable_mount_volumes.main(self.aws_stack_id, stdout=sys.stderr)
 
     def _install_cli(self):
         # create_service_account relies on dcos cli, which we may not have
@@ -58,8 +56,8 @@ class ClusterInitializer(object):
         self.cli_tempdir = tempfile.mkdtemp(prefix="conf_cluster")
         cli_install.download_cli(self.dcos_url, self.cli_tempdir)
 
-    def _run_shellscript_with_cli(self, script, args, cmd):
-        custom_env = os.environ[:]
+    def _run_shellscript_with_cli(self, script, args):
+        custom_env = os.environ.copy()
         custom_env['PATH'] = self.cli_tempdir + os.pathsep + os.environ['PATH']
 
         _run_script(script, args, env=custom_env)
@@ -75,7 +73,7 @@ class ClusterInitializer(object):
             return
 
         fmt = 'Setting up permissions for cluster {} (stack id {})'
-        logger.info(fmt.format(self.cluster_id, self.stack_id))
+        logger.info(fmt.format(self.ccm_cluster_id, self.aws_stack_id))
 
         self._run_shellscript_with_cli('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
 
@@ -97,12 +95,12 @@ class ClusterInitializer(object):
 
                 os.environ['DCOS_CONFIG'] = config_f.name
 
-                subprocess.check_call(['which', 'docs'])
-                subprocess.check_call(['dcos' 'config', 'set', 'core.dcos_url', self.dcos_url])
-                subprocess.check_call(['dcos' 'config', 'set', 'core.reporting', 'True'])
-                subprocess.check_call(['dcos' 'config', 'set', 'core.ssl_verify', 'False'])
-                subprocess.check_call(['dcos' 'config', 'set', 'core.timeout', '5'])
-                subprocess.check_call(['dcos' 'config', 'show'])
+                subprocess.check_call(['which', 'dcos'])
+                subprocess.check_call(['dcos', 'config', 'set', 'core.dcos_url', self.dcos_url])
+                subprocess.check_call(['dcos', 'config', 'set', 'core.reporting', 'True'])
+                subprocess.check_call(['dcos', 'config', 'set', 'core.ssl_verify', 'False'])
+                subprocess.check_call(['dcos', 'config', 'set', 'core.timeout', '5'])
+                subprocess.check_call(['dcos', 'config', 'show'])
                 dcos_login.DCOSLogin(self.dcos_url).login()
 
                 venv_path = venvutil.shared_tools_venv()
