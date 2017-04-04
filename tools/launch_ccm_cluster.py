@@ -314,7 +314,7 @@ class CCMLauncher(object):
             # create_service_account relies on dcos cli, which we may not have
             # at this point.
             tempdir = tempfile.mkdtemp(prefix="ccm_clustbin")
-            cli_install(dcos_url, tempdir)
+            cli_install.download_cli(dcos_url, tempdir)
             custom_env = os.environ[:]
             custom_env['PATH'] = tempdir + os.pathsep + os.environ['PATH']
 
