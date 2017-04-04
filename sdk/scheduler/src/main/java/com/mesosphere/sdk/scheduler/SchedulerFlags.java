@@ -16,10 +16,6 @@ public class SchedulerFlags {
 
     private static String getEnvDefault(String envKey, String dflt) {
         String value = System.getenv(envKey);
-        if (value == null) {
-            value = dflt;
-        }
-
-        return value;
+        return (value == null) ? dflt : value;
     }
 }

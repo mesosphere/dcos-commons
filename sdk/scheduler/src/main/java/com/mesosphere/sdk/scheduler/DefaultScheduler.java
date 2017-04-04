@@ -93,11 +93,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
 
     private JettyApiServer apiServer;
-    private AtomicBoolean apiServerDisabled = new AtomicBoolean(false);
     private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
     protected SchedulerDriver driver;
@@ -642,7 +641,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeApiServer() {
-        if (apiServerDisabled.get()) {
+        if (apiServerReady()) {
             return;
         }
 
@@ -727,9 +726,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     public boolean apiServerReady() {
         boolean serverStarted = apiServer != null && apiServer.isStarted();
 
-        if (serverStarted || apiServerDisabled.get()) {
+        if (serverStarted) {
             apiServerStopwatch.reset();
-            serverStarted = true;
         } else if (
                 apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > SchedulerFlags.getApiServerTimeout().toMillis()) {
             LOGGER.error(
@@ -930,10 +928,5 @@ public class DefaultScheduler implements Scheduler, Observer {
         if (observable == planCoordinator) {
             suppressOrRevive();
         }
-    }
-
-    @VisibleForTesting
-    void setApiServerDisabled(boolean disabled) {
-        apiServerDisabled.set(disabled);
     }
 }

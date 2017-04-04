@@ -206,7 +206,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
-        defaultScheduler.setApiServerDisabled(true);
+        defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
     }
 
@@ -519,7 +519,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
-        defaultScheduler.setApiServerDisabled(true);
+        defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
         defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -668,24 +668,21 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testApiServerNotReady() {
-        defaultScheduler.setApiServerDisabled(false);
-        Assert.assertFalse(defaultScheduler.apiServerReady());
-    }
-
-    @Test
     public void testApiServerNotReadyDecline() {
-        defaultScheduler.setApiServerDisabled(false);
-
-        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
+        TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
+        testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
         verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
     }
 
     @Test
-    public void testApiServerTimeout() throws InterruptedException {
+    public void testApiServerTimeout() throws Exception {
         int timeoutSec = 1;
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
+                .build();
         ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, String.valueOf(timeoutSec));
-        defaultScheduler.setApiServerDisabled(false);
         Assert.assertFalse(defaultScheduler.apiServerReady());
         Thread.sleep(timeoutSec * 2000);
         exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
@@ -894,5 +891,26 @@ public class DefaultSchedulerTest {
         }
     }
 
-    ;
+    private static class TestScheduler extends DefaultScheduler {
+        private final boolean apiServerReady;
+
+        public TestScheduler(DefaultScheduler defaultScheduler, boolean apiServerReady) {
+            super(
+                    defaultScheduler.serviceSpec,
+                    defaultScheduler.resources,
+                    defaultScheduler.plans,
+                    defaultScheduler.stateStore,
+                    defaultScheduler.configStore,
+                    defaultScheduler.offerRequirementProvider,
+                    defaultScheduler.customEndpointProducers,
+                    defaultScheduler.customRestartHook,
+                    defaultScheduler.recoveryPlanManagerFactoryOptional);
+            this.apiServerReady = apiServerReady;
+        }
+
+        @Override
+        public boolean apiServerReady() {
+            return apiServerReady;
+        }
+    }
 }

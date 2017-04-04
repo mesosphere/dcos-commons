@@ -57,7 +57,9 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         return Element.super.isEligible(dirtyAssets) && !isInterrupted();
     }
 
-    /** Updates children. */
+    /**
+     * Updates children.
+     */
     @Override
     default void update(Protos.TaskStatus taskStatus) {
         Collection<? extends Element> children = getChildren();
