@@ -138,7 +138,11 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/A
     rack:3  | b-2, c-4, b-3
  Result:
   allow any of rack:1/rack:2/rack:3, unless we know that there's >3 racks via the attribute-count
-  parameter.</div>
+  parameter.
+
+ This enforcement is applied by task name. By default the rule will only count e.g. tasks named
+ 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
+ within the service.</div>
 </li>
 </ul>
 </div>

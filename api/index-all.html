@@ -3968,8 +3968,8 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">MaxPerAttributeRule</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
-<div class="block">Ensures that the given Offer’s attributes each have no more than N instances of tasks running on
- them.</div>
+<div class="block">Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
+ running on them.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#MaxPerAttributeRule-int-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">MaxPerAttributeRule(int, StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerAttributeRule</a></dt>
 <dd>
@@ -4360,14 +4360,14 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.Factory.html#parse-byte:A-">parse(byte[])</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.Factory.html" title="class in com.mesosphere.sdk.config">StringConfiguration.Factory</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#parse-java.lang.String-">parse(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MarathonConstraintParser</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#parse-java.lang.String-java.lang.String-">parse(String, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MarathonConstraintParser</a></dt>
 <dd>
 <div class="block">Creates and returns a new <a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> against the provided marathon-style
  constraint string.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Factory.html#parse-byte:A-">parse(byte[])</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Factory.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Factory</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#parseWith-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.lang.String-">parseWith(PlacementRule, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MarathonConstraintParser</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#parseWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.lang.String-">parseWith(String, PlacementRule, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MarathonConstraintParser</a></dt>
 <dd>
 <div class="block">ANDs the provided marathon-style constraint string onto the provided hard-coded
  <a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>, or returns the provided <a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> as-is if the
@@ -6121,7 +6121,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
 <dd>
-<div class="block">Updates children</div>
+<div class="block">Updates children.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html#update-TaskStatus-">update(TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></dt>
 <dd>

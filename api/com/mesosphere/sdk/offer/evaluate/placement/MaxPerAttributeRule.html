@@ -114,8 +114,8 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">MaxPerAttributeRule</span>
 extends java.lang.Object
 implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></pre>
-<div class="block">Ensures that the given Offer’s attributes each have no more than N instances of tasks running on
- them.
+<div class="block">Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
+ running on them.
 
  For example, this can ensure that no more than N tasks are running against the 'rack:foo'
  attribute (exact match), or it can ensure that no distinct 'rack:.*' value has more than N tasks
@@ -144,8 +144,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
  still have room. Therefore the PlacementRule will allow deployments given an attribute of
  'rack:b' or 'rack:c', and will block deployments onto 'rack:a'.
 
- In addition, this enforcement can be selectively applied by task name. By default the rule will
- look at ALL tasks in the service, but with a task matcher we can only count e.g. tasks named
+ This enforcement is applied by task name. By default the rule will only count e.g. tasks named
  'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  within the service.</div>
 </li>
