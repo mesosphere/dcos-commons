@@ -185,67 +185,92 @@
   </li>
   <li>
     <p>Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos elastic plan show deploy
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>SSH into the master node.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> dcos node ssh --master-proxy --leader
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Retrieve client endpoint information by running the <code class="highlighter-rouge">endpoints</code> command:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos elastic endpoints coordinator
+ {
+     "direct": ["coordinator-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
+     "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200"
+ }
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>[SSH into a DC/OS node][1]:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos node ssh --master-proxy --leader
+</code></pre>
+    </div>
+
+    <p>Now that you are inside your DC/OS cluster, you can connect to your Elasticsearch cluster directly.</p>
+  </li>
+  <li>
+    <p>Create an indice:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Store data in your indice:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
+ {
+     "name": "John Doe"
+ }'
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Retrieve data from your indice:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Browse Kibana:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> http://&lt;dcos-url&gt;/service/elastic/kibana/login
+</code></pre>
+    </div>
   </li>
 </ol>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>	$ dcos elastic plan show deploy
-	```
+<p>Log in with <code class="highlighter-rouge">elastic</code>/<code class="highlighter-rouge">changeme</code>
+«««&lt; HEAD</p>
 
-1. SSH into the master node.
+<div class="highlighter-rouge"><pre class="highlight"><code>```bash
+curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
+```
+</code></pre>
+</div>
 
-    ```bash
-    dcos node ssh --master-proxy --leader
-    ```
-        
-1. Retrieve client endpoint information by running the `endpoints` command:
-        
-        $ dcos elastic endpoints coordinator
-        {
-            "direct": ["coordinator-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
-            "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200"
-        }
+<h1 id="access-kibana">Access Kibana</h1>
 
-1. [SSH into a DC/OS node][1]:
+<ol>
+  <li>
+    <p>Log into your DC/OS cluster so that you can see the Dashboard. You should see your Elastic service running under Services.</p>
+  </li>
+  <li>
+    <p>Make sure Kibana is ready for use. The <code class="highlighter-rouge">kibana-deploy</code> phase should be marked as <code class="highlighter-rouge">COMPLETE</code> when you check the plan status:</p>
+  </li>
+</ol>
 
-        $ dcos node ssh --master-proxy --leader
-
-    Now that you are inside your DC/OS cluster, you can connect to your Elasticsearch cluster directly.
-
-1. Create an indice:
-
-        $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
-
-
-1. Store data in your indice:
-
-        $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
-        {
-            "name": "John Doe"
-        }'
-        
-1. Retrieve data from your indice:
-
-        $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
-        
-1. Browse Kibana:
-
-        http://&lt;dcos-url&gt;/service/elastic/kibana/login
-
-  Log in with `elastic`/`changeme`
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-
-	```bash
-	curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
-	```
-
-# Access Kibana
-
-1. Log into your DC/OS cluster so that you can see the Dashboard. You should see your Elastic service running under Services.
-
-1. Make sure Kibana is ready for use. The `kibana-deploy` phase should be marked as `COMPLETE` when you check the plan status:
-
-  ```bash
-  dcos elastic plan show deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>  dcos elastic plan show deploy
 </code></pre>
 </div>
 
