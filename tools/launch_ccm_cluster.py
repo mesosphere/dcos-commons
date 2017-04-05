@@ -35,7 +35,7 @@ except ImportError:
     from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 class ClusterActionException(Exception):
     pass
