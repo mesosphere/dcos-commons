@@ -143,6 +143,7 @@ class ClusterInitializer(object):
                     self._initialize_dcos_cli()
                     self.configure_master_settings()
                 finally:
+                    sys.stdout.flush()
                     os.dup2(stdout_back, stdout_fd)
         finally:
             os.environ.clear()
