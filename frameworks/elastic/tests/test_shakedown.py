@@ -135,7 +135,6 @@ def test_kibana_proxylite_adminrouter_integration():
     check_kibana_proxylite_adminrouter_integration()
 
 
-@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/ELASTIC-58")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
