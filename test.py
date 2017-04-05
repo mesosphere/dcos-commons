@@ -16,11 +16,11 @@ logger = logging.getLogger("dcos-commons-test")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
 sys.path.append(os.path.join(get_repo_root(), 'tools'))
-sys.path.append(os.path.join(get_repo_root(), 'tools', 'contrib'))
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
-import junit_xml
+
+
 work_dir = None
 def get_work_dir():
     global work_dir
@@ -329,7 +329,7 @@ def _one_cluster_linear_tests(run_attrs, repo_root):
         _action_wrapper("Run %s tests" % framework.name,
                 framework, func, *args)
 
-def handle_test_completions():
+def _handle_test_completions():
     all_tests_ok = True
     for framework in fwinfo.get_frameworks():
         if not framework.running:
@@ -403,7 +403,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     # TODO: report .out sizes for running tests
                     time.sleep(30) # waiting for an available cluster
                     # meanwhile, a test might finish
-                    all_ok = handle_test_completions()
+                    all_ok = _handle_test_completions()
                     if not all_ok:
                         logger.info("Some tests failed; aborting early") # TODO paramaterize
                         break
@@ -425,7 +425,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 # echo status
                 time.sleep(30) # waiting for tests to complete
 
-            all_ok = handle_test_completions()
+            all_ok = _handle_test_completions()
             if not all_ok:
                 logger.info("Some tests failed; aborting early") # TODO paramaterize
                 break
@@ -458,6 +458,7 @@ def run_tests(run_attrs, repo_root):
 
 
 def _setup_strict(framework, cluster, repo_root):
+    "Do cruft required to create the roles for the framework"
     security = os.environ.get('SECURITY', '')
     logger.info("SECURITY set to: '%s'", security)
     if security == "strict":
@@ -540,46 +541,16 @@ def run_test(framework, cluster, repo_root):
         logger.info(msg, runtests_script, framework.name)
         raise CommandFailure(cmd_args)
 
-def emit_junit_xml():
-    launch_fake_testcases = []
-    for launch_attempt in clustinfo.get_launch_attempts():
-        attempt_duration = launch_attempt.end_time - launch_attempt.start_time
-        fake_test = junit_xml.TestCase(launch_attempt.name,
-                                       elapsed_sec=attempt_duration)
-        if launch_attempt.launch_succeeded:
-            fake_test.stdout = "Launch worked"
-        else:
-            fake_test.add_failure_info("Launch failed")
-        launch_fake_testcases.append(fake_test)
-
-    launch_suite = junit_xml.TestSuite("Cluster launches",
-            launch_fake_testcases)
-
-    fake_suites = []
-    fake_suites.append(launch_suite)
-
+def report_failed_actions():
+    "Do useful things with the recorded successful and failed actions"
+    # These are our data sources
+    cluster_launch_attmpts = clustinfo.get_launch_attempts()
+    _ = cluster_launch_attempts
     for framework in fwinfo.get_frameworks():
-        framework_testcases = []
-        for action_name, action in framework.actions.items():
-            action_duration = action['finish'] - action['start']
-            fake_test = junit_xml.TestCase(action_name,
-                                           elapsed_sec=action_duration,
-                                           stdout = action['stdout'],
-                                           stderr = action['stderr'])
-            if not action['ok']:
-                message = action['error_message']
-                if not message:
-                    message = "%s failed" % action_name
-                fake_test.add_failure_info(message, action['error_output'])
-            framework_testcases.append(fake_test)
-        framework_suite = junit_xml.TestSuite("%s actions" % framework.name,
-                framework_testcases)
-        fake_suites.append(framework_suite)
-
-    with open("junit_testpy.xml", "w") as f:
-        junit_xml.TestSuite.to_file(f, fake_suites)
-
-
+        actions = framework.actions
+        _ = actions
+    # We actually have no functionality to report them right now.
+    pass
 
 def main():
     run_attrs = parse_args()
@@ -605,7 +576,7 @@ def main():
                 _recover_stub_urls(run_attrs, repo_root)
             run_tests(run_attrs, repo_root)
     finally:
-        emit_junit_xml()
+        report_failed_actions()
     return True
 
 if __name__ == "__main__":
