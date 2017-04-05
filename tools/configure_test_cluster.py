@@ -84,7 +84,38 @@ class ClusterInitializer(object):
         #_run_script('setup_permissions.sh', 'nobody kafka-role'.split())
         #_run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
+    def _initialize_dcos_cli(self):
+        logger.info("Initializing dcos config")
+        subprocess.check_call(['which', 'dcos'])
+        subprocess.check_call(['dcos', 'config', 'set', 'core.dcos_url', self.dcos_url])
+        subprocess.check_call(['dcos', 'config', 'set', 'core.reporting', 'True'])
+        subprocess.check_call(['dcos', 'config', 'set', 'core.ssl_verify', 'False'])
+        subprocess.check_call(['dcos', 'config', 'set', 'core.timeout', '5'])
+        subprocess.check_call(['dcos', 'config', 'show'])
+        dcos_login.DCOSLogin(self.dcos_url).login()
+
     def configure_master_settings(self):
+        logger.info("Live-customizing mesos master")
+        venv_path = venvutil.shared_tools_venv()
+        requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
+        # needs shakedown, so needs python3
+        if sys.version_info < (3,4):
+            venvutil.create_venv(venv_path, py3=True)
+            venvutil.pip_install(venv_path, requirements_file)
+
+            script = os.path.join(_tools_dir(), 'modify_master.py')
+            configure_cmd = ['python', script]
+            venvutil.run_cmd(venv_path, configure_cmd)
+        else:
+            venvutil.create_venv(venv_path)
+            venvutil.pip_install(venv_path, requirements_file)
+            venvutil.activate_venv(venv_path)
+
+            # import delayed until dependencies exist
+            import modify_master
+            modify_master.set_local_infinity_defaults()
+
+    def apply_default_config(self):
         saved_env = os.environ.copy()
         try:
             # TODO; track a cluster-specific working dir, and keep this in
@@ -94,40 +125,28 @@ class ClusterInitializer(object):
             with tempfile.NamedTemporaryFile() as config_f:
 
                 os.environ['DCOS_CONFIG'] = config_f.name
+                os.environ['PATH'] = self.cli_tempdir + os.pathsep + os.environ['PATH']
 
-                subprocess.check_call(['which', 'dcos'])
-                subprocess.check_call(['dcos', 'config', 'set', 'core.dcos_url', self.dcos_url])
-                subprocess.check_call(['dcos', 'config', 'set', 'core.reporting', 'True'])
-                subprocess.check_call(['dcos', 'config', 'set', 'core.ssl_verify', 'False'])
-                subprocess.check_call(['dcos', 'config', 'set', 'core.timeout', '5'])
-                subprocess.check_call(['dcos', 'config', 'show'])
-                dcos_login.DCOSLogin(self.dcos_url).login()
+                # redirect stdout at os level to avoid too much script
+                # surgery at once; will remove once we remove the stdout
+                # requirement of launch_ccm_cluster
+                stdout_fd = sys.stdout.fileno()
+                stdout_back = os.dup(stdout_fd)
+                try:
+                    os.dup2(sys.stderr.fileno(), stdout_fd)
 
-                venv_path = venvutil.shared_tools_venv()
-                requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
-                # needs shakedown, so needs python3
-                if sys.version_info < (3,4):
-                    venvutil.create_venv(venv_path, py3=True)
-                    venvutil.pip_install(venv_path, requirements_file)
-
-                    script = os.path.join(_tools_dir(), 'modify_master.py')
-                    configure_cmd = ['python', script]
-                    venvutil.run_cmd(venv_path, configure_cmd)
-                else:
-                    venvutil.create_venv(venv_path)
-                    venvutil.pip_install(venv_path, requirements_file)
-                    venvutil.activate_venv(venv_path)
-
-                    # import delayed until dependencies exist
-                    import modify_master
-                    modify_master.set_local_infinity_defaults()
+                    self.create_service_account()
+                    # currently, the create_service_account.sh script sets up the
+                    # cli itself so we initialize it in the style that test logic
+                    # expects after.
+                    # in the shiny future, set up the CLI once for the whole run.
+                    self._initialize_dcos_cli()
+                    self.configure_master_settings()
+                finally:
+                    os.dup2(stdout_back, stdout_fd)
         finally:
             os.environ.clear()
             os.environ.update(saved_env)
-
-    def apply_default_config(self):
-        self.create_service_account()
-        self.configure_master_settings()
 
 # TODO: figure out how to determine all the necessary values from
 # CLUSTER_URL etc
