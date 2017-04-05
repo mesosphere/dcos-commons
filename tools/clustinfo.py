@@ -75,19 +75,10 @@ def shutdown_clusters(shutdown_external=False):
         _clusters.remove(cluster)
 
 def _launch_cluster(launch_config=None):
-    github_label = launch_ccm_cluster.determine_github_label()
     ccm_token = os.environ['CCM_AUTH_TOKEN']
-    launcher = launch_ccm_cluster.CCMLauncher(ccm_token, github_label)
-    start_stop_attempts = launch_ccm_cluster.CCMLauncher.DEFAULT_ATTEMPTS
-    if 'CCM_ATTEMPTS' in os.environ:
-        start_stop_attempts = int(os.environ['CCM_ATTEMPTS'])
-
     if not launch_config:
         launch_config = launch_ccm_cluster.StartConfig(private_agents=6)
-
-    cluster_info = launch_ccm_cluster.start_cluster(launcher, github_label,
-                                                    start_stop_attempts,
-                                                    launch_config)
+    cluster_info = launch_ccm_cluster.start_cluster(ccm_token, launch_config)
     cluster = ClusterInfo(cluster_info["url"], cluster_info["auth_token"],
             cluster_id=cluster_info["id"])
     return cluster
