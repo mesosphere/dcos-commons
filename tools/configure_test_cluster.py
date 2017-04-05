@@ -13,7 +13,8 @@ import dcos_login
 import venvutil
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+if __name__ == __main__:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 def _tools_dir():
     return os.path.dirname(os.path.realpath(__file__))

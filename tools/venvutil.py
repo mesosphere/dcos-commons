@@ -8,7 +8,7 @@ import sys
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def shared_tools_venv():
