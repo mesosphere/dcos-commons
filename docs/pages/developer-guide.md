@@ -1,5 +1,6 @@
 ---
 title: SDK Developer Guide
+redirect_from: "/dev-guide/developer-guide"
 ---
 
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
