@@ -39,8 +39,9 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
+        List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(offerRequirement);
+
         for (int i = 0; i < offers.size(); ++i) {
-            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(offerRequirement);
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
