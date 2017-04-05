@@ -6,7 +6,7 @@
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
-      "awscli-zip": "https://s3cli-artifacts.s3.amazonaws.com/s3cli-0.0.55-linux-amd64"
+      "awscli-zip": "https://s3.amazonaws.com/downloads.mesosphere.io/dcos-commons/artifacts/s3cli-0.0.55-linux-amd64.zip"
     }
   },
   "images": {
