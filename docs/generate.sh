@@ -3,7 +3,9 @@
 # Generates docs:
 # 1. Checks out a copy of the repo's gh-pages branch
 # 2. Regenerates all docs into that copy
-# 3. Pushes the changes to github (if 'upload' argument is specified)
+# 3a. If 'upload' argument is specified: Pushes the changes to github
+# 3b. If 'exit' is specified:            Prints the output path and exits
+# 3c. If no argument is specified:       Launches a local http server to view the output
 
 DOCS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DOCS_DIR
@@ -22,6 +24,9 @@ SWAGGER_OUTPUT_DIR=swagger-api
 SWAGGER_JAR=swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar
 SWAGGER_URL=http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
 
+# Default value, override with "HTTP_PORT" envvar:
+DEFAULT_HTTP_PORT=8888
+
 # abort script at first error:
 set -eu
 
@@ -38,8 +43,11 @@ run_cmd() {
 }
 
 UPLOAD_ENABLED=""
+EXIT_ENABLED=""
 if [ "${1:-}" = "upload" ]; then
     UPLOAD_ENABLED="y"
+elif [ "${1:-}" = "exit" ]; then
+    EXIT_ENABLED="y"
 fi
 
 if [ $UPLOAD_ENABLED ]; then
@@ -53,7 +61,6 @@ if [ $UPLOAD_ENABLED ]; then
 fi
 
 # 1. Generate static jekyll pages
-# gem install jekyll
 
 # 1. Generate common + framework docs
 # Workaround: '--layouts' flag seems to be ignored. cd into pages dir to generate.
@@ -64,6 +71,8 @@ for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
     framework=$(echo $dir | awk -F "/" '{print $(NF-2)}')
     ln -s -v $dir services/$framework
 done
+# Errors? Do this!:
+# sudo gem install jekyll jekyll-redirect-from
 run_cmd jekyll build --destination ${DOCS_DIR}/${DEST_DIR_NAME}
 popd
 
@@ -86,15 +95,19 @@ if [ $UPLOAD_ENABLED ]; then
     # Push changes to gh-pages branch
     pushd ${DEST_DIR_NAME}
     git checkout -- README.md # recover gh-pages README *after* generating docs -- otherwise it's removed via generation
-    if [ $(git ls-files -m | wc -l) -eq 0 ]; then
+    CHANGED_FILES=$(git ls-files -d -m -o --exclude-standard)
+    NUM_CHANGED_FILES=$(echo $CHANGED_FILES | wc -w)
+    if [ $NUM_CHANGED_FILES -eq 0 ]; then
         echo "No docs changes detected, skipping commit to gh-pages"
     else
-        echo "Pushing $(git ls-files -m | wc -l) changed files to gh-pages:"
+        echo "Pushing $NUM_CHANGED_FILES changed files to gh-pages:"
         echo "--- CHANGED FILES START"
-        git ls-files -m
+        for file in $CHANGED_FILES; do
+            echo $file
+        done
         echo "--- CHANGED FILES END"
         git add .
-        if [ -n "$WORKSPACE" ]; then
+        if [ -n "${WORKSPACE+x}" ]; then
             # we're in jenkins. set contact info (not set by default)
             git config user.name "Jenkins"
             git config user.email "jenkins@example.com"
@@ -103,7 +116,23 @@ if [ $UPLOAD_ENABLED ]; then
         git push origin gh-pages
     fi
     popd
-else
+elif [ $EXIT_ENABLED ]; then
     echo "-----"
     echo "Content has been generated here: file://${DOCS_DIR}/${DEST_DIR_NAME}/index.html"
+else
+    echo "-----"
+    echo "Launching test server with generated content. Use '$0 exit' to skip this."
+    trap - ERR
+    if [ -z "${HTTP_PORT+x}" ]; then
+        HTTP_PORT=$DEFAULT_HTTP_PORT
+    fi
+    FAILED=""
+    python $DOCS_DIR/httpd.py $DOCS_DIR/$DEST_DIR_NAME $HTTP_PORT || FAILED="yes"
+    if [ -n "$FAILED" ]; then
+        echo "-----"
+        echo "Failed to listen on HTTP_PORT=$HTTP_PORT."
+        echo "Wait for that port to free up, or specify a different port like this:"
+        echo "HTTP_PORT=<custom port> $0 $@"
+        echo "Alternately just run '$0 exit' to skip running a test server."
+    fi
 fi
