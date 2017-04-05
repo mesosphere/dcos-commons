@@ -22,13 +22,17 @@
   {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
-    "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
-    "FRAMEWORK_USER": "{{service.user}}",
-    "TEMPLATE_COUNT": "{{template.count}}",
-    "TEMPLATE_CPUS": "{{template.cpus}}",
-    "TEMPLATE_MEM": "{{template.mem}}",
-    "TEMPLATE_DISK": "{{template.disk}}",
     "SLEEP_DURATION": "{{service.sleep}}",
+    "FRAMEWORK_USER": "{{service.user}}",
+    "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
+
+    "NODE_COUNT": "{{node.count}}",
+    "NODE_PLACEMENT": "{{node.placement_constraint}}",
+    "NODE_CPUS": "{{node.cpus}}",
+    "NODE_MEM": "{{node.mem}}",
+    "NODE_DISK": "{{node.disk}}",
+    "NODE_DISK_TYPE": "{{node.disk_type}}",
+
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },

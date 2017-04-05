@@ -10,7 +10,7 @@ enterprise: 'no'
 
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 	
-```
+	```bash
 	$ dcos elastic plan show deploy
 	```
 
