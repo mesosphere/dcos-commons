@@ -364,7 +364,7 @@ class StartConfig(object):
 
     def __init__(
             self,
-            name_prefix = 'test-cluster-',
+            name_prefix = 'infinity-test-',
             description = '',
             duration_mins = 240,
             ccm_channel = 'testing/master',
