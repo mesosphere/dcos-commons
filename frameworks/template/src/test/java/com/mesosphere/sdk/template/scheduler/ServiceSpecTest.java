@@ -13,10 +13,11 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("PORT_API", "8080");
         ENV_VARS.set("FRAMEWORK_NAME", "template");
 
-        ENV_VARS.set("TEMPLATE_COUNT", "2");
-        ENV_VARS.set("TEMPLATE_CPUS", "0.1");
-        ENV_VARS.set("TEMPLATE_MEM", "512");
-        ENV_VARS.set("TEMPLATE_DISK", "5000");
+        ENV_VARS.set("NODE_COUNT", "2");
+        ENV_VARS.set("NODE_CPUS", "0.1");
+        ENV_VARS.set("NODE_MEM", "512");
+        ENV_VARS.set("NODE_DISK", "5000");
+        ENV_VARS.set("NODE_DISK_TYPE", "ROOT");
 
         ENV_VARS.set("SLEEP_DURATION", "1000");
     }
