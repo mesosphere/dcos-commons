@@ -1,0 +1,40 @@
+Metadata-Version: 2.0
+Name: dcos
+Version: 0.4.16
+Summary: DCOS Common Modules
+Home-page: https://github.com/mesosphere/dcos-cli
+Author: Mesosphere, Inc.
+Author-email: help@dcos.io
+License: UNKNOWN
+Keywords: mesos apache marathon mesosphere command datacenter
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: Topic :: Software Development :: User Interfaces
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Requires-Dist: jsonschema (<3.0,>=2.5)
+Requires-Dist: pager (<4.0,>=3.3)
+Requires-Dist: prettytable (<1.0,>=0.7)
+Requires-Dist: pygments (>=2.0,<3.0)
+Requires-Dist: requests (<3.0,>=2.6)
+Requires-Dist: six (>=1.9,<2.0)
+Requires-Dist: sseclient (==0.0.14)
+Requires-Dist: toml (<1.0,>=0.9)
+Requires-Dist: futures (>=3.0,<4.0); python_version=="2.7"
+
+DC/OS Command Line Interface
+===========================
+The DC/OS Command Line Interface (CLI) is a command line utility that
+provides a user-friendly yet powerful way to manage DC/OS installations.
+
+This project is open source. Please see GitHub_ to access source code and to contribute.
+
+Full documentation is available for the DC/OS CLI on the `DC/OS docs website`_.
+
+.. _GitHub: https://github.com/mesosphere/dcos-cli
+.. _DC/OS docs website: https://dcos.io/docs/usage/cli/
+
+
