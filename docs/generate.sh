@@ -16,7 +16,8 @@ PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
 JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
 
 # Output directory:
-DEST_DIR_NAME=dcos-commons-gh-pages
+OUTPUT_BASE_DIR=dcos-commons-gh-pages
+OUTPUT_DIR=${OUTPUT_BASE_DIR}/dcos-commons
 
 # Swagger build to fetch if needed:
 SWAGGER_CODEGEN_VERSION=2.2.2
@@ -52,17 +53,15 @@ fi
 
 if [ $UPLOAD_ENABLED ]; then
     # Fetch copy of gh-pages branch for output
-    if [ -d ${DEST_DIR_NAME} ]; then
+    if [ -d ${OUTPUT_DIR} ]; then
         # dir exists: clear before replacing with fresh git repo
-        rm -rf ${DEST_DIR_NAME}
+        rm -rf ${OUTPUT_DIR}
     fi
-    git clone -b gh-pages --single-branch --depth 1 git@github.com:mesosphere/dcos-commons ${DEST_DIR_NAME}
-    rm -rf ${DEST_DIR_NAME}/* # README.md is recovered later
+    git clone -b gh-pages --single-branch --depth 1 git@github.com:mesosphere/dcos-commons ${OUTPUT_DIR}
+    rm -rf ${OUTPUT_DIR}/* # README.md is recovered later
 fi
 
-# 1. Generate static jekyll pages
-
-# 1. Generate common + framework docs
+# 1. Generate common pages + framework docs using jekyll
 # Workaround: '--layouts' flag seems to be ignored. cd into pages dir to generate.
 pushd $PAGES_PATH
 rm -rf services
@@ -73,11 +72,11 @@ for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
 done
 # Errors? Do this!:
 # sudo gem install jekyll jekyll-redirect-from
-run_cmd jekyll build --destination ${DOCS_DIR}/${DEST_DIR_NAME}
+run_cmd jekyll build --destination ${DOCS_DIR}/${OUTPUT_DIR}
 popd
 
 # 2. Generate javadocs to api/ subdir
-javadoc -quiet -notimestamp -package -d ${DEST_DIR_NAME}/api/ \
+javadoc -quiet -notimestamp -package -d ${OUTPUT_DIR}/api/ \
     $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
 
 # 3. Generate swagger html to swagger-api/ subdir
@@ -89,11 +88,11 @@ run_cmd java -jar ${SWAGGER_JAR} \
     -l html \
     -i ${SWAGGER_OUTPUT_DIR}/swagger-spec.yaml \
     -c ${SWAGGER_OUTPUT_DIR}/swagger-config.json \
-    -o ${DEST_DIR_NAME}/${SWAGGER_OUTPUT_DIR}/
+    -o ${OUTPUT_DIR}/${SWAGGER_OUTPUT_DIR}/
 
 if [ $UPLOAD_ENABLED ]; then
     # Push changes to gh-pages branch
-    pushd ${DEST_DIR_NAME}
+    pushd ${OUTPUT_DIR}
     git checkout -- README.md # recover gh-pages README *after* generating docs -- otherwise it's removed via generation
     CHANGED_FILES=$(git ls-files -d -m -o --exclude-standard)
     NUM_CHANGED_FILES=$(echo $CHANGED_FILES | wc -w)
@@ -118,7 +117,7 @@ if [ $UPLOAD_ENABLED ]; then
     popd
 elif [ $EXIT_ENABLED ]; then
     echo "-----"
-    echo "Content has been generated here: file://${DOCS_DIR}/${DEST_DIR_NAME}/index.html"
+    echo "Content has been generated here: file://${DOCS_DIR}/${OUTPUT_DIR}/index.html"
 else
     echo "-----"
     echo "Launching test server with generated content. Use '$0 exit' to skip this."
@@ -127,7 +126,8 @@ else
         HTTP_PORT=$DEFAULT_HTTP_PORT
     fi
     FAILED=""
-    python $DOCS_DIR/httpd.py $DOCS_DIR/$DEST_DIR_NAME $HTTP_PORT || FAILED="yes"
+    echo "> http://localhost:${HTTP_PORT}/dcos-commons < is now serving $DOCS_DIR/$OUTPUT_DIR"
+    python $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="yes"
     if [ -n "$FAILED" ]; then
         echo "-----"
         echo "Failed to listen on HTTP_PORT=$HTTP_PORT."

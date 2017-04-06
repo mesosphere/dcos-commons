@@ -18,7 +18,6 @@ def serve_http(host, port, rootdir):
 
     os.chdir(rootdir)
     httpd = SocketServer.TCPServer((host, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
-    print('> http://{}:{} < is now serving {}'.format(host, port, rootdir))
     print('Ctrl+C to exit.')
     try:
         httpd.serve_forever()
@@ -46,6 +45,7 @@ def main(argv):
         print('Path must be a directory')
         return 1
     serve_http(host, port, os.path.abspath(path))
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
