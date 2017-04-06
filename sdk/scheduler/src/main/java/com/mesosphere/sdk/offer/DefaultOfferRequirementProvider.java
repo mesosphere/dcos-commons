@@ -226,7 +226,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getIndex(),
                 taskRequirements,
                 ExecutorRequirement.create(getExecutor(podInstance, serviceName, targetConfigurationId)),
-                //TODO(MB): do not add placement rules to getExistingOfferRequirement
+                // do not add placement rules to getExistingOfferRequirement
                 Optional.empty()
                 );
     }
