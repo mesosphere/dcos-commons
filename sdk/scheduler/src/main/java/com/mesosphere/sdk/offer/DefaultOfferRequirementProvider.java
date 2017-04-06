@@ -655,7 +655,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
         String javaUri = System.getenv(JAVA_URI_SCHEDENV);
         if (javaUri == null) {
-            javaUri = JAVA_URI_DEFAULT;
+            throw new IllegalStateException("Missing required environment variable: " + JAVA_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(javaUri);
 
