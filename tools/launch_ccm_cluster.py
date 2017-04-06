@@ -487,7 +487,7 @@ def main(argv):
             logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
-    _start_cluster(launcher, github_label, start_stop_attempts)
+    _start_cluster(launcher, github_label, start_stop_attempts, StartConfig())
     return 0
 
 
