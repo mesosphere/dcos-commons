@@ -26,7 +26,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
 
 
 def setup_function(function):
