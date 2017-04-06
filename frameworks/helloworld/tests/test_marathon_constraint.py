@@ -5,6 +5,9 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_plan as plan
 import sdk_tasks as tasks
+import sdk_marathon as marathon
+import time
+
 from tests.config import (
     PACKAGE_NAME
 )
@@ -138,7 +141,7 @@ def test_change_constraint():
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents,
+            "count": num_private_agents-1,
             "placement": "hostname:UNIQUE"
         },
         "world": {
@@ -146,21 +149,30 @@ def test_change_constraint():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
+    install.install(PACKAGE_NAME, num_private_agents-1, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
+
+    tasks.check_running(PACKAGE_NAME, num_private_agents-1)
+    ensure_multiple_per_agent(hello=1, world=0)
 
     # change placement constraint, but tasks should not update
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     config = marathon.get_config(PACKAGE_NAME)
     some_agent = shakedown.get_private_agents().pop()
+
+    config['env']['HELLO_COUNT'] = str(num_private_agents)
     config['env']['HELLO_PLACEMENT'] = "hostname:CLUSTER:{}".format(some_agent)
     marathon.update_app(PACKAGE_NAME, config)
+
+    tasks.check_running(PACKAGE_NAME, num_private_agents)
+
+    #wait a while before checking prev tasks did not get update / restarted
     time.sleep(30)
-    check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
 
     # all tasks should end up on `some_agent`, even the one that started there
-    for pod_index in range(num_private_agents):
+    for pod_index in range(num_private_agents-1):
         cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
-        check_running()
+        tasks.check_running(PACKAGE_NAME, num_private_agents)
+
     ensure_multiple_per_agent(hello=num_private_agents, world=0)
