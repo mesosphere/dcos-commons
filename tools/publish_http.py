@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Hosts artifacts via a local HTTP service.
 # Produces a universe, and puts it in a host dir, then runs an HTTP server against that dir.
