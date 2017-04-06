@@ -7,6 +7,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.slf4j.Logger;
@@ -654,7 +655,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
         String javaUri = System.getenv(JAVA_URI_SCHEDENV);
-        if (javaUri == null) {
+        if (StringUtils.isBlank(javaUri)) {
             throw new IllegalStateException("Missing required environment variable: " + JAVA_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(javaUri);

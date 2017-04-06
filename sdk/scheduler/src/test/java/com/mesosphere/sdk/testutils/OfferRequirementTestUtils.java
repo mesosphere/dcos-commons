@@ -175,6 +175,7 @@ public class OfferRequirementTestUtils {
 
     public static Map<String, String> getOfferRequirementProviderMap() {
         Map<String, String> env = getApiPortMap();
+        env.put("JAVA_URI", "test-java-uri");
         env.put("EXECUTOR_URI", "test-executor-uri");
         env.put("LIBMESOS_URI", "test-libmesos-uri");
         return env;
