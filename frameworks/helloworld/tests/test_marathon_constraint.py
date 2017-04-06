@@ -134,14 +134,17 @@ def ensure_multiple_per_agent(hello, world):
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.placement_update
 def test_change_constraint():
+
+    hello_count = num_private_agents - 1
     install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents-1,
+            "count": hello_count,
             "placement": "hostname:UNIQUE"
         },
         "world": {
@@ -149,10 +152,18 @@ def test_change_constraint():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents-1, additional_options=options)
+    # hostname:CLUSTER:{} will produce:
+    #    "placement-rule": {
+    #            "@type": "HostnameRule",
+    #            "matcher": {
+    #              "@type": "ExactMatcher",
+    #              "string": "10.0.0.51"
+    #            }
+
+    install.install(PACKAGE_NAME, hello_count, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
 
-    tasks.check_running(PACKAGE_NAME, num_private_agents-1)
+    tasks.check_running(PACKAGE_NAME, hello_count)
     ensure_multiple_per_agent(hello=1, world=0)
 
     # change placement constraint, but tasks should not update
@@ -160,19 +171,78 @@ def test_change_constraint():
     config = marathon.get_config(PACKAGE_NAME)
     some_agent = shakedown.get_private_agents().pop()
 
-    config['env']['HELLO_COUNT'] = str(num_private_agents)
-    config['env']['HELLO_PLACEMENT'] = "hostname:CLUSTER:{}".format(some_agent)
+    # 1) Increase count and change placement rule
+
+    config['env']['HELLO_COUNT'] = str(hello_count+1)
+    config['env']['HELLO_PLACEMENT'] = 'hostname:CLUSTER:{}'.format(some_agent)
     marathon.update_app(PACKAGE_NAME, config)
 
-    tasks.check_running(PACKAGE_NAME, num_private_agents)
+    tasks.check_running(PACKAGE_NAME, hello_count+1)
 
-    #wait a while before checking prev tasks did not get update / restarted
-    time.sleep(30)
+    # if config update does not ignore placement rule, it should fail
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
 
-    # all tasks should end up on `some_agent`, even the one that started there
-    for pod_index in range(num_private_agents-1):
-        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
-        tasks.check_running(PACKAGE_NAME, num_private_agents)
+    # 2) Replace old tasks
 
-    ensure_multiple_per_agent(hello=num_private_agents, world=0)
+    # all tasks should end up on `some_agent`, even the one that started there
+    for pod_index in range(hello_count):
+        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
+        # wait till replace completes
+        tasks.check_running(PACKAGE_NAME, hello_count)
+
+    ensure_multiple_per_agent(hello=hello_count+1, world=0)
+
+    # 3) Change placement rule
+
+    config['env']['HELLO_PLACEMENT'] = 'hostname:UNIQUE'
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    marathon.update_app(PACKAGE_NAME, config)
+
+    # tasks should not restart and should not change agent
+    ensure_multiple_per_agent(hello=hello_count+1, world=0)
+    tasks.check_running(PACKAGE_NAME, hello_count+1)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+
+    # 4) Restart all nodes
+
+    for pod_index in range(hello_count+1):
+            cmd.run_cli('hello-world pods restart hello-{}'.format(pod_index))
+            # wait till replace completes
+            tasks.check_running(PACKAGE_NAME, hello_count)
+
+    # tasks should not change agent
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    ensure_multiple_per_agent(hello=hello_count+1, world=0)
+
+    # 5) Replace all tasks
+
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+
+    for pod_index in range(hello_count+1):
+        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
+        # wait till replace completes
+        tasks.check_running(PACKAGE_NAME, hello_count)
+
+    # tasks restarted and changed nodes
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    ensure_multiple_per_agent(hello=1, world=0)
+
+    # 6) Invalid placement
+
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    config['env']['HELLO_PLACEMENT'] = 'hostname:CLUSTER:dontexist'
+    marathon.update_app(PACKAGE_NAME, config)
+
+    # tasks should not restart and should not change agent
+    ensure_multiple_per_agent(hello=1, world=0)
+    tasks.check_running(PACKAGE_NAME, hello_count+1)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+
+    for pod_index in range(hello_count+1):
+        cmd.run_cli('hello-world pods restart hello-{}'.format(pod_index))
+        # wait till replace completes
+        tasks.check_running(PACKAGE_NAME, hello_count)
+
+    ensure_multiple_per_agent(hello=1, world=0)
+    tasks.check_running(PACKAGE_NAME, hello_count+1)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
