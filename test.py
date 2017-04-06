@@ -328,6 +328,10 @@ def _one_cluster_linear_tests(run_attrs, repo_root):
         args = framework, cluster, repo_root
         _action_wrapper("Run %s tests" % framework.name,
                 framework, func, *args)
+    # we don't handle exceptions here, so any failures will stop us from
+    # getting this far.
+    all_passed = True
+    return all_passed
 
 def _handle_test_completions():
     all_tests_ok = True
@@ -375,16 +379,19 @@ def _handle_test_completions():
 def _multicluster_linear_per_cluster(run_attrs, repo_root):
     test_list = list(fwinfo.get_framework_names())
     next_test = None
-
+    all_ok = False # only one completion state out of the loop
     try:
         while True:
+            # acquire the next test, if there is one
             if not next_test and test_list:
                 next_test = test_list.pop(0)
                 logger.info("Next test to run: %s", next_test)
             if next_test:
+                # we have a test to run, find a cluster to run it on.
                 avail_cluster = clustinfo.get_idle_cluster()
                 logger.debug("avail_cluster=%s", avail_cluster)
                 if not avail_cluster and clustinfo.running_count() < run_attrs.cluster_count:
+                    # we're supposed to start more clusters, so do so
                     human_count = clustinfo.running_count()+1
                     logger.info("Launching cluster %s towards count %s",
                                   human_count, run_attrs.cluster_count)
@@ -393,6 +400,8 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     avail_cluster = clustinfo.start_cluster(start_config,
                             reporting_name="Cluster %s" % human_count)
                 elif not avail_cluster:
+                    # We're not supposed to start more clusters, so wait, and
+                    # check for test completion.
                     info_bits = []
                     for cluster in clustinfo._clusters:
                         template = "cluster_id=%s in use by frameworks=%s"
@@ -408,6 +417,8 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                         logger.info("Some tests failed; aborting early") # TODO paramaterize
                         break
                     continue
+
+                # At this point, we have a cluster and a test, so start it.
                 logger.info("Testing framework=%s in background on cluster=%s.",
                              next_test, avail_cluster.cluster_id)
                 framework = fwinfo.get_framework(next_test)
@@ -418,13 +429,16 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 next_test = None
                 avail_cluster = None
             else:
+                # No tests left, handle completion and waiting for completion.
                 if not fwinfo.running_frameworks():
                     logger.info("No framework tests running.  All done.")
+                    all_ok = True
                     break # all tests done
                 logger.info("No framework tests to launch, waiting for completions.")
                 # echo status
                 time.sleep(30) # waiting for tests to complete
 
+            # after launching a test, or waiting, check for test completion.
             all_ok = _handle_test_completions()
             if not all_ok:
                 logger.info("Some tests failed; aborting early") # TODO paramaterize
@@ -436,22 +450,23 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
             framework = fwinfo.get_framework(framework_name)
             if framework.popen:
                 framework.popen.terminate() # does nothing if already completed
+    return all_ok
 
 def run_tests(run_attrs, repo_root):
     logger.info("cluster_teardown policy: %s", run_attrs.cluster_teardown)
-    try:
+    try: # all clusters are set up inside this try
+        all_passed = False
         if run_attrs.parallel:
             logger.debug("Running m ulticluster test run")
-            _multicluster_linear_per_cluster(run_attrs, repo_root)
+            all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
-            _one_cluster_linear_tests(run_attrs, repo_root)
-        if run_attrs.cluster_teardown == "success-only":
-            teardown_clusters()
-    except:
+            all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
+    finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
-        raise
-    finally:
+        elif run_attrs.cluster_teardown == "success-only" and all_passed:
+            teardown_clusters()
+
         for cluster in clustinfo._clusters:
             logger.debug("Cluster still running: url=%s id=%s auth_token=%s",
                          cluster.url, cluster.cluster_id, cluster.auth_token)
@@ -544,7 +559,7 @@ def run_test(framework, cluster, repo_root):
 def report_failed_actions():
     "Do useful things with the recorded successful and failed actions"
     # These are our data sources
-    cluster_launch_attmpts = clustinfo.get_launch_attempts()
+    cluster_launch_attempts = clustinfo.get_launch_attempts()
     _ = cluster_launch_attempts
     for framework in fwinfo.get_frameworks():
         actions = framework.actions
