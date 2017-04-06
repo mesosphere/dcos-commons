@@ -33,14 +33,14 @@
 <body>
 <div id="wrapper">
 
-<a href="./index.html">
+<a href=".">
 <img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
 </a>
 <img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
 
 <ul class="dropdown" style="clear: both">
   <li>
-    <a href="./index.html">Home</a>
+    <a href=".">Home</a>
   </li>
   <li>
     <span>Documentation</span>
@@ -55,8 +55,8 @@
       
       <li><a href="./yaml-reference.html">YAML Reference</a></li>
       
-      <li><a href="./swagger-api/index.html">REST APIs</a></li>
-      <li><a href="./api/index.html">Javadoc Reference</a></li>
+      <li><a href="./swagger-api">REST APIs</a></li>
+      <li><a href="./api">Javadoc Reference</a></li>
     </ul>
   </li>
   <li>
@@ -1724,6 +1724,7 @@ hello
 
 <p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="http://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
 
+<p><a name="proxy"></a></p>
 <h3 id="proxy">Proxy</h3>
 
 <p>The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.</p>
