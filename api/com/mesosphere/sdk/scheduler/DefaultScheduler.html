@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":9,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":9};
+var methods = {"i0":10,"i1":10,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":9,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -225,12 +225,12 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManager">recoveryPlanManager</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected java.util.Collection&lt;java.lang.Object&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#resources">resources</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>protected java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManagerFactoryOptional">recoveryPlanManagerFactoryOptional</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected java.util.concurrent.BlockingQueue&lt;java.util.Collection&lt;java.lang.Object&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#resourcesQueue">resourcesQueue</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>protected java.util.Collection&lt;java.lang.Object&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#resources">resources</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
@@ -273,7 +273,8 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">DefaultScheduler</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">DefaultScheduler</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                java.util.Collection&lt;java.lang.Object&gt;&nbsp;resources,
                 java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
                 <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                 <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
@@ -300,17 +301,21 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#apiServerReady--">apiServerReady</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>(package private) void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#awaitTermination--">awaitTermination</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-">createConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Calls <code>#createConfigStore(ServiceSpec, Collection)</code> with an empty list of
  custom deserialization types.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-">createConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                  java.lang.String&nbsp;zkConnectionString)</code>
@@ -318,7 +323,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
  the <code>frameworkName</code> and with a reasonable default for <code>zkConnectionString</code>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-java.util.Collection-">createConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                  java.lang.String&nbsp;zkConnectionString,
@@ -327,14 +332,14 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
  <code>DefaultScheduler#create</code>.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-">createStateStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Calls <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-"><code>createStateStore(ServiceSpec, String)</code></a> with the specification name as the
  <code>frameworkName</code> and with a reasonable default for <code>zkConnectionString</code>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-">createStateStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                 java.lang.String&nbsp;zkConnectionString)</code>
@@ -342,57 +347,57 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
  <code>DefaultScheduler#create</code>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--">defaultConfigValidators</a></span>()</code>
 <div class="block">Returns the default configuration validators:
  - Task sets cannot shrink (each set's task count must stay the same or increase).</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#disconnected-SchedulerDriver-">disconnected</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#error-SchedulerDriver-java.lang.String-">error</a></span>(SchedulerDriver&nbsp;driver,
      java.lang.String&nbsp;message)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#executorLost-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-int-">executorLost</a></span>(SchedulerDriver&nbsp;driver,
             Protos.ExecutorID&nbsp;executorId,
             Protos.SlaveID&nbsp;slaveId,
             int&nbsp;status)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#frameworkMessage-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-byte:A-">frameworkMessage</a></span>(SchedulerDriver&nbsp;driver,
                 Protos.ExecutorID&nbsp;executorId,
                 Protos.SlaveID&nbsp;slaveId,
                 byte[]&nbsp;data)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getResources--">getResources</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializeDeploymentPlanManager--">initializeDeploymentPlanManager</a></span>()</code>
 <div class="block">Override this function to inject your own deployment plan manager.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializePlanCoordinator--">initializePlanCoordinator</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializeRecoveryPlanManager--">initializeRecoveryPlanManager</a></span>()</code>
 <div class="block">Override this function to inject your own recovery plan manager.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a> based on the provided <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> describing the service, including
@@ -400,42 +405,42 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
  should be organized.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#offerRescinded-SchedulerDriver-Protos.OfferID-">offerRescinded</a></span>(SchedulerDriver&nbsp;driver,
               Protos.OfferID&nbsp;offerId)</code>&nbsp;</td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#registered-SchedulerDriver-Protos.FrameworkID-Protos.MasterInfo-">registered</a></span>(SchedulerDriver&nbsp;driver,
           Protos.FrameworkID&nbsp;frameworkId,
           Protos.MasterInfo&nbsp;masterInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#reregistered-SchedulerDriver-Protos.MasterInfo-">reregistered</a></span>(SchedulerDriver&nbsp;driver,
             Protos.MasterInfo&nbsp;masterInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#resourceOffers-SchedulerDriver-java.util.List-">resourceOffers</a></span>(SchedulerDriver&nbsp;driver,
               java.util.List&lt;Protos.Offer&gt;&nbsp;offersToProcess)</code>&nbsp;</td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#slaveLost-SchedulerDriver-Protos.SlaveID-">slaveLost</a></span>(SchedulerDriver&nbsp;driver,
          Protos.SlaveID&nbsp;agentId)</code>&nbsp;</td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#statusUpdate-SchedulerDriver-Protos.TaskStatus-">statusUpdate</a></span>(SchedulerDriver&nbsp;driver,
             Protos.TaskStatus&nbsp;status)</code>&nbsp;</td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#update-com.mesosphere.sdk.scheduler.Observable-">update</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a>&nbsp;observable)</code>&nbsp;</td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#updateConfig-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-">updateConfig</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
@@ -527,15 +532,6 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <pre>protected final&nbsp;java.util.concurrent.ExecutorService executor</pre>
 </li>
 </ul>
-<a name="resourcesQueue">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>resourcesQueue</h4>
-<pre>protected final&nbsp;java.util.concurrent.BlockingQueue&lt;java.util.Collection&lt;java.lang.Object&gt;&gt; resourcesQueue</pre>
-</li>
-</ul>
 <a name="isAlreadyRegistered">
 <!--   -->
 </a>
@@ -579,6 +575,15 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <li class="blockList">
 <h4>configStore</h4>
 <pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt; configStore</pre>
+</li>
+</ul>
+<a name="recoveryPlanManagerFactoryOptional">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recoveryPlanManagerFactoryOptional</h4>
+<pre>protected final&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt; recoveryPlanManagerFactoryOptional</pre>
 </li>
 </ul>
 <a name="driver">
@@ -706,13 +711,14 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">
+<a name="DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultScheduler</h4>
 <pre>protected&nbsp;DefaultScheduler(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                           java.util.Collection&lt;java.lang.Object&gt;&nbsp;resources,
                            java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
                            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                            <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
@@ -958,6 +964,15 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <h4>reregistered</h4>
 <pre>public&nbsp;void&nbsp;reregistered(SchedulerDriver&nbsp;driver,
                          Protos.MasterInfo&nbsp;masterInfo)</pre>
+</li>
+</ul>
+<a name="apiServerReady--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>apiServerReady</h4>
+<pre>public&nbsp;boolean&nbsp;apiServerReady()</pre>
 </li>
 </ul>
 <a name="resourceOffers-SchedulerDriver-java.util.List-">

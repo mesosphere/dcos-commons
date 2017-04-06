@@ -171,6 +171,10 @@
 <dd>
 <div class="block">Implements passthrough support for string comparisons by matching any string.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#API_SERVER_TIMEOUT">API_SERVER_TIMEOUT</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#API_SERVER_TIMEOUT_S">API_SERVER_TIMEOUT_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#apiPort--">apiPort()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>
 <div class="block">Returns the env-configured API port, or throws <code>IllegalStateException</code> if the environment lacked the
@@ -180,6 +184,8 @@
 <dd>
 <div class="block">Sets the <code>apiPort</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#apiServerReady--">apiServerReady()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html#applicationPort-int-">applicationPort(int)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>applicationPort</code> and returns a reference to this Builder so that the methods can be
@@ -958,6 +964,8 @@
 <dd>
 <div class="block">A broken-down representation of a version string's elements.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#DEFAULT_API_SERVER_TIMEOUT_S">DEFAULT_API_SERVER_TIMEOUT_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorUtils.html#DEFAULT_CONNECTION_TIMEOUT_MS">DEFAULT_CONNECTION_TIMEOUT_MS</a></span> - Static variable in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator">CuratorUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_GPU_POLICY">DEFAULT_GPU_POLICY</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
@@ -1181,7 +1189,7 @@
 <div class="block">This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
  when possible.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">DefaultScheduler(ServiceSpec, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, OfferRequirementProvider, Map&lt;String, EndpointProducer&gt;, Optional&lt;RestartHook&gt;, Optional&lt;RecoveryPlanManagerFactory&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-">DefaultScheduler(ServiceSpec, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, OfferRequirementProvider, Map&lt;String, EndpointProducer&gt;, Optional&lt;RestartHook&gt;, Optional&lt;RecoveryPlanManagerFactory&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
@@ -1994,6 +2002,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ServiceSpec.html#getApiPort--">getApiPort()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html#getApiPort--">getApiPort()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml">RawScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getApiServerTimeout--">getApiServerTimeout()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html#getApplicationPort--">getApplicationPort()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -3729,6 +3739,8 @@
 <div class="block">Returns whether it appears that side channel auth should be used when creating the
  SchedulerDriver.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/JettyApiServer.html#isStarted--">isStarted()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/JettyApiServer.html" title="class in com.mesosphere.sdk.api">JettyApiServer</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
 <dd>
 <div class="block">Indicates whether the Element is starting.</div>
@@ -4843,6 +4855,8 @@
 <div class="block">Implementations of this interface allow the replacement of the <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a> with a custom
  implementation that addresses applicaiton specific failure recovery mechanisms.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManagerFactoryOptional">recoveryPlanManagerFactoryOptional</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryType</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
 <div class="block">This indicates the type of recovery taking place.</div>
@@ -5076,8 +5090,6 @@
 <div class="block">A ResourceSpec encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
  TaskSpecification.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#resourcesQueue">resourcesQueue</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
 <div class="block">This class encapsulates common methods for manipulating Resources.</div>
@@ -5169,6 +5181,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#run--">run()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultService.html#run--">run()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreCache.html#RWLOCK">RWLOCK</a></span> - Static variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreCache.html" title="class in com.mesosphere.sdk.state">StateStoreCache</a></dt>
 <dd>&nbsp;</dd>
 </dl>
@@ -5187,6 +5201,12 @@
 <dd>
 <div class="block">This enum provides exit codes for Schedulers.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerFlags</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">This class encapuslates global Scheduler settings retrieved from the environment.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#SchedulerFlags--">SchedulerFlags()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">SchedulerState</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
 <div class="block">Read/write interface for the state of a Scheduler.</div>
@@ -5374,6 +5394,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setResourceRequirement-com.mesosphere.sdk.offer.ResourceRequirement-">setResourceRequirement(ResourceRequirement)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setResources-java.util.Collection-">setResources(Collection&lt;Object&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dd>
+<div class="block">Specifies the resources which should be exposed through the scheduler's API server.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRestartHook-com.mesosphere.sdk.api.types.RestartHook-">setRestartHook(RestartHook)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Specifies a custom <a href="com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.</div>
@@ -5451,8 +5475,6 @@
 <dd>
 <div class="block">Starts the Step, whose <a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultService.html#startApiServer-com.mesosphere.sdk.scheduler.DefaultScheduler-int-java.util.Collection-">startApiServer(DefaultScheduler, int, Collection&lt;Object&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#startPlan-java.lang.String-java.util.Map-">startPlan(String, Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
 <dd>
 <div class="block">Idempotently starts a plan.</div>

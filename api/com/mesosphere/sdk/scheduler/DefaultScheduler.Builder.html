@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -201,11 +201,17 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setResources-java.util.Collection-">setResources</a></span>(java.util.Collection&lt;java.lang.Object&gt;&nbsp;resources)</code>
+<div class="block">Specifies the resources which should be exposed through the scheduler's API server.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRestartHook-com.mesosphere.sdk.api.types.RestartHook-">setRestartHook</a></span>(<a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a>&nbsp;restartHook)</code>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
@@ -260,6 +266,16 @@ extends java.lang.Object</pre>
 <dd><code>java.lang.IllegalStateException</code> - if the state store is already set, via a previous call to either
      <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> or to <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--"><code>getStateStore()</code></a></dd>
 </dl>
+</li>
+</ul>
+<a name="setResources-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setResources</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setResources(java.util.Collection&lt;java.lang.Object&gt;&nbsp;resources)</pre>
+<div class="block">Specifies the resources which should be exposed through the scheduler's API server.</div>
 </li>
 </ul>
 <a name="getStateStore--">
