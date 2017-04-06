@@ -127,3 +127,40 @@ def ensure_multiple_per_agent(hello, world):
             assert False, "Unknown task: " + task['name']
     assert len(hello_agents) == len(set(hello_agents)) * hello
     assert len(world_agents) == len(set(world_agents)) * world
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_change_constraint():
+    install.uninstall(PACKAGE_NAME)
+    options = {
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
+        },
+        "hello": {
+            "count": num_private_agents,
+            "placement": "hostname:UNIQUE"
+        },
+        "world": {
+            "count": 0
+        }
+    }
+
+    install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
+    plan.get_deployment_plan(PACKAGE_NAME)
+
+    # change placement constraint, but tasks should not update
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    config = marathon.get_config(PACKAGE_NAME)
+    some_agent = shakedown.get_private_agents().pop()
+    config['env']['HELLO_PLACEMENT'] = "hostname:CLUSTER:{}".format(some_agent)
+    marathon.update_app(PACKAGE_NAME, config)
+    time.sleep(30)
+    check_running()
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+
+    # all tasks should end up on `some_agent`, even the one that started there
+    for pod_index in range(num_private_agents):
+        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
+        check_running()
+    ensure_multiple_per_agent(hello=num_private_agents, world=0)
