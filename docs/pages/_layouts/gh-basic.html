@@ -56,14 +56,14 @@
 <body>
 <div id="wrapper">
 
-<a href="{{ rootdir }}/index.html">
+<a href="{{ rootdir }}">
 <img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
 </a>
 <img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
 
 <ul class="dropdown" style="clear: both">
   <li>
-    <a href="{{ rootdir }}/index.html">Home</a>
+    <a href="{{ rootdir }}">Home</a>
   </li>
   <li>
     <span>Documentation</span>
@@ -72,8 +72,8 @@
       {% for p in site.pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size < 3 and p.url != "/" %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
-      <li><a href="{{ rootdir }}/swagger-api/index.html">REST APIs</a></li>
-      <li><a href="{{ rootdir }}/api/index.html">Javadoc Reference</a></li>
+      <li><a href="{{ rootdir }}/swagger-api">REST APIs</a></li>
+      <li><a href="{{ rootdir }}/api">Javadoc Reference</a></li>
     </ul>
   </li>
   <li>
