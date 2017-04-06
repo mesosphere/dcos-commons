@@ -52,6 +52,8 @@ pods:
                 fi
 
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
+        env:
+          SERVICE_NAME: {{SERVICE_NAME}}
         configs:
           cassandra:
             template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
