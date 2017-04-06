@@ -31,9 +31,25 @@ _notify_github() {
     $REPO_ROOT_DIR/tools/github_update.py $1 build:sdk $2
 }
 
+merge_master() {
+    echo "attmpting to merge changes from master"
+    # git pull origin master attempts to ask github for its version of master,
+    # and retreive that to the current branch
+    # --no-commit says not to commit it locally; which allows us to avoid
+    # creating set of pretend user credentials in the git environment
+    # --no-ff avoids specialcasing fast forward scenarios, which seems to
+    # sometimes create commits anyway.
+    command="git pull origin master --no-commit --no-ff"
+    echo $command
+    if ! $command; then
+        return 1 # fail
+    fi
+    return 0 # ok
+}
+
 if [ x$PULLREQUEST = "xtrue" ]; then
   echo "Merging master into pull request branch."
-  if ! git pull origin master; then
+  if ! merge_master; then
     _notify_github failure "Merge from master branch failed"
     exit 1
   else
