@@ -19,6 +19,7 @@ import sys
 import subprocess
 import tempfile
 import time
+import traceback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -198,12 +199,16 @@ class GithubStatusUpdater(object):
         '''returns a set of context labels of all statuses in a given commit'''
         if not self._api:
             return set([])
-        return set([status['context'] for status in self._api.get_commit_statuses()])
+        try:
+            return set([status['context'] for status in self._api.get_commit_statuses()])
+        except:
+            # in the event of network error, just log the exception and continue
+            traceback.print_exc()
+            return set([])
 
 
     def update(self, state, message='', details_url='', context_label=''):
         '''sends a commit status update to github.
-        returns True on success or False otherwise.
         state should be one of the values in 'VALID_STATES'.'''
         if details_url:
             logmsg = '{} {}: {} ({})'.format(context_label, state, message, details_url)
@@ -240,7 +245,11 @@ class GithubStatusUpdater(object):
             except:
                 message = '[?] {}'.format(message)
 
-        self._api.set_commit_status(context_label, state, message, details_url)
+        try:
+            self._api.set_commit_status(context_label, state, message, details_url)
+        except:
+            # in the event of network error, just log the exception and continue
+            traceback.print_exc()
 
 
 def _get_details_link_url():
@@ -292,7 +301,7 @@ def main(argv):
     if command == 'reset':
         return reset_states(updater, ' '.join(argv[2:]))
     elif command in VALID_STATES:
-        if len(argv) < 4:
+        if len(argv) < 3:
             print_help(argv)
             return 1
         return set_state(updater, command, argv[2], ' '.join(argv[3:]))

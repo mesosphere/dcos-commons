@@ -1,12 +1,10 @@
 import json
+
 import pytest
-import shakedown
-import time
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_tasks as tasks
-
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -80,4 +78,6 @@ def test_pods_replace():
     stdout = cmd.run_cli('hello-world pods info world-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
-    #assert old_agent != new_agent
+    # assert old_agent != new_agent
+
+

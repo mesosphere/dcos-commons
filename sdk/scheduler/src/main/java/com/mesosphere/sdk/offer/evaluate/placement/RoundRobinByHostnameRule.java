@@ -1,18 +1,17 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.Optional;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 
 /**
  * Implements logic for Marathon's GROUP_BY operator for hostnames. Ensures that tasks are evenly
@@ -36,6 +35,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Result:
  *  allow any of host-1/host-2/host-3, unless we know that there's >=4 hosts via the agent-count
  *  parameter.
+ *
+ * This enforcement is applied by task name. By default the rule will only count e.g. tasks named
+ * 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
+ * within the service.
  */
 public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
 

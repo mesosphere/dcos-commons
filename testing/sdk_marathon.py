@@ -34,3 +34,7 @@ def api_url(basename):
 
 def api_url_with_param(basename, path_param):
     return '{}/{}'.format(api_url(basename), path_param)
+
+
+def get_scheduler_host(package_name):
+    return shakedown.get_service_ips('marathon', package_name).pop()

@@ -33,11 +33,11 @@
 
 <head>
 <title>{{ title }}</title>
-<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/gh-basic.css" />
+<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/style/{{ page.stylesheet }}" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
-<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/Dropdown.css" />
-<script src="{{ rootdir }}/Dropdown.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/style/Dropdown.css" />
+<script src="{{ rootdir }}/style/Dropdown.js"></script>
 <style type="text/css">
 /* set the background color of menu items */
 .dropdown, .dropdown ul { background: #555555; clear: both; }
@@ -45,6 +45,8 @@
 .dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
 /* pad items, set their text color, and fade their background color */
 .dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
 
 /* toc style: remove extra margin between elements */
 #markdown-toc ul { margin: 0; }
@@ -110,7 +112,9 @@
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
 <h1>{{ title }}</h1>
+<div id="content">
 {{ content }}
+</div>
 </div>
 </body>
 
