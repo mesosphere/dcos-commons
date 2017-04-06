@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Launches a CCM cluster
 #
@@ -14,6 +14,7 @@
 #
 # Configuration: Mostly through env vars. See README.md.
 
+import http.client
 import json
 import logging
 import os
@@ -30,11 +31,6 @@ import cli_install
 import dcos_login
 import github_update
 
-try:
-    from http.client import HTTPSConnection
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -92,13 +88,15 @@ class CCMLauncher(object):
                 result = method.__call__(arg)
                 self._github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
                 return result
-            except Exception as e:
-                if i + 1 == attempts:
-                    logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
-                    self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
-                    raise
-                else:
-                    logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
+            finally:
+                pass # XXX
+            #except Exception as e:
+            #    if i + 1 == attempts:
+            #        logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
+            #        self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
+            #        raise
+            #    else:
+            #        logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
 
 
     def _query_http(self, request_method, request_path,
@@ -110,7 +108,7 @@ class CCMLauncher(object):
             if request_json_payload:
                 logger.info('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
             return None
-        conn = HTTPSConnection(self._CCM_HOST)
+        conn = http.client.HTTPSConnection(self._CCM_HOST)
         if debug:
             conn.set_debuglevel(999)
 
@@ -315,7 +313,7 @@ class CCMLauncher(object):
             # at this point.
             tempdir = tempfile.mkdtemp(prefix="ccm_clustbin")
             cli_install.download_cli(dcos_url, tempdir)
-            custom_env = os.environ[:]
+            custom_env = os.environ.copy()
             custom_env['PATH'] = tempdir + os.pathsep + os.environ['PATH']
 
             run_script('create_service_account.sh',
