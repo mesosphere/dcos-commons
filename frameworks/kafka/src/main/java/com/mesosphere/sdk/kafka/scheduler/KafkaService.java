@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.api.*;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
-import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
-import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Kafka Service.
@@ -29,13 +30,16 @@ public class KafkaService extends DefaultService {
                 DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
         schedulerBuilder.setPlansFrom(rawServiceSpec);
 
-        /* Upgrade */
-        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
-        CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
+        /* Post Upgrade for version 1.1.21 */
+        CuratorStateStore stateStore = new CuratorStateStore(schedulerBuilder.getServiceSpec().getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-        stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
-        schedulerBuilder.setStateStore(stateStore);
-        /* Upgrade */
+        StringMatcher oldTaskNameFilter = RegexMatcher.create("broker-[0-9]*");
+        Collection<String> oldTaskNames = stateStore.fetchTaskNames().stream()
+                .filter(name -> oldTaskNameFilter.matches(name))
+                .collect(Collectors.toList());
+        // Delete backup taskInfos if they exists. Those backups are irrelevant once new Kafka restarts tasks.
+        oldTaskNames.stream().forEach(name -> stateStore.clearTask(name));
+        /* Port Upgrade */
 
         schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +

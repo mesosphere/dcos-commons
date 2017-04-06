@@ -30,6 +30,7 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.skip(reason="Enable this test after 1.1.20 is in stub universe")
 def test_upgrade():
 
     test_version = upgrade.get_pkg_version(PACKAGE_NAME)
@@ -57,7 +58,7 @@ def test_upgrade():
     print('Installation complete for Universe version: {}'.format(universe_version))
 
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-    broker_ids = tasks.get_task_ids(SERVICE_NAME, 'broker-')
+    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(SERVICE_NAME))
 
     print('Adding test version to repository with name: {} and url: {}'.format(test_repo_name, test_repo_url))
     upgrade.add_repo(test_repo_name, test_repo_url, universe_version, 0, PACKAGE_NAME)
