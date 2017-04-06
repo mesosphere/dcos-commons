@@ -1,0 +1,11 @@
+name: data-store
+pods:
+  meta-data:
+    placement: "hostname:UNIQUE"
+    count: 3
+    tasks:
+      test-task:
+        goal: RUNNING
+        cmd: "echo test"
+        cpus: 0.1
+        memory: 512
