@@ -4,7 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
@@ -272,17 +271,12 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
 
         // Make counts equal, as only a difference in count should not effect an individual tasks.
-        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
 
-//        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
-        // Also ignore placementRule.
+        // Similarly ignore placementRule, placement rule change does not affect existing tasks!
         // We look at placement rule at initial deployment and permanent failure (including replace)
-        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
 
-  //      podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
-
-
-        // TODO(MB): discuss placement rule evaluation
         // Lets say we have placement rule x in config C_x, and we update to new config C_y with placement rule y.
         // Old config C_x will be deleted and no task will be restarted.
 
