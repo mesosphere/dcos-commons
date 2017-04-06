@@ -46,3 +46,5 @@ frameworks/*/dcos-commons-tools/
 # OS X
 .DS_Store
 
+# ignore shakedown_env
+tools/*/shakedown_env
