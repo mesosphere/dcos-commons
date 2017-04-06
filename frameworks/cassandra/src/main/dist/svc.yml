@@ -9,6 +9,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
       - {{BOOTSTRAP_URI}}
+      - {{AWSCLI_URI}}
     user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
@@ -59,6 +60,9 @@ pods:
           metrics:
             template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
+          s3:
+            template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
+            dest: s3config.json
         readiness-check:
           cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $LIBPROCESS_IP"
           interval: 5
@@ -75,6 +79,13 @@ pods:
       snapshot:
         goal: FINISHED
         cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}} -t $CASSANDRA_SNAPSHOT_NAME -- $CASSANDRA_KEYSPACES
+        resource-set: sidecar-resources
+      upload-aws:
+        goal: FINISHED
+        cmd: >
+                chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
+                
+                ./{{S3CLI_VERSION}} -c config.json put "$SNAPSHOT_LOCATION" "${REMOTE_SNAPSHOT_NAME}_${POD_INSTANCE_INDEX}"
         resource-set: sidecar-resources
       upgradesstables:
         goal: FINISHED
@@ -113,6 +124,14 @@ plans:
         pod: node
         steps:
           - default: [[snapshot]]
+  upload-aws:
+    strategy: serial
+    phases:
+      upload-aws-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[upload-aws]]
   upgradesstables:
     strategy: serial
     phases:
