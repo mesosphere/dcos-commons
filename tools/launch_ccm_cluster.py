@@ -426,7 +426,7 @@ def start_cluster(ccm_token, launch_config=None):
     attempts = _determine_attempts()
     if not launch_config:
         launch_config = StartConfig()
-    _start_cluster(launcher, github_label, attempts, launch_config)
+    return _start_cluster(launcher, github_label, attempts, launch_config)
 
 def _start_cluster(launcher, github_label, start_stop_attempts, config):
     try:
