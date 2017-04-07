@@ -5,13 +5,20 @@
 # may be run locally by developers.
 
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
-set +e
+set +e -x -v
+
+echo args: "$@"
 
 PULLREQUEST="false"
-while getopts 'p' opt; do
+MERGE_FROM="master"
+while getopts 'pt:' opt; do
     case $opt in
         p)
             PULLREQUEST="true"
+            ;;
+        t)
+            # hack for testing
+            MERGE_FROM="$OPTARG"
             ;;
         \?)
             echo "Unknown option. supported: -p for pull request" >&2
@@ -33,13 +40,20 @@ _notify_github() {
 
 merge_master() {
     echo "attmpting to merge changes from master"
-    # git pull origin master attempts to ask github for its version of master,
-    # and retreive that to the current branch
-    # --no-commit says not to commit it locally; which allows us to avoid
-    # creating set of pretend user credentials in the git environment
-    # --no-ff avoids specialcasing fast forward scenarios, which seems to
-    # sometimes create commits anyway.
-    command="git pull origin master --no-commit --no-ff"
+    # git sucks and won't let you update files without knowing a name
+    echo "Creating fake user."
+    command="git config --global user.email pullrequestbot@mesospherebot.com"
+    echo $command
+    if ! $command; then
+        return 1 # fail
+    fi
+    command="git config --global user.name Infinity-tools-fake-user"
+    FAKE_EMAIL="pullrequestbot@mesospherebot.com"
+    if ! $command; then
+        return 1 # fail
+    fi
+    # Update local branch to include github version of master.
+    command="git pull origin $MERGE_FROM --no-commit --ff"
     echo $command
     if ! $command; then
         return 1 # fail
