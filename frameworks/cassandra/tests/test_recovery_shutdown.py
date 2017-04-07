@@ -48,9 +48,10 @@ def test_shutdown_host_test():
     task_ids = tasks.get_task_ids(PACKAGE_NAME, 'node-{}'.format(pod_id))
 
     # instead of partition/reconnect, we shutdown host permanently
-    status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown now')
-    print('shutdown agent {}: {}'.format(node_ip, stdout))
+    status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown -h +1')
+    print('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
     assert status is True
+    time.sleep(100)
 
     cmd.run_cli('cassandra pods replace node-{}'.format(pod_id))
 
