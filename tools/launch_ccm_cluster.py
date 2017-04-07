@@ -88,15 +88,13 @@ class CCMLauncher(object):
                 result = method.__call__(arg)
                 self._github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
                 return result
-            finally:
-                pass # XXX
-            #except Exception as e:
-            #    if i + 1 == attempts:
-            #        logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
-            #        self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
-            #        raise
-            #    else:
-            #        logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
+            except Exception as e:
+                if i + 1 == attempts:
+                    logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
+                    self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
+                    raise
+                else:
+                    logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
 
 
     def _query_http(self, request_method, request_path,
