@@ -10,6 +10,11 @@
             "type":"string",
             "default":"kafka"
           },
+          "beta-optin":{
+            "description":"I have been invited to the Beta Program and accept the all terms of the Beta Agreement.",
+            "type": "boolean",
+            "default": ""
+          },
           "mesos_api_version" : {
             "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
             "type":"string",
@@ -42,7 +47,8 @@
           }
         },
         "required":[
-          "deploy_strategy"
+          "deploy_strategy",
+          "beta-optin"
         ]
       },
       "brokers":{
