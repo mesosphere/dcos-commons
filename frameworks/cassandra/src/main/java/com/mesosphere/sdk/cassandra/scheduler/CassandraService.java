@@ -3,6 +3,8 @@ package com.mesosphere.sdk.cassandra.scheduler;
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,23 +21,27 @@ public class CassandraService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(CassandraService.class);
 
     public CassandraService(File pathToYamlSpecification) throws Exception {
-        super(pathToYamlSpecification);
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
+        DefaultScheduler.Builder schedulerBuilder =
+                DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
+
+        schedulerBuilder.setPlansFrom(rawServiceSpec);
+        schedulerBuilder.setResources(getResources());
+
+        initService(schedulerBuilder);
     }
 
-    @Override
-    protected void startApiServer(DefaultScheduler scheduler, int apiPort, Collection<Object> additionalResources) {
+    private Collection<Object> getResources() {
         final Collection<Object> apiResources = new ArrayList<>();
         Collection<String> configuredSeeds = new ArrayList<>(
                 Arrays.asList(System.getenv("TASKCFG_ALL_LOCAL_SEEDS").split(",")));
         String remoteSeeds = System.getenv("TASKCFG_ALL_REMOTE_SEEDS");
+
         if (!StringUtils.isEmpty(remoteSeeds)) {
             configuredSeeds.addAll(Arrays.asList(remoteSeeds.split(",")));
         }
+        apiResources.add(new SeedsResource(configuredSeeds));
 
-        apiResources.add(new SeedsResource(scheduler.getStateStore(), configuredSeeds));
-        LOGGER.info("Starting API server with additional resources for Cassandra: {}", apiResources);
-        apiResources.addAll(additionalResources);
-
-        super.startApiServer(scheduler, apiPort, apiResources);
+        return apiResources;
     }
 }

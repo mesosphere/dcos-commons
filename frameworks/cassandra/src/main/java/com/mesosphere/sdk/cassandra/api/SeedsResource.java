@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.cassandra.api;
 
-import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +20,9 @@ import java.util.Set;
 public class SeedsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(SeedsResource.class);
 
-    private final StateStore stateStore;
     private final Set<String> configuredSeeds;
 
-    public SeedsResource(StateStore stateStore, Collection<String> configuredSeeds) {
-        this.stateStore = stateStore;
+    public SeedsResource(Collection<String> configuredSeeds) {
         this.configuredSeeds = new HashSet<>(configuredSeeds);
     }
 
