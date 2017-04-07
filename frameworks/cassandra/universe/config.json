@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the Cassandra service instance.",
           "type": "string",
-          "default": "cassandra"
+          "default": "beta-cassandra"
         },
         "beta-optin":{
           "description":"I have been invited to the Beta Program and accept the all terms of the Beta Agreement.",
