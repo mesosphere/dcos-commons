@@ -156,8 +156,6 @@
           
           <li><a href="../../services/kafka/configure.html">Configure</a></li>
           
-          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
-          
           <li><a href="../../services/kafka/managing.html">Managing</a></li>
           
           <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
@@ -192,11 +190,11 @@
     <p>Verify that you no longer see it in the DC/OS web interface.</p>
   </li>
   <li>
-    <p>If you are using the enterprise edition, create an JSON options file with your latest configuration and set your plan strategy to “STAGE”</p>
+    <p>Optional: Create a JSON options file with any custom configuration, such as a non-default <code class="highlighter-rouge">DEPLOY_STRATEGY</code>. <!--I'm getting this JSON from the app definition in the UI. The all caps looks a little odd, though --></p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"phase_strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"STAGE"</span><span class="w">
+    </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"DEPLOY_STRATEGY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel-canary"</span><span class="w">
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
@@ -208,9 +206,6 @@
     <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install kafka -—options=options.json
 </code></pre>
     </div>
-  </li>
-  <li>
-    <p>Roll out the new version of Kafka in the same way as a configuration update is rolled out. See Configuration Update Plans.</p>
   </li>
 </ol>
 

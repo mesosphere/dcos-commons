@@ -156,8 +156,6 @@
           
           <li><a href="../../services/kafka/configure.html">Configure</a></li>
           
-          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
-          
           <li><a href="../../services/kafka/managing.html">Managing</a></li>
           
           <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
@@ -190,137 +188,107 @@
   <li>Go to the <code class="highlighter-rouge">Services</code> tab of the DC/OS web interface.</li>
   <li>Click the name of the Kafka service to be updated.</li>
   <li>Within the Kafka instance details view, click the menu in the upper right, then choose <strong>Edit</strong>.</li>
-  <li>In the dialog that appears, click the <strong>Environment</strong> tab and update any field(s) to their desired value(s). For example, to <a href="#broker-count">increase the number of Brokers</a>, edit the value for <code class="highlighter-rouge">BROKER_COUNT</code>. Do not edit the value for <code class="highlighter-rouge">FRAMEWORK_NAME</code> or <code class="highlighter-rouge">BROKER_DISK</code> or <code class="highlighter-rouge">PLACEMENT_STRATEGY</code>.</li>
-  <li>A <code class="highlighter-rouge">PHASE_STRATEGY</code> of <code class="highlighter-rouge">STAGE</code> should also be set. See “Configuration Deployment Strategy” below for more details.</li>
+  <li>In the dialog that appears, click the <strong>Environment</strong> tab and update any field(s) to their desired value(s). For example, to <a href="#broker-count">increase the number of Brokers</a>, edit the value for <code class="highlighter-rouge">BROKER_COUNT</code>. Do not edit the value for <code class="highlighter-rouge">FRAMEWORK_NAME</code> or <code class="highlighter-rouge">BROKER_DISK</code>.</li>
+  <li>Choose a <code class="highlighter-rouge">DEPLOY_STRATEGY</code>: serial, serial-canary, parallel-canary, or parallel. See the SDK Developer guide for more information on <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#plans">deployment plan strategies</a>. <!-- I'm not sure I like this solution, since users aren't going to have the context for the dev guide). --></li>
   <li>Click <strong>REVIEW &amp; RUN</strong> to apply any changes and cleanly reload the Kafka scheduler. The Kafka cluster itself will persist across the change.</li>
 </ol>
 
-<h2 id="configuration-deployment-strategy">Configuration Deployment Strategy</h2>
-
-<p>Configuration updates are rolled out through execution of Update Plans. You can configure the way these plans are executed.</p>
-
-<h2 id="configuration-update-plans">Configuration Update Plans</h2>
-
-<p>In brief, “plans” are composed of “phases,” which are in turn composed of “steps.” Two possible configuration update strategies specify how the steps are executed. These strategies are specified by setting the <code class="highlighter-rouge">PHASE_STRATEGY</code> environment variable on the scheduler. By default, the strategy is <code class="highlighter-rouge">INSTALL</code>, which rolls changes out to one broker at a time with no pauses.</p>
-
-<p>The alternative is the <code class="highlighter-rouge">STAGE</code> strategy. This strategy injects two mandatory human decision points into the configuration update process. Initially, no configuration update will take place: the service waits for a human to confirm the update plan is correct. You may then decide to either continue the configuration update through a REST API call, or roll back the configuration update by replacing the original configuration through the DC/OS web interface in exactly the same way as a configuration update is specified above.</p>
-
-<p>After specifying that an update should continue, one step representing one broker will be updated and the configuration update will again pause. At this point, you have a second opportunity to roll back or continue. If you decide to continue a second time, the rest of the brokers will be updated one at a time until all the brokers are using the new configuration. You may interrupt an update at any point. After interrupting, you can choose to continue or roll back. Consult the “Configuration Update REST API” for these operations.</p>
-
 <h2 id="configuration-update-rest-api">Configuration Update REST API</h2>
 
-<p>There are two phases in the update plans for Kafka: Mesos task reconciliation and update. Mesos task reconciliation is always executed without need for human interaction.</p>
+<p>Make the REST request below to view the current deployment plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
 
-<p>Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
-GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan"
 
 {
-  "phases": [
+  "phases" : [
     {
-      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
-      "name": "Reconciliation",
-      "steps": [
+      "id" : "b6180a4e-b25f-4307-8855-0b37d671fd46",
+      "name" : "Deployment",
+      "steps" : [
         {
-          "id": "9854a67d-7803-46d0-b278-402785fe3199",
-          "status": "COMPLETE",
-          "name": "Reconciliation",
-          "message": "Reconciliation complete"
-        }
-      ],
-      "status": "COMPLETE"
-    },
-    {
-      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
-      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
-      "steps": [
-        {
-          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
-          "status": "COMPLETE",
-          "name": "broker-0",
-          "message": "Broker-0 is COMPLETE"
+          "id" : "258f19a4-d6bc-4ff1-8685-f314924884a1",
+          "status" : "COMPLETE",
+          "name" : "kafka-0:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [258f19a4-d6bc-4ff1-8685-f314924884a1]' has status: 'COMPLETE'."
         },
         {
-          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-          "status": "COMPLETE",
-          "name": "broker-1",
-          "message": "Broker-1 is COMPLETE"
+          "id" : "e59fb2a9-22e2-4900-89e3-bda24041639f",
+          "status" : "COMPLETE",
+          "name" : "kafka-1:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [e59fb2a9-22e2-4900-89e3-bda24041639f]' has status: 'COMPLETE'."
         },
         {
-          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-          "status": "COMPLETE",
-          "name": "broker-2",
-          "message": "Broker-2 is COMPLETE"
+          "id" : "0b5a5048-fd3a-4b2c-a9b5-746045176d29",
+          "status" : "COMPLETE",
+          "name" : "kafka-2:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [0b5a5048-fd3a-4b2c-a9b5-746045176d29]' has status: 'COMPLETE'."
         }
       ],
-      "status": "COMPLETE"
-    }
-  ],
-  "errors": [],
-  "status": "COMPLETE"
-}
+    "status" : "COMPLETE"
+  }
+],
+"errors" : [ ],
+"status" : "COMPLETE"   }
 </code></pre>
 </div>
 
-<p>When using the <code class="highlighter-rouge">STAGE</code> deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:</p>
+<!-- need to update this with current information for different deployments
+When using the `STAGE` deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
-GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
+    GET <dcos_url>/service/kafka/v1/plan HTTP/1.1
 
-{
-  "phases": [
     {
-      "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
-      "name": "Reconciliation",
-      "steps": [
+      "phases": [
         {
-          "id": "2d137273-249b-455e-a65c-3c83228890b3",
-          "status": "COMPLETE",
+          "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
           "name": "Reconciliation",
-          "message": "Reconciliation complete"
-        }
-      ],
-      "status": "COMPLETE"
-    },
-    {
-      "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
-      "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
-      "steps": [
-        {
-          "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
-          "status": "PENDING",
-          "name": "broker-0",
-          "message": "Broker-0 is WAITING"
+          "steps": [
+            {
+              "id": "2d137273-249b-455e-a65c-3c83228890b3",
+              "status": "COMPLETE",
+              "name": "Reconciliation",
+              "message": "Reconciliation complete"
+            }
+          ],
+          "status": "COMPLETE"
         },
         {
-          "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
-          "status": "PENDING",
-          "name": "broker-1",
-          "message": "Broker-1 is WAITIN"
-        },
-        {
-          "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
-          "status": "PENDING",
-          "name": "broker-2",
-          "message": "Broker-2 is PENDING"
+          "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
+          "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
+          "steps": [
+            {
+              "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
+              "status": "PENDING",
+              "name": "broker-0",
+              "message": "Broker-0 is WAITING"
+            },
+            {
+              "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
+              "status": "PENDING",
+              "name": "broker-1",
+              "message": "Broker-1 is WAITIN"
+            },
+            {
+              "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
+              "status": "PENDING",
+              "name": "broker-2",
+              "message": "Broker-2 is PENDING"
+            }
+          ],
+          "status": "WAITING"
         }
       ],
+      "errors": [],
       "status": "WAITING"
     }
-  ],
-  "errors": [],
-  "status": "WAITING"
-}
-</code></pre>
-</div>
-
+-->
 <p><strong>Note:</strong> After a configuration update, you may see an error from Mesos-DNS; this will go away 10 seconds after the update.</p>
 
 <p>Enter the <code class="highlighter-rouge">continue</code> command to execute the first step:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X PUT -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan?cmd=continue"
-PUT $DCOS_URI/service/kafka/v1/continue HTTP/1.1
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan?cmd=continue"
+PUT &lt;dcos_url&gt;/service/kafka/v1/continue HTTP/1.1
 
 {
     "Result": "Received cmd: continue"
@@ -330,8 +298,8 @@ PUT $DCOS_URI/service/kafka/v1/continue HTTP/1.1
 
 <p>After you execute the continue operation, the plan will look like this:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
-GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan"
+GET &lt;dcos_url&gt;/service/kafka/v1/plan HTTP/1.1
 
 {
   "phases": [
@@ -382,8 +350,8 @@ GET $DCOS_URI/service/kafka/v1/plan HTTP/1.1
 
 <p>If you enter <code class="highlighter-rouge">continue</code> a second time, the rest of the plan will be executed without further interruption. If you want to interrupt a configuration update that is in progress, enter the <code class="highlighter-rouge">interrupt</code> command:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X PUT -H "Authorization: token=$AUTH_TOKEN"  "$DCOS_URI/service/kafka/v1/plan?cmd=interrupt"
-PUT $DCOS_URI/service/kafka/v1/interrupt HTTP/1.1
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X PUT -H "Authorization: token=$auth_token"  "&lt;dcos_url&gt;/service/kafka/v1/plan?cmd=interrupt"
+PUT &lt;dcos_url&gt;/service/kafka/v1/interrupt HTTP/1.1
 
 {
     "Result": "Received cmd: interrupt"
@@ -424,7 +392,7 @@ PUT $DCOS_URI/service/kafka/v1/interrupt HTTP/1.1
   <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BROKER_PORT</code>: <code class="highlighter-rouge">integer</code></li>
 </ul>
 
-<h2 id="configure-broker-placement-strategy">Configure Broker Placement Strategy</h2>
+<h2 id="configure-broker-placement-strategy-">Configure Broker Placement Strategy <!-- replace this with a discussion of PLACEMENT_CONSTRAINTS? --></h2>
 
 <p><code class="highlighter-rouge">ANY</code> allows brokers to be placed on any node with sufficient resources, while <code class="highlighter-rouge">NODE</code> ensures that all brokers within a given Kafka cluster are never colocated on the same node. This is an option that cannot be changed once the Kafka cluster is started: it can only be configured via the DC/OS CLI <code class="highlighter-rouge">--options</code> flag when the Kafka instance is created.</p>
 
