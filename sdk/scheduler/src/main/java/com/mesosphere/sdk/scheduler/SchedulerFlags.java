@@ -123,7 +123,7 @@ public class SchedulerFlags {
         return flagStore.getRequired(EXECUTOR_URI_ENV);
     }
 
-    public String getLibMesosURI() {
+    public String getLibmesosURI() {
         return flagStore.getRequired(LIBMESOS_URI_ENV);
     }
 

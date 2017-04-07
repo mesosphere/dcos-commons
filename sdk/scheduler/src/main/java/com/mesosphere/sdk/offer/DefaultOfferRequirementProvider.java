@@ -652,7 +652,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         // Required URIs from the scheduler environment:
-        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibMesosURI());
+        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
         executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
 
         // Any URIs defined in PodSpec itself.

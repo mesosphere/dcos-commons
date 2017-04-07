@@ -330,22 +330,56 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
+    public void testConsumeMultipleMountVolumesSuccess() throws Exception {
+        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource offeredResourceA = ResourceTestUtils.getUnreservedMountVolume(2000);
+        Resource offeredResourceB = ResourceTestUtils.getUnreservedMountVolume(3000);
+
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResourceA, offeredResourceB));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                Arrays.asList(desiredResourceA, desiredResourceB), false);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(3).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(4).getOperation().getType());
+    }
+
+    @Test
+    public void testConsumeMultipleMountVolumesFailure() throws Exception {
+        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResource));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                Arrays.asList(desiredResourceA, desiredResourceB), false);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
     public void testReserveCreateLaunchMountVolume() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(1000);
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                        Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
         Assert.assertEquals(3, recommendations.size());
 
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource =
-            reserveOperation
-            .getReserve()
-            .getResourcesList()
-            .get(0);
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
@@ -359,10 +393,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstLabel(reserveResource).getValue();
         Operation createOperation = recommendations.get(1).getOperation();
         Resource createResource =
-            createOperation
-            .getCreate()
-            .getVolumesList()
-            .get(0);
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
 
         Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
@@ -374,12 +408,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String persistenceId = createResource.getDisk().getPersistence().getId();
         Operation launchOperation = recommendations.get(2).getOperation();
         Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
