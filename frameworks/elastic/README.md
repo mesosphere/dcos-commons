@@ -3,8 +3,8 @@
 ## Table of Contents
 
 - [Overview](docs/index.md)
-- [Quick Start](docs/quick-start.md)
 - [Install and Customize](docs/install.md)
+- [Kick the Tires](docs/quick-start.md)
 - [Upgrade](docs/upgrade.md)
 - [Uninstall](docs/uninstall.md)
 - [Configure](docs/configure.md)
