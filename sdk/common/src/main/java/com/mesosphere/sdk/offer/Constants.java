@@ -48,9 +48,6 @@ public class Constants {
     public static final String LIBMESOS_URI_SCHEDENV = "LIBMESOS_URI";
     /** Specifies the Java URI to be used when launching tasks. */
     public static final String JAVA_URI_SCHEDENV = "JAVA_URI";
-    /** A reasonable default value for {@code JAVA_URI}. */
-    public static final String JAVA_URI_DEFAULT =
-            "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
     /**
      * Controls whether the {@link StateStoreCache} is disabled (enabled by default).
      * If this envvar is set (to anything at all), the cache is disabled.

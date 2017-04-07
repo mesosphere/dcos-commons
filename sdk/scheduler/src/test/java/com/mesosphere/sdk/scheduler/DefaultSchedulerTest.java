@@ -195,6 +195,7 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, SchedulerFlags.DEFAULT_API_SERVER_TIMEOUT_S);
+        ENV_VARS.set("JAVA_URI", "http://jre.uri");
 
         CuratorTestUtils.clear(testingServer);
 
