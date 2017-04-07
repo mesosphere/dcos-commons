@@ -8,7 +8,7 @@
           "name" : {
             "description":"Apache Kafka",
             "type":"string",
-            "title": "Opt-into Beta",
+            "title": "Agree to Beta terms",
             "default":"beta-kafka"
           },
           "beta-optin":{
