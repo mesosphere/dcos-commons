@@ -125,11 +125,14 @@
     "TASKCFG_ALL_CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS": "{{cassandra.streaming_socket_timeout_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_MAX_VALUE_SIZE_IN_MB": "{{cassandra.max_value_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_OTC_COALESCING_STRATEGY": "{{cassandra.otc_coalescing_strategy}}",
+    "TASKCFG_ALL_LOCAL_SEEDS": "node-0-server.{{service.name}}.mesos,node-1-server.{{service.name}}.mesos",
+    "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
+    "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },
   "uris": [
