@@ -16,7 +16,7 @@ import botocore
 import logging
 import os
 import os.path
-import pprint
+#import pprint
 import sys
 import time
 import uuid
@@ -137,17 +137,20 @@ def detach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
     return response
 
 
-def configure_partition(device, partition_index, start, end):
+def configure_partition(device, partition_index, start, end, stdout):
     device_partition = '{}{}'.format(device, partition_index) # e.g. /dev/xvdm1
     mount_location = '/dcos/volume{}'.format(partition_index - 1) # e.g. /dcos/volume0
-    run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end))
-    run('sudo mkfs -t ext4 {}{}'.format(device_partition))
-    run('sudo mkdir -p {}'.format(mount_location))
-    run('sudo mount {} {}'.format(device_partition, mount_location))
-    run('sudo sh -c "echo \'{} {} ext4 defaults 0 2\' >> /etc/fstab"'.format(device_partition, mount_location))
+    run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end), 
+            stdout=stdout)
+    run('sudo mkfs -t ext4 {}{}'.format(device_partition), stdout=stdout)
+    run('sudo mkdir -p {}'.format(mount_location), stdout=stdout)
+    run('sudo mount {} {}'.format(device_partition, mount_location),
+            stdout=stdout)
+    run('sudo sh -c "echo \'{} {} ext4 defaults 0 2\' >> /etc/fstab"'.format(device_partition, mount_location),
+            stdout=stdout)
 
 
-def configure_device(device='/dev/xvdm'):
+def configure_device(device='/dev/xvdm', stdout=sys.stdout):
     """
     Format the attached EBS volume as two MOUNT volumes and adds entries into fstab.
     DC/OS will autodetect the '/dcos/volume#' volumes.
@@ -156,21 +159,21 @@ def configure_device(device='/dev/xvdm'):
     run('until [[ "$(lsblk -o NAME -r | grep {} | wc -l)" -gt "0" ]]; do echo "Waiting for {}"; sleep 2; done'.format(device_name, device_name))
     run('sudo parted -s {} mklabel gpt'.format(device))
 
-    configure_partition(device, 1, "0%", "50%")
-    configure_partition(device, 2, "50%", "100%")
+    configure_partition(device, 1, "0%", "50%", stdout=stdout)
+    configure_partition(device, 2, "50%", "100%", stdout=stdout)
 
 
-def configure_mesos():
+def configure_mesos(stdout):
     """
     Configures the newly created EBS volume as a Mesos agent resource
     """
-    run("sudo systemctl stop dcos-mesos-slave")
-    run("sudo rm -f /var/lib/mesos/slave/meta/slaves/latest")
-    run("sudo rm -f /var/lib/dcos/mesos-resources")
-    run("sudo systemctl start dcos-mesos-slave")
+    run("sudo systemctl stop dcos-mesos-slave", stdout=stdout)
+    run("sudo rm -f /var/lib/mesos/slave/meta/slaves/latest", stdout=stdout)
+    run("sudo rm -f /var/lib/dcos/mesos-resources", stdout=stdout)
+    run("sudo systemctl start dcos-mesos-slave", stdout=stdout)
 
 
-def main(stack_id = ''):
+def main(stack_id = '', stdout=sys.stdout):
     # Read inputs from environment
     aws_access_key = os.environ.get('AWS_ACCESS_KEY_ID', '')
     aws_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
@@ -296,10 +299,10 @@ def main(stack_id = ''):
         env.user = 'core'
 
         logger.info('Creating partitions on agent: {}'.format(private_ip))
-        execute(configure_instance)
+        execute(configure_device, '/dev/xvdm', stdout)
 
         logger.info('Restarting agent so that it sees the partitions: {}'.format(private_ip))
-        execute(restart_mesos)
+        execute(configure_mesos, stdout)
 
     logger.info('Mount volumes enabled. Exiting now...')
     return 0

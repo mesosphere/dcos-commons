@@ -20,7 +20,7 @@ public class Main {
         LOGGER.info("Reading service specification from: {}", pathToServiceSpecification);
         final File serviceSpecificationFile = new File(args[0]);
         if (serviceSpecificationFile.exists()) {
-            new DefaultService(serviceSpecificationFile);
+            new DefaultService(serviceSpecificationFile).run();
         } else {
             LOGGER.error("Service specification file doesn't exist at location: {}", pathToServiceSpecification);
             System.exit(1);

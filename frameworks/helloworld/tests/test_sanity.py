@@ -1,7 +1,8 @@
-import dcos.marathon
 import json
-import pytest
 import re
+
+import dcos.marathon
+import pytest
 import shakedown
 
 import sdk_cmd as cmd
@@ -10,14 +11,15 @@ import sdk_marathon as marathon
 import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_test_upgrade
-
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
     configured_task_count,
     hello_task_count,
     world_task_count,
-    check_running
+    check_running,
+    bump_hello_cpus,
+    bump_world_cpus
 )
 
 
@@ -48,11 +50,7 @@ def test_bump_hello_cpus():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['HELLO_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
+    updated_cpus = bump_hello_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
@@ -71,11 +69,7 @@ def test_bump_world_cpus():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
     print('world ids: ' + str(world_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['WORLD_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['WORLD_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
+    updated_cpus = bump_world_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
@@ -95,10 +89,7 @@ def test_bump_hello_nodes():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    node_count = int(config['env']['HELLO_COUNT']) + 1
-    config['env']['HELLO_COUNT'] = str(node_count)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
@@ -259,6 +250,7 @@ def test_lock():
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
+
 
 @pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
 @pytest.mark.upgrade
