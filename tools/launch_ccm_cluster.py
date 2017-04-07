@@ -19,14 +19,12 @@ import logging
 import os
 import pprint
 import random
+import socket
 import string
-import shutil
-import subprocess
 import sys
-import tempfile
 import time
 
-import cli_install
+import configure_test_cluster
 import dcos_login
 import github_update
 
@@ -37,8 +35,10 @@ except ImportError:
     from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+class ClusterActionException(Exception):
+    pass
 
 class CCMLauncher(object):
 
@@ -92,7 +92,7 @@ class CCMLauncher(object):
                 result = method.__call__(arg)
                 self._github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
                 return result
-            except Exception as e:
+            except (ClusterActionException, socket.error) as e:
                 if i + 1 == attempts:
                     logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
                     self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
@@ -213,9 +213,11 @@ class CCMLauncher(object):
         elif config.cf_template.startswith('ee.'):
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise-aws-advanced'
             # format is different for enterprise security modes.
-            if config.permissions:
-                mode = 'strict'
-            else:
+            mode = config.security_mode
+            if not mode:
+                logger.warning("No templates known for enterprise & "
+                        "default security (none). Cowardly bringing "
+                        "up a permissive cluster")
                 mode = 'permissive'
             template_url = 'https://{}/{}/{}/cloudformation/{}'.format(
                 hostrepo, config.ccm_channel, mode, config.cf_template)
@@ -255,22 +257,22 @@ class CCMLauncher(object):
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
-      config.permissions,
+      config.security_mode,
       config.ccm_channel,
       config.cf_template,
       template_url))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
-            raise Exception('CCM cluster creation request failed')
+            raise ClusterActionException('CCM cluster creation request failed')
         response_content = response.read().decode('utf-8')
         response_json = json.loads(response_content)
         logger.info('Launch response:\n{}'.format(pprint.pformat(response_json)))
         cluster_id = int(response_json.get('id', 0))
         if not cluster_id:
-            raise Exception('No Cluster ID returned in cluster creation response: {}'.format(response_content))
+            raise ClusterActionException('No Cluster ID returned in cluster creation response: {}'.format(response_content))
         stack_id = response_json.get('stack_id', '')
         if not stack_id:
-            raise Exception('No Stack ID returned in cluster creation response: {}'.format(response_content))
+            raise ClusterActionException('No Stack ID returned in cluster creation response: {}'.format(response_content))
 
         cluster_info = self.wait_for_status(
             cluster_id,
@@ -278,21 +280,11 @@ class CCMLauncher(object):
             'RUNNING', # desired state
             config.start_timeout_mins)
         if not cluster_info:
-            raise Exception('CCM cluster creation failed or timed out')
+            raise ClusterActionException('CCM cluster creation failed or timed out')
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
-            raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+            raise ClusterActionException('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
         logger.info('Cluster is now RUNNING: {}'.format(cluster_info))
-
-        if config.mount_volumes:
-            logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
-            # fabric spams to stdout, which causes problems with launch_ccm_cluster.
-            # force total redirect to stderr:
-            stdout = sys.stdout
-            sys.stdout = sys.stderr
-            import enable_mount_volumes
-            enable_mount_volumes.main(stack_id)
-            sys.stdout = stdout
 
         # we fetch the token once up-front because on Open clusters it must be reused.
         # given that, we may as well use the same flow across both Open and EE.
@@ -300,32 +292,14 @@ class CCMLauncher(object):
         dcos_url = 'https://' + dns_address
         auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
 
-        if config.permissions:
-            logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
+        is_enterprise = config.cf_template.startswith('ee.')
+        clustinit = configure_test_cluster.ClusterInitializer(cluster_id,
+                stack_id, auth_token, dns_address, is_enterprise,
+                config.security_mode)
+        clustinit.apply_default_config()
 
-            def run_script(scriptname, args = [], env=None):
-                logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
-                script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
-                # redirect stdout to stderr:
-                subprocess.check_call(['bash', script_path] + args,
-                                      stdout=sys.stderr, env=env)
-
-
-            # create_service_account relies on dcos cli, which we may not have
-            # at this point.
-            tempdir = tempfile.mkdtemp(prefix="ccm_clustbin")
-            cli_install.download_cli(dcos_url, tempdir)
-            custom_env = os.environ[:]
-            custom_env['PATH'] = tempdir + os.pathsep + os.environ['PATH']
-
-            run_script('create_service_account.sh',
-                       [dcos_url, auth_token, '--strict'], env=custom_env)
-            shutil.rmtree(tempdir)
-            # Examples of what individual tests should run. See respective projects' "test.sh":
-            #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
-            #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
-            #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
-            #run_script('setup_permissions.sh', 'nobody spark-role'.split())
+        if config.mount_volumes:
+            clustinit.create_mount_volumes()
 
         return {
             'id': cluster_id,
@@ -346,7 +320,7 @@ class CCMLauncher(object):
         logger.info('Deleting cluster #{}'.format(config.cluster_id))
         response = self._query_http('DELETE', self._CCM_PATH + config.cluster_id + '/')
         if not response:
-            raise Exception('CCM cluster deletion request failed')
+            raise ClusterActionException('CCM cluster deletion request failed')
         if wait:
             cluster_info = self.wait_for_status(
                 config.cluster_id,
@@ -354,7 +328,7 @@ class CCMLauncher(object):
                 'DELETED',
                 config.stop_timeout_mins)
             if not cluster_info:
-                raise Exception('CCM cluster deletion failed or timed out')
+                raise ClusterActionException('CCM cluster deletion failed or timed out')
             logger.info(pprint.pformat(cluster_info))
         else:
             logger.info('Delete triggered, exiting.')
@@ -375,8 +349,7 @@ class StartConfig(object):
             aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
-            mount_volumes = False,
-            permissions = False):
+            mount_volumes = False):
         self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
@@ -388,7 +361,12 @@ class StartConfig(object):
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
-        self.permissions = os.environ.get('SECURITY', '') == 'strict'
+        self.security_mode = os.environ.get('SECURITY')
+        if self.security_mode == 'default':
+           self.security_mode = None
+        if not self.security_mode in ('strict', 'permissive', None):
+            raise Exception("Unknown value for SECURITY: %s" %
+                    self.security_mode)
         self.template_url = os.environ.get('DCOS_TEMPLATE_URL', None)
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(

@@ -1,12 +1,9 @@
 import pytest
 
 import sdk_install as install
-import sdk_tasks as tasks
 import sdk_marathon as marathon
+import sdk_tasks as tasks
 import sdk_utils as utils
-
-
-
 from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
@@ -25,6 +22,7 @@ def setup_module(module):
 
 def teardown_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+
 
 # --------- Port -------------
 
@@ -69,7 +67,7 @@ def test_port_static_to_static_port():
     for broker_id in range(DEFAULT_BROKER_COUNT):
         result = service_cli('broker get {}'.format(broker_id))
         assert result['port'] == 9092
-    
+
     result = service_cli('endpoints broker')
     assert len(result['address']) == DEFAULT_BROKER_COUNT
     assert len(result['dns']) == DEFAULT_BROKER_COUNT
@@ -121,21 +119,18 @@ def test_port_static_to_dynamic_port():
     for port in result['dns']:
         assert int(port.split(':')[-1]) != 9092
 
+
 @pytest.mark.sanity
 def test_port_dynamic_to_dynamic_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
     broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
-    config = marathon.get_config(SERVICE_NAME)
-    broker_cpus = int(config['env']['BROKER_CPUS'])
-    config['env']['BROKER_CPUS'] = str(broker_cpus + 0.1)
-    marathon.update_app(SERVICE_NAME, config)
+    marathon.bump_cpu_count_config(SERVICE_NAME, 'BROKER_CPUS')
 
     tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-
 
 
 @pytest.mark.sanity
