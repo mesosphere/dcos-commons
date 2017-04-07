@@ -13,6 +13,7 @@
         "beta-optin":{
           "description":"I have been invited to the Beta Program and accept the all terms of the Beta Agreement.",
           "type": "boolean",
+          "title": "Opt-into Beta",
           "default": ""
         },
         "secret_name": {
