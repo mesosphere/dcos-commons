@@ -1,5 +1,6 @@
 ---
 title: SDK Developer Guide
+redirect_from: "/dev-guide/developer-guide"
 ---
 
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
@@ -1397,6 +1398,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy"></a>
 ### Proxy
 
 The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.

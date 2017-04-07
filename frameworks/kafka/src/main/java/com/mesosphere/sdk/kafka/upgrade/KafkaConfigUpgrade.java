@@ -31,7 +31,7 @@ public class KafkaConfigUpgrade {
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaConfigUpgrade.class);
 
     /**
-     *  KafkaConfigUpgrade Exception
+     *  KafkaConfigUpgrade Exception.
      */
     public static class KafkaConfigUpgradeException extends IOException {
         public KafkaConfigUpgradeException(String message){

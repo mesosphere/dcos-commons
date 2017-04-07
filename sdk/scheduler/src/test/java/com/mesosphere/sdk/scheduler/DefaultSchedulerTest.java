@@ -2,9 +2,9 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
@@ -34,6 +34,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
@@ -61,6 +62,8 @@ public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
+    @Rule
+    public final ExpectedSystemExit exit = ExpectedSystemExit.none();
     @ClassRule
     public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
@@ -70,6 +73,7 @@ public class DefaultSchedulerTest {
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
+    private static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -190,6 +194,9 @@ public class DefaultSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, SchedulerFlags.DEFAULT_API_SERVER_TIMEOUT_S);
+        ENV_VARS.set("JAVA_URI", "http://jre.uri");
+
         CuratorTestUtils.clear(testingServer);
 
         StateStoreCache.resetInstanceForTests();
@@ -200,6 +207,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
+        defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
     }
 
@@ -512,6 +520,7 @@ public class DefaultSchedulerTest {
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
+        defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
         defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -657,6 +666,28 @@ public class DefaultSchedulerTest {
         stateStore.storeTasks(Arrays.asList(taskInfo));
         statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
         Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
+    }
+
+    @Test
+    public void testApiServerNotReadyDecline() {
+        TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
+        testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
+    }
+
+    @Test
+    public void testApiServerTimeout() throws Exception {
+        int timeoutSec = 1;
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
+                .build();
+        ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, String.valueOf(timeoutSec));
+        Assert.assertFalse(defaultScheduler.apiServerReady());
+        Thread.sleep(timeoutSec * 2000);
+        exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
+        defaultScheduler.apiServerReady();
     }
 
     private Callable<Boolean> taskMarkFailed(String taskName) {
@@ -861,5 +892,26 @@ public class DefaultSchedulerTest {
         }
     }
 
-    ;
+    private static class TestScheduler extends DefaultScheduler {
+        private final boolean apiServerReady;
+
+        public TestScheduler(DefaultScheduler defaultScheduler, boolean apiServerReady) {
+            super(
+                    defaultScheduler.serviceSpec,
+                    defaultScheduler.resources,
+                    defaultScheduler.plans,
+                    defaultScheduler.stateStore,
+                    defaultScheduler.configStore,
+                    defaultScheduler.offerRequirementProvider,
+                    defaultScheduler.customEndpointProducers,
+                    defaultScheduler.customRestartHook,
+                    defaultScheduler.recoveryPlanManagerFactoryOptional);
+            this.apiServerReady = apiServerReady;
+        }
+
+        @Override
+        public boolean apiServerReady() {
+            return apiServerReady;
+        }
+    }
 }

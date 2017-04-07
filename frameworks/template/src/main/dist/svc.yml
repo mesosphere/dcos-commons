@@ -4,16 +4,17 @@ scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
   template:
-    count: {{TEMPLATE_COUNT}}
+    count: {{NODE_COUNT}}
+    placement: {{NODE_PLACEMENT}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cmd: "echo template >> template-container-path/output && sleep $SLEEP_DURATION"
-        cpus: {{TEMPLATE_CPUS}}
-        memory: {{TEMPLATE_MEM}}
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
         volume:
           path: "template-container-path"
-          type: ROOT
-          size: {{TEMPLATE_DISK}}
+          type: {{NODE_DISK_TYPE}}
+          size: {{NODE_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}

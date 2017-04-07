@@ -33,7 +33,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
-            new DefaultService(getBuilder(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(args[0]))));
+            new DefaultService(getBuilder(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(args[0])))).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
