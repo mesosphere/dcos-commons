@@ -127,7 +127,7 @@ public class TestPodFactory {
     }
 
     public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
-        return DefaultPodSpec.newBuilder()
+        return DefaultPodSpec.newBuilder("test-executor")
                 .type(type)
                 .count(count)
                 .tasks(taskSpecs)

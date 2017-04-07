@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
@@ -10,9 +11,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -21,9 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class PortEvaluationStageTest {
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     @Test
     public void testReserveDynamicPort() throws Exception {
@@ -153,7 +150,7 @@ public class PortEvaluationStageTest {
         DefaultPodInstance podInstance = getPodInstance("valid-port-healthcheck.yml");
         StateStore stateStore = Mockito.mock(StateStore.class);
         DefaultOfferRequirementProvider provider =
-                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
                 PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
@@ -203,7 +200,7 @@ public class PortEvaluationStageTest {
         DefaultPodInstance podInstance = getPodInstance("valid-port-readinesscheck.yml");
         StateStore stateStore = Mockito.mock(StateStore.class);
         DefaultOfferRequirementProvider provider =
-                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
                 PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
@@ -250,7 +247,7 @@ public class PortEvaluationStageTest {
     }
 
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
-        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName);
+        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, flags);
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule((offer, offerRequirement, taskInfos) -> EvaluationOutcome.pass(this, "pass for test"))

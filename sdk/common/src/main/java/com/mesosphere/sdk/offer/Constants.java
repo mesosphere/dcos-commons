@@ -40,23 +40,6 @@ public class Constants {
     /** Provides the name of the pod/task within the service. */
     public static final String TASK_NAME_TASKENV = "TASK_NAME";
 
-    // Environment variables read by the scheduler itself
-
-    /** Specifies the URI of the executor artifact to be used when launching tasks. */
-    public static final String EXECUTOR_URI_SCHEDENV = "EXECUTOR_URI";
-    /** Specifies the URI of the libmesos package used by the scheduler itself. */
-    public static final String LIBMESOS_URI_SCHEDENV = "LIBMESOS_URI";
-    /** Specifies the Java URI to be used when launching tasks. */
-    public static final String JAVA_URI_SCHEDENV = "JAVA_URI";
-    /** A reasonable default value for {@code JAVA_URI}. */
-    public static final String JAVA_URI_DEFAULT =
-            "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
-    /**
-     * Controls whether the {@link StateStoreCache} is disabled (enabled by default).
-     * If this envvar is set (to anything at all), the cache is disabled.
-     */
-    public static final String DISABLE_STATE_CACHE_SCHEDENV = "DISABLE_STATE_CACHE";
-
     // Other names/constants
 
     /** Used to mark packed task data within an {@link ExecutorInfo}. */

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
@@ -31,15 +32,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private final StateStore stateStore;
     private final String serviceName;
     private final UUID targetConfigurationId;
+    private final SchedulerFlags schedulerFlags;
 
     /**
      * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which
      * updates tasks which are not tagged with the provided {@code targetConfigurationId}.
      */
-    public DefaultOfferRequirementProvider(StateStore stateStore, String serviceName, UUID targetConfigurationId) {
+    public DefaultOfferRequirementProvider(
+            StateStore stateStore, String serviceName, UUID targetConfigurationId, SchedulerFlags schedulerFlags) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
         this.targetConfigurationId = targetConfigurationId;
+        this.schedulerFlags = schedulerFlags;
     }
 
     @Override
@@ -177,7 +181,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId));
+        return ExecutorRequirement.create(getNewExecutorInfo(
+                podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags));
     }
 
     @Override
@@ -538,7 +543,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
+        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
     }
 
     private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
@@ -622,7 +627,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.ExecutorInfo getNewExecutorInfo(
-            PodSpec podSpec, String serviceName, UUID targetConfigurationId) throws IllegalStateException {
+            PodSpec podSpec,
+            String serviceName,
+            UUID targetConfigurationId,
+            SchedulerFlags schedulerFlags) throws IllegalStateException {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
@@ -643,21 +651,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             executorCommandBuilder.setUser(podSpec.getUser().get());
         }
 
-        // URIs:
-
-        // Required in scheduler env.
-        String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);
-        if (libmesosUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI_SCHEDENV);
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(libmesosUri);
-
-        // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
-        String javaUri = System.getenv(JAVA_URI_SCHEDENV);
-        if (javaUri == null) {
-            javaUri = JAVA_URI_DEFAULT;
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(javaUri);
+        // Required URIs from the scheduler environment:
+        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibMesosURI());
+        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
 
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
