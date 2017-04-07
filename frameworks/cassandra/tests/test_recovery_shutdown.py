@@ -27,6 +27,7 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.shutdown_node
 def test_shutdown_host_test():
 
     service_ip = shakedown.get_service_ips(PACKAGE_NAME).pop()
@@ -48,8 +49,8 @@ def test_shutdown_host_test():
 
     # instead of partition/reconnect, we shutdown host permanently
     status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown now')
-    assert status is True
     print('shutdown agent {}: {}'.format(node_ip, stdout))
+    assert status is True
 
     cmd.run_cli('cassandra pods replace node-{}'.format(pod_id))
 
