@@ -195,7 +195,7 @@ public class MesosResourcePool {
 
         if (atomicResources != null) {
             for (MesosResource atomicResource : atomicResources) {
-                if (sufficientValue(desiredValue, atomicResource.getValue())) {
+                if (!sufficientResource.isPresent() && sufficientValue(desiredValue, atomicResource.getValue())) {
                     sufficientResource = Optional.of(atomicResource);
                     // do NOT break: ensure filteredResources is fully populated
                 } else {
