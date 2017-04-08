@@ -176,9 +176,11 @@
 </ul>
 <h1>YAML Reference</h1>
 <div id="content">
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
 <p>This reference document is a field-by-field listing of the YAML schema used for <a href="developer-guide.html#introduction-to-dcos-service-definitions">Service Specifications</a>. For an example of a YAML Service Spec, see the <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml">svc.yml for hello-world</a>.</p>
 
-<p>This documentation effectively reflects the Java object tree under <a href="api/index.html?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html">RawServiceSpec</a>, which is what’s used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the <a href="developer-guide.html">SDK Developer Guide</a>.</p>
+<p>This documentation effectively reflects the Java object tree under <a href="api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html">RawServiceSpec</a>, which is what’s used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the <a href="developer-guide.html">SDK Developer Guide</a>.</p>
 
 <h2 id="fields">Fields</h2>
 
@@ -186,50 +188,50 @@
   <li>
     <p><code class="highlighter-rouge">name</code></p>
 
-    <p>TODO</p>
+    <p>The name of the service. This is used both for the Marathon app name for the scheduler, as well as for the Mesos framework name for the service tasks.</p>
   </li>
   <li>
     <p><code class="highlighter-rouge">web-url</code></p>
 
-    <p>TODO</p>
+    <p>Where requests should be sent when a user goes to <code class="highlighter-rouge">http://theircluster.com/service/&lt;name&gt;</code> to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring <a href="developer-guide.html#proxy">Proxylite</a> in your service so that the scheduler API endpoints are still available.</p>
   </li>
   <li>
     <p><code class="highlighter-rouge">scheduler</code></p>
 
-    <p>TODO</p>
+    <p>This section contains settings related to the scheduler and its interaction with the cluster. All of these settings are optional, reasonable defaults are used if they are not manually provided.</p>
 
     <ul>
       <li>
         <p><code class="highlighter-rouge">role</code></p>
 
-        <p>TODO</p>
+        <p>The Mesos Role to register as. Default is <code class="highlighter-rouge">&lt;name&gt;-role</code>.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">principal</code></p>
 
-        <p>TODO</p>
+        <p>The Mesos Principal to register as. Default is <code class="highlighter-rouge">&lt;name&gt;-principal</code>.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">api-port</code></p>
 
-        <p>TODO</p>
+        <p>The port at which the scheduler should serve its API endpoints. Defaults to a random port value provided to the scheduler by Marathon.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">zookeeper</code></p>
 
-        <p>TODO</p>
+        <p>Custom zookeeper URL for storing scheduler state. Defaults to <code class="highlighter-rouge">master.mesos:2181</code>.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">user</code></p>
 
-        <p>TODO</p>
+        <p>This field isn’t used! TODO(nickbp) remove.</p>
       </li>
     </ul>
   </li>
   <li>
     <p><code class="highlighter-rouge">pods</code></p>
 
-    <p>TODO</p>
+    <p>This section contains a listing of all pod types managed by the service.</p>
 
     <ul>
       <li>
@@ -241,189 +243,241 @@
           <li>
             <p><code class="highlighter-rouge">cpus</code>, <code class="highlighter-rouge">gpus</code>, <code class="highlighter-rouge">memory</code>, <code class="highlighter-rouge">ports</code>, <code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
 
-            <p>These resource values are identical in function to their sister fields in a <a href="#tasks">task definition</a>.</p>
+            <p>These resource values are identical in meaning to their sister fields in a <a href="#tasks">task definition</a>. However, see above discussion about these resources only being used by one task at a time.</p>
           </li>
         </ul>
       </li>
       <li>
         <p><code class="highlighter-rouge">placement</code></p>
 
-        <p>TODO</p>
+        <p>Any additional constraints to be applied when deciding where to deploy this pod. This field supports all <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon placement operators</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, when the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should use <code class="highlighter-rouge">hostname:UNIQUE</code>. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">count</code></p>
 
-        <p>TODO</p>
+        <p>The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">container</code></p>
 
-        <p>TODO</p>
+        <p>This section contains additional options relating to the container environment to be used by the pod type.</p>
 
         <ul>
           <li>
             <p><code class="highlighter-rouge">image-name</code></p>
 
-            <p>TODO</p>
+            <p>The docker image to use for launching the pod, of the form <code class="highlighter-rouge">user/img:version</code>. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been <a href="https://github.com/dcos/examples/tree/master/1.8/registry">configured in the DC/OS cluster</a> to work. To ensure a lack of flakiness, docker images are only executed by Mesos’ <a href="https://docs.mesosphere.com/latest/usage/containerizers/">Universal Container Runtime</a>, never <code class="highlighter-rouge">dockerd</code>. If this is unspecified, then a sandboxed directory on the system root is used instead.</p>
+
+            <p><code class="highlighter-rouge">image-name</code> may be left empty when the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">networks</code></p>
 
-            <p>TODO</p>
+            <p>This field may be set to an empty object (<code class="highlighter-rouge"><span class="p">{}</span></code>) to enable the experimental CNI feature. This space is reserved for additional networking options relating to CNI.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">rlimits</code></p>
 
-            <p>TODO</p>
+            <p>This section may be used to specify <a href="https://linux.die.net/man/2/setrlimit">rlimits</a> that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:</p>
 
-            <ul>
-              <li>
-                <p><code class="highlighter-rouge">soft</code></p>
-
-                <p>TODO</p>
-              </li>
-              <li>
-                <p><code class="highlighter-rouge">hard</code></p>
-
-                <p>TODO</p>
-              </li>
-            </ul>
+            <div class="highlighter-rouge"><pre class="highlight"><code>rlimits:
+  RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
+  RLIMIT_NOFILE:
+    soft: 128000
+    hard: 128000
+</code></pre>
+            </div>
           </li>
         </ul>
       </li>
       <li>
-        <p><code class="highlighter-rouge">image</code></p>
+        <p><code class="highlighter-rouge">image</code>/<code class="highlighter-rouge">networks</code>/<code class="highlighter-rouge">rlimits</code></p>
 
-        <p>TODO</p>
-      </li>
-      <li>
-        <p><code class="highlighter-rouge">networks</code></p>
-
-        <p>TODO</p>
-      </li>
-      <li>
-        <p><code class="highlighter-rouge">rlimits</code></p>
-
-        <p>TODO</p>
-
-        <ul>
-          <li>
-            <p><code class="highlighter-rouge">soft</code></p>
-
-            <p>TODO</p>
-          </li>
-          <li>
-            <p><code class="highlighter-rouge">hard</code></p>
-
-            <p>TODO</p>
-          </li>
-        </ul>
+        <p>These values are respectively equivalent to <code class="highlighter-rouge">image-name</code>, <code class="highlighter-rouge">networks</code>, and <code class="highlighter-rouge">rlimits</code> under <code class="highlighter-rouge">container</code>. Only one of the two sections may be specified at a time. See above. (TODO(nickbp) remove duplicate path?)</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">strategy</code></p>
 
-        <p>TODO</p>
+        <p>This field isn’t used! TODO(nickbp) remove.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">uris</code></p>
 
-        <p>TODO</p>
+        <p>A list of uris to be downloaded (and automatically unpacked) into the <code class="highlighter-rouge">$MESOS_SANDBOX</code> directory before launching instances of this pod. It is strongly recommended that all URIs be templated out and provided as scheduler environment variables. This allows field replacement in the case of running an offline cluster without internet connectivity.</p>
+
+        <p>If you’re using a Docker image (specified in the <code class="highlighter-rouge">image-name</code> field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.</p>
+
+        <p>If you wish to use <code class="highlighter-rouge">configs</code> in your tasks, this needs to include a URI to download the <code class="highlighter-rouge">bootstrap</code> executable.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">tasks</code></p>
 
-        <p>TODO</p>
+        <p>This section lists the tasks which run within a given pod. All tasks share the same pod environment and resources. Resources may be more granularly allocated on a per-task basis in the future.</p>
 
         <ul>
           <li>
             <p><code class="highlighter-rouge">goal</code></p>
 
-            <p>TODO</p>
+            <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code> or <code class="highlighter-rouge">FINISHED</code> (TODO(nickbp): what about <code class="highlighter-rouge">NONE</code>?):</p>
+            <ul>
+              <li><code class="highlighter-rouge">RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
+              <li><code class="highlighter-rouge">FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
+            </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">cmd</code></p>
 
-            <p>TODO</p>
+            <p>The command to be run by the task, in the form of a shell script. This script may execute any executables that are visible within the pod environment.</p>
+
+            <p>If you wish to use <code class="highlighter-rouge">configs</code> in this task, the <code class="highlighter-rouge">cmd</code> needs to run the <code class="highlighter-rouge">bootstrap</code> executable. For example: <code class="highlighter-rouge">./bootstrap &amp;&amp; ./your/exe/here</code></p>
           </li>
           <li>
             <p><code class="highlighter-rouge">env</code></p>
 
-            <p>TODO</p>
+            <p>A listing of environment variables to be included in the <code class="highlighter-rouge">cmd</code> runtime. If you’re using config templates using <code class="highlighter-rouge">bootstrap</code>, this section must be populated with any relevant template values.</p>
+
+            <p>For convenience, the following environment variables are automatically provided to all tasks:</p>
+            <ul>
+              <li><code class="highlighter-rouge">FRAMEWORK_NAME</code>: The name of the service.</li>
+              <li><code class="highlighter-rouge">TASK_NAME</code>: The name of the task, of the form <code class="highlighter-rouge">&lt;pod&gt;-&lt;#&gt;-&lt;task&gt;</code>. For example: <code class="highlighter-rouge">mypod-0-node</code>.</li>
+              <li><code class="highlighter-rouge">POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
+              <li><code class="highlighter-rouge">&lt;TASK_NAME&gt;=true</code>: The task name as the envvar name, with <code class="highlighter-rouge">true</code> as the value.</li>
+            </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">configs</code></p>
 
-            <p>TODO</p>
+            <p>This section allows specifying config templates to be rendered by the <code class="highlighter-rouge">bootstrap</code> executable, which must be invoked manually in <code class="highlighter-rouge">cmd</code>. A common use case for DC/OS services is allowing end-users to customize the configuration of the service. This allows specifying arbitrary text templates which are automatically populated with that configuration. For example, say we had a <code class="highlighter-rouge">webserver</code> task with a <code class="highlighter-rouge">config.yaml</code> like the following:</p>
+
+            <div class="highlighter-rouge"><pre class="highlight"><code>hostname: localhost
+port: 80
+ssl:
+  enabled: true
+  key: /etc/ssl/priv.key
+  cert: /etc/ssl/pub.cert
+# Default value when unset:
+#custom_404: 404 Not Found
+#custom_403: 403 Forbidden
+root: /var/www
+</code></pre>
+            </div>
+
+            <p>The service developer can create a <code class="highlighter-rouge">config.yaml.mustache</code> which templates out the options to be exposed to end users:</p>
+
+            <div class="highlighter-rouge"><pre class="highlight"><code>hostname: {{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos // mesos-dns hostname for this task
+port: {{PORT_HTTP}}
+ssl:
+  enabled: {{SSL_ENABLED}}
+  key: /etc/ssl/priv.key // not customizable
+  cert: /etc/ssl/pub.cert // not customizable
+{{#CUSTOM_404_MESSAGE}}
+custom_404: {{CUSTOM_404_MESSAGE}}
+{{/CUSTOM_404_MESSAGE}}
+{{#CUSTOM_403_MESSAGE}}
+custom_403: {{CUSTOM_403_MESSAGE}}
+{{/CUSTOM_403_MESSAGE}}
+root: {{ROOT_DIR}}
+</code></pre>
+            </div>
+
+            <p>And then the following settings would be manually added to the task’s <code class="highlighter-rouge">env</code>. These env vars meanwhile would be provided automatically by the SDK:</p>
+            <ul>
+              <li><code class="highlighter-rouge">TASK_NAME</code> and <code class="highlighter-rouge">FRAMEWORK_NAME</code> are included for free, as mentioned under <code class="highlighter-rouge">env</code> above.</li>
+              <li><code class="highlighter-rouge">PORT_HTTP</code> is the default advertised environment variable for a reserved port named <code class="highlighter-rouge">http</code>, as mentioned under <code class="highlighter-rouge">ports</code> below.</li>
+            </ul>
+
+            <div class="highlighter-rouge"><pre class="highlight"><code>SSL_ENABLED: {{WEB_SSL_ENABLED}}
+CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+HTTP_ROOT: {{WEB_ROOT_DIR}}
+</code></pre>
+            </div>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">template</code></p>
 
-                <p>TODO</p>
+                <p>The source template file path within the <em>scheduler</em> environment to be downloaded into the task. Relative paths are interpreted as relative to the <em>scheduler’s</em> <code class="highlighter-rouge">$MESOS_SANDBOX</code>.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">dest</code></p>
 
-                <p>TODO</p>
+                <p>The destination path within the <em>task</em> environment to place the rendered result. An absolute or relative path may be used. Relative paths are interpreted as relative to the <em>task’s</em> <code class="highlighter-rouge">$MESOS_SANDBOX</code>.</p>
               </li>
             </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">cpus</code></p>
 
-            <p>TODO</p>
+            <p>The number of CPUs to be reserved by this task. Fractional values (e.g. <code class="highlighter-rouge">1.5</code>) are supported. If the task exceeds the reserved usage, it will be throttled and inconsistent performance may result.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">gpus</code></p>
 
-            <p>TODO</p>
+            <p>The number of GPUs to be reserved by this task. Unlike with CPUs this cannot be a fractional value in practice. This is only supported in DC/OS 1.9+.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">memory</code></p>
 
-            <p>TODO</p>
+            <p>The amount of RAM (in MB) to be reserved by this task. If the task exceeds this amount, it will be forcibly restarted.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">ports</code></p>
 
-            <p>TODO</p>
+            <p>The ports which your service will be using to accept incoming connections. Each port is given a unique name as follows:</p>
+
+            <div class="highlighter-rouge"><pre class="highlight"><code>ports:
+  http-api:
+    port: 0 # use a random port, advertised as PORT_HTTP_API in the task
+    vip:
+      port: 80
+  debug:
+    port: 9090
+</code></pre>
+            </div>
+
+            <p>All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on <code class="highlighter-rouge">eth0</code>, but your service is still connected fine over <code class="highlighter-rouge">eth1</code>. Or vice versa.</p>
+
+            <p>It’s worth noting that port reservations in DC/OS are technically honor-system at the moment. However, you should still reserve all the ports you intend to use. This is to ensure that Mesos doesn’t place your task on a machine where a port you need is already occupied. You must give Mesos enough information to find a place where all your required ports are available.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">port</code></p>
 
-                <p>TODO</p>
+                <p>The port to be reserved and used by the service. This may be set to <code class="highlighter-rouge">0</code> to use a random port, which will be advertised via the task environment.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">env-key</code></p>
 
-                <p>TODO</p>
+                <p>This may be used to customize the environment variable used to advertise this port within the task.</p>
+
+                <p>By default, ports are automatically advertised as <code class="highlighter-rouge">PORT_&lt;NAME&gt;</code>, where any punctuation in <code class="highlighter-rouge">NAME</code> is converted to underscores. For example, a port named <code class="highlighter-rouge">http-api</code> would be advertised as <code class="highlighter-rouge">PORT_HTTP_API</code> by default.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">vip</code></p>
 
-                <p>TODO</p>
+                <p>This section enables a Virtual IP (or VIP) address for this port. The VIP is effectively a highly-available hostname at which the task may be reached at an arbitrary advertised endpoint. Using VIPs is similar to using Mesos-DNS, except you have more control over the port used by others to connect to your service, without requiring users check SRV records like Mesos-DNS does. For example, you could run several web servers behind random ports (see above), but expose them all a single VIP endpoint at port <code class="highlighter-rouge">80</code>.</p>
 
                 <ul>
                   <li>
                     <p><code class="highlighter-rouge">port</code></p>
 
-                    <p>TODO</p>
+                    <p>The ‘external’ port to use in the VIP.</p>
                   </li>
                   <li>
                     <p><code class="highlighter-rouge">prefix</code></p>
 
-                    <p>TODO</p>
+                    <p>The name to put at the start of the VIP. For example, <code class="highlighter-rouge">http</code> will result in a VIP hostname of <code class="highlighter-rouge">http.&lt;servicename&gt;.l4lb.thisdcos.directory</code>. As this implies, VIP names are on a per-service bases, not per-podtype.</p>
                   </li>
                   <li>
                     <p><code class="highlighter-rouge">protocol</code></p>
 
-                    <p>TODO</p>
+                    <p>TODO(nickbp): This field should probably be removed in favor of just assuming <code class="highlighter-rouge">tcp</code>. IIRC we don’t support UDP via VIPs anyway.</p>
                   </li>
                   <li>
                     <p><code class="highlighter-rouge">advertise</code></p>
 
-                    <p>TODO</p>
+                    <p>TODO(nickbp): This field should be removed.</p>
                   </li>
                 </ul>
               </li>
@@ -432,112 +486,116 @@
           <li>
             <p><code class="highlighter-rouge">health-check</code></p>
 
-            <p>TODO</p>
+            <p>Health checks are additional validation that your task is healthy, in addition to just the fact that its process is still running. This is an extra convenience for sitations where a service can enter a zombie state from which it can never return. For example, it might query an HTTP endpoint to validate that an HTTP service is still responding.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">cmd</code></p>
 
-                <p>TODO</p>
+                <p>This is the command to run in the health check. It will be run in the same environment as the task itself, but any envvars which are assigned <em>within</em> the task’s <code class="highlighter-rouge">cmd</code> will not appear here. If the command exits with code <code class="highlighter-rouge">0</code>, then the health check is considered successful. Otherwise it failed.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">interval</code></p>
 
-                <p>TODO</p>
+                <p>The period in seconds to wait after the last check has completed to start the next check.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">grace-period</code></p>
 
-                <p>TODO</p>
+                <p>An initial amount of time in seconds to ignore failed health checks.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">max-consecutive-failures</code></p>
 
-                <p>TODO</p>
+                <p>The number of consecutive health check failures which are allowed before the task is restarted. TODO(nick): what if this isn’t specified? relationship to timeout?</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">delay</code></p>
 
-                <p>TODO</p>
+                <p>An amount of time in seconds to wait before starting the readiness check attempts. This delay is triggered once the task has started running.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">timeout</code></p>
 
-                <p>TODO</p>
+                <p>An amount of time in seconds to wait for a health check to succeed. If all health checks continuously fail for the timeout duration, the task is restarted (and its persistent volumes will persist).</p>
               </li>
             </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">readiness-check</code></p>
 
-            <p>TODO</p>
+            <p>Readiness checks are similar in implementation to health checks, but they are only run when the task is first coming up. Readiness checks allow the service to expose when a given task has completed some initialization process, as opposed to just exposing that the process is running. If a readiness check is defined, the scheduler will wait until this check passes before attempting to launch another task. Unlike with health checks which are only really needed in specific cases, readiness checks are frequently useful for ensuring that process health during startup accurately represents the internals of the service, and to give the scheduler an opportunity to automatically restart a task if initialization is taking too long.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">cmd</code></p>
 
-                <p>TODO</p>
+                <p>This is the command to run in the readiness check. It will be run in the same environment as the task itself, but any envvars which are assigned <em>within</em> the task’s <code class="highlighter-rouge">cmd</code> will not appear here. If the command exits with code <code class="highlighter-rouge">0</code>, then the health check is considered successful. Otherwise it failed.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">interval</code></p>
 
-                <p>TODO</p>
+                <p>The period in seconds to wait after the last check has completed to start the next check.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">delay</code></p>
 
-                <p>TODO</p>
+                <p>An amount of time in seconds to wait before starting the readiness check attempts.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">timeout</code></p>
 
-                <p>TODO</p>
+                <p>An amount of time in seconds to wait for a readiness check to succeed. If all readiness checks continuously fail for the timeout duration, the task is restarted and initialization is reattempted.</p>
               </li>
             </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
 
-            <p>TODO</p>
+            <p>One or more persistent volumes to be mounted into the task environment. Any files placed within persistent volumes will survive a task being restarted, but will <em>not</em> survive a task being moved to a new machine. <code class="highlighter-rouge">volume</code> is a convenience syntax for specifying a task with a single volume.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">path</code></p>
 
-                <p>TODO</p>
+                <p>Where the persistent volume should be mounted in the task filesystem. A relative path will be placed relative to <code class="highlighter-rouge">$MESOS_SANDBOX</code>.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">type</code></p>
 
-                <p>TODO</p>
+                <p>Two types are currently supported: <code class="highlighter-rouge">ROOT</code> and <code class="highlighter-rouge">MOUNT</code>. Both behave the same in terms of persistence; the difference is mainly in how they perform and how they’re reserved:</p>
+                <ul>
+                  <li><code class="highlighter-rouge">ROOT</code> volumes are against the root filesystem of the host system. In terms of performance they will share IO with the other users of that filesystem. In terms of reservations, the requested size is exactly what’s obtained.</li>
+                  <li><code class="highlighter-rouge">MOUNT</code> volumes are separate partitions which the cluster administrator had mounted onto the host machine as <code class="highlighter-rouge">/dcos/volumeN</code>. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. <code class="highlighter-rouge">MOUNT</code> volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the <code class="highlighter-rouge">MOUNT</code> volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.</li>
+                </ul>
               </li>
               <li>
                 <p><code class="highlighter-rouge">size</code></p>
 
-                <p>TODO</p>
+                <p>The required minimum size of the volume. See reservation semantics between <code class="highlighter-rouge">ROOT</code> and <code class="highlighter-rouge">MOUNT</code> volume types above.</p>
               </li>
             </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">resource-set</code></p>
 
-            <p>TODO</p>
+            <p>Tasks may either be assigned independent resources via the <code class="highlighter-rouge">cpus</code>, <code class="highlighter-rouge">gpus</code>, <code class="highlighter-rouge">memory</code>, <code class="highlighter-rouge">ports</code>, and <code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code> fields, or they may be assigned to a common <code class="highlighter-rouge">resource-set</code> which was defined separately in <code class="highlighter-rouge">resource-sets</code> (see above). Not both.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">discovery</code></p>
 
-            <p>TODO</p>
+            <p>This may be used to define custom discovery information for the task. TODO(nickbp): This is a guess and needs more information.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">prefix</code></p>
 
-                <p>TODO</p>
+                <p>The custom name to be used for the discovery prefix. By default this is the pod name. TODO(nickbp): Is this right?</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">visibility</code></p>
 
-                <p>TODO</p>
+                <p>The default visibility for the discovery information. May be <code class="highlighter-rouge">FRAMEWORK</code>, <code class="highlighter-rouge">CLUSTER</code>, or <code class="highlighter-rouge">EXTERNAL</code>. TODO(nickbp): more info on each type. are they actually used anywhere?</p>
               </li>
             </ul>
           </li>
@@ -546,7 +604,7 @@
       <li>
         <p><code class="highlighter-rouge">user</code></p>
 
-        <p>TODO</p>
+        <p>The system user to run this pod as. The available users depend on the administrator’s cluster. If clusters are using DC/OS Security enabled, this may need to be set to <code class="highlighter-rouge">nobody</code>.</p>
       </li>
     </ul>
   </li>
