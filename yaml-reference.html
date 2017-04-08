@@ -319,10 +319,10 @@
             <p><code class="highlighter-rouge">goal</code></p>
 
             <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code> or <code class="highlighter-rouge">FINISHED</code> (TODO(nickbp): what about <code class="highlighter-rouge">NONE</code>?):</p>
-            <ul>
-              <li><code class="highlighter-rouge">RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
-              <li><code class="highlighter-rouge">FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
-            </ul>
+            <div class="noyaml"><ul>
+<li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
+<li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
+</ul></div>
           </li>
           <li>
             <p><code class="highlighter-rouge">cmd</code></p>
@@ -337,12 +337,12 @@
             <p>A listing of environment variables to be included in the <code class="highlighter-rouge">cmd</code> runtime. If you’re using config templates using <code class="highlighter-rouge">bootstrap</code>, this section must be populated with any relevant template values.</p>
 
             <p>For convenience, the following environment variables are automatically provided to all tasks:</p>
-            <ul>
-              <li><code class="highlighter-rouge">FRAMEWORK_NAME</code>: The name of the service.</li>
-              <li><code class="highlighter-rouge">TASK_NAME</code>: The name of the task, of the form <code class="highlighter-rouge">&lt;pod&gt;-&lt;#&gt;-&lt;task&gt;</code>. For example: <code class="highlighter-rouge">mypod-0-node</code>.</li>
-              <li><code class="highlighter-rouge">POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
-              <li><code class="highlighter-rouge">&lt;TASK_NAME&gt;=true</code>: The task name as the envvar name, with <code class="highlighter-rouge">true</code> as the value.</li>
-            </ul>
+            <div class="noyaml"><ul>
+<li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
+<li><code>TASK_NAME</code>: The name of the task, of the form <code>&lt;pod&gt;-&lt;#&gt;-&lt;task&gt;</code>. For example: <code>mypod-0-node</code>.</li>
+<li><code>POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
+<li><code>&lt;TASK_NAME&gt;=true</code>: The task name as the envvar name, with <code>true</code> as the value.</li>
+</ul></div>
           </li>
           <li>
             <p><code class="highlighter-rouge">configs</code></p>
@@ -381,15 +381,16 @@ root: {{ROOT_DIR}}
             </div>
 
             <p>And then the following settings would be manually added to the task’s <code class="highlighter-rouge">env</code>. These env vars meanwhile would be provided automatically by the SDK:</p>
-            <ul>
-              <li><code class="highlighter-rouge">TASK_NAME</code> and <code class="highlighter-rouge">FRAMEWORK_NAME</code> are included for free, as mentioned under <code class="highlighter-rouge">env</code> above.</li>
-              <li><code class="highlighter-rouge">PORT_HTTP</code> is the default advertised environment variable for a reserved port named <code class="highlighter-rouge">http</code>, as mentioned under <code class="highlighter-rouge">ports</code> below.</li>
-            </ul>
+            <div class="noyaml"><ul>
+<li><code>TASK_NAME</code> and <code>FRAMEWORK_NAME</code> are included for free, as mentioned under <code>env</code> above.</li>
+<li><code>PORT_HTTP</code> is the default advertised environment variable for a reserved port named <code>http</code>, as mentioned under <code>ports</code> below.</li>
+</ul></div>
 
-            <div class="highlighter-rouge"><pre class="highlight"><code>SSL_ENABLED: {{WEB_SSL_ENABLED}}
-CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-HTTP_ROOT: {{WEB_ROOT_DIR}}
+            <div class="highlighter-rouge"><pre class="highlight"><code>env:
+  SSL_ENABLED: {{WEB_SSL_ENABLED}}
+  CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+  CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+  HTTP_ROOT: {{WEB_ROOT_DIR}}
 </code></pre>
             </div>
 
@@ -564,10 +565,10 @@ HTTP_ROOT: {{WEB_ROOT_DIR}}
                 <p><code class="highlighter-rouge">type</code></p>
 
                 <p>Two types are currently supported: <code class="highlighter-rouge">ROOT</code> and <code class="highlighter-rouge">MOUNT</code>. Both behave the same in terms of persistence; the difference is mainly in how they perform and how they’re reserved:</p>
-                <ul>
-                  <li><code class="highlighter-rouge">ROOT</code> volumes are against the root filesystem of the host system. In terms of performance they will share IO with the other users of that filesystem. In terms of reservations, the requested size is exactly what’s obtained.</li>
-                  <li><code class="highlighter-rouge">MOUNT</code> volumes are separate partitions which the cluster administrator had mounted onto the host machine as <code class="highlighter-rouge">/dcos/volumeN</code>. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. <code class="highlighter-rouge">MOUNT</code> volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the <code class="highlighter-rouge">MOUNT</code> volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.</li>
-                </ul>
+                <div class="noyaml"><ul>
+<li><code>ROOT</code> volumes are against the root filesystem of the host system. In terms of performance they will share IO with the other users of that filesystem. In terms of reservations, the requested size is exactly what's obtained.</li>
+<li><code>MOUNT</code> volumes are separate partitions which the cluster administrator had mounted onto the host machine as <code>/dcos/volumeN</code>. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. <code>MOUNT</code> volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the <code>MOUNT</code> volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.</li>
+</ul></div>
               </li>
               <li>
                 <p><code class="highlighter-rouge">size</code></p>
