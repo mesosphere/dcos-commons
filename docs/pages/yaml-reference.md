@@ -112,8 +112,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     * `goal`
 
       The goal state of the task. Must be either `RUNNING` or `FINISHED` (TODO(nickbp): what about `NONE`?):
-      - `RUNNING`: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.
-      - `FINISHED`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.
+      <div class="noyaml"><ul>
+      <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
+      <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
+      </ul></div>
 
     * `cmd`
 
@@ -126,10 +128,12 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       A listing of environment variables to be included in the `cmd` runtime. If you're using config templates using `bootstrap`, this section must be populated with any relevant template values.
 
       For convenience, the following environment variables are automatically provided to all tasks:
-      - `FRAMEWORK_NAME`: The name of the service.
-      - `TASK_NAME`: The name of the task, of the form `<pod>-<#>-<task>`. For example: `mypod-0-node`.
-      - `POD_INSTANCE_INDEX`: The index of the pod instance, starting at 0 for the first instance.
-      - `<TASK_NAME>=true`: The task name as the envvar name, with `true` as the value.
+      <div class="noyaml"><ul>
+      <li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
+      <li><code>TASK_NAME</code>: The name of the task, of the form <code>&lt;pod>-&lt;#>-&lt;task></code>. For example: <code>mypod-0-node</code>.</li>
+      <li><code>POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
+      <li><code>&lt;TASK_NAME>=true</code>: The task name as the envvar name, with <code>true</code> as the value.</li>
+      </ul></div>
 
     * `configs`
 
@@ -167,14 +171,17 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       ```
 
       And then the following settings would be manually added to the task's `env`. These env vars meanwhile would be provided automatically by the SDK:
-      - `TASK_NAME` and `FRAMEWORK_NAME` are included for free, as mentioned under `env` above.
-      - `PORT_HTTP` is the default advertised environment variable for a reserved port named `http`, as mentioned under `ports` below.
+      <div class="noyaml"><ul>
+      <li><code>TASK_NAME</code> and <code>FRAMEWORK_NAME</code> are included for free, as mentioned under <code>env</code> above.</li>
+      <li><code>PORT_HTTP</code> is the default advertised environment variable for a reserved port named <code>http</code>, as mentioned under <code>ports</code> below.</li>
+      </ul></div>
 
       ```
-      SSL_ENABLED: {{WEB_SSL_ENABLED}}
-      CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-      CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-      HTTP_ROOT: {{WEB_ROOT_DIR}}
+      env:
+        SSL_ENABLED: {{WEB_SSL_ENABLED}}
+        CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+        CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+        HTTP_ROOT: {{WEB_ROOT_DIR}}
       ```
 
       * `template`
@@ -304,8 +311,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       * `type`
 
         Two types are currently supported: `ROOT` and `MOUNT`. Both behave the same in terms of persistence; the difference is mainly in how they perform and how they're reserved:
-        - `ROOT` volumes are against the root filesystem of the host system. In terms of performance they will share IO with the other users of that filesystem. In terms of reservations, the requested size is exactly what's obtained.
-        - `MOUNT` volumes are separate partitions which the cluster administrator had mounted onto the host machine as `/dcos/volumeN`. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. `MOUNT` volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the `MOUNT` volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.
+        <div class="noyaml"><ul>
+        <li><code>ROOT</code> volumes are against the root filesystem of the host system. In terms of performance they will share IO with the other users of that filesystem. In terms of reservations, the requested size is exactly what's obtained.</li>
+        <li><code>MOUNT</code> volumes are separate partitions which the cluster administrator had mounted onto the host machine as <code>/dcos/volumeN</code>. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. <code>MOUNT</code> volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the <code>MOUNT</code> volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.</li>
+        </ul></div>
 
       * `size`
 
