@@ -5,9 +5,7 @@
 # may be run locally by developers.
 
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
-set +e -x -v
-
-echo args: "$@"
+set +e
 
 PULLREQUEST="false"
 MERGE_FROM="master"
