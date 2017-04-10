@@ -1,0 +1,13 @@
+@import url('gh-basic.css');
+
+/* root list gets no margins, no border: */
+#content ul { margin-left: 0; padding-left: 0 }
+/* nested lists get a left border and some left margins: */
+#content li>ul { border-left: 2px dotted #BF97F0; margin-left: 1em; padding-left: 1em }
+/* styling for list elements: */
+#content li { list-style-type: none; margin: 0; padding: 0 }
+
+/* allow escaping above custom list behavior with custom <div class="noyaml"> */
+.noyaml ul { padding-left: 30px !important }
+.noyaml li>ul { border-left: none !important }
+.noyaml li { list-style-type: square !important }

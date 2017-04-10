@@ -1,0 +1,48 @@
+name: "data-store"
+pods:
+  meta-data:
+    count: 2
+    networks:
+      dcos:
+        host-ports: [4040]
+        container-ports: [8080]
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 512
+        ports:
+          http:
+            port: 8080
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
+        env:
+          TASK_NAME: "meta-data"
+          CONTAINER_PATH_SUFFIX: "-container-path"
+          SLEEP_DURATION: "1000"
+  meta-data-multimap:
+    count: 2
+    networks:
+      dcos:
+        host-ports: [4040, 4041]
+        container-ports: [8080, 8081]
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 512
+        ports:
+          http:
+            port: 8080
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
+        env:
+          TASK_NAME: "meta-data"
+          CONTAINER_PATH_SUFFIX: "-container-path"
+          SLEEP_DURATION: "1000"

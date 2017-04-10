@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.mesosphere.sdk.offer.Constants.EXECUTOR_URI_SCHEDENV;
+
 /**
  * Default implementation of {@link PodSpec}.
  */
@@ -73,8 +75,8 @@ public class DefaultPodSpec implements PodSpec {
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count,
-                builder.image, builder.networks, builder.rlimits,
-                builder.uris, builder.tasks, builder.placementRule);
+             builder.image, builder.networks, builder.rlimits,
+             builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
     }
 
@@ -111,7 +113,7 @@ public class DefaultPodSpec implements PodSpec {
     public Integer getCount() {
         return count;
     }
-    
+
     @Override
     public Optional<String> getImage() {
         return Optional.ofNullable(image);
@@ -202,7 +204,7 @@ public class DefaultPodSpec implements PodSpec {
             this.count = count;
             return this;
         }
-        
+
         /**
          * Sets the {@code image} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -214,7 +216,7 @@ public class DefaultPodSpec implements PodSpec {
             this.image = image;
             return this;
         }
-        
+
         /**
          * Sets the {@code networks} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -226,7 +228,7 @@ public class DefaultPodSpec implements PodSpec {
             this.networks = networks;
             return this;
         }
-        
+
         /**
          * Sets the {@code rlimits} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -257,6 +259,10 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder addUri(URI uri) {
+            if (this.uris == null) {
+                this.uris = new ArrayList<>();
+            }
+
             this.uris.add(uri);
             return this;
         }
@@ -302,6 +308,20 @@ public class DefaultPodSpec implements PodSpec {
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
+
+            // Inject the executor URI as one of the pods URIs. This ensures
+            // that the scheduler properly tracks changes to executors
+            // (reflected in changes to the executor URI)
+            String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
+            if (executorUri == null) {
+                throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
+            }
+
+            URI actualURI = URI.create(executorUri);
+            if (this.uris == null || !this.uris.contains(actualURI)) {
+                this.addUri(actualURI);
+            }
+
             DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
             return defaultPodSpec;
         }

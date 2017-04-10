@@ -3,7 +3,6 @@ from functools import wraps
 
 import shakedown
 
-
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 9
 WAIT_TIME_IN_SECONDS = 6 * 60
@@ -163,7 +162,3 @@ def get_document(index_name, index_type, doc_id):
 def curl_api(method, role="master"):
     vip = "http://{}.{}.l4lb.thisdcos.directory:9200".format(role, PACKAGE_NAME)
     return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
-
-
-def get_marathon_host():
-    return shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()

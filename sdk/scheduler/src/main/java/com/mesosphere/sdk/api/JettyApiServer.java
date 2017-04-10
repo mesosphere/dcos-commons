@@ -40,4 +40,8 @@ public class JettyApiServer {
     public void stop() throws Exception {
         server.stop();
     }
+
+    public boolean isStarted() {
+        return server.isStarted();
+    }
 }

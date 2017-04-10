@@ -199,7 +199,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
-            StringBuilder error = new StringBuilder();
+            StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
             error.append(serviceSpec.toJsonString());
@@ -226,21 +226,23 @@ public class DefaultServiceSpec implements ServiceSpec {
                 AndRule.class,
                 AnyMatcher.class,
                 AttributeRule.class,
+                DefaultResourceSpec.class,
+                DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
+                NamedVIPSpec.class,
                 NotRule.class,
                 OrRule.class,
                 PassthroughRule.class,
-                RegexMatcher.class,
-                TaskTypeRule.class,
-                TaskTypeLabelConverter.class,
-                DefaultResourceSpec.class,
-                DefaultVolumeSpec.class,
                 PortSpec.class,
                 PortsSpec.class,
-                NamedVIPSpec.class);
+                RegexMatcher.class,
+                RoundRobinByAttributeRule.class,
+                RoundRobinByHostnameRule.class,
+                TaskTypeLabelConverter.class,
+                TaskTypeRule.class);
 
         private final ObjectMapper objectMapper;
 
