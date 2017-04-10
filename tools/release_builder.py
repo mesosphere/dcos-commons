@@ -389,7 +389,7 @@ class UniverseReleaseBuilder(object):
             config_json = json.load(f)
             service_dict = config_json['properties']['service']
             service_dict['properties']['beta-optin'] = {
-                "description":"I have been invited to the Beta Program and accept the all terms of the Beta Agreement.",
+                "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
                 "type": "boolean",
                 "title": "Agree to Beta terms",
                 "default": ""
