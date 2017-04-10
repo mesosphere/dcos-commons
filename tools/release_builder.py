@@ -394,7 +394,7 @@ class UniverseReleaseBuilder(object):
                 "title": "Agree to Beta terms",
                 "default": ""
             }
-            service_dict['required'].append('beta-option')
+            service_dict['required'].append('beta-optin')
 
         with open(config_file_name, 'w') as f:
             json.dump(config_json, f, indent=4)
