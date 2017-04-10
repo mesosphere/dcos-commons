@@ -20,8 +20,8 @@ ext {
 }
 
 dependencies {
-    compile project(":scheduler")
-    compile project(":executor")
+    compile "mesosphere:scheduler:0.13.4"
+    compile "mesosphere:executor:0.13.4"
     testCompile project(":testing")
 }
 
