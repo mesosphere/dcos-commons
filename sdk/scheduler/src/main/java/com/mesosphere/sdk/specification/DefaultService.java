@@ -16,12 +16,10 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 
-import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +74,10 @@ public class DefaultService implements Service {
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+    }
 
+    @Override
+    public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
 
@@ -148,16 +149,10 @@ public class DefaultService implements Service {
     public void register() {
         DefaultScheduler defaultScheduler = schedulerBuilder.build();
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-
-        startApiServer(defaultScheduler, serviceSpec.getApiPort());
         registerAndRunFramework(
                 defaultScheduler,
                 getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
                 serviceSpec.getZookeeperConnection());
-    }
-
-    private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        startApiServer(defaultScheduler, apiPort, Collections.emptyList());
     }
 
     protected ServiceSpec getServiceSpec() {
@@ -176,37 +171,6 @@ public class DefaultService implements Service {
             }
         }
         return false;
-    }
-
-    protected void startApiServer(
-            DefaultScheduler defaultScheduler,
-            int apiPort,
-            Collection<Object> additionalResources) {
-        Collection<Object> resourceList = new ArrayQueue<>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = null;
-                try {
-                    LOGGER.info("Starting API server.");
-                    resourceList.addAll(defaultScheduler.getResources());
-                    resourceList.addAll(additionalResources);
-                    apiServer = new JettyApiServer(apiPort, resourceList);
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
     }
 
     private static void registerAndRunFramework(
