@@ -8,8 +8,8 @@ import time
 
 
 # Methods to modify the envvar settings of a mesos master and restart
-# the master process after they are modified
-
+# the master process after they are modified. Ideally, we would just get clusters
+# that are preconfigured like this. But, this allows us to modify an existent cluster.
 logger = logging.getLogger(__name__)
 
 
@@ -82,20 +82,29 @@ def write_envvars(envvars, commented_envvars):
 def restart_master():
     logger.info("Restarting master process...")
 
-    success, out = shakedown.run_command_on_master('sudo systemctl condrestart dcos-mesos-master')
+    success, out = shakedown.run_command_on_master('sudo systemctl restart dcos-mesos-master && while true; do curl leader.mesos:5050; if [ $? == 0 ]; then break; fi; done')
     if success is not True:
-        print("wtf...")
-        raise RuntimeError("Unable to restart master")
+        raise RuntimeError("Unable to restart master: {}".format(out))
 
-    sleeptime = 60 # seconds
-    msg = "Sleeping %s seconds to ensure cluster is happy again before proceeding"
-    logger.info(msg, sleeptime)
-    time.sleep(sleeptime)
+    logger.info(out)
 
 
 def set_local_infinity_defaults():
-    # Note: This is a hack for now. Talk to bwood about it.
-    set_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT', '100/20mins')
+    remove_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT')
+    remove_master_envvar('MESOS_MAX_SLAVE_PING_TIMEOUTS')
+    modified_envvars = {
+        # During our testing, we remove agents. This requires us to 
+        # increase the rate at which we can remove agents. The new value
+        # of the rate limit indicates we can remove 100 agents every 20 minutes.
+        'MESOS_AGENT_REMOVAL_RATE_LIMIT': '100/20mins',
+        # During our testing, we remove agents. This requires us to lower the number of checks
+        # that are done before removal when an agent is not responding so that removal
+        # is quicker. The ping timeout (MESOS_AGENT_PING_TIMEOUT) is 15 seconds, and
+        # thus we will wait 1 minute for agent death.
+        'MESOS_MAX_AGENT_PING_TIMEOUTS': '4'
+    }
+    set_master_envvars(modified_envvars)
+
 
 if __name__ == "__main__":
     set_local_infinity_defaults()
