@@ -45,7 +45,7 @@ merge_master() {
     if ! $command; then
         return 1 # fail
     fi
-    command="git config --global user.name Infinity-tools-fake-user"
+    command="git config user.name Infinity-tools-fake-user"
     echo $command
     if ! $command; then
         return 1 # fail
