@@ -6,6 +6,7 @@ import sdk_install as install
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_marathon as marathon
+import sdk_spin as spin
 import time
 
 from tests.config import (
@@ -134,6 +135,7 @@ def ensure_multiple_per_agent(hello, world):
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.placement
 def test_change_constraint_increase_count():
 
     install.uninstall(PACKAGE_NAME)
@@ -164,6 +166,7 @@ def test_change_constraint_increase_count():
 
     install.install(PACKAGE_NAME, hello_count - 1, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     tasks.check_running(PACKAGE_NAME, hello_count - 1)
     ensure_multiple_per_agent(hello=1, world=0)
@@ -178,6 +181,7 @@ def test_change_constraint_increase_count():
     config['env']['HELLO_PLACEMENT'] = 'hostname:CLUSTER:{}'.format(some_agent)
     marathon.update_app(PACKAGE_NAME, config)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     tasks.check_running(PACKAGE_NAME, hello_count)
 
@@ -199,6 +203,7 @@ def test_change_constraint_increase_count():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.placement
 def test_change_constraint_no_move():
 
     install.uninstall(PACKAGE_NAME)
@@ -221,6 +226,7 @@ def test_change_constraint_no_move():
 
     install.install(PACKAGE_NAME, hello_count, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     tasks.check_running(PACKAGE_NAME, hello_count)
     ensure_multiple_per_agent(hello=hello_count, world=0)
@@ -231,6 +237,8 @@ def test_change_constraint_no_move():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     marathon.update_app(PACKAGE_NAME, config)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
+
 
     # tasks should not restart and should not change agent
     ensure_multiple_per_agent(hello=hello_count, world=0)
@@ -252,6 +260,7 @@ def test_change_constraint_no_move():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.placement1
 def test_change_constraint_replace():
 
     install.uninstall(PACKAGE_NAME)
@@ -274,6 +283,7 @@ def test_change_constraint_replace():
        
     install.install(PACKAGE_NAME, hello_count, additional_options=options)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     tasks.check_running(PACKAGE_NAME, hello_count)
     ensure_multiple_per_agent(hello=hello_count, world=0)
@@ -285,6 +295,7 @@ def test_change_constraint_replace():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     marathon.update_app(PACKAGE_NAME, config)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     for pod_index in range(hello_count):
         cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
@@ -303,10 +314,11 @@ def test_change_constraint_replace():
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     marathon.update_app(PACKAGE_NAME, config)
     plan.get_deployment_plan(PACKAGE_NAME)
+    service_plan_wait()
 
     # tasks should not restart and should not change agent
     ensure_multiple_per_agent(hello=1, world=0)
-    tasks.check_running(PACKAGE_NAME, hello_count+1)
+    tasks.check_running(PACKAGE_NAME, hello_count)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
 
     for pod_index in range(hello_count):
@@ -318,5 +330,16 @@ def test_change_constraint_replace():
     ensure_multiple_per_agent(hello=1, world=0)
     tasks.check_running(PACKAGE_NAME, hello_count)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+
+
+# From Kafka tests
+def service_plan_wait():
+    def fun():
+        try:
+            return cmd.run_cli('hello-world plan show deploy')
+        except:
+            return False
+
+    return spin.time_wait_return(fun)
 
 
