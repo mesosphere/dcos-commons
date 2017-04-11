@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Env Vars
 #   GITHUB_TOKEN: github auth token

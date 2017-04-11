@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Saves the stub-universe.properties file by uploading it to S3.
 #
