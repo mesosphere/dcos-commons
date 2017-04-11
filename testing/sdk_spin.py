@@ -26,7 +26,7 @@ def time_wait_return(predicate, timeout_seconds=DEFAULT_TIMEOUT, ignore_exceptio
         except Exception as e:
             if ignore_exceptions:
                 tb = traceback.format_exc()
-                sdk_utils.test_output(tb)
+                sdk_utils.out(tb)
             else:
                 raise
     time_wait_noisy(
@@ -43,12 +43,12 @@ def time_wait_noisy(predicate, timeout_seconds=DEFAULT_TIMEOUT, ignore_exception
         except Exception as e:
             if ignore_exceptions:
                 tb = traceback.format_exc()
-                sdk_utils.test_output(tb)
+                sdk_utils.out(tb)
                 return False
             else:
                 raise
         if not result:
-            sdk_utils.test_output('[{}/{}] Waiting...'.format(
+            sdk_utils.out('[{}/{}] Waiting...'.format(
                 pretty_time(time.time() - start),
                 pretty_time(timeout_seconds)))
         return result

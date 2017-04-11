@@ -29,7 +29,7 @@ def test_deploy():
     wait_time = 30
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
     # marathon.json.mustache. verify that tasks are failing for 30s before continuing.
-    sdk_utils.test_output('Checking that tasks are failing to launch for at least {}s'.format(wait_time))
+    sdk_utils.out('Checking that tasks are failing to launch for at least {}s'.format(wait_time))
 
     # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
     consecutive_task_running = 0
@@ -37,7 +37,7 @@ def test_deploy():
         nonlocal consecutive_task_running
         svc_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
         states = [t['state'] for t in svc_tasks]
-        sdk_utils.test_output('Task states: {}'.format(states))
+        sdk_utils.out('Task states: {}'.format(states))
         if 'TASK_RUNNING' in states:
             consecutive_task_running += 1
             assert consecutive_task_running <= 3
@@ -48,7 +48,7 @@ def test_deploy():
     try:
         spin.time_wait_noisy(lambda: fn(), timeout_seconds=wait_time)
     except shakedown.TimeoutExpired:
-        sdk_utils.test_output('Timeout reached as expected')
+        sdk_utils.out('Timeout reached as expected')
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
     config = marathon.get_config(PACKAGE_NAME)

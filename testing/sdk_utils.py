@@ -3,7 +3,7 @@ import sys
 import shakedown
 
 
-def test_output(msg):
+def out(msg):
     '''Emit an informational message on test progress during test runs'''
     print(msg, file=sys.stderr)
 

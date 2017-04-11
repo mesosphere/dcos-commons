@@ -65,7 +65,7 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    sdk_utils.test_output('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
+    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 

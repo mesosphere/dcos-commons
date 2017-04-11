@@ -49,7 +49,7 @@ def test_install():
 def test_bump_hello_cpus():
     check_running()
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    sdk_utils.test_output('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus()
 
@@ -68,7 +68,7 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     check_running()
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    sdk_utils.test_output('world ids: ' + str(world_ids))
+    sdk_utils.out('world ids: ' + str(world_ids))
 
     updated_cpus = bump_world_cpus()
 
@@ -88,7 +88,7 @@ def test_bump_hello_nodes():
     check_running()
 
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    sdk_utils.test_output('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
     marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
 
