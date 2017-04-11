@@ -889,7 +889,7 @@ Here's an example of running the tests for the `helloworld` framework:
 ```bash
 $ virtualenv -p python3 venv
 $ source venv/bin/activate
-$ pip install -r testing/requirements.txt
+$ pip install -r tools/requirements.txt
 $ py.test frameworks/helloworld/
 ```
 
