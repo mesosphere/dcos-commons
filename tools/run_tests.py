@@ -32,6 +32,9 @@ class CITester(object):
         if not self._sandbox_path:
             self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
+        # ask for unbuffered stdout, since test output randomly uses stdout
+        # vs stderr
+        custom_env['PYTHONUNBUFFERED'] = "yes"
         # must be custom for CLI to behave properly:
         custom_env['HOME'] = self._sandbox_path
         # prepend HOME (where CLI binary is downloaded) to PATH:
