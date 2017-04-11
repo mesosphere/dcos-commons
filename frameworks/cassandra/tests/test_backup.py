@@ -36,11 +36,6 @@ def setup_module(module):
         cmd.run_cli('job add {}'.format(
             os.path.join(jobs_folder, '{}.json'.format(job))
         ))
-#        spin.time_wait_noisy(lambda: (
-#            cmd.run_cli('job add {}'.format(
-#                os.path.join(jobs_folder, '{}.json'.format(job))
-#            ))
-#        ))
 
 
 def setup_function(function):
@@ -79,13 +74,13 @@ def test_backup_and_restore_flow():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    # Write data to cassandra on service health, using a job
+    # Write data to Cassandra with a metronome job
     launch_and_verify_job(WRITE_DATA_JOB)
 
-    # Verify data written
+    # Verify that the data was written
     launch_and_verify_job(VERIFY_DATA_JOB)
 
-    # Run backup plan using CI AWS account
+    # Run backup plan, uploading snapshots and schema to S3 
     plan.start_plan(PACKAGE_NAME, 'backup-aws', parameters=backup_parameters)
     spin.time_wait_noisy(
         lambda: (
@@ -94,13 +89,13 @@ def test_backup_and_restore_flow():
         )
     )
 
-    # Truncate tables, delete keyspace, using a job
+    # Delete all keyspaces and tables with a metronome job
     launch_and_verify_job(DELETE_DATA_JOB)
 
-    # Verify data destroyed
+    # Verify that the keyspaces and tables were deleted
     launch_and_verify_job(VERIFY_DELETION_JOB)
 
-    # Run restore job
+    # Run restore plan, retrieving snapshots and schema from S3
     plan.start_plan(PACKAGE_NAME, 'restore-aws', parameters=backup_parameters)
     spin.time_wait_noisy(
         lambda: (
@@ -109,5 +104,5 @@ def test_backup_and_restore_flow():
         )
     )
 
-    # Run same data written verification to verify restore successful
+    # Verify that the data we wrote and then deleted has been restored
     launch_and_verify_job(VERIFY_DATA_JOB, expected_successes=2)
