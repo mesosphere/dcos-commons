@@ -511,7 +511,8 @@ def start_test_background(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown in background for %s", framework.name)
-    logger.debug("stub_universe:{framework.stub_universe_url} cluster_url:{cluster.url} authtoken:{cluster.auth_token}".format(locals()))
+    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_url, cluster.url, cluster.auth_token))
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
@@ -543,7 +544,8 @@ def run_test(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown for %s", framework.name)
-    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s" % (framework.stub_universe_url, cluster.url, cluster.auth_token))
+    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_url, cluster.url, cluster.auth_token))
     custom_env = os.environ.copy()
     custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
