@@ -37,16 +37,15 @@ _notify_github() {
 }
 
 merge_master() {
-    echo "attmpting to merge changes from master"
-    # git sucks and won't let you update files without knowing a name
+    echo "attempting to merge changes from master"
+    # git won't let you update files without knowing a name
     echo "Creating fake user."
-    command="git config --global user.email pullrequestbot@mesospherebot.com"
+    command="git config user.email pullrequestbot@mesospherebot.com"
     echo $command
     if ! $command; then
         return 1 # fail
     fi
-    command="git config --global user.name Infinity-tools-fake-user"
-    FAKE_EMAIL="pullrequestbot@mesospherebot.com"
+    command="git config user.name Infinity-tools-fake-user"
     if ! $command; then
         return 1 # fail
     fi
