@@ -360,16 +360,17 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Invokes {@link #sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])} with a null
-     * {@code data} value.
+     * Invokes {@link #sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean)} with null
+     * {@code labels} and {@code data} values.
      */
     public static void sendStatus(ExecutorDriver driver,
                                   TaskState state,
                                   TaskID taskID,
                                   SlaveID slaveID,
                                   ExecutorID executorID,
-                                  String message) {
-        sendStatus(driver, state, taskID, slaveID, executorID, message, null, null);
+                                  String message,
+                                  boolean isHealthy) {
+        sendStatus(driver, state, taskID, slaveID, executorID, message, isHealthy, null, null);
     }
 
     /**
@@ -381,6 +382,7 @@ public class CommonTaskUtils {
                                   SlaveID slaveID,
                                   ExecutorID executorID,
                                   String message,
+                                  boolean isHealthy,
                                   Labels labels,
                                   byte[] data) {
         final TaskStatus.Builder builder = TaskStatus.newBuilder();
@@ -391,6 +393,7 @@ public class CommonTaskUtils {
         builder.setSlaveId(slaveID);
         builder.setExecutorId(executorID);
         builder.setSource(TaskStatus.Source.SOURCE_EXECUTOR);
+        builder.setHealthy(isHealthy);
 
         if (data != null) {
             builder.setData(ByteString.copyFrom(data));
