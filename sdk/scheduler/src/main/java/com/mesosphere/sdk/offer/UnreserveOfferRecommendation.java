@@ -18,6 +18,7 @@ public class UnreserveOfferRecommendation implements OfferRecommendation {
         this.offer = offer;
         Resource.Builder resourceBuilder = resource.toBuilder();
 
+        // If non-root disk resource, we want to clear ALL fields except for the field indicating the disk source.
         if (resource.hasDisk() && resource.getDisk().hasSource()) {
             resource = resourceBuilder.setDisk(
                     Resource.DiskInfo.newBuilder()
