@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Log in to a cluster using default credentials.
 #
@@ -8,6 +8,7 @@
 # Configuration:
 # - DCOS_TOKEN: Custom core.dcos_acs_token to use, instead of default credentials
 
+import http.client
 import json
 import logging
 import os
@@ -15,14 +16,8 @@ import pprint
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 
-try:
-    from http.client import HTTPConnection, HTTPSConnection, ssl
-    from urllib.parse import urlparse
-except ImportError:
-    # Python 2
-    from httplib import HTTPConnection, HTTPSConnection, ssl
-    from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -55,12 +50,13 @@ class DCOSLogin(object):
             request_json_payload=None,
             log_error=True,
             debug=False):
-        parsed_url = urlparse(self._dcos_url)
+        parsed_url = urllib.parse.urlparse(self._dcos_url)
         if parsed_url.scheme == 'https':
             # EE clusters are often self-signed, disable validation:
-            conn = HTTPSConnection(parsed_url.hostname, context=ssl._create_unverified_context())
+            conn = http.client.HTTPSConnection(parsed_url.hostname,
+                    context=http.client.ssl._create_unverified_context())
         elif parsed_url.scheme == 'http':
-            conn = HTTPConnection(parsed_url.hostname)
+            conn = http.client.HTTPConnection(parsed_url.hostname)
         else:
             raise Exception('Unsupported protocol: {} (from url={})'.format(
                 parsed_url.scheme, self._dcos_url))

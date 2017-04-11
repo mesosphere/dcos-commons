@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import base64
 import difflib
+import http.client
 import json
 import logging
 import os
@@ -11,17 +12,9 @@ import re
 import shutil
 import sys
 import tempfile
+import urllib.request
 import zipfile
 
-try:
-    from http.client import HTTPSConnection
-    from urllib.request import URLopener
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
-    from urllib import URLopener
-    from urllib2 import urlopen
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -79,7 +72,7 @@ class UniverseReleaseBuilder(object):
     def _download_unpack_stub_universe(self, scratchdir):
         '''Returns the path to the directory in the stub universe.'''
         local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
-        result = urlopen(self._stub_universe_url)
+        result = urllib.request.urlopen(self._stub_universe_url)
         dlfile = open(local_zip_path, 'wb')
         dlfile.write(result.read())
         dlfile.flush()
@@ -203,7 +196,7 @@ class UniverseReleaseBuilder(object):
             else:
                 # download the artifact (http url referenced in package)
                 logger.info('{} Downloading {} to {}'.format(progress, src_url, local_path))
-                URLopener().retrieve(src_url, local_path)
+                urllib.request.URLopener().retrieve(src_url, local_path)
                 # re-upload the artifact (prod s3, via awscli)
                 logger.info('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
                 ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
@@ -334,7 +327,7 @@ class UniverseReleaseBuilder(object):
             'head': branch,
             'base': 'version-3.x',
             'body': open(commitmsg_path).read()}
-        conn = HTTPSConnection('api.github.com')
+        conn = http.client.HTTPSConnection('api.github.com')
         conn.set_debuglevel(999)
         conn.request(
             'POST',

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import json
 import logging
@@ -9,14 +9,7 @@ import ssl
 import sys
 import tempfile
 import time
-
-try:
-    from urllib.request import URLopener
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from urllib import URLopener
-    from urllib import urlopen
+import urllib.request
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +63,7 @@ def get_cluster_version(dcos_url):
             logger.error("*VERY* old python.  Very weak/unsafe encryption ahoy.")
             noverify_context =  ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
-    response = urlopen(version_url, context=noverify_context)
+    response = urllib.request.urlopen(version_url, context=noverify_context)
     encoding = 'utf-8' # default
     try:
         #python3
@@ -130,7 +123,7 @@ def download_cli(dcos_url, write_dir):
                                                                    output_filepath,
                                                                    attempt))
             try:
-                URLopener().retrieve(cli_url, temp_target)
+                urllib.request.URLopener().retrieve(cli_url, temp_target)
                 break
             except Exception as e:
                 logger.info("Attempt {} failed: {}".format(attempt, e))
