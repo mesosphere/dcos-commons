@@ -13,7 +13,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
       - {{BOOTSTRAP_URI}}
-      - {{AWSCLI_URI}}
+      - {{S3CLI_URI}}
     user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
@@ -84,7 +84,7 @@ pods:
         resource-set: sidecar-resources
       backup-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh --cqlversion="3.4.0" -e "DESC SCHEMA" node-0-server.{{SERVICE_NAME}}.mesos > container-path/schema.cql
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos" > container-path/schema.cql
         resource-set: sidecar-resources
       snapshot:
         goal: FINISHED
