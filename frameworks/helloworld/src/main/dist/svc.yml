@@ -1,7 +1,11 @@
 name: hello-world
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   hello:
-    count: 3
+    count: {{HELLO_COUNT}}
+    placement: {{HELLO_PLACEMENT}}
     tasks:
       server:
         goal: RUNNING
@@ -10,7 +14,42 @@ pods:
         memory: {{HELLO_MEM}}
         volume:
           path: hello-container-path
-          type: MOUNT
-          size: 10
+          type: ROOT
+          size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: stat hello-container-path/output
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+  world:
+    count: {{WORLD_COUNT}}
+    placement: {{WORLD_PLACEMENT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: >
+               echo world1 >> world-container-path1/output &&
+               echo world2 >> world-container-path2/output &&
+               sleep $SLEEP_DURATION
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        volumes:
+          vol1:
+            path: world-container-path1
+            type: ROOT
+            size: {{HELLO_DISK}}
+          vol2:
+            path: world-container-path2
+            type: ROOT
+            size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        readiness-check:
+          cmd: BYTES="$(wc -c world-container-path2/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
+          interval: 5
+          delay: 0
+          timeout: 10
