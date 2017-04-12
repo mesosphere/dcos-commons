@@ -17,8 +17,8 @@ from tests.config import (
 num_private_agents = len(shakedown.get_private_agents())
 
 
-# def teardown_module(module):
-#     install.uninstall(PACKAGE_NAME)
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -232,7 +232,6 @@ def get_task_host(task_name):
     raise Exception("offer_hostname label is not present!")
 
 
-# From Kafka
 def service_plan_wait():
     def fun():
         try:
