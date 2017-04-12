@@ -13,15 +13,6 @@ import sdk_tasks as tasks
 import sdk_utils as utils
 
 
-WRITE_DATA_JOB = 'write-data'
-VERIFY_DATA_JOB = 'verify-data'
-DELETE_DATA_JOB = 'delete-data'
-VERIFY_DELETION_JOB = 'verify-deletion'
-TEST_JOBS = (
-    WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB
-)
-
-
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
@@ -29,13 +20,7 @@ def setup_module(module):
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
 
-    jobs_folder = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'jobs'
-    )
-    for job in TEST_JOBS:
-        cmd.run_cli('job add {}'.format(
-            os.path.join(jobs_folder, '{}.json'.format(job))
-        ))
+    install_cassandra_jobs()
 
 
 def setup_function(function):
@@ -45,21 +30,7 @@ def setup_function(function):
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
-    for job in TEST_JOBS:
-        cmd.run_cli('job remove {}'.format(qualified_job_name(job)))
-
-
-def qualified_job_name(job_name):
-    return 'test.cassandra.{}'.format(job_name)
-
-
-def launch_and_verify_job(job_name, expected_successes=1):
-    cmd.run_cli('job run {}'.format(qualified_job_name(job_name)))
-
-    spin.time_wait_noisy(lambda: (
-        'Successful runs: {}'.format(expected_successes) in
-        cmd.run_cli('job history {}'.format(qualified_job_name(job_name)))
-    ))
+    remove_cassandra_jobs()
 
 
 @pytest.mark.sanity
