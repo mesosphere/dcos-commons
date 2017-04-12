@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Retrieves package version from a cluster using the CLI (must be configured/logged in),
 # then determines what SHA that package has in the provided repo (must be locally checked out)

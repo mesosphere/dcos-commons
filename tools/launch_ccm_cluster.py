@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Launches a CCM cluster
 #
@@ -14,6 +14,7 @@
 #
 # Configuration: Mostly through env vars. See README.md.
 
+import http.client
 import json
 import logging
 import os
@@ -28,11 +29,6 @@ import configure_test_cluster
 import dcos_login
 import github_update
 
-try:
-    from http.client import HTTPSConnection
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -110,7 +106,7 @@ class CCMLauncher(object):
             if request_json_payload:
                 logger.info('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
             return None
-        conn = HTTPSConnection(self._CCM_HOST)
+        conn = http.client.HTTPSConnection(self._CCM_HOST)
         if debug:
             conn.set_debuglevel(999)
 

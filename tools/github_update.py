@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Env Vars
 #   GITHUB_TOKEN: github auth token
@@ -9,6 +9,7 @@
 
 import base64
 import datetime
+import http.client
 import json
 import logging
 import os
@@ -23,12 +24,6 @@ import traceback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-
-try:
-    from http.client import HTTPSConnection
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
 
 # reserved contexts which may not be modified by this script
 BLACKLISTED_CONTEXT_LABELS = ['velocity'] # not set by us, do not update
@@ -133,7 +128,7 @@ class GithubAPI(object):
             'Content-Type': 'application/json',
             'Authorization': 'Basic {}'.format(encoded_tok)}
 
-        conn = HTTPSConnection('api.github.com')
+        conn = http.client.HTTPSConnection('api.github.com')
         if self._debug_requests:
             conn.set_debuglevel(999)
         conn.request(method, path, body=body, headers=headers)

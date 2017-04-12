@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Deprecated. Please call publish_aws.py with the same arguments.
 
