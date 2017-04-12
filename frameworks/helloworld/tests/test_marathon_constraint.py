@@ -6,7 +6,9 @@ import sdk_install as install
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_marathon as marathon
+import sdk_spin as spin
 import time
+import json
 
 from tests.config import (
     PACKAGE_NAME
@@ -15,8 +17,8 @@ from tests.config import (
 num_private_agents = len(shakedown.get_private_agents())
 
 
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+# def teardown_module(module):
+#     install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -199,139 +201,155 @@ def test_change_constraint_increase_count():
     ensure_multiple_per_agent(hello=hello_count, world=0)
 
 
+@pytest.mark.ben
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_change_constraint_no_move():
-
+def test_updated_placement_constraints_no_task_change():
+    # Start the service with one placement constraint.
+    # Then, restart the service with a disjoint placement constraint.
+    # Verify that no tasks are moved/restarted/replaced by this.
     install.uninstall(PACKAGE_NAME)
 
-    some_agent = shakedown.get_private_agents().pop()
-    hello_count = 3 if num_private_agents > 3 else  num_private_agents
-
+    agents = shakedown.get_private_agents()
+    some_agent = agents[0]
+    other_agent = agents[1]
+    print("agents", some_agent, other_agent)
+    assert some_agent != other_agent
     options = {
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": hello_count,
-            "placement": 'hostname:CLUSTER:{}'.format(some_agent)
+            "count": 1,
+            # First, we stick the pod to some_agent
+            "placement": 'hostname:LIKE:{}'.format(some_agent)
         },
         "world": {
             "count": 0
         }
     }
-
-    install.install(PACKAGE_NAME, hello_count, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
-    service_plan_wait()
-
-    tasks.check_running(PACKAGE_NAME, hello_count)
-    ensure_multiple_per_agent(hello=hello_count, world=0)
-
-    # 1) Change placement rule
-    config = marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_PLACEMENT'] = 'hostname:UNIQUE'
+    install.install(PACKAGE_NAME, 1, additional_options=options)
+    tasks.check_running(PACKAGE_NAME, 1)
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+
+    # Now, stick it to other_agent and make sure it doesn't move
+    # the existent task.
+    config = marathon.get_config(PACKAGE_NAME)
+    config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
     marathon.update_app(PACKAGE_NAME, config)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    # Wait for the scheduler to be up before advancing.
     service_plan_wait()
 
-
-    # tasks should not restart and should not change agent
-    ensure_multiple_per_agent(hello=hello_count, world=0)
-    tasks.check_running(PACKAGE_NAME, hello_count)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
 
-    # 2) Restart all nodes
-
-    for pod_index in range(hello_count):
-            cmd.run_cli('hello-world pods restart hello-{}'.format(pod_index))
-            # wait a little so tasks can be restarted
-            time.sleep(30)
-            tasks.check_running(PACKAGE_NAME, hello_count)
-
-    # tasks should not change agent
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
-    ensure_multiple_per_agent(hello=hello_count, world=0)
+    assert get_task_host('hello-0-server') == some_agent
 
 
+@pytest.mark.ben
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_change_constraint_replace():
-
+def test_updated_placement_constraints_restarted_tasks_dont_move():
+    # Start the service with one placement constraint.
+    # Then, restart the service with a disjoint placement constraint.
+    # Verify that no tasks are moved/restarted/replaced by this.
     install.uninstall(PACKAGE_NAME)
 
-    some_agent = shakedown.get_private_agents().pop()
-    hello_count = 3 if num_private_agents > 3 else  num_private_agents
-
+    agents = shakedown.get_private_agents()
+    some_agent = agents[0]
+    other_agent = agents[1]
+    print("agents", some_agent, other_agent)
+    assert some_agent != other_agent
     options = {
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": hello_count,
-            "placement": 'hostname:CLUSTER:{}'.format(some_agent)
+            "count": 1,
+            # First, we stick the pod to some_agent
+            "placement": 'hostname:LIKE:{}'.format(some_agent)
         },
         "world": {
             "count": 0
         }
     }
-       
-    install.install(PACKAGE_NAME, hello_count, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
-    service_plan_wait()
+    install.install(PACKAGE_NAME, 1, additional_options=options)
+    tasks.check_running(PACKAGE_NAME, 1)
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
 
-    tasks.check_running(PACKAGE_NAME, hello_count)
-    ensure_multiple_per_agent(hello=hello_count, world=0)
-
-    # 1) Replace all tasks
-
+    # Now, stick it to other_agent
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_PLACEMENT'] = 'hostname:UNIQUE'
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
     marathon.update_app(PACKAGE_NAME, config)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    # Wait for the scheduler to be up before advancing.
     service_plan_wait()
 
-    for pod_index in range(hello_count):
-        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
-        # wait a little so tasks can be replaced
-        time.sleep(30)
-        # wait till replace completes
-        tasks.check_running(PACKAGE_NAME, hello_count)
-
-    # tasks restarted and changed nodes
+    # Restart the task, and verify it doesn't move hosts
+    cmd.run_cli('hello-world pods restart hello-0')
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
-    ensure_multiple_per_agent(hello=1, world=0)
 
-    # 2) Invalid placement
+    assert get_task_host('hello-0-server') == some_agent
 
-    config['env']['HELLO_PLACEMENT'] = 'hostname:CLUSTER:dontexist'
+
+@pytest.mark.ben
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_updated_placement_constraints_replaced_tasks_do_move():
+    # Start the service with one placement constraint.
+    # Then, restart the service with a disjoint placement constraint.
+    # Verify that no tasks are moved/restarted/replaced by this.
+    install.uninstall(PACKAGE_NAME)
+
+    agents = shakedown.get_private_agents()
+    some_agent = agents[0]
+    other_agent = agents[1]
+    print("agents", some_agent, other_agent)
+    assert some_agent != other_agent
+    options = {
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
+        },
+        "hello": {
+            "count": 1,
+            # First, we stick the pod to some_agent
+            "placement": 'hostname:LIKE:{}'.format(some_agent)
+        },
+        "world": {
+            "count": 0
+        }
+    }
+    install.install(PACKAGE_NAME, 1, additional_options=options)
+    tasks.check_running(PACKAGE_NAME, 1)
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+
+    # Now, stick it to other_agent
+    config = marathon.get_config(PACKAGE_NAME)
+    config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
     marathon.update_app(PACKAGE_NAME, config)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    # Wait for the scheduler to be up before advancing.
     service_plan_wait()
 
-    # tasks should not restart and should not change agent
-    ensure_multiple_per_agent(hello=1, world=0)
-    tasks.check_running(PACKAGE_NAME, hello_count+1)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+    # Replace the task, and verify it moves hosts
+    cmd.run_cli('hello-world pods replace hello-0')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
 
-    for pod_index in range(hello_count):
-        cmd.run_cli('hello-world pods restart hello-{}'.format(pod_index))
-        # wait a little so tasks can be restarted
-        time.sleep(30)        
-        tasks.check_running(PACKAGE_NAME, hello_count)
+    assert get_task_host('hello-0-server') == other_agent
 
-    ensure_multiple_per_agent(hello=1, world=0)
-    tasks.check_running(PACKAGE_NAME, hello_count)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+
+def get_task_host(task_name):
+    out = cmd.run_cli('task {} --json'.format(task_name))
+    
+    for label in json.loads(out)[0]['labels']:
+        if label['key'] == 'offer_hostname':
+            return label['value']
+
+    raise Exception("offer_hostname label is not present!")
+
 
 # From Kafka
 def service_plan_wait():
     def fun():
         try:
-            return cmd.run_cli('plan show deploy'))
+            return cmd.run_cli('hello-world plan show deploy')
         except:
             return False
 
