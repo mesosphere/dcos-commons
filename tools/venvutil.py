@@ -5,7 +5,7 @@ import os
 import os.path
 import subprocess
 import sys
-# requires python3.3 or later
+import tempfile
 import venv
 
 logger = logging.getLogger(__name__)
@@ -88,3 +88,28 @@ def run_py(path, func, *args, **kwargs):
     # theoretically save and restore is possible, but probably not a good idea
     raise NotImplementedError
 
+def create_default_requirementsfile(filename):
+    with open(filename, 'w') as reqfile:
+        reqfile.write('''
+requests==2.10.0
+
+-e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+''')
+
+def create_dcoscommons_venv(path):
+    create_venv(path)
+    req_filename = os.path.join(path, 'requirements.txt')
+    create_default_requirementsfile(req_filename)
+    pip_install(path, req_filename)
+
+
+
+if __name__ == "__main__":
+    # only creating default venv so far
+    if len(sys.argv) < 3:
+        sys.exit("Too few arguments\nusage: venvutil.py create <dir>")
+    if sys.argv[1] != "create":
+        sys.exit("Unknown command {}\nusage: venvutil.py create <dir>".format(sys.argv))
+    venv_tgt_dir = sys.argv[2]
+    os.makedirs(venv_tgt_dir)
+    create_dcoscommons_venv(venv_tgt_dir)
