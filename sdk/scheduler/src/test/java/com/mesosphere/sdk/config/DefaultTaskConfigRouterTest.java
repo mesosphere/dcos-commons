@@ -1,10 +1,14 @@
 package com.mesosphere.sdk.config;
 
 import com.google.common.collect.ImmutableMap;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,10 +24,12 @@ import static org.mockito.Mockito.when;
  * Tests for {@link DefaultTaskConfigRouter}.
  */
 public class DefaultTaskConfigRouterTest {
+    @ClassRule public static final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
     private static TaskSpec mockTaskSpec = mock(TaskSpec.class);
     private static List<TaskSpec> taskSpecs = Arrays.asList(mockTaskSpec);
 
     static {
+        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
         when(mockTaskSpec.getName()).thenReturn("mockTask");
     }
 

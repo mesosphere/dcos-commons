@@ -1,7 +1,7 @@
 ---
 post_title: Install and Customize
 menu_order: 10
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -14,6 +14,12 @@ $ dcos package install elastic
 ```
 
 This command creates a new Elasticsearch cluster with the default name `elastic`. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires customizing the `name` at install time for each additional instance.
+
+**Note:** You can also install Elastic from the **Universe** > **Packages** tab of the DC/OS web interface. If you install Elastic from the web interface, you must install the Elastic DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+
+```bash
+dcos package install elastic --cli
+```
 
 # Custom Installation
 

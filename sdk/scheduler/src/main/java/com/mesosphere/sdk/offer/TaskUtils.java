@@ -290,6 +290,15 @@ public class TaskUtils {
                 .findFirst();
     }
 
+    public static Optional<String> getLabel(String label, TaskInfo taskInfo) {
+        for (Label l : taskInfo.getLabels().getLabelsList()) {
+            if (l.getKey().equals(label)) {
+                return Optional.of(l.getValue());
+            }
+        }
+
+        return Optional.empty();
+    }
 
     public static Map<PodInstance, List<TaskInfo>> getPodMap(
             ConfigStore<ServiceSpec> configStore,

@@ -1,7 +1,7 @@
 ---
 post_title: Upgrade
 menu_order: 15
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 

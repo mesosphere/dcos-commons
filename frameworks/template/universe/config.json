@@ -1,67 +1,96 @@
 {
-  "type":"object",
-    "properties":{
-      "service":{
-        "type":"object",
+  "type": "object",
+    "properties": {
+      "service": {
+        "type": "object",
         "description": "DC/OS service configuration properties",
-        "properties":{
-          "name" : {
-            "description":"The name of the service instance",
-            "type":"string",
-            "default":"template"
+        "properties": {
+          "name": {
+            "title": "Service name",
+            "description": "The name of the service instance",
+            "type": "string",
+            "default": "template"
           },
-          "sleep" : {
-            "description":"The sleep duration in seconds before tasks exit.",
-            "type":"number",
+          "sleep": {
+            "description": "The sleep duration in seconds before tasks exit.",
+            "type": "number",
             "default":1000
           },
-          "secret_name": {
-            "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-            "type":"string",
-            "default":""
-          },
           "user": {
+            "title": "User",
             "description": "The user that the service will run as.",
             "type": "string",
             "default": "root"
           },
           "principal": {
-            "description": "The principal for the service instance.",
+            "title": "Custom principal (optional)",
+            "description": "The principal for the service instance, or empty to use the default.",
+            "type": "string",
+            "default": ""
+          },
+          "secret_name": {
+            "title": "Credential secret name (optional)",
+            "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",
             "default": ""
           }
-        }
+        },
+        "required":[
+          "name",
+          "sleep",
+          "user"
+        ]
       },
-      "template":{
-        "description":"Template pod configuration properties",
-        "type":"object",
-        "properties":{
-          "cpus":{
-            "description":"Template pod CPU requirements",
-            "type":"number",
+      "node": {
+        "description": "Template pod configuration properties",
+        "type": "object",
+        "properties": {
+          "count": {
+            "title": "Node count",
+            "description": "Number of Template pods to run",
+            "type": "integer",
+            "default":1
+          },
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": ""
+          },
+          "cpus": {
+            "title": "CPU count",
+            "description": "Template pod CPU requirements",
+            "type": "number",
             "default":0.1
           },
-          "mem":{
-            "description":"Template pod mem requirements (in MB)",
-            "type":"integer",
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Template pod mem requirements (in MB)",
+            "type": "integer",
             "default":252
           },
-          "disk":{
-            "description":"Template pod persistent disk requirements (in MB)",
-            "type":"integer",
+          "disk": {
+            "title": "Disk size (MB)",
+            "description": "Template pod persistent disk requirements (in MB)",
+            "type": "integer",
             "default":25
           },
-          "count":{
-            "description":"Number of Template pods to run",
-            "type":"integer",
-            "default":1
+          "disk_type": {
+            "title": "Disk type [ROOT, MOUNT]",
+            "description": "Mount volumes require preconfiguration in DC/OS",
+            "enum": [
+              "ROOT",
+              "MOUNT"
+            ],
+            "default": "ROOT"
           }
         },
         "required":[
+          "count",
           "cpus",
           "mem",
           "disk",
-          "count"
+          "disk_type"
         ]
       }
     }

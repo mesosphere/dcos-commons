@@ -1,6 +1,6 @@
 cluster_name: {{CASSANDRA_CLUSTER_NAME}}
 rpc_address: {{LIBPROCESS_IP}}
-listen_address: "{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos"
+listen_address: "{{TASK_NAME}}.{{SERVICE_NAME}}.mesos"
 hints_directory: {{MESOS_SANDBOX}}/container-path/hints
 data_file_directories:
   - {{MESOS_SANDBOX}}/container-path/data
@@ -9,7 +9,7 @@ saved_caches_directory: {{MESOS_SANDBOX}}/container-path/saved_caches
 seed_provider:
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
       parameters:
-          - seeds: "node-0-server.{{FRAMEWORK_NAME}}.mesos,node-1-server.{{FRAMEWORK_NAME}}.mesos"
+          - seeds: "{{LOCAL_SEEDS}},{{REMOTE_SEEDS}}"
 num_tokens: {{CASSANDRA_NUM_TOKENS}}
 hinted_handoff_enabled: {{CASSANDRA_HINTED_HANDOFF_ENABLED}}
 max_hint_window_in_ms: {{CASSANDRA_MAX_HINT_WINDOW_IN_MS}}
@@ -125,6 +125,5 @@ streaming_socket_timeout_in_ms: {{CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS}}
 phi_convict_threshold: {{CASSANDRA_PHI_CONVICT_THRESHOLD}}
 buffer_pool_use_heap_if_exhausted: {{CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED}}
 disk_optimization_strategy: {{CASSANDRA_DISK_OPTIMIZATION_STRATEGY}}
-streaming_socket_timeout_in_ms: {{CASSANDRA_STREAMING_SOCKET_TIMOUT_IN_MS}}
 max_value_size_in_mb: {{CASSANDRA_MAX_VALUE_SIZE_IN_MB}}
 otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
