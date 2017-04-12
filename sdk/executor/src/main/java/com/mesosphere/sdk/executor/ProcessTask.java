@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.executor;
 
+import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,11 +79,12 @@ public class ProcessTask implements ExecutorTask {
                 final String errorMessage = "Empty command found for: " + taskInfo.getName();
                 CommonTaskUtils.sendStatus(
                         driver,
-                        Protos.TaskState.TASK_ERROR,
+                        Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
-                        errorMessage);
+                        errorMessage,
+                        false);
                 return;
             }
 
@@ -96,7 +97,8 @@ public class ProcessTask implements ExecutorTask {
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    startMessage);
+                    startMessage,
+                    true);
             initialized.complete(true);
 
             LOGGER.info(startMessage);
@@ -106,15 +108,18 @@ public class ProcessTask implements ExecutorTask {
             exit.complete(exitValue);
             Protos.TaskState taskState;
 
+            boolean isHealthy = true;
             if (exitValue == 0) {
                 taskState = Protos.TaskState.TASK_FINISHED;
                 exitMessage += exitValue;
             } else if (exitValue > 128) {
                 taskState = Protos.TaskState.TASK_KILLED;
                 exitMessage += (exitValue - 128);
+                isHealthy = false;
             } else {
-                taskState = Protos.TaskState.TASK_ERROR;
+                taskState = Protos.TaskState.TASK_FAILED;
                 exitMessage += exitValue;
+                isHealthy = false;
             }
 
             CommonTaskUtils.sendStatus(
@@ -123,7 +128,8 @@ public class ProcessTask implements ExecutorTask {
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    exitMessage);
+                    exitMessage,
+                    isHealthy);
 
             LOGGER.info(exitMessage);
             if (exitOnTermination) {
@@ -141,7 +147,8 @@ public class ProcessTask implements ExecutorTask {
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    e.getMessage());
+                    e.getMessage(),
+                    false);
             if (exitOnTermination) {
                 driver.abort();
             }

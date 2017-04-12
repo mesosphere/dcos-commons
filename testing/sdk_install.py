@@ -56,7 +56,7 @@ def install(
         print('Checking that deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
         return not '/{}'.format(service_name) in deploying_apps
     print("Waiting for marathon deployment to finish...")
-    sdk_spin.time_wait_noisy(is_deployment_finished, timeout_seconds=30)
+    sdk_spin.time_wait_noisy(is_deployment_finished)
 
     # 4. Ensure the framework is suppressed.
     #
