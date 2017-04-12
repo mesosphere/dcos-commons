@@ -5226,12 +5226,12 @@
 <div class="block">Used by StateStore and ConfigStore implementations to retrieve and validate the Schema Version
  against whatever version is supported by those respective stores.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-">sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonTaskUtils.html" title="class in com.mesosphere.sdk.offer">CommonTaskUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-">sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonTaskUtils.html" title="class in com.mesosphere.sdk.offer">CommonTaskUtils</a></dt>
 <dd>
-<div class="block">Invokes <code>#sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])</code> with a null
- <code>data</code> value.</div>
+<div class="block">Invokes <a href="com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-"><code>CommonTaskUtils.sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean)</code></a> with null
+ <code>labels</code> and <code>data</code> values.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-Labels-byte:A-">sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, Labels, byte[])</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonTaskUtils.html" title="class in com.mesosphere.sdk.offer">CommonTaskUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-Labels-byte:A-">sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean, Labels, byte[])</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonTaskUtils.html" title="class in com.mesosphere.sdk.offer">CommonTaskUtils</a></dt>
 <dd>
 <div class="block">Sends a <code>TaskStatus</code> to the provided <code>driver</code> which contains the provided information.</div>
 </dd>

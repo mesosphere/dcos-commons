@@ -263,24 +263,26 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i23" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-">sendStatus</a></span>(ExecutorDriver&nbsp;driver,
-          TaskState&nbsp;state,
-          TaskID&nbsp;taskID,
-          SlaveID&nbsp;slaveID,
-          ExecutorID&nbsp;executorID,
-          java.lang.String&nbsp;message)</code>
-<div class="block">Invokes <code>#sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])</code> with a null
- <code>data</code> value.</div>
-</td>
-</tr>
-<tr id="i24" class="altColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-Labels-byte:A-">sendStatus</a></span>(ExecutorDriver&nbsp;driver,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-">sendStatus</a></span>(ExecutorDriver&nbsp;driver,
           TaskState&nbsp;state,
           TaskID&nbsp;taskID,
           SlaveID&nbsp;slaveID,
           ExecutorID&nbsp;executorID,
           java.lang.String&nbsp;message,
+          boolean&nbsp;isHealthy)</code>
+<div class="block">Invokes <a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-"><code>sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean)</code></a> with null
+ <code>labels</code> and <code>data</code> values.</div>
+</td>
+</tr>
+<tr id="i24" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-Labels-byte:A-">sendStatus</a></span>(ExecutorDriver&nbsp;driver,
+          TaskState&nbsp;state,
+          TaskID&nbsp;taskID,
+          SlaveID&nbsp;slaveID,
+          ExecutorID&nbsp;executorID,
+          java.lang.String&nbsp;message,
+          boolean&nbsp;isHealthy,
           Labels&nbsp;labels,
           byte[]&nbsp;data)</code>
 <div class="block">Sends a <code>TaskStatus</code> to the provided <code>driver</code> which contains the provided information.</div>
@@ -720,23 +722,7 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>sendStatus</h4>
-<pre>public static&nbsp;void&nbsp;sendStatus(ExecutorDriver&nbsp;driver,
-                              TaskState&nbsp;state,
-                              TaskID&nbsp;taskID,
-                              SlaveID&nbsp;slaveID,
-                              ExecutorID&nbsp;executorID,
-                              java.lang.String&nbsp;message)</pre>
-<div class="block">Invokes <code>#sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])</code> with a null
- <code>data</code> value.</div>
-</li>
-</ul>
-<a name="sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-Labels-byte:A-">
+<a name="sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -748,6 +734,24 @@ extends java.lang.Object</pre>
                               SlaveID&nbsp;slaveID,
                               ExecutorID&nbsp;executorID,
                               java.lang.String&nbsp;message,
+                              boolean&nbsp;isHealthy)</pre>
+<div class="block">Invokes <a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-"><code>sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, boolean)</code></a> with null
+ <code>labels</code> and <code>data</code> values.</div>
+</li>
+</ul>
+<a name="sendStatus-ExecutorDriver-TaskState-TaskID-SlaveID-ExecutorID-java.lang.String-boolean-Labels-byte:A-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sendStatus</h4>
+<pre>public static&nbsp;void&nbsp;sendStatus(ExecutorDriver&nbsp;driver,
+                              TaskState&nbsp;state,
+                              TaskID&nbsp;taskID,
+                              SlaveID&nbsp;slaveID,
+                              ExecutorID&nbsp;executorID,
+                              java.lang.String&nbsp;message,
+                              boolean&nbsp;isHealthy,
                               Labels&nbsp;labels,
                               byte[]&nbsp;data)</pre>
 <div class="block">Sends a <code>TaskStatus</code> to the provided <code>driver</code> which contains the provided information.</div>
