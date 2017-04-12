@@ -1,0 +1,42 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "{{jre-url}}",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
+      "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/bootstrap.zip",
+      "kafka-tgz": "https://packages.confluent.io/archive/3.2/confluent-3.2.0-mesos.tgz",
+      "kafka-scheduler-zip": "{{artifact-dir}}/confluent-kafka-scheduler.zip",
+      "executor-zip": "{{artifact-dir}}/executor.zip"
+    }
+  },
+  "images": {
+    "icon-small": "https://downloads.mesosphere.com/universe/assets/icon-service-kafka-small.png",
+    "icon-medium": "https://downloads.mesosphere.com/universe/assets/icon-service-kafka-medium.png",
+    "icon-large": "https://downloads.mesosphere.com/universe/assets/icon-service-kafka-large.png"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-confluent-kafka-darwin}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-confluent-kafka-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-confluent-kafka-linux}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-confluent-kafka-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-confluent-kafka.exe}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-confluent-kafka.exe"
+        }
+      }
+    }
+  }
+}

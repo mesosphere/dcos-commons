@@ -41,3 +41,6 @@ project(":frameworks/spark").name = "spark"
 
 include 'examples/cniexample'
 project(":examples/cniexample").name = "cniexample"
+
+include 'frameworks/confluent'
+project(":frameworks/confluent").name = "confluent"

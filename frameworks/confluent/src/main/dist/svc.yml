@@ -1,0 +1,45 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  kafka:
+    count: {{BROKER_COUNT}}
+    placement: {{PLACEMENT_CONSTRAINTS}}
+    uris:
+      - {{KAFKA_URI}}
+      - {{BOOTSTRAP_URI}}
+      - {{EXECUTOR_URI}}
+      - {{LIBMESOS_URI}}
+    tasks:
+      broker:
+        cpus: {{BROKER_CPUS}}
+        memory: {{BROKER_MEM}}
+        ports:
+          broker:
+            port: {{BROKER_PORT}}
+            env-key: KAFKA_BROKER_PORT
+            vip:
+              prefix: broker
+              port: 9092
+        volume:
+          path: {{BROKER_DISK_PATH}}
+          type: {{BROKER_DISK_TYPE}}
+          size: {{BROKER_DISK_SIZE}}
+        env:
+          KAFKA_ZOOKEEPER_URI: "{{MESOS_ZOOKEEPER_URI}}/dcos-service-{{FRAMEWORK_NAME}}"
+          KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
+          KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
+        goal: RUNNING
+        cmd: "./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
+        configs:
+          server-properties:
+            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+            dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      Deployment:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: kafka
