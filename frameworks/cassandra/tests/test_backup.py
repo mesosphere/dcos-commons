@@ -62,6 +62,7 @@ def launch_and_verify_job(job_name, expected_successes=1):
     ))
 
 
+@pytest.mark.sanity
 def test_backup_and_restore_flow():
     backup_parameters = {
         'S3_BUCKET_NAME': os.getenv(
