@@ -226,9 +226,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getIndex(),
                 taskRequirements,
                 ExecutorRequirement.create(getExecutor(podInstance, serviceName, targetConfigurationId)),
-                // Do not add placement rules to getExistingOfferRequirement
-                Optional.empty()
-                );
+                podInstance.getPod().getPlacementRule());
     }
 
     private static Protos.TaskInfo getNewTaskInfo(
