@@ -19,7 +19,7 @@ node('infinity') {
                     // Establish docker auth for proxylite
                     sh("docker login -u \"${DOCKER_HUB_USERNAME}\" -p \"${DOCKER_HUB_PASSWORD}\" -e \"${DOCKER_HUB_EMAIL}\"")
                     // build the sdk
-                    sh("./build.sh")
+                    sh("./build.sh -p")
                     // and the frameworks which are classically built by the test script.  Woohoo
                     sh("./test.py --build-only")
                     stash(name: 'built_state', useDefaultExcludes: false)
