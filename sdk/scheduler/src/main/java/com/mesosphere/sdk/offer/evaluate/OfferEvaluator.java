@@ -85,7 +85,10 @@ public class OfferEvaluator {
     public List<OfferEvaluationStage> getEvaluationPipeline(OfferRequirement offerRequirement) {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
 
+        // OfferRequirement will not include placement rules,
+        // so it skips placement rules if it is a restart or transient failure
         evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));
+
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
             evaluationPipeline.add(offerRequirement.getExecutorRequirementOptional().get().getEvaluationStage());
         } else {

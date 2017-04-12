@@ -271,8 +271,14 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
 
         // Make counts equal, as only a difference in count should not effect an individual tasks.
-        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
-        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
+
+        // Similarly ignore placementRule, placement rule change does not affect existing tasks!
+        // We look at placement rule at initial deployment and permanent failure (including replace)
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
+
+        // Lets say we have placement rule x in config C_x, and we update to new config C_y with placement rule y.
+        // Old config C_x will be deleted and no task will be restarted.
 
         return !podSpec1.equals(podSpec2);
     }
