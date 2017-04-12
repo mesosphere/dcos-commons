@@ -201,7 +201,6 @@ def test_change_constraint_increase_count():
     ensure_multiple_per_agent(hello=hello_count, world=0)
 
 
-@pytest.mark.ben
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_no_task_change():
@@ -245,7 +244,6 @@ def test_updated_placement_constraints_no_task_change():
     assert get_task_host('hello-0-server') == some_agent
 
 
-@pytest.mark.ben
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_restarted_tasks_dont_move():
@@ -290,7 +288,6 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
     assert get_task_host('hello-0-server') == some_agent
 
 
-@pytest.mark.ben
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_replaced_tasks_do_move():
