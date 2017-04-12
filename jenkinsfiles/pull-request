@@ -12,7 +12,7 @@ node('infinity') {
         // mesosphere-ci & mesosphere-ccm keys
         sshagent(credentials: ['4ff09dce-407b-41d3-847a-9e6609dd91b8', 'e1ea4ca2-3bf9-4c4d-a121-57b29dc363ec']) {
             stage('Checkout') {
-                git(branch: 'infinity-1201-use-jenkinsfile-pipelines', url: 'https://github.com/mesosphere/dcos-commons.git')
+                checkout scm
              }
             stage('Build') {
                 // Establish docker auth for proxylite
