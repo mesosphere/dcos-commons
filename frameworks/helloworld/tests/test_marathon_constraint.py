@@ -136,110 +136,29 @@ def ensure_multiple_per_agent(hello, world):
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_change_constraint_increase_count():
+def test_updated_placement_constraints_not_applied_with_other_changes():
+    some_agent, other_agent, old_ids = setup_constraint_switch()
 
-    install.uninstall(PACKAGE_NAME)
-
-    some_agent = shakedown.get_private_agents().pop()
-    hello_count = 3 if num_private_agents > 3 else  num_private_agents
-
-    options = {
-        "service": {
-            "spec_file": "examples/marathon_constraint.yml"
-        },
-        "hello": {
-            "count": hello_count - 1,
-            "placement": "hostname:UNIQUE"
-        },
-        "world": {
-            "count": 0
-        }
-    }
-
-    # hostname:CLUSTER:{} will produce:
-    #    "placement-rule": {
-    #            "@type": "HostnameRule",
-    #            "matcher": {
-    #              "@type": "ExactMatcher",
-    #              "string": "10.0.0.51"
-    #            }
-
-    install.install(PACKAGE_NAME, hello_count - 1, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
-    service_plan_wait()
-
-    tasks.check_running(PACKAGE_NAME, hello_count - 1)
-    ensure_multiple_per_agent(hello=1, world=0)
-
-    # change placement constraint, but tasks should not update
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    # Additionally, modify the task count to be higher.
     config = marathon.get_config(PACKAGE_NAME)
-
-    # 1) Increase count and change placement rule
-
-    config['env']['HELLO_COUNT'] = str(hello_count)
-    config['env']['HELLO_PLACEMENT'] = 'hostname:CLUSTER:{}'.format(some_agent)
+    config['env']['HELLO_COUNT'] = '2'
     marathon.update_app(PACKAGE_NAME, config)
-    plan.get_deployment_plan(PACKAGE_NAME)
     service_plan_wait()
 
-    tasks.check_running(PACKAGE_NAME, hello_count)
+    # Now, an additional hello-server task will launch
+    # where the _new_ constraint will tell it to be.
+    tasks.check_running(PACKAGE_NAME, 2)
 
-    # if config update does not ignore placement rule, it should fail
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
-
-    # 2) Replace old tasks
-
-    # all tasks should end up on `some_agent`, even the one that started there
-    for pod_index in range(hello_count - 1):
-        cmd.run_cli('hello-world pods replace hello-{}'.format(pod_index))
-        # wait a little so tasks can be restarted
-        time.sleep(30)
-        # wait till replace completes
-        tasks.check_running(PACKAGE_NAME, hello_count)
-
-    ensure_multiple_per_agent(hello=hello_count, world=0)
+    assert get_task_host('hello-0-server') == some_agent
+    assert get_task_host('hello-1-server') == other_agent
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_no_task_change():
-    # Start the service with one placement constraint.
-    # Then, restart the service with a disjoint placement constraint.
-    # Verify that no tasks are moved/restarted/replaced by this.
-    install.uninstall(PACKAGE_NAME)
+    some_agent, other_agent, old_ids = setup_constraint_switch()
 
-    agents = shakedown.get_private_agents()
-    some_agent = agents[0]
-    other_agent = agents[1]
-    print("agents", some_agent, other_agent)
-    assert some_agent != other_agent
-    options = {
-        "service": {
-            "spec_file": "examples/marathon_constraint.yml"
-        },
-        "hello": {
-            "count": 1,
-            # First, we stick the pod to some_agent
-            "placement": 'hostname:LIKE:{}'.format(some_agent)
-        },
-        "world": {
-            "count": 0
-        }
-    }
-    install.install(PACKAGE_NAME, 1, additional_options=options)
-    tasks.check_running(PACKAGE_NAME, 1)
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-
-    # Now, stick it to other_agent and make sure it doesn't move
-    # the existent task.
-    config = marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
-    marathon.update_app(PACKAGE_NAME, config)
-    # Wait for the scheduler to be up before advancing.
-    service_plan_wait()
-
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
 
@@ -247,43 +166,11 @@ def test_updated_placement_constraints_no_task_change():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_restarted_tasks_dont_move():
-    # Start the service with one placement constraint.
-    # Then, restart the service with a disjoint placement constraint.
-    # Verify that no tasks are moved/restarted/replaced by this.
-    install.uninstall(PACKAGE_NAME)
-
-    agents = shakedown.get_private_agents()
-    some_agent = agents[0]
-    other_agent = agents[1]
-    print("agents", some_agent, other_agent)
-    assert some_agent != other_agent
-    options = {
-        "service": {
-            "spec_file": "examples/marathon_constraint.yml"
-        },
-        "hello": {
-            "count": 1,
-            # First, we stick the pod to some_agent
-            "placement": 'hostname:LIKE:{}'.format(some_agent)
-        },
-        "world": {
-            "count": 0
-        }
-    }
-    install.install(PACKAGE_NAME, 1, additional_options=options)
-    tasks.check_running(PACKAGE_NAME, 1)
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-
-    # Now, stick it to other_agent
-    config = marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
-    marathon.update_app(PACKAGE_NAME, config)
-    # Wait for the scheduler to be up before advancing.
-    service_plan_wait()
+    some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Restart the task, and verify it doesn't move hosts
     cmd.run_cli('hello-world pods restart hello-0')
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
 
@@ -291,9 +178,16 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_updated_placement_constraints_replaced_tasks_do_move():
-    # Start the service with one placement constraint.
-    # Then, restart the service with a disjoint placement constraint.
-    # Verify that no tasks are moved/restarted/replaced by this.
+    some_agent, other_agent, old_ids = setup_constraint_switch()
+
+    # Replace the task, and verify it moves hosts
+    cmd.run_cli('hello-world pods replace hello-0')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
+
+    assert get_task_host('hello-0-server') == other_agent
+
+
+def setup_constraint_switch():
     install.uninstall(PACKAGE_NAME)
 
     agents = shakedown.get_private_agents()
@@ -325,11 +219,7 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
     # Wait for the scheduler to be up before advancing.
     service_plan_wait()
 
-    # Replace the task, and verify it moves hosts
-    cmd.run_cli('hello-world pods replace hello-0')
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
-
-    assert get_task_host('hello-0-server') == other_agent
+    return some_agent, other_agent, hello_ids
 
 
 def get_task_host(task_name):
