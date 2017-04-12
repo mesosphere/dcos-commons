@@ -76,11 +76,11 @@ pods:
           timeout: 60
       repair:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}} -- $(eval "echo $CASSANDRA_KEYSPACES")
         resource-set: sidecar-resources
       cleanup:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p {{TASKCFG_ALL_JMX_PORT}} -- $(eval "echo $CASSANDRA_KEYSPACES")
         resource-set: sidecar-resources
       backup-schema:
         goal: FINISHED
@@ -163,7 +163,7 @@ pods:
         resource-set: sidecar-resources
       upgradesstables:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}} -- $(eval "echo $CASSANDRA_KEYSPACES")
         resource-set: sidecar-resources
 plans:
   deploy:
