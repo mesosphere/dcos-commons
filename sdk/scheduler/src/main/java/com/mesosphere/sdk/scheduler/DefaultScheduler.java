@@ -920,7 +920,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        suppressOrRevive();
+        revive();
     }
 
     @Override
