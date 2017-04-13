@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Launches a CCM cluster
 #
@@ -14,6 +14,7 @@
 #
 # Configuration: Mostly through env vars. See README.md.
 
+import http.client
 import json
 import logging
 import os
@@ -28,11 +29,6 @@ import configure_test_cluster
 import dcos_login
 import github_update
 
-try:
-    from http.client import HTTPSConnection
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -110,7 +106,7 @@ class CCMLauncher(object):
             if request_json_payload:
                 logger.info('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
             return None
-        conn = HTTPSConnection(self._CCM_HOST)
+        conn = http.client.HTTPSConnection(self._CCM_HOST)
         if debug:
             conn.set_debuglevel(999)
 
@@ -401,15 +397,43 @@ def _write_jenkins_config(github_label, cluster_info, error = None):
     properties_file.close()
 
 
+def _determine_attempts():
+    attemptcount =  os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS)
+    return int(attemptcount)
+
+def determine_github_label():
+    label = os.environ.get('CCM_GITHUB_LABEL', '')
+    if not label:
+        label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
+    return label
+
+def start_cluster(ccm_token, launch_config=None):
+    "One stop shop to launch a cluster for external users"
+    github_label = determine_github_label()
+    launcher = CCMLauncher(ccm_token, github_label)
+    attempts = _determine_attempts()
+    if not launch_config:
+        launch_config = StartConfig()
+    return _start_cluster(launcher, github_label, attempts, launch_config)
+
+def _start_cluster(launcher, github_label, start_stop_attempts, config):
+    try:
+        cluster_info = launcher.start(config, start_stop_attempts)
+        # print to stdout (the rest of this script only writes to stderr):
+        print(json.dumps(cluster_info))
+        _write_jenkins_config(github_label, cluster_info)
+    except Exception as e:
+        _write_jenkins_config(github_label, {}, e)
+        raise
+    return cluster_info
+
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
     if not ccm_token:
         raise Exception('CCM_AUTH_TOKEN is required')
 
     # used for status and for jenkins .properties file:
-    github_label = os.environ.get('CCM_GITHUB_LABEL', '')
-    if not github_label:
-        github_label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
+    github_label = determine_github_label()
 
     # error detection (and retry) for either a start or a stop operation:
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
@@ -451,14 +475,7 @@ def main(argv):
             logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
-    try:
-        cluster_info = launcher.start(StartConfig(), start_stop_attempts)
-        # print to stdout (the rest of this script only writes to stderr):
-        print(json.dumps(cluster_info))
-        _write_jenkins_config(github_label, cluster_info)
-    except Exception as e:
-        _write_jenkins_config(github_label, {}, e)
-        raise
+    _start_cluster(launcher, github_label, start_stop_attempts, StartConfig())
     return 0
 
 

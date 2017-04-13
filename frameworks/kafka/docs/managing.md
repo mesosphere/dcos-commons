@@ -16,11 +16,11 @@ Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other co
 
 1.  Verify that you no longer see it in the DC/OS web interface.
 
-1.  If you are using the enterprise edition, create an JSON options file with your latest configuration and set your plan strategy to "STAGE"
+1.  Optional: Create a JSON options file with any custom configuration, such as a non-default `DEPLOY_STRATEGY`. <!--I'm getting this JSON from the app definition in the UI. The all caps looks a little odd, though -->
 
         {
-            "service": {
-                "phase_strategy": "STAGE"
+            "env": {
+                "DEPLOY_STRATEGY": "parallel-canary"
             }
         }
 
@@ -28,6 +28,3 @@ Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other co
 1.  Install the latest version of Kafka:
 
         $ dcos package install kafka -—options=options.json
-
-
-1.  Roll out the new version of Kafka in the same way as a configuration update is rolled out. See Configuration Update Plans.

@@ -163,7 +163,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
                 throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
             }
-            stateStoreOptional = Optional.of(stateStore);
+            this.stateStoreOptional = Optional.ofNullable(stateStore);
             return this;
         }
 
@@ -205,7 +205,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * while also storing historical configurations.
          */
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-            this.configStoreOptional = Optional.of(configStore);
+            this.configStoreOptional = Optional.ofNullable(configStore);
             return this;
         }
 
@@ -217,7 +217,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
-            this.configValidatorsOptional = Optional.of(configValidators);
+            this.configValidatorsOptional = Optional.ofNullable(configValidators);
             return this;
         }
 
@@ -227,7 +227,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * and/or replaced.
          */
         public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.of(restartHook);
+            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -938,7 +938,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        suppressOrRevive();
+        revive();
     }
 
     @Override

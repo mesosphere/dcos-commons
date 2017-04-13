@@ -8,6 +8,7 @@ import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_spin as spin
 import sdk_tasks as tasks
+import sdk_utils
 
 
 # (1) Installs Universe version of framework.
@@ -18,10 +19,10 @@ def upgrade_downgrade(package_name, running_task_count):
     install.uninstall(package_name)
 
     test_version = get_pkg_version(package_name)
-    print('Found test version: {}'.format(test_version))
+    sdk_utils.out('Found test version: {}'.format(test_version))
 
     repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
-    print("Repositories: " + str(repositories))
+    sdk_utils.out("Repositories: " + str(repositories))
     universe_url = "fail"
     for repo in repositories:
         if repo['name'] == 'Universe':
@@ -29,37 +30,37 @@ def upgrade_downgrade(package_name, running_task_count):
             break
 
     assert "fail" != universe_url
-    print("Universe URL: " + universe_url)
+    sdk_utils.out("Universe URL: " + universe_url)
 
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
     add_repo('Universe', universe_url, test_version, 0, package_name)
 
     universe_version = get_pkg_version(package_name)
-    print('Found Universe version: {}'.format(universe_version))
+    sdk_utils.out('Found Universe version: {}'.format(universe_version))
 
-    print('Installing Universe version')
+    sdk_utils.out('Installing Universe version')
     install.install(package_name, running_task_count, check_suppression=False)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
     add_last_repo('Universe', universe_url, universe_version, package_name)
 
-    print('Upgrading to test version')
+    sdk_utils.out('Upgrading to test version')
     upgrade_or_downgrade(package_name, running_task_count)
 
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
     add_repo('Universe', universe_url, test_version, 0, package_name)
 
-    print('Downgrading to master version')
+    sdk_utils.out('Downgrading to master version')
     upgrade_or_downgrade(package_name, running_task_count)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
     add_last_repo('Universe', universe_url, universe_version, package_name)
 
-    print('Upgrading to test version')
+    sdk_utils.out('Upgrading to test version')
     upgrade_or_downgrade(package_name, running_task_count)
 
 
@@ -67,10 +68,10 @@ def upgrade_or_downgrade(package_name, running_task_count):
     task_ids = tasks.get_task_ids(package_name, '')
     marathon.destroy_app(package_name)
     install.install(package_name, running_task_count, check_suppression=False)
-    print('Waiting for upgrade / downgrade deployment to complete')
+    sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
     spin.time_wait_noisy(lambda: (
         plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))
-    print('Checking that all tasks have restarted')
+    sdk_utils.out('Checking that all tasks have restarted')
     tasks.check_tasks_updated(package_name, '', task_ids)
 
 

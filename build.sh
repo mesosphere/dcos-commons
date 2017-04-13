@@ -8,10 +8,15 @@
 set +e
 
 PULLREQUEST="false"
-while getopts 'p' opt; do
+MERGE_FROM="master"
+while getopts 'pt:' opt; do
     case $opt in
         p)
             PULLREQUEST="true"
+            ;;
+        t)
+            # hack for testing
+            MERGE_FROM="$OPTARG"
             ;;
         \?)
             echo "Unknown option. supported: -p for pull request" >&2
@@ -31,9 +36,32 @@ _notify_github() {
     $REPO_ROOT_DIR/tools/github_update.py $1 build:sdk $2
 }
 
+merge_master() {
+    echo "attempting to merge changes from master"
+    # git won't let you update files without knowing a name
+    echo "Creating fake user."
+    command="git config user.email pullrequestbot@mesospherebot.com"
+    echo $command
+    if ! $command; then
+        return 1 # fail
+    fi
+    command="git config user.name Infinity-tools-fake-user"
+    echo $command
+    if ! $command; then
+        return 1 # fail
+    fi
+    # Update local branch to include github version of master.
+    command="git pull origin $MERGE_FROM --no-commit --ff"
+    echo $command
+    if ! $command; then
+        return 1 # fail
+    fi
+    return 0 # ok
+}
+
 if [ x$PULLREQUEST = "xtrue" ]; then
   echo "Merging master into pull request branch."
-  if ! git pull origin master; then
+  if ! merge_master; then
     _notify_github failure "Merge from master branch failed"
     exit 1
   else
