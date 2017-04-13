@@ -2,13 +2,14 @@
 
 import dcos.http
 import sdk_spin
+import sdk_utils
 import shakedown
 
 
 def request(method, url, retry=True, **kwargs):
     def fn():
         response = dcos.http.request(method, url, **kwargs)
-        print('Got {} for {} {} (args: {})'.format(
+        sdk_utils.out('Got {} for {} {} (args: {})'.format(
             response.status_code, method.upper(), url, kwargs))
         response.raise_for_status()
         return response
@@ -23,6 +24,6 @@ def run_cli(cmd):
     if ret != 0:
         err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
             ret, cmd, stdout, stderr)
-        print(err)
+        sdk_utils.out(err)
         raise Exception(err)
     return stdout

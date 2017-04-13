@@ -23,7 +23,7 @@
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
-          "default": "core"
+          "default": "root"
         },
         "zk_servers": {
           "description": "The comma-separated hostnames for the zookeeper clusters to retain scheduler state in",

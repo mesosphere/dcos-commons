@@ -60,7 +60,12 @@ def parse_args(args=sys.argv):
             'For "success-only", test failures will leave the cluster running.')
     parser.add_argument("test", nargs="*", help="Test or tests to run.  "
             "If no args provided, run all.")
-    return parser.parse_args()
+    run_attrs = parser.parse_args()
+    if (run_attrs.cluster_url or run_attrs.cluster_token) and not (
+            run_attrs.cluster_url and run_attrs.cluster_token):
+        raise Exception("Currently cluster url and token must be used together.")
+    return run_attrs
+
 
 class TestRequirementsNotMet(Exception):
     pass
@@ -68,7 +73,7 @@ class TestRequirementsNotMet(Exception):
 class CommandFailure(Exception):
     pass
 
-def detect_requirements():
+def detect_requirements(run_attrs):
     "Log all requirements met or not met, then throw exception if any not met"
     logger.info("Checking requirements")
     def have_command(cmd):
@@ -315,7 +320,7 @@ def teardown_clusters():
     clustinfo.shutdown_clusters()
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
-    if run_attrs.cluster_url:
+    if run_attrs.cluster_url and run_attrs.cluster_token:
         clustinfo.add_running_cluster(run_attrs.cluster_url,
                                       run_attrs.cluster_token)
     else:
@@ -461,6 +466,8 @@ def run_tests(run_attrs, repo_root):
             all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
             all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
+        if not all_passed:
+            raise Exception("Some tests failed.")
     finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
@@ -505,7 +512,9 @@ def start_test_background(framework, cluster, repo_root):
                 framework.name)
     _setup_strict(framework, cluster, repo_root)
 
-    logger.info("Launching shakedown for %s", framework.name)
+    logger.info("Launching shakedown in background for %s", framework.name)
+    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_url, cluster.url, cluster.auth_token)
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
@@ -536,7 +545,9 @@ def run_test(framework, cluster, repo_root):
     logger.info("Starting cluster configure & test run for %s", framework.name)
     _setup_strict(framework, cluster, repo_root)
 
-    logger.info("launching shakedown for %s", framework.name)
+    logger.info("Launching shakedown for %s", framework.name)
+    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_url, cluster.url, cluster.auth_token)
     custom_env = os.environ.copy()
     custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
@@ -566,7 +577,7 @@ def report_failed_actions():
 def main():
     run_attrs = parse_args()
     try:
-        detect_requirements()
+        detect_requirements(run_attrs)
     except TestRequirementsNotMet:
         logger.error("Aborting run.")
         return False

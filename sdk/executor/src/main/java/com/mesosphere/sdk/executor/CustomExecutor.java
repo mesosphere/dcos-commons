@@ -82,8 +82,10 @@ public class CustomExecutor implements Executor {
                     task.getTaskId(),
                     task.getSlaveId(),
                     task.getExecutor().getExecutorId(),
-                    String.format("Exception launching task %s",
-                            t.getMessage()));
+                    String.format(
+                            "Exception launching task %s",
+                            t.getMessage()),
+                    false);
         }
     }
 

@@ -270,9 +270,12 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             return false;
         }
 
-        // Make counts equal, as only a difference in count should not effect an individual tasks.
-        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
-        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
+        // When evaluating whether a pod should be updated, some PodSpec changes are immaterial:
+        //   1. Count: Extant pods do not care if they will have more fellows
+        //   2. Placement Rules: Extant pods should not move around due to placement changes
+        // As such, set the values for these properties to null (or equivalent)
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
 
         return !podSpec1.equals(podSpec2);
     }
