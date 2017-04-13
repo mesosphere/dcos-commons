@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Builds and uploads a release, optionally creating a tag for that release.
+# --
+# Builds and uploads a release of the SDK against a release-specific tag.
+# This does NOT create releases of individual services in the repo, just the SDK itself.
 # --
 
 syntax() {

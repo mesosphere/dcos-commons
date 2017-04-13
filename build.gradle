@@ -14,11 +14,25 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'com.github.ksoichiro.console.reporter'
 
-    apply from: "$rootDir/gradle/quality.gradle"
+    apply from: '$rootDir/gradle/quality.gradle'
 
-    group = "mesosphere"
-    // In master, this is ALWAYS a -SNAPSHOT version.
-    // Releases are made FROM TAGS. To create a release, see release.sh.
+    group = 'mesosphere'
+    // ---
+    // INFO:
+    //
+    // In general, users of this SDK may use '-SNAPSHOT' builds for testing or development, but
+    // they MUST NOT be used for releases. A given '-SNAPSHOT' build will vary on a per-PR basis
+    // and APIs WILL break at any time. See the tags in this repo for a list of stable releases.
+    //
+    // In repo master, this version MUST ALWAYS be a '-SNAPSHOT' version.
+    // Release versions are ONLY published inside of tags.
+    // --
+    // INSTRUCTIONS: How to cut a release of e.g. '0.10.0', then start the '0.11.0-SNAPSHOT' track:
+    //
+    // 1. Run a CI job which calls './release.sh -r 0.10.0' to create the release tag from current master.
+    // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
+    // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
+    // --
     version = "0.14.0-SNAPSHOT"
 
     sourceCompatibility = '1.8'
