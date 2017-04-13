@@ -2,7 +2,7 @@ import pytest
 from tests.config import *
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_utils as utils
+import sdk_utils
 import json
 import shakedown
 import time
@@ -11,7 +11,7 @@ import sdk_cmd as cmd
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+    sdk_utils.gc_frameworks()
 
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
@@ -31,7 +31,7 @@ def teardown_module(module):
 def test_shutdown_host_test():
 
     service_ip = shakedown.get_service_ips(PACKAGE_NAME).pop()
-    print('marathon ip = {}'.format(service_ip))
+    sdk_utils.out('marathon ip = {}'.format(service_ip))
 
     node_ip = 0
     for pod_id in range(0, DEFAULT_TASK_COUNT):
@@ -43,13 +43,13 @@ def test_shutdown_host_test():
         assert Fail, 'could not find a node to shutdown'
 
     old_agent = get_pod_agent(pod_id)
-    print('pod id = {},  node_ip = {}, agent = {}'.format(pod_id, node_ip, old_agent))
+    sdk_utils.out('pod id = {},  node_ip = {}, agent = {}'.format(pod_id, node_ip, old_agent))
 
     task_ids = tasks.get_task_ids(PACKAGE_NAME, 'node-{}'.format(pod_id))
 
     # instead of partition/reconnect, we shutdown host permanently
     status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown -h +1')
-    print('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
+    sdk_utils.out('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
     assert status is True
     time.sleep(100)
 

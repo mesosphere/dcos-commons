@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Uploads artifacts to S3.
 # Produces a universe, and uploads it to S3.

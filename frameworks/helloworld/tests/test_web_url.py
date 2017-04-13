@@ -2,6 +2,7 @@ import pytest
 
 import sdk_install as install
 import sdk_plan as plan
+import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -27,7 +28,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 def test_deploy():
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
-    print("deployment_plan: " + str(deployment_plan))
+    sdk_utils.out("deployment_plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 1)
     assert(deployment_plan['phases'][0]['name'] == 'hello')
