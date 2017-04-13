@@ -77,10 +77,7 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
                 return False
         return True
 
-    try:
-        sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=60)
-    except shakedown.TimeoutExpired:
-        print('Timeout reached as expected')
+    sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=60)
 
 
 def kill_task_with_pattern(pattern, host=None):
