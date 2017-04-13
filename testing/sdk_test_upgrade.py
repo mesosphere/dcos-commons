@@ -47,14 +47,14 @@ def upgrade_downgrade(package_name, running_task_count, additional_options={}):
     add_last_repo('Universe', universe_url, universe_version, package_name)
 
     sdk_utils.out('Upgrading to test version')
-    upgrade_or_downgrade(package_name, running_task_count)
+    upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
     add_repo('Universe', universe_url, test_version, 0, package_name)
 
     sdk_utils.out('Downgrading to master version')
-    upgrade_or_downgrade(package_name, running_task_count)
+    upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
