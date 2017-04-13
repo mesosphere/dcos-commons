@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.Constants;
-
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -191,9 +190,26 @@ public class HealthCheckHandler {
 
         private void handleHealthCheck() {
             if (healthCheckStats.getConsecutiveFailures() >= healthCheck.getConsecutiveFailures()) {
+                CommonTaskUtils.sendStatus(
+                        executorDriver,
+                        Protos.TaskState.TASK_FAILED,
+                        taskInfo.getTaskId(),
+                        taskInfo.getSlaveId(),
+                        taskInfo.getExecutor().getExecutorId(),
+                        "Health check failed ",
+                        false);
                 throw new HealthCheckRuntimeException(
                         "Health check exceeded its maximum consecutive failures.",
                         healthCheckStats);
+            } else if (healthCheckStats.getConsecutiveSuccesses() == 1) {
+                CommonTaskUtils.sendStatus(
+                        executorDriver,
+                        Protos.TaskState.TASK_RUNNING,
+                        taskInfo.getTaskId(),
+                        taskInfo.getSlaveId(),
+                        taskInfo.getExecutor().getExecutorId(),
+                        "Health check passed",
+                        true);
             }
         }
 
@@ -211,6 +227,7 @@ public class HealthCheckHandler {
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
                         "Readiness check passed",
+                        true,
                         labels,
                         null);
                 throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);

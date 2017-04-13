@@ -16,13 +16,22 @@ public class UnreserveOfferRecommendation implements OfferRecommendation {
 
     public UnreserveOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
+        Resource.Builder resourceBuilder = resource.toBuilder();
+
+        // If non-root disk resource, we want to clear ALL fields except for the field indicating the disk source.
+        if (resource.hasDisk() && resource.getDisk().hasSource()) {
+            resource = resourceBuilder.setDisk(
+                    Resource.DiskInfo.newBuilder()
+                            .setSource(resource.getDisk().getSource()))
+                    .build();
+        } else {
+            resource = resourceBuilder.clearDisk().clearRevocable().build();
+        }
+
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.UNRESERVE)
                 .setUnreserve(Operation.Unreserve.newBuilder()
-                        .addAllResources(Arrays.asList(Resource.newBuilder(resource)
-                                .clearDisk()
-                                .clearRevocable()
-                                .build())))
+                        .addAllResources(Arrays.asList(resource)))
                 .build();
     }
 
