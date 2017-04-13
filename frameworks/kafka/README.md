@@ -12,3 +12,4 @@
 - [API Reference](docs/api-reference.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Limitations](docs/limitations.md)
+- [Release Notes](docs/release-notes.md)
