@@ -34,6 +34,7 @@ def teardown_module(module):
     remove_cassandra_jobs()
 
 
+@pytest.mark.sanity
 def test_cleanup_plan_completes():
     cleanup_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -46,6 +47,7 @@ def test_cleanup_plan_completes():
     )
 
 
+@pytest.mark.sanity
 def test_repair_plan_completes():
     repair_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -58,6 +60,7 @@ def test_repair_plan_completes():
     )
 
 
+@pytest.mark.sanity
 def test_upgrade_sstables_plan_completes():
     upgrade_sstables_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
