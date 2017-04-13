@@ -16,6 +16,8 @@ if __name__ == "__main__":
 
 
 def parse_args(args):
+    parser = argparse.ArgumentParser(
+        description="merge a branch to the current branch for continuous integration goals")
     parser.add_argument("branch",
             nargs="?",
             help="Branch to merge",
