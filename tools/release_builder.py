@@ -24,7 +24,7 @@ class UniverseReleaseBuilder(object):
 
     def __init__(self, package_version, stub_universe_url,
                  commit_desc = '',
-                 min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
+                 min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.8'),
                  http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
                  s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
                  release_docker_image = os.environ.get('RELEASE_DOCKER_IMAGE'),
