@@ -46,6 +46,11 @@
         "description":"Hello pod configuration properties",
         "type":"object",
         "properties":{
+          "message":{
+            "description":"Message to be written by Hello pods",
+            "type":"string",
+            "default":"hello"
+          },
           "cpus":{
             "description":"Hello pod CPU requirements",
             "type":"number",
@@ -65,6 +70,12 @@
             "description":"Hello pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":25
+          },
+          "disk_type": {
+            "title": "Disk type [ROOT, MOUNT]",
+            "description": "Mount volumes require preconfiguration in DC/OS",
+            "enum": [ "ROOT", "MOUNT" ],
+            "default": "ROOT"
           },
           "count":{
             "description":"Number of Hello pods to run",
@@ -89,6 +100,11 @@
         "description":"World pod configuration properties",
         "type":"object",
         "properties":{
+          "message":{
+            "description":"Message to be written by World pods",
+            "type":"string",
+            "default":"world"
+          },
           "cpus":{
             "description":"World pod CPU requirements",
             "type":"number",
@@ -103,6 +119,12 @@
             "description":"World pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":50
+          },
+          "disk_type": {
+            "title": "Disk type [ROOT, MOUNT]",
+            "description": "Mount volumes require preconfiguration in DC/OS",
+            "enum": [ "ROOT", "MOUNT" ],
+            "default": "ROOT"
           },
           "count":{
             "description":"Number of World pods to run",

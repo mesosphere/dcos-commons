@@ -24,17 +24,26 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "SERVICE_USER": "{{service.user}}",
+
+    "HELLO_MESSAGE": "{{hello.message}}",
     "HELLO_COUNT": "{{hello.count}}",
     "HELLO_CPUS": "{{hello.cpus}}",
     "HELLO_GPUS": "{{hello.gpus}}",
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
+    "HELLO_DISK_TYPE": "{{hello.disk_type}}",
     "HELLO_PLACEMENT": "{{hello.placement}}",
+
+    {{#world.message}}
+    "WORLD_MESSAGE": "{{world.message}}",
+    {{/world.message}}
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
     "WORLD_DISK": "{{world.disk}}",
+    "WORLD_DISK_TYPE": "{{world.disk_type}}",
     "WORLD_PLACEMENT": "{{world.placement}}",
+
     "SLEEP_DURATION": "{{service.sleep}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
