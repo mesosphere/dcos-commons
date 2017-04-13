@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -147,7 +148,14 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = schedulerBuilder.build();
+        DefaultScheduler defaultScheduler = null;
+        try {
+            defaultScheduler = schedulerBuilder.build();
+        } catch (ConfigStoreException e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
+
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         registerAndRunFramework(
                 defaultScheduler,

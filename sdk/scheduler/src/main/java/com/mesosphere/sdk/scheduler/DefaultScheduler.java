@@ -289,7 +289,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * @throws IllegalStateException if config validation failed when updating the target config for a default
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
-        public DefaultScheduler build() {
+        public DefaultScheduler build() throws ConfigStoreException {
             if (capabilities == null) {
                 this.capabilities = new Capabilities(new DcosCluster());
             }
@@ -338,9 +338,24 @@ public class DefaultScheduler implements Scheduler, Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
-                // A default deployment plan will automatically be generated:
-                plans = Collections.emptyList();
+                // Generate a default deployment plan will automatically be generated:
+                LOGGER.info("Generating default deploy plan.");
+                plans = Arrays.asList(
+                        new DeployPlanFactory(
+                                new DefaultPhaseFactory(
+                                        new DefaultStepFactory(configStore, stateStore)))
+                                .getPlan(configStore.fetch(configStore.getTargetConfig())));
             }
+
+            Optional<Plan> deploy = getDeployPlan(plans);
+            if (!deploy.isPresent()) {
+                throw new RuntimeException("No deploy plan provided.");
+            }
+
+            List<String> errors = configUpdateResult.errors.stream()
+                    .map(configValidationError -> configValidationError.toString())
+                    .collect(Collectors.toList());
+            deploy.get().setErrors(errors);
 
             return new DefaultScheduler(
                     serviceSpec,
@@ -555,21 +570,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Override this function to inject your own deployment plan manager.
      */
     protected void initializeDeploymentPlanManager() {
-        LOGGER.info("Initializing deployment plan...");
-        Optional<Plan> deploy = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst();
-        Plan deployPlan;
-        if (!deploy.isPresent()) {
-            LOGGER.info("No deploy plan provided. Generating one");
-            deployPlan =
-                    new DeployPlanFactory(
-                            new DefaultPhaseFactory(
-                                    new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
-        } else {
-            deployPlan = deploy.get();
-        }
-        deploymentPlanManager = new DefaultPlanManager(deployPlan);
+        LOGGER.info("Initializing deployment plan manager...");
+        deploymentPlanManager = new DefaultPlanManager(getDeployPlan());
 
         // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
@@ -685,6 +687,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         } catch (Exception ex) {
             LOGGER.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public void update(Observable observable) {
+        if (observable == planCoordinator) {
+            suppressOrRevive();
         }
     }
 
@@ -923,10 +932,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         revive();
     }
 
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive();
-        }
+    private Plan getDeployPlan() {
+        return getDeployPlan(plans).get();
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        return plans.stream()
+                .filter(plan -> plan.isDeployPlan())
+                .findFirst();
     }
 }
