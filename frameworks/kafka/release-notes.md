@@ -5,7 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-DC/OS Kafka version 1.1.20 is built using the DC/OS Commons SDK. See ‘src/main/dist/svc.yml’ for more information on how Kafka service is defined.
+DC/OS Kafka version 1.1.20 is built using the DC/OS Commons SDK. See `src/main/dist/svc.yml` for more information on how the service is defined.
 
 # config.json Changes in Version 1.1.20
 
