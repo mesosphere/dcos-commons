@@ -115,7 +115,7 @@ def test_topic_create():
     create_info = service_cli(
         'topic create {}'.format(EPHEMERAL_TOPIC_NAME)
     )
-    print(create_info)
+    utils.out(create_info)
     assert ('Created topic "%s".\n' % EPHEMERAL_TOPIC_NAME in create_info['message'])
     assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
     topic_list_info = service_cli('topic list')
