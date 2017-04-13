@@ -28,7 +28,8 @@ class UniverseReleaseBuilder(object):
                  http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
                  s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
                  release_docker_image = os.environ.get('RELEASE_DOCKER_IMAGE'),
-                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', '')): # default set below
+                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', ''),
+                 beta_release = os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
@@ -49,6 +50,7 @@ class UniverseReleaseBuilder(object):
         self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
         self._release_docker_image = release_docker_image or None
+        self._beta_release = beta_release.lower() == 'true'
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
@@ -370,9 +372,52 @@ class UniverseReleaseBuilder(object):
             json.dump(resource_json, f, indent=4, sort_keys=True)
 
 
+    def _add_beta_attributes(self, pkgdir):
+        if not self._beta_release:
+            return pkgdir
+
+        # Add the beta optin bool to config.json
+        config_file_name = os.path.join(pkgdir, 'config.json')
+        with open(config_file_name) as f:
+            config_json = json.load(f)
+            service_dict = config_json['properties']['service']
+            service_dict['properties']['beta-optin'] = {
+                "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
+                "type": "boolean",
+                "title": "Agree to Beta terms",
+                "default": ""
+            }
+            service_dict['required'].append('beta-optin')
+
+        with open(config_file_name, 'w') as f:
+            json.dump(config_json, f, indent=4)
+
+        # Add the beta prefix to package.json
+        package_file_name = os.path.join(pkgdir, 'package.json')
+        with open(package_file_name) as f:
+            package_json = json.load(f)
+            package_json['name'] = 'beta-' + str(package_json['name'])
+
+        with open(package_file_name, 'w') as f:
+            json.dump(package_json, f, indent=4)
+
+        # Rename the directory structure
+        parts = pkgdir.split('/')
+        parts[-2] = 'beta-' + parts[-2]
+        parts[-3] = 'B'
+        beta_pkg_dir = '/'.join(parts)
+        self._pkg_name = parts[-2]
+        shutil.copytree(pkgdir, beta_pkg_dir)
+        shutil.rmtree(pkgdir)
+        return beta_pkg_dir
+
+
     def release_zip(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
+        if self._beta_release:
+            pkgdir = self._add_beta_attributes(pkgdir)
+
         original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
         orig_docker_image = self._original_docker_image(pkgdir)
@@ -388,6 +433,8 @@ def print_help(argv):
     logger.info('Required credentials in env:')
     logger.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
     logger.info('- Github (Personal Access Token): GITHUB_TOKEN')
+    logger.info('Optional params in env:')
+    logger.info('- BETA: true/false')
     logger.info('Required CLI programs:')
     logger.info('- git')
     logger.info('- aws')
