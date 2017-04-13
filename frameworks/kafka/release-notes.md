@@ -7,11 +7,11 @@ enterprise: 'no'
 
 DC/OS Kafka version 1.1.20 is built using the DC/OS Commons SDK. See `src/main/dist/svc.yml` for more information on how the service is defined.
 
-# config.json Changes in Version 1.1.20
+# Changes in `config.json`
 
- - ‘placement_constraints’:  Marathon style placement constraints. `hostname:MAX_PER:1` is equal to `NODE placement_strategy` in DC/OS Kafka version 1.1.19
+ - `placement_constraints`:  Marathon style placement constraints. `hostname:MAX_PER:1` is equal to `NODE placement_strategy` in DC/OS Kafka version 1.1.19
 
- - ‘deploy_strategy’: Available strategies are serial, serial-canary, parallel-canary, and parallel. `INSTALL` in version 1.1.19 is same as ‘serial’ strategy. `STAGE` in version 1.1.19 is same as the ‘serial-canary’ strategy.
+ - `deploy_strategy`: Available strategies are serial, serial-canary, parallel-canary, and parallel. `INSTALL` in version 1.1.19 is same as ‘serial’ strategy. `STAGE` in version 1.1.19 is same as the ‘serial-canary’ strategy.
 
 # Plans
 DC/OS Kafka has one plan, called ‘deploy’. This plan has a  ‘Deployment’ phase with multiple steps that represent Kafka broker tasks.
