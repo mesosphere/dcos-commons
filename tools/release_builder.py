@@ -31,6 +31,7 @@ class UniverseReleaseBuilder(object):
                  release_dir_path = os.environ.get('RELEASE_DIR_PATH', ''),
                  beta_release = os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
+        self._force_upload = bool(os.environ.get('FORCE_ARTIFACT_UPLOAD', 'false'))
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
@@ -165,7 +166,7 @@ class UniverseReleaseBuilder(object):
         # manually delete the destination directory first. (and redirect stdout to stderr)
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
         ret = self._run_cmd(cmd, False, 1)
-        if ret == 0:
+        if ret == 0 and not self._force_upload:
             raise Exception('Release artifact destination already exists. ' +
                             'Refusing to continue until destination has been manually removed:\n' +
                             'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
