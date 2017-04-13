@@ -58,7 +58,7 @@ def merge_with_updates(branch):
         raise
 
 
-def main(args=sys.argv):
+def main(args=sys.argv[1:]):
     branch = parse_args(args).branch
     merge_with_updates(branch)
     return True
