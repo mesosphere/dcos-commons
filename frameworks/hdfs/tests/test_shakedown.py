@@ -10,7 +10,7 @@ import sdk_install as install
 import sdk_marathon as marathon
 import sdk_spin as spin
 import sdk_tasks as tasks
-import sdk_utils as utils
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
@@ -26,7 +26,7 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+    sdk_utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
@@ -201,7 +201,7 @@ def test_install():
 def test_bump_journal_cpus():
     check_healthy()
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    print('journal ids: ' + str(journal_ids))
+    sdk_utils.out('journal ids: ' + str(journal_ids))
 
     marathon.bump_cpu_count_config(PACKAGE_NAME, 'JOURNAL_CPUS')
 
@@ -214,7 +214,7 @@ def test_bump_data_nodes():
     check_healthy()
 
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
-    print('data ids: ' + str(data_ids))
+    sdk_utils.out('data ids: ' + str(data_ids))
 
     marathon.bump_task_count_config(PACKAGE_NAME, 'DATA_COUNT')
 
@@ -231,14 +231,14 @@ def test_modify_app_config():
     name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
     zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
-    print('journal ids: ' + str(journal_ids))
-    print('name ids: ' + str(name_ids))
-    print('zkfc ids: ' + str(zkfc_ids))
-    print('data ids: ' + str(data_ids))
+    sdk_utils.out('journal ids: ' + str(journal_ids))
+    sdk_utils.out('name ids: ' + str(name_ids))
+    sdk_utils.out('zkfc ids: ' + str(zkfc_ids))
+    sdk_utils.out('data ids: ' + str(data_ids))
 
     config = marathon.get_config(PACKAGE_NAME)
-    print('marathon config: ')
-    print(config)
+    sdk_utils.out('marathon config: ')
+    sdk_utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
     config['env'][app_config_field] = str(expiry_ms + 1)
     marathon.update_app(PACKAGE_NAME, config)
@@ -261,17 +261,17 @@ def test_modify_app_config_rollback():
     name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
     zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
-    print('journal ids: ' + str(journal_ids))
-    print('name ids: ' + str(name_ids))
-    print('zkfc ids: ' + str(zkfc_ids))
-    print('data ids: ' + str(data_ids))
+    sdk_utils.out('journal ids: ' + str(journal_ids))
+    sdk_utils.out('name ids: ' + str(name_ids))
+    sdk_utils.out('zkfc ids: ' + str(zkfc_ids))
+    sdk_utils.out('data ids: ' + str(data_ids))
 
     old_config = marathon.get_config(PACKAGE_NAME)
     config = marathon.get_config(PACKAGE_NAME)
-    print('marathon config: ')
-    print(config)
+    sdk_utils.out('marathon config: ')
+    sdk_utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
-    print('expiry ms: ' + str(expiry_ms))
+    sdk_utils.out('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
     marathon.update_app(PACKAGE_NAME, config)
 
@@ -279,8 +279,8 @@ def test_modify_app_config_rollback():
     tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
 
-    print('old config: ')
-    print(old_config)
+    sdk_utils.out('old config: ')
+    sdk_utils.out(old_config)
     # Put the old config back (rollback)
     marathon.update_app(PACKAGE_NAME, old_config)
 
@@ -362,7 +362,7 @@ def find_java_home(host):
     rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
     assert rc
     java_home = output.rstrip()
-    print("java_home: {}".format(java_home))
+    sdk_utils.out("java_home: {}".format(java_home))
     return java_home
     
     
@@ -376,15 +376,16 @@ def service_plan_complete(plan_name):
     def fun():
         try:
             pl = service_cli('plan show {}'.format(plan_name))
-            print('Running service_plan_complete for plan {}'.format(plan_name))
-            print(pl)
-            print('status = {}'.format(pl['status']))
+            sdk_utils.out('Running service_plan_complete for plan {}'.format(plan_name))
+            sdk_utils.out(pl)
+            sdk_utils.out('status = {}'.format(pl['status']))
             if pl['status'] == 'COMPLETE':
                 return True
         except:
-            traceback.print_exc()
+            tb = traceback.format_exc()
+            sdk_utils.out(tb)
             return False
-        print('Plan {} is not complete ({})'.format(plan_name, pl['status']))
+        sdk_utils.out('Plan {} is not complete ({})'.format(plan_name, pl['status']))
         return False
 
     return spin.time_wait_return(fun)

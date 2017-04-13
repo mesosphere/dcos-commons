@@ -1,5 +1,6 @@
 '''Utilities relating to waiting for an operation to complete'''
 
+import sdk_utils
 import shakedown
 
 import time
@@ -24,7 +25,8 @@ def time_wait_return(predicate, timeout_seconds=DEFAULT_TIMEOUT, ignore_exceptio
                 return False
         except Exception as e:
             if ignore_exceptions:
-                traceback.print_exc()
+                tb = traceback.format_exc()
+                sdk_utils.out(tb)
             else:
                 raise
     time_wait_noisy(
@@ -40,12 +42,13 @@ def time_wait_noisy(predicate, timeout_seconds=DEFAULT_TIMEOUT, ignore_exception
             result = predicate()
         except Exception as e:
             if ignore_exceptions:
-                traceback.print_exc()
+                tb = traceback.format_exc()
+                sdk_utils.out(tb)
                 return False
             else:
                 raise
         if not result:
-            print('[{}/{}] Waiting...'.format(
+            sdk_utils.out('[{}/{}] Waiting...'.format(
                 pretty_time(time.time() - start),
                 pretty_time(timeout_seconds)))
         return result
