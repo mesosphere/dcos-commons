@@ -46,7 +46,7 @@ node('infinity-small') {
                     string(credentialsId: '8e2b2400-0f14-4e4d-b319-e1360f97627d', variable: 'CCM_AUTH_TOKEN'),
                     string(credentialsId: 'd146870f-03b0-4f6a-ab70-1d09757a51fc', variable: 'GITHUB_TOKEN_REPO_STATUS'),
                 ]) {
-                    sh("CCM_DURATION=250 ./test.py --parallel --test-only")
+                    sh("TEST_TYPES=\"sanity not shutdown_node\" CCM_DURATION=250 ./test.py --parallel --test-only")
                 }
             }
         }
