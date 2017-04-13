@@ -21,7 +21,6 @@ ext {
 
 dependencies {
     compile project(":scheduler")
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     testCompile project(":testing")
 }
 
@@ -31,6 +30,7 @@ distZip.finalizedBy copyExecutor
 distributions {
     main {
         baseName = 'kafka-scheduler'
+	applicationName = 'kafka'
         version = ''
     }
 }

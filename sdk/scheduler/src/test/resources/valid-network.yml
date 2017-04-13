@@ -4,7 +4,7 @@ pods:
     count: 1
     # Define networks directly on the pod
     networks:
-      test: {}
+      test:
     tasks:
       server:
         goal: RUNNING

@@ -1,7 +1,12 @@
 ---
-layout: dev-basic
 title: SDK Developer Guide
+redirect_from: "/dev-guide/developer-guide"
 ---
+
+<!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
+* TOC GOES HERE AUTOMATICALLY
+{:toc}
+
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
@@ -190,22 +195,22 @@ The example below defines a service with two types of pods, each of which deploy
 ```yaml
 name: "hello-world"
 pods:
-    hello-pod:
-        count: 2
-        tasks:
-            hello-task:
-            goal: RUNNING
-            cmd: "echo hello && sleep 1000"
-            cpus: 0.1
-            memory: 512
-    world-pod:
-        count: 2
-        tasks:
-            world-task:
-            goal: RUNNING
-            cmd: "echo world && sleep 1000"
-            cpus: 0.1
-            memory: 512
+  hello-pod:
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
+  world-pod:
+    count: 2
+    tasks:
+      world-task:
+        goal: RUNNING
+        cmd: "echo world && sleep 1000"
+        cpus: 0.1
+        memory: 512
 ```
 
 There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying.
@@ -261,7 +266,7 @@ plans:
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
 
-![image alt text](image_0.png)
+![plans vs services](img/dev-guide-plans-vs-services.png)
 
 A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.
 
@@ -284,7 +289,7 @@ The pod parameter references the pod definition earlier in the `ServiceSpec`. Th
 
 The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.
 
-![image alt text](image_1.png)
+![deployment steps](img/dev-guide-deployment-steps.png)
 
 The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
 
@@ -378,7 +383,6 @@ Install your package using the following commands:
 dcos package repo remove hello-world-aws
 dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
 dcos package install --yes hello-world
-$
 ```
 
 The build.sh script takes an optional argument of aws or local:
@@ -431,19 +435,16 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
 
 ```
 {
-...
     "env": {
         "FRAMEWORK_NAME": "{{service.name}}",
         "HELLO_COUNT": "{{hello.count}}",
         "HELLO_CPUS": "{{hello.cpus}}",
-...
+        "...": "..."
     },
     "uris": [
-...
         "{{resource.assets.uris.scheduler-zip}}",
-...
+        "..."
     ],
-...
     "portDefinitions": [
         {
             "port": 0,
@@ -451,7 +452,8 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
             "name": "api",
             "labels": { "VIP_0": "/api.{{service.name}}:80" }
         }
-    ]
+    ],
+    "...": "..."
 }
 ```
 
@@ -466,29 +468,32 @@ The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/framewo
             "description": "DC/OS service configuration properties",
             "properties":{
                 "name" : {
-                "description":"The name of the service instance",
-                "type":"string",
-                "default":"hello-world"
-            },
-...
+                    "description":"The name of the service instance",
+                    "type":"string",
+                    "default":"hello-world"
+                },
+                "...": "..."
+            }
+        },
+        "hello":{
+            "type":"object",
+            "description":"Hello Pod configuration properties",
+            "properties":{
+                "cpus":{
+                    "description":"Hello Pod cpu requirements",
+                    "type":"number",
+                    "default":0.1
+                },
+                "count":{
+                    "description":"Number of Hello Pods to run",
+                    "type":"integer",
+                    "default":1
+                },
+                "...": "..."
+            }
         }
-
-    },
-    "hello":{
-        "description":"Hello Pod configuration properties",
-        "type":"object",
-        "properties":{
-            "cpus":{
-                "description":"Hello Pod cpu requirements",
-                "type":"number",
-                "default":0.1
-            },
-...
-            "count":{
-                "description":"Number of Hello Pods to run",
-                "type":"integer",
-                "default":1
-            },
+    }
+}
 ```
 
 The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
@@ -497,13 +502,11 @@ The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frame
 {
   "assets": {
     "uris": {
-...
       "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
-...
+      "...": "..."
     }
   },
-...
-  "cli":{
+  "...": "..."
 }
 ```
 
@@ -513,20 +516,20 @@ The `marathon.json.mustache` template pulls values from `config.json` and `resou
 
 The following is the typical flow of configuration values as represented by environment variables:
 
-![image alt text](image_2.png)
+![configuration values across files](img/dev-guide-configuration-values-across-files.png)
 
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 
 ```yaml
-...
+// ...
 pods:
     hello:
         count: {{HELLO_COUNT}}
         tasks:
             server:
-...
+                // ...
                 cpus: {{HELLO_CPUS}}
-...
+                // ...
 ```
 
 The port definition in `marathon.json.mustache` makes the `PORT0` environment variables available to the scheduler. The `HELLO_COUNT` and `HELLO_CPUS` environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered `marathon.json.mustache` template.
@@ -570,19 +573,19 @@ Recall the [rendered `ServiceSpec` from above](#rendered-spec). A single pod con
 
 ```
 {
-    phases: [{
-        id: "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
-        ame: "hello",
-        steps: [{
-            id: "2e3dde39-3ea3-408b-8e00-3346bef93054",
-            status: "COMPLETE",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    "phases": [{
+        "id": "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
+        "name": "hello",
+        "steps": [{
+            "id": "2e3dde39-3ea3-408b-8e00-3346bef93054",
+            "status": "COMPLETE",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
         }],
-        status: "COMPLETE"
+        "status": "COMPLETE"
     }],
-    errors: [],
-    status: "COMPLETE"
+    "errors": [],
+    "status": "COMPLETE"
 }
 ```
 
@@ -609,15 +612,13 @@ In the marathon.json.mustache template we defined an environment variable named 
 ```
 {
     "id": "/hello-world",
-    ...
     "env": {
-        ...
         "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "1"
+        "HELLO_COUNT": "1",
         "SLEEP_DURATION": "1000",
-        ...
+        "...": "..."
     },
-    ...
+    "...": "..."
 }
 ```
 
@@ -644,19 +645,19 @@ A new plan is then generated and execution begins:
 
 ```
 {
-    phases: [{
-        id: "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
-        name: "hello",
-        steps: [{
-            id: "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
-            status: "STARTING",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
+    "phases": [{
+        "id": "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
+        "name": "hello",
+        "steps": [{
+            "id": "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
+            "status": "STARTING",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
         }],
-        status: "STARTING"
+        "status": "STARTING"
     }],
-    errors: [],
-    status: "STARTING"
+    "errors": [],
+    "status": "STARTING"
 }
 ```
 
@@ -669,41 +670,38 @@ In the previous example, the change in target configuration affected currently r
 ```
 {
     "id": "/hello-world",
-    ...
     "env": {
-        ...
         "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "2"
+        "HELLO_COUNT": "2",
         "SLEEP_DURATION": "1000",
-        ...
+        "...": "..."
     },
-    ...
+    "...": "..."
 }
 ```
 
-This generates the following plan:
+This generates the following Plan:
 
 ```
 {
-
-    phases: [{
-        id: "25e741c8-a775-481e-9247-d9073002bb3d",
-        name: "hello",
-        steps: [{
-            id: "6780372e-9154-419b-91c4-e0347ca961af",
-            status: "COMPLETE",
-            name: "hello-0:[server]",
-            message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    "phases": [{
+        "id": "25e741c8-a775-481e-9247-d9073002bb3d",
+        "name": "hello",
+        "steps": [{
+            "id": "6780372e-9154-419b-91c4-e0347ca961af",
+            "status": "COMPLETE",
+            "name": "hello-0:[server]",
+            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
         }, {
-            id: "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
-            status: "PENDING",
-            name: "hello-1:[server]",
-            message: "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
+            "id": "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
+            "status": "PENDING",
+            "name": "hello-1:[server]",
+            "message": "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
         }],
-        status: "STARTING"
+        "status": "STARTING"
     }],
-    errors: [],
-    status: "STARTING"
+    "errors": [],
+    "status": "STARTING"
 }
 ```
 
@@ -879,26 +877,20 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and a failure blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
 
-You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you have a particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
+You can run integration tests manually using `py.test`.  The
+integration tests assume you have a running DC/OS cluster, and have
+installed the
+[DC/OS CLI](https://docs.mesosphere.com/1.8/usage/cli/install/).
 
-```python
-@pytest.mark.special
-def test_upgrade_downgrade():
-    ...
-```
-
-If the following command was entered in the shell:
+Here's an example of running the tests for the `helloworld` framework:
 
 ```bash
-$ export TEST_TYPES="special"
-```
-
-Then, only tests marked special would be executed.  A one line example is as follows:
-
-```bash
-$ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
+$ virtualenv -p python3 venv
+$ source venv/bin/activate
+$ pip install -r tools/requirements.txt
+$ py.test frameworks/helloworld/
 ```
 
 # Advanced DC/OS Service Definition
@@ -1282,11 +1274,9 @@ Including `bootstrap` in your tasks is a manual but straightforward operation. F
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-VERSION-linux-x64.tar.gz",
-      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-VERSION.tar.gz",
-      ...
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip", # include bootstrap.zip in package resources
-      ...
+      "...": "...",
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "...": "..."
     }
   }
 }
@@ -1299,11 +1289,9 @@ Including `bootstrap` in your tasks is a manual but straightforward operation. F
   "id": "{{service.name}}",
   "cpus": 1.0,
   "mem": 2048,
-  ...
   "env": {
-    ...
-    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}", # add url to scheduler env
-    ...
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    "...": "..."
   }
 }
 ```
@@ -1404,6 +1392,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy"></a>
 ### Proxy
 
 The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.
@@ -1523,7 +1512,7 @@ The YAML-based definition of plans is limited to defining custom deployment plan
 
 Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
 
-![image alt text](image_3.png)
+![plans and the offer cycle](img/dev-guide-plans-and-the-offer-cycle.png)
 
 There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
 
@@ -1594,7 +1583,7 @@ Then steps can be grouped in a phase with an accompanying strategy.
 
 ```java
 Phase phase = new DefaultPhase(
-        “phase-name”,
+        "phase-name",
         steps,
         new SerialStrategy<>(),
         Collections.emptyList()); // No errors
@@ -1604,7 +1593,7 @@ The phase defined above will execute its steps in a serial order. The phase can 
 
 ```java
 Plan customPlan = new DefaultPlan(
-        “plan-name”,
+        "plan-name",
         Arrays.asList(phase),
         new ParallelStrategy<>());
 ```

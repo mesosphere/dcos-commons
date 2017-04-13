@@ -98,11 +98,11 @@ public class PlansResourceTest {
 
         response = resource.continueCommand(planName, phaseId.toString());
         validateCommandResult(response, "continue");
-        verify(mockPhaseStrategy).proceed();
+        verify(mockPhase).proceed();
 
         response = resource.continueCommand(planName, phaseName);
         validateCommandResult(response, "continue");
-        verify(mockPhaseStrategy, times(2)).proceed();
+        verify(mockPhase, times(2)).proceed();
     }
 
     @Test

@@ -1,7 +1,8 @@
-import dcos.marathon
 import json
-import pytest
 import re
+
+import dcos.marathon
+import pytest
 import shakedown
 
 import sdk_cmd as cmd
@@ -10,14 +11,16 @@ import sdk_marathon as marathon
 import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_test_upgrade
-
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
     configured_task_count,
     hello_task_count,
     world_task_count,
-    check_running
+    check_running,
+    bump_hello_cpus,
+    bump_world_cpus
 )
 
 
@@ -42,35 +45,13 @@ def test_install():
 
 
 @pytest.mark.sanity
-def test_no_colocation_in_podtypes():
-    # check that no two 'hellos' and no two 'worlds' are colocated on the same agent
-    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
-    print(all_tasks)
-    hello_agents = []
-    world_agents = []
-    for task in all_tasks:
-        if task['name'].startswith('hello-'):
-            hello_agents.append(task['slave_id'])
-        elif task['name'].startswith('world-'):
-            world_agents.append(task['slave_id'])
-        else:
-            assert False, "Unknown task: " + task['name']
-    assert len(hello_agents) == len(set(hello_agents))
-    assert len(world_agents) == len(set(world_agents))
-
-
-@pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_cpus():
     check_running()
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    print('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['HELLO_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
+    updated_cpus = bump_hello_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
@@ -87,13 +68,9 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     check_running()
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    print('world ids: ' + str(world_ids))
+    sdk_utils.out('world ids: ' + str(world_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['WORLD_CPUS'])
-    updated_cpus = cpus + 0.1
-    config['env']['WORLD_CPUS'] = str(updated_cpus)
-    marathon.update_app(PACKAGE_NAME, config)
+    updated_cpus = bump_world_cpus()
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
@@ -111,12 +88,9 @@ def test_bump_hello_nodes():
     check_running()
 
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    print('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
-    config = marathon.get_config(PACKAGE_NAME)
-    node_count = int(config['env']['HELLO_COUNT']) + 1
-    config['env']['HELLO_COUNT'] = str(node_count)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
@@ -186,7 +160,8 @@ def test_state_properties_get():
     def check_for_nonempty_properties():
         stdout = cmd.run_cli('hello-world state properties')
         return len(json.loads(stdout)) > 0
-    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
+
+    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30)
 
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
@@ -208,7 +183,6 @@ def test_state_refresh_disable_cache():
     assert "Received cmd: refresh" in stdout
 
     config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
     config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
@@ -223,10 +197,10 @@ def test_state_refresh_disable_cache():
             if "failed: 409 Conflict" in e.args[0]:
                 return True
         return False
+
     spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
     config = marathon.get_config(PACKAGE_NAME)
-    cpus = float(config['env']['HELLO_CPUS'])
     del config['env']['DISABLE_STATE_CACHE']
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
@@ -236,8 +210,10 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
         return cmd.run_cli('hello-world state refresh_cache')
+
     stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout
+
 
 @pytest.mark.sanity
 def test_lock():
@@ -269,6 +245,7 @@ def test_lock():
     def fn():
         timestamp = marathon_client.get_app(app_id).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
+
     spin.time_wait_noisy(lambda: fn())
 
     # Verify ZK is unchanged

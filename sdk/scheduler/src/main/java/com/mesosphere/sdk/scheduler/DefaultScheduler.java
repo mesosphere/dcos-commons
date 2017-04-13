@@ -1,22 +1,16 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.*;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
-
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.config.*;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -26,30 +20,39 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.recovery.*;
+import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.PersistentLaunchRecorder;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -82,7 +85,6 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-    protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
@@ -91,8 +93,11 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
+
+    private JettyApiServer apiServer;
+    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -128,6 +133,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
         private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
+        private Collection<Object> resources = new ArrayList<>();
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
@@ -154,7 +160,15 @@ public class DefaultScheduler implements Scheduler, Observer {
                 // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
                 throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
             }
-            this.stateStoreOptional = Optional.of(stateStore);
+            this.stateStoreOptional = Optional.ofNullable(stateStore);
+            return this;
+        }
+
+        /**
+         * Specifies the resources which should be exposed through the scheduler's API server.
+         */
+        public Builder setResources(Collection<Object> resources) {
+            this.resources = resources;
             return this;
         }
 
@@ -180,7 +194,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * while also storing historical configurations.
          */
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-            this.configStoreOptional = Optional.of(configStore);
+            this.configStoreOptional = Optional.ofNullable(configStore);
             return this;
         }
 
@@ -192,7 +206,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
-            this.configValidatorsOptional = Optional.of(configValidators);
+            this.configValidatorsOptional = Optional.ofNullable(configValidators);
             return this;
         }
 
@@ -202,7 +216,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * and/or replaced.
          */
         public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.of(restartHook);
+            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -330,6 +344,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
             return new DefaultScheduler(
                     serviceSpec,
+                    resources,
                     plans,
                     stateStore,
                     configStore,
@@ -474,6 +489,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
+            Collection<Object> resources,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
@@ -482,6 +498,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
         this.serviceSpec = serviceSpec;
+        this.resources = resources;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
@@ -493,17 +510,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     public Collection<Object> getResources() throws InterruptedException {
-        if (resources == null) {
-            // Wait up to 60 seconds for resources to be available. This should be
-            // near-instantaneous, we just have an explicit deadline to avoid the potential for
-            // waiting indefinitely.
-            resources = resourcesQueue.poll(AWAIT_RESOURCES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            if (resources == null) {
-                throw new RuntimeException(String.format(
-                        "Timed out waiting %dms for resources from scheduler", AWAIT_RESOURCES_TIMEOUT_MS));
-            }
-        }
-
         return resources;
     }
 
@@ -522,6 +528,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeRecoveryPlanManager();
         initializePlanCoordinator();
         initializeResources();
+        initializeApiServer();
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
@@ -556,7 +563,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
             deployPlan =
-                    new DefaultPlanFactory(
+                    new DeployPlanFactory(
                             new DefaultPhaseFactory(
                                     new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
         } else {
@@ -616,7 +623,6 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
-        Collection<Object> resources = new ArrayList<>();
         resources.add(new ArtifactResource(configStore));
         resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
@@ -632,8 +638,34 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
-        // use add() instead of put(): throw exception instead of waiting indefinitely
-        resourcesQueue.add(resources);
+    }
+
+    private void initializeApiServer() {
+        if (apiServerReady()) {
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LOGGER.info("Starting API server.");
+                    apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
+                    apiServer.start();
+                } catch (Exception e) {
+                    LOGGER.error("API Server failed with exception: ", e);
+                } finally {
+                    LOGGER.info("API Server exiting.");
+                    try {
+                        if (apiServer != null) {
+                            apiServer.stop();
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to stop API server with exception: ", e);
+                    }
+                }
+            }
+        }).start();
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
@@ -682,23 +714,41 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         this.driver = driver;
-        reconciler.start();
-        reconciler.reconcile(driver);
-        revive();
+        postRegister();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        reconciler.start();
-        reconciler.reconcile(driver);
-        suppressOrRevive();
+        postRegister();
+    }
+
+    public boolean apiServerReady() {
+        boolean serverStarted = apiServer != null && apiServer.isStarted();
+
+        if (serverStarted) {
+            apiServerStopwatch.reset();
+        } else if (
+                apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > SchedulerFlags.getApiServerTimeout().toMillis()) {
+            LOGGER.error(
+                    "API Server failed to start within {} seconds.",
+                    SchedulerFlags.getApiServerTimeout().getSeconds());
+            SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+        }
+
+        return serverStarted;
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
+            if (!apiServerReady()) {
+                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
+                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                return;
+            }
+
             LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
             for (int i = 0; i < offers.size(); ++i) {
                 LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
@@ -865,6 +915,12 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Reviving offers.");
         driver.reviveOffers();
         StateStoreUtils.setSuppressed(stateStore, false);
+    }
+
+    private void postRegister() {
+        reconciler.start();
+        reconciler.reconcile(driver);
+        revive();
     }
 
     @Override

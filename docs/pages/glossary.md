@@ -1,5 +1,4 @@
 ---
-layout: gh-basic
 title: Glossary
 ---
 
@@ -11,7 +10,7 @@ A Deploy Plan explicity defines the order in which work needs to be performed in
 ## H
 
 ### Health Check
-A health check is a command that can be executed periodically to determine whether or not a given task is healthy. 
+A health check is a command that can be executed periodically to determine whether or not a given task is healthy.
 
 ## P
 

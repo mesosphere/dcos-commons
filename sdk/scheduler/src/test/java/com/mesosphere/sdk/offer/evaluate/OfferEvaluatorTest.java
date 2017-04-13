@@ -3,6 +3,10 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -10,12 +14,15 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.testutils.*;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -323,22 +330,56 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
+    public void testConsumeMultipleMountVolumesSuccess() throws Exception {
+        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource offeredResourceA = ResourceTestUtils.getUnreservedMountVolume(2000);
+        Resource offeredResourceB = ResourceTestUtils.getUnreservedMountVolume(3000);
+
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResourceA, offeredResourceB));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                Arrays.asList(desiredResourceA, desiredResourceB), false);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(3).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(4).getOperation().getType());
+    }
+
+    @Test
+    public void testConsumeMultipleMountVolumesFailure() throws Exception {
+        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResource));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                Arrays.asList(desiredResourceA, desiredResourceB), false);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
     public void testReserveCreateLaunchMountVolume() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(1000);
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                        Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
         Assert.assertEquals(3, recommendations.size());
 
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource =
-            reserveOperation
-            .getReserve()
-            .getResourcesList()
-            .get(0);
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
@@ -352,10 +393,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstLabel(reserveResource).getValue();
         Operation createOperation = recommendations.get(1).getOperation();
         Resource createResource =
-            createOperation
-            .getCreate()
-            .getVolumesList()
-            .get(0);
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
 
         Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
@@ -367,12 +408,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String persistenceId = createResource.getDisk().getPersistence().getId();
         Operation launchOperation = recommendations.get(2).getOperation();
         Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
@@ -973,6 +1014,70 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+    }
+
+    @Test
+    public void testReplaceDeployStep() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal-volume.yml").getFile());
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.create(podInstance, Arrays.asList("task-name"));
+        DeploymentStep deploymentStep = new DeploymentStep(
+                "test-step",
+                Status.PENDING,
+                podInstanceRequirement,
+                Collections.emptyList());
+
+        Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
+                ResourceUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceUtils.getUnreservedScalar("mem", 1024),
+                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                deploymentStep.start().get(),
+                Arrays.asList(sufficientOffer));
+
+        Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
+        Operation launchOperation = recommendations.get(4).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        recordOperations(recommendations);
+
+        deploymentStep.updateOfferStatus(recommendations);
+        Assert.assertEquals(Status.STARTING, deploymentStep.getStatus());
+
+        // Simulate an initial failure to deploy.  Perhaps the CREATE operation failed
+        deploymentStep.update(
+                TaskStatus.newBuilder()
+                        .setTaskId(taskInfo.getTaskId())
+                        .setState(TaskState.TASK_ERROR)
+                        .build());
+
+        Assert.assertEquals(Status.PENDING, deploymentStep.getStatus());
+        stateStore.storeTasks(Arrays.asList(FailureUtils.markFailed(taskInfo)));
+
+        Assert.assertTrue(FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskInfo.getName()).get()));
+
+        recommendations = evaluator.evaluate(
+                deploymentStep.start().get(),
+                Arrays.asList(sufficientOffer));
+        Assert.assertEquals(recommendations.toString(), 5, recommendations.size());
+
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {

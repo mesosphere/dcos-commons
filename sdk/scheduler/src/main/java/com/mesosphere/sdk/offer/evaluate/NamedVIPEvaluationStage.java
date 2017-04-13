@@ -3,6 +3,8 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 
+import java.util.Optional;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
@@ -21,28 +23,18 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     public NamedVIPEvaluationStage(
             Protos.Resource resource,
             String taskName,
-            String envKey,
-            Integer port,
+            String portName,
+            int port,
+            Optional<String> customEnvKey,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
             Integer vipPort) {
-        super(resource, taskName, envKey, port);
+        super(resource, taskName, portName, port, customEnvKey);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
-    }
-
-    public NamedVIPEvaluationStage(
-            Protos.Resource resource,
-            String portName,
-            Integer port,
-            String protocol,
-            DiscoveryInfo.Visibility visibility,
-            String vipName,
-            Integer vipPort) {
-        this(resource, null, portName, port, protocol, visibility, vipName, vipPort);
     }
 
     @Override

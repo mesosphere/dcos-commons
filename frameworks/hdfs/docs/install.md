@@ -1,33 +1,38 @@
 ---
 post_title: Install and Customize
-menu_order: 10
+menu_order: 0
 feature_maturity: preview
 enterprise: 'no'
 ---
 
-# About installing HDFS on Enterprise DC/OS
+HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
 
- <a name="install-enterprise"></a>
- In Enterprise DC/OS `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security), HDFS requires a service account. In `permissive`, a service account is optional. Only someone with `superuser` permission can create the service account. Refer to [Provisioning HDFS](https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/service-auth/hdfs-auth/) for instructions.
+## Prerequisites
+
+- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/hdfs-auth/) before installing HDFS. Only someone with `superuser` permission can create the service account.
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
+	- `permissive` security mode a service account is optional.
+	- `disabled` security mode does not require a service account.
+- A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
+- Each agent node must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
 
 # Default Installation
 
-## Prerequisite
-
-* A DC/OS cluster with at least 5 agent nodes, each with 8 Gb of memory and 10 Gb of disk available. Each agent must have 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007 available.
-
-## Install
-Install HDFS from the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. See the About Installing Kafka on Enterprise DC/OS for more information.
+Install HDFS from the DC/OS CLI.
 
 ```bash
 $ dcos package install hdfs
 ```
 
-This command creates a new HDFS cluster with 2 name nodes, 3 journal nodes, and 5 data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the `name` at install time for each additional instance. See the Custom Installation section for more information.
+This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the `name` at install time for each additional instance. See the Custom Installation section for more information.
 
 The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
 
-**Note:** Alternatively, you can [install HDFS from the DC/OS GUI](https://docs.mesosphere.com/1.9/usage/managing-services/install/).
+**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+
+```bash
+dcos package install hdfs --cli
+```
 
 # Custom Installation
 

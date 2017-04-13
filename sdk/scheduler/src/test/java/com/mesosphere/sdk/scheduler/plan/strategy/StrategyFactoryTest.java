@@ -3,6 +3,8 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
+import java.util.Collections;
+
 public class StrategyFactoryTest {
 
     @Test
@@ -22,16 +24,18 @@ public class StrategyFactoryTest {
 
     @Test
     public void testParallelStep() {
-        Assert.isInstanceOf(ParallelStrategy.class, StrategyFactory.generateForSteps("parallel"));
+        Assert.isInstanceOf(
+                ParallelStrategy.class,
+                StrategyFactory.generateForSteps("parallel", Collections.emptyList()));
     }
 
     @Test
     public void testSerialStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps("serial"));
+        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps("serial", Collections.emptyList()));
     }
 
     @Test
     public void testNullStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps(null));
+        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps(null, Collections.emptyList()));
     }
 }

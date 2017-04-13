@@ -1,11 +1,13 @@
+import time
+
 import pytest
 
-from tests.config import *
 import sdk_install as install
-import sdk_tasks as tasks
 import sdk_marathon as marathon
-import sdk_utils as utils
+import sdk_tasks as tasks
 import sdk_test_upgrade
+import sdk_utils as utils
+from tests.config import *
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -92,10 +94,14 @@ def test_losing_and_regaining_index_health(default_populated_index):
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
     shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "master__.*Elasticsearch")
-    check_new_elasticsearch_master_elected(initial_master)
+    # Master re-election can take up to 3 seconds by default
+    time.sleep(3)
+    new_master = get_elasticsearch_master()
+    assert new_master.startswith("master") and new_master != initial_master
 
 
 @pytest.mark.recovery
@@ -117,7 +123,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
 @pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
-    shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")
+    shakedown.kill_process_on_host(marathon.get_scheduler_host(PACKAGE_NAME), "elastic.scheduler.Main")
     tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     current_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     assert initial_task_ids == current_task_ids
@@ -129,7 +135,6 @@ def test_kibana_proxylite_adminrouter_integration():
     check_kibana_proxylite_adminrouter_integration()
 
 
-@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/ELASTIC-58")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():

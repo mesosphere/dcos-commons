@@ -1,5 +1,4 @@
 ---
-layout: tutorials-basic
 title: Data Store Tutorial
 ---
 
@@ -43,7 +42,7 @@ com/mesosphere/sdk-reference-framework).
 
 ## Architecture
 
-![DC/OS Service Architecture](architecture.png)
+![DC/OS Service Architecture](../img/data-store-tutorial-architecture.png)
 
 A DC/OS service is composed of **schedulers** and **executors**.  The
 scheduler is run by Marathon, which supervises the scheduler,
@@ -89,7 +88,6 @@ repositories {
 
 dependencies {
     compile "mesosphere:dcos-commons:0.7.10-SNAPSHOT"
-    compile "org.slf4j:slf4j-simple:1.7.21"
 }
 
 task wrapper(type: Wrapper) {

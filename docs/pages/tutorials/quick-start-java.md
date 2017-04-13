@@ -1,5 +1,4 @@
 ---
-layout: tutorials-basic
 title: Quick Start (Java)
 ---
 
@@ -13,7 +12,7 @@ Get started by forking: https://github.com/mesosphere/dcos-commons and cloning i
 
 ```bash
 $ cd dcos-commons
-(dcos-commons)$ 
+(dcos-commons)$
 ```
 
 ### Step 1 - Provision a Dev DC/OS Cluster
@@ -35,7 +34,7 @@ And, finally change the directory to `/dcos-commons`. This is where the source c
 
 ```bash
 $ cd /dcos-commons/
-(dcos-commons)$ 
+(dcos-commons)$
 ```
 
 ### Step 2 - Initialize the Service Project
@@ -118,7 +117,7 @@ ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
 In above specification, we have:
 * Defined a service with name `helloworld-java` using `.name("helloworld-java")`
 * Configured the service to use ZooKeeper at `master.mesos:2181` for storing framework state and configuration using `.zookeeperConnection("master.mesos:2181")`
-* Configured the API port using `.apiPort(8080)`. By default, each service comes with a default set of useful APIs that enables operationalization. 
+* Configured the API port using `.apiPort(8080)`. By default, each service comes with a default set of useful APIs that enables operationalization.
 * Defined a pod specification for our `helloworld` pod using:
 
 ```java

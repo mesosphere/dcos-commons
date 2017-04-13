@@ -6,9 +6,6 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
-    container:
-      networks:
-        dcos: {}
     tasks:
       server:
         goal: RUNNING

@@ -54,12 +54,13 @@ function run_framework_tests {
 echo "Beginning integration tests at "`date`
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 cd $REPO_ROOT_DIR
 
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
 if [ -z "$CLUSTER_URL" ]; then
     echo "CLUSTER_URL is empty/unset, launching new cluster."
-    export CCM_AGENTS=5
+    export CCM_AGENTS=6
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
     echo "Launched cluster: ${CLUSTER_INFO}"
     # jq emits json strings by default: "value".  Use --raw-output to get value without quotes

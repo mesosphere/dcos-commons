@@ -1,7 +1,8 @@
 ---
-layout: tutorials-basic
-title: Kafka Tutorial 
+title: Kafka Tutorial
 ---
+
+<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 In this tutorial we'll be walking through step-by-step instructions on getting a Kafka service up and running. This tutorial assumes you've already setup a local cluster using the [Quick Start](https://github.com/mesosphere/dcos-commons/blob/master/README.md) guide and that you're in the VM environment.
 
@@ -21,10 +22,10 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
    ```
 
 6. Now, let's modify the command that will start each `broker`. This is also a property of the `broker` task:
-   
+
    ```
    cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
-   ``` 
+   ```
 7. Adding this to each `broker` will fetch the Kafka binary in order to execute the above command:
 
    ```
@@ -49,7 +50,7 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
    ```
    cd ../resources && ln -s ../dist/server.properties.mustache && ls -l
    ```
-  
+
 11. Open `/dcos-commons/examples/kafka/src/test/java/com/mesosphere/sdk/kafka/scheduler/ServiceSpecTest.java` and add the following beneath the currently set environment variables and make sure to import the URL type:
    ```
    // place at top
@@ -64,7 +65,7 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
    ```
    "CONFIG_TEMPLATE_PATH": "scheduler",
    ```
-   
+
 14. Run the following command from the root directory of the service:
    ```
 	 cd /dcos-commons/examples/kafka && ./build.sh local

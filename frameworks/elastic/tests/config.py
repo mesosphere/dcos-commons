@@ -2,10 +2,9 @@ import json
 from functools import wraps
 
 import shakedown
-
+import sdk_utils
 
 PACKAGE_NAME = 'elastic'
-MASTER_VIP = "http://master.{}.l4lb.thisdcos.directory:9200".format(PACKAGE_NAME)
 DEFAULT_TASK_COUNT = 9
 WAIT_TIME_IN_SECONDS = 6 * 60
 KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
@@ -66,7 +65,7 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    print('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
+    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 
@@ -94,20 +93,9 @@ def check_plugin_uninstalled(plugin_name):
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
-def new_master_elected_success_predicate(initial_master):
-    result = get_elasticsearch_master()
-    return result.startswith("master") and result != initial_master
-
-
-def check_new_elasticsearch_master_elected(initial_master):
-    return shakedown.wait_for(lambda: new_master_elected_success_predicate(initial_master),
-                              timeout_seconds=WAIT_TIME_IN_SECONDS)
-
-
 def get_elasticsearch_master():
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET")))
-    master = output.split()[-1]
-    return master
+    exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET", "coordinator")))
+    return output.split()[-1]
 
 
 def get_hosts_with_plugin(plugin_name):
@@ -172,9 +160,6 @@ def get_document(index_name, index_type, doc_id):
     return output
 
 
-def curl_api(method):
-    return ("curl -X{} -s -u elastic:changeme '" + MASTER_VIP).format(method)
-
-
-def get_marathon_host():
-    return shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()
+def curl_api(method, role="master"):
+    vip = "http://{}.{}.l4lb.thisdcos.directory:9200".format(role, PACKAGE_NAME)
+    return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import json
 import logging
@@ -6,20 +6,14 @@ import os
 import os.path
 import random
 import shutil
-import stat
 import string
 import subprocess
 import sys
 import tempfile
 
+import cli_install
 import dcos_login
 import github_update
-
-try:
-    from urllib.request import URLopener
-except ImportError:
-    # Python 2
-    from urllib import URLopener
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -27,16 +21,20 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 class CITester(object):
 
-    def __init__(self, dcos_url, github_label):
-        self._CLI_URL_TEMPLATE = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/latest/{}'
+    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None):
         self._dcos_url = dcos_url
-        self._sandbox_path = ''
+        self._sandbox_path = sandbox_path
+        self._cli_path = cli_path
         self._github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
 
 
     def _configure_cli_sandbox(self):
-        self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
+        if not self._sandbox_path:
+            self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
+        # ask for unbuffered stdout, since test output randomly uses stdout
+        # vs stderr
+        custom_env['PYTHONUNBUFFERED'] = "yes"
         # must be custom for CLI to behave properly:
         custom_env['HOME'] = self._sandbox_path
         # prepend HOME (where CLI binary is downloaded) to PATH:
@@ -52,26 +50,12 @@ class CITester(object):
 
 
     def _download_cli_to_sandbox(self):
-        cli_filename = 'dcos'
-        if sys.platform == 'win32':
-            cli_platform = 'windows'
-            cli_filename = 'dcos.exe'
-        elif sys.platform == 'linux2' or sys.platform == 'linux':
-            cli_platform = 'linux'
-        elif sys.platform == 'darwin':
-            cli_platform = 'darwin'
-        else:
-            raise Exception('Unsupported platform: {}'.format(sys.platform))
-        cli_url = self._CLI_URL_TEMPLATE.format(cli_platform, cli_filename)
-        cli_filepath = os.path.join(self._sandbox_path, cli_filename)
-        local_path = os.environ.get('DCOS_CLI_PATH', '')
+        # TODO: provide non-env interface to copy a dcos cli
+        local_path = os.environ.get('DCOS_CLI_PATH')
         if local_path:
-            logger.info('Copying {} to {}'.format(local_path, cli_filepath))
-            shutil.copyfile(local_path, cli_filepath)
+            cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
-            logger.info('Downloading {} to {}'.format(cli_url, cli_filepath))
-            URLopener().retrieve(cli_url, cli_filepath)
-        os.chmod(cli_filepath, 0o755)
+            cli_filepath = cli_install.download_cli(self._dcos_url, self._sandbox_path)
         return cli_filepath
 
 
@@ -111,19 +95,21 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_txt=None, pytest_types='sanity'):
+        normal_path = test_dirs.rstrip(os.sep)
+        framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'shakedown_env')
             # produce test report for consumption by Jenkins:
-            partial_path = test_dirs.split(os.sep)[-3:]
-            path_based_name = "%s-%s" % ("_".join(partial_path), "shakedown-report.xml")
+            path_based_name = "%s-%s" % (framework, "shakedown-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                           framework, 'shakedown_env')
             jenkins_args = ''
-        if requirements_txt:
+        if requirements_txt is not None:
             logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
         else:
             # generate default requirements:
@@ -171,15 +157,17 @@ py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
+        normal_path = test_dirs.rstrip(os.sep)
+        framework = os.path.basename(os.path.dirname(normal_path))
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'dcostests_env')
             # produce test report for consumption by Jenkins:
-            partial_path = test_dirs.split(os.sep)[-3:]
-            path_based_name = "%s-%s" % ("_".join(partial_path), "dcostests-report.xml")
+            path_based_name = "%s-%s" % (framework, "dcostests-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                           framework, 'dcostests_env')
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_dcos_tests.sh')
@@ -272,7 +260,7 @@ def main(argv):
                 requirements_txt = argv[3]
             else:
                 # use default requirements
-                requirements_txt = ''
+                requirements_txt = None
             tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]

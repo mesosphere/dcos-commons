@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && ./spark-standalone-scheduler/bin/spark ./spark-standalone-scheduler/{{service.spec_file}}",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./spark-standalone-scheduler/bin/spark ./spark-standalone-scheduler/svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -28,6 +28,7 @@
     "PROXYLITE_CPUS": "{{service.proxylite.cpus}}",
     "PROXYLITE_MEM": "{{service.proxylite.mem}}",
     "PROXYLITE_PORT": "{{service.proxylite.port}}",
+    "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "SPARK_URI": "{{resource.assets.uris.spark-tar-gz}}",
@@ -43,6 +44,26 @@
     "minimumHealthCapacity": 0,
     "maximumOverCapacity": 0
   },
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "path": "/v1/plans/deploy",
+      "gracePeriodSeconds": 900,
+      "intervalSeconds": 30,
+      "portIndex": 0,
+      "timeoutSeconds": 30,
+      "maxConsecutiveFailures": 0
+    },
+    {
+      "protocol": "HTTP",
+      "path": "/v1/plans/recovery",
+      "gracePeriodSeconds": 900,
+      "intervalSeconds": 30,
+      "portIndex": 0,
+      "timeoutSeconds": 30,
+      "maxConsecutiveFailures": 0
+    }
+  ],
   "portDefinitions": [
     {
       "port": 0,

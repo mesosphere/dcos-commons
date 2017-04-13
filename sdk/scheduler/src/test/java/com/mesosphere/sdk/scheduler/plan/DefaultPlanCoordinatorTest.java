@@ -158,7 +158,7 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
-        final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManager = new DefaultPlanManager(plan);
         planManager.getPlan().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
@@ -169,7 +169,7 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerPendingInSufficientOffer() throws Exception {
-        final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan)), planScheduler);
         Assert.assertEquals(0, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
@@ -178,7 +178,7 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerComplete() throws Exception {
-        final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         plan.getChildren().get(0).getChildren().get(0).forceComplete();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan)), planScheduler);
@@ -188,8 +188,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersPendingPlansDisjointAssets() throws Exception {
-        final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA);
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB);
         planManagerA.getPlan().proceed();
@@ -202,11 +202,11 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersPendingPlansSameAssets() throws Exception {
-        final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         ServiceSpec serviceSpecB = DefaultServiceSpec.newBuilder(serviceSpecification)
                 .name(serviceSpecification.getName() + "-B")
                 .build();
-        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecB);
+        final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
         planManagerA.getPlan().proceed();
@@ -227,8 +227,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersCompletePlans() throws Exception {
-        final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA);
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB);
 
@@ -244,8 +244,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersPendingPlansSameAssetsDifferentOrder() throws Exception {
-        final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
         planManagerA.getPlan().proceed();
@@ -272,5 +272,22 @@ public class DefaultPlanCoordinatorTest {
 
         Assert.assertTrue(planB.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.STARTING));
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
+    }
+
+    @Test
+    public void testHasOperations() throws Exception {
+        final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final PlanManager planManagerA = new DefaultPlanManager(planA);
+        final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Arrays.asList(planManagerA),
+                planScheduler);
+
+        Assert.assertFalse(coordinator.hasOperations());
+
+        planManagerA.getPlan().proceed();
+        Assert.assertTrue(coordinator.hasOperations());
+
+        planManagerA.getPlan().getChildren().get(0).getChildren().get(0).forceComplete();
+        Assert.assertFalse(coordinator.hasOperations());
     }
 }

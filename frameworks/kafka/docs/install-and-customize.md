@@ -5,25 +5,34 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-# About installing Kafka on Enterprise DC/OS
+Kafka is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
 
- <a name="install-enterprise"></a>
- In Enterprise DC/OS `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security), Kafka requires a service account. In `permissive`, a service account is optional. Only someone with `superuser` permission can create the service account. Refer to [Provisioning Kafka](https://docs.mesosphere.com/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) for instructions.
+##  <a name="install-enterprise"></a>Prerequisites
 
+- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account.
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
+	- `permissive` security mode a service account is optional.
+	- `disabled` security mode does not require a service account.
+- Your cluster must have at least three private nodes.
+  
 # Default Installation
 
 To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing Kafka on Enterprise DC/OS](#install-enterprise).
 
     $ dcos package install kafka
-    
+
 
 This command creates a new Kafka cluster with the default name `kafka`. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires [customizing the `name` at install time][4] for each additional instance.
 
 All `dcos kafka` CLI commands have a `--name` argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, `kafka`. The default value for `--name` can be customized via the DC/OS CLI configuration:
 
     $ dcos kafka --name kafka-dev <cmd>
-    
-**Note:** You can also [install Kafka from the DC/OS GUI](https://docs.mesosphere.com/1.8/usage/managing-services/install/).
+
+**Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+
+```bash
+dcos package install kafka --cli
+```
 
 # Minimal Installation
 
@@ -38,12 +47,12 @@ To start a minimal cluster with a single broker, create a JSON options file name
             "disk": 1000
         }
     }
-    
+
 
 The command below creates a cluster using `sample-kafka-minimal.json`:
 
     $ dcos package install --options=sample-kafka-minimal.json kafka
-    
+
 <a name="custom-installation"></a>
 # Custom Installation
 
@@ -64,12 +73,12 @@ Sample JSON options file named `sample-kafka-custom.json`:
             "log_retention_hours": 128
         }
     }
-    
+
 
 The command below creates a cluster using `sample-kafka.json`:
 
     $ dcos package install --options=sample-kafka-custom.json kafka
-    
+
 
 See [Configuration Options][6] for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.
 
@@ -83,7 +92,7 @@ Installing multiple Kafka clusters is identical to installing Kafka clusters wit
             "name": "kafka1"
         }
     }
-    
+
     $ dcos package install kafka --options=kafka1.json
 
  [4]: #custom-installation
