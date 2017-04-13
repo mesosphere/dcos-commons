@@ -304,14 +304,12 @@ _ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED NODE-
 
 ### Updating Placement Constraints
 
-TODO(nickbp): Placement constraint updates currently aren't well tested. This is at your own risk.
+Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
 
-~~Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.~~
+Let's say we have the following deployment of our nodes
 
-~~Let's say we have the following deployment of our nodes~~
-
-- ~~Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`~~
-- ~~Tasks:~~
+- Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
+- Tasks:
 ```
 10.0.10.3: _NODEPOD_-0
 10.0.10.8: _NODEPOD_-1
@@ -320,15 +318,15 @@ TODO(nickbp): Placement constraint updates currently aren't well tested. This is
 10.0.10.84: empty
 ```
 
-~~`10.0.10.8` is being decommissioned and we should move away from it. Steps:~~
+`10.0.10.8` is being decommissioned and we should move away from it. Steps:
 
-1. ~~Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `NODE_PLACEMENT`:~~
+1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `NODE_PLACEMENT`:
 
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. ~~Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pods replace _NODEPOD_-1`~~
-1. ~~Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.~~
+1. Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pods replace _NODEPOD_-1`
+1. Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.
 
 ### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
 
