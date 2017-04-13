@@ -461,6 +461,8 @@ def run_tests(run_attrs, repo_root):
             all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
             all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
+        if not all_passed:
+            raise Exception("Some tests failed.")
     finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
