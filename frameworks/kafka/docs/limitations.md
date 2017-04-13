@@ -30,4 +30,4 @@ enterprise: 'no'
 
 * Monitoring
 
-    JMX and Statsd are deprecated <!--in favor of....??? -->
+    JMX and Statsd are deprecated. <!--in favor of....??? -->
