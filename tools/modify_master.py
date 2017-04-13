@@ -104,6 +104,7 @@ def set_local_infinity_defaults():
         'MESOS_MAX_AGENT_PING_TIMEOUTS': '4'
     }
     set_master_envvars(modified_envvars)
+    time.sleep(30) # XXX hack
 
 
 if __name__ == "__main__":
