@@ -56,16 +56,3 @@ def test_repair_plan_completes():
             'COMPLETE'
         )
     )
-
-
-@pytest.mark.sanity
-def test_upgrade_sstables_plan_completes():
-    upgrade_sstables_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
-
-    plan.start_plan(PACKAGE_NAME, 'upgradesstables', parameters=upgrade_sstables_parameters)
-    spin.time_wait_noisy(
-        lambda: (
-            plan.get_plan(PACKAGE_NAME, 'upgradesstables').json()['status'] ==
-            'COMPLETE'
-        )
-    )
