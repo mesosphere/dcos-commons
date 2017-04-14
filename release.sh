@@ -64,7 +64,7 @@ else
         echo "Requested tag release version may not contain 'SNAPSHOT'."
         exit 1
     fi
-    sed -i "s/version = \\\"${SDK_VERSION}\\\"/version = \\\"${FLAG_RELEASE}\\\"/" $GRADLE_BUILD_FILE
+    sed -i "s/version = '${SDK_VERSION}'/version = '${FLAG_RELEASE}'/" $GRADLE_BUILD_FILE
     export SDK_VERSION=$FLAG_RELEASE
     git add $GRADLE_BUILD_FILE
     git commit -m "Automated cut of $FLAG_RELEASE"
