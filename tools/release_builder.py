@@ -31,6 +31,7 @@ class UniverseReleaseBuilder(object):
                  release_dir_path = os.environ.get('RELEASE_DIR_PATH', ''),
                  beta_release = os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
+        self._force_upload = bool(os.environ.get('FORCE_ARTIFACT_UPLOAD', 'false'))
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
@@ -165,7 +166,7 @@ class UniverseReleaseBuilder(object):
         # manually delete the destination directory first. (and redirect stdout to stderr)
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
         ret = self._run_cmd(cmd, False, 1)
-        if ret == 0:
+        if ret == 0 and not self._force_upload:
             raise Exception('Release artifact destination already exists. ' +
                             'Refusing to continue until destination has been manually removed:\n' +
                             'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
@@ -387,7 +388,8 @@ class UniverseReleaseBuilder(object):
                 "title": "Agree to Beta terms",
                 "default": ""
             }
-            service_dict['required'].append('beta-optin')
+            required_list = service_dict.setdefault('required', [])
+            required_list.append('beta-optin')
 
         with open(config_file_name, 'w') as f:
             json.dump(config_json, f, indent=4)
@@ -420,8 +422,10 @@ class UniverseReleaseBuilder(object):
 
         original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
-        orig_docker_image = self._original_docker_image(pkgdir)
-        if orig_docker_image and self._release_docker_image:
+        if self._release_docker_image:
+            orig_docker_image = self._original_docker_image(pkgdir)
+            if not orig_docker_image:
+                raise Exception('Release to docker specified, but no docker image found in resource.json')
             self._copy_docker_image(pkgdir, orig_docker_image)
         (branch, commitmsg_path) = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)

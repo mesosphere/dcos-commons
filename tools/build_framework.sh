@@ -25,9 +25,9 @@ echo ARTIFACT_FILES=$ARTIFACT_FILES
 CLI_DIR=${CLI_DIR:=${FRAMEWORK_DIR}/cli}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
 CLI_EXE_NAME=${CLI_EXE_NAME:=dcos-${FRAMEWORK_NAME}}
+BUILD_BOOTSTRAP=${BUILD_BOOTSTRAP:=yes}
 
-TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT_DIR=$(dirname $TOOLS_DIR) # note: need an absolute path for REPO_CLI_RELATIVE_PATH below
+source $TOOLS_DIR/init_paths.sh
 
 # GitHub notifier config
 _notify_github() {
@@ -43,12 +43,16 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Executor Bootstrap (Go):
-BOOTSTRAP_DIR=${TOOLS_DIR}/../sdk/bootstrap
-${BOOTSTRAP_DIR}/build.sh
-if [ $? -ne 0 ]; then
-    _notify_github failure "Bootstrap build failed"
-    exit 1
+INCLUDE_BOOTSTRAP=""
+if [ "$BUILD_BOOTSTRAP" == "yes" ]; then
+    # Executor Bootstrap (Go):
+    BOOTSTRAP_DIR=${TOOLS_DIR}/../sdk/bootstrap
+    ${BOOTSTRAP_DIR}/build.sh
+    if [ $? -ne 0 ]; then
+        _notify_github failure "Bootstrap build failed"
+        exit 1
+    fi
+    INCLUDE_BOOTSTRAP="${BOOTSTRAP_DIR}/bootstrap.zip"
 fi
 
 # CLI (Go):
@@ -84,7 +88,7 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT \
         ${FRAMEWORK_NAME} \
         ${UNIVERSE_DIR} \
-        ${BOOTSTRAP_DIR}/bootstrap.zip \
+        ${INCLUDE_BOOTSTRAP} \
         ${CLI_DIR}/dcos-*/dcos-* \
         ${CLI_DIR}/dcos-*/*.whl \
         ${ARTIFACT_FILES}

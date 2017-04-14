@@ -40,6 +40,8 @@ $ cd /dcos-commons/
 ### Step 2 - Initialize the Service Project
 Get started by forking https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons` and then issue following command to create a new project:
 
+#### Host inside Monorepo
+
 ```bash
 (dcos-commons)$ ./new-service.sh frameworks/helloworldjava
 ```
@@ -49,14 +51,41 @@ The command above generates a new project at location `frameworks/helloworldjava
 ```bash
 (dcos-commons)$ ls -l frameworks/helloworldjava/
 total 12
--rw-r--r--  1 mohit staff  68 Nov 22 14:49 README.md
-drwxr-xr-x 12 mohit staff 408 Nov 18 13:47 build
--rw-r--r--  1 mohit staff 876 Nov 22 14:49 build.gradle
--rwxr-xr-x  1 mohit staff 487 Nov 22 14:49 build.sh
-drwxr-xr-x  3 mohit staff 102 Nov 22 14:49 cli
-drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 integration
-drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 src
-drwxr-xr-x  7 mohit staff 238 Nov 22 14:49 universe
+-rw-r--r--  1 dcos staff  68 Nov 22 14:49 README.md
+drwxr-xr-x 12 dcos staff 408 Nov 18 13:47 build
+-rw-r--r--  1 dcos staff 876 Nov 22 14:49 build.gradle
+-rwxr-xr-x  1 dcos staff 487 Nov 22 14:49 build.sh
+drwxr-xr-x  3 dcos staff 102 Nov 22 14:49 cli
+drwxr-xr-x  4 dcos staff 136 Nov 22 14:49 integration
+drwxr-xr-x  4 dcos staff 136 Nov 22 14:49 src
+drwxr-xr-x  7 dcos staff 238 Nov 22 14:49 universe
+```
+
+#### Host inside standalone repository
+
+```bash
+(dcos-commons)$ ./new-standalone-service.sh helloworldjava /fs/parent/location
+```
+
+The command above generates a new project at location `/fs/parent/location/helloworldjava`:
+
+```bash
+(dcos-commons)$ ls -l /fs/parent/location/service-name
+total 32
+-rw-r--r--  1 dcos admin   15 Mar 21 08:54 README.md
+-rw-r--r--  1 dcos admin  743 Mar 21 08:54 build.gradle
+-rwxr-xr-x  1 dcos admin  781 Mar 21 08:54 build.sh
+drwxr-xr-x  3 dcos admin  102 Mar 21 08:54 cli
+drwxr-xr-x  3 dcos admin  102 Mar 21 08:54 gradle
+-rwxr-xr-x  1 dcos admin 5241 Mar 21 08:54 gradlew
+-rw-r--r--  1 dcos admin 2260 Mar 21 08:54 gradlew.bat
+-rw-r--r--  1 dcos admin   26 Mar 21 08:54 settings.gradle
+drwxr-xr-x  4 dcos admin  136 Mar 21 08:54 src
+-rwxr-xr-x  1 dcos admin  346 Mar 21 08:54 test.sh
+drwxr-xr-x 12 dcos admin  408 Mar 21 08:54 testing
+drwxr-xr-x  5 dcos admin  170 Mar 21 08:54 tests
+drwxr-xr-x 30 dcos admin 1020 Mar 21 08:54 tools
+drwxr-xr-x  7 dcos admin  238 Mar 21 08:54 universe
 ```
 
 ### Step 3 - Declarative Java Service Specification
@@ -170,7 +199,7 @@ Now we are ready to take the `helloworldjava` service for a spin.
 Build your project by running `./build.sh local` from the `/dcos-commons/frameworks/helloworldjava` directory:
 
 ```bash
-(dcos-commons/frameworks/helloworldjava)$ ./build.sh local
+(helloworldjava)$ ./build.sh local
 ```
 
 The command above generates a deployable package and makes it available for deployment inside the locally running DC/OS cluster.
