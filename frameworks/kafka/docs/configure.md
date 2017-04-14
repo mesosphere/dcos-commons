@@ -35,97 +35,71 @@ The Kafka scheduler runs as a Marathon process and can be reconfigured by changi
 
 Make the REST request below to view the current deployment plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
-
-    {
-      "phases" : [
-        {
-          "id" : "b6180a4e-b25f-4307-8855-0b37d671fd46",
-          "name" : "Deployment",
-          "steps" : [
-            {
-              "id" : "258f19a4-d6bc-4ff1-8685-f314924884a1",
-              "status" : "COMPLETE",
-              "name" : "kafka-0:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [258f19a4-d6bc-4ff1-8685-f314924884a1]' has status: 'COMPLETE'."
-            },
-            {
-              "id" : "e59fb2a9-22e2-4900-89e3-bda24041639f",
-              "status" : "COMPLETE",
-              "name" : "kafka-1:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [e59fb2a9-22e2-4900-89e3-bda24041639f]' has status: 'COMPLETE'."
-            },
-            {
-              "id" : "0b5a5048-fd3a-4b2c-a9b5-746045176d29",
-              "status" : "COMPLETE",
-              "name" : "kafka-2:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [0b5a5048-fd3a-4b2c-a9b5-746045176d29]' has status: 'COMPLETE'."
-            }
-          ],
-        "status" : "COMPLETE"
-      }
-    ],
-    "errors" : [ ],
+    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plans/deploy"
+{
+  "phases" : [ {
+    "id" : "52f052a5-9732-427f-970d-eac972c0aa09",
+    "name" : "Deployment",
+    "steps" : [ {
+      "id" : "0cb35760-d13f-4c21-8d7f-286b8f14834b",
+      "status" : "COMPLETE",
+      "name" : "kafka-0:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [0cb35760-d13f-4c21-8d7f-286b8f14834b]' has status: 'COMPLETE'."
+    }, {
+      "id" : "b5a12959-02a4-4039-9566-ca0077c398fc",
+      "status" : "COMPLETE",
+      "name" : "kafka-1:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [b5a12959-02a4-4039-9566-ca0077c398fc]' has status: 'COMPLETE'."
+    }, {
+      "id" : "5f252649-28c1-4555-82dd-3ebf2971b9b7",
+      "status" : "COMPLETE",
+      "name" : "kafka-2:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [5f252649-28c1-4555-82dd-3ebf2971b9b7]' has status: 'COMPLETE'."
+    } ],
     "status" : "COMPLETE"
-  }
+  } ],
+  "errors" : [ ],
+  "status" : "COMPLETE"
+}
 
 <!-- need to update this with current information for different deployments
-When using the `STAGE` deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:
+When using the `serial-canary` or `parallel-canary` deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:
 
-    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
-    GET <dcos_url>/service/kafka/v1/plan HTTP/1.1
+    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plans/deploy"
+    GET <dcos_url>/service/kafka/v1/plans/deploy HTTP/1.1
 
-    {
-      "phases": [
-        {
-          "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
-          "name": "Reconciliation",
-          "steps": [
-            {
-              "id": "2d137273-249b-455e-a65c-3c83228890b3",
-              "status": "COMPLETE",
-              "name": "Reconciliation",
-              "message": "Reconciliation complete"
-            }
-          ],
-          "status": "COMPLETE"
-        },
-        {
-          "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
-          "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
-          "steps": [
-            {
-              "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
-              "status": "PENDING",
-              "name": "broker-0",
-              "message": "Broker-0 is WAITING"
-            },
-            {
-              "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
-              "status": "PENDING",
-              "name": "broker-1",
-              "message": "Broker-1 is WAITIN"
-            },
-            {
-              "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
-              "status": "PENDING",
-              "name": "broker-2",
-              "message": "Broker-2 is PENDING"
-            }
-          ],
-          "status": "WAITING"
-        }
-      ],
-      "errors": [],
-      "status": "WAITING"
-    }
--->
-**Note:** After a configuration update, you may see an error from Mesos-DNS; this will go away 10 seconds after the update.
+{
+  "phases" : [ {
+    "id" : "85d43c31-f29a-43d9-b1f1-3c7ec4afa780",
+    "name" : "Deployment",
+    "steps" : [ {
+      "id" : "ac3a0842-1a1f-4181-9472-830f418ef430",
+      "status" : "WAITING",
+      "name" : "kafka-0:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [ac3a0842-1a1f-4181-9472-830f418ef430]' has status: 'WAITING'."
+    }, {
+      "id" : "01f83325-4024-4b71-b5a5-7c316f1f3c41",
+      "status" : "WAITING",
+      "name" : "kafka-1:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [01f83325-4024-4b71-b5a5-7c316f1f3c41]' has status: 'WAITING'."
+    }, {
+      "id" : "6a17eb0d-fe8b-4244-94df-f7b90fab5142",
+      "status" : "PENDING",
+      "name" : "kafka-2:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [6a17eb0d-fe8b-4244-94df-f7b90fab5142]' has status: 'PENDING'."
+    } ],
+    "status" : "WAITING"
+  } ],
+  "errors" : [ ],
+  "status" : "WAITING"
+}
+
 
 Enter the `continue` command to execute the first step:
 
-    curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan?cmd=continue"
-    PUT <dcos_url>/service/kafka/v1/continue HTTP/1.1
+    curl -X POST -H "Authorization: token=$auth_token" 
+    "<dcos_url>/service/kafka/v1/plans/deploy/continue?phase=Deployment"
+    POST <dcos_url>/service/kafka/v1/plans/deploy/continue?phase=Deployment HTTP/1.1
 
     {
         "Result": "Received cmd: continue"
@@ -134,60 +108,45 @@ Enter the `continue` command to execute the first step:
 
 After you execute the continue operation, the plan will look like this:
 
-    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
-    GET <dcos_url>/service/kafka/v1/plan HTTP/1.1
+    curl -H "Authorization: token=$auth_token" 
+    "<dcos_url>/service/kafka/v1/plans/deploy"
+    GET <dcos_url>/service/kafka/v1/plans/deploy HTTP/1.1
 
-    {
-      "phases": [
-        {
-          "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
-          "name": "Reconciliation",
-          "steps": [
-            {
-              "id": "2d137273-249b-455e-a65c-3c83228890b3",
-              "status": "COMPLETE",
-              "name": "Reconciliation",
-              "message": "Reconciliation complete"
-            }
-          ],
-          "status": "COMPLETE"
-        },
-        {
-          "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
-          "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
-          "steps": [
-            {
-              "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
-              "status": "IN_PROGRESS",
-              "name": "broker-0",
-              "message": "Broker-0 is IN_PROGRESS"
-            },
-            {
-              "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
-              "status": "WAITING",
-              "name": "broker-1",
-              "message": "Broker-1 is WAITING"
-            },
-            {
-              "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
-              "status": "PENDING",
-              "name": "broker-2",
-              "message": "Broker-2 is PENDING"
-            }
-          ],
-          "status": "IN_PROGRESS"
-        }
-      ],
-      "errors": [],
-      "status": "IN_PROGRESS"
-    }   
+{
+  "phases" : [ {
+    "id" : "85d43c31-f29a-43d9-b1f1-3c7ec4afa780",
+    "name" : "Deployment",
+    "steps" : [ {
+      "id" : "ac3a0842-1a1f-4181-9472-830f418ef430",
+      "status" : "COMPLETE",
+      "name" : "kafka-0:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [ac3a0842-1a1f-4181-9472-830f418ef430]' has status: 'COMPLETE'."
+    }, {
+      "id" : "01f83325-4024-4b71-b5a5-7c316f1f3c41",
+      "status" : "WAITING",
+      "name" : "kafka-1:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [01f83325-4024-4b71-b5a5-7c316f1f3c41]' has status: 'WAITING'."
+    }, {
+      "id" : "6a17eb0d-fe8b-4244-94df-f7b90fab5142",
+      "status" : "PENDING",
+      "name" : "kafka-2:[broker]",
+      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [6a17eb0d-fe8b-4244-94df-f7b90fab5142]' has status: 'PENDING'."
+    } ],
+    "status" : "WAITING"
+  } ],
+  "errors" : [ ],
+  "status" : "WAITING"
+}  
 
 
 
 If you enter `continue` a second time, the rest of the plan will be executed without further interruption. If you want to interrupt a configuration update that is in progress, enter the `interrupt` command:
 
-    curl -X PUT -H "Authorization: token=$auth_token"  "<dcos_url>/service/kafka/v1/plan?cmd=interrupt"
-    PUT <dcos_url>/service/kafka/v1/interrupt HTTP/1.1
+    curl -X POST -H "Authorization: token=$auth_token"  
+    
+    "<dcos_url>/service/kafka/v1/plans/deploy/interrupt?phase=Deployment"
+    POST 
+    <dcos_url>/service/kafka/v1/plans/deploy/interrupt?phase=Deployment HTTP/1.1
 
     {
         "Result": "Received cmd: interrupt"
@@ -220,12 +179,8 @@ Configure the port number that the brokers listen on. If the port is set to a pa
 *   **In DC/OS CLI options.json**: `broker-port`: integer (default: `9092`)
 *   **DC/OS web interface**: `BROKER_PORT`: `integer`
 
-## Configure Broker Placement Strategy <!-- replace this with a discussion of PLACEMENT_CONSTRAINTS? -->
+## Configure Placement Constraints <!-- explained in template README.md ? -->
 
-`ANY` allows brokers to be placed on any node with sufficient resources, while `NODE` ensures that all brokers within a given Kafka cluster are never colocated on the same node. This is an option that cannot be changed once the Kafka cluster is started: it can only be configured via the DC/OS CLI `--options` flag when the Kafka instance is created.
-
-*   **In DC/OS CLI options.json**: `placement-strategy`: `ANY` or `NODE` (default: `ANY`)
-*   **DC/OS web interface**: `PLACEMENT_STRATEGY`: `ANY` or `NODE`
 
 ## Configure Kafka Broker Properties
 
@@ -290,176 +245,6 @@ Kafka service allows configuration of JVM Heap Size for the broker JVM process. 
 
 **Note**: The total memory allocated for the Mesos task is specified by the `BROKER_MEM` configuration parameter. The value for `BROKER_HEAP_MB` should not be greater than `BROKER_MEM` value. Also, if `BROKER_MEM` is greater than `BROKER_HEAP_MB` then the Linux operating system will use `BROKER_MEM` - `BROKER_HEAP_MB` for [PageCache](https://en.wikipedia.org/wiki/Page_cache).
 
-## Alternate ZooKeeper
-
-By default the Kafka framework uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time.
-To configure it:
-* **DC/OS CLI options.json**:
-
-```json
-    {
-        "kafka": {
-            "kafka_zookeeper_uri": "zookeeper.marathon.mesos:2181"
-        }
-    }
-```
-
-This configuration option cannot be changed after installation.
-
-## Recovery and Health Checks
-
-You can enable automated replacement of brokers and configure the circumstances under which they are replaced.
-
-### Enable Broker Replacement
-
-To enable automated replacement:
-
-* **DC/OS CLI options.json**:
-
-```json
-    {
-        "enable_replacement":{
-            "description":"Enable automated replacement of Brokers. WARNING: May cause data loss. See documentation.",
-            "type":"boolean",
-            "default":false
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `ENABLE_REPLACEMENT`: `true` to enable replacement.
-
-**Warning:** The replacement mechanism is unaware of whether the broker it is destructively replacing had the latest copy of data. Depending on your replication policy and the degree and duration of the permanent failures, you may lose data.
-
-The following configuration options control the circumstances under which a broker is replaced.
-
-### Minumum Grace Period
-
-Configure the minimum amount of time before a broker should be replaced:
-
-* **DC/OS CLI options.json**:
-
-```json
-    {   
-        "recover_in_place_grace_period_secs":{
-            "description":"The minimum amount of time (in minutes) which must pass before a Broker may be destructively replaced.",
-            "type":"number",
-            "default":1200
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `RECOVERY_GRACE_PERIOD_SEC`: `1200`
-
-### Minumum Delay Between Replacements
-
-Configure the minimum amount of time between broker replacements.
-
-```json
-    {
-        "min_delay_between_recovers_secs":{
-            "description":"The minimum amount of time (in seconds) which must pass between destructive replacements of Brokers.",
-            "type":"number",
-            "default":600
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `REPLACE_DELAY_SEC`: `600`
-
-The following configurations control the health checks that determine when a broker has failed:
-
-### Enable Health Check
-
-Enable health checks on brokers:
-
-```json
-    {
-        "enable_health_check":{
-            "description":"Enable automated detection of Broker failures which did not result in a Broker process exit.",
-            "type":"boolean",
-            "default":true
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `ENABLE_BROKER_HEALTH_CHECK`: `true`
-
-### Health Check Delay
-
-Set the amount of time before the health check begins:
-
-```json
-    {
-        "health_check_delay_sec":{
-            "description":"The period of time (in seconds) waited before the health-check begins execution.",
-            "type":"number",
-            "default":15
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_DELAY_SEC`: `15`
-
-### Health Check Interval
-
-Set the interval between health checks:
-
-```json
-    {
-        "health_check_interval_sec":{
-            "description":"The period of time (in seconds) between health-check executions.",
-            "type":"number",
-            "default":10
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_INTERVAL_SEC`: `10`
-
-### Health Check Timeout
-
-Set the time a health check can take to complete before it is considered a failed check:
-```json
-    {
-        "health_check_timeout_sec":{
-            "description":"The duration (in seconds) allowed for a health-check to complete before it is considered a failure.",
-            "type":"number",
-            "default":20
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_TIMEOUT_SEC`: `20`
-
-### Health Check Grace Period
-
-Set the amount of time after the delay before health check failures count toward the maximum number of consecutive failures:
-
-```json
-    {
-        "health_check_grace_period_sec":{
-            "description":"The period of time after the delay (in seconds) before health-check failures count towards the maximum consecutive failures.",
-            "type":"number",
-            "default":10
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_GRACE_SEC`: `10`
-
-### Maximum Consecutive Health Check Failures
-
-```json
-    {
-        "health_check_max_consecutive_failures":{
-            "description":"The the number of consecutive failures which cause a Broker process to exit.",
-            "type":"number",
-            "default":3
-        }
-    }
-```
-
-* **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_MAX_FAILURES`: `3`
 
  [8]: #broker-count
  [11]: https://github.com/mesosphere/universe/tree/1-7ea/repo/packages/K/kafka/6
