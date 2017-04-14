@@ -3,6 +3,9 @@ package com.mesosphere.sdk.offer;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
+
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+
 import org.apache.mesos.Protos.TaskInfo;
 
 /**
@@ -16,7 +19,7 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
 
     public LaunchOfferRecommendation(Offer offer, TaskInfo originalTaskInfo) {
         this.offer = offer;
-        this.isTransient = CommonTaskUtils.isTransient(originalTaskInfo);
+        this.isTransient = new SchedulerLabelReader(originalTaskInfo).isTransient();
 
         TaskInfo.Builder taskInfoBuilder = originalTaskInfo.toBuilder()
                 .setSlaveId(offer.getSlaveId());

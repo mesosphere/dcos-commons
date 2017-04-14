@@ -3,7 +3,8 @@ package com.mesosphere.sdk.executor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.taskdata.ExecutorLabelWriter;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -190,7 +191,7 @@ public class HealthCheckHandler {
 
         private void handleHealthCheck() {
             if (healthCheckStats.getConsecutiveFailures() >= healthCheck.getConsecutiveFailures()) {
-                CommonTaskUtils.sendStatus(
+                TaskStatusUtils.sendStatus(
                         executorDriver,
                         Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
@@ -202,7 +203,7 @@ public class HealthCheckHandler {
                         "Health check exceeded its maximum consecutive failures.",
                         healthCheckStats);
             } else if (healthCheckStats.getConsecutiveSuccesses() == 1) {
-                CommonTaskUtils.sendStatus(
+                TaskStatusUtils.sendStatus(
                         executorDriver,
                         Protos.TaskState.TASK_RUNNING,
                         taskInfo.getTaskId(),
@@ -215,12 +216,7 @@ public class HealthCheckHandler {
 
         private void handleReadinessCheck() {
             if (healthCheckStats.getTotalSuccesses() > 0) {
-                Protos.Labels labels = Protos.Labels.newBuilder().build();
-                labels = CommonTaskUtils.withLabelSet(
-                        labels,
-                        Constants.READINESS_CHECK_PASSED_LABEL,
-                        "true").build();
-                CommonTaskUtils.sendStatus(
+                TaskStatusUtils.sendStatus(
                         executorDriver,
                         Protos.TaskState.TASK_RUNNING,
                         taskInfo.getTaskId(),
@@ -228,7 +224,7 @@ public class HealthCheckHandler {
                         taskInfo.getExecutor().getExecutorId(),
                         "Readiness check passed",
                         true,
-                        labels,
+                        new ExecutorLabelWriter().setReadinessCheckPassed().toLabels(),
                         null);
                 throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);
             }

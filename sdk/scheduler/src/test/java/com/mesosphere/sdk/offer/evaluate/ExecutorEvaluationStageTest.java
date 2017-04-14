@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.executor.ExecutorUtils;
+import com.mesosphere.sdk.executor.ExecutorIdUtils;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -27,7 +27,7 @@ public class ExecutorEvaluationStageTest {
 
         // Set incorrect ExecutorID
         execInfo = Protos.ExecutorInfo.newBuilder(execInfo)
-                .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
+                .setExecutorId(ExecutorIdUtils.toExecutorId(execInfo.getName()))
                 .build();
 
         OfferRequirement offerRequirement = OfferRequirement.create(

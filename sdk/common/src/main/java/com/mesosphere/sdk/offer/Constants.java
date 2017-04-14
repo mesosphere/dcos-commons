@@ -5,29 +5,6 @@ package com.mesosphere.sdk.offer;
  */
 public class Constants {
 
-    // Labels to be included in the TaskInfos of launched tasks.
-    // These are accessible to the Scheduler and to custom Executors (which we are moving away from ASAP)
-
-    /** Identifies the goal state of this task, e.g. TASK_RUNNING or TASK_FINISHED */
-    public static final String GOAL_STATE_LABEL = "goal_state";
-    /** Identifies the target configuration UUID used by a given task. */
-    public static final String TARGET_CONFIGURATION_LABEL = "target_configuration";
-    /** Identifies a 'task' which isn't actually launched, but is instead created to fill reserved resources. */
-    public static final String TRANSIENT_FLAG_LABEL = "transient";
-
-    /** Storage of the original Offer's attributes (in a string representation), for use in placement constraints. */
-    public static final String OFFER_ATTRIBUTES_LABEL = "offer_attributes";
-    /** Storage of the original Offer's hostname, for use in placement constraints. */
-    public static final String OFFER_HOSTNAME_LABEL = "offer_hostname";
-    /** Label against which the readiness check (if present) is stored. */
-    public static final String READINESS_CHECK_LABEL = "readiness_check";
-    /** Label used to find the result of a readiness check in a TaskStatus label. */
-    public static final String READINESS_CHECK_PASSED_LABEL = "readiness_check_passed";
-    /** Label against which the Task/Pod Type is stored. */
-    public static final String TASK_TYPE_LABEL = "task_type";
-    /** Label against which the Task/Pod index (starting at 0) is stored. */
-    public static final String TASK_INDEX_LABEL = "index";
-
     // Environment variables to be set inside launched tasks themselves
     // These are accessible to the tasks themselves via the container environment.
 

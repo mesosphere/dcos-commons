@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -26,10 +28,12 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
 
         // Store metadata in the TaskInfo for later access by placement constraints:
-        taskBuilder = CommonTaskUtils.setOfferAttributes(taskBuilder, offer);
-        taskBuilder = CommonTaskUtils.setType(taskBuilder, podInfoBuilder.getOfferRequirement().getType());
-        taskBuilder = CommonTaskUtils.setIndex(taskBuilder, podInfoBuilder.getOfferRequirement().getIndex());
-        taskBuilder = CommonTaskUtils.setHostname(taskBuilder, offer);
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+            .setOfferAttributes(offer)
+            .setType(podInfoBuilder.getOfferRequirement().getType())
+            .setIndex(podInfoBuilder.getOfferRequirement().getIndex())
+            .setHostname(offer)
+            .toLabels());
         if (executorBuilder.isPresent()) {
             taskBuilder.setExecutor(executorBuilder.get());
         }

@@ -7,6 +7,8 @@ import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -189,16 +191,14 @@ public class TaskTypeRuleTest {
             throw new IllegalStateException(e);
         }
         taskBuilder.getSlaveIdBuilder().setValue(agent);
-        taskBuilder = CommonTaskUtils.setType(taskBuilder, type);
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setType(type).toLabels());
         return taskBuilder.build();
     }
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(
-                    CommonTaskUtils.getType(taskInfo),
-                    CommonTaskUtils.getIndex(taskInfo),
-                    Arrays.asList(taskInfo));
+            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            return OfferRequirement.create(labels.getType(), labels.getIndex(), Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

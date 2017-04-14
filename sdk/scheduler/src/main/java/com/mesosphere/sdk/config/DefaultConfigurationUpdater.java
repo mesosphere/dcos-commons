@@ -5,11 +5,13 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -148,7 +150,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             final UUID taskConfigId;
             try {
-                taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
+                taskConfigId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
                 LOGGER.warn(String.format("Unable to extract configuration ID from task %s: %s",
                         taskInfo.getName(), TextFormat.shortDebugString(taskInfo)), e);
@@ -166,8 +168,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         // and allow the duplicate config to be dropped from configStore.
                         LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
                                 taskInfo.getName(), taskConfigId, targetConfigId, targetConfigId);
-                        taskInfosToUpdate.add(
-                                CommonTaskUtils.setTargetConfiguration(taskInfo.toBuilder(), targetConfigId).build());
+                        TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
+                        taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
+                                .setTargetConfiguration(targetConfigId)
+                                .toLabels());
+                        taskInfosToUpdate.add(taskBuilder.build());
                     } else {
                         // Config isn't the same as the target. Refrain from updating task, mark config as 'needed'.
                         LOGGER.info("Task {} config {} differs from target {}. Leaving task as-is.",
@@ -254,7 +259,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private static Optional<PodSpec> getPodSpec(Protos.TaskInfo taskInfo, ServiceSpec serviceSpecification) {
 
         try {
-            final String taskType = CommonTaskUtils.getType(taskInfo);
+            final String taskType = new SchedulerLabelReader(taskInfo).getType();
 
             return serviceSpecification.getPods().stream()
                     .filter(pod -> pod.getType().equals(taskType))

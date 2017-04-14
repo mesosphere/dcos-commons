@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.executor;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader;
+
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -76,7 +78,7 @@ public class CustomExecutor implements Executor {
         } catch (Throwable t) {
             LOGGER.error(String.format("Error launching task: %s", TextFormat.shortDebugString(task)), t);
 
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_FAILED,
                     task.getTaskId(),
@@ -109,13 +111,13 @@ public class CustomExecutor implements Executor {
 
         Optional<Protos.HealthCheck> readinessCheckOptional = Optional.empty();
         try {
-            readinessCheckOptional = CommonTaskUtils.getReadinessCheck(taskInfo);
+            readinessCheckOptional = new ExecutorLabelReader(taskInfo).getReadinessCheck();
         } catch (TaskException e) {
             LOGGER.error("Failed to extract readiness check.", e);
             return;
         }
 
-        if (!readinessCheckOptional.isPresent()){
+        if (!readinessCheckOptional.isPresent()) {
             LOGGER.info("No readiness check for task: {}", taskInfo.getName());
             return;
         }

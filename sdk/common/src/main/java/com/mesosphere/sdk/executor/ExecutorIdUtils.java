@@ -2,15 +2,17 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.Protos;
 
+import com.mesosphere.sdk.offer.TaskException;
+
 import java.util.UUID;
 
 /**
  * Various utility methods for manipulating data in {@link org.apache.mesos.Protos.ExecutorInfo}s.
  */
-public class ExecutorUtils {
+public class ExecutorIdUtils {
     private static final String EXECUTOR_NAME_DELIM = "__";
 
-    private ExecutorUtils() {
+    private ExecutorIdUtils() {
         // do not instantiate
     }
 
@@ -19,11 +21,11 @@ public class ExecutorUtils {
      *
      * For example: "instance-0_aoeu5678" => "instance-0"
      */
-    public static String toExecutorName(Protos.ExecutorID executorId) throws ExecutorTaskException {
+    public static String toExecutorName(Protos.ExecutorID executorId) throws TaskException {
       int underScoreIndex = executorId.getValue().lastIndexOf(EXECUTOR_NAME_DELIM);
 
       if (underScoreIndex == -1) {
-        throw new ExecutorTaskException(String.format(
+        throw new TaskException(String.format(
                 "ExecutorID '%s' is malformed.  Expected '%s' to extract ExecutorName from ExecutorID.  "
                 + "ExecutorIDs should be generated with ExecutorUtils.toExecutorId().",
                 executorId, EXECUTOR_NAME_DELIM));

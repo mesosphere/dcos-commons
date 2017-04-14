@@ -3,6 +3,8 @@ package com.mesosphere.sdk.executor;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +38,18 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             boolean exitOnTermination) {
-        return create(executorDriver, taskInfo, CommonTaskUtils.getProcess(taskInfo), exitOnTermination);
+        return create(executorDriver, taskInfo, getProcess(taskInfo), exitOnTermination);
+    }
+
+    public static ProcessBuilder getProcess(TaskInfo taskInfo) {
+        CommandInfo commandInfo = taskInfo.getCommand();
+        String cmd = commandInfo.getValue();
+
+        ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
+        builder.inheritIO();
+        builder.environment().putAll(CommonTaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
+
+        return builder;
     }
 
     public static ProcessTask create(
@@ -77,7 +90,7 @@ public class ProcessTask implements ExecutorTask {
 
             if (processBuilder.command().isEmpty()) {
                 final String errorMessage = "Empty command found for: " + taskInfo.getName();
-                CommonTaskUtils.sendStatus(
+                TaskStatusUtils.sendStatus(
                         driver,
                         Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
@@ -91,7 +104,7 @@ public class ProcessTask implements ExecutorTask {
             this.process = processBuilder.start();
 
             final String startMessage = "Launching Task: " + taskInfo.getName();
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
                     taskInfo.getTaskId(),
@@ -122,7 +135,7 @@ public class ProcessTask implements ExecutorTask {
                 isHealthy = false;
             }
 
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     taskState,
                     taskInfo.getTaskId(),
@@ -141,7 +154,7 @@ public class ProcessTask implements ExecutorTask {
             LOGGER.error("Process task failed.", e);
             initialized.complete(false);
             exit.complete(1);
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_FAILED,
                     taskInfo.getTaskId(),

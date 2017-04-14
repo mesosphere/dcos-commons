@@ -4,6 +4,8 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -46,7 +48,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo taskInfo1 = getTaskInfo("1", "host1");
         OfferRequirement req1 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo1),
+                new SchedulerLabelReader(taskInfo1).getIndex(),
                 Arrays.asList(taskInfo1));
         tasks.add(taskInfo1); // host1:1
         // 2nd task doesn't fit on host1 which already has something, but does fit on host2/host3:
@@ -56,7 +58,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo taskInfo2 = getTaskInfo("2", "host3");
         OfferRequirement req2 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo2),
+                new SchedulerLabelReader(taskInfo2).getIndex(),
                 Arrays.asList(taskInfo2));
         tasks.add(taskInfo2); // host1:1, host3:1
         // duplicates of preexisting tasks 1/3 fit on their previous hosts:
@@ -111,7 +113,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo taskInfo1 = getTaskInfo("1", "host1");
         OfferRequirement req1 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo1),
+                new SchedulerLabelReader(taskInfo1).getIndex(),
                 Arrays.asList(taskInfo1));
         tasks.add(taskInfo1); // host1:1
         // 2nd task fits on any of host1/host2/host3, as we don't yet know of other valid hosts:
@@ -121,7 +123,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo taskInfo2 = getTaskInfo("2", "host3");
         OfferRequirement req2 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo2),
+                new SchedulerLabelReader(taskInfo2).getIndex(),
                 Arrays.asList(taskInfo2));
         tasks.add(taskInfo2); // host1:1, host3:1
         // duplicates of preexisting tasks 1/3 fit on their previous hosts:
@@ -165,7 +167,8 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
                 .setTaskId(CommonTaskUtils.toTaskId(name));
-        return CommonTaskUtils.setHostname(infoBuilder, offerWithHost(host)).build();
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toLabels());
+        return infoBuilder.build();
     }
 
     private static Offer offerWithHost(String host) {

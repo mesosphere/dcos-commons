@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.LaunchEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -94,14 +96,16 @@ public class TaskRequirement {
                     + "Use ExecutorRequirement for any Executor requirements: %s", taskInfo));
         }
 
+        SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+
         try {
-            CommonTaskUtils.getType(taskInfo);
+            labels.getType();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
 
         try {
-            CommonTaskUtils.getIndex(taskInfo);
+            labels.getIndex();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }

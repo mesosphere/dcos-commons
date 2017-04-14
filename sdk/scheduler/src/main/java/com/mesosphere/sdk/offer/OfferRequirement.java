@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,8 +175,10 @@ public class OfferRequirement {
         Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
         for (TaskInfo taskInfo : taskInfos) {
             TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
-            taskBuilder = CommonTaskUtils.setType(taskBuilder, type);
-            taskBuilder = CommonTaskUtils.setIndex(taskBuilder, index);
+            taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
+                    .setType(type)
+                    .setIndex(index)
+                    .toLabels());
             taskRequirements.add(new TaskRequirement(taskBuilder.build()));
         }
         return taskRequirements;

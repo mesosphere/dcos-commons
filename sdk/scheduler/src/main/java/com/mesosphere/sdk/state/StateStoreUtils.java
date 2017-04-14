@@ -2,10 +2,10 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -100,7 +100,7 @@ public class StateStoreUtils {
         for (TaskInfo info : allInfos) {
             String taskPod = null;
             try {
-                taskPod = CommonTaskUtils.getType(info);
+                taskPod = new SchedulerLabelReader(info).getType();
             } catch (TaskException e) {
                 continue;
             }
@@ -179,14 +179,7 @@ public class StateStoreUtils {
         Collection<TaskInfo> taskInfosForPod = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> {
                     try {
-                        return CommonTaskUtils.getType(taskInfo).equals(podInstance.getPod().getType());
-                    } catch (TaskException e) {
-                        return false;
-                    }
-                })
-                .filter(taskInfo -> {
-                    try {
-                        return CommonTaskUtils.getIndex(taskInfo) == podInstance.getIndex();
+                        return TaskUtils.isSamePodInstance(taskInfo, podInstance);
                     } catch (TaskException e) {
                         return false;
                     }

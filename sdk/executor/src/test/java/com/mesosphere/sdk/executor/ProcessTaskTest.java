@@ -25,7 +25,7 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
@@ -60,7 +60,7 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
@@ -75,7 +75,7 @@ public class ProcessTaskTest {
         final FailingProcessTask failingProcessTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                CommonTaskUtils.getProcess(taskInfo),
+                ProcessTask.getProcess(taskInfo),
                 false);
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(failingProcessTask);
@@ -89,7 +89,7 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
@@ -122,7 +122,7 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
@@ -137,7 +137,7 @@ public class ProcessTaskTest {
         final FailingProcessTask processTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                CommonTaskUtils.getProcess(taskInfo),
+                ProcessTask.getProcess(taskInfo),
                 true);
 
 

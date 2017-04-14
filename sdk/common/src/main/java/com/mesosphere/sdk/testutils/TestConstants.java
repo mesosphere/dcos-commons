@@ -2,7 +2,7 @@ package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.executor.ExecutorUtils;
+import com.mesosphere.sdk.executor.ExecutorIdUtils;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 
 /**
@@ -29,7 +29,7 @@ public class TestConstants {
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final String TASK_DNS_PREFIX = "task-prefix";
-    public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
+    public static final Protos.ExecutorID EXECUTOR_ID = ExecutorIdUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
     public static final String PORT_ENV_NAME = "TEST_PORT_NAME";
     public static final String VIP_NAME = "testvip";
@@ -90,4 +90,11 @@ public class TestConstants {
                     .setTaskId(TASK_ID)
                     .setState(Protos.TaskState.TASK_RUNNING)
                     .build();
+
+    public static Protos.Labels getRequiredTaskLabels(int podIndex) {
+        Protos.Labels.Builder builder = Protos.Labels.newBuilder();
+        builder.addLabelsBuilder().setKey("task_type").setValue(TASK_TYPE);
+        builder.addLabelsBuilder().setKey("index").setValue(String.valueOf(podIndex));
+        return builder.build();
+    }
 }

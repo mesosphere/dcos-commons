@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -50,7 +52,7 @@ public class RoundRobinByAttributeRuleTest {
         TaskInfo taskInfo1 = getTaskInfo("1", "value1");
         OfferRequirement req1 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo1),
+                new SchedulerLabelReader(taskInfo1).getIndex(),
                 Arrays.asList(taskInfo1));
         tasks.add(taskInfo1); // value1:1
         // 2nd task doesn't fit on value1 which already has something, but does fit on value2/value3:
@@ -61,7 +63,7 @@ public class RoundRobinByAttributeRuleTest {
         TaskInfo taskInfo2 = getTaskInfo("2", "value3");
         OfferRequirement req2 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo2),
+                new SchedulerLabelReader(taskInfo2).getIndex(),
                 Arrays.asList(taskInfo2));
         tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
@@ -119,7 +121,7 @@ public class RoundRobinByAttributeRuleTest {
         TaskInfo taskInfo1 = getTaskInfo("1", "value1");
         OfferRequirement req1 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo1),
+                new SchedulerLabelReader(taskInfo1).getIndex(),
                 Arrays.asList(taskInfo1));
         tasks.add(taskInfo1); // value1:1
         // 2nd task fits on any of value1/value2/value3, as we don't yet know of other valid values:
@@ -129,7 +131,7 @@ public class RoundRobinByAttributeRuleTest {
         TaskInfo taskInfo2 = getTaskInfo("2", "value3");
         OfferRequirement req2 = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
-                CommonTaskUtils.getIndex(taskInfo2),
+                new SchedulerLabelReader(taskInfo2).getIndex(),
                 Arrays.asList(taskInfo2));
         tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
@@ -177,7 +179,10 @@ public class RoundRobinByAttributeRuleTest {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(taskName)
                 .setTaskId(CommonTaskUtils.toTaskId(taskName));
-        return CommonTaskUtils.setOfferAttributes(infoBuilder, offerWithAttribute(attrName, attrVal)).build();
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
+                .setOfferAttributes(offerWithAttribute(attrName, attrVal))
+                .toLabels());
+        return infoBuilder.build();
     }
 
     private static Offer offerWithAttribute(String value) {

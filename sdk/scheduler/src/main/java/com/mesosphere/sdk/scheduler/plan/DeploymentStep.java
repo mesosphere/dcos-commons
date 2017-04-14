@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -156,7 +157,7 @@ public class DeploymentStep extends AbstractStep {
             case TASK_RUNNING:
                 Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
                 if (goalState.equals(GoalState.RUNNING)
-                        && CommonTaskUtils.readinessCheckSucceeded(taskInfo, status)) {
+                        && new SchedulerLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
                     setTaskStatus(status.getTaskId(), Status.STARTING);

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -285,7 +284,7 @@ public class HealthCheckHandlerTest {
         verify(executorDriver, atLeastOnce()).sendStatusUpdate(taskStatusCaptor.capture());
         String readinessCheckKey = taskStatusCaptor.getValue().getLabels().getLabels(0).getKey();
         String readinessCheckValue = taskStatusCaptor.getValue().getLabels().getLabels(0).getValue();
-        Assert.assertEquals(Constants.READINESS_CHECK_PASSED_LABEL, readinessCheckKey);
+        Assert.assertEquals("readiness_check_passed", readinessCheckKey);
         Assert.assertEquals("true", readinessCheckValue);
     }
 

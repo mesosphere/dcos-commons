@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -95,12 +98,14 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
             // Add port to the readiness check (if defined)
             try {
-                Optional<Protos.HealthCheck> readinessCheck = CommonTaskUtils.getReadinessCheck(taskBuilder.build());
+                Optional<Protos.HealthCheck> readinessCheck = new SchedulerLabelReader(taskBuilder).getReadinessCheck();
                 if (readinessCheck.isPresent()) {
                     Protos.HealthCheck.Builder readinessCheckWithPortBuilder =
                             Protos.HealthCheck.newBuilder(readinessCheck.get());
                     setPortEnvironmentVariable(readinessCheckWithPortBuilder.getCommandBuilder(), port);
-                    CommonTaskUtils.setReadinessCheck(taskBuilder, readinessCheckWithPortBuilder.build());
+                    taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                            .setReadinessCheck(readinessCheckWithPortBuilder.build())
+                            .toLabels());
                 } else {
                     LOGGER.info("Readiness check is not defined for task: {}", taskName);
                 }

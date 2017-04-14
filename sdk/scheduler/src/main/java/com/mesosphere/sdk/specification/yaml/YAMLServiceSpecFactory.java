@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.commons.io.FileUtils;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import org.slf4j.Logger;
@@ -55,9 +54,9 @@ public class YAMLServiceSpecFactory {
 
     public static final RawServiceSpec generateRawSpecFromYAML(final String yaml, Map<String, String> env)
             throws Exception {
-        final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, env);
+        final String yamlWithEnv = TemplateUtils.applyEnvToMustache(yaml, env);
         LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
-        if (!CommonTaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
+        if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
         return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpec.class);

@@ -47,8 +47,8 @@ public class PodInstanceRequirement {
     /**
      * Returns this same instance, but with the supplied environment variable map applied to each task in this pod.
      */
-    public PodInstanceRequirement withParameters(Map<String, String> parameters) {
-        return new PodInstanceRequirement(getPodInstance(), getTasksToLaunch(), parameters, isPermanentReplacement());
+    public PodInstanceRequirement withParameters(Map<String, String> environment) {
+        return new PodInstanceRequirement(getPodInstance(), getTasksToLaunch(), environment, isPermanentReplacement());
     }
 
     /**

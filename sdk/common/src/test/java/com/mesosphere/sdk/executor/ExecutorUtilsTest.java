@@ -12,7 +12,7 @@ public class ExecutorUtilsTest {
     public void testToExecutorId() {
         final String executorName = "dcos-0";
 
-        final Protos.ExecutorID executorID = ExecutorUtils.toExecutorId(executorName);
+        final Protos.ExecutorID executorID = ExecutorIdUtils.toExecutorId(executorName);
 
         Assert.assertNotNull(executorID);
         final String value = executorID.getValue();

@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluatorTestBase;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
@@ -50,8 +50,11 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testUpdateResourcesNoHarmForAcceptableTaskInfo() throws TaskException {
-        Protos.TaskInfo taskInfo = CommonTaskUtils.setType(baseTaskInfo.toBuilder(), TestConstants.TASK_TYPE).build();
-        persistentLaunchRecorder.updateResources(taskInfo);
+        Protos.TaskInfo.Builder builder = baseTaskInfo.toBuilder();
+        builder.setLabels(new SchedulerLabelWriter(builder)
+                .setType(TestConstants.TASK_TYPE)
+                .toLabels());
+        persistentLaunchRecorder.updateResources(builder.build());
     }
 
     @Test
@@ -63,9 +66,11 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 .build();
 
         String taskName = "pod-0-init";
-        Protos.TaskInfo taskInfo = CommonTaskUtils.setType(baseTaskInfo.toBuilder(), "pod").build();
-        taskInfo = CommonTaskUtils.setIndex(taskInfo.toBuilder(), 0).build();
-        taskInfo = taskInfo.toBuilder()
+        Protos.TaskInfo taskInfo = baseTaskInfo.toBuilder()
+                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                        .setType("pod")
+                        .setIndex(0)
+                        .toLabels())
                 .setName(taskName)
                 .addAllResources(Arrays.asList(targetResource))
                 .build();
@@ -93,24 +98,27 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 .build();
 
         String initTaskName = "pod-0-init";
-        Protos.TaskInfo initTaskInfo = CommonTaskUtils.setType(baseTaskInfo.toBuilder(), "pod").build();
-        initTaskInfo = CommonTaskUtils.setIndex(initTaskInfo.toBuilder(), 0).build();
-        initTaskInfo = initTaskInfo.toBuilder()
+        Protos.TaskInfo initTaskInfo = baseTaskInfo.toBuilder()
+                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                        .setType("pod")
+                        .setIndex(0)
+                        .toLabels())
                 .setName(initTaskName)
                 .addAllResources(Arrays.asList(previousResource))
                 .build();
 
         String serverTaskName = "pod-0-server";
-        Protos.TaskInfo serverTaskInfo = CommonTaskUtils.setType(baseTaskInfo.toBuilder(), "pod").build();
-        serverTaskInfo = CommonTaskUtils.setIndex(serverTaskInfo.toBuilder(), 0).build();
-        serverTaskInfo = serverTaskInfo.toBuilder()
+        Protos.TaskInfo serverTaskInfo = baseTaskInfo.toBuilder()
+                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                        .setType("pod")
+                        .setIndex(0)
+                        .toLabels())
                 .setName(serverTaskName)
                 .addAllResources(Arrays.asList(targetResource))
                 .build();
 
         stateStore.storeTasks(Arrays.asList(initTaskInfo, serverTaskInfo));
         Assert.assertEquals(2, stateStore.fetchTaskNames().size());
-        initTaskInfo = stateStore.fetchTask(initTaskName).get();
         serverTaskInfo = stateStore.fetchTask(serverTaskName).get();
         Assert.assertFalse(
                 stateStore.fetchTask(initTaskName).get().getResources(0).equals(

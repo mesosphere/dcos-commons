@@ -3,6 +3,7 @@ package com.mesosphere.sdk.curator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -219,7 +220,7 @@ public class CuratorStateStore implements StateStore {
 
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
-                && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
+                && TaskUtils.isTerminal(currentStatusOptional.get())) {
             throw new StateStoreException(Reason.LOGIC_ERROR,
                     String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
                             currentStatusOptional.get().getState(), taskName));

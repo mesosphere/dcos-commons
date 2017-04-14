@@ -2,10 +2,9 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import java.util.regex.Pattern;
 
-import com.mesosphere.sdk.offer.AttributeStringUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 
 /**
  * Implements fuzzy regular expression support for string comparisons.
