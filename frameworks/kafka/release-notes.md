@@ -36,7 +36,7 @@ The ZooKeeper path for task info is `dcos-service-kafka/TaskInfo`. The path for 
 
 In the new format, task names start with “kafka” (`[kafka-([0-9]+)-broker]`). By default, auto upgrade keeps a backup of old task info. Old task names start with “broker” (`[broker-[0-9]+]`).
 
-You can configure auto upgrade to delete the old task info when the upgrade process is complete. If the `CONFIG_UPGRADE_CLEANUP` environment variable is set (to any value) in Marathon, auto upgrade will delete all backups at the end. If `CONFIG_UPGRADE_DISABLE` is set, auto upgrade will be disabled.
+You can configure auto upgrade to delete the old task info when the upgrade process is complete. If the `CONFIG_UPGRADE_CLEANUP` environment variable is set (to any value), auto upgrade will delete all backups at the end. If `CONFIG_UPGRADE_DISABLE` is set, auto upgrade will be disabled. To set these variables, go to **Services** > **Services** > **Kafka** in the DC/OS web interface. Then, click the menu in the upper right hand corner (three dots) and choose **Edit**. In the window that appears, click the **Environment** tab and then **+ ADD ENVIRONMENT VARIABLE**.
 
 ## Backup/Restore
 
