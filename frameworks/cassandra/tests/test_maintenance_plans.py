@@ -28,9 +28,7 @@ def setup_function(function):
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
-    # Delete Cassandra data, then remove job definitions from metronome
-    launch_and_verify_job(DELETE_DATA_JOB)
-    launch_and_verify_job(VERIFY_DELETION_JOB)
+    # remove job definitions from metronome
     remove_cassandra_jobs()
 
 
