@@ -43,7 +43,7 @@ if [ -z "$FLAG_RELEASE" ]; then
 fi
 echo "Settings: tag=$FLAG_RELEASE force=$FLAG_FORCE"
 
-export SDK_VERSION=$(egrep "version = \"(.*)\"" $GRADLE_BUILD_FILE | cut -d '"' -f2)
+export SDK_VERSION=$(egrep "version = '(.*)'" $GRADLE_BUILD_FILE | cut -d "'" -f2)
 if [ -z "$SDK_VERSION" ]; then
     echo "Unable to extract SDK version from $GRADLE_BUILD_FILE"
     exit 1
