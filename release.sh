@@ -67,7 +67,7 @@ else
     sed -i "s/version = \\\"${SDK_VERSION}\\\"/version = \\\"${FLAG_RELEASE}\\\"/" $GRADLE_BUILD_FILE
     export SDK_VERSION=$FLAG_RELEASE
     git add $GRADLE_BUILD_FILE
-    git ci -m "Automated cut of $FLAG_RELEASE"
+    git commit -m "Automated cut of $FLAG_RELEASE"
     if [ "x$FLAG_FORCE" = "xtrue" ]; then
         git tag -f "$FLAG_RELEASE"
         git push origin -f "$FLAG_RELEASE"
