@@ -398,7 +398,9 @@ class UniverseReleaseBuilder(object):
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
             package_json = json.load(f)
-            package_json['name'] = 'beta-' + str(package_json['name'])
+
+        package_json['name'] = 'beta-' + str(package_json['name'])
+        package_json['version'] = package_json['name'] + '-beta'
 
         with open(package_file_name, 'w') as f:
             json.dump(package_json, f, indent=4)
