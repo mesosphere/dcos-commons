@@ -27,7 +27,6 @@ public class CapabilityValidatorTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("EXECUTOR_URI", "");
     }
 
     @Test
