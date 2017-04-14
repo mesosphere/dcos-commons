@@ -11,7 +11,8 @@ fi
 CLI_EXE_NAME=$1
 CLI_DIR=$2
 REPO_CLI_RELATIVE_PATH=$3 # eg 'frameworks/helloworld/cli/'
-TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source $TOOLS_DIR/init_paths.sh
 
 # ---
 

@@ -388,7 +388,8 @@ class UniverseReleaseBuilder(object):
                 "title": "Agree to Beta terms",
                 "default": ""
             }
-            service_dict['required'].append('beta-optin')
+            required_list = service_dict.setdefault('required', [])
+            required_list.append('beta-optin')
 
         with open(config_file_name, 'w') as f:
             json.dump(config_json, f, indent=4)
@@ -421,8 +422,10 @@ class UniverseReleaseBuilder(object):
 
         original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
-        orig_docker_image = self._original_docker_image(pkgdir)
-        if orig_docker_image and self._release_docker_image:
+        if self._release_docker_image:
+            orig_docker_image = self._original_docker_image(pkgdir)
+            if not orig_docker_image:
+                raise Exception('Release to docker specified, but no docker image found in resource.json')
             self._copy_docker_image(pkgdir, orig_docker_image)
         (branch, commitmsg_path) = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)
