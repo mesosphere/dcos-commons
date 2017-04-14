@@ -797,8 +797,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.error("Rescinding offers is not supported.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.OFFER_RESCINDED);
+        LOGGER.warn("Ignoring rescinded Offer: {}.", offerId.getValue());
     }
 
     @Override
