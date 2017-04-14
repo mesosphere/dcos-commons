@@ -289,7 +289,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * @throws IllegalStateException if config validation failed when updating the target config for a default
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
-        public DefaultScheduler build() throws ConfigStoreException {
+        public DefaultScheduler build() {
             if (capabilities == null) {
                 this.capabilities = new Capabilities(new DcosCluster());
             }
@@ -338,13 +338,17 @@ public class DefaultScheduler implements Scheduler, Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
-                // Generate a default deployment plan will automatically be generated:
                 LOGGER.info("Generating default deploy plan.");
-                plans = Arrays.asList(
-                        new DeployPlanFactory(
-                                new DefaultPhaseFactory(
-                                        new DefaultStepFactory(configStore, stateStore)))
-                                .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                try {
+                    plans = Arrays.asList(
+                            new DeployPlanFactory(
+                                    new DefaultPhaseFactory(
+                                            new DefaultStepFactory(configStore, stateStore)))
+                                    .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to generate a deploy plan.");
+                    throw new IllegalStateException(e);
+                }
             }
 
             Optional<Plan> deploy = getDeployPlan(plans);
@@ -690,6 +694,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
     }
 
+    /**
+     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
+     * or revive offers should be made.
+     */
     @Override
     public void update(Observable observable) {
         if (observable == planCoordinator) {
@@ -937,8 +945,18 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
-        return plans.stream()
+        List<Plan> deployPlans =  plans.stream()
                 .filter(plan -> plan.isDeployPlan())
-                .findFirst();
+                .collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            String errMsg = String.format("Found multiple deploy plans: %s", deployPlans);
+            LOGGER.error(errMsg);
+            throw new IllegalStateException(errMsg);
+        }
     }
 }

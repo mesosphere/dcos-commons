@@ -578,6 +578,10 @@ public class DefaultSchedulerTest {
 
         // Ensure prior target configuration is still intact
         Assert.assertEquals(targetConfigId, configStore.getTargetConfig());
+        Assert.assertEquals(1, defaultScheduler.plans.size());
+
+        Plan deployPlan = defaultScheduler.plans.stream().findAny().get();
+        Assert.assertEquals(1, deployPlan.getErrors().size());
     }
 
     private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
