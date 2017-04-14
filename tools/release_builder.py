@@ -399,6 +399,7 @@ class UniverseReleaseBuilder(object):
         with open(package_file_name) as f:
             package_json = json.load(f)
 
+        package_json['selected'] = False
         package_json['name'] = 'beta-' + package_json['name']
         package_json['version'] = package_json['version'] + '-beta'
 
