@@ -400,7 +400,6 @@ class UniverseReleaseBuilder(object):
             package_json = json.load(f)
 
         package_json['name'] = 'beta-' + package_json['name']
-        package_json['version'] = package_json['version'] + '-beta'
 
         with open(package_file_name, 'w') as f:
             json.dump(package_json, f, indent=4)
