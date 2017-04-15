@@ -53,10 +53,10 @@ def test_backup_and_restore_flow():
     launch_and_verify_job(VERIFY_DATA_JOB)
 
     # Run backup plan, uploading snapshots and schema to S3 
-    plan.start_plan(PACKAGE_NAME, 'backup-aws', parameters=backup_parameters)
+    plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=backup_parameters)
     spin.time_wait_noisy(
         lambda: (
-            plan.get_plan(PACKAGE_NAME, 'backup-aws').json()['status'] ==
+            plan.get_plan(PACKAGE_NAME, 'backup-s3').json()['status'] ==
             'COMPLETE'
         )
     )
@@ -68,10 +68,10 @@ def test_backup_and_restore_flow():
     launch_and_verify_job(VERIFY_DELETION_JOB)
 
     # Run restore plan, retrieving snapshots and schema from S3
-    plan.start_plan(PACKAGE_NAME, 'restore-aws', parameters=backup_parameters)
+    plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=backup_parameters)
     spin.time_wait_noisy(
         lambda: (
-            plan.get_plan(PACKAGE_NAME, 'restore-aws').json()['status'] ==
+            plan.get_plan(PACKAGE_NAME, 'restore-s3').json()['status'] ==
             'COMPLETE'
         )
     )

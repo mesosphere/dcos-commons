@@ -23,10 +23,8 @@
   "env": {
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
-    "SERVICE_ROLE": "{{service.role}}",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "CASSANDRA_VERSION": "3.0.10",
-    "SERVICE_ZK_SERVERS": "{{service.zk_servers}}",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.secret_name}}
@@ -136,6 +134,7 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
+    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },
   "uris": [

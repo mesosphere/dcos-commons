@@ -2,8 +2,6 @@ name: {{SERVICE_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
   user: {{SERVICE_USER}}
-  role: {{SERVICE_ROLE}}
-  zookeeper: {{SERVICE_ZK_SERVERS}}
 pods:
   node:
     count: {{NODES}}
@@ -105,7 +103,7 @@ pods:
                 rm -r container-path/snapshot ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p {{TASKCFG_ALL_JMX_PORT}} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
         resource-set: sidecar-resources
-      upload-schema-aws:
+      upload-schema-s3:
         goal: FINISHED
         cmd: >
                 chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
@@ -118,7 +116,7 @@ pods:
                     (exit 1) ;
                 fi
         resource-set: sidecar-resources
-      upload-snapshot-aws:
+      upload-snapshot-s3:
         goal: FINISHED
         cmd: >
                 chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
@@ -131,14 +129,14 @@ pods:
                     (exit 1) ;
                 fi
         resource-set: sidecar-resources
-      fetch-snapshot-aws:
+      fetch-snapshot-s3:
         goal: FINISHED
         cmd: >
                 chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
  
                 ./{{S3CLI_VERSION}} -c config.json get "${SNAPSHOT_NAME}_${POD_INSTANCE_INDEX}" container-path/snapshot.tar.gz
         resource-set: sidecar-resources
-      fetch-schema-aws:
+      fetch-schema-s3:
         goal: FINISHED
         cmd: >
                 chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
@@ -160,10 +158,6 @@ pods:
 
                 rm -r container-path/snapshot ;
                 rm container-path/snapshot.tar.gz
-        resource-set: sidecar-resources
-      upgradesstables:
-        goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -190,47 +184,39 @@ plans:
         pod: node
         steps:
           - default: [[cleanup]]
-  backup-aws:
+  backup-s3:
     strategy: serial
     phases:
       backup-schema:
         strategy: serial
         pod: node
         steps:
-          - 0: [[backup-schema], [upload-schema-aws]]
+          - 0: [[backup-schema], [upload-schema-s3]]
       create-snapshots:
         strategy: parallel
         pod: node
         steps:
           - default: [[snapshot]]
       upload-snapshots:
-        strategy: parallel
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
         pod: node
         steps:
-          - default: [[upload-snapshot-aws]]
-  restore-aws:
+          - default: [[upload-snapshot-s3]]
+  restore-s3:
     strategy: serial
     phases:
       restore-schema:
         strategy: serial
         pod: node
         steps:
-          - 0: [[fetch-schema-aws], [restore-schema]]
+          - 0: [[fetch-schema-s3], [restore-schema]]
       fetch-snapshots:
-        strategy: parallel
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
         pod: node
         steps:
-          - default: [[fetch-snapshot-aws]]
+          - default: [[fetch-snapshot-s3]]
       restore-snapshots:
         strategy: parallel
         pod: node
         steps:
           - default: [[restore-snapshot]]
-  upgradesstables:
-    strategy: serial
-    phases:
-      upgradesstables-deploy:
-        strategy: serial
-        pod: node
-        steps:
-          - default: [[upgradesstables]]
