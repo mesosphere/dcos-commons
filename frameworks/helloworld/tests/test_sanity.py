@@ -253,7 +253,6 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
 
-@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
