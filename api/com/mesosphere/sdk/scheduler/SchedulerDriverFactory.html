@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -147,17 +147,19 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>SchedulerDriver</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#create-Scheduler-FrameworkInfo-java.lang.String-">create</a></span>(Scheduler&nbsp;scheduler,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#create-Scheduler-FrameworkInfo-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-">create</a></span>(Scheduler&nbsp;scheduler,
       FrameworkInfo&nbsp;frameworkInfo,
-      java.lang.String&nbsp;masterUrl)</code>
+      java.lang.String&nbsp;masterUrl,
+      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>
 <div class="block">Creates and returns a new <code>SchedulerDriver</code> without a credential secret.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>SchedulerDriver</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#create-Scheduler-FrameworkInfo-java.lang.String-byte:A-">create</a></span>(Scheduler&nbsp;scheduler,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#create-Scheduler-FrameworkInfo-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-byte:A-">create</a></span>(Scheduler&nbsp;scheduler,
       FrameworkInfo&nbsp;frameworkInfo,
       java.lang.String&nbsp;masterUrl,
+      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
       byte[]&nbsp;credentialSecret)</code>
 <div class="block">Creates and returns a new <code>SchedulerDriver</code> with the provided credential secret.</div>
 </td>
@@ -169,13 +171,6 @@ extends java.lang.Object</pre>
               java.lang.String&nbsp;masterUrl,
               Credential&nbsp;credential)</code>
 <div class="block">Broken out into a separate function to allow testing with custom SchedulerDrivers.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>protected boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#isSideChannelActive--">isSideChannelActive</a></span>()</code>
-<div class="block">Returns whether it appears that side channel auth should be used when creating the
- SchedulerDriver.</div>
 </td>
 </tr>
 </table>
@@ -217,7 +212,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="create-Scheduler-FrameworkInfo-java.lang.String-">
+<a name="create-Scheduler-FrameworkInfo-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -225,7 +220,8 @@ extends java.lang.Object</pre>
 <h4>create</h4>
 <pre>public&nbsp;SchedulerDriver&nbsp;create(Scheduler&nbsp;scheduler,
                               FrameworkInfo&nbsp;frameworkInfo,
-                              java.lang.String&nbsp;masterUrl)</pre>
+                              java.lang.String&nbsp;masterUrl,
+                              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</pre>
 <div class="block">Creates and returns a new <code>SchedulerDriver</code> without a credential secret.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -242,7 +238,7 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="create-Scheduler-FrameworkInfo-java.lang.String-byte:A-">
+<a name="create-Scheduler-FrameworkInfo-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-byte:A-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -251,6 +247,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;SchedulerDriver&nbsp;create(Scheduler&nbsp;scheduler,
                               FrameworkInfo&nbsp;frameworkInfo,
                               java.lang.String&nbsp;masterUrl,
+                              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
                               byte[]&nbsp;credentialSecret)</pre>
 <div class="block">Creates and returns a new <code>SchedulerDriver</code> with the provided credential secret.</div>
 <dl>
@@ -273,7 +270,7 @@ extends java.lang.Object</pre>
 <a name="createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>createInternal</h4>
 <pre>protected&nbsp;SchedulerDriver&nbsp;createInternal(Scheduler&nbsp;scheduler,
@@ -281,19 +278,6 @@ extends java.lang.Object</pre>
                                          java.lang.String&nbsp;masterUrl,
                                          Credential&nbsp;credential)</pre>
 <div class="block">Broken out into a separate function to allow testing with custom SchedulerDrivers.</div>
-</li>
-</ul>
-<a name="isSideChannelActive--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>isSideChannelActive</h4>
-<pre>protected&nbsp;boolean&nbsp;isSideChannelActive()</pre>
-<div class="block">Returns whether it appears that side channel auth should be used when creating the
- SchedulerDriver. Side channel auth may take the form of Bouncer-based framework authentication
- or potentially other methods in the future (eg Kerberos). Broken out into a separate function
- to allow easy customization in tests.</div>
 </li>
 </ul>
 </li>

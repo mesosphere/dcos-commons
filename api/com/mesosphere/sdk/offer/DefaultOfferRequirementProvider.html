@@ -133,9 +133,10 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvide
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/DefaultOfferRequirementProvider.html#DefaultOfferRequirementProvider-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-">DefaultOfferRequirementProvider</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/DefaultOfferRequirementProvider.html#DefaultOfferRequirementProvider-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-">DefaultOfferRequirementProvider</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                java.lang.String&nbsp;serviceName,
-                               java.util.UUID&nbsp;targetConfigurationId)</code>
+                               java.util.UUID&nbsp;targetConfigurationId,
+                               <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>
 <div class="block">Creates a new instance which relies on the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> for storing known tasks, and which
  updates tasks which are not tagged with the provided <code>targetConfigurationId</code>.</div>
 </td>
@@ -185,7 +186,7 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvide
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultOfferRequirementProvider-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-">
+<a name="DefaultOfferRequirementProvider-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -193,7 +194,8 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvide
 <h4>DefaultOfferRequirementProvider</h4>
 <pre>public&nbsp;DefaultOfferRequirementProvider(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                        java.lang.String&nbsp;serviceName,
-                                       java.util.UUID&nbsp;targetConfigurationId)</pre>
+                                       java.util.UUID&nbsp;targetConfigurationId,
+                                       <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</pre>
 <div class="block">Creates a new instance which relies on the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> for storing known tasks, and which
  updates tasks which are not tagged with the provided <code>targetConfigurationId</code>.</div>
 </li>

@@ -186,13 +186,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.html#generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">generateServiceSpec</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.html#generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">generateServiceSpec</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>
 <div class="block">Converts the provided YAML <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> into a new <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.html#generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.FileReader-">generateServiceSpec</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.html#generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.FileReader-">generateServiceSpec</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
                    <a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.FileReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLServiceSpecFactory.FileReader</a>&nbsp;fileReader)</code>
 <div class="block">Converts the provided YAML <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> into a new <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </td>
@@ -294,30 +296,33 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">
+<a name="generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>generateServiceSpec</h4>
-<pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a>&nbsp;generateServiceSpec(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)
+<pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a>&nbsp;generateServiceSpec(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                                                           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)
                                                     throws java.lang.Exception</pre>
 <div class="block">Converts the provided YAML <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> into a new <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>rawServiceSpec</code> - the raw service specification representing a YAML file</dd>
+<dd><code>schedulerFlags</code> - scheduler flags to use when building the service spec</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code> - if the conversion fails</dd>
 </dl>
 </li>
 </ul>
-<a name="generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.FileReader-">
+<a name="generateServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.FileReader-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>generateServiceSpec</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a>&nbsp;generateServiceSpec(<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                                                           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
                                                            <a href="../../../../../com/mesosphere/sdk/specification/yaml/YAMLServiceSpecFactory.FileReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLServiceSpecFactory.FileReader</a>&nbsp;fileReader)
                                                     throws java.lang.Exception</pre>
 <div class="block">Converts the provided YAML <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> into a new <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>. This version allows
@@ -325,6 +330,7 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>rawServiceSpec</code> - the raw service specification representing a YAML file</dd>
+<dd><code>schedulerFlags</code> - scheduler flags to use when building the service spec</dd>
 <dd><code>fileReader</code> - the file reader to be used for reading template files, allowing overrides for testing</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code> - if the conversion fails</dd>
