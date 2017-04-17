@@ -1,15 +1,10 @@
 package com.mesosphere.sdk.config;
 
 import com.google.common.collect.ImmutableMap;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -24,31 +19,30 @@ import static org.mockito.Mockito.when;
  * Tests for {@link DefaultTaskConfigRouter}.
  */
 public class DefaultTaskConfigRouterTest {
-    @ClassRule public static final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
+    private static final String EXECUTOR_URI = "executor-test-uri";
     private static TaskSpec mockTaskSpec = mock(TaskSpec.class);
     private static List<TaskSpec> taskSpecs = Arrays.asList(mockTaskSpec);
 
     static {
-        environmentVariables.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
         when(mockTaskSpec.getName()).thenReturn("mockTask");
     }
 
-    private static final PodSpec TASK_SET_A = DefaultPodSpec.newBuilder()
+    private static final PodSpec TASK_SET_A = DefaultPodSpec.newBuilder(EXECUTOR_URI)
             .type("a")
             .count(0)
             .tasks(taskSpecs)
             .build();
-    private static final PodSpec TASK_SET_B = DefaultPodSpec.newBuilder()
+    private static final PodSpec TASK_SET_B = DefaultPodSpec.newBuilder(EXECUTOR_URI)
             .type("b")
             .count(0)
             .tasks(taskSpecs)
             .build();
-    private static final PodSpec TASK_SET_C = DefaultPodSpec.newBuilder()
+    private static final PodSpec TASK_SET_C = DefaultPodSpec.newBuilder(EXECUTOR_URI)
             .type("c")
             .count(0)
             .tasks(taskSpecs)
             .build();
-    private static final PodSpec TASK_SET_D = DefaultPodSpec.newBuilder()
+    private static final PodSpec TASK_SET_D = DefaultPodSpec.newBuilder(EXECUTOR_URI)
             .type("d")
             .count(0)
             .tasks(taskSpecs)

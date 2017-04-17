@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 
 import java.io.File;
@@ -10,7 +11,7 @@ import java.io.File;
 public class ElasticService extends DefaultService {
 
     ElasticService(File pathToYamlSpecification) throws Exception {
-        super(pathToYamlSpecification);
+        super(pathToYamlSpecification, SchedulerFlags.fromEnv());
     }
 
 }

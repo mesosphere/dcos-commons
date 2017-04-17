@@ -40,8 +40,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.CREATE, recommendations.get(3).getOperation().getType());
         Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(4).getOperation().getType());
 
-        System.out.println(recommendations.get(4).getOperation());
-
         // Validate Create Operation
         Operation createOperation = recommendations.get(1).getOperation();
         Assert.assertEquals("pv0", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());

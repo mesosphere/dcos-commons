@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -14,7 +15,6 @@ import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.apache.curator.test.TestingServer;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
@@ -28,9 +28,7 @@ import java.util.Map;
  */
 public class DefaultPlanGeneratorTest {
 
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static TestingServer testingServer;
 
@@ -55,11 +53,9 @@ public class DefaultPlanGeneratorTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("custom-phases.yml").getFile());
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
 
-        stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
+        stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, testingServer.getConnectString());
         configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
 
         Assert.assertNotNull(serviceSpec);

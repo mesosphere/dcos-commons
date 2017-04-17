@@ -33,7 +33,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
@@ -64,16 +63,15 @@ public class DefaultSchedulerTest {
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
     @Rule
     public final ExpectedSystemExit exit = ExpectedSystemExit.none();
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
     @Mock
     private SchedulerDriver mockSchedulerDriver;
+    @Mock
+    private SchedulerFlags mockSchedulerFlags;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
-    private static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
+    public static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -194,15 +192,15 @@ public class DefaultSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, SchedulerFlags.DEFAULT_API_SERVER_TIMEOUT_S);
-        ENV_VARS.set("JAVA_URI", "http://jre.uri");
 
         CuratorTestUtils.clear(testingServer);
 
         StateStoreCache.resetInstanceForTests();
-        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
+        when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
+        stateStore = DefaultScheduler.createStateStore(
+                SERVICE_SPECIFICATION, mockSchedulerFlags, testingServer.getConnectString());
         configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
-        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -313,7 +311,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -329,7 +327,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -346,7 +344,7 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -354,7 +352,9 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(
+                Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING),
+                getStepStatuses(plan));
     }
 
     @Test
@@ -515,7 +515,7 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -570,7 +570,7 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
-        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -677,15 +677,15 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testApiServerTimeout() throws Exception {
-        int timeoutSec = 1;
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+        int timeoutMillis = 100;
+        when(mockSchedulerFlags.getApiServerInitTimeout()).thenReturn(java.time.Duration.ofMillis(timeoutMillis));
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, mockSchedulerFlags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
-        ENV_VARS.set(SchedulerFlags.API_SERVER_TIMEOUT_S, String.valueOf(timeoutSec));
         Assert.assertFalse(defaultScheduler.apiServerReady());
-        Thread.sleep(timeoutSec * 2000);
+        Thread.sleep(timeoutMillis * 10);
         exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
         defaultScheduler.apiServerReady();
     }
@@ -898,6 +898,7 @@ public class DefaultSchedulerTest {
         public TestScheduler(DefaultScheduler defaultScheduler, boolean apiServerReady) {
             super(
                     defaultScheduler.serviceSpec,
+                    flags,
                     defaultScheduler.resources,
                     defaultScheduler.plans,
                     defaultScheduler.stateStore,

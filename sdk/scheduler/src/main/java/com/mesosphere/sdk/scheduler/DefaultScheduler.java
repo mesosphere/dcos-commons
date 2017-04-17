@@ -90,6 +90,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
 
     protected final ServiceSpec serviceSpec;
+    protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
@@ -120,6 +121,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static class Builder {
         private final ServiceSpec serviceSpec;
+        private final SchedulerFlags schedulerFlags;
 
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
@@ -135,8 +137,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
         private Collection<Object> resources = new ArrayList<>();
 
-        private Builder(ServiceSpec serviceSpec) {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
             this.serviceSpec = serviceSpec;
+            this.schedulerFlags = schedulerFlags;
         }
 
         /**
@@ -156,7 +159,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
          */
         public Builder setStateStore(StateStore stateStore) {
-            if (this.stateStoreOptional.isPresent()) {
+            if (stateStoreOptional.isPresent()) {
                 // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
                 throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
             }
@@ -165,9 +168,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Specifies the resources which should be exposed through the scheduler's API server.
+         * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
+         * to the defaults.
          */
-        public Builder setResources(Collection<Object> resources) {
+        public Builder setCustomResources(Collection<Object> resources) {
             this.resources = resources;
             return this;
         }
@@ -181,9 +185,16 @@ public class DefaultScheduler implements Scheduler, Observer {
          */
         public StateStore getStateStore() {
             if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec));
+                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
             }
             return stateStoreOptional.get();
+        }
+
+        /**
+         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
+         */
+        public SchedulerFlags getSchedulerFlags() {
+            return schedulerFlags;
         }
 
         /**
@@ -318,6 +329,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // Update/validate config as needed to reflect the new service spec:
             final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
                     serviceSpec,
+                    schedulerFlags,
                     stateStore,
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
@@ -344,11 +356,13 @@ public class DefaultScheduler implements Scheduler, Observer {
 
             return new DefaultScheduler(
                     serviceSpec,
+                    getSchedulerFlags(),
                     resources,
                     plans,
                     stateStore,
                     configStore,
-                    new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
+                    new DefaultOfferRequirementProvider(
+                            stateStore, serviceSpec.getName(), configUpdateResult.targetId, getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
                     Optional.ofNullable(recoveryPlanManagerFactory));
@@ -360,8 +374,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return new Builder(serviceSpec);
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        return new Builder(serviceSpec, schedulerFlags);
     }
 
     /**
@@ -374,12 +388,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
+    public static StateStore createStateStore(
+            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, String zkConnectionString) {
         StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
-        if (System.getenv(Constants.DISABLE_STATE_CACHE_SCHEDENV) != null) {
-            return stateStore;
-        } else {
+        if (schedulerFlags.isStateCacheEnabled()) {
             return StateStoreCache.getInstance(stateStore);
+        } else {
+            return stateStore;
         }
     }
 
@@ -389,8 +404,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static StateStore createStateStore(ServiceSpec serviceSpec) {
-        return createStateStore(serviceSpec, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        return createStateStore(serviceSpec, schedulerFlags, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
@@ -470,6 +485,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<ConfigValidator<ServiceSpec>> configValidators) {
@@ -489,6 +505,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
             Collection<Object> resources,
             Collection<Plan> plans,
             StateStore stateStore,
@@ -498,6 +515,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
         this.serviceSpec = serviceSpec;
+        this.schedulerFlags = schedulerFlags;
         this.resources = resources;
         this.plans = plans;
         this.stateStore = stateStore;
@@ -728,12 +746,12 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         if (serverStarted) {
             apiServerStopwatch.reset();
-        } else if (
-                apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > SchedulerFlags.getApiServerTimeout().toMillis()) {
-            LOGGER.error(
-                    "API Server failed to start within {} seconds.",
-                    SchedulerFlags.getApiServerTimeout().getSeconds());
-            SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+        } else {
+            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
+            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
+                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
+                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+            }
         }
 
         return serverStarted;

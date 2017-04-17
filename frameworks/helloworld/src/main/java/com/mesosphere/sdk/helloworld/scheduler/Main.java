@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 
 import java.io.File;
@@ -15,8 +16,9 @@ public class Main {
     private static final String TASK_NAME = "hello";
 
     public static void main(String[] args) throws Exception {
+        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         if (args.length > 0) {
-            new DefaultService(new File(args[0])).run();
+            new DefaultService(new File(args[0]), schedulerFlags).run();
         } else {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
             new DefaultService(DefaultServiceSpec.newBuilder()
@@ -24,7 +26,7 @@ public class Main {
                     .principal("hello-world-principal")
                     .zookeeperConnection("master.mesos:2181")
                     .apiPort(8080)
-                    .addPod(DefaultPodSpec.newBuilder()
+                    .addPod(DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
                             .count(COUNT)
                             .type(POD_TYPE)
                             .addTask(DefaultTaskSpec.newBuilder()
@@ -40,6 +42,7 @@ public class Main {
                                             .memory(256.0)
                                             .addVolume("ROOT", 5000.0, "hello-container-path")
                                             .build()).build()).build()).build(),
+                    schedulerFlags,
                     Collections.emptyList())
                     .run();
         }
