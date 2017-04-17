@@ -1,9 +1,13 @@
 #!/bin/bash
 
+#script to publish the tools dir to s3 for use in other jobs
+
+
 # Exit immediately on failure:
 set -e
 
-source init_paths.sh
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $script_dir/init_paths.sh
 cd $REPO_ROOT_DIR
 
 # Upload current tools (with '.commit' file containing the current SHA) to DEV S3.
