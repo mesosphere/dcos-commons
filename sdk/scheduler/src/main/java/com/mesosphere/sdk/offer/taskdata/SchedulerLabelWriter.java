@@ -1,15 +1,16 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
+import com.mesosphere.sdk.offer.CommandUtils;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.specification.GoalState;
 
 /**
@@ -105,9 +106,24 @@ public class SchedulerLabelWriter extends LabelWriter {
      * Any existing stored readiness check is overwritten.
      */
     public SchedulerLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
-        byte[] encodedBytes = Base64.encodeBase64(readinessCheck.toByteArray());
-        String readinessCheckStr = new String(encodedBytes, StandardCharsets.UTF_8);
-        put(LabelConstants.READINESS_CHECK_LABEL, readinessCheckStr);
+        put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
         return this;
+    }
+
+    /**
+     * Updates the stored readiness check, if any, to have the provided environment variable.
+     * Does nothing if no readiness check is present.
+     *
+     * @throws TaskException if parsing a previously set {@link HealthCheck} failed
+     */
+    public SchedulerLabelWriter setReadinessCheckEnvvar(String key, String value) throws TaskException {
+        Optional<String> encodedReadinessCheck = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        if (!encodedReadinessCheck.isPresent()) {
+            return this;
+        }
+        HealthCheck.Builder readinessCheckBuilder =
+                LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()).toBuilder();
+        CommandUtils.setEnvVar(readinessCheckBuilder.getCommandBuilder(), key, value);
+        return setReadinessCheck(readinessCheckBuilder.build());
     }
 }

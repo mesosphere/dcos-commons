@@ -6,13 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.offer.TaskException;
 
@@ -20,7 +17,6 @@ import com.mesosphere.sdk.offer.TaskException;
  * Provides read access to task labels which are (only) read by the Scheduler.
  */
 public class SchedulerLabelReader extends LabelReader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerLabelReader.class);
 
     /**
      * @see LabelReader#LabelReader(TaskInfo)
@@ -95,19 +91,15 @@ public class SchedulerLabelReader extends LabelReader {
      * @return the result of a readiness check for the indicated TaskStatus
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
-        Optional<HealthCheck> healthCheckOptional = Optional.empty();
-        try {
-            healthCheckOptional = getReadinessCheck();
-        } catch (TaskException e) {
-            LOGGER.error("Failed to parse readiness check.", e);
-            return false;
-        }
+        Optional<String> healthCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!healthCheckOptional.isPresent()) {
+            // check not applicable: PASS
             return true;
         }
 
         Optional<String> readinessCheckResult = getOptional(LabelConstants.READINESS_CHECK_PASSED_LABEL);
         if (!readinessCheckResult.isPresent()) {
+            // check applicable, but passed bit not set: FAIL
             return false;
         }
         return readinessCheckResult.get().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);

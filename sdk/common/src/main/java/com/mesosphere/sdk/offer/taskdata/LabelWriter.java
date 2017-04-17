@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskInfo;
@@ -36,6 +37,13 @@ public class LabelWriter {
 
     private LabelWriter(Labels labels) {
         this.labels = LabelUtils.toMap(labels);
+    }
+
+    /**
+     * Returns the requested label value, or an empty Optional if the value was not found.
+     */
+    protected Optional<String> getOptional(String key) {
+        return Optional.ofNullable(labels.get(key));
     }
 
     /**

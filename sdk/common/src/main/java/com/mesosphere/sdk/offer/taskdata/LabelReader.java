@@ -3,17 +3,15 @@ package com.mesosphere.sdk.offer.taskdata;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskException;
 
 /**
  * Implements common logic for read access to a task's Labels. Any access to component-specific values is provided by
- * ExecutorLabelReader and SchedulerLabelReader.
+ * {@link com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader} and
+ * {@link com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader}.
  */
 public class LabelReader {
 
@@ -43,23 +41,6 @@ public class LabelReader {
     private LabelReader(String taskName, Labels labels) {
         this.taskName = taskName;
         this.labels = LabelUtils.toMap(labels);
-    }
-
-    /**
-     * Returns the readiness check to be run by the Executor on task startup.
-     */
-    public Optional<HealthCheck> getReadinessCheck() throws TaskException {
-        Optional<String> readinessCheckStrOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
-        if (!readinessCheckStrOptional.isPresent()) {
-            return Optional.empty();
-        }
-
-        byte[] decodedBytes = Base64.decodeBase64(readinessCheckStrOptional.get());
-        try {
-            return Optional.of(HealthCheck.parseFrom(decodedBytes));
-        } catch (InvalidProtocolBufferException e) {
-            throw new TaskException(e);
-        }
     }
 
     /**

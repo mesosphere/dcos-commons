@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.offer.TaskException;
@@ -32,5 +34,16 @@ public class ExecutorLabelReader extends LabelReader {
         }
 
         return GoalState.valueOf(goalStateString);
+    }
+
+    /**
+     * Returns the readiness check to be run by the Executor on task startup.
+     */
+    public Optional<HealthCheck> getReadinessCheck() throws TaskException {
+        Optional<String> readinessCheckStrOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        if (!readinessCheckStrOptional.isPresent()) {
+            return Optional.empty();
+        }
+        return Optional.of(LabelUtils.decodeHealthCheck(readinessCheckStrOptional.get()));
     }
 }

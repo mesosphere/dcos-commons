@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 
 import org.apache.commons.lang3.StringUtils;
@@ -96,21 +95,13 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 LOGGER.info("Health check is not defined for task: {}", taskName);
             }
 
-            // Add port to the readiness check (if defined)
+            // Add port to the readiness check (if a readiness check is defined)
             try {
-                Optional<Protos.HealthCheck> readinessCheck = new SchedulerLabelReader(taskBuilder).getReadinessCheck();
-                if (readinessCheck.isPresent()) {
-                    Protos.HealthCheck.Builder readinessCheckWithPortBuilder =
-                            Protos.HealthCheck.newBuilder(readinessCheck.get());
-                    setPortEnvironmentVariable(readinessCheckWithPortBuilder.getCommandBuilder(), port);
-                    taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
-                            .setReadinessCheck(readinessCheckWithPortBuilder.build())
-                            .toProto());
-                } else {
-                    LOGGER.info("Readiness check is not defined for task: {}", taskName);
-                }
+                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(), Long.toString(port))
+                        .toProto());
             } catch (TaskException e) {
-                LOGGER.error("Got exception while adding PORT env vars to ReadinessCheck", e);
+                LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
             resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
         } else {
