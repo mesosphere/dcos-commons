@@ -339,7 +339,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:
-            final List<Plan> plans;
+            Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
@@ -350,9 +350,28 @@ public class DefaultScheduler implements Scheduler, Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
-                // A default deployment plan will automatically be generated:
-                plans = Collections.emptyList();
+                LOGGER.info("Generating default deploy plan.");
+                try {
+                    plans = Arrays.asList(
+                            new DeployPlanFactory(
+                                    new DefaultPhaseFactory(
+                                            new DefaultStepFactory(configStore, stateStore)))
+                                    .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to generate a deploy plan.");
+                    throw new IllegalStateException(e);
+                }
             }
+
+            Optional<Plan> deployOptional = getDeployPlan(plans);
+            if (!deployOptional.isPresent()) {
+                throw new IllegalStateException("No deploy plan provided.");
+            }
+
+            List<String> errors = configUpdateResult.errors.stream()
+                    .map(configValidationError -> configValidationError.toString())
+                    .collect(Collectors.toList());
+            plans = updateDeployPlan(plans, errors);
 
             return new DefaultScheduler(
                     serviceSpec,
@@ -573,21 +592,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Override this function to inject your own deployment plan manager.
      */
     protected void initializeDeploymentPlanManager() {
-        LOGGER.info("Initializing deployment plan...");
-        Optional<Plan> deploy = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst();
-        Plan deployPlan;
-        if (!deploy.isPresent()) {
-            LOGGER.info("No deploy plan provided. Generating one");
-            deployPlan =
-                    new DeployPlanFactory(
-                            new DefaultPhaseFactory(
-                                    new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
-        } else {
-            deployPlan = deploy.get();
-        }
-        deploymentPlanManager = new DefaultPlanManager(deployPlan);
+        LOGGER.info("Initializing deployment plan manager...");
+        deploymentPlanManager = new DefaultPlanManager(getDeployPlan());
 
         // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
@@ -703,6 +709,17 @@ public class DefaultScheduler implements Scheduler, Observer {
         } catch (Exception ex) {
             LOGGER.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
+     * or revive offers should be made.
+     */
+    @Override
+    public void update(Observable observable) {
+        if (observable == planCoordinator) {
+            suppressOrRevive();
         }
     }
 
@@ -940,10 +957,44 @@ public class DefaultScheduler implements Scheduler, Observer {
         revive();
     }
 
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive();
+    private Plan getDeployPlan() {
+        return getDeployPlan(plans).get();
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans =  plans.stream()
+                .filter(plan -> plan.isDeployPlan())
+                .collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            String errMsg = String.format("Found multiple deploy plans: %s", deployPlans);
+            LOGGER.error(errMsg);
+            throw new IllegalStateException(errMsg);
         }
+    }
+
+    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+        if (errors.isEmpty()) {
+            return plans;
+        }
+
+        Collection<Plan> updatedPlans = new ArrayList<>();
+        Plan deployPlan = getDeployPlan(plans).get();
+        deployPlan = new DefaultPlan(
+                deployPlan.getName(),
+                deployPlan.getChildren(),
+                deployPlan.getStrategy(),
+                errors);
+
+        updatedPlans.add(deployPlan);
+        plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(plan -> updatedPlans.add(plan));
+
+        return updatedPlans;
     }
 }
