@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
@@ -26,14 +27,14 @@ import static org.mockito.Mockito.when;
 public class BaseServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
-
-    static {
-        ENV_VARS.set(Constants.EXECUTOR_URI_SCHEDENV, "executor-test-uri");
-    }
+    @Mock
+    private SchedulerFlags mockFlags;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
+        when(mockFlags.getApiServerPort()).thenReturn(8080);
     }
 
     protected void testYaml(String fileName) throws Exception {
@@ -51,7 +52,7 @@ public class BaseServiceSpecTest {
             throw new Exception("Did not find file: " + fileName + " perhaps you forgot to link it in the Resources" +
                     "folder?");
         }
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFlags);
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -60,7 +61,7 @@ public class BaseServiceSpecTest {
     protected void validateServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, mockFlags);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
@@ -71,8 +72,9 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
-        DefaultScheduler.newBuilder(serviceSpec)
-                .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+        DefaultScheduler.newBuilder(serviceSpec, mockFlags)
+                .setStateStore(DefaultScheduler.createStateStore(
+                        serviceSpec, mockFlags, testingServer.getConnectString()))
                 .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
                 .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)

@@ -15,7 +15,7 @@ import sdk_utils
 # (2) Upgrades to test version of framework.
 # (3) Downgrades to Universe version.
 # (4) Upgrades back to test version, as clean up.
-def upgrade_downgrade(package_name, running_task_count):
+def upgrade_downgrade(package_name, running_task_count, additional_options={}):
     install.uninstall(package_name)
 
     test_version = get_pkg_version(package_name)
@@ -40,34 +40,34 @@ def upgrade_downgrade(package_name, running_task_count):
     sdk_utils.out('Found Universe version: {}'.format(universe_version))
 
     sdk_utils.out('Installing Universe version')
-    install.install(package_name, running_task_count, check_suppression=False)
+    install.install(package_name, running_task_count, check_suppression=False, additional_options=additional_options)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
     add_last_repo('Universe', universe_url, universe_version, package_name)
 
     sdk_utils.out('Upgrading to test version')
-    upgrade_or_downgrade(package_name, running_task_count)
+    upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
     add_repo('Universe', universe_url, test_version, 0, package_name)
 
     sdk_utils.out('Downgrading to master version')
-    upgrade_or_downgrade(package_name, running_task_count)
+    upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
     # Move the Universe repo to the bottom of the repo list
     shakedown.remove_package_repo('Universe')
     add_last_repo('Universe', universe_url, universe_version, package_name)
 
     sdk_utils.out('Upgrading to test version')
-    upgrade_or_downgrade(package_name, running_task_count)
+    upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
 
-def upgrade_or_downgrade(package_name, running_task_count):
+def upgrade_or_downgrade(package_name, running_task_count, additional_options):
     task_ids = tasks.get_task_ids(package_name, '')
     marathon.destroy_app(package_name)
-    install.install(package_name, running_task_count, check_suppression=False)
+    install.install(package_name, running_task_count, check_suppression=False, additional_options=additional_options)
     sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
     spin.time_wait_noisy(lambda: (
         plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))

@@ -142,7 +142,7 @@ def configure_partition(device, partition_index, start, end, stdout):
     mount_location = '/dcos/volume{}'.format(partition_index - 1) # e.g. /dcos/volume0
     run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end), 
             stdout=stdout)
-    run('sudo mkfs -t ext4 {}{}'.format(device_partition), stdout=stdout)
+    run('sudo mkfs -t ext4 {}'.format(device_partition), stdout=stdout)
     run('sudo mkdir -p {}'.format(mount_location), stdout=stdout)
     run('sudo mount {} {}'.format(device_partition, mount_location),
             stdout=stdout)

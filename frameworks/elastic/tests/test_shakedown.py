@@ -4,6 +4,7 @@ import pytest
 
 import sdk_install as install
 import sdk_marathon as marathon
+import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_test_upgrade
 import sdk_utils as utils
@@ -124,9 +125,8 @@ def test_plugin_install_and_uninstall(default_populated_index):
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(marathon.get_scheduler_host(PACKAGE_NAME), "elastic.scheduler.Main")
-    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
-    current_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
-    assert initial_task_ids == current_task_ids
+    plan.get_deployment_plan(PACKAGE_NAME)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
 
 
 @pytest.mark.sanity
@@ -138,7 +138,13 @@ def test_kibana_proxylite_adminrouter_integration():
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    # Remove this once Universe package version defaults to user `nobody`
+    options = {
+        "service": {
+            "user": "nobody"
+        }
+    }
+    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=options)
 
 
 @pytest.mark.recovery

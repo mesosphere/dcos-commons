@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.Constants.EXECUTOR_URI_SCHEDENV;
-
 /**
  * Default implementation of {@link PodSpec}.
  */
@@ -80,12 +78,12 @@ public class DefaultPodSpec implements PodSpec {
         ValidationUtils.validate(this);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static Builder newBuilder(String executorUri) {
+        return new Builder(Optional.of(executorUri));
     }
 
     public static Builder newBuilder(PodSpec copy) {
-        Builder builder = new Builder();
+        Builder builder = new Builder(Optional.empty()); // Assume that Executor URI is already present
         builder.type = copy.getType();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
@@ -159,6 +157,8 @@ public class DefaultPodSpec implements PodSpec {
      * {@code DefaultPodSpec} builder static inner class.
      */
     public static final class Builder {
+        private final Optional<String> executorUri;
+
         private String type;
         private String user;
         private Integer count;
@@ -169,7 +169,8 @@ public class DefaultPodSpec implements PodSpec {
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
 
-        private Builder() {
+        private Builder(Optional<String> executorUri) {
+            this.executorUri = executorUri;
         }
 
         /**
@@ -308,18 +309,14 @@ public class DefaultPodSpec implements PodSpec {
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
-
-            // Inject the executor URI as one of the pods URIs. This ensures
-            // that the scheduler properly tracks changes to executors
-            // (reflected in changes to the executor URI)
-            String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
-            if (executorUri == null) {
-                throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
-            }
-
-            URI actualURI = URI.create(executorUri);
-            if (this.uris == null || !this.uris.contains(actualURI)) {
-                this.addUri(actualURI);
+            if (executorUri.isPresent()) {
+                // Inject the executor URI as one of the pods URIs. This ensures
+                // that the scheduler properly tracks changes to executors
+                // (reflected in changes to the executor URI)
+                URI actualURI = URI.create(executorUri.get());
+                if (this.uris == null || !this.uris.contains(actualURI)) {
+                    this.addUri(actualURI);
+                }
             }
 
             DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);

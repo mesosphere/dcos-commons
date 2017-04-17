@@ -887,9 +887,8 @@ installed the
 Here's an example of running the tests for the `helloworld` framework:
 
 ```bash
-$ virtualenv -p python3 venv
+$ tools/venvutil.py create venv
 $ source venv/bin/activate
-$ pip install -r tools/requirements.txt
 $ py.test frameworks/helloworld/
 ```
 

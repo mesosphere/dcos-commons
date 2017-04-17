@@ -5,6 +5,7 @@
   "instances": 1,
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && ./cassandra-scheduler/bin/cassandra ./cassandra-scheduler/svc.yml",
   "labels": {
+    "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
     "DCOS_MIGRATION_API_PATH": "/v1/plan",
@@ -23,10 +24,8 @@
   "env": {
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
-    "SERVICE_ROLE": "{{service.role}}",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "CASSANDRA_VERSION": "3.0.10",
-    "SERVICE_ZK_SERVERS": "{{service.zk_servers}}",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.secret_name}}
@@ -136,6 +135,7 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
+    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },
   "uris": [
