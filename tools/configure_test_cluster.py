@@ -98,23 +98,12 @@ class ClusterInitializer(object):
     def configure_master_settings(self):
         logger.info("Live-customizing mesos master")
         venv_path = venvutil.shared_tools_venv()
-        requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
-        # needs shakedown, so needs python3
-        if sys.version_info < (3,4):
-            venvutil.create_venv(venv_path, py3=True)
-            venvutil.pip_install(venv_path, requirements_file)
+        venvutil.create_dcoscommons_venv(venv_path)
+        venvutil.activate_venv(venv_path)
 
-            script = os.path.join(_tools_dir(), 'modify_master.py')
-            configure_cmd = ['python', script]
-            venvutil.run_cmd(venv_path, configure_cmd)
-        else:
-            venvutil.create_venv(venv_path)
-            venvutil.pip_install(venv_path, requirements_file)
-            venvutil.activate_venv(venv_path)
-
-            # import delayed until dependencies exist
-            import modify_master
-            modify_master.set_local_infinity_defaults()
+        # import delayed until dependencies exist
+        import modify_master
+        modify_master.set_local_infinity_defaults()
 
     def apply_default_config(self):
         saved_env = os.environ.copy()

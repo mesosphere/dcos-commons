@@ -8,17 +8,16 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT_DIR=$(dirname $TOOLS_DIR)
+source $TOOLS_DIR/init_paths.sh
 
 if [ -z "$GOPATH" -o -z "$(which go)" ]; then
   echo "Missing GOPATH environment variable or 'go' executable. Please configure a Go build environment."
   exit 1
 fi
 
-REPO_NAME=dcos-commons # CI dir does not match repo name
-GOPATH_MESOSPHERE="$GOPATH/src/github.com/mesosphere"
-GOPATH_EXE_DIR="$GOPATH_MESOSPHERE/$REPO_NAME/$1"
+ORG_PATH=${ORG_PATH:=github.com/mesosphere}
+GOPATH_ORG="$GOPATH/src/$ORG_PATH"
+GOPATH_EXE_DIR="$GOPATH_ORG/$REPO_NAME/$1"
 if [ $2 = "windows" ]; then
     EXE_FILENAME=$(basename $1).exe # dcos-kafka.exe
 else
@@ -51,12 +50,12 @@ case "$GO_VERSION" in
 esac
 
 # Add symlink from GOPATH which points into the repository directory:
-SYMLINK_LOCATION="$GOPATH_MESOSPHERE/$REPO_NAME"
+SYMLINK_LOCATION="$GOPATH_ORG/$REPO_NAME"
 if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_DIR" ]; then
     echo "Creating symlink from GOPATH=$SYMLINK_LOCATION to REPOPATH=$REPO_ROOT_DIR"
     rm -rf "$SYMLINK_LOCATION"
-    mkdir -p "$GOPATH_MESOSPHERE"
-    cd $GOPATH_MESOSPHERE
+    mkdir -p "$GOPATH_ORG"
+    cd $GOPATH_ORG
     ln -s "$REPO_ROOT_DIR" $REPO_NAME
 fi
 

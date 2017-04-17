@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.commons.io.FileUtils;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class YAMLServiceSpecFactory {
     }
 
     public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml) throws Exception {
-        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET), System.getenv());
+        return generateRawSpecFromYAML(pathToYaml, System.getenv());
     }
 
     public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml, Map<String, String> env)
@@ -66,10 +67,12 @@ public class YAMLServiceSpecFactory {
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
      * @param rawServiceSpec the raw service specification representing a YAML file
+     * @param schedulerFlags scheduler flags to use when building the service spec
      * @throws Exception if the conversion fails
      */
-    public static final DefaultServiceSpec generateServiceSpec(RawServiceSpec rawServiceSpec) throws Exception {
-        return generateServiceSpec(rawServiceSpec, new FileReader());
+    public static final DefaultServiceSpec generateServiceSpec(
+            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
+        return generateServiceSpec(rawServiceSpec, schedulerFlags, new FileReader());
     }
 
     /**
@@ -77,12 +80,13 @@ public class YAMLServiceSpecFactory {
      * providing a custom file reader for use in testing.
      *
      * @param rawServiceSpec the raw service specification representing a YAML file
+     * @param schedulerFlags scheduler flags to use when building the service spec
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
     @VisibleForTesting
     public static final DefaultServiceSpec generateServiceSpec(
-            RawServiceSpec rawServiceSpec, FileReader fileReader) throws Exception {
-        return YAMLToInternalMappers.from(rawServiceSpec, fileReader);
+            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, FileReader fileReader) throws Exception {
+        return YAMLToInternalMappers.from(rawServiceSpec, schedulerFlags, fileReader);
     }
 }

@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
@@ -30,9 +31,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
@@ -58,9 +57,7 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest {
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
@@ -113,9 +110,9 @@ public class DefaultRecoveryPlanManagerTest {
         offerAccepter = mock(OfferAccepter.class);
         stateStore = new CuratorStateStore(TestConstants.SERVICE_NAME, testingServer.getConnectString());
 
-        serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(new File(getClass()
-                        .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())));
+        serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
+                YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
+                        .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
 
         configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
         UUID configTarget = configStore.store(serviceSpec);
@@ -141,7 +138,7 @@ public class DefaultRecoveryPlanManagerTest {
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
         offerRequirementProvider = new DefaultOfferRequirementProvider(
-                stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
+                stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider),

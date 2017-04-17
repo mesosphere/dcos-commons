@@ -18,7 +18,7 @@
         "user": {
           "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
           "type": "string",
-          "default": "core"
+          "default": "nobody"
         },
         "principal": {
           "description": "The principal for the Elasticsearch service instance.",

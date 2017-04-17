@@ -17,6 +17,18 @@ import javax.validation.ValidationException;
  * This class tests the TaskUtils class.
  */
 public class TaskUtilsTest {
+    private static final String testTaskName = "test-task-name";
+
+    @Test
+    public void testValidToTaskName() throws Exception {
+        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(testTaskName + "__id").build();
+        Assert.assertEquals(testTaskName, CommonTaskUtils.toTaskName(validTaskId));
+    }
+
+    @Test(expected = TaskException.class)
+    public void testInvalidToTaskName() throws Exception {
+        CommonTaskUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
+    }
 
     @Test
     public void testAreNotDifferentTaskSpecifications() {

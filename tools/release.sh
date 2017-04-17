@@ -3,7 +3,7 @@
 # Exit immediately on failure:
 set -e
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source init_paths.sh
 cd $REPO_ROOT_DIR
 
 # Upload current tools (with '.commit' file containing the current SHA) to DEV S3.

@@ -24,14 +24,8 @@ public class CuratorStateStoreFilterTest {
     private static final int RETRY_DELAY_MS = 1000;
     private static final String ZOOKEEPER_ROOT_NODE_NAME = "zookeeper";
 
-    private static final Protos.FrameworkID FRAMEWORK_ID =
-            Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
-    private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonTaskUtils.toTaskId("taskName"))
-            .setState(TASK_STATE)
-            .build();
     private static TestingServer testZk;
     private CuratorStateStoreFilter store;
 

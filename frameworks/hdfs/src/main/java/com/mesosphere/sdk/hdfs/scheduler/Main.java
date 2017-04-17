@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
@@ -42,9 +43,11 @@ public class Main {
 
     private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
             throws Exception {
-        DefaultScheduler.Builder builder =
-                DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpec))
-                        .setRecoveryManagerFactory(new HdfsRecoveryPlanManagerFactory())
+        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags);
+        DefaultScheduler.Builder builder = DefaultScheduler
+                .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
+                .setRecoveryManagerFactory(new HdfsRecoveryPlanManagerFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder
                 .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant(getHdfsSiteXml()))
@@ -78,10 +81,7 @@ public class Main {
     }
 
 
-    private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
-            throws Exception {
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
-
+    private static ServiceSpec serviceSpecWithCustomizedPods(DefaultServiceSpec serviceSpec) throws Exception {
         // Journal nodes avoid themselves and Name nodes.
         PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "journal"))
                 .placementRule(new AndRule(TaskTypeRule.avoid("journal"), TaskTypeRule.avoid("name")))

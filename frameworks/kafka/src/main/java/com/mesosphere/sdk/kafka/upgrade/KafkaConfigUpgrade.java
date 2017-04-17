@@ -11,6 +11,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
@@ -48,17 +49,17 @@ public class KafkaConfigUpgrade {
     /**
      *  KafkaConfigUpgrade.
      */
-    public KafkaConfigUpgrade(ServiceSpec serviceSpec) throws Exception {
+    public KafkaConfigUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this.stateStore = new CuratorStateStoreUpdate(serviceSpec.getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
 
         // if framework_id exist and not disabled
         if (!KafkaConfigUpgrade.disabled() && !runningFirstTime(stateStore)) {
-            startUpgrade(serviceSpec);
+            startUpgrade(serviceSpec, schedulerFlags);
         }
     }
 
-    private void startUpgrade(ServiceSpec serviceSpec) throws Exception{
+    private void startUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception{
         Optional<KafkaSchedulerConfiguration> kafkaSchedulerConfiguration = getOldConfiguration(serviceSpec);
         if (!kafkaSchedulerConfiguration.isPresent()){
             LOGGER.info("\n ---------------------------------------------------- \n " +
@@ -74,7 +75,8 @@ public class KafkaConfigUpgrade {
             throw new KafkaConfigUpgradeException("Aborting Kafka Configuration Upgrade !!!");
         }
         verifyNewSpec(serviceSpec);
-        ServiceSpec newServiceSpec = generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec);
+        ServiceSpec newServiceSpec =
+                generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec, schedulerFlags);
 
         LOGGER.info("\n ---------------------------------------------------- \n " +
                     "          Kafka Configuration Upgrade started. \n" +
@@ -201,7 +203,8 @@ public class KafkaConfigUpgrade {
     }
 
     private ServiceSpec generateServiceSpec(KafkaSchedulerConfiguration kafkaSchedulerConfiguration,
-                                            ServiceSpec serviceSpec) {
+                                            ServiceSpec serviceSpec,
+                                            SchedulerFlags schedulerFlags) {
         /* TODO(mb): why I can not create RawPort. See below:
         LinkedHashMap<String, RawPort> portMap = new WriteOnceLinkedHashMap<>();
         portMap.put("broker",
@@ -232,7 +235,7 @@ public class KafkaConfigUpgrade {
                 .resourceSet(newResourceSet)
                 .build();
 
-        PodSpec newPodSpec = DefaultPodSpec.newBuilder()
+        PodSpec newPodSpec = DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
                 .user(kafkaSchedulerConfiguration.getServiceConfiguration().getUser())
                 .count(kafkaSchedulerConfiguration.getServiceConfiguration().getCount())
                 .type(serviceSpec.getPods().get(0).getType())
