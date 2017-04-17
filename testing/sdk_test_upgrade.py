@@ -65,7 +65,7 @@ def upgrade_downgrade(package_name, running_task_count, additional_options={}):
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.
-# Also, we assume that the Universe is the default repo and the stub repos are already in place,
+# Also, we assume that the Universe is the default repo (at --index=0) and the stub repos are already in place,
 # so we don't need to add or remove any repos.
 #
 # (1) Upgrades to test version of framework.
@@ -74,7 +74,8 @@ def soak_upgrade_downgrade(package_name, running_task_count, install_options={})
     print('Upgrading to test version')
     upgrade_or_downgrade(package_name, running_task_count, install_options, 'stub-universe')
 
-    print('Downgrading to master version')
+    print('Downgrading to Universe version')
+    # Default Universe is at --index=0
     upgrade_or_downgrade(package_name, running_task_count, install_options)
 
 
