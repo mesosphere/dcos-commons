@@ -26,7 +26,10 @@ def create_venv(path, with_pip=True, symlinks=True, py3=False):
     # ignoring py3; if we're already running py3, always py3
     path = os.path.abspath(path)
     builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
+
+    logger.info("Creating venv at {}".format(path))
     builder.create(path)
+    logger.info("Files in {}:\n{}\n".format(path, "\n".join(os.listdir(os.path.join(path, 'bin')))))
 
 def activate_venv(path):
     "Activate a given venv for the current python process."
