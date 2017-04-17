@@ -28,6 +28,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.recovery
 @pytest.mark.shutdown_node
+@pytest.mark.skip
 def test_shutdown_host_test():
 
     service_ip = shakedown.get_service_ips(PACKAGE_NAME).pop()
