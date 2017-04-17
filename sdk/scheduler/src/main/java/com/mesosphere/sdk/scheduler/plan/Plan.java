@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
@@ -22,8 +21,6 @@ import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
  * list of one or more error messages to be shown to the user,
  */
 public interface Plan extends ParentElement<Phase> {
-    void setErrors(List<String> errors);
-
     default Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         Collection<Phase> candidatePhases = getStrategy().getCandidates(getChildren(), dirtyAssets);
         Collection<Step> candidateSteps = candidatePhases.stream()

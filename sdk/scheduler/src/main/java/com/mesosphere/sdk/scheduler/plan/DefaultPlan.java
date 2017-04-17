@@ -1,13 +1,16 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.Observable;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
@@ -20,7 +23,7 @@ public class DefaultPlan extends ChainedObserver implements Plan {
     private final UUID id = UUID.randomUUID();
     private final Strategy<Phase> strategy;
     private final List<Phase> phases;
-    private List<String> errors;
+    private final List<String> errors;
     private final String name;
 
     public DefaultPlan(
@@ -82,10 +85,5 @@ public class DefaultPlan extends ChainedObserver implements Plan {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
-    }
-
-    @Override
-    public void setErrors(List<String> errors) {
-        this.errors = errors;
     }
 }

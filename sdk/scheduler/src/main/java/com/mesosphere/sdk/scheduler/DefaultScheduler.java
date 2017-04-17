@@ -327,7 +327,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:
-            final List<Plan> plans;
+            Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
@@ -351,15 +351,15 @@ public class DefaultScheduler implements Scheduler, Observer {
                 }
             }
 
-            Optional<Plan> deploy = getDeployPlan(plans);
-            if (!deploy.isPresent()) {
-                throw new RuntimeException("No deploy plan provided.");
+            Optional<Plan> deployOptional = getDeployPlan(plans);
+            if (!deployOptional.isPresent()) {
+                throw new IllegalStateException("No deploy plan provided.");
             }
 
             List<String> errors = configUpdateResult.errors.stream()
                     .map(configValidationError -> configValidationError.toString())
                     .collect(Collectors.toList());
-            deploy.get().setErrors(errors);
+            plans = updateDeployPlan(plans, errors);
 
             return new DefaultScheduler(
                     serviceSpec,
@@ -958,5 +958,26 @@ public class DefaultScheduler implements Scheduler, Observer {
             LOGGER.error(errMsg);
             throw new IllegalStateException(errMsg);
         }
+    }
+
+    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+        if (errors.isEmpty()) {
+            return plans;
+        }
+
+        Collection<Plan> updatedPlans = new ArrayList<>();
+        Plan deployPlan = getDeployPlan(plans).get();
+        deployPlan = new DefaultPlan(
+                deployPlan.getName(),
+                deployPlan.getChildren(),
+                deployPlan.getStrategy(),
+                errors);
+
+        updatedPlans.add(deployPlan);
+        plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(plan -> updatedPlans.add(plan));
+
+        return updatedPlans;
     }
 }
