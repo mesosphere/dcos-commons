@@ -265,6 +265,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.getCommandBuilder()
                     .setValue(commandSpec.getValue())
                     .setEnvironment(getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
+            setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
         }
 
@@ -272,8 +273,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
-        setHealthCheck(taskInfoBuilder.getHealthCheckBuilder(),
-                serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return taskInfoBuilder.build();
@@ -325,16 +325,32 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setEnvironment(mergeEnvironments(
                             getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec),
                             taskInfo.getCommand().getEnvironment()));
+            setBootstrapConfigFileEnv(commandBuilder, taskSpec);
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
         }
 
-        setHealthCheck(taskInfoBuilder.getHealthCheckBuilder(),
-                serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(
                 taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
+    }
+
+    private static void setBootstrapConfigFileEnv(
+            CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
+        if (taskSpec.getConfigFiles() == null) {
+            return;
+        }
+        for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
+            // For use by bootstrap process: an environment variable pointing to (comma-separated):
+            // a. where the template file was downloaded (by the mesos fetcher)
+            // b. where the rendered result should go
+            CommandUtils.setEnvVar(
+                    commandInfoBuilder,
+                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
+                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
+        }
     }
 
     private static void extendEnv(CommandInfo.Builder builder, Map<String, String> environment) {
@@ -366,21 +382,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
         Map<String, String> environment = new HashMap<>();
 
-        if (taskSpec.getConfigFiles() != null) {
-            for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                // For use by bootstrap process: an environment variable pointing to (comma-separated):
-                // a. where the template file was downloaded (by the mesos fetcher)
-                // b. where the rendered result should go
-                environment.put(
-                        String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
-                        String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
-            }
-        }
-
         // Task envvars from either of the following sources:
-
         // - ServiceSpec (provided by developer)
-        // - TASKCFG_<podname>_* (provided by user, overrides ServiceSpec when parsing YAML)
+        // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
         environment.putAll(commandSpec.getEnvironment());
 
         // Default envvars for use by executors/developers:
@@ -685,7 +689,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static void setHealthCheck(
-            Protos.HealthCheck.Builder healthCheckBuilder,
+            Protos.TaskInfo.Builder taskInfo,
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
@@ -696,6 +700,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
+        Protos.HealthCheck.Builder healthCheckBuilder = taskInfo.getHealthCheckBuilder();
         healthCheckBuilder
                 .setDelaySeconds(healthCheckSpec.getDelay())
                 .setIntervalSeconds(healthCheckSpec.getInterval())
@@ -703,8 +708,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
                 .setGracePeriodSeconds(healthCheckSpec.getGracePeriod());
 
-        Protos.CommandInfo.Builder healthCheckCommandBuilder =
-                healthCheckBuilder.getCommandBuilder().setValue(healthCheckSpec.getCommand());
+        Protos.CommandInfo.Builder healthCheckCommandBuilder = healthCheckBuilder.getCommandBuilder()
+                .setValue(healthCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
             healthCheckCommandBuilder.setEnvironment(
                     getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
