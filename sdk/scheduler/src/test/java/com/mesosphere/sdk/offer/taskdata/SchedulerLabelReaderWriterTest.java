@@ -30,7 +30,7 @@ public class SchedulerLabelReaderWriterTest {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
         taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
                 .setTargetConfiguration(testTargetConfigurationId)
-                .toLabels());
+                .toProto());
         Assert.assertEquals(testTargetConfigurationId, new SchedulerLabelReader(taskBuilder).getTargetConfiguration());
     }
 
@@ -56,7 +56,7 @@ public class SchedulerLabelReaderWriterTest {
         Assert.assertTrue(new SchedulerLabelReader(getTestTaskInfo()).getOfferAttributeStrings().isEmpty());
 
         Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
-        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.build()).toLabels());
+        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.build()).toProto());
         List<String> expectedStrings = new ArrayList<>();
         expectedStrings.add("1:[5-6,10-12]");
         expectedStrings.add("2:123.457");
@@ -64,7 +64,7 @@ public class SchedulerLabelReaderWriterTest {
         expectedStrings.add("4:[7-8,10-12]");
         Assert.assertEquals(expectedStrings, new SchedulerLabelReader(tb).getOfferAttributeStrings());
 
-        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.clearAttributes().build()).toLabels());
+        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.clearAttributes().build()).toProto());
         Assert.assertTrue(new SchedulerLabelReader(tb.build()).getOfferAttributeStrings().isEmpty());
     }
 
@@ -76,11 +76,11 @@ public class SchedulerLabelReaderWriterTest {
     @Test
     public void testSetGetTaskType() throws TaskException {
         Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder).setType("foo").toLabels());
+        builder.setLabels(new SchedulerLabelWriter(builder).setType("foo").toProto());
         Assert.assertEquals("foo", new SchedulerLabelReader(builder).getType());
 
         builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder).setType("").toLabels());
+        builder.setLabels(new SchedulerLabelWriter(builder).setType("").toProto());
         Assert.assertEquals("", new SchedulerLabelReader(builder).getType());
     }
 
@@ -92,7 +92,7 @@ public class SchedulerLabelReaderWriterTest {
         Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
         builder.setLabels(new SchedulerLabelWriter(builder)
                 .setReadinessCheck(inReadinessCheck)
-                .toLabels());
+                .toProto());
         Protos.HealthCheck outReadinessCheck = new SchedulerLabelReader(builder).getReadinessCheck().get();
 
         Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);

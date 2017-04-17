@@ -1,10 +1,15 @@
 package com.mesosphere.sdk.offer;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.mesos.Protos.*;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.mesos.Protos.Environment;
+import org.apache.mesos.Protos.ExecutorID;
+import org.apache.mesos.Protos.SlaveID;
+import org.apache.mesos.Protos.TaskID;
 
 import static com.mesosphere.sdk.offer.Constants.*;
 
@@ -66,9 +71,7 @@ public class CommonTaskUtils {
     public static Map<String, String> fromEnvironmentToMap(Environment environment) {
         Map<String, String> map = new HashMap<>();
 
-        final List<Environment.Variable> variables = environment.getVariablesList();
-
-        for (Environment.Variable variable : variables) {
+        for (Environment.Variable variable : environment.getVariablesList()) {
             map.put(variable.getName(), variable.getValue());
         }
 
@@ -95,85 +98,5 @@ public class CommonTaskUtils {
                 .collect(Collectors.toList());
 
         return Environment.newBuilder().addAllVariables(vars);
-    }
-
-    /**
-     * Mesos requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
-     * workaround this we encapsulate a TaskInfo's Command field in an ExecutorInfo and store it in the data field of
-     * the TaskInfo.
-     *
-     * Unpacked:
-     * - taskInfo
-     *   - executor
-     *   - data: custom
-     *   - command
-     *
-     * Packed:
-     * - taskInfo
-     *   - executor
-     *   - data: serialized executorinfo
-     *     - data: custom
-     *     - command
-     *
-     * @see #unpackTaskInfo(TaskInfo)
-     */
-    public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
-        if (!taskInfo.hasExecutor()) {
-            return taskInfo;
-        } else {
-            ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
-                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTORID));
-
-            if (taskInfo.hasCommand()) {
-                executorInfoBuilder.setCommand(taskInfo.getCommand());
-            }
-
-            if (taskInfo.hasData()) {
-                executorInfoBuilder.setData(taskInfo.getData());
-            }
-
-            return TaskInfo.newBuilder(taskInfo)
-                    .setData(executorInfoBuilder.build().toByteString())
-                    .clearCommand()
-                    .build();
-        }
-    }
-
-    /**
-     * This method reverses the work done in {@link #packTaskInfo(TaskInfo)} such that the original
-     * TaskInfo is regenerated. If the provided {@link TaskInfo} doesn't appear to have packed data
-     * then this operation does nothing.
-     *
-     * TODO(nickbp): Make this function only visible to Custom Executor code. Scheduler shouldn't ever call it.
-     *
-     * @see #packTaskInfo(TaskInfo)
-     */
-    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) {
-        if (!taskInfo.hasData() || !taskInfo.hasExecutor()) {
-            return taskInfo;
-        } else {
-            TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
-            ExecutorInfo pkgExecutorInfo;
-            try {
-                pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
-            } catch (InvalidProtocolBufferException e) {
-                // This TaskInfo has a data field, but it doesn't parse as an ExecutorInfo. Not a packed TaskInfo?
-                // TODO(nickbp): This try/catch should be removed once CuratorStateStore is no longer speculatively
-                //               unpacking all TaskInfos.
-                return taskInfo;
-            }
-
-            if (pkgExecutorInfo.hasCommand()) {
-                taskBuilder.setCommand(pkgExecutorInfo.getCommand());
-            }
-
-            if (pkgExecutorInfo.hasData()) {
-                taskBuilder.setData(pkgExecutorInfo.getData());
-            } else {
-                taskBuilder.clearData();
-            }
-
-            return taskBuilder.build();
-        }
     }
 }

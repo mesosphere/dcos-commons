@@ -31,7 +31,7 @@ class LabelUtils {
     /**
      * Returns a Protobuf representation of the provided {@link Map}.
      */
-    static Labels toLabels(Map<String, String> labels) {
+    static Labels toProto(Map<String, String> labels) {
         Labels.Builder labelsBuilder = Labels.newBuilder();
         for (Map.Entry<String, String> entry : labels.entrySet()) {
             labelsBuilder.addLabelsBuilder()

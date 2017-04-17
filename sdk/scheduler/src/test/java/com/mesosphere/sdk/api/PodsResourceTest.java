@@ -62,7 +62,7 @@ public class PodsResourceTest {
         infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
                 .setType("test")
                 .setIndex(0)
-                .toLabels());
+                .toProto());
         POD_0_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
         POD_0_STATUS_A = TaskTestUtils.generateStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_RUNNING);
 
@@ -76,7 +76,7 @@ public class PodsResourceTest {
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(1).toLabels());
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(1).toProto());
         POD_1_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
@@ -85,7 +85,7 @@ public class PodsResourceTest {
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(2).toLabels());
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(2).toProto());
         POD_2_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }

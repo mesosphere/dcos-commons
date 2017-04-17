@@ -43,7 +43,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toLabels());
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -60,7 +60,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toLabels());
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -71,7 +71,7 @@ public class OfferAccepterTest {
                 anyCollectionOf(Operation.class),
                 anyObject());
 
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).clearTransient().toLabels());
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).clearTransient().toProto());
         accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(

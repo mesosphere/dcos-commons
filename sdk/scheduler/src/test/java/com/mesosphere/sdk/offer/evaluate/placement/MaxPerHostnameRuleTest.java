@@ -354,7 +354,7 @@ public class MaxPerHostnameRuleTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setHostname(offer).toLabels());
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setHostname(offer).toProto());
         return taskBuilder.build();
     }
 

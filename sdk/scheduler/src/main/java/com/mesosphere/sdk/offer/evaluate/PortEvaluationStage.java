@@ -105,7 +105,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                     setPortEnvironmentVariable(readinessCheckWithPortBuilder.getCommandBuilder(), port);
                     taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
                             .setReadinessCheck(readinessCheckWithPortBuilder.build())
-                            .toLabels());
+                            .toProto());
                 } else {
                     LOGGER.info("Readiness check is not defined for task: {}", taskName);
                 }

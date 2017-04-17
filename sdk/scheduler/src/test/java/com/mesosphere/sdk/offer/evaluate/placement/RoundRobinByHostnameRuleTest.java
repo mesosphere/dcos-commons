@@ -167,7 +167,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
                 .setTaskId(CommonTaskUtils.toTaskId(name));
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toLabels());
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
         return infoBuilder.build();
     }
 

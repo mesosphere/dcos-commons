@@ -121,7 +121,7 @@ public class DefaultRecoveryPlanManagerTest {
                 .setLabels(new SchedulerLabelWriter(taskInfo)
                         .setTargetConfiguration(configTarget)
                         .setIndex(0)
-                        .toLabels())
+                        .toProto())
                 .setName("test-task-type-0-test-task-name")
                 .setTaskId(CommonTaskUtils.toTaskId("test-task-type-0-test-task-name"))
                 .build();

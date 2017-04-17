@@ -5,6 +5,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskPacking;
 
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -33,7 +34,7 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.LAUNCH)
                 .setLaunch(Operation.Launch.newBuilder()
-                        .addTaskInfos(CommonTaskUtils.packTaskInfo(this.taskInfo)))
+                        .addTaskInfos(TaskPacking.pack(this.taskInfo)))
                 .build();
     }
 

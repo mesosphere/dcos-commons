@@ -285,7 +285,7 @@ public class KafkaConfigUpgrade {
                     .setType("kafka")
                     .setGoalState(newServiceSpec.getPods().get(0).getTasks().get(0).getGoal())
                     .setTargetConfiguration(newTargetId)
-                    .toLabels());
+                    .toProto());
 
             List<Protos.Resource> resourcesList = new ArrayList<>();
             for (Protos.Resource resource : oldTaskInfo.get().getResourcesList()) {

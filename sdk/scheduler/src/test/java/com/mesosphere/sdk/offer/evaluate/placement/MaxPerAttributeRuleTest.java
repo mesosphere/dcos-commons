@@ -480,7 +480,7 @@ public class MaxPerAttributeRuleTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setOfferAttributes(offer).toLabels());
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setOfferAttributes(offer).toProto());
         return taskBuilder.build();
     }
 

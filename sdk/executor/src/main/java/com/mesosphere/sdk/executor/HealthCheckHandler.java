@@ -167,9 +167,9 @@ public class HealthCheckHandler {
                 if (exitValue != 0) {
                     healthCheckStats.failed();
                     LOGGER.error("Health check failed with exit code {}: {}",
-                            exitValue, TextFormat.shortDebugString(commandInfo));
+                            exitValue, commandInfo.getValue());
                 } else {
-                    LOGGER.info("Health check succeeded: {}", TextFormat.shortDebugString(commandInfo));
+                    LOGGER.info("Health check succeeded: {}", commandInfo.getValue());
                     healthCheckStats.succeeded();
                 }
 
@@ -224,7 +224,7 @@ public class HealthCheckHandler {
                         taskInfo.getExecutor().getExecutorId(),
                         "Readiness check passed",
                         true,
-                        new ExecutorLabelWriter().setReadinessCheckPassed().toLabels(),
+                        new ExecutorLabelWriter().setReadinessCheckPassed().toProto(),
                         null);
                 throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);
             }

@@ -191,7 +191,7 @@ public class TaskTypeRuleTest {
             throw new IllegalStateException(e);
         }
         taskBuilder.getSlaveIdBuilder().setValue(agent);
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setType(type).toLabels());
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setType(type).toProto());
         return taskBuilder.build();
     }
 

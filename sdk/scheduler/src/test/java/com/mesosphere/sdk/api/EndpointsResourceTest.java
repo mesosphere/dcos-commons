@@ -40,7 +40,7 @@ public class EndpointsResourceTest {
         builder.setLabels(new SchedulerLabelWriter(builder)
                 .setHostname(OfferTestUtils.getOffer(Collections.emptyList()))
                 .setType("some-task-type")
-                .toLabels());
+                .toProto());
         TASK_WITH_METADATA = builder.build();
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-ports-1");

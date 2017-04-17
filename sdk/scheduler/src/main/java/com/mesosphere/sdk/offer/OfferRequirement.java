@@ -178,7 +178,7 @@ public class OfferRequirement {
             taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
                     .setType(type)
                     .setIndex(index)
-                    .toLabels());
+                    .toProto());
             taskRequirements.add(new TaskRequirement(taskBuilder.build()));
         }
         return taskRequirements;

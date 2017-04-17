@@ -173,7 +173,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
                         taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
                                 .setTargetConfiguration(targetConfigId)
-                                .toLabels());
+                                .toProto());
                         taskInfosToUpdate.add(taskBuilder.build());
                     } else {
                         // Config isn't the same as the target. Refrain from updating task, mark config as 'needed'.

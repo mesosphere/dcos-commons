@@ -53,7 +53,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
         Protos.TaskInfo.Builder builder = baseTaskInfo.toBuilder();
         builder.setLabels(new SchedulerLabelWriter(builder)
                 .setType(TestConstants.TASK_TYPE)
-                .toLabels());
+                .toProto());
         persistentLaunchRecorder.updateResources(builder.build());
     }
 
@@ -70,7 +70,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 .setLabels(new SchedulerLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
-                        .toLabels())
+                        .toProto())
                 .setName(taskName)
                 .addAllResources(Arrays.asList(targetResource))
                 .build();
@@ -102,7 +102,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 .setLabels(new SchedulerLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
-                        .toLabels())
+                        .toProto())
                 .setName(initTaskName)
                 .addAllResources(Arrays.asList(previousResource))
                 .build();
@@ -112,7 +112,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 .setLabels(new SchedulerLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
-                        .toLabels())
+                        .toProto())
                 .setName(serverTaskName)
                 .addAllResources(Arrays.asList(targetResource))
                 .build();

@@ -24,14 +24,14 @@ public class LabelReader {
      * Creates a new instance for reading the provided task's labels.
      */
     protected LabelReader(TaskInfo taskInfo) {
-        this(taskInfo.getName(), LabelUtils.toMap(taskInfo.getLabels()));
+        this(taskInfo.getName(), taskInfo.getLabels());
     }
 
     /**
      * Creates a new instance for reading the provided task builder's labels.
      */
     protected LabelReader(TaskInfo.Builder taskInfoBuilder) {
-        this(taskInfoBuilder.getName(), LabelUtils.toMap(taskInfoBuilder.getLabels()));
+        this(taskInfoBuilder.getName(), taskInfoBuilder.getLabels());
     }
 
     /**
@@ -40,9 +40,9 @@ public class LabelReader {
      * @param taskName the name of the task, only used in error messages if there are problems with the label content
      * @param labels the labels to be read from
      */
-    private LabelReader(String taskName, Map<String, String> labels) {
+    private LabelReader(String taskName, Labels labels) {
         this.taskName = taskName;
-        this.labels = labels;
+        this.labels = LabelUtils.toMap(labels);
     }
 
     /**
@@ -60,13 +60,6 @@ public class LabelReader {
         } catch (InvalidProtocolBufferException e) {
             throw new TaskException(e);
         }
-    }
-
-    /**
-     * Returns a Protobuf representation of all contained label entries.
-     */
-    public Labels toLabels() {
-        return LabelUtils.toLabels(labels);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.Map;
+
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -54,7 +55,7 @@ public class LabelWriter {
     /**
      * Returns a Protobuf representation of all contained label entries.
      */
-    public Labels toLabels() {
-        return LabelUtils.toLabels(labels);
+    public Labels toProto() {
+        return LabelUtils.toProto(labels);
     }
 }

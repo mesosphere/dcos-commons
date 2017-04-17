@@ -121,7 +121,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance, taskSpec, environment, serviceName, targetConfigurationId);
         if (isTransient) {
             taskInfo = taskInfo.toBuilder()
-                    .setLabels(new SchedulerLabelWriter(taskInfo).setTransient().toLabels())
+                    .setLabels(new SchedulerLabelWriter(taskInfo).setTransient().toProto())
                     .build();
         }
 
@@ -258,7 +258,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setGoalState(taskSpec.getGoal())
                 .setType(podInstance.getPod().getType())
                 .setIndex(podInstance.getIndex())
-                .toLabels());
+                .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -316,7 +316,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setLabels(new SchedulerLabelWriter(taskInfo)
                         .setTargetConfiguration(targetConfigurationId)
                         .clearTransient()
-                        .toLabels());
+                        .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -739,6 +739,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
                 .setReadinessCheck(builder.build())
-                .toLabels());
+                .toProto());
     }
 }

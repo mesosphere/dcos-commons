@@ -7,6 +7,10 @@ package com.mesosphere.sdk.offer.taskdata;
  */
 class LabelConstants {
 
+    private LabelConstants() {
+        // do not instantiate
+    }
+
     /** Identifies the goal state of this task, e.g. TASK_RUNNING or TASK_FINISHED */
     static final String GOAL_STATE_LABEL = "goal_state";
     /** Identifies the target configuration UUID used by a given task. */

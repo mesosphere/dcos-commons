@@ -33,7 +33,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
             .setType(podInfoBuilder.getOfferRequirement().getType())
             .setIndex(podInfoBuilder.getOfferRequirement().getIndex())
             .setHostname(offer)
-            .toLabels());
+            .toProto());
         if (executorBuilder.isPresent()) {
             taskBuilder.setExecutor(executorBuilder.get());
         }
