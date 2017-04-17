@@ -39,8 +39,7 @@ def test_shutdown_host_test():
             node_ip = pod_host
             break
 
-    if node_ip is None:
-        assert False, 'Could not find a node to shut down'
+    assert node_ip is not None, 'Could not find a node to shut down'
 
     old_agent = get_pod_agent(pod_id)
     sdk_utils.out('pod id = {}, node_ip = {}, agent = {}'.format(pod_id, node_ip, old_agent))
