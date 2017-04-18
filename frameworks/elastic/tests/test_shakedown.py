@@ -4,7 +4,6 @@ import pytest
 
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_test_upgrade
 import sdk_utils as utils
@@ -125,7 +124,6 @@ def test_plugin_install_and_uninstall(default_populated_index):
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(marathon.get_scheduler_host(PACKAGE_NAME), "elastic.scheduler.Main")
-    plan.get_deployment_plan(PACKAGE_NAME)
     tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
 
 

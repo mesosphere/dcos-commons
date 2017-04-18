@@ -3,10 +3,12 @@
 import dcos
 import sdk_api
 import sdk_spin
+import sdk_utils
 import shakedown
 
 
 def get_deployment_plan(service_name):
+    sdk_utils.out("Waiting for deploy plan to complete...")
     return get_plan(service_name, "deploy")
 
 
