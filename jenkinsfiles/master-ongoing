@@ -50,6 +50,5 @@ node('infinity-small') {
     } catch (err) {
         currentBuild.result = 'FAILURE'
         // TODO: send failure inifinity-ci
-        throw err
     }
 }

@@ -1,3 +1,5 @@
+// This defines the test we use during pull requests to master`
+
 node('infinity') {
     try {
         withCredentials([
@@ -54,6 +56,5 @@ node('infinity-small') {
     } catch (err) {
         currentBuild.result = 'FAILURE'
         // TODO: send failure slack to pull request user
-        throw err
     }
 }
