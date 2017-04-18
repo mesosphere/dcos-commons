@@ -6,7 +6,7 @@ This template README may be used as a starting point for writing a Service Guide
 
 In particular, the parts in _ALL-CAPS ITALICS_ should be updated to reflect your service.
 
-Many sections are left unfilled as they depend on how your service works. For example, we leave empty sections for you to describe how users may [Backup and Restore their data](#disaster-recovery), because any persistent service should have a backup option.
+Many sections are left unfilled, as they depend on how your service works. For example, we leave empty sections for you to describe how users may [Backup and Restore their data](#disaster-recovery) because any persistent service should have a backup option.
 
 ---
 
@@ -68,13 +68,13 @@ Many sections are left unfilled as they depend on how your service works. For ex
 <a name="overview"></a>
 # Overview
 
-DC/OS _SERVICENAME_ is an automated service that makes it easy to deploy and manage _SERVICENAME_ on [Mesosphere DC/OS](http://dcos.io). For more information on _SERVICENAME_, see its _[documentation](http://example.com)_.
+DC/OS _SERVICENAME_ is an automated service that makes it easy to deploy and manage _SERVICENAME_ on [DC/OS](https://mesosphere.com/product/). For more information on _SERVICENAME_, see its _[documentation](http://example.com)_.
 
-The service comes with a reasonable initial configuration for evaluation use. Additional customizations may be made to the service configuration at initial install, and later updated once the service is already running through a configuration rollout process. If you just want to try out the service, you can use the default configuration and be up and running within moments.
+The service comes with a reasonable initial configuration for evaluation use. You can customize the service configuration at initial install, and later update once the service is already running through a configuration rollout process. If you just want to try out the service, you can use the default configuration and be up and running within moments.
 
-Interoperating clients and services may take advantage of DC/OS service discovery features to directly access _SERVICENAME_ via advertised endpoints, regardless of where the instance is currently located within a DC/OS Cluster.
+Interoperating clients and services can take advantage of DC/OS service discovery features to directly access _SERVICENAME_ via advertised endpoints, regardless of where the instance is currently located within a DC/OS Cluster.
 
-Multiple instances can be installed on DC/OS and managed independently. This allows different teams within an organization to have isolated instances of the service.
+You can install multiple service instances on DC/OS and manage them. This allows different teams within an organization to have isolated instances of the service.
 
 ## Features
 
@@ -88,31 +88,32 @@ Multiple instances can be installed on DC/OS and managed independently. This all
 <a name="quick-start"></a>
 # Quick Start
 
-1. Get a DC/OS cluster. If you don't have one yet, head over to [DC/OS Docs](https://dcos.io/docs/latest) for instructions.
-2. Install the Service in your DC/OS cluster, either via the [DC/OS Dashboard](https://docs.mesosphere.com/latest/usage/webinterface/) or via the [DC/OS CLI](https://docs.mesosphere.com/latest/usage/cli/) as shown here:
-```
-dcos config set core.dcos_url http://your-cluster.com
-dcos config set core.ssl_verify False # optional
-dcos auth login
-```
-```
-dcos package install _PKGNAME_
-```
-3. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
-4. Now you are ready to connect a client to the service...
-```
-dcos _PKGNAME_ endpoints
-[
-  "_LIST_",
-  "_OF_",
-  "_ENDPOINTS_"
-]
-dcos _PKGNAME_ endpoints _ENDPOINT_
-{
-  "address": ["10.0.3.156:_PORT_", "10.0.3.84:_PORT_"],
-  "dns": ["_POD_-0._PKGNAME_.mesos:_PORT_", "_POD_-1._PKGNAME_.mesos:_PORT_", "_POD_-2._PKGNAME_.mesos:_PORT_]
-}
-```
+1. Install a DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.
+
+1. If you are using open source DC/OS, install a _SERVICENAME_ cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
+
+	```
+	dcos package install _PKGNAME_
+	```
+
+	You can also install _SERVICENAME_ from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
+
+1. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
+
+1. Now you are ready to connect a client to the service...
+	```
+	dcos _PKGNAME_ endpoints
+	[
+	  "_LIST_",
+	  "_OF_",
+	  "_ENDPOINTS_"
+	]
+	dcos _PKGNAME_ endpoints _ENDPOINT_
+	{
+	  "address": ["10.0.3.156:_PORT_", "10.0.3.84:_PORT_"],
+	  "dns": ["_POD_-0._PKGNAME_.mesos:_PORT_", "_POD_-1._PKGNAME_.mesos:_PORT_", "_POD_-2._PKGNAME_.mesos:_PORT_]
+	}
+	```
 
 <a name="installing-and-customizing"></a>
 # Installing and Customizing
