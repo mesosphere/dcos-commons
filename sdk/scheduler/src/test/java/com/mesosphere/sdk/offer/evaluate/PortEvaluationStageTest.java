@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -236,7 +235,7 @@ public class PortEvaluationStageTest {
         }
         Assert.assertTrue(portInTaskEnv);
         boolean portInHealthEnv = false;
-        Optional<Protos.HealthCheck> readinessCheck = new SchedulerLabelReader(taskBuilder).getReadinessCheck();
+        Optional<Protos.HealthCheck> readinessCheck = OfferRequirementTestUtils.getReadinessCheck(taskBuilder.build());
         for (int i = 0; i < readinessCheck.get().getCommand().getEnvironment().getVariablesCount(); i++) {
             Protos.Environment.Variable variable = readinessCheck.get().getCommand().getEnvironment().getVariables(i);
             if (Objects.equals(variable.getName(), "TEST_PORT")) {

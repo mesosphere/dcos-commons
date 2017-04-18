@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
@@ -93,7 +94,7 @@ public class SchedulerLabelReaderWriterTest {
         builder.setLabels(new SchedulerLabelWriter(builder)
                 .setReadinessCheck(inReadinessCheck)
                 .toProto());
-        Protos.HealthCheck outReadinessCheck = new SchedulerLabelReader(builder).getReadinessCheck().get();
+        Protos.HealthCheck outReadinessCheck = OfferRequirementTestUtils.getReadinessCheck(builder.build()).get();
 
         Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);
     }
