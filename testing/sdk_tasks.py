@@ -1,6 +1,7 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.errors
+import sdk_plan
 import sdk_spin
 import sdk_utils
 import shakedown
@@ -66,25 +67,12 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=-1):
 
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
-    def fn():
-        try:
-            task_ids = get_task_ids(service_name, prefix)
-        except dcos.errors.DCOSHTTPException:
-            sdk_utils.out('Failed to get task ids for service {}'.format(service_name))
-            task_ids = []
-
-        msg = ('Checking prior tasks starting with "{}" are undisturbed:\n- Old tasks: {}\n- Current tasks: {}'.format(
-            prefix, old_task_ids, task_ids))
-        sdk_utils.out(msg)
-        for task_id in task_ids:
-            if task_id not in old_task_ids:
-                return False
-        return True
-
-    try:
-        sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=60)
-    except shakedown.TimeoutExpired:
-        sdk_utils.out('Timeout reached as expected')
+    sdk_plan.get_deployment_plan(service_name)
+    task_ids = get_task_ids(service_name, prefix)
+    msg = 'Checking tasks starting with "{}" have not been updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
+        prefix, old_task_ids, task_ids)
+    sdk_utils.out(msg)
+    assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated"
 
 
 def kill_task_with_pattern(pattern, host=None):
