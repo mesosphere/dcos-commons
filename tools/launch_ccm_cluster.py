@@ -443,7 +443,7 @@ def parse_args(argv):
         help='What configuration steps to use to set up the cluster [%(default)s]')
 
     parser.add_argument("--output",
-        metavar="filename"
+        metavar="filename",
         help='Write the cluster info to this filename, in addition to standard out')
 
     subparsers = parser.add_subparsers(
@@ -456,6 +456,10 @@ def parse_args(argv):
         choices=('default', 'nomaster', 'none'),
         default='default',
         help='What configuration steps to use to set up the cluster [%(default)s]')
+
+    start_parser.add_argument("--output",
+        metavar="filename",
+        help='Write the cluster info to this filename, in addition to standard out')
 
     msg='ask CCM to stop a cluster and block until this completes'
     stop_parser = subparsers.add_parser('stop',
