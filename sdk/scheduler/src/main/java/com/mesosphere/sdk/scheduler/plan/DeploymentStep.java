@@ -71,6 +71,11 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+        return Optional.of(podInstanceRequirement.withParameters(parameters));
+    }
+
+    @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
         logger.info("Updated step '{} [{}]' with {} recommendations:", getName(), getId(), recommendations.size());

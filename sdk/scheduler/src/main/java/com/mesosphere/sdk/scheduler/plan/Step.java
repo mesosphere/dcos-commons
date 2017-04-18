@@ -29,6 +29,12 @@ public interface Step extends Element, Interruptible {
     Optional<PodInstanceRequirement> start();
 
     /**
+     * Returns an {@link OfferRequirement}, or an empty Optional if obtaining/updating resource requirements are not
+     * applicable to the Step. Unlike {@link #start()} it has no connotation of performing any work.
+     */
+    Optional<PodInstanceRequirement> getPodInstanceRequirement();
+
+    /**
      * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
      * {@link #start()} has been successfully accepted/fulfilled. The {@code recommendations} param is
      * empty when no offers matching the requirement previously returned by {@link #start()}
