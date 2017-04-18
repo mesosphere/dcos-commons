@@ -492,6 +492,10 @@ def parse_args(argv):
         help='state to wait for')
     return parser.parse_args(argv[1:])
 
+def write_clustinfo(cluster_info, filename):
+    with open(filename, "w") as output_f:
+        out_s = json.dumps(cluster_info)
+        output_f.write(out_s)
 
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
@@ -506,6 +510,7 @@ def main(argv):
 
     launcher = CCMLauncher(ccm_token, github_label)
     args = parse_args(argv)
+    print(args)
     if args.command == 'stop':
         launcher.stop(StopConfig(args.ccm_id), start_stop_attempts)
     elif args.command == 'trigger-stop':
@@ -523,12 +528,13 @@ def main(argv):
         # print to stdout (the rest of this script only writes to stderr):
         print(pprint.pformat(cluster_info))
         if args.output:
-            with open(args.output, "w") as output_f:
-                out_s = json.dumps(cluster_info)
-                output_f.write(out_s)
+            write_clustinfo(cluster_info, args.output)
     else:  # 'start' or no command
-        _start_cluster(launcher, github_label, start_stop_attempts,
+        cluster_info = _start_cluster(launcher, github_label, start_stop_attempts,
                 StartConfig(postlaunch_steps=args.configure))
+        if args.output:
+            write_clustinfo(cluster_info, args.output)
+
     return 0
 
 
