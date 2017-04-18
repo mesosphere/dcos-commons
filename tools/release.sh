@@ -8,7 +8,7 @@ set -e
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $script_dir/init_paths.sh
-cd $REPO_ROOT_DIR
+cd "$TOOLS_DIR"
 
 # Upload current tools (with '.commit' file containing the current SHA) to DEV S3.
 # This can be downloaded via: https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz
