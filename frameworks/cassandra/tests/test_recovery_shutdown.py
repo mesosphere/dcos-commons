@@ -28,7 +28,6 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.recovery
 @pytest.mark.shutdown_node
-@pytest.mark.skip
 def test_shutdown_host_test():
     scheduler_ip = shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()
     sdk_utils.out('marathon ip = {}'.format(scheduler_ip))
