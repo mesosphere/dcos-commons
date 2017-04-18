@@ -36,31 +36,32 @@ The Kafka scheduler runs as a Marathon process and can be reconfigured by changi
 Make the REST request below to view the current deployment plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
     curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plans/deploy"
-{
-  "phases" : [ {
-    "id" : "52f052a5-9732-427f-970d-eac972c0aa09",
-    "name" : "Deployment",
-    "steps" : [ {
-      "id" : "0cb35760-d13f-4c21-8d7f-286b8f14834b",
-      "status" : "COMPLETE",
-      "name" : "kafka-0:[broker]",
-      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [0cb35760-d13f-4c21-8d7f-286b8f14834b]' has status: 'COMPLETE'."
-    }, {
-      "id" : "b5a12959-02a4-4039-9566-ca0077c398fc",
-      "status" : "COMPLETE",
-      "name" : "kafka-1:[broker]",
-      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [b5a12959-02a4-4039-9566-ca0077c398fc]' has status: 'COMPLETE'."
-    }, {
-      "id" : "5f252649-28c1-4555-82dd-3ebf2971b9b7",
-      "status" : "COMPLETE",
-      "name" : "kafka-2:[broker]",
-      "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [5f252649-28c1-4555-82dd-3ebf2971b9b7]' has status: 'COMPLETE'."
-    } ],
-    "status" : "COMPLETE"
-  } ],
-  "errors" : [ ],
-  "status" : "COMPLETE"
-}
+
+    {
+      "phases" : [ {
+        "id" : "52f052a5-9732-427f-970d-eac972c0aa09",
+        "name" : "Deployment",
+        "steps" : [ {
+          "id" : "0cb35760-d13f-4c21-8d7f-286b8f14834b",
+          "status" : "COMPLETE",
+          "name" : "kafka-0:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [0cb35760-d13f-4c21-8d7f-286b8f14834b]' has status: 'COMPLETE'."
+        }, {
+          "id" : "b5a12959-02a4-4039-9566-ca0077c398fc",
+          "status" : "COMPLETE",
+          "name" : "kafka-1:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [b5a12959-02a4-4039-9566-ca0077c398fc]' has status: 'COMPLETE'."
+        }, {
+          "id" : "5f252649-28c1-4555-82dd-3ebf2971b9b7",
+          "status" : "COMPLETE",
+          "name" : "kafka-2:[broker]",
+          "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [5f252649-28c1-4555-82dd-3ebf2971b9b7]' has status: 'COMPLETE'."
+        } ],
+        "status" : "COMPLETE"
+      } ],
+      "errors" : [ ],
+      "status" : "COMPLETE"
+    }
 
 <!-- need to update this with current information for different deployments
 When using the `serial-canary` or `parallel-canary` deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:
