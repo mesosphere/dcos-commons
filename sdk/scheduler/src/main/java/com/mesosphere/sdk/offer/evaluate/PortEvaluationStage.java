@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 
 import org.apache.commons.lang3.StringUtils;
@@ -170,7 +171,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private String getPortEnvironmentVariable() {
         String draftEnvName = customEnvKey.isPresent()
                 ? customEnvKey.get() // use custom name as-is
-                : Constants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
+                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return TaskUtils.toEnvName(draftEnvName);
     }

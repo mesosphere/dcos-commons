@@ -22,12 +22,12 @@ public class TaskUtilsTest {
     @Test
     public void testValidToTaskName() throws Exception {
         Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(testTaskName + "__id").build();
-        Assert.assertEquals(testTaskName, CommonTaskUtils.toTaskName(validTaskId));
+        Assert.assertEquals(testTaskName, CommonIdUtils.toTaskName(validTaskId));
     }
 
     @Test(expected = TaskException.class)
     public void testInvalidToTaskName() throws Exception {
-        CommonTaskUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
+        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
     }
 
     @Test

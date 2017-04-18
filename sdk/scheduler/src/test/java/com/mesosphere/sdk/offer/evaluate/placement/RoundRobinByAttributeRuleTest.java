@@ -178,7 +178,7 @@ public class RoundRobinByAttributeRuleTest {
     private static TaskInfo getTaskInfo(String taskName, String attrName, String attrVal) {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName));
+                .setTaskId(CommonIdUtils.toTaskId(taskName));
         infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
                 .setOfferAttributes(offerWithAttribute(attrName, attrVal))
                 .toProto());

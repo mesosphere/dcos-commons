@@ -101,7 +101,7 @@ public class CustomExecutor implements Executor {
             return;
         }
 
-        scheduleCheck(executorDriver, taskInfo, taskInfo.getHealthCheck(), launchedTask);
+        scheduleCheck(executorDriver, taskInfo, taskInfo.getHealthCheck(), launchedTask, "Health");
     }
 
     private void scheduleReadinessCheck(
@@ -122,45 +122,49 @@ public class CustomExecutor implements Executor {
             return;
         }
 
-        scheduleCheck(executorDriver, taskInfo, readinessCheckOptional.get(), launchedTask);
+        scheduleCheck(executorDriver, taskInfo, readinessCheckOptional.get(), launchedTask, "Readiness");
     }
 
     private void scheduleCheck(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             Protos.HealthCheck check,
-            LaunchedTask launchedTask) {
+            LaunchedTask launchedTask,
+            String checkType) {
 
         try {
-            HealthCheckMonitor healthCheckMonitor =
-                    new HealthCheckMonitor(
+            CheckMonitor healthCheckMonitor =
+                    new CheckMonitor(
                             check,
-                            HealthCheckHandler.create(
+                            CheckHandler.create(
                                     executorDriver,
                                     taskInfo,
                                     check,
                                     scheduledExecutorService,
-                                    new HealthCheckStats(taskInfo.getName())),
-                            launchedTask);
-            LOGGER.info("Submitting check monitor.");
-            Future<Optional<HealthCheckStats>> futureOptionalHealthCheckStats =
+                                    new CheckStats(taskInfo.getName()),
+                                    checkType),
+                            launchedTask,
+                            checkType);
+            LOGGER.info("Submitting {} check monitor.", checkType);
+            Future<Optional<CheckStats>> futureOptionalHealthCheckStats =
                     executorService.submit(healthCheckMonitor);
 
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
+                        Optional<CheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
                         if (optionalHealthCheckStats.isPresent()) {
-                            LOGGER.info("Check exited with statistics: {}", optionalHealthCheckStats.get());
+                            LOGGER.info("{} check exited with statistics: {}",
+                                    checkType, optionalHealthCheckStats.get());
                         }
                     } catch (InterruptedException | ExecutionException e) {
-                        LOGGER.error("Failed to get check stats with exception: ", e);
+                        LOGGER.error(String.format("Failed to get %s check stats with exception: ", checkType), e);
                     }
                 }
             });
-        } catch (HealthCheckHandler.HealthCheckValidationException ex) {
-            LOGGER.error("Task did not generate a check with exception: ", ex);
+        } catch (CheckHandler.CheckValidationException ex) {
+            LOGGER.error(String.format("Task did not generate a %s check with exception: ", checkType), ex);
         }
 
     }

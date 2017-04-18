@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -248,8 +250,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Collection<Protos.Resource> resources) throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
-                .setTaskId(CommonTaskUtils.emptyTaskId())
-                .setSlaveId(CommonTaskUtils.emptyAgentId())
+                .setTaskId(CommonIdUtils.emptyTaskId())
+                .setSlaveId(CommonIdUtils.emptyAgentId())
                 .addAllResources(resources);
 
         // create default labels:
@@ -311,8 +313,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .clearExecutor()
                 .addAllResources(getUpdatedResources(otherResources, taskSpec))
                 .addAllResources(diskResources)
-                .setTaskId(CommonTaskUtils.emptyTaskId())
-                .setSlaveId(CommonTaskUtils.emptyAgentId())
+                .setTaskId(CommonIdUtils.emptyTaskId())
+                .setSlaveId(CommonIdUtils.emptyAgentId())
                 .setLabels(new SchedulerLabelWriter(taskInfo)
                         .setTargetConfiguration(targetConfigurationId)
                         .clearTransient()
@@ -390,27 +392,27 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Default envvars for use by executors/developers:
 
         // Inject Pod Instance Index
-        environment.put(POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        environment.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
-        environment.put(FRAMEWORK_NAME_TASKENV, serviceName);
+        environment.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject TASK_NAME as KEY:VALUE
-        environment.put(TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+        environment.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return CommonTaskUtils.fromMapToEnvironment(environment).build();
+        return EnvUtils.fromMapToEnvironment(environment).build();
     }
 
     private static Protos.Environment.Builder mergeEnvironments(
             Protos.Environment primary, Protos.Environment secondary) {
-        Map<String, String> primaryVariables = CommonTaskUtils.fromEnvironmentToMap(primary);
-        for (Map.Entry<String, String> secondaryEntry : CommonTaskUtils.fromEnvironmentToMap(secondary).entrySet()) {
+        Map<String, String> primaryVariables = EnvUtils.fromEnvironmentToMap(primary);
+        for (Map.Entry<String, String> secondaryEntry : EnvUtils.fromEnvironmentToMap(secondary).entrySet()) {
             if (!primaryVariables.containsKey(secondaryEntry.getKey())) {
                 primaryVariables.put(secondaryEntry.getKey(), secondaryEntry.getValue());
             }
         }
 
-        return CommonTaskUtils.fromMapToEnvironment(primaryVariables);
+        return EnvUtils.fromMapToEnvironment(primaryVariables);
     }
 
     private static void validateTaskRequirements(List<TaskRequirement> taskRequirements)

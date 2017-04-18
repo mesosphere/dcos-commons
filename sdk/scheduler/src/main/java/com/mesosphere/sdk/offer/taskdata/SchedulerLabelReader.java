@@ -87,22 +87,24 @@ public class SchedulerLabelReader extends LabelReader {
      * than "true" is present in the readiness check label of the TaskStatus, the readiness check has
      * failed.
      *
-     * @param taskStatus A TaskStatus which may or may not contain a readiness check label
+     * @param taskStatus A TaskStatus which may or may not contain a readiness check outcome label
      * @return the result of a readiness check for the indicated TaskStatus
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
-        Optional<String> healthCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
-        if (!healthCheckOptional.isPresent()) {
+        Optional<String> readinessCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        if (!readinessCheckOptional.isPresent()) {
             // check not applicable: PASS
             return true;
         }
 
-        Optional<String> readinessCheckResult = getOptional(LabelConstants.READINESS_CHECK_PASSED_LABEL);
-        if (!readinessCheckResult.isPresent()) {
-            // check applicable, but passed bit not set: FAIL
-            return false;
+        // Special case: the 'readiness check passed' bit is set in TaskStatus (by the executor),
+        // not in TaskInfo like other labels
+        for (Label statusLabel : taskStatus.getLabels().getLabelsList()) {
+            if (statusLabel.getKey().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL)) {
+                return statusLabel.getValue().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);
+            }
         }
-        return readinessCheckResult.get().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);
+        return false;
     }
 
     /**

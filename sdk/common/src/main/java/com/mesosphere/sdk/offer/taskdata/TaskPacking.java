@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import static com.mesosphere.sdk.offer.Constants.COMMAND_DATA_PACKAGE_EXECUTORID;
-
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
@@ -27,6 +25,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
  *     - command
  */
 public class TaskPacking {
+
+    /** Used to mark packed task data within an {@link ExecutorInfo}. */
+    private static final String COMMAND_DATA_PACKAGE_EXECUTORID = "command_data_package_executor";
 
     private TaskPacking() {
         // do not instantiate

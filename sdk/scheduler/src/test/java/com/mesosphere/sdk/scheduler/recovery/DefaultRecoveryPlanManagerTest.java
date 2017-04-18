@@ -123,7 +123,7 @@ public class DefaultRecoveryPlanManagerTest {
                         .setIndex(0)
                         .toProto())
                 .setName("test-task-type-0-test-task-name")
-                .setTaskId(CommonTaskUtils.toTaskId("test-task-type-0-test-task-name"))
+                .setTaskId(CommonIdUtils.toTaskId("test-task-type-0-test-task-name"))
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);

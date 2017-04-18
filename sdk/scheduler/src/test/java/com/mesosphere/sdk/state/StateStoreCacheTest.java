@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -42,7 +42,7 @@ public class StateStoreCacheTest {
     private static final String TASK_NAME = "task";
     private static final TaskInfo TASK = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
             .setName(TASK_NAME)
-            .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+            .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
             .build();
     private static final TaskStatus STATUS = Protos.TaskStatus.newBuilder()
             .setTaskId(TASK.getTaskId())
@@ -51,7 +51,7 @@ public class StateStoreCacheTest {
     private static final String TASK_NAME2 = "task2";
     private static final TaskInfo TASK2 = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
             .setName(TASK_NAME2)
-            .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME2))
+            .setTaskId(CommonIdUtils.toTaskId(TASK_NAME2))
             .build();
     private static final TaskStatus STATUS2 = Protos.TaskStatus.newBuilder()
             .setTaskId(TASK2.getTaskId())
@@ -296,11 +296,11 @@ public class StateStoreCacheTest {
         // same name, different IDs:
         final TaskInfo taskA = TASK.toBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
                 .build();
         final TaskInfo taskB = TASK.toBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME + "b"))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME + "b"))
                 .build();
         doNothing().when(mockStore).storeTasks(Arrays.asList(taskA, taskB));
         mockedCache.storeTasks(Arrays.asList(taskA, taskB));

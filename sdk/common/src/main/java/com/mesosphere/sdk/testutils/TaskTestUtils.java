@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.Constants;
-
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -41,7 +39,7 @@ public class TaskTestUtils {
                 }
             }
 
-            if (Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
+            if (Objects.equals(r.getName(), "ports")) {
                 String portValue = dynamicPortAssignment == null ?
                         Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
 

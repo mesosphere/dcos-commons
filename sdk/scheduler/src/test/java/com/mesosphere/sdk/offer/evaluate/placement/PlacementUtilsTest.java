@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskException;
@@ -60,7 +60,7 @@ public class PlacementUtilsTest {
 
         task = origTask.toBuilder()
                 .setName(TestConstants.TASK_NAME + "b")
-                .setTaskId(CommonTaskUtils.toTaskId(TestConstants.TASK_NAME + "b"))
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.TASK_NAME + "b"))
                 .build();
 
         offerReq = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(origTask));

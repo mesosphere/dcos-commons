@@ -68,7 +68,7 @@ public interface StateStore {
     /**
      * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST have already been
      * written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by {@link
-     * com.mesosphere.sdk.offer.CommonTaskUtils#toTaskId(String)}.
+     * com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String)}.
      *
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching

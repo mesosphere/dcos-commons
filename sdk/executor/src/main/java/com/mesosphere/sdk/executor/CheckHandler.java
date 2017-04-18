@@ -2,7 +2,7 @@ package com.mesosphere.sdk.executor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.ExecutorLabelWriter;
 
 import org.apache.mesos.ExecutorDriver;
@@ -19,56 +19,62 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Each HealthCheckHandler is responsible for executing a single HealthCheck defined for a TaskInfo.
+ * Each {@link CheckHandler} is responsible for executing a single HealthCheck defined for a TaskInfo.
  * The start() method returns a Future which can be waited upon.  It will only complete if the
  * HealthCheck has failed, which is another way of saying that it has reached its maximum consecutive
  * failures limit. Health checks are not run during the grace period as their result would be ignored
  * in any case.
  */
-public class HealthCheckHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckHandler.class);
+public class CheckHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckHandler.class);
 
     private final Protos.HealthCheck healthCheck;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final HealthCheckRunner healthCheckRunner;
+    private final CheckRunner healthCheckRunner;
+    private final String checkType;
 
-    public static HealthCheckHandler create(
+    public static CheckHandler create(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
-            HealthCheckStats healthCheckStats)
-            throws HealthCheckValidationException {
-        return new HealthCheckHandler(
+            CheckStats healthCheckStats,
+            String checkType)
+            throws CheckValidationException {
+        return new CheckHandler(
                 executorDriver,
                 taskInfo,
                 new ProcessRunner(),
                 healthCheck,
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                checkType);
     }
 
     /**
      * Allows providing a custom {@link ProcessRunner} for testing.
      */
     @VisibleForTesting
-    HealthCheckHandler(
+    CheckHandler(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             ProcessRunner processRunner,
             Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
-            HealthCheckStats healthCheckStats)
-            throws HealthCheckValidationException {
+            CheckStats healthCheckStats,
+            String checkType)
+            throws CheckValidationException {
         validate(healthCheck);
         this.healthCheck = healthCheck;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.healthCheckRunner = new HealthCheckRunner(
+        this.healthCheckRunner = new CheckRunner(
                 executorDriver,
                 taskInfo,
                 processRunner,
                 healthCheck,
-                healthCheckStats);
+                healthCheckStats,
+                checkType);
+        this.checkType = checkType;
     }
 
     public ScheduledFuture<?> start() {
@@ -98,26 +104,26 @@ public class HealthCheckHandler {
      * command to avoid unexpected behavior.
      *
      * @param healthCheck The HealthCheck to be executed
-     * @throws HealthCheckValidationException when a HealthCheck does not adhere to the HealthChecks supported
+     * @throws CheckValidationException when a HealthCheck does not adhere to the HealthChecks supported
      *                                        by this Custom Executor
      */
-    private void validate(Protos.HealthCheck healthCheck) throws HealthCheckValidationException {
+    private void validate(Protos.HealthCheck healthCheck) throws CheckValidationException {
         // Validate HealthCheck
         if (healthCheck.hasHttp()) {
-            throw new HealthCheckValidationException(
-                    "The following health check contains an unsupported HTTP configuration: " + healthCheck);
+            throw new CheckValidationException(String.format(
+                    "The following %s check contains an unsupported HTTP configuration: %s", checkType, healthCheck));
         }
 
         if (!healthCheck.hasCommand()) {
-            throw new HealthCheckValidationException(
-                    "The following health check does not contain a Command: " + healthCheck);
+            throw new CheckValidationException(String.format(
+                    "The following %s check does not contain a Command: %s", checkType, healthCheck));
         }
 
         // Validate Command
         Protos.CommandInfo commandInfo = healthCheck.getCommand();
         if (!Boolean.valueOf(commandInfo.getShell())) {
-            throw new HealthCheckValidationException(
-                    "Only shell based health checks are supported for health check commmand: " + commandInfo);
+            throw new CheckValidationException(String.format(
+                    "Only shell based %s checks are supported for commmand: %s", checkType, commandInfo));
         }
     }
 
@@ -125,33 +131,36 @@ public class HealthCheckHandler {
      * This class spawns a subprocess for each invocation of a health check.  It records statistics
      * regarding successes and failures.
      */
-    private static class HealthCheckRunner implements Runnable {
-        private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckRunner.class);
+    private static class CheckRunner implements Runnable {
+        private static final Logger LOGGER = LoggerFactory.getLogger(CheckRunner.class);
 
         private final ExecutorDriver executorDriver;
         private final Protos.TaskInfo taskInfo;
         private final ProcessRunner processRunner;
         private final Protos.HealthCheck healthCheck;
-        private final HealthCheckStats healthCheckStats;
+        private final CheckStats healthCheckStats;
+        private final String checkType;
 
-        private HealthCheckRunner(
+        private CheckRunner(
                 ExecutorDriver executorDriver,
                 Protos.TaskInfo taskInfo,
                 ProcessRunner processRunner,
                 Protos.HealthCheck healthCheck,
-                HealthCheckStats healthCheckStats) {
+                CheckStats healthCheckStats,
+                String checkType) {
             this.executorDriver = executorDriver;
             this.taskInfo = taskInfo;
             this.processRunner = processRunner;
             this.healthCheck = healthCheck;
             this.healthCheckStats = healthCheckStats;
+            this.checkType = checkType;
         }
 
         @Override
         public void run() {
             Protos.CommandInfo commandInfo = healthCheck.getCommand();
             try {
-                final Map<String, String> envMap = CommonTaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
+                final Map<String, String> envMap = EnvUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
                 List<String> command = new ArrayList<>();
                 command.add("/bin/bash");
                 command.add("-c");
@@ -161,22 +170,23 @@ public class HealthCheckHandler {
                 processBuilder.inheritIO();
                 processBuilder.environment().putAll(envMap);
 
-                LOGGER.info("Running health check process: {}", command);
+                LOGGER.info("Running {} check process: {}", checkType, command);
                 int exitValue = processRunner.run(processBuilder, healthCheck.getTimeoutSeconds());
 
                 if (exitValue != 0) {
                     healthCheckStats.failed();
-                    LOGGER.error("Health check failed with exit code {}: {}",
-                            exitValue, commandInfo.getValue());
+                    LOGGER.error("{} check failed with exit code {}: {}",
+                            checkType, exitValue, commandInfo.getValue());
                 } else {
-                    LOGGER.info("Health check succeeded: {}", commandInfo.getValue());
+                    LOGGER.info("{} check succeeded: {}", checkType, commandInfo.getValue());
                     healthCheckStats.succeeded();
                 }
 
-                LOGGER.debug("Health check stats: {}", healthCheckStats);
+                LOGGER.debug("{} check stats: {}", checkType, healthCheckStats);
             } catch (Throwable t) {
                 LOGGER.error(String.format(
-                        "Check failed with exception: %s", TextFormat.shortDebugString(commandInfo)), t);
+                        "%s check failed with exception: %s", checkType, TextFormat.shortDebugString(commandInfo)),
+                        t);
                 healthCheckStats.failed();
             }
 
@@ -197,9 +207,9 @@ public class HealthCheckHandler {
                         taskInfo.getTaskId(),
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
-                        "Health check failed ",
+                        "Health check failed",
                         false);
-                throw new HealthCheckRuntimeException(
+                throw new CheckRuntimeException(
                         "Health check exceeded its maximum consecutive failures.",
                         healthCheckStats);
             } else if (healthCheckStats.getConsecutiveSuccesses() == 1) {
@@ -226,7 +236,7 @@ public class HealthCheckHandler {
                         true,
                         new ExecutorLabelWriter().setReadinessCheckPassed().toProto(),
                         null);
-                throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);
+                throw new CheckRuntimeException("Readiness check passed", healthCheckStats);
             }
         }
     }
@@ -250,8 +260,8 @@ public class HealthCheckHandler {
     /**
      * This class encapsulates Exceptions associated with health check validation.
      */
-    public static class HealthCheckValidationException extends Exception {
-        public HealthCheckValidationException(String msg) {
+    public static class CheckValidationException extends Exception {
+        public CheckValidationException(String msg) {
             super(msg);
         }
     }
@@ -260,15 +270,15 @@ public class HealthCheckHandler {
      * This class encapsulates Exceptions associated with health check execution failures.  It encapsulates the
      * statistics associated with the running of a health check.
      */
-    public static class HealthCheckRuntimeException extends RuntimeException {
-        private HealthCheckStats healthCheckStats;
+    public static class CheckRuntimeException extends RuntimeException {
+        private CheckStats healthCheckStats;
 
-        public HealthCheckRuntimeException(String msg, HealthCheckStats healthCheckStats) {
+        public CheckRuntimeException(String msg, CheckStats healthCheckStats) {
             super(msg);
             this.healthCheckStats = healthCheckStats;
         }
 
-        public HealthCheckStats getHealthCheckStats() {
+        public CheckStats getHealthCheckStats() {
             return healthCheckStats;
         }
     }

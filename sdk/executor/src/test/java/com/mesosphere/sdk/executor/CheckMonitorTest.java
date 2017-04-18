@@ -16,9 +16,9 @@ import java.util.concurrent.*;
 import static org.mockito.Mockito.*;
 
 /**
- * This class tests the HealthCheckMonitor.
+ * Tests for {@link CheckMonitor}.
  */
-public class HealthCheckMonitorTest {
+public class CheckMonitorTest {
 
     private static final double SHORT_INTERVAL_S = 0.001;
     private static final double SHORT_DELAY_S = 0.002;
@@ -32,7 +32,7 @@ public class HealthCheckMonitorTest {
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    @Mock private HealthCheckHandler.ProcessRunner mockProcessRunner;
+    @Mock private CheckHandler.ProcessRunner mockProcessRunner;
     @Mock private LaunchedTask mockLaunchedTask;
     @Mock private ExecutorTask mockExecutorTask;
     @Mock private ExecutorDriver executorDriver;
@@ -54,22 +54,24 @@ public class HealthCheckMonitorTest {
                 .setConsecutiveFailures(MAX_FAILURES)
                 .setCommand(CommandInfo.newBuilder().setValue(COMMAND).build())
                 .build();
-        final HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        final CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 healthCheck,
                 scheduledExecutorService,
-                new HealthCheckStats("test"));
+                new CheckStats("test"),
+                "test");
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1); // return failure
 
-        HealthCheckMonitor healthCheckMonitor = new HealthCheckMonitor(
+        CheckMonitor healthCheckMonitor = new CheckMonitor(
                 healthCheck,
                 healthCheckHandler,
-                mockLaunchedTask);
+                mockLaunchedTask,
+                "test");
 
-        Future<Optional<HealthCheckStats>> futureStats = executorService.submit(healthCheckMonitor);
-        Optional<HealthCheckStats> optionalStats;
+        Future<Optional<CheckStats>> futureStats = executorService.submit(healthCheckMonitor);
+        Optional<CheckStats> optionalStats;
         try {
             optionalStats = futureStats.get();
         } catch (Exception e) {
@@ -78,7 +80,7 @@ public class HealthCheckMonitorTest {
         }
         Assert.assertTrue(optionalStats.isPresent());
 
-        HealthCheckStats healthCheckStats = optionalStats.get();
+        CheckStats healthCheckStats = optionalStats.get();
         Assert.assertEquals(1, healthCheckStats.getTotalFailures());
         Assert.assertEquals(0, healthCheckStats.getTotalSuccesses());
         Assert.assertEquals(1, healthCheckStats.getConsecutiveFailures());

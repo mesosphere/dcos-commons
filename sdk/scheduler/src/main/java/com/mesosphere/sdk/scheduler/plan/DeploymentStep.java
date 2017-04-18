@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
@@ -132,7 +132,7 @@ public class DeploymentStep extends AbstractStep {
         try {
             goalState = TaskUtils.getGoalState(
                     podInstanceRequirement.getPodInstance(),
-                    CommonTaskUtils.toTaskName(status.getTaskId()));
+                    CommonIdUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
             logger.error(String.format("Failed to update status for step %s", getName()), e);
             setStatus(getStatus()); // Log status

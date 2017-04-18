@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
 import com.mesosphere.sdk.offer.PortRequirement;
@@ -63,7 +63,7 @@ public class OfferRequirementTestUtils {
             for (int i = 0; i < resources.size(); ++i) {
                 Protos.TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(resources.get(i)).toBuilder();
                 taskBuilder.setName(getIndexedName(taskBuilder.getName(), i));
-                taskBuilder.setTaskId(CommonTaskUtils.toTaskId(taskBuilder.getName()));
+                taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
                 taskRequirements.add(new TaskRequirement(
                         taskBuilder.build(), getResourceRequirements(Arrays.asList(resources.get(i)))));
             }

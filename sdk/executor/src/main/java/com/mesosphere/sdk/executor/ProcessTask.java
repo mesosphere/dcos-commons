@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 
 import java.time.Duration;
 import java.util.concurrent.*;
@@ -47,7 +48,7 @@ public class ProcessTask implements ExecutorTask {
 
         ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
         builder.inheritIO();
-        builder.environment().putAll(CommonTaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
+        builder.environment().putAll(EnvUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
 
         return builder;
     }

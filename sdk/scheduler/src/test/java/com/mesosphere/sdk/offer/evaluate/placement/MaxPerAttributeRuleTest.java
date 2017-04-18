@@ -10,7 +10,7 @@ import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.Test;
 
@@ -476,7 +476,7 @@ public class MaxPerAttributeRuleTest {
         TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
         taskBuilder.getTaskIdBuilder().setValue(id);
         try {
-            taskBuilder.setName(CommonTaskUtils.toTaskName(taskBuilder.getTaskId()));
+            taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

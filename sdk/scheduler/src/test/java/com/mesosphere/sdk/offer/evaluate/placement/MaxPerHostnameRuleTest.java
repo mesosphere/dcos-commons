@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import org.junit.Test;
@@ -350,7 +350,7 @@ public class MaxPerHostnameRuleTest {
         TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
         taskBuilder.getTaskIdBuilder().setValue(id);
         try {
-            taskBuilder.setName(CommonTaskUtils.toTaskName(taskBuilder.getTaskId()));
+            taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

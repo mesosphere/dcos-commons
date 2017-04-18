@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskException;
@@ -166,7 +166,7 @@ public class RoundRobinByHostnameRuleTest {
     private static TaskInfo getTaskInfo(String name, String host) {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
-                .setTaskId(CommonTaskUtils.toTaskId(name));
+                .setTaskId(CommonIdUtils.toTaskId(name));
         infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
         return infoBuilder.build();
     }

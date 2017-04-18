@@ -2,8 +2,7 @@ package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.executor.ExecutorIdUtils;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 
 /**
  * This class encapsulates constants for tests.
@@ -29,8 +28,8 @@ public class TestConstants {
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final String TASK_DNS_PREFIX = "task-prefix";
-    public static final Protos.ExecutorID EXECUTOR_ID = ExecutorIdUtils.toExecutorId(EXECUTOR_NAME);
-    public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
+    public static final Protos.ExecutorID EXECUTOR_ID = CommonIdUtils.toExecutorId(EXECUTOR_NAME);
+    public static final Protos.TaskID TASK_ID = CommonIdUtils.toTaskId(TASK_NAME);
     public static final String PORT_ENV_NAME = "TEST_PORT_NAME";
     public static final String VIP_NAME = "testvip";
     public static final int VIP_PORT = 1111;

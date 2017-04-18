@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -25,13 +25,13 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
@@ -60,13 +60,13 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
                 .setExecutor(executorInfo)
@@ -89,13 +89,13 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
@@ -122,13 +122,13 @@ public class ProcessTaskTest {
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
