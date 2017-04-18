@@ -13,6 +13,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("PORT_API", "8080");
 
         ENV_VARS.set("SLEEP_DURATION", "1000");
+
         ENV_VARS.set("HELLO_COUNT", "2");
         ENV_VARS.set("HELLO_PORT", "4444");
         ENV_VARS.set("HELLO_VIP_NAME", "helloworld");
@@ -20,12 +21,14 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("HELLO_CPUS", "0.1");
         ENV_VARS.set("HELLO_MEM", "512");
         ENV_VARS.set("HELLO_DISK", "5000");
+        ENV_VARS.set("HELLO_DISK_TYPE", "ROOT");
 
         ENV_VARS.set("WORLD_COUNT", "3");
         ENV_VARS.set("WORLD_CPUS", "0.2");
         ENV_VARS.set("WORLD_MEM", "1024");
         ENV_VARS.set("WORLD_FAILS", "3");
         ENV_VARS.set("WORLD_DISK", "5000");
+        ENV_VARS.set("WORLD_DISK_TYPE", "MOUNT");
     }
 
     @Test

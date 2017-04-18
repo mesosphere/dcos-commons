@@ -15,6 +15,7 @@ import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
+    DEFAULT_TASK_ENV_COUNT,
     configured_task_count,
     hello_task_count,
     world_task_count,
@@ -172,7 +173,7 @@ def test_state_properties_get():
     assert stdout == "true\n"
 
 
-@pytest.mark.speedy
+@pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     check_running()
@@ -253,6 +254,70 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
 
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_default_envvars_present():
+    all_pods = json.loads(cmd.run_cli('{} pods list'.format(PACKAGE_NAME)))
+    assert len(all_pods) == hello_task_count() + world_task_count()
+    for pod in all_pods:
+        task_name = pod + '-server'
+        env = tasks.get_task_env(PACKAGE_NAME, PACKAGE_NAME, pod, task_name)
+        print('env for {}: {}'.format(pod, env))
+        assert len(env) == DEFAULT_TASK_ENV_COUNT
+        assert env['FRAMEWORK_NAME'] == PACKAGE_NAME
+        assert env['TASK_NAME'] == task_name
+        assert env[task_name] == 'true'
+        assert env['POD_INSTANCE_INDEX'] == pod.split('-')[1]
+
+
+# test scheduler's handling of task env changes:
+# - envvar set to empty string
+# - envvar removed entirely
+#@pytest.mark.skip(reason="Scheduler currently fails to reflect env *removal*. They're redeployed without updating the env. Setting empty works.")
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_envvars_set_empty_or_unset():
+    all_pods = json.loads(cmd.run_cli('{} pods list'.format(PACKAGE_NAME)))
+    assert len(all_pods) == hello_task_count() + world_task_count()
+
+    # verify expected default task env to be tested with:
+    for pod in all_pods:
+        env = tasks.get_task_env(PACKAGE_NAME, PACKAGE_NAME, pod, pod + '-server')
+        print('env for {}: {}'.format(pod, env))
+        if pod.startswith('hello'):
+            assert env['MESSAGE'] == 'hello'
+        elif pod.startswith('world'):
+            assert env['MESSAGE'] == 'world'
+        else:
+            raise Exception('unknown pod: {}'.format(pod))
+
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+
+    config = marathon.get_config(PACKAGE_NAME)
+    # test both an empty envvar, and a removed envvar
+    config['env']['HELLO_MESSAGE'] = ''
+    del config['env']['WORLD_MESSAGE']
+    marathon.update_app(PACKAGE_NAME, config)
+
+    # wait for redeployment to complete:
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
+    check_running()
+
+    # check that task envs reflect marathon config changes:
+    for pod in all_pods:
+        env = tasks.get_task_env(PACKAGE_NAME, PACKAGE_NAME, pod, pod + '-server')
+        print('env for {}: {}'.format(pod, env))
+        if pod.startswith('hello'):
+            assert env['MESSAGE'] == ''
+        elif pod.startswith('world'):
+            assert not 'MESSAGE' in env
+        else:
+            raise Exception('unknown pod: {}'.format(pod))
+
+
+@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():

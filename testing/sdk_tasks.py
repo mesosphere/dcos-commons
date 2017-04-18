@@ -1,9 +1,12 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.errors
+import sdk_cmd
 import sdk_spin
 import sdk_utils
 import shakedown
+
+import json
 
 
 def check_running(service_name, expected_task_count, timeout_seconds=-1):
@@ -32,6 +35,28 @@ def check_running(service_name, expected_task_count, timeout_seconds=-1):
         sdk_spin.time_wait_noisy(lambda: fn())
     else:
         sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=timeout_seconds)
+
+
+def get_task_env(package_name, service_name, pod_name, task_name):
+    pod_info = json.loads(sdk_cmd.run_cli(
+        '{} --name={} pods info {}'.format(package_name, service_name, pod_name),
+        print_output=False)) # info is long, avoid spamming stdout
+    task_env_raw = None
+    for task in pod_info:
+        if task['info']['name'] == task_name:
+            task_env_raw = task['info']['command']['environment']['variables']
+            break
+    if not task_env_raw:
+        raise Exception('Unable to find task named {} in pod {}. Tasks were: [{}]'.format(
+            task_name, pod_name, [task['info']['name'] for task in pod_info]))
+    # convert [{'name': 'ENVNAME', 'value': 'ENVVALUE'}, ...] to {'ENVNAME': 'ENVVALUE', ...}
+    task_env = {}
+    for entry in task_env_raw:
+        name = entry['name']
+        if name in task_env:
+            raise Exception('Task {} has duplicate envvars named {}: {}'.format(task_name, name, task_env_raw))
+        task_env[name] = entry['value']
+    return task_env
 
 
 def get_task_ids(service_name, task_prefix):

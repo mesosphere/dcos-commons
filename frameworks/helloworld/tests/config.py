@@ -2,7 +2,8 @@ import sdk_marathon as marathon
 import sdk_tasks as tasks
 
 PACKAGE_NAME = 'hello-world'
-DEFAULT_TASK_COUNT = 3
+DEFAULT_TASK_COUNT = 3 # 1 hello + 2 world
+DEFAULT_TASK_ENV_COUNT = 6 # MESSAGE, SLEEP_DURATION + 4 included as defaults by scheduler
 
 
 def configured_task_count():

@@ -1,6 +1,5 @@
 '''Utilities relating to installing services'''
 
-import collections
 import dcos.errors
 import dcos.marathon
 import sdk_api
@@ -9,6 +8,8 @@ import sdk_tasks
 import sdk_utils
 import shakedown
 
+import collections
+import datetime
 import os
 import time
 
@@ -71,7 +72,7 @@ def install(
         sdk_spin.time_wait_noisy(
             lambda: sdk_api.is_suppressed(service_name))
 
-    sdk_utils.out('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
+    sdk_utils.out('Install done after {}'.format(pretty_time(time.time() - start)))
 
 
 def uninstall(service_name, package_name=None):
@@ -98,9 +99,9 @@ def uninstall(service_name, package_name=None):
     finish = time.time()
 
     sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-        sdk_spin.pretty_time(janitor_start - start),
-        sdk_spin.pretty_time(finish - janitor_start),
-        sdk_spin.pretty_time(finish - start)))
+        pretty_time(janitor_start - start),
+        pretty_time(finish - janitor_start),
+        pretty_time(finish - start)))
 
 
 def get_package_options(additional_options={}):
@@ -128,3 +129,7 @@ def _merge_dictionary(dict1, dict2):
         else:
             ret[k] = dict2[k]
     return ret
+
+
+def pretty_time(seconds):
+    return str(datetime.timedelta(seconds=round(seconds)))

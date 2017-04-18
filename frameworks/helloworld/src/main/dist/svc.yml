@@ -9,14 +9,15 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: echo "$MESSAGE" >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
           path: hello-container-path
-          type: ROOT
+          type: {{HELLO_DISK_TYPE}}
           size: {{HELLO_DISK}}
         env:
+          MESSAGE: {{HELLO_MESSAGE}}
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
           cmd: stat hello-container-path/output
@@ -32,21 +33,24 @@ pods:
       server:
         goal: RUNNING
         cmd: >
-               echo world1 >> world-container-path1/output &&
-               echo world2 >> world-container-path2/output &&
+               echo "${MESSAGE}1" >> world-container-path1/output &&
+               echo "${MESSAGE}2" >> world-container-path2/output &&
                sleep $SLEEP_DURATION
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
         volumes:
           vol1:
             path: world-container-path1
-            type: ROOT
-            size: {{HELLO_DISK}}
+            type: {{WORLD_DISK_TYPE}}
+            size: {{WORLD_DISK}}
           vol2:
             path: world-container-path2
-            type: ROOT
-            size: {{HELLO_DISK}}
+            type: {{WORLD_DISK_TYPE}}
+            size: {{WORLD_DISK}}
         env:
+          {{#WORLD_MESSAGE}}
+          MESSAGE: {{WORLD_MESSAGE}}
+          {{/WORLD_MESSAGE}}
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
           cmd: BYTES="$(wc -c world-container-path2/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
