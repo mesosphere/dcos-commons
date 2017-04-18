@@ -3,58 +3,7 @@
 
 # Apache Kafka Service Guide
 
-## Table of Contents
-
-- [Overview](#overview)
-  - Features
-- [Quick Start](#quick-start)
-- [Installing and Customizing](#installing-and-customizing)
-  - Installation with Default Settings
-  - Installation with Custom Settings
-  - Service Settings
-    - Service Name
-    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - Node Settings
-    - Node Count
-    - CPU
-    - Memory
-    - Ports
-    - Storage Volumes
-    - Placement Constraints
-    - _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - _STEP-BY-STEP GUIDES FOR ANY ADDITIONAL CONFIG SCENARIOS TO POINT OUT_
-- [Uninstalling](#uninstalling)
-- [Connecting Clients](#connecting-clients)
-  - Discovering endpoints
-  - Connecting clients to endpoints
-- [Managing](#managing)
-  - Updating Configuration
-    - Adding a Node
-    - Resizing a Node
-    - _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-    - Updating Placement Constraints
-    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - Restarting nodes
-  - Replacing nodes
-- [Disaster Recovery](#disaster-recovery)
-  - Backup
-  - Restore
-- [Deployment Best Practices](#deploy-best-practices)
-- [Troubleshooting](#troubleshooting)
-  - Accessing Logs
-- [Known Issues](#knownissues)
-- [Limitations](#limitations)
-  - Removing a Node
-  - Automatic Failed Node Recovery
-  - Updating Storage Volumes
-  - Rack-aware Replication
-  - _ANY OTHER CAVEATS TO MENTION HERE?_
-- [Terms](#terms)
-- [Support](#support)
-  - Supported Versions
-  - Package Versioning
-    - Upgrades/downgrades
-  - Reaching Technical Support
+<!-- Add TOC later if needed, once all sections are finalized
 
 <a name="overview"></a>
 # Overview
@@ -70,9 +19,9 @@ Multiple instances can be installed on DC/OS and managed independently. This all
 ## Features
 
 - Multiple instances sharing the same physical systems (requires custom port configuration).
-- Vertical (resource) and horizontal (node count) scaling.
+- Vertical (resource) and horizontal (increase broker count) scaling.
 - Easy redeployment to new systems upon scheduled or unscheduled outages.
-- Consistent DNS addresses regardless of where nodes are located in the cluster.
+- Consistent DNS addresses regardless of where brokers are located in the cluster.
 - Node placement may be customized via Placement Constraints.
 
 <a name="quick-start"></a>
@@ -164,7 +113,7 @@ Alternatively, you can install Kafka from the DC/OS web interface. If you instal
 
 ## Broker Settings
 
-The following settings may be adjusted to customize the amount of resources allocated to each node. Apache Kafka's requirements (http://kafka.apache.org/documentation.html) must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
+The following settings may be adjusted to customize the amount of resources allocated to each broker. Apache Kafka's requirements (http://kafka.apache.org/documentation.html) must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
 
 Each of the following settings may be customized under the **broker** configuration section.
 
@@ -174,11 +123,11 @@ Configure the number of brokers running in a given Kafka cluster. The default co
 
 ### CPU
 
-The amount of CPU allocated to each node may be customized. A value of `1.0` equates to one full CPU core on a machine. This value may be customized by editing the **cpus** value under the **broker** configuration section. Turning this too low will result in throttled tasks.
+The amount of CPU allocated to each broker may be customized. A value of `1.0` equates to one full CPU core on a machine. This value may be customized by editing the **cpus** value under the **broker** configuration section. Turning this too low will result in throttled tasks.
 
 ### Memory
 
-The amount of RAM allocated to each node may be customized. This value may be customized by editing the **mem** value (in MB) under the **broker** configuration section. Turning this too low will result in out of memory errors.
+The amount of RAM allocated to each broker may be customized. This value may be customized by editing the **mem** value (in MB) under the **broker** configuration section. Turning this too low will result in out of memory errors.
 
 
 ### Ports
@@ -191,7 +140,7 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. 
 
 ### Placement Constraints
 
@@ -259,11 +208,11 @@ You may deploy changes to the service after it has been launched. Configuration 
 Configuration changes may be performed by editing the runtime environment of the Scheduler. After making a change, the scheduler will be restarted, and it will automatically deploy any detected changes to the service.
 
 
-Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
+Some changes, such as decreasing the number of brokers or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
-1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
+1. Navigate to `Services` and click on the service to be configured (default `kafka`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is obscured behind three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
@@ -275,10 +224,10 @@ To see a full listing of available options, run `dcos package describe --config 
 ### Adding a Node
 The service deploys BROKER_COUNT tasks by default. This may be customized at initial deployment or after the cluster is already running. Shrinking the cluster is not supported.
 
-Modify the `BROKER_COUNT` environment variable to update the node count. Shrinking the cluster after initial deployment is not supported. If you decrease this value, the scheduler will complain about the configuration change until it's reverted back to its original value or larger.
+Modify the `BROKER_COUNT` environment variable to update the broker count. Shrinking the cluster after initial deployment is not supported. If you decrease this value, the scheduler will complain about the configuration change until it's reverted back to its original value or larger.
 
 ### Resizing a Node
-The CPU and Memory requirements of each node may be increased or decreased as follows:
+The CPU and Memory requirements of each broker may be increased or decreased as follows:
 - CPU (1.0 = 1 core): `BROKER_CPUS`
 - Memory (in MB): `BROKER_MEM` 
 
@@ -288,83 +237,75 @@ Note that volume requirements (type and/or size) may not be changed after initia
 
 Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
 
-Let's say we have the following deployment of our nodes
+Let's say we have the following deployment of our brokers
 
 - Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
 - Tasks:
 ```
-10.0.10.3: _NODEPOD_-0
-10.0.10.8: _NODEPOD_-1
-10.0.10.26: _NODEPOD_-2
+10.0.10.3: kafka-0
+10.0.10.8: kafka-1
+10.0.10.26: kafka-2
 10.0.10.28: empty
 10.0.10.84: empty
 ```
 
 `10.0.10.8` is being decommissioned and we should move away from it. Steps:
 
-1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `NODE_PLACEMENT`:
+1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `PLACEMENT_CONSTRAINT`:
 
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos kafka pods replace _NODEPOD_-1`
-1. Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.
+1. Redeploy `kafka-1` from the decommissioned broker to somewhere within the new whitelist: `dcos kafka pods replace kafka-1`
+1. Wait for `kafka-1` to be up and healthy before continuing with any other replacement operations.
 
 
-## Restarting nodes
+## Restarting brokers
 
-This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data which isn't in a persistent volume, via the magic of containers.
+This operation will restart a broker, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data which isn't in a persistent volume, via the magic of containers.
 
 1. Run `dcos kafka pods restart kafka-0`
 
-## Replacing nodes
+## Replacing brokers
 
-This operation will move a node to a new system, and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined. Note that nodes are not moved automatically; you must manually perform the following steps to move tasks to new systems. You may build your own automation to perform node replacement automatically according to your own preferences.
+This operation will move a broker to a new system, and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined. Note that brokers are not moved automatically; you must manually perform the following steps to move tasks to new systems. You may build your own automation to perform broker replacement automatically according to your own preferences.
 
-1. _ANY STEPS TO WIND DOWN A NODE BEFORE IT'S WIPED/DECOMMISSIONED GO HERE_
 1. Run `dcos kafka pods replace kafka-0` to halt the current instance (if still running) and launch a new instance elsewhere.
 
 For example, let's say `kafka-0`'s host system has died and `kafka-0` needs to be moved.
 
 	```
-	dcos kafka pods replace _NODEPOD_-3
+	dcos kafka pods replace kafka-0
 	```
 
 <a name="disaster-recovery"></a>
 # Disaster Recovery
 
 ## Backup/Restore
-  For more information on Apache Kafka backup/restore, please see its [documentation](http://kafka.apache.org/documentation.html)
+The DC/OS Apache Kafka does not natively support any backup or restore functionality.  For more information on Apache Kafka backup/restore, please see its [documentation](http://kafka.apache.org/documentation.html)
   
-<a name="#deploy-best-practices"></a>
-# Deployment Best Practices
-
-- Run [backups](#disaster-recovery) on a regular basis, and test your backups.
-- Configure alerting/monitoring of your service to detect downtime and other issues.
-- If your cluster has been [configured with availability zones (e.g. Rack IDs)](https://github.com/dcos/dcos-docs/blob/51fe4641152e2c9361877439c40ddfeab61506e0/1.8/administration/faq.md#q-how-to-add-mesos-attributes-to-nodes-in-order-to-use-marathon-constraints), Placement Constraints may be used to map the service across those zones.
-
 <a name="troubleshooting"></a>
 # Troubleshooting
 
 ## Accessing Logs
 
-Logs for the Scheduler and all service nodes may be browsed via the DC/OS Dashboard.
+Logs for the Scheduler and all service pods may be browsed via the DC/OS Dashboard.
 
-- Scheduler logs are useful for determining why a node isn't being launched (this is under the purview of the Scheduler).
-- Node logs are useful for examining problems in the service itself.
+- Scheduler logs are useful for determining why a pod isn't being launched (this is under the purview of the Scheduler).
+- Pod logs are useful for examining problems in the service itself.
 
 In all cases, logs are generally piped to files named `stdout` and/or `stderr`.
 
-To view logs for a given node, perform the following steps:
+To view logs for a given pod, perform the following steps:
 1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
-1. Navigate to `Services` and click on the service to be examined (default _`PKGNAME`_).
+1. Navigate to `Services` and click on the service to be examined (default `kafka`).
 1. In the list of tasks for the service, click on the task to be examined
 1. In the task details, click on the `Logs` tab to go into the log viewer. By default you will see `stdout`, but `stderr` is also useful. Use the pull-down in the upper right to select the file to be examined.
 
 In case of problems with accessing the DC/OS Dashboard, logs may also be accessed via the Mesos UI:
 1. Visit http://yourcluster.com/mesos to view the Mesos UI.
 1. Click the `Frameworks` tab in the upper left to get a list of services running in the cluster.
-1. Navigate into the correct Framework for your needs. The Scheduler runs under `marathon` with a task name matching the service name (default _`PKGNAME`_). Meanwhile service nodes run under a Framework whose name matches the service name (default _`PKGNAME`_).
+1. Navigate into the correct Framework for your needs. The Scheduler runs under `marathon` with a task name matching the service name (default `kafka`). Meanwhile service pods run under a Framework whose name matches the service name (default `kafka`).
 1. You should now see two lists of tasks. `Active Tasks` are what's currently running, and `Completed Tasks` are what has since exited. Click on the `Sandbox` link for the task you wish to examine.
 1. The `Sandbox` view will list files named `stdout` and `stderr`. Click the file names to view the files in the browser, or click `Download` to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.
 
@@ -374,13 +315,10 @@ In case of problems with accessing the DC/OS Dashboard, logs may also be accesse
 
 - Shrinking cluster size (number of brokers) is not supported.
 
-## Removing a Node
-
-Removing a node is not supported at this time.
 
 ## Automatic Failed Node Recovery
 
-Nodes are not automatically replaced by the service in the event a system goes down. You may either manually replace nodes as described under [Managing](#managing), or build your own ruleset and automation to perform this operation automatically.
+Nodes are not automatically replaced by the service in the event a system goes down. You may either manually replace pods as described under [Managing](#managing), or build your own ruleset and automation to perform this operation automatically.
 
 ## Updating Storage Volumes
 
@@ -390,31 +328,23 @@ Neither volume type nor volume size requirements may be changed after initial de
 
 Rack awareness within the service is not currently supported, but is planned to be supported with a future release of DC/OS.
 
-## _ANY OTHER CAVEATS TO MENTION HERE?
-
-_FOR EXAMPLE, DOES YOUR SERVICE REQUIRE MANUAL INVOLVEMENT BY THE USER IN CERTAIN SCENARIOS?_
-
-<a name="terms"></a>
-# Terms of Use
-
-_ANY RISK WARNINGS OR REQUIREMENTS FOR SUPPORTED ENVIRONMENTS GO HERE_
 
 <a name="support"></a>
 # Support
 
+Enterprise DC/OS customers may submit support cases via support@mesosphere.com.
+
 ## Supported Versions
 
-- Apache Kafka: _WHAT VERSION OF YOUR SERVICE IS INCLUDED IN THE PACKAGE?_
-- DC/OS: _LIST VERSION(S) OF DC/OS THAT YOU'VE TESTED AND SUPPORT_
+- Apache Kafka: 0.10.1.0
+- DC/OS: 1.8 and 1.9
 
 ## Package Versioning
 
-Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the service management layer and `x.y.z` indicates the version of Apache Kafka. For example, `1.5.0-3.2.1` indicates version `1.5.0` of the service management layer and version `3.2.1` of Apache Kafka.
+Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the service management layer and `x.y.z` indicates the version of Apache Kafka. For example, `1.1.20-0.10.1.0` indicates version `1.1.20` of the service management layer and version `0.10.1.0` of Apache Kafka.
 
 ### Upgrades/downgrades
 
 The package supports upgrade and rollback between adjacent versions only. For example, to upgrade from version 2 to version 4, you must first complete an upgrade to version 3, followed by an upgrade to version 4.
 
-## Reaching Technical Support
 
-_PLACES TO GET HELP GO HERE: MAILING LISTS? SLACK? SUPPORT CONTACTS?_
