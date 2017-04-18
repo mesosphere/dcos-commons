@@ -1,0 +1,82 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 0.4,
+  "mem": 768,
+  "instances": 1,
+  "cmd": "{{service.cmd_prefix}} && env && chmod a+x ./secretary-Linux-x86_64 && SECRETS=$(./secretary-Linux-x86_64 decrypt -e) && eval \"$SECRETS\" && echo $SECRETS && ./mongodb-sidecar-scheduler/bin/mongodb-sidecar ./mongodb-sidecar-scheduler/{{service.spec_file}}",
+  "labels": {
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
+    "DCOS_MIGRATION_API_VERSION": "v1",
+    "DCOS_MIGRATION_API_PATH": "/v1/plan",
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
+  "env": {
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "MESOS_API_VERSION": "V0",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+    "MONGODB_PORT": "{{mongodb.port}}",
+    "MONGODB_COUNT": "{{mongodb.count}}",
+    "MONGODB_CPUS": "{{mongodb.cpus}}",
+    "MONGODB_MEM": "{{mongodb.mem}}",
+    "MONGODB_DISK": "{{mongodb.disk}}",
+    "MONGODB_REPLSET": "{{mongodb.replicaSetName}}",
+    "MONGODB_VERSION": "{{mongodb.version}}",
+    "MONGODB_KEY_FILE_URL": "{{mongodb.keyFileUrl}}",
+    "MONGODB_PASSWORD": "{{{sidecar.mongodb_password}}}",
+    {{#mongodb.constraint}}
+    "MONGODB_CONSTRAINT": "{{mongodb.constraint}}",
+    {{/mongodb.constraint}}
+    "SIDECAR_COUNT": "{{sidecar.count}}",
+    "SIDECAR_PORT": "{{sidecar.port}}",
+    "SIDECAR_CPUS": "{{sidecar.cpus}}",
+    "SIDECAR_MEM": "{{sidecar.mem}}",
+    "SIDECAR_DISK": "0",
+    "SIDECAR_APP_NAME": "{{service.name}}",
+    "SIDECAR_DELAY": "{{sidecar.delay}}",
+    "SIDECAR_IMAGE": "{{sidecar.imageName}}",
+    "SIDECAR_CMD": "{{sidecar.cmd}}",
+    "SIDECAR_ZK_URL": "{{sidecar.zk_url}}",
+    "SIDECAR_MESOS_URL": "{{sidecar.mesos_url}}",
+    "SIDECAR_LOG_LEVEL": "{{sidecar.log_level}}",
+    {{#sidecar.secretary_url}}
+    "SECRETARY_URL": "{{sidecar.secretary_url}}",
+    "MASTER_PUBLIC_KEY": "{{{sidecar.master_public_key}}}",
+    "DEPLOY_PRIVATE_KEY": "{{{sidecar.deploy_private_key}}}",
+    "DEPLOY_PUBLIC_KEY": "{{{sidecar.deploy_public_key}}}",
+    {{/sidecar.secretary_url}}
+    "CONFIG_TEMPLATE_PATH": "mongodb-sidecar-scheduler"
+  },
+  "fetch": [
+    {"uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true},
+    {"uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true},
+    {"uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true},
+    {"uri": "https://github.com/meltwater/secretary/releases/download/0.9.1/secretary-Linux-x86_64", "cache": true}
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "api",
+      "labels": { "VIP_0": "/api.{{service.name}}:80" }
+    }
+  ],
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 120,
+      "intervalSeconds": 30,
+      "maxConsecutiveFailures": 3,
+      "path": "/v1/tasks",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 5
+    }
+  ]
+}

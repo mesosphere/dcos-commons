@@ -1,0 +1,204 @@
+{
+  "type":"object",
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"mongodb-sidecar"
+          },
+          "spec_file" : {
+            "description":"The name of the service spec yaml file.",
+            "type":"string",
+            "default":"svc.yml"
+          },
+          "cmd_prefix" : {
+            "description":"A generic prefix to start the scheduler.",
+            "type":"string",
+            "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
+          }
+        }
+      },
+      "mongodb":{
+        "description":"MongoDB server node configuration properties",
+        "type":"object",
+        "properties":{
+          "port":{
+            "description":"MongoDB server listening port",
+            "type":"number",
+            "default":27017
+          },
+          "restPort":{
+            "description":"MongoDB server rest interface listening port",
+            "type":"number",
+            "default":28017
+          },
+          "cpus":{
+            "description":"MongoDB server node cpu requirements",
+            "type":"number",
+            "default":0.25
+          },
+          "mem":{
+            "description":"MongoDB server node mem requirements",
+            "type":"integer",
+            "default":1024
+          },
+          "disk":{
+            "description":"MongoDB server node disk requirements (local persistent volumes)",
+            "type":"integer",
+            "default":4096
+          },
+          "count":{
+            "description":"Number of MongoDB server nodes to run",
+            "type":"integer",
+            "default":3
+          },
+          "replicaSetName":{
+            "description":"Name of the MongoDB ReplicaSet",
+            "type":"string",
+            "default":"rs"
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for MongoDB server nodes (use empty string to override the default hostname UNIQUE behavior)",
+            "type":"string",
+            "default":"[['hostname', 'UNIQUE']]"
+          },
+          "version":{
+            "description":"MongoDB server version",
+            "type":"string",
+            "default":"3.2.12"
+          },
+          "keyFileUrl":{
+            "description":"MongoDB key file for members authentication",
+            "type":"string",
+            "default":"https://gist.githubusercontent.com/shirkevich/5ba248723f1f58a5e9149bb84f3f5546/raw/b0acdae14fb9218061dd0bcecdf4781abe7efaa7/keyfile.txt"
+          }
+        },
+        "required":[
+          "cpus",
+          "mem",
+          "disk",
+          "count"
+        ]
+      },
+      "sidecar":{
+        "description":"MongoDB sidecar configuration properties",
+        "type":"object",
+        "properties":{
+          "port":{
+            "description":"MongoDB sidecar port",
+            "type":"number",
+            "default":4567
+          },
+          "count":{
+            "description":"Set count to 0 for local sidecar development",
+            "type":"integer",
+            "default":1
+          },
+          "cpus":{
+            "description":"MongoDB sidecar node cpu requirements",
+            "type":"number",
+            "default":0.4
+          },
+          "mem":{
+            "description":"MongoDB sidecar node mem requirements",
+            "type":"integer",
+            "default":256
+          },
+          "imageName":{
+            "description":"Docker image for sidecar app",
+            "type":"string",
+            "default":"comptel/mongodb-sidecar:0.0.23"
+          },
+          "cmd":{
+            "description":"Docker cmd to run inside sidecar",
+            "type":"string",
+            "default":"/app/run.sh"
+          },
+          "zk_url":{
+            "description":"zk url",
+            "type":"string",
+            "default":"zk-1.zk:2181"
+          },
+          "mesos_url":{
+            "description":"mesos url",
+            "type":"string",
+            "default":"http://master.mesos/mesos"
+          },
+          "log_level":{
+            "description":"Desired log level",
+            "type":"string",
+            "default":"info"
+          },
+          "delay":{
+            "description":"How long to sleep between work cycles",
+            "type":"number",
+            "default":10
+          },
+          "secretary_url":{
+            "description":"Secretary URL for storing admin password and key file",
+            "type":"string",
+            "default":""
+          },
+          "master_public_key":{
+            "description":"Secretary master_public_key",
+            "type":"string",
+            "default":""
+          },
+          "deploy_private_key":{
+            "description":"Secretary deploy_private_key",
+            "type":"string",
+            "default":""
+          },
+          "deploy_public_key":{
+            "description":"Secretary deplou_public_key",
+            "type":"string",
+            "default":""
+          },
+          "mongodb_password":{
+            "description":"MongoDB password",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "port",
+          "cpus",
+          "mem",
+          "imageName",
+          "cmd",
+          "zk_url",
+          "mesos_url"
+        ]
+      }
+    },
+    "backup":{
+      "type":"object",
+      "description": "Backup credentials",
+      "properties":{
+        "azure_storage_account_name": {
+          "description":"Azure storage account name",
+          "type":"string",
+          "default":""
+        },
+        "azure_storage_access_key" : {
+          "description":"Azure storage access key",
+          "type":"string",
+          "default":""
+        },
+        "azure_storage_container_name": {
+          "description":"Azure container name for backups",
+          "type":"string",
+          "default":""
+        },
+        "public_key": {
+          "description":"Public key used for encryption",
+          "type":"string",
+          "default":""
+        }
+      }
+    }
+}

@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+gem 'zk'
+gem 'httparty'
+gem 'cabin'
+gem 'sinatra'
+gem 'thin'
+gem 'jsonpath'
+gem 'mongo'
+gem 'azure'

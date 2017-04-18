@@ -1,0 +1,85 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+<script>
+// hljs.configure({useBR: true});
+hljs.initHighlightingOnLoad();
+$( function() {
+  $( "#tabs" ).tabs();
+} );
+</script>
+
+
+<h1>MongoDB RS sidecar status</h1>
+<pre>
+  ZK rs members: <%= @zk_rs_members %>
+  Driver discvovered: <%= @mongo.discovered_servers %>
+<%
+  @diff = @zk_rs_members - @mongo.discovered_servers
+  if @diff.empty?
+%>
+  ZK and mongo states in sync
+<% else %>
+  Diff: <%= @diff %>
+<% end %>
+</pre>
+<div id="tabs">
+  <ul>
+    <li><a href="#admin">Admin</a></li>
+    <li><a href="#master-status-tab">Master status</a></li>
+    <li><a href="#rs-config-tab">RS status</a></li>
+    <li><a href="#rs-status-tab">RS config</a></li>
+  </ul>
+  <div id="admin">
+  <table border=1 style="border-style: solid; border-width: 1px">
+    <tr>
+      <th>name</th>
+      <th>health</th>
+      <th><a href="https://docs.mongodb.com/manual/reference/replica-states/">state</a></th>
+      <th>stateStr</th>
+      <th>optimeDate</th>
+      <th>optime lag</th>
+      <th>pingMs</th>
+      <th>priority</th>
+      <th>actions</th>
+    </tr>
+  <% @mongo.rs_status[:members].each do |server|%>
+    <tr>
+      <td><%= server[:name] %></td>
+      <td><%= server[:health] %></td>
+      <td><%= server[:state] %></td>
+      <td><%= server[:stateStr] %></td>
+      <td><%= server[:optime][:ts].seconds %></td>
+      <td><%= @mongo.optime_lag(server[:name]) if server[:state] == 2%></td>
+      <td><%= server[:pingMs] %></td>
+      <td><%= @mongo.member_priority(server[:name]) %></td>
+      <td>
+        <% if server[:state] == 2 %>
+          <a href="/forcemaster/<%= server[:name]%>">force primary</a>
+        <% elsif server[:state] == 8 %>
+          <a href="/remove/<%= server[:name]%>">remove from rs</a>
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+
+  </table>
+  <p>
+    <a href="/reset_priority">Reset priorities</a> this will reset priorities to 1 for all servers.
+  </p>
+  </div>
+
+
+  <div id="master-status-tab">
+    <pre><code class="json"><%= @mongo.master_status %></code></pre>
+  </div>
+  <div id="rs-status-tab">
+    <pre><code class="json"><%= JSON.pretty_generate(@mongo.rs_status) %></code></pre>
+  </div>
+  <div id="rs-config-tab">
+    <pre><code class="json"><%= JSON.pretty_generate(@mongo.rs_config) %></code></pre>
+  </div>
+</div>

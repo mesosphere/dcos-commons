@@ -1,0 +1,85 @@
+name: "{{FRAMEWORK_NAME}}"
+web-url: "http://sidecar-0-companion.{{FRAMEWORK_NAME}}.mesos:{{SIDECAR_PORT}}"
+pods:
+  mongodb:
+    count: {{MONGODB_COUNT}}
+    uris:
+      - "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-{{MONGODB_VERSION}}.tgz"
+      - "{{MONGODB_KEY_FILE_URL}}"
+    resource-sets:
+      mongodb-resources:
+        cpus: {{MONGODB_CPUS}}
+        memory: {{MONGODB_MEM}}
+        ports:
+          mongodb:
+            port: {{MONGODB_PORT}}
+        volume:
+          path: mongodb-replicaset
+          type: ROOT
+          size: {{MONGODB_DISK}}
+    tasks:
+      init:
+        resource-set: mongodb-resources
+        goal: FINISHED
+        cmd: "env && chmod a+x $MESOS_SANDBOX/config-templates/mongo-init && $MESOS_SANDBOX/config-templates/mongo-init"
+        configs:
+          mongo-init:
+            template: "{{CONFIG_TEMPLATE_PATH}}/create_mongo_user.sh"
+            dest: "create_mongo_user.sh"
+        env:
+          MONGODB_PASSWORD: {{MONGODB_PASSWORD}}
+          MONGODB_VERSION: {{MONGODB_VERSION}}
+          MONGODB_PORT: {{MONGODB_PORT}}
+      server:
+        resource-set: mongodb-resources
+        goal: RUNNING
+        cmd: "env && chmod 600 $MESOS_SANDBOX/keyfile.txt && exec $MESOS_SANDBOX/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongod --keyFile $MESOS_SANDBOX/keyfile.txt --auth --bind_ip $LIBPROCESS_IP --port {{MONGODB_PORT}} --dbpath $MESOS_SANDBOX/mongodb-replicaset --replSet {{MONGODB_REPLSET}}"
+        health-check:
+           cmd: "curl --fail ${LIBPROCESS_IP}:{{MONGODB_PORT}} > /dev/null"
+           interval: 30
+           grace-period: 60
+           max-consecutive-failures: 5
+           delay: 5
+           timeout: 5
+  sidecar:
+    count: {{SIDECAR_COUNT}}
+    uris:
+      - "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-{{MONGODB_VERSION}}.tgz"
+    container:
+      image-name: {{SIDECAR_IMAGE}}
+    tasks:
+      companion:
+        cpus: {{SIDECAR_CPUS}}
+        memory: {{SIDECAR_MEM}}
+        goal: RUNNING
+        cmd: {{SIDECAR_CMD}}
+        ports:
+          sidecar:
+            port: 4567
+        env:
+          APP_NAME: {{SIDECAR_APP_NAME}}
+          DELAY: {{SIDECAR_DELAY}}
+          ZK_URL: {{SIDECAR_ZK_URL}}
+          MESOS_URL: {{SIDECAR_MESOS_URL}}
+          LOG_LEVEL: {{SIDECAR_LOG_LEVEL}}
+          MONGODB_PASSWORD: {{MONGODB_PASSWORD}}
+          MONGODB_REPLSET: {{MONGODB_REPLSET}}
+          MONGO_BINARY: "/mnt/mesos/sandbox/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongo"
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      mongodb-init:
+        strategy: parallel
+        pod: mongodb
+        steps:
+          - default: [[init]]
+      mongodb-server:
+        strategy: serial
+        pod: mongodb
+        steps:
+          - default: [[server]]
+      sidecar-deploy:
+        strategy: serial
+        pod: sidecar

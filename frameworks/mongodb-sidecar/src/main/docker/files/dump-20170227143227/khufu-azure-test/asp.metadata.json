@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"khufu-azure-test.asp"},{"v":2,"key":{"productid":1},"name":"productid_1","ns":"khufu-azure-test.asp","background":true},{"v":2,"key":{"target_hour":1},"name":"target_hour_1","ns":"khufu-azure-test.asp","background":true}]}
