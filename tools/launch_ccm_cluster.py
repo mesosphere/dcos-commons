@@ -303,7 +303,8 @@ class CCMLauncher(object):
             if config.mount_volumes:
                 clustinit.create_mount_volumes()
 
-        return { 'id': cluster_id,
+        return {
+            'id': cluster_id,
             'url': dcos_url,
             'auth_token': auth_token
         }
