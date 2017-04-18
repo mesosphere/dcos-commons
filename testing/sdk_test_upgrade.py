@@ -64,10 +64,30 @@ def upgrade_downgrade(package_name, running_task_count, additional_options={}):
     upgrade_or_downgrade(package_name, running_task_count, additional_options)
 
 
-def upgrade_or_downgrade(package_name, running_task_count, additional_options):
+# In the soak cluster, we assume that the Universe version of the framework is already installed.
+# Also, we assume that the Universe is the default repo (at --index=0) and the stub repos are already in place,
+# so we don't need to add or remove any repos.
+#
+# (1) Upgrades to test version of framework.
+# (2) Downgrades to Universe version.
+def soak_upgrade_downgrade(package_name, running_task_count, install_options={}):
+    print('Upgrading to test version')
+    upgrade_or_downgrade(package_name, running_task_count, install_options, 'stub-universe')
+
+    print('Downgrading to Universe version')
+    # Default Universe is at --index=0
+    upgrade_or_downgrade(package_name, running_task_count, install_options)
+
+
+def upgrade_or_downgrade(package_name, running_task_count, additional_options, package_version=None):
     task_ids = tasks.get_task_ids(package_name, '')
     marathon.destroy_app(package_name)
-    install.install(package_name, running_task_count, check_suppression=False, additional_options=additional_options)
+    install.install(
+        package_name,
+        running_task_count,
+        additional_options=additional_options,
+        package_version=package_version,
+        check_suppression=False)
     sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
     spin.time_wait_noisy(lambda: (
         plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))

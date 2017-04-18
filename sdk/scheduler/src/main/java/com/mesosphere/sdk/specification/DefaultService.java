@@ -153,7 +153,14 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = schedulerBuilder.build();
+        DefaultScheduler defaultScheduler = null;
+        try {
+            defaultScheduler = schedulerBuilder.build();
+        } catch (Throwable e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
+
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         registerAndRunFramework(
                 defaultScheduler,
