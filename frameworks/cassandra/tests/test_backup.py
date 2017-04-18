@@ -35,6 +35,10 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 def test_backup_and_restore_flow():
+    run_backup_and_restore()
+
+
+def run_backup_and_restore():
     backup_parameters = {
         'S3_BUCKET_NAME': os.getenv(
             'AWS_BUCKET_NAME', 'infinity-framework-test'
@@ -77,4 +81,4 @@ def test_backup_and_restore_flow():
     )
 
     # Verify that the data we wrote and then deleted has been restored
-    launch_and_verify_job(VERIFY_DATA_JOB, expected_successes=2)
+    launch_and_verify_job(VERIFY_DATA_JOB)
