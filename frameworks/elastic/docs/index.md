@@ -25,3 +25,8 @@ DC/OS Elastic provides the following features:
 *   High availability runtime configuration and software updates
 *   Storage volumes for enhanced data durability, known as Mesos Dynamic Reservations and Persistent Volumes
 *   Automatic reporting of Elasticsearch metrics to DC/OS statsd collector
+
+# Requirements
+
+This framework requires DC/OS 1.9 as it depends on rlimit support provided by Mesos 1.2 [MESOS-6402](https://issues.apache.org/jira/browse/MESOS-6402).
+
