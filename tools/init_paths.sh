@@ -8,7 +8,7 @@ if [ -z "$TOOLS_DIR" ]; then
 fi
 
 if [ -z "$REPO_ROOT_DIR" ]; then
-    REPO_ROOT_DIR=$(dirname $TOOLS_DIR)
+    REPO_ROOT_DIR="$(dirname $TOOLS_DIR)"
 fi
 
 if [ -z "$REPO_NAME" ]; then
