@@ -86,11 +86,8 @@ def activate_venv(path):
 
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"
-    #pip_bin = os.path.join(path, 'bin', 'pip')
-    #run_cmd(path, [pip_bin, 'install', '-r', requirements_filepath])
-    pip_bin = 'pip3'
-    run_cmd(path, [pip_bin, 'install', '-r', requirements_filepath, 
-                   '--root', path])
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', '-r', requirements_filepath])
 
 def run_cmd(path, cmd, *args, **kwargs):
     "Run an external command with a particular venv"
