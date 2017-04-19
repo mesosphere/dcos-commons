@@ -510,7 +510,6 @@ def main(argv):
 
     launcher = CCMLauncher(ccm_token, github_label)
     args = parse_args(argv)
-    print(args)
     if args.command == 'stop':
         launcher.stop(StopConfig(args.ccm_id), start_stop_attempts)
     elif args.command == 'trigger-stop':
