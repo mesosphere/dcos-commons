@@ -105,7 +105,7 @@ class ClusterInitializer(object):
         import modify_master
         modify_master.set_local_infinity_defaults()
 
-    def apply_default_config(self):
+    def apply_default_config(self, initmaster=True):
         saved_env = os.environ.copy()
         try:
             # TODO; track a cluster-specific working dir, and keep this in
@@ -126,12 +126,13 @@ class ClusterInitializer(object):
                     os.dup2(sys.stderr.fileno(), stdout_fd)
 
                     self.create_service_account()
-                    # currently, the create_service_account.sh script sets up the
-                    # cli itself so we initialize it in the style that test logic
-                    # expects after.
-                    # in the shiny future, set up the CLI once for the whole run.
-                    self._initialize_dcos_cli()
-                    self.configure_master_settings()
+                    if initmaster:
+                        # currently, the create_service_account.sh script sets up the
+                        # cli itself so we initialize it in the style that test logic
+                        # expects after.
+                        # in the shiny future, set up the CLI once for the whole run.
+                        self._initialize_dcos_cli()
+                        self.configure_master_settings()
                 finally:
                     sys.stdout.flush()
                     os.dup2(stdout_back, stdout_fd)
