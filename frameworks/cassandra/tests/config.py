@@ -1,3 +1,4 @@
+import json
 import os
 
 import shakedown
@@ -68,12 +69,21 @@ def install_job(job_name, jobs_folder):
     cmd.run_cli('job add {}'.format(job_filename))
 
 
-def launch_and_verify_job(job_name, expected_successes=1):
-    cmd.run_cli('job run {}'.format(qualified_job_name(job_name)))
+def launch_and_verify_job(job_name):
+    job_name = qualified_job_name(job_name)
 
+    output = cmd.run_cli('job run {}'.format(job_name))
+    # Get the id of the run we just initiated
+    run_id = output.strip().split()[-1]
+
+    # Verify that our most recent run succeeded
     spin.time_wait_noisy(lambda: (
-        'Successful runs: {}'.format(expected_successes) in
-        cmd.run_cli('job history {}'.format(qualified_job_name(job_name)))
+        run_id in [
+            r['id'] for r in
+            json.loads(cmd.run_cli(
+                'job history --show-failures --json {}'.format(job_name)
+            ))['history']['successfulFinishedRuns']
+        ]
     ))
 
 
