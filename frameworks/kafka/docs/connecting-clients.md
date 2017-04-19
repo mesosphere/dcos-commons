@@ -64,7 +64,9 @@ The response, for both the CLI and the REST API is as below.
       "kafka-0-broker.kafka.mesos:1025",
       "kafka-1-broker.kafka.mesos:1025"
     ],
-    "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+    "vips": [
+        "broker.kafka.l4lb.thisdcos.directory:9092"
+    ]
   }
 
 This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.9/networking/).
@@ -162,7 +164,9 @@ The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-co
         "kafka-0-broker.kafka.mesos:1025",
         "kafka-1-broker.kafka.mesos:1025"
       ],
-      "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+      "vips": [
+        "broker.kafka.l4lb.thisdcos.directory:9092"
+      ]
     }
 
     dcos node ssh --master-proxy --leader

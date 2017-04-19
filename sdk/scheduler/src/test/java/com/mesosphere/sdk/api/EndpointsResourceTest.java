@@ -176,8 +176,11 @@ public class EndpointsResourceTest {
         assertEquals("some-task-type", json.get(3));
 
         JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1", null).getEntity());
-        assertEquals(3, vip1.length());
+        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
+        assertEquals(4, vip1.length());
+        // deprecated, remove "vip" at 1.9 -> 2.0
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
+        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
         JSONArray dns = vip1.getJSONArray("dns");
         assertEquals(2, dns.length());
         assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
@@ -188,8 +191,11 @@ public class EndpointsResourceTest {
         assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
 
         JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", null).getEntity());
-        assertEquals(3, vip2.length());
+        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
+        assertEquals(4, vip2.length());
+        // deprecated, remove "vip" at 1.9 -> 2.0
         assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
+        assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
         dns = vip2.getJSONArray("dns");
         assertEquals(2, dns.length());
         assertEquals("vips-1.svc-name.mesos:2346", dns.get(0));
@@ -227,8 +233,11 @@ public class EndpointsResourceTest {
         Response response = resource.getEndpoint("vip1", null);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 3, json.length());
+        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
+        assertEquals(json.toString(), 4, json.length());
+        // deprecated, remove "vip" at 1.9 -> 2.0
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
+        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
         JSONArray dns = json.getJSONArray("dns");
         assertEquals(2, dns.length());
         assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
