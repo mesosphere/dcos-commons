@@ -281,7 +281,10 @@ public class ServiceTest {
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
         // When default executor is being used, three additional resources need to be unreserved.
-        int stepCount = useDefaultExecutor ? 9 : 6;
+        // int stepCount = useDefaultExecutor ? 9 : 6;
+        // There is no unreserve step for DOCKER volumes, unlike ROOT volumes. As there are two
+        // DOCKER volumes the count is less by 2
+        int stepCount = useDefaultExecutor ? 7 : 4;
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(

@@ -9,17 +9,19 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: env && echo hello >> $MESOS_SANDBOX/hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
           path: hello-container-path
-          type: ROOT
+          type: DOCKER
+          docker_volume_driver: pxd
+          docker_volume_name: helloVolume
           size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
-          cmd: stat hello-container-path/output
+          cmd: stat $MESOS_SANDBOX/hello-container-path/output
           interval: 5
           grace-period: 30
           delay: 0
@@ -44,8 +46,8 @@ pods:
                trap terminated SIGTERM
                echo "$(date) trapping SIGTERM, watch here for the signal..."
 
-               echo 'world1' >>world-container-path1/output &&
-               echo 'world2' >>world-container-path2/output &&
+               echo 'world1' >>$MESOS_SANDBOX/world-container-path1/output &&
+               echo 'world2' >>$MESOS_SANDBOX/world-container-path2/output &&
                # instead of running for a short duration (equal to SLEEP_DURATION), run infinitely
                # to allow for testing of SIGTERM..grace..SIGKILL
                while true; do
@@ -56,19 +58,23 @@ pods:
         volumes:
           vol1:
             path: world-container-path1
-            type: ROOT
-            size: {{HELLO_DISK}}
+            docker_volume_driver: pxd
+            docker_volume_name: worldVolume1
+            type: DOCKER
+            size: {{WORLD_DISK}}
           vol2:
             path: world-container-path2
-            type: ROOT
-            size: {{HELLO_DISK}}
+            docker_volume_driver: pxd
+            docker_volume_name: worldVolume2
+            type: DOCKER
+            size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
           # wordcount (wc) will report an error if the file does not exist, which effectively is zero (0) bytes
           # so send the error to /dev/null, BUT also zero-left-pad the variable BYTES to ensure that it is zero
           # on empty for comparison sake.
-          cmd: BYTES="$(wc -c world-container-path2/output 2>/dev/null| awk '{print $1;}')" && [ 0$BYTES -gt 0 ]
+          cmd: BYTES="$(wc -c $MESOS_SANDBOX/world-container-path2/output 2>/dev/null| awk '{print $1;}')" && [ 0$BYTES -gt 0 ]
           interval: 5
           delay: 0
           timeout: 10
