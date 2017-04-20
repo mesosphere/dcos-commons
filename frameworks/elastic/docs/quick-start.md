@@ -78,4 +78,4 @@ enterprise: 'no'
   ```
   And log in with `elastic`/`changeme`
 
-[1]: https://docs.mesosphere.com/1.9/administration/access-node/sshcluster/
+[1]: https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/
