@@ -28,7 +28,7 @@ All `dcos kafka` CLI commands have a `--name` argument allowing the user to spec
 
     $ dcos kafka --name kafka-dev <cmd>
 
-**Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+**Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/deploying-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
 dcos package install kafka --cli
@@ -97,4 +97,4 @@ Installing multiple Kafka clusters is identical to installing Kafka clusters wit
 
  [4]: #custom-installation
  [5]: https://github.com/mesosphere/dcos-vagrant
- [6]: https://docs.mesosphere.com/1.9/usage/service-guides/kafka/configure#configuration-options
+ [6]: https://docs.mesosphere.com/service-docs/kafka/configure/#configuration-options
