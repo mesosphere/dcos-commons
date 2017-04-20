@@ -88,9 +88,9 @@ You can install multiple service instances on DC/OS and manage them. This allows
 <a name="quick-start"></a>
 # Quick Start
 
-1. Install a DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.
+1. Install DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.
 
-1. If you are using open source DC/OS, install a _SERVICENAME_ cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
+1. If you are using open source DC/OS, install _SERVICENAME_ cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
 	```
 	dcos package install _PKGNAME_
@@ -98,9 +98,9 @@ You can install multiple service instances on DC/OS and manage them. This allows
 
 	You can also install _SERVICENAME_ from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
 
-1. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
+1. The service will now deploy with a default configuration. You can monitor its deployment from the Services tab of the DC/OS web interface.
 
-1. Now you are ready to connect a client to the service...
+1. Connect a client to _SERVICENAME_.
 	```
 	dcos _PKGNAME_ endpoints
 	[
@@ -118,41 +118,46 @@ You can install multiple service instances on DC/OS and manage them. This allows
 <a name="installing-and-customizing"></a>
 # Installing and Customizing
 
-When installing the service without any additional customizations, reasonable defaults are provided, but different configurations are recommended depending on the context of the deployment. The defaults are reasonable for trying out the service but not necessarily for production use.
+The default _SERVICENAME_ installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.
 
-## Installation from CLI
+## Prerequisities
+- If you are using Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account. 
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
+	- `permissive` security mode a service account is optional.
+	- `disabled` security mode does not require a service account.
+- Your cluster must have at least _NUMBER_ private nodes.
 
-From the DC/OS CLI, _SERVICENAME_ may be installed with a default testing/non-production configuration as follows:
+## Installation from the DC/OS CLI
+
+To start a basic test cluster, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing Kafka on Enterprise DC/OS](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/kafka/docs/install-and-customize.md#install-enterprise).
+
 ```
 dcos package install _PKGNAME_
 ```
 
-A custom configuration may be specified in an `options.json` file and passed to the the DC/OS CLI as follows:
+You can specify a custom configuration in an `options.json` file and pass it to `dcos package install` using the `--options` parameter.
+
 ```
 $ dcos package install _PKGNAME_ --options=your-options.json
 ```
 
-For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/) for service configuration access.
+For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/).
 
-## Installation from Web
-
-From the DC/OS Dashboard webpage, _SERVICENAME_ may be installed with a default configuration as follows:
-1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
-1. Navigate to `Universe` => `Packages` and find the `_PKGNAME_` package.
-1. Click `Install`, then in the pop up dialog click `Install` again to use default settings.
-
-A customized installation may be performed from the DC/OS Dashboard as follows:
-1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
-1. Navigate to `Universe` => `Packages` and find the `_PKGNAME_` package.
-1. Click `Install`, then in the pop up dialog click `Advanced` to see the customization dialog.
-1. Make your changes to the default configuration in the customization dialog, then click `Review`.
-1. Examine the configuration summary for any needed changes. Click `Back` to make changes, or `Install` to confirm the settings and install the service.
+## Installation from the DC/OS Web Interface
+ 
+ You can [install _SERVICENAME_ from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install _SERVICENAME_ from the web interface, you must install the _SERVICENAME_ DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+ 
+ ```bash
+ dcos package install kafka --cli
+ ```
+ 
+ Choose `ADVANCED INSTALLATION` to perform a custom installation.
 
 ## Service Settings
 
 ### Service Name
 
-Each instance of _SERVICENAME_ in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the **service** section of the install settings. The default service name (used in many examples here) is _`PKGNAME`_.
+Each instance of _SERVICENAME_ in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the **service** section of the advanced installation section of the DC/OS web interface. The default service name (used in many examples here) is _`PKGNAME`_.
 
 ### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
 
@@ -162,9 +167,9 @@ _FOR EXAMPLE, THIS MAY INCLUDE OPTIONAL FEATURES THAT MAY BE ENABLED/DISABLED BY
 
 ## Node Settings
 
-The following settings may be adjusted to customize the amount of resources allocated to each node. _SERVICENAME_'s _[SYSTEM REQUIREMENTS](http://example.com)_ must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
+Adjust the following settings to customize the amount of resources allocated to each  node. _SERVICENAME_'s _[SYSTEM REQUIREMENTS](http://example.com)_ must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
 
-Each of the following settings may be customized under the **node** configuration section.
+Each of the following settings can be customized under the **node** configuration section.
 
 ### Node Count
 
@@ -172,17 +177,17 @@ Customize the `Node Count` setting (default _DEFAULT NODE COUNT_) under the **no
 
 ### CPU
 
-The amount of CPU allocated to each node may be customized. A value of `1.0` equates to one full CPU core on a machine. This value may be customized by editing the **cpus** value under the **node** configuration section. Turning this too low will result in throttled tasks.
+You can customize the amount of CPU allocated to each node. A value of `1.0` equates to one full CPU core on a machine. Change this value by editing the **cpus** value under the **node** configuration section. Turning this too low will result in throttled tasks.
 
 ### Memory
 
-The amount of RAM allocated to each node may be customized. This value may be customized by editing the **mem** value (in MB) under the **node** configuration section. Turning this too low will result in out of memory errors.
+You can customize the amount of RAM allocated to each node. Change this value by editing the **mem** value (in MB) under the **node** configuration section. Turning this too low will result in out of memory errors.
 
 _ANY CUSTOMIZATIONS RELATING TO MEMORY THAT SHOULD BE ADJUSTED AS WELL (E.G. HEAP SIZE)? IF SO, MENTION THEM HERE._
 
 ### Ports
 
-Each port exposed by the service may be customized via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise.
+You can customize the ports exposed by the service via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise.
 
 Each component's ports may be customized in the following configuration sections:
 - _LIST PORT OPTIONS AND WHERE THEY ARE LOCATED IN THE CONFIG HERE_
@@ -193,7 +198,7 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, configure `MOUNT` volumes on the machines that will run the service in your cluster and then configure the following as `MOUNT` volumes:
 - _LIST ANY VOLUMES THAT SHOULD USE DEDICATED SPINDLES IN A PRODUCTION ENVIRONMENT FOR YOUR SERVICE_
 
 ### Placement Constraints
@@ -201,14 +206,15 @@ Using `MOUNT` volumes requires [additional configuration on each DC/OS agent sys
 Placement constraints allow you to customize where the service is deployed in the DC/OS cluster. Placement constraints may be configured _SEPARATELY FOR EACH NODE TYPE? (IF YOUR SERVICE HAS MULTIPLE TYPES)_ in the following configuration sections:
 - _LIST EXPOSED PLACEMENT CONSTRAINT FIELDS AND WHERE THEY ARE LOCATED IN THE CONFIG HERE_
 
-Placement constraints support all [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
+Placement constraints support all [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, use `hostname:UNIQUE`.
 
 A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
+
 ```
 hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 ```
 
-You must include spare capacity in this list so that if one of the whitelisted systems goes down, there is still enough room to repair your service without that system.
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service without that system.
 
 For an example of updating placement constraints, see [Managing](#managing) below.
 
@@ -225,8 +231,8 @@ _FOR EXAMPLE, IF YOUR SERVICE SUPPORTS ENABLING/DISABLING CERTAIN COMPONENTS, TH
 
 Follow these steps to uninstall the service.
 
-1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall`.
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.9/usage/managing-services/uninstall/#framework-cleaner).
 
 To uninstall an instance named `_PKGNAME_` (the default), run:
 ```
@@ -241,7 +247,7 @@ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py
 <a name="connecting-clients"></a>
 # Connecting clients
 
-One of the benefits of running containerized services is that they can be placed anywhere in the cluster. This benefit brings up the question on how to find those services once they're deployed. Clients need a way to connect to the service regardless of where it's currently located in the cluster. This is where service discovery comes in.
+One of the benefits of running containerized services is that they can be placed anywhere in the cluster. Because they can be deployed anywhere on the cluster, clients need a way to find the service. This is where service discovery comes in.
 
 ## Discovering endpoints
 
@@ -254,11 +260,11 @@ Once the service is running, you may view information about its endpoints via ei
   - View endpoints for an endpoint type: `https://yourcluster.com/service/_PKGNAME_/v1/endpoints/<endpoint>`
 
 Returned endpoints will include the following:
-- `.mesos` hostnames for each instance which will follow them if they're moved within the DC/OS cluster.
+- `.mesos` hostnames for each instance that will follow them if they're moved within the DC/OS cluster.
 - A HA-enabled VIP hostname for accessing any of the instances (optional).
 - A direct IP address for accesssing the service if `.mesos` hostnames are not resolvable.
 
-In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you may either use the direct IPs, or set up a proxy service which acts as a frontend to your _SERVICENAME_ instance. For development and testing purposes, you may use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
+In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your _SERVICENAME_ instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
 
 ## Connecting clients to endpoints
 
@@ -268,36 +274,36 @@ _GIVEN A RELEVANT EXAMPLE CLIENT FOR YOUR SERVICE, PROVIDE INSTRUCTIONS FOR CONN
 # Managing
 
 ## Updating Configuration
-You may deploy changes to the service after it has been launched. Configuration management is handled by the Scheduler process, which in turn handles deploying _SERVICENAME_ itself.
+You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying _SERVICENAME_ itself.
 
-Configuration changes may be performed by editing the runtime environment of the Scheduler. After making a change, the scheduler will be restarted, and it will automatically deploy any detected changes to the service, one node at a time. For example a given change will first be applied to `_NODEPOD_-0`, then `_NODEPOD_-1`, and so on.
+Edit the runtime environment of the scheduler to make configuration changes. After making a change, the scheduler will be restarted and automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `_NODEPOD_-0`, then `_NODEPOD_-1`, and so on.
 
-Nodes are configured with a "Readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
+Nodes are configured with a "Readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
 
 Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
 To make configuration changes via scheduler environment updates, perform the following steps:
-1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
+1. Visit https:<dcos-url> to access the DC/OS web interface.
 1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
-1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is obscured behind three dots.
+1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
-1. The Scheduler process will be restarted with the new configuration, and will validate any detected changes.
+1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config _PKGNAME_` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS Dashboard.
+To see a full listing of available options, run `dcos package describe --config _PKGNAME_` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
 
 ### Adding a Node
-The service deploys _DEFAULT NODE COUNT_ nodes by default. This may be customized at initial deployment or after the cluster is already running. Shrinking the cluster is not supported.
+The service deploys _DEFAULT NODE COUNT_ nodes by default. You can customize this value at initial deployment or after the cluster is already running. Shrinking the cluster is not supported.
 
-Modify the `NODE_COUNT` environment variable to update the node count. Shrinking the cluster after initial deployment is not supported. If you decrease this value, the scheduler will complain about the configuration change until it's reverted back to its original value or larger.
+Modify the `NODE_COUNT` environment variable to update the node count. If you decrease this value, the scheduler will prevent the configuration change until it is reverted back to its original value or larger.
 
 ### Resizing a Node
-The CPU and Memory requirements of each node may be increased or decreased as follows:
+The CPU and Memory requirements of each node can be increased or decreased as follows:
 - CPU (1.0 = 1 core): `NODE_CPUS`
 - Memory (in MB): `NODE_MEM` _MENTION ANY OTHER ENVVARS THAT SHOULD BE ADJUSTED ALONG WITH THE MEMORY ENVVAR HERE?_
 
-Note that volume requirements (type and/or size) may not be changed after initial deployment.
+**Note:** Volume requirements (type and/or size) cannot be changed after initial deployment.
 
 ### _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
 
@@ -305,7 +311,7 @@ _ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED NODE-
 
 ### Updating Placement Constraints
 
-Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
+Placement constraints can be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
 
 Let's say we have the following deployment of our nodes
 
@@ -335,13 +341,15 @@ _ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED SERVI
 
 ## Restarting nodes
 
-This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data which isn't in a persistent volume, via the magic of containers.
+This operation will restart a node while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
 1. Run `dcos _PKGNAME_ pods restart _NODEPOD_-<NUM>`, e.g. `_NODEPOD_-2`.
 
 ## Replacing nodes
 
-This operation will move a node to a new system, and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined. Note that nodes are not moved automatically; you must manually perform the following steps to move nodes to new systems. You may build your own automation to perform node replacement automatically according to your own preferences.
+This operation will move a node to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined.
+
+**Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.
 
 1. _ANY STEPS TO WIND DOWN A NODE BEFORE IT'S WIPED/DECOMMISSIONED GO HERE_
 1. Run `dcos _PKGNAME_ pods replace _NODEPOD_-<NUM>` to halt the current instance (if still running) and launch a new instance elsewhere.
@@ -370,14 +378,14 @@ _INSTRUCTIONS FOR RESTORING BACKED UP DATA TO YOUR SERVICE. CONSIDER SPECIFYING 
 
 - Run [backups](#disaster-recovery) on a regular basis, and test your backups.
 - Configure alerting/monitoring of your service to detect downtime and other issues.
-- If your cluster has been [configured with availability zones (e.g. Rack IDs)](https://github.com/dcos/dcos-docs/blob/51fe4641152e2c9361877439c40ddfeab61506e0/1.8/administration/faq.md#q-how-to-add-mesos-attributes-to-nodes-in-order-to-use-marathon-constraints), Placement Constraints may be used to map the service across those zones.
+- If your cluster has been [configured with availability zones (e.g. Rack IDs)](https://docs.mesosphere.com/1.9/installing/faq/#q.-how-to-add-mesos-attributes-to-nodes-in-order-to-use-marathon-constraints), you can use placement constraints to map the service across those zones.
 
 <a name="troubleshooting"></a>
 # Troubleshooting
 
 ## Accessing Logs
 
-Logs for the Scheduler and all service nodes may be browsed via the DC/OS Dashboard.
+Logs for the scheduler and all service nodes can be viewed from the DC/OS web interface.
 
 - Scheduler logs are useful for determining why a node isn't being launched (this is under the purview of the Scheduler).
 - Node logs are useful for examining problems in the service itself.
@@ -385,16 +393,16 @@ Logs for the Scheduler and all service nodes may be browsed via the DC/OS Dashbo
 In all cases, logs are generally piped to files named `stdout` and/or `stderr`.
 
 To view logs for a given node, perform the following steps:
-1. Visit http://yourcluster.com/ to view the DC/OS Dashboard.
+1. Visit https://<dcos-url> to access the DC/OS web interface.
 1. Navigate to `Services` and click on the service to be examined (default _`PKGNAME`_).
 1. In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each `_NODEPOD_-#-node`).
-1. In the task details, click on the `Logs` tab to go into the log viewer. By default you will see `stdout`, but `stderr` is also useful. Use the pull-down in the upper right to select the file to be examined.
+1. In the task details, click on the `Logs` tab to go into the log viewer. By default, you will see `stdout`, but `stderr` is also useful. Use the pull-down in the upper right to select the file to be examined.
 
-In case of problems with accessing the DC/OS Dashboard, logs may also be accessed via the Mesos UI:
-1. Visit http://yourcluster.com/mesos to view the Mesos UI.
+You can also access the logs via the Mesos UI:
+1. Visit https://<dcos-url>/mesos to view the Mesos UI.
 1. Click the `Frameworks` tab in the upper left to get a list of services running in the cluster.
-1. Navigate into the correct Framework for your needs. The Scheduler runs under `marathon` with a task name matching the service name (default _`PKGNAME`_). Meanwhile service nodes run under a Framework whose name matches the service name (default _`PKGNAME`_).
-1. You should now see two lists of tasks. `Active Tasks` are what's currently running, and `Completed Tasks` are what has since exited. Click on the `Sandbox` link for the task you wish to examine.
+1. Navigate into the correct framework for your needs. The scheduler runs under `marathon` with a task name matching the service name (default _`PKGNAME`_). Service nodes run under a framework whose name matches the service name (default _`PKGNAME`_).
+1. You should now see two lists of tasks. `Active Tasks` are tasks currently running, and `Completed Tasks` are tasks that have exited. Click the `Sandbox` link for the task you wish to examine.
 1. The `Sandbox` view will list files named `stdout` and `stderr`. Click the file names to view the files in the browser, or click `Download` to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.
 
 <a name="knownissues"></a>
