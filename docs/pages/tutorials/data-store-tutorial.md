@@ -12,11 +12,10 @@ complete with
 persistent volumes, fault tolerance, and configuration management in
 about 100 lines of code.  This SDK is the product of Mesosphere's
 experience writing production stateful services such as [DC/OS Apache
-Kafka](https://docs.mesosphere.com/latest/usage/service-guides/kafka/)
+Kafka](https://docs.mesosphere.com/service-docs/kafka/)
 , [DC/OS Apache
-Cassandra](https://docs.mesosphere.com/latest/usage/service-guides/
-cassandra/), and [DC/OS Apache
-HDFS](https://docs.mesosphere.com/latest/usage/service-guides/hdfs/).
+Cassandra](https://docs.mesosphere.com/service-docs/cassandra/), and [DC/OS Apache
+HDFS](https://docs.mesosphere.com/service-docs/hdfs/).
 
 Read about the [features](#Features-at-a-glance) to learn more about
 the DC/OS Stateful Service SDK.
@@ -270,7 +269,7 @@ a DC/OS cluster.
 ## Install the DC/OS CLI
 
 If you have not already installed the CLI, do so by following [these
-instructions](https://dcos.io/docs/latest/usage/cli/install/).
+instructions](https://dcos.io/docs/1.9/cli/install/).
 
 ## Install
 
