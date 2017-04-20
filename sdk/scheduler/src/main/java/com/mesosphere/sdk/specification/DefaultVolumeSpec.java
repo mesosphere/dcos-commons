@@ -23,7 +23,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     /** Regexp in @Pattern will detect blank string. No need to use @NotEmpty or @NotBlank. */
     @NotNull
-    @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
+    @Pattern(regexp = "[/\\\\]?[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
     private final String containerPath;
 
     public DefaultVolumeSpec(
