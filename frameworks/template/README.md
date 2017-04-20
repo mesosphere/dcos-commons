@@ -192,7 +192,7 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://docs.mesosphere.com/1.9/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
 - _LIST ANY VOLUMES THAT SHOULD USE DEDICATED SPINDLES IN A PRODUCTION ENVIRONMENT FOR YOUR SERVICE_
 
 ### Placement Constraints
