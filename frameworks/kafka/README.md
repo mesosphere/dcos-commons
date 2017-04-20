@@ -37,6 +37,8 @@ dcos package install kafka
 
 1. . Kafka will deploy with a default configuration. You can monitor deployment at the Services tab of the DC/OS web interface.
 
+	You can also install Kafka from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
+
 1. Connect a client to the service.
 ```
 dcos kafka endpoints
