@@ -125,7 +125,7 @@ public class Main {
                                         .id("hello-resources")
                                         .cpus(CPUS)
                                         .memory(256.0)
-                                        .addVolume("ROOT", 5000.0, "hello-container-path")
+                                        .addVolume("ROOT", "", "", null, 5000.0, "hello-container-path")
                                         .build())
                                 .build())
                         .build())

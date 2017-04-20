@@ -11,6 +11,7 @@ import org.apache.mesos.Protos;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import java.util.*;
 /**
  * This class provides a default implementation of the VolumeSpec interface.
  */
@@ -49,7 +50,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     }
 
     @JsonCreator
-    private DefaultVolumeSpec(
+    public DefaultVolumeSpec(
             @JsonProperty("type") Type type,
             @JsonProperty("container-path") String containerPath,
             @JsonProperty("name") String name,
@@ -67,6 +68,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @Override
     public Type getType() {
         return type;
+    }
+
+    public double getSize() {
+        return getValue().getScalar().getValue();
     }
 
     @Override

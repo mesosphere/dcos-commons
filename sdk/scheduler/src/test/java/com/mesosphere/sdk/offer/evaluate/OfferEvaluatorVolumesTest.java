@@ -297,10 +297,16 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 .cpus(1.0)
                 .addVolume(
                         VolumeSpec.Type.ROOT.name(),
+                        "",
+                        "",
+                        "",
                         1.0,
                         TestConstants.CONTAINER_PATH + "-a")
                 .addVolume(
                         VolumeSpec.Type.ROOT.name(),
+                        "",
+                        "",
+                        "",
                         2.0,
                         TestConstants.CONTAINER_PATH + "-b")
                 .build();
@@ -350,8 +356,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), "", "", "", 1000.0, TestConstants.CONTAINER_PATH + "-A")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), "", "", "", 1000.0, TestConstants.CONTAINER_PATH + "-B")
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);

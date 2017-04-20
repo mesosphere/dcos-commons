@@ -115,7 +115,7 @@ public class ZoneValidatorTest {
                                 .id(TestConstants.RESOURCE_SET_ID)
                                 .cpus(1.0)
                                 .memory(256.)
-                                .addVolume(VolumeSpec.Type.ROOT.toString(), 4096., TestConstants.CONTAINER_PATH)
+                                .addVolume(VolumeSpec.Type.ROOT.toString(), "", "", null, 4096., TestConstants.CONTAINER_PATH)
                                 .build())
                 .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value("./server")

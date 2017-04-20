@@ -90,7 +90,7 @@ public class PodInstanceRequirementTestUtils {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
-                .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH)
+                .addVolume(diskType, "", "", "", diskSize, TestConstants.CONTAINER_PATH)
                 .build();
     }
 
