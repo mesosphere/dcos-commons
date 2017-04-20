@@ -75,7 +75,7 @@ The default Kafka installation provides reasonable defaults for trying out the s
 	- `disabled` security mode does not require a service account.
 - Your cluster must have at least three private nodes.
 
-## Installation from CLI
+## Installation from the CLI
 
 To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing Kafka on Enterprise DC/OS](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/kafka/docs/install-and-customize.md#install-enterprise).
 
@@ -91,7 +91,7 @@ $ dcos package install kafka --options=your-options.json
 
 For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/).
 
-## Installation from DC/OS Web Interface
+## Installation from the DC/OS Web Interface
 
 You can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
