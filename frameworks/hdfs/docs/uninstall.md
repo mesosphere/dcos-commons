@@ -11,9 +11,9 @@ Uninstalling a cluster is straightforward. Replace `hdfs` with the name of the H
 $ dcos package uninstall --app-id=hdfs
 ```
 
-**Note:** Alternatively, you can [uninstall HDFS from the DC/OS GUI](https://docs.mesosphere.com/1.9/usage/managing-services/uninstall/).
+**Note:** Alternatively, you can [uninstall HDFS from the DC/OS GUI](https://docs.mesosphere.com/1.9/deploying-services/uninstall/).
 
-Then, use the [framework cleaner script](https://docs.mesosphere.com/1.9/usage/managing-services/uninstall/#framework-cleaner) to remove your HDFS instance from ZooKeeper and destroy all data associated with it. The script requires several arguments. The default values are:
+Then, use the [framework cleaner script](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) to remove your HDFS instance from ZooKeeper and destroy all data associated with it. The script requires several arguments. The default values are:
 
 - `framework_role` is `hdfs-role`.
 - `framework_principal` is `hdfs-principal`.
