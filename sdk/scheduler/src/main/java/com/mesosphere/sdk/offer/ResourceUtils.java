@@ -10,6 +10,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
+import org.apache.mesos.Protos.Volume.Source.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,34 @@ public class ResourceUtils {
         resBuilder.setDisk(getUnreservedMountVolumeDiskInfo(mountRoot));
 
         return resBuilder.build();
+    }
+
+    public static Resource getDesiredDockerVolume(String role, String principal, String driverName,
+            String volumeName, double diskSize, String containerPath) {
+        Value diskValue = Value.newBuilder()
+                .setType(Value.Type.SCALAR)
+                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
+                .build();
+        Resource.Builder resBuilder = Resource.newBuilder(getUnreservedResource("disk", diskValue));
+        resBuilder.setRole(role);
+        resBuilder.setDisk(getDesiredDockerVolumeDiskInfo(principal, driverName, volumeName, containerPath));
+        return resBuilder.build();
+    }
+
+    private static DiskInfo getDesiredDockerVolumeDiskInfo(String principal, String driverName,
+            String volumeName, String containerPath) {
+        return DiskInfo.newBuilder()
+                .setVolume(Volume.newBuilder()
+                        .setContainerPath(containerPath)
+                        .setMode(Volume.Mode.RW)
+                        .setSource(Volume.Source.newBuilder()
+                            .setDockerVolume(DockerVolume.newBuilder()
+                                .setDriver(driverName)
+                                .setName(volumeName)
+                                .build())
+                            .build())
+                        .build())
+                .build();
     }
 
     public static Resource getDesiredMountVolume(String role, String principal, double diskSize, String containerPath) {
