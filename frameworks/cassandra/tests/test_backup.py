@@ -81,4 +81,4 @@ def run_backup_and_restore():
     )
 
     # Verify that the data we wrote and then deleted has been restored
-    launch_and_verify_job(VERIFY_DATA_JOB)
+    launch_and_verify_job(VERIFY_DATA_JOB, expected_successes=2)
