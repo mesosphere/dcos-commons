@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the Cassandra service instance.",
           "type": "string",
-          "default": "cassandra"
+          "default": "cassandra-px"
         },
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
@@ -136,10 +136,15 @@
           "description": "The amount of disk, in MB, allocated to the Cassandra process.",
           "default": 10240
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT]",
-          "default": "ROOT"
+        "portworx_volume_name":{
+          "description":"Portworx volume name",
+          "type":"string",
+          "default": "Cassandra"
+        },
+        "portworx_volume_options":{
+          "description":"Portworx volume options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "placement_constraint": {
           "type": "string",

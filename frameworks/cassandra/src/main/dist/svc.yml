@@ -13,7 +13,10 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     volume:
       path: container-path
-      type: {{CASSANDRA_DISK_TYPE}}
+      type: DOCKER
+      docker_volume_driver: pxd
+      docker_volume_name: {{{CASSANDRA_DOCKER_VOLUME_NAME}}}
+      docker_driver_options: {{{CASSANDRA_DOCKER_DRIVER_OPTIONS}}}
       size: {{CASSANDRA_DISK_MB}}
     uris:
       - {{CASSANDRA_JAVA_URI}}
