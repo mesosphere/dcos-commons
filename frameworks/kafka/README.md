@@ -214,7 +214,7 @@ Some changes, such as decreasing the number of brokers or changing volume requir
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 
-1. Visit https://<dcos-url> to view the DC/OS Dashboard.
+1. Visit https://<dcos-url> to access the DC/OS web interface.
 1. Go to the `Services` and click the service to be configured (default `kafka`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
@@ -222,7 +222,7 @@ To make configuration changes via scheduler environment updates, perform the fol
 1. The scheduler process will be restarted with the new configuration, and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full list of available options, run `dcos package describe --config kafka` in the CLI, or browse the Apache Kafka install dialog in the DC/OS Dashboard.
+To see a full list of available options, run `dcos package describe --config kafka` in the CLI, or browse the Apache Kafka install dialog in the DC/OS web interface.
 
 ### Adding a Node
 The service deploys `BROKER_COUNT` tasks by default. This may be customized at initial deployment or after the cluster is running. Shrinking the cluster is not supported.
