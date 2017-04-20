@@ -343,7 +343,7 @@ class UniverseReleaseBuilder(object):
     def _original_docker_image(self, pkgdir):
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f)
+            resource_json = json.load(f, object_pairs_hook=OrderedDict)
             try:
                 docker_dict = resource_json['assets']['container']['docker']
                 assert len(docker_dict) == 1
@@ -364,7 +364,7 @@ class UniverseReleaseBuilder(object):
 
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f)
+            resource_json = json.load(f, object_pairs_hook=OrderedDict)
             docker_dict = resource_json['assets']['container']['docker']
             key = list(docker_dict.keys())[0]
             docker_dict[key] = self._release_docker_image
@@ -380,7 +380,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta optin bool to config.json
         config_file_name = os.path.join(pkgdir, 'config.json')
         with open(config_file_name) as f:
-            config_json = json.load(f)
+            config_json = json.load(f, object_pairs_hook=OrderedDict)
             service_dict = config_json['properties']['service']
             service_dict['properties']['beta-optin'] = {
                 "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
@@ -397,7 +397,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta prefix to package.json
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
-            package_json = json.load(f)
+            package_json = json.load(f, object_pairs_hook=OrderedDict)
 
         package_json['selected'] = False
         package_json['name'] = 'beta-' + package_json['name']
