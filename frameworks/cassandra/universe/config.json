@@ -83,8 +83,23 @@
         },
         "disk_type": {
           "type": "string",
-          "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT]",
+          "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT, DOCKER]",
           "default": "ROOT"
+        },
+        "docker_volume_driver":{
+          "description":"DOCKER volume driver",
+          "type":"string",
+          "default": "pxd"
+        },
+        "docker_volume_name":{
+          "description":"DOCKER volume name",
+          "type":"string",
+          "default": "Cassandra"
+        },
+        "docker_driver_options":{
+          "description":"DOCKER driver options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "placement_constraint": {
           "type": "string",
