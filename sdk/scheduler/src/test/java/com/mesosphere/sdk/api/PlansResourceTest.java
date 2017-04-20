@@ -79,7 +79,7 @@ public class PlansResourceTest {
     public void testFullInfoIncomplete() {
         when(mockPlan.isComplete()).thenReturn(false);
         Response response = resource.getPlanInfo(planName);
-        assertEquals(503, response.getStatus());
+        assertEquals(202, response.getStatus());
         assertTrue(response.getEntity() instanceof PlanInfo);
     }
 

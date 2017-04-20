@@ -57,7 +57,7 @@ public class PlansResource extends PrettyJsonResource {
             Plan plan = planManagerOptional.get().getPlan();
             return jsonResponseBean(
                     PlanInfo.forPlan(plan),
-                    plan.isComplete() ? Response.Status.OK : Response.Status.SERVICE_UNAVAILABLE);
+                    plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }

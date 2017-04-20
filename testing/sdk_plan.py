@@ -29,3 +29,20 @@ def get_plan(service_name, plan):
     def fn():
         return sdk_api.get(service_name, "/v1/plans/{}".format(plan))
     return sdk_spin.time_wait_return(fn)
+
+
+def wait_for_completed_deployment(service_name):
+    def fn():
+        return deployment_plan_is_finished(service_name)
+    return sdk_spin.time_wait_return(fn)
+
+
+def deployment_plan_is_finished(service_name):
+    finished = plan_is_finished(service_name, 'deploy')
+    sdk_utils.out("Deployment plan for {} is finished: {}".format(service_name, finished))
+    return finished
+
+
+def plan_is_finished(service_name, plan):
+    plan = get_plan(service_name, plan).json()
+    return plan['status'] == 'COMPLETE'

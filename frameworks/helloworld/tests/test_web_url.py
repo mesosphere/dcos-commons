@@ -27,6 +27,7 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 def test_deploy():
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     sdk_utils.out("deployment_plan: " + str(deployment_plan))
 

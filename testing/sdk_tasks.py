@@ -67,7 +67,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=-1):
 
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
-    sdk_plan.get_deployment_plan(service_name)
+    sdk_plan.wait_for_completed_deployment(service_name)
     task_ids = get_task_ids(service_name, prefix)
     msg = 'Checking tasks starting with "{}" have not been updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
         prefix, old_task_ids, task_ids)
