@@ -27,7 +27,9 @@ You can install multiple Kafka instances on DC/OS and manage them independently.
 <a name="quick-start"></a>
 # Quick Start
 
-1. Install a Kafka cluster. If you are using open source DC/OS, install a Kafka cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
+1. Install DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.
+
+1. If you are using open source DC/OS, install Kafka with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
 ```
 dcos package install kafka
