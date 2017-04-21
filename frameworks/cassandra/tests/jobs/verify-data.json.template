@@ -2,7 +2,7 @@
   "description": "Cassandra backup test data verification",
   "id": "test.cassandra.verify-data",
   "run": {
-    "cmd": "cqlsh --cqlversion=3.4.0 -e \"SELECT * FROM testspace1.testtable1;\" node-0-server.cassandra.mesos | grep testkey1 && cqlsh --cqlversion=3.4.0 -e \"SELECT * FROM testspace2.testtable2;\" node-0-server.cassandra.mesos | grep testkey2",
+    "cmd": "cqlsh --cqlversion=3.4.0 -e \"SELECT * FROM testspace1.testtable1;\" {{NODE_ADDRESS}} {{NODE_PORT}} | grep testkey1 && cqlsh --cqlversion=3.4.0 -e \"SELECT * FROM testspace2.testtable2;\" {{NODE_ADDRESS}} {{NODE_PORT}} | grep testkey2",
     "docker": {
       "image": "cassandra:3.0.10"
     },
