@@ -32,7 +32,7 @@ def teardown_module(module):
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
-    print("deployment_plan: " + str(deployment_plan))
+    utils.out("deployment_plan: " + str(deployment_plan))
 
     # deploy two pods serially
     assert(len(deployment_plan['phases']) == 2)

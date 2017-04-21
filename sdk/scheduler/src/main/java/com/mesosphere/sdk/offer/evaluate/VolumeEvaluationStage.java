@@ -36,8 +36,9 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         ResourceRequirement resourceRequirement = getResourceRequirement();
         Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
         if (!mesosResourceOptional.isPresent()) {
-            return fail(this, "Failed to satisfy required volume '%s': %s",
-                    resourceRequirement.getName(),
+            return fail(this, "Failed to satisfy requirements for %s volume '%s': %s",
+                    getVolumeType(),
+                    resourceRequirement.getResource().getDisk().getVolume().getContainerPath(),
                     TextFormat.shortDebugString(resourceRequirement.getResource()));
         }
 
@@ -65,7 +66,10 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
 
         setProtos(podInfoBuilder, fulfilledResource);
 
-        return pass(this, offerRecommendations, "Offer contains sufficient '%s'", resourceRequirement.getName());
+        return pass(this, offerRecommendations,
+                "Satisfied requirements for %s volume '%s'",
+                getVolumeType(),
+                resourceRequirement.getResource().getDisk().getVolume().getContainerPath());
     }
 
     @Override
@@ -108,5 +112,9 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
                     .setId(UUID.randomUUID().toString())
                     .build());
         }
+    }
+
+    private String getVolumeType() {
+        return getResourceRequirement().getResource().getDisk().hasSource() ? "MOUNT" : "ROOT";
     }
 }

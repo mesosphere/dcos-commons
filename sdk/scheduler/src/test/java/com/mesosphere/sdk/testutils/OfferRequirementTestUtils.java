@@ -10,11 +10,11 @@ import com.mesosphere.sdk.offer.TaskRequirement;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.mesos.Protos;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
 
@@ -151,33 +151,12 @@ public class OfferRequirementTestUtils {
         return index == 0 ? baseName : baseName + index;
     }
 
-    public static final EnvironmentVariables getApiPortEnvironment() {
-        EnvironmentVariables env = new EnvironmentVariables();
-        for (Map.Entry<String, String> entry : getApiPortMap().entrySet()) {
-            env.set(entry.getKey(), entry.getValue());
-        }
-        return env;
-    }
-
-    public static EnvironmentVariables getOfferRequirementProviderEnvironment() {
-        EnvironmentVariables env = new EnvironmentVariables();
-        for (Map.Entry<String, String> entry : getOfferRequirementProviderMap().entrySet()) {
-            env.set(entry.getKey(), entry.getValue());
-        }
-        return env;
-    }
-
-    public static final Map<String, String> getApiPortMap() {
-        Map<String, String> env = new HashMap<>();
-        env.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
-        return env;
-    }
-
-    public static Map<String, String> getOfferRequirementProviderMap() {
-        Map<String, String> env = getApiPortMap();
-        env.put("JAVA_URI", "test-java-uri");
-        env.put("EXECUTOR_URI", "test-executor-uri");
-        env.put("LIBMESOS_URI", "test-libmesos-uri");
-        return env;
+    public static SchedulerFlags getTestSchedulerFlags() {
+        Map<String, String> map = new HashMap<>();
+        map.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        map.put("EXECUTOR_URI", "test-executor-uri");
+        map.put("JAVA_URI", "test-java-uri");
+        map.put("LIBMESOS_URI", "test-libmesos-uri");
+        return SchedulerFlags.fromMap(map);
     }
 }

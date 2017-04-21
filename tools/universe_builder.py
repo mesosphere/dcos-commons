@@ -92,6 +92,9 @@ class UniversePackageBuilder(object):
         pkgdir = os.path.join(treedir, 'repo', 'packages', self._pkg_name[0].upper(), self._pkg_name, '0')
         os.makedirs(pkgdir)
         for pkgfile in os.listdir(self._input_dir_path):
+            # Don't copy in .dotfiles; editor temps etc
+            if pkgfile.startswith('.'):
+                continue
             shutil.copyfile(os.path.join(self._input_dir_path, pkgfile), os.path.join(pkgdir, pkgfile))
         return treedir
 
@@ -144,7 +147,7 @@ class UniversePackageBuilder(object):
 
     def _apply_templating_file(self, filepath):
         # basic checks to avoid files that we shouldn't edit:
-        if not '.json' in os.path.basename(filepath):
+        if not filepath.endswith('.json'):
             logger.warning('')
             logger.warning('Ignoring non-json file: {}'.format(filepath))
             return

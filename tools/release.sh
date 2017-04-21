@@ -1,10 +1,14 @@
 #!/bin/bash
 
+#script to publish the tools dir to s3 for use in other jobs
+
+
 # Exit immediately on failure:
 set -e
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $REPO_ROOT_DIR
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $script_dir/init_paths.sh
+cd "$TOOLS_DIR"
 
 # Upload current tools (with '.commit' file containing the current SHA) to DEV S3.
 # This can be downloaded via: https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz

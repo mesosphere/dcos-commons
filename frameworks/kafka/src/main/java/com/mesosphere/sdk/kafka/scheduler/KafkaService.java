@@ -8,6 +8,7 @@ import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
 import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
@@ -25,12 +26,13 @@ public class KafkaService extends DefaultService {
 
     public KafkaService(File pathToYamlSpecification) throws Exception {
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
-        DefaultScheduler.Builder schedulerBuilder =
-                DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
-        schedulerBuilder.setPlansFrom(rawServiceSpec);
+        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
+                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                .setPlansFrom(rawServiceSpec);
 
         /* Upgrade */
-        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
+        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec(), schedulerFlags);
         CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
@@ -41,7 +43,7 @@ public class KafkaService extends DefaultService {
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +
                         DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
 
-        schedulerBuilder.setResources(
+        schedulerBuilder.setCustomResources(
                 getResources(
                         schedulerBuilder.getServiceSpec().getZookeeperConnection(),
                         schedulerBuilder.getServiceSpec().getName()));

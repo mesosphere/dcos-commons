@@ -2,15 +2,13 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.Protos;
+
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.*;
 
@@ -20,9 +18,6 @@ import javax.validation.ValidationException;
  * This class tests the TaskUtils class.
  */
 public class TaskUtilsTest {
-    @Rule
-    public final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
-
     private static final String testTaskName = "test-task-name";
     private static final String testTaskId = "test-task-id";
     private static final String testAgentId = "test-agent-id";

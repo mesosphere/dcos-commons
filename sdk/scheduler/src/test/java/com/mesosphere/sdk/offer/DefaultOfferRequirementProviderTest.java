@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -14,9 +15,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,6 +29,7 @@ import static org.mockito.Mockito.when;
  * This class tests the DefaultOfferRequirementProvider.
  */
 public class DefaultOfferRequirementProviderTest {
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     private static final double CPU = 1.0;
     private static final PlacementRule ALLOW_ALL = new PlacementRule() {
         @Override
@@ -37,10 +37,6 @@ public class DefaultOfferRequirementProviderTest {
             return EvaluationOutcome.pass(this, "pass for test");
         }
     };
-
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
 
     private DefaultOfferRequirementProvider provider;
 
@@ -58,11 +54,12 @@ public class DefaultOfferRequirementProviderTest {
         podInstance = getPodInstance("valid-minimal-health-configfile.yml");
 
         uuid = UUID.randomUUID();
-        provider = new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, uuid);
+        provider = new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, uuid, flags);
     }
 
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
-        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, mockFileReader);
+        DefaultServiceSpec serviceSpec =
+                ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, mockFileReader, flags);
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule(ALLOW_ALL)

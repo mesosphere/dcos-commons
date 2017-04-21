@@ -2,6 +2,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
@@ -21,13 +22,14 @@ public class CassandraService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(CassandraService.class);
 
     public CassandraService(File pathToYamlSpecification) throws Exception {
+        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
         DefaultScheduler.Builder schedulerBuilder =
-                DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
-
-        schedulerBuilder.setPlansFrom(rawServiceSpec);
-        schedulerBuilder.setResources(getResources());
-
+                DefaultScheduler.newBuilder(
+                        YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags),
+                        schedulerFlags)
+                .setPlansFrom(rawServiceSpec)
+                .setCustomResources(getResources());
         initService(schedulerBuilder);
     }
 

@@ -11,6 +11,7 @@ import sdk_marathon as marathon
 import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_test_upgrade
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -48,7 +49,7 @@ def test_install():
 def test_bump_hello_cpus():
     check_running()
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    print('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus()
 
@@ -67,7 +68,7 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     check_running()
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    print('world ids: ' + str(world_ids))
+    sdk_utils.out('world ids: ' + str(world_ids))
 
     updated_cpus = bump_world_cpus()
 
@@ -87,7 +88,7 @@ def test_bump_hello_nodes():
     check_running()
 
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    print('hello ids: ' + str(hello_ids))
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
     marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
 
@@ -252,7 +253,6 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
 
-@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1114")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():

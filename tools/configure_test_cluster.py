@@ -98,25 +98,14 @@ class ClusterInitializer(object):
     def configure_master_settings(self):
         logger.info("Live-customizing mesos master")
         venv_path = venvutil.shared_tools_venv()
-        requirements_file = os.path.join(_tools_dir(), 'requirements.txt')
-        # needs shakedown, so needs python3
-        if sys.version_info < (3,4):
-            venvutil.create_venv(venv_path, py3=True)
-            venvutil.pip_install(venv_path, requirements_file)
+        venvutil.create_dcoscommons_venv(venv_path)
+        venvutil.activate_venv(venv_path)
 
-            script = os.path.join(_tools_dir(), 'modify_master.py')
-            configure_cmd = ['python', script]
-            venvutil.run_cmd(venv_path, configure_cmd)
-        else:
-            venvutil.create_venv(venv_path)
-            venvutil.pip_install(venv_path, requirements_file)
-            venvutil.activate_venv(venv_path)
+        # import delayed until dependencies exist
+        import modify_master
+        modify_master.set_local_infinity_defaults()
 
-            # import delayed until dependencies exist
-            import modify_master
-            modify_master.set_local_infinity_defaults()
-
-    def apply_default_config(self):
+    def apply_default_config(self, initmaster=True):
         saved_env = os.environ.copy()
         try:
             # TODO; track a cluster-specific working dir, and keep this in
@@ -137,12 +126,13 @@ class ClusterInitializer(object):
                     os.dup2(sys.stderr.fileno(), stdout_fd)
 
                     self.create_service_account()
-                    # currently, the create_service_account.sh script sets up the
-                    # cli itself so we initialize it in the style that test logic
-                    # expects after.
-                    # in the shiny future, set up the CLI once for the whole run.
-                    self._initialize_dcos_cli()
-                    self.configure_master_settings()
+                    if initmaster:
+                        # currently, the create_service_account.sh script sets up the
+                        # cli itself so we initialize it in the style that test logic
+                        # expects after.
+                        # in the shiny future, set up the CLI once for the whole run.
+                        self._initialize_dcos_cli()
+                        self.configure_master_settings()
                 finally:
                     sys.stdout.flush()
                     os.dup2(stdout_back, stdout_fd)

@@ -5,7 +5,7 @@ import os
 import os.path
 import subprocess
 import sys
-# requires python3.3 or later
+import tempfile
 import venv
 
 logger = logging.getLogger(__name__)
@@ -21,12 +21,34 @@ def venv_exists(path):
     return os.path.isfile(path, 'bin', 'python')
 
 
-def create_venv(path, with_pip=True, symlinks=True, py3=False):
+def create_venv(path, with_pip=True, symlinks=True):
     "Create, but do not activate, a virtual env"
-    # ignoring py3; if we're already running py3, always py3
     path = os.path.abspath(path)
+    logger.info("using venv module at path %s", venv.__file__)
     builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
-    builder.create(path)
+
+
+    logger.info("Creating venv at %s", path)
+    logger.info("current environment is: %s", os.environ)
+    #builder.create(path)
+    context = builder.ensure_directories(path)
+    logger.info("venv context: %s", context)
+    logger.info("venv listing: %s", ", ".join(os.listdir(path)))
+    builder.create_configuration(context)
+    cfg_file = os.path.join(path, 'pyvenv.cfg')
+    with open(cfg_file) as f:
+        logger.info("venv pyvenv.cfg: %s", f.read())
+
+    builder.setup_python(context)
+    bin_dir = os.path.join(path, 'bin')
+    dirents1 =  os.listdir(bin_dir)
+    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
+
+    builder._setup_pip(context)
+    dirents2 =  os.listdir(bin_dir)
+    logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))
+
+
 
 def activate_venv(path):
     "Activate a given venv for the current python process."
@@ -88,3 +110,28 @@ def run_py(path, func, *args, **kwargs):
     # theoretically save and restore is possible, but probably not a good idea
     raise NotImplementedError
 
+def create_default_requirementsfile(filename):
+    with open(filename, 'w') as reqfile:
+        reqfile.write('''
+requests==2.10.0
+
+-e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+''')
+
+def create_dcoscommons_venv(path):
+    create_venv(path)
+    req_filename = os.path.join(path, 'requirements.txt')
+    create_default_requirementsfile(req_filename)
+    pip_install(path, req_filename)
+
+
+
+if __name__ == "__main__":
+    # only creating default venv so far
+    if len(sys.argv) < 3:
+        sys.exit("Too few arguments\nusage: venvutil.py create <dir>")
+    if sys.argv[1] != "create":
+        sys.exit("Unknown command {}\nusage: venvutil.py create <dir>".format(sys.argv))
+    venv_tgt_dir = sys.argv[2]
+    os.makedirs(venv_tgt_dir)
+    create_dcoscommons_venv(venv_tgt_dir)

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -13,9 +14,7 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -38,9 +37,7 @@ public class DefaultPlanSchedulerTest {
             .build());
     private static final List<OfferID> ACCEPTED_IDS =
             Arrays.asList(OfferID.newBuilder().setValue("offer").build());
-
-    @Rule
-    public final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
@@ -61,8 +58,8 @@ public class DefaultPlanSchedulerTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
+                YAMLServiceSpecFactory.generateRawSpecFromYAML(file), flags);
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

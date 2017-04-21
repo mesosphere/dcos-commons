@@ -23,12 +23,7 @@
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
-          "default": "core"
-        },
-        "zk_servers": {
-          "description": "The comma-separated hostnames for the zookeeper clusters to retain scheduler state in",
-          "type": "string",
-          "default": "master.mesos:2181"
+          "default": "root"
         },
         "mesos_api_version" : {
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
@@ -49,6 +44,12 @@
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
           "type": "string",
           "default": ""
+        },
+        "backup_restore_strategy": {
+          "description": "Strategy to use for uploading/downloading backups {serial, parallel}",
+          "type": "string",
+          "enum": ["serial", "parallel"],
+          "default": "serial"
         }
       },
       "required": [
