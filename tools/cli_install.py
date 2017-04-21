@@ -76,6 +76,7 @@ def get_cluster_version(dcos_url):
     ver_s = json.loads(json_s)['version']
     return ver_s
 
+
 def _get_tempfilename(a_dir):
     temp_target_f = tempfile.NamedTemporaryFile(dir=a_dir, delete=False)
     temp_target_f.close()
@@ -85,9 +86,11 @@ def _get_tempfilename(a_dir):
 def _mark_executable(path):
     os.chmod(path, 0o755)
 
+
 def install_cli_from_dir(src_dir, write_dir):
     src_file = os.path.join(src_dir, get_cli_filename())
     install_cli(src_file, write_dir)
+
 
 def install_cli(src_file, write_dir):
     """Copy an existing cli to a target directory path, updating the target
@@ -107,6 +110,7 @@ def install_cli(src_file, write_dir):
             os.unlink(temp_target)
     return output_filepath
 
+
 def ensure_cli_downloaded(dcos_url, write_dir):
     """If the cli filename is not present in write_dir, download the correct
     cli version for a given cluster url.
@@ -116,6 +120,7 @@ def ensure_cli_downloaded(dcos_url, write_dir):
     if os.path.exists(output_filepath):
         return output_filepath
     return download_cli(dcos_url, write_dir)
+
 
 def download_cli(dcos_url, write_dir):
     """Download the correct cli version for a given cluster url, placing it in
