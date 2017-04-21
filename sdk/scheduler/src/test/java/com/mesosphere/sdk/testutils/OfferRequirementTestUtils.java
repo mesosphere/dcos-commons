@@ -2,14 +2,17 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
+import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
@@ -37,6 +40,24 @@ public class OfferRequirementTestUtils {
         } catch (InvalidRequirementException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static OfferRequirement getOfferRequirement(
+            Protos.Resource resource, Protos.Resource executorResource) throws InvalidRequirementException {
+        TaskRequirement taskRequirement = new TaskRequirement(
+                TaskTestUtils.getTaskInfo(Arrays.asList(resource)), getResourceRequirements(Arrays.asList(resource)));
+        ExecutorRequirement executorRequirement = ExecutorRequirement.create(
+                StringUtils.isEmpty(ResourceUtils.getResourceId(executorResource)) ?
+                        TaskTestUtils.getExecutorInfo(executorResource) :
+                        TaskTestUtils.getExistingExecutorInfo(executorResource),
+                getResourceRequirements(Arrays.asList(executorResource)));
+
+        return new OfferRequirement(
+                TestConstants.TASK_TYPE,
+                0,
+                Arrays.asList(taskRequirement),
+                Optional.of(executorRequirement),
+                Optional.empty());
     }
 
     public static OfferRequirement getOfferRequirement(Protos.Resource resource) throws InvalidRequirementException {

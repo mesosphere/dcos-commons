@@ -182,6 +182,17 @@ public class YAMLToInternalMappers {
                     })
                     .collect(Collectors.toList()));
         }
+        if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
+            Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
+                    Collections.emptyList() :
+                    Arrays.asList(from(rawPod.getVolume(), role, principal)));
+
+            volumeSpecs.addAll(rawPod.getVolumes().values().stream()
+                    .map(v -> from(v, role, principal))
+                    .collect(Collectors.toList()));
+
+            builder.volumes(volumeSpecs);
+        }
 
         // Parse the TaskSpecs
         List<TaskSpec> taskSpecs = new ArrayList<>();
@@ -380,6 +391,25 @@ public class YAMLToInternalMappers {
         return resourceSetBuilder
                 .id(id)
                 .build();
+    }
+
+    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String principal) {
+        VolumeSpec.Type volumeTypeEnum;
+        try {
+            volumeTypeEnum = VolumeSpec.Type.valueOf(rawVolume.getType());
+        } catch (Exception e) {
+            throw new IllegalArgumentException(String.format(
+                    "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
+                    rawVolume.getType(), rawVolume.getPath(), Arrays.asList(VolumeSpec.Type.values())));
+        }
+
+        return new DefaultVolumeSpec(
+                rawVolume.getSize(),
+                volumeTypeEnum,
+                rawVolume.getPath(),
+                role,
+                principal,
+                "DISK_SIZE");
     }
 
     private static DefaultNetworkSpec from(

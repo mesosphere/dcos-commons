@@ -87,6 +87,10 @@ public class OfferEvaluator {
 
         evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
+            for (ResourceRequirement r :
+                    offerRequirement.getExecutorRequirementOptional().get().getResourceRequirements()) {
+                evaluationPipeline.add(r.getEvaluationStage(null));
+            }
             evaluationPipeline.add(offerRequirement.getExecutorRequirementOptional().get().getEvaluationStage());
         } else {
             evaluationPipeline.add(new ExecutorEvaluationStage());

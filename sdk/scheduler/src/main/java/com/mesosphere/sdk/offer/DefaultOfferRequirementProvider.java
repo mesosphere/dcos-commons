@@ -173,22 +173,38 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             String serviceName,
             UUID targetConfigurationId) throws InvalidRequirementException {
         List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
+        Protos.ExecutorInfo executorInfo = null;
 
         for (Protos.TaskInfo taskInfo : podTasks) {
             Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
             if (taskStatusOptional.isPresent()
                     && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
+                executorInfo = taskInfo.getExecutor();
                 LOGGER.info(
                         "Reusing executor from task '{}': {}",
                         taskInfo.getName(),
-                        TextFormat.shortDebugString(taskInfo.getExecutor()));
-                return ExecutorRequirement.create(taskInfo.getExecutor());
+                        TextFormat.shortDebugString(executorInfo));
             }
         }
 
+        Map<String, Protos.Resource> volumeMap = new HashMap<>();
+        if (executorInfo == null) {
+            executorInfo = getNewExecutorInfo(
+                    podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+        } else {
+            volumeMap.putAll(executorInfo.getResourcesList().stream()
+                    .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
+                    .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
+        }
+
+        List<ResourceRequirement> resourceRequirements = new ArrayList<>();
+        for (VolumeSpec v : podInstance.getPod().getVolumes()) {
+            resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
+        }
+
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.create(getNewExecutorInfo(
-                podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags));
+
+        return ExecutorRequirement.create(executorInfo, resourceRequirements);
     }
 
     @Override
@@ -476,29 +492,34 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
-            switch (volumeSpec.getType()) {
-                case ROOT:
-                    resources.add(
-                            ResourceUtils.getDesiredRootVolume(
-                                    volumeSpec.getRole(),
-                                    volumeSpec.getPrincipal(),
-                                    volumeSpec.getValue().getScalar().getValue(),
-                                    volumeSpec.getContainerPath()));
-                    break;
-                case MOUNT:
-                    resources.add(
-                            ResourceUtils.getDesiredMountVolume(
-                                    volumeSpec.getRole(),
-                                    volumeSpec.getPrincipal(),
-                                    volumeSpec.getValue().getScalar().getValue(),
-                                    volumeSpec.getContainerPath()));
-                    break;
-                default:
-                    LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
-            }
+            resources.add(getVolumeResource(volumeSpec));
         }
 
         return coalesceResources(resources);
+    }
+
+    private static Protos.Resource getVolumeResource(VolumeSpec volumeSpec) {
+        Protos.Resource volume = null;
+        switch (volumeSpec.getType()) {
+            case ROOT:
+                volume = ResourceUtils.getDesiredRootVolume(
+                        volumeSpec.getRole(),
+                        volumeSpec.getPrincipal(),
+                        volumeSpec.getValue().getScalar().getValue(),
+                        volumeSpec.getContainerPath());
+                break;
+            case MOUNT:
+                volume = ResourceUtils.getDesiredMountVolume(
+                        volumeSpec.getRole(),
+                        volumeSpec.getPrincipal(),
+                        volumeSpec.getValue().getScalar().getValue(),
+                        volumeSpec.getContainerPath());
+                break;
+            default:
+                LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
+        }
+
+        return volume;
     }
 
     private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {
@@ -672,6 +693,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
+        }
+
+        // Volumes for the pod to share.
+        for (VolumeSpec v : podSpec.getVolumes()) {
+            executorInfoBuilder.addResources(getVolumeResource(v));
         }
 
         // Finally any URIs for config templates defined in TaskSpecs.
