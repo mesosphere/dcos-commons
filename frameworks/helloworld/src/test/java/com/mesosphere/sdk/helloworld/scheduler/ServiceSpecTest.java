@@ -8,6 +8,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
+        ENV_VARS.set("FRAMEWORK_NAME", "hello-world");
         ENV_VARS.set("EXECUTOR_URI", "");
         ENV_VARS.set("LIBMESOS_URI", "");
         ENV_VARS.set("PORT_API", "8080");
