@@ -10,6 +10,7 @@ import sys
 
 import github_update
 
+
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
@@ -23,6 +24,7 @@ def parse_args(args):
             help="Branch to merge",
             default="master")
     return parser.parse_args(args)
+
 
 def git_merge_current(branch):
     """ Merge a (remote) branch into the current branch without a commit """
@@ -46,6 +48,7 @@ def git_merge_current(branch):
     logging.info(" ".join(merge_remote))
     subprocess.check_call(merge_remote)
 
+
 def merge_with_updates(branch):
     """ Merge a (remote) branch into the current branch without a commit,
     and update the current pull request with status """
@@ -62,6 +65,7 @@ def main(args=sys.argv[1:]):
     branch = parse_args(args).branch
     merge_with_updates(branch)
     return True
+
 
 if __name__ == "__main__":
     if not main():
