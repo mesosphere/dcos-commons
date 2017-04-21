@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import base64
 import difflib
+import http.client
 import json
 import logging
 import os
@@ -11,17 +12,9 @@ import re
 import shutil
 import sys
 import tempfile
+import urllib.request
 import zipfile
 
-try:
-    from http.client import HTTPSConnection
-    from urllib.request import URLopener
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
-    from urllib import URLopener
-    from urllib2 import urlopen
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -31,12 +24,14 @@ class UniverseReleaseBuilder(object):
 
     def __init__(self, package_version, stub_universe_url,
                  commit_desc = '',
-                 min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
+                 min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.8'),
                  http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
                  s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
                  release_docker_image = os.environ.get('RELEASE_DOCKER_IMAGE'),
-                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', '')): # default set below
+                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', ''),
+                 beta_release = os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
+        self._force_upload = bool(os.environ.get('FORCE_ARTIFACT_UPLOAD', 'false'))
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
@@ -56,6 +51,7 @@ class UniverseReleaseBuilder(object):
         self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
         self._release_docker_image = release_docker_image or None
+        self._beta_release = beta_release.lower() == 'true'
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
@@ -79,7 +75,7 @@ class UniverseReleaseBuilder(object):
     def _download_unpack_stub_universe(self, scratchdir):
         '''Returns the path to the directory in the stub universe.'''
         local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
-        result = urlopen(self._stub_universe_url)
+        result = urllib.request.urlopen(self._stub_universe_url)
         dlfile = open(local_zip_path, 'wb')
         dlfile.write(result.read())
         dlfile.flush()
@@ -170,7 +166,7 @@ class UniverseReleaseBuilder(object):
         # manually delete the destination directory first. (and redirect stdout to stderr)
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
         ret = self._run_cmd(cmd, False, 1)
-        if ret == 0:
+        if ret == 0 and not self._force_upload:
             raise Exception('Release artifact destination already exists. ' +
                             'Refusing to continue until destination has been manually removed:\n' +
                             'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
@@ -203,7 +199,7 @@ class UniverseReleaseBuilder(object):
             else:
                 # download the artifact (http url referenced in package)
                 logger.info('{} Downloading {} to {}'.format(progress, src_url, local_path))
-                URLopener().retrieve(src_url, local_path)
+                urllib.request.URLopener().retrieve(src_url, local_path)
                 # re-upload the artifact (prod s3, via awscli)
                 logger.info('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
                 ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
@@ -334,7 +330,7 @@ class UniverseReleaseBuilder(object):
             'head': branch,
             'base': 'version-3.x',
             'body': open(commitmsg_path).read()}
-        conn = HTTPSConnection('api.github.com')
+        conn = http.client.HTTPSConnection('api.github.com')
         conn.set_debuglevel(999)
         conn.request(
             'POST',
@@ -377,13 +373,61 @@ class UniverseReleaseBuilder(object):
             json.dump(resource_json, f, indent=4, sort_keys=True)
 
 
+    def _add_beta_attributes(self, pkgdir):
+        if not self._beta_release:
+            return pkgdir
+
+        # Add the beta optin bool to config.json
+        config_file_name = os.path.join(pkgdir, 'config.json')
+        with open(config_file_name) as f:
+            config_json = json.load(f)
+            service_dict = config_json['properties']['service']
+            service_dict['properties']['beta-optin'] = {
+                "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
+                "type": "boolean",
+                "title": "Agree to Beta terms",
+                "default": ""
+            }
+            required_list = service_dict.setdefault('required', [])
+            required_list.append('beta-optin')
+
+        with open(config_file_name, 'w') as f:
+            json.dump(config_json, f, indent=4)
+
+        # Add the beta prefix to package.json
+        package_file_name = os.path.join(pkgdir, 'package.json')
+        with open(package_file_name) as f:
+            package_json = json.load(f)
+
+        package_json['selected'] = False
+        package_json['name'] = 'beta-' + package_json['name']
+
+        with open(package_file_name, 'w') as f:
+            json.dump(package_json, f, indent=4)
+
+        # Rename the directory structure
+        parts = pkgdir.split('/')
+        parts[-2] = 'beta-' + parts[-2]
+        parts[-3] = 'B'
+        beta_pkg_dir = '/'.join(parts)
+        self._pkg_name = parts[-2]
+        shutil.copytree(pkgdir, beta_pkg_dir)
+        shutil.rmtree(pkgdir)
+        return beta_pkg_dir
+
+
     def release_zip(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
+        if self._beta_release:
+            pkgdir = self._add_beta_attributes(pkgdir)
+
         original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
-        orig_docker_image = self._original_docker_image(pkgdir)
-        if orig_docker_image and self._release_docker_image:
+        if self._release_docker_image:
+            orig_docker_image = self._original_docker_image(pkgdir)
+            if not orig_docker_image:
+                raise Exception('Release to docker specified, but no docker image found in resource.json')
             self._copy_docker_image(pkgdir, orig_docker_image)
         (branch, commitmsg_path) = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)
@@ -395,6 +439,8 @@ def print_help(argv):
     logger.info('Required credentials in env:')
     logger.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
     logger.info('- Github (Personal Access Token): GITHUB_TOKEN')
+    logger.info('Optional params in env:')
+    logger.info('- BETA: true/false')
     logger.info('Required CLI programs:')
     logger.info('- git')
     logger.info('- aws')

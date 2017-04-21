@@ -1,5 +1,6 @@
 ---
 title: SDK Developer Guide
+redirect_from: "/dev-guide/developer-guide"
 ---
 
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
@@ -876,26 +877,19 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and a failure blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
 
-You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you have a particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
+You can run integration tests manually using `py.test`.  The
+integration tests assume you have a running DC/OS cluster, and have
+installed the
+[DC/OS CLI](https://docs.mesosphere.com/1.8/usage/cli/install/).
 
-```python
-@pytest.mark.special
-def test_upgrade_downgrade():
-    pass # ...
-```
-
-If the following command was entered in the shell:
+Here's an example of running the tests for the `helloworld` framework:
 
 ```bash
-$ export TEST_TYPES="special"
-```
-
-Then, only tests marked special would be executed.  A one line example is as follows:
-
-```bash
-$ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
+$ tools/venvutil.py create venv
+$ source venv/bin/activate
+$ py.test frameworks/helloworld/
 ```
 
 # Advanced DC/OS Service Definition
@@ -1397,6 +1391,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy"></a>
 ### Proxy
 
 The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.

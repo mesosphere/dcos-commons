@@ -8,6 +8,7 @@
   "selected": false,
   "framework": true,
   "tags": ["example", "reference", "hello-world"],
+  "preInstallNotes": "This DC/OS Service is currently in preview.",
   "postInstallNotes": "DC/OS hello-world is being installed!\n\n\tDocumentation: https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld\n\tIssues: https://docs.mesosphere.com/support/",
   "postUninstallNotes": "DC/OS hello-world has been uninstalled."
 }

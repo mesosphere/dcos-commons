@@ -17,16 +17,16 @@ The only supported client library is the official Kafka Java library, i.e., `org
 
 The following command can be executed from the cli in order to retrieve a set of brokers to connect to.
 
-    dcos kafka --name=<name> connection
-    
+    dcos kafka --name=<name> endpoints broker
+
 <a name="using-the-rest-api"></a>
 # Using the REST API
 
 REST API requests must be authenticated. See the REST API Authentication part of the REST API Reference for more information.
 
-The following `curl` example demonstrates how to retrive connection a set of brokers to connect to using the REST API. 
+The following `curl` example demonstrates how to retrive connection a set of brokers to connect to using the REST API.
 
-    $ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/connection"
+    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
 
 ## User token authentication
 
@@ -34,35 +34,18 @@ DC/OS Enterprise Edition comes with support for [user ACLs][13]. To interact wit
 
 First, we retrieve `uSeR_t0k3n` with our user credentials and store the token as an environment variable:
 
-    $ curl --data '{"uid":"username", "password":"password"}' -H "Content-Type:application/json" "$DCOS_URI/acs/api/v1/auth/login"
-    POST /acs/api/v1/auth/login HTTP/1.1
-    
+    curl --data '{"uid":"username", "password":"password"}' -H "Content-Type:application/json" "<dcos_url>/acs/api/v1/auth/login"
+
     {
       "token": "uSeR_t0k3n"
     }
-    
-    $ export AUTH_TOKEN=uSeR_t0k3n
-    
+
+    export auth_token=uSeR_t0k3n
+
 
 Then, use this token to authenticate requests to the Kafka Service:
 
-    $ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/connection"
-    GET /service/kafka/v1/connection HTTP/1.1
-    
-    {
-        "address": [
-            "10.0.0.211:9843",
-            "10.0.0.217:10056",
-            "10.0.0.214:9689"
-        ],
-        "dns": [
-            "broker-0.kafka.mesos:9843",
-            "broker-1.kafka.mesos:10056",
-            "broker-2.kafka.mesos:9689"
-        ],
-        "zookeeper": "master.mesos:2181/dcos-service-kafka"
-    }
-    
+    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
 
 You do not need the token to access the Kafka brokers themselves.
 
@@ -70,21 +53,19 @@ You do not need the token to access the Kafka brokers themselves.
 
 The response, for both the CLI and the REST API is as below.
 
-    {
-        "address": [
-            "10.0.0.211:9843",
-            "10.0.0.217:10056",
-            "10.0.0.214:9689"
-        ],
-        "dns": [
-             "broker-0.kafka.mesos:9843",
-             "broker-1.kafka.mesos:10056",
-             "broker-2.kafka.mesos:9689"
-        ],
-        "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-        "zookeeper": "master.mesos:2181/dcos-service-kafka"
-    }
-    
+  {
+    "address": [
+      "10.0.0.49:1025",
+      "10.0.2.253:1025",
+      "10.0.1.27:1025"
+    ],
+    "dns": [
+      "kafka-2-broker.kafka.mesos:1025",
+      "kafka-0-broker.kafka.mesos:1025",
+      "kafka-1-broker.kafka.mesos:1025"
+    ],
+    "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+  }
 
 This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.8/usage/service-discovery/).
 
@@ -97,7 +78,7 @@ This JSON array contains a list of valid brokers that the client can use to conn
       <artifactId>kafka-clients</artifactId>
       <version>0.9.0.1</version>
     </dependency>
-    
+
 
 The above is the correct dependency for the Kafka Client Library to use with the DC/OS Kafka service. After adding this dependency to your project, you should have access to the correct binary dependencies to interface with the Kafka Cluster.
 
@@ -108,7 +89,7 @@ The code snippet below demonstrates how to connect a Kafka Producer to the clust
     import org.apache.kafka.clients.producer.KafkaProducer;
     import org.apache.kafka.clients.producer.ProducerRecord;
     import org.apache.kafka.common.serialization.ByteArraySerializer;
-    
+
     Map<String, Object> producerConfig = new HashMap<>();
     producerConfig.put("bootstrap.servers", "10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689");
     // optional:
@@ -117,7 +98,7 @@ The code snippet below demonstrates how to connect a Kafka Producer to the clust
     // ... other options: http://kafka.apache.org/documentation.html#producerconfigs
     ByteArraySerializer serializer = new ByteArraySerializer();
     KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<>(producerConfig, serializer, serializer);
-    
+
     byte[] message = new byte[1024];
     for (int i = 0; i < message.length; ++i) {
       if (i % 2 == 0) {
@@ -131,7 +112,7 @@ The code snippet below demonstrates how to connect a Kafka Producer to the clust
       kafkaProducer.send(record).get();
       Thread.sleep(1000);
     }
-    
+
 
 The code snippet below demonstrates how to connect a Kafka Consumer to the cluster and perform a simple retrievals.
 
@@ -139,7 +120,7 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
     import org.apache.kafka.clients.consumer.ConsumerRecords;
     import org.apache.kafka.clients.consumer.KafkaConsumer;
     import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-    
+
     Map<String, Object> consumerConfig = new HashMap<>();
     consumerConfig.put("bootstrap.servers", "10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689");
     // optional:
@@ -147,7 +128,7 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
     // ... other options: http://kafka.apache.org/documentation.html#consumerconfigs
     ByteArrayDeserializer deserializer = new ByteArrayDeserializer();
     KafkaConsumer<byte[], byte[]> kafkaConsumer = new KafkaConsumer<>(consumerConfig, deserializer, deserializer);
-    
+
     List<String> topics = new ArrayList<>();
     topics.add("test-topic");
     kafkaConsumer.subscribe(topics);
@@ -163,34 +144,33 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
       System.out.println(String.format("Got %d messages (%d bytes)", records.count(), bytes));
     }
     kafkaConsumer.close();
-    
+
 
 # Configuring the Kafka Test Scripts
 
 The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-console-producer.sh` and `bin/kafka-console-consumer.sh` as an example:
 
-    $ dcos kafka connection
+    dcos kafka endpoints broker
     {
-        "address": [
-            "10.0.0.211:9843",
-            "10.0.0.217:10056",
-            "10.0.0.214:9689"
-        ],
-        "dns": [
-             "broker-0.kafka.mesos:9843",
-             "broker-1.kafka.mesos:10056",
-                "broker-2.kafka.mesos:9689"
-            ],
-        "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-        "zookeeper": "master.mesos:2181/dcos-service-kafka"
+      "address": [
+        "10.0.0.49:1025",
+        "10.0.2.253:1025",
+        "10.0.1.27:1025"
+      ],
+      "dns": [
+        "kafka-2-broker.kafka.mesos:1025",
+        "kafka-0-broker.kafka.mesos:1025",
+        "kafka-1-broker.kafka.mesos:1025"
+      ],
+      "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
     }
-    
-    $ dcos node ssh --master-proxy --leader
-    
-    core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
-    
-    root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.211:9843, 10.0.0.217:10056, 10.0.0.214:9689 --topic topic1
-    
+
+    dcos node ssh --master-proxy --leader
+
+    core@ip-10-0-6-153 ~ docker run -it mesosphere/kafka-client
+
+    root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.49:1025, 10.0.2.253:1025, 10.0.1.27:1025 --topic topic1
+
     root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/kafka --topic topic1 --from-beginning
     Hello, World.
 

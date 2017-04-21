@@ -1,12 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-import shakedown
+# shakedown requires python3
+
 import logging
+import shakedown
+import time
 
 
 # Methods to modify the envvar settings of a mesos master and restart
-# the master process after they are modified
-
+# the master process after they are modified. Ideally, we would just get clusters
+# that are preconfigured like this. But, this allows us to modify an existent cluster.
 logger = logging.getLogger(__name__)
 
 
@@ -46,17 +49,13 @@ def process_envvars(input):
     envvars = {}
     commented = []
     for line in lines:
-        if '#' in line:
+        if line.lstrip().startswith('#'):
             commented.append(line)
             continue
         if '=' not in line:
             continue
-        bits = line.split('=')
-        if len(bits) != 2:
-            raise ValueError('Envvar file had badly formatted line: {}\nfile: {}'.format(
-                line, input))
-        
-        envvars[bits[0]] = bits[1]
+        var, val = line.split('=', 1)
+        envvars[var] = val
 
     return envvars, commented
 
@@ -83,11 +82,30 @@ def write_envvars(envvars, commented_envvars):
 def restart_master():
     logger.info("Restarting master process...")
 
-    success, out = shakedown.run_command_on_master('sudo systemctl condrestart dcos-mesos-master')
+    success, out = shakedown.run_command_on_master('sudo systemctl restart dcos-mesos-master && while true; do curl leader.mesos:5050; if [ $? == 0 ]; then break; fi; done')
     if success is not True:
-        print("wtf...")
-        raise RuntimeError("Unable to restart master")
+        raise RuntimeError("Unable to restart master: {}".format(out))
+
+    logger.info(out)
 
 
-# Note: This is a hack for now. Talk to bwood about it.
-set_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT', '100/20mins')
+def set_local_infinity_defaults():
+    remove_master_envvar('MESOS_SLAVE_REMOVAL_RATE_LIMIT')
+    remove_master_envvar('MESOS_MAX_SLAVE_PING_TIMEOUTS')
+    modified_envvars = {
+        # During our testing, we remove agents. This requires us to 
+        # increase the rate at which we can remove agents. The new value
+        # of the rate limit indicates we can remove 100 agents every 20 minutes.
+        'MESOS_AGENT_REMOVAL_RATE_LIMIT': '100/20mins',
+        # During our testing, we remove agents. This requires us to lower the number of checks
+        # that are done before removal when an agent is not responding so that removal
+        # is quicker. The ping timeout (MESOS_AGENT_PING_TIMEOUT) is 15 seconds, and
+        # thus we will wait 1 minute for agent death.
+        'MESOS_MAX_AGENT_PING_TIMEOUTS': '4'
+    }
+    set_master_envvars(modified_envvars)
+    time.sleep(30) # XXX hack
+
+
+if __name__ == "__main__":
+    set_local_infinity_defaults()

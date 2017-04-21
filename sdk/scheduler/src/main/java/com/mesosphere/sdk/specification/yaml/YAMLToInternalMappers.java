@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
@@ -38,7 +39,9 @@ public class YAMLToInternalMappers {
      * @throws Exception if the conversion fails
      */
     static DefaultServiceSpec from(
-            RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
+            RawServiceSpec rawSvcSpec,
+            SchedulerFlags schedulerFlags,
+            YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
         String role = null;
         String principal = null;
@@ -59,7 +62,7 @@ public class YAMLToInternalMappers {
             principal = SchedulerUtils.nameToPrincipal(rawSvcSpec.getName());
         }
         if (apiPort == null) {
-            apiPort = SchedulerUtils.apiPort();
+            apiPort = schedulerFlags.getApiServerPort();
         }
         if (StringUtils.isEmpty(zookeeper)) {
             zookeeper = SchedulerUtils.defaultZkHost();
@@ -86,7 +89,8 @@ public class YAMLToInternalMappers {
                     entry.getKey(),
                     taskConfigRouter.getConfig(entry.getKey()),
                     role,
-                    principal));
+                    principal,
+                    schedulerFlags.getExecutorURI()));
 
         }
         builder.pods(pods);
@@ -150,8 +154,9 @@ public class YAMLToInternalMappers {
             String podName,
             ConfigNamespace configNamespace,
             String role,
-            String principal) throws Exception {
-        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
+            String principal,
+            String executorUri) throws Exception {
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
                 .user(rawPod.getUser());
@@ -198,7 +203,7 @@ public class YAMLToInternalMappers {
         }
         builder.uris(podUris);
 
-        PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
+        PlacementRule placementRule = MarathonConstraintParser.parse(podName, rawPod.getPlacement());
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }

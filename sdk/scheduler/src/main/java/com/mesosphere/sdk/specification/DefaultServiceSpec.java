@@ -226,21 +226,23 @@ public class DefaultServiceSpec implements ServiceSpec {
                 AndRule.class,
                 AnyMatcher.class,
                 AttributeRule.class,
+                DefaultResourceSpec.class,
+                DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
+                NamedVIPSpec.class,
                 NotRule.class,
                 OrRule.class,
                 PassthroughRule.class,
-                RegexMatcher.class,
-                TaskTypeRule.class,
-                TaskTypeLabelConverter.class,
-                DefaultResourceSpec.class,
-                DefaultVolumeSpec.class,
                 PortSpec.class,
                 PortsSpec.class,
-                NamedVIPSpec.class);
+                RegexMatcher.class,
+                RoundRobinByAttributeRule.class,
+                RoundRobinByHostnameRule.class,
+                TaskTypeLabelConverter.class,
+                TaskTypeRule.class);
 
         private final ObjectMapper objectMapper;
 

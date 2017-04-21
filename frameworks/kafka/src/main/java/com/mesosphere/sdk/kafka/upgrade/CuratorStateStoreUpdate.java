@@ -15,7 +15,7 @@ import java.util.Optional;
 
 
 /**
- * CuratorStateStoreUpdate provides storeStatus(name,status) method
+ * CuratorStateStoreUpdate provides storeStatus(name,status) method.
  */
 public class CuratorStateStoreUpdate extends CuratorStateStore {
     private static final Logger logger = LoggerFactory.getLogger(CuratorStateStoreUpdate.class);

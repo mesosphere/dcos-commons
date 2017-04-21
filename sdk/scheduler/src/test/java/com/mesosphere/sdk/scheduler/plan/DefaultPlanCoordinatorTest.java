@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -22,7 +23,6 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
@@ -35,9 +35,7 @@ import static org.mockito.Mockito.spy;
  */
 public class DefaultPlanCoordinatorTest {
 
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
@@ -121,7 +119,8 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(stateStore, serviceSpecification.getName(), UUID.randomUUID());
+        provider = new DefaultOfferRequirementProvider(
+                stateStore, serviceSpecification.getName(), UUID.randomUUID(), flags);
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()

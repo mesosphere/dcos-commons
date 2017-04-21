@@ -2,7 +2,7 @@ import json
 from functools import wraps
 
 import shakedown
-
+import sdk_utils
 
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 9
@@ -65,7 +65,7 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    print('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
+    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 
@@ -163,7 +163,3 @@ def get_document(index_name, index_type, doc_id):
 def curl_api(method, role="master"):
     vip = "http://{}.{}.l4lb.thisdcos.directory:9200".format(role, PACKAGE_NAME)
     return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
-
-
-def get_marathon_host():
-    return shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()

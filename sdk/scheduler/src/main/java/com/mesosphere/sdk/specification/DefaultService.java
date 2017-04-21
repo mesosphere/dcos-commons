@@ -5,6 +5,7 @@ import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 
@@ -16,12 +17,10 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 
-import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,21 +51,26 @@ public class DefaultService implements Service {
         //No initialization needed
     }
 
-    public DefaultService(String yamlSpecification) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
+    public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification), schedulerFlags);
     }
 
-    public DefaultService(File pathToYamlSpecification) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
+    public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification), schedulerFlags);
     }
 
-    public DefaultService(RawServiceSpec rawServiceSpec) throws Exception {
-        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec))
+    public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
+        this(DefaultScheduler.newBuilder(
+                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 
-    public DefaultService(ServiceSpec serviceSpecification, Collection<Plan> plans) throws Exception {
-        this(DefaultScheduler.newBuilder(serviceSpecification).setPlans(plans));
+    public DefaultService(
+            ServiceSpec serviceSpecification,
+            SchedulerFlags schedulerFlags,
+            Collection<Plan> plans) throws Exception {
+        this(DefaultScheduler.newBuilder(serviceSpecification, schedulerFlags)
+                .setPlans(plans));
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
@@ -76,9 +80,12 @@ public class DefaultService implements Service {
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+    }
 
+    @Override
+    public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
         CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
@@ -146,18 +153,20 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = schedulerBuilder.build();
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
+        DefaultScheduler defaultScheduler = null;
+        try {
+            defaultScheduler = schedulerBuilder.build();
+        } catch (Throwable e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
 
-        startApiServer(defaultScheduler, serviceSpec.getApiPort());
+        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         registerAndRunFramework(
                 defaultScheduler,
                 getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
-                serviceSpec.getZookeeperConnection());
-    }
-
-    private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        startApiServer(defaultScheduler, apiPort, Collections.emptyList());
+                serviceSpec.getZookeeperConnection(),
+                schedulerBuilder.getSchedulerFlags());
     }
 
     protected ServiceSpec getServiceSpec() {
@@ -178,43 +187,16 @@ public class DefaultService implements Service {
         return false;
     }
 
-    protected void startApiServer(
-            DefaultScheduler defaultScheduler,
-            int apiPort,
-            Collection<Object> additionalResources) {
-        Collection<Object> resourceList = new ArrayQueue<>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = null;
-                try {
-                    LOGGER.info("Starting API server.");
-                    resourceList.addAll(defaultScheduler.getResources());
-                    resourceList.addAll(additionalResources);
-                    apiServer = new JettyApiServer(apiPort, resourceList);
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
-    }
-
     private static void registerAndRunFramework(
             Scheduler sched,
             Protos.FrameworkInfo frameworkInfo,
-            String zookeeperHost) {
+            String zookeeperHost,
+            SchedulerFlags schedulerFlags) {
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
+        Protos.Status status = new SchedulerDriverFactory().create(
+                sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost), schedulerFlags).run();
+        // TODO(nickbp): Exit scheduler process here?
+        LOGGER.error("Scheduler driver exited with status: {}", status);
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
@@ -235,6 +217,7 @@ public class DefaultService implements Service {
                                                                      .setCheckpoint(true);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
+        //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
         if (StringUtils.isEmpty(serviceSpec.getRole())) {
             fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
         } else {

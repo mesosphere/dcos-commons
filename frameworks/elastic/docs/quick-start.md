@@ -1,5 +1,5 @@
 ---
-post_title: Quick Start
+post_title: Kick the Tires
 menu_order: 0
 feature_maturity: preview
 enterprise: 'no'
@@ -10,7 +10,7 @@ enterprise: 'no'
 
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 	
-```
+	```bash
 	$ dcos elastic plan show deploy
 	```
 
@@ -49,17 +49,6 @@ enterprise: 'no'
 1. Retrieve data from your indice:
 
         $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
-        
-1. Browse Kibana:
-
-        http://<dcos-url>/service/elastic/kibana/login
-
-  Log in with `elastic`/`changeme`
-<<<<<<< HEAD
-
-	```bash
-	curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
-	```
 
 # Access Kibana
 
@@ -89,7 +78,4 @@ enterprise: 'no'
   ```
   And log in with `elastic`/`changeme`
 
-=======
-  
->>>>>>> ae2e694beb8f25938d41c00d79f44b9067e836cd
 [1]: https://docs.mesosphere.com/1.9/administration/access-node/sshcluster/

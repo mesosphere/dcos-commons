@@ -4,7 +4,10 @@ defaults:
       path: ""
     values:
       layout: "gh-basic"
+      stylesheet: "gh-basic.css"
       menu_order: 999
+gems:
+  - jekyll-redirect-from
 sass:
   sass_dir: _sass
   style: :compressed

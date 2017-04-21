@@ -4,6 +4,7 @@ import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -11,9 +12,7 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,9 +24,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultStepFactoryTest {
 
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static TestingServer testingServer;
 
@@ -69,7 +66,7 @@ public class DefaultStepFactoryTest {
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID);
-        PodSpec podSpec = DefaultPodSpec.newBuilder()
+        PodSpec podSpec = DefaultPodSpec.newBuilder(flags.getExecutorURI())
                 .type(TestConstants.POD_TYPE)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec0, taskSpec1))
@@ -108,7 +105,7 @@ public class DefaultStepFactoryTest {
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder()
+        PodSpec podSpec = DefaultPodSpec.newBuilder(flags.getExecutorURI())
                 .type(TestConstants.POD_TYPE)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec0, taskSpec1))

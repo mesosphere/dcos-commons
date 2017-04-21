@@ -1,22 +1,16 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.*;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
-
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.config.*;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -26,30 +20,39 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.recovery.*;
+import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.PersistentLaunchRecorder;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -82,17 +85,20 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-    protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
 
     protected final ServiceSpec serviceSpec;
+    protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
+
+    private JettyApiServer apiServer;
+    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -115,6 +121,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static class Builder {
         private final ServiceSpec serviceSpec;
+        private final SchedulerFlags schedulerFlags;
 
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
@@ -128,9 +135,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
         private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
+        private Collection<Object> resources = new ArrayList<>();
 
-        private Builder(ServiceSpec serviceSpec) {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
             this.serviceSpec = serviceSpec;
+            this.schedulerFlags = schedulerFlags;
         }
 
         /**
@@ -150,11 +159,20 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
          */
         public Builder setStateStore(StateStore stateStore) {
-            if (this.stateStoreOptional.isPresent()) {
+            if (stateStoreOptional.isPresent()) {
                 // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
                 throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
             }
-            this.stateStoreOptional = Optional.of(stateStore);
+            this.stateStoreOptional = Optional.ofNullable(stateStore);
+            return this;
+        }
+
+        /**
+         * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
+         * to the defaults.
+         */
+        public Builder setCustomResources(Collection<Object> resources) {
+            this.resources = resources;
             return this;
         }
 
@@ -167,9 +185,16 @@ public class DefaultScheduler implements Scheduler, Observer {
          */
         public StateStore getStateStore() {
             if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec));
+                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
             }
             return stateStoreOptional.get();
+        }
+
+        /**
+         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
+         */
+        public SchedulerFlags getSchedulerFlags() {
+            return schedulerFlags;
         }
 
         /**
@@ -180,7 +205,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * while also storing historical configurations.
          */
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-            this.configStoreOptional = Optional.of(configStore);
+            this.configStoreOptional = Optional.ofNullable(configStore);
             return this;
         }
 
@@ -192,7 +217,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
-            this.configValidatorsOptional = Optional.of(configValidators);
+            this.configValidatorsOptional = Optional.ofNullable(configValidators);
             return this;
         }
 
@@ -202,7 +227,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * and/or replaced.
          */
         public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.of(restartHook);
+            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -304,6 +329,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // Update/validate config as needed to reflect the new service spec:
             final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
                     serviceSpec,
+                    schedulerFlags,
                     stateStore,
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
@@ -313,7 +339,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:
-            final List<Plan> plans;
+            Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
@@ -324,16 +350,38 @@ public class DefaultScheduler implements Scheduler, Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
-                // A default deployment plan will automatically be generated:
-                plans = Collections.emptyList();
+                LOGGER.info("Generating default deploy plan.");
+                try {
+                    plans = Arrays.asList(
+                            new DeployPlanFactory(
+                                    new DefaultPhaseFactory(
+                                            new DefaultStepFactory(configStore, stateStore)))
+                                    .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to generate a deploy plan.");
+                    throw new IllegalStateException(e);
+                }
             }
+
+            Optional<Plan> deployOptional = getDeployPlan(plans);
+            if (!deployOptional.isPresent()) {
+                throw new IllegalStateException("No deploy plan provided.");
+            }
+
+            List<String> errors = configUpdateResult.errors.stream()
+                    .map(configValidationError -> configValidationError.toString())
+                    .collect(Collectors.toList());
+            plans = updateDeployPlan(plans, errors);
 
             return new DefaultScheduler(
                     serviceSpec,
+                    getSchedulerFlags(),
+                    resources,
                     plans,
                     stateStore,
                     configStore,
-                    new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
+                    new DefaultOfferRequirementProvider(
+                            stateStore, serviceSpec.getName(), configUpdateResult.targetId, getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
                     Optional.ofNullable(recoveryPlanManagerFactory));
@@ -345,8 +393,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return new Builder(serviceSpec);
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        return new Builder(serviceSpec, schedulerFlags);
     }
 
     /**
@@ -359,12 +407,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
+    public static StateStore createStateStore(
+            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, String zkConnectionString) {
         StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
-        if (System.getenv(Constants.DISABLE_STATE_CACHE_SCHEDENV) != null) {
-            return stateStore;
-        } else {
+        if (schedulerFlags.isStateCacheEnabled()) {
             return StateStoreCache.getInstance(stateStore);
+        } else {
+            return stateStore;
         }
     }
 
@@ -374,8 +423,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static StateStore createStateStore(ServiceSpec serviceSpec) {
-        return createStateStore(serviceSpec, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        return createStateStore(serviceSpec, schedulerFlags, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
@@ -455,6 +504,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<ConfigValidator<ServiceSpec>> configValidators) {
@@ -474,6 +524,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
+            Collection<Object> resources,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
@@ -482,6 +534,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
         this.serviceSpec = serviceSpec;
+        this.schedulerFlags = schedulerFlags;
+        this.resources = resources;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
@@ -493,17 +547,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     public Collection<Object> getResources() throws InterruptedException {
-        if (resources == null) {
-            // Wait up to 60 seconds for resources to be available. This should be
-            // near-instantaneous, we just have an explicit deadline to avoid the potential for
-            // waiting indefinitely.
-            resources = resourcesQueue.poll(AWAIT_RESOURCES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            if (resources == null) {
-                throw new RuntimeException(String.format(
-                        "Timed out waiting %dms for resources from scheduler", AWAIT_RESOURCES_TIMEOUT_MS));
-            }
-        }
-
         return resources;
     }
 
@@ -522,6 +565,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeRecoveryPlanManager();
         initializePlanCoordinator();
         initializeResources();
+        initializeApiServer();
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
@@ -548,21 +592,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Override this function to inject your own deployment plan manager.
      */
     protected void initializeDeploymentPlanManager() {
-        LOGGER.info("Initializing deployment plan...");
-        Optional<Plan> deploy = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst();
-        Plan deployPlan;
-        if (!deploy.isPresent()) {
-            LOGGER.info("No deploy plan provided. Generating one");
-            deployPlan =
-                    new DeployPlanFactory(
-                            new DefaultPhaseFactory(
-                                    new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
-        } else {
-            deployPlan = deploy.get();
-        }
-        deploymentPlanManager = new DefaultPlanManager(deployPlan);
+        LOGGER.info("Initializing deployment plan manager...");
+        deploymentPlanManager = new DefaultPlanManager(getDeployPlan());
 
         // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
@@ -616,7 +647,6 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
-        Collection<Object> resources = new ArrayList<>();
         resources.add(new ArtifactResource(configStore));
         resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
@@ -632,8 +662,34 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
-        // use add() instead of put(): throw exception instead of waiting indefinitely
-        resourcesQueue.add(resources);
+    }
+
+    private void initializeApiServer() {
+        if (apiServerReady()) {
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LOGGER.info("Starting API server.");
+                    apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
+                    apiServer.start();
+                } catch (Exception e) {
+                    LOGGER.error("API Server failed with exception: ", e);
+                } finally {
+                    LOGGER.info("API Server exiting.");
+                    try {
+                        if (apiServer != null) {
+                            apiServer.stop();
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to stop API server with exception: ", e);
+                    }
+                }
+            }
+        }).start();
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
@@ -653,6 +709,17 @@ public class DefaultScheduler implements Scheduler, Observer {
         } catch (Exception ex) {
             LOGGER.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
+     * or revive offers should be made.
+     */
+    @Override
+    public void update(Observable observable) {
+        if (observable == planCoordinator) {
+            suppressOrRevive();
         }
     }
 
@@ -691,10 +758,32 @@ public class DefaultScheduler implements Scheduler, Observer {
         postRegister();
     }
 
+    public boolean apiServerReady() {
+        boolean serverStarted = apiServer != null && apiServer.isStarted();
+
+        if (serverStarted) {
+            apiServerStopwatch.reset();
+        } else {
+            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
+            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
+                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
+                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+            }
+        }
+
+        return serverStarted;
+    }
+
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
+            if (!apiServerReady()) {
+                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
+                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                return;
+            }
+
             LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
             for (int i = 0; i < offers.size(); ++i) {
                 LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
@@ -743,8 +832,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.error("Rescinding offers is not supported.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.OFFER_RESCINDED);
+        LOGGER.warn("Ignoring rescinded Offer: {}.", offerId.getValue());
     }
 
     @Override
@@ -866,13 +954,47 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        suppressOrRevive();
+        revive();
     }
 
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive();
+    private Plan getDeployPlan() {
+        return getDeployPlan(plans).get();
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans =  plans.stream()
+                .filter(plan -> plan.isDeployPlan())
+                .collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            String errMsg = String.format("Found multiple deploy plans: %s", deployPlans);
+            LOGGER.error(errMsg);
+            throw new IllegalStateException(errMsg);
         }
+    }
+
+    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+        if (errors.isEmpty()) {
+            return plans;
+        }
+
+        Collection<Plan> updatedPlans = new ArrayList<>();
+        Plan deployPlan = getDeployPlan(plans).get();
+        deployPlan = new DefaultPlan(
+                deployPlan.getName(),
+                deployPlan.getChildren(),
+                deployPlan.getStrategy(),
+                errors);
+
+        updatedPlans.add(deployPlan);
+        plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(plan -> updatedPlans.add(plan));
+
+        return updatedPlans;
     }
 }

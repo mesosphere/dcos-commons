@@ -30,8 +30,6 @@ public class TestingFailureMonitor implements FailureMonitor {
 
     @Override
     public boolean hasFailed(TaskInfo task) {
-        System.out.println("looking at " + task);
-        System.out.println("have " + failedList);
         return failedList.stream().anyMatch(task::equals);
     }
 }

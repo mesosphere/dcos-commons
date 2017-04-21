@@ -57,7 +57,7 @@
           "mem":{
             "description":"Broker mem requirements",
             "type":"integer",
-            "default":2304
+            "default":2048
           },
           "heap":{
             "description":"The Kafka process JVM heap configuration object",
@@ -66,7 +66,7 @@
               "size": {
                 "type":"integer",
                 "description":"The amount of JVM heap, in MB, allocated to the Kafka broker process.",
-                "default": 2048
+                "default":512
               }
             },
             "additionalProperties": false,

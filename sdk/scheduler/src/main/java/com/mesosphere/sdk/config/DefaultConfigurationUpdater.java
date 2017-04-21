@@ -139,7 +139,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
      * and updates the embedded config version label in those tasks to point to the current target
      * configuration.
      */
-    private void cleanupDuplicateAndUnusedConfigs(ServiceSpec targetConfig, UUID targetConfigId)
+    private void cleanupDuplicateAndUnusedConfigs(
+            ServiceSpec targetConfig,
+            UUID targetConfigId)
             throws ConfigStoreException {
         List<Protos.TaskInfo> taskInfosToUpdate = new ArrayList<>();
         Set<UUID> neededConfigs = new HashSet<>();
@@ -242,7 +244,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         if (targetSpecOptional.isPresent() && taskSpecOptional.isPresent()) {
             PodSpec targetSpec = targetSpecOptional.get();
             PodSpec taskSpec = taskSpecOptional.get();
-            boolean updateNeeded = areDifferent(targetSpec, taskSpec);
+            boolean updateNeeded = !areMatching(targetSpec, taskSpec);
             LOGGER.info("Compared target: {} to current: {}, update needed: {}", targetSpec, taskSpec, updateNeeded);
             return updateNeeded;
         } else {
@@ -265,16 +267,19 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private static boolean areDifferent(PodSpec podSpec1, PodSpec podSpec2) {
+    private static boolean areMatching(PodSpec podSpec1, PodSpec podSpec2) {
         if (podSpec1.equals(podSpec2)) {
-            return false;
+            // Shortcut: Below modification was not needed to check for equality
+            return true;
         }
 
-        // Make counts equal, as only a difference in count should not effect an individual tasks.
-        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
-        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
-
-        return !podSpec1.equals(podSpec2);
+        // When evaluating whether a pod should be updated, some PodSpec changes are immaterial:
+        //   1. Count: Extant pods do not care if they will have more fellows
+        //   2. Placement Rules: Extant pods should not (immediately) move around due to placement changes
+        // As such, ignore these values when checking for changes:
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
+        return podSpec1.equals(podSpec2);
     }
 
     /**
