@@ -27,7 +27,3 @@ enterprise: 'no'
 * Security
 
     The security features introduced in Apache Kafka 0.9 are not supported at this time.
-
-* Monitoring
-
-    JMX and Statsd are deprecated <!--in favor of....??? -->
