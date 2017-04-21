@@ -510,7 +510,7 @@ The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frame
 }
 ```
 
-The `marathon.json.mustache` template pulls values from `config.json` and `resource.json` and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values when installing via the command line](https://docs.mesosphere.com/latest/usage/managing-services/config/).
+The `marathon.json.mustache` template pulls values from `config.json` and `resource.json` and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values when installing via the command line](https://docs.mesosphere.com/1.9/deploying-services/config-universe-service/).
 
 **Important:** The environment variable field of the Marathon application definition defines values specific to the helloworld service.
 
