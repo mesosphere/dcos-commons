@@ -14,6 +14,7 @@
 #
 # Configuration: Mostly through env vars. See README.md.
 
+import argparse
 import http.client
 import json
 import logging
@@ -288,21 +289,25 @@ class CCMLauncher(object):
         dcos_url = 'https://' + dns_address
         auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
 
-        is_enterprise = config.cf_template.startswith('ee.')
-        clustinit = configure_test_cluster.ClusterInitializer(cluster_id,
-                stack_id, auth_token, dns_address, is_enterprise,
-                config.security_mode)
-        clustinit.apply_default_config()
 
-        if config.mount_volumes:
-            clustinit.create_mount_volumes()
+        if config.postlaunch_steps != 'none':
+            is_enterprise = config.cf_template.startswith('ee.')
+            clustinit = configure_test_cluster.ClusterInitializer(cluster_id,
+                    stack_id, auth_token, dns_address, is_enterprise,
+                    config.security_mode)
+            initmaster = True
+            if config.postlaunch_steps == 'nomaster':
+                initmaster = False
+            clustinit.apply_default_config(initmaster=initmaster)
+
+            if config.mount_volumes:
+                clustinit.create_mount_volumes()
 
         return {
             'id': cluster_id,
             'url': dcos_url,
             'auth_token': auth_token
         }
-
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
         return self._retry(attempts, self._stop, config, 'shutdown')
@@ -345,7 +350,8 @@ class StartConfig(object):
             aws_region = 'us-west-2',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
-            mount_volumes = False):
+            mount_volumes = False,
+            postlaunch_steps='default'):
         self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
@@ -368,6 +374,7 @@ class StartConfig(object):
             description = 'A test cluster with {} private/{} public agents'.format(
                 self.private_agents, self.public_agents)
         self.description = description
+        self.postlaunch_steps = postlaunch_steps
 
 
 
@@ -427,6 +434,69 @@ def _start_cluster(launcher, github_label, start_stop_attempts, config):
         raise
     return cluster_info
 
+def parse_args(argv):
+    parser = argparse.ArgumentParser(prog='launch_ccm_cluster.py',
+        description="create and manage cloud cluster manager clusters")
+
+    parser.add_argument("--configure",
+        choices=('default', 'nomaster', 'none'),
+        default='default',
+        help='What configuration steps to use to set up the cluster [%(default)s]')
+
+    parser.add_argument("--output",
+        metavar="filename",
+        help='Write the cluster info to this filename, in addition to standard out')
+
+    subparsers = parser.add_subparsers(
+        help='An action other than the default start', dest='command')
+
+    start_parser = subparsers.add_parser('start',
+        help='launch a new cluster (this happens with no command as well)')
+
+    start_parser.add_argument("--configure",
+        choices=('default', 'nomaster', 'none'),
+        default='default',
+        help='What configuration steps to use to set up the cluster [%(default)s]')
+
+    start_parser.add_argument("--output",
+        metavar="filename",
+        help='Write the cluster info to this filename, in addition to standard out')
+
+    msg='ask CCM to stop a cluster and block until this completes'
+    stop_parser = subparsers.add_parser('stop',
+        help=msg, description=msg)
+
+    stop_parser.add_argument('ccm_id', help='the cluster id to stop')
+
+    msg='ask CCM to stop a cluster without blocking'
+    trigstop_parser = subparsers.add_parser('trigger-stop',
+        help=msg, description=msg)
+
+    trigstop_parser.add_argument('ccm_id', help='the cluster id to stop')
+
+    msg = 'wait for a CCM cluster to transition from one state to another'
+    statuses = CCMLauncher._CCM_STATUSES.values()
+    wait_parser = subparsers.add_parser('wait',
+        help=msg,
+        description=msg + "; valid states are ({})".format(", ".join(statuses)))
+
+    wait_parser.add_argument('ccm_id', help='the cluster id to stop.')
+
+    wait_parser.add_argument('current_state',
+        choices=statuses,
+        metavar='current_state',
+        help='state to consider valid while waiting')
+    wait_parser.add_argument('new_state',
+        choices=statuses,
+        metavar='new_state',
+        help='state to wait for')
+    return parser.parse_args(argv[1:])
+
+def write_clustinfo(cluster_info, filename):
+    with open(filename, "w") as output_f:
+        out_s = json.dumps(cluster_info)
+        output_f.write(out_s)
+
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
     if not ccm_token:
@@ -439,43 +509,31 @@ def main(argv):
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
 
     launcher = CCMLauncher(ccm_token, github_label)
-    if len(argv) >= 2:
-        if argv[1] == 'stop':
-            if len(argv) >= 3:
-                launcher.stop(StopConfig(argv[2]), start_stop_attempts)
-                return 0
-            else:
-                logger.info('Usage: {} stop <ccm_id>'.format(argv[0]))
-                return 1
-        if argv[1] == 'trigger-stop':
-            if len(argv) >= 3:
-                launcher.trigger_stop(StopConfig(argv[2]))
-                return 0
-            else:
-                logger.info('Usage: {} trigger-stop <ccm_id>'.format(argv[0]))
-                return 1
-        if argv[1] == 'wait':
-            if len(argv) >= 5:
-                # piggy-back off of StopConfig's env handling:
-                stop_config = StopConfig(argv[2])
-                cluster_info = launcher.wait_for_status(
-                    stop_config.cluster_id,
-                    [argv[3]],
-                    argv[4],
-                    stop_config.stop_timeout_mins)
-                if not cluster_info:
-                    return 1
-                # print to stdout (the rest of this script only writes to stderr):
-                print(pprint.pformat(cluster_info))
-                return 0
-            else:
-                logger.info('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]))
-                return 1
-        else:
-            logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
-            return
+    args = parse_args(argv)
+    if args.command == 'stop':
+        launcher.stop(StopConfig(args.ccm_id), start_stop_attempts)
+    elif args.command == 'trigger-stop':
+        launcher.trigger_stop(StopConfig(args.ccm_id))
+    elif args.command == 'wait':
+        # piggy-back off of StopConfig's env handling:
+        stop_config = StopConfig(args.ccm_id)
+        cluster_info = launcher.wait_for_status(
+            stop_config.cluster_id,
+            [args.current_state],
+            args.new_state,
+            stop_config.stop_timeout_mins)
+        if not cluster_info:
+            return 1
+        # print to stdout (the rest of this script only writes to stderr):
+        print(pprint.pformat(cluster_info))
+        if args.output:
+            write_clustinfo(cluster_info, args.output)
+    else:  # 'start' or no command
+        cluster_info = _start_cluster(launcher, github_label, start_stop_attempts,
+                StartConfig(postlaunch_steps=args.configure))
+        if args.output:
+            write_clustinfo(cluster_info, args.output)
 
-    _start_cluster(launcher, github_label, start_stop_attempts, StartConfig())
     return 0
 
 
