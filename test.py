@@ -570,10 +570,12 @@ def setup_junit_xml():
     pip_cmd = ['pip', 'install', 'junit-xml', '-t', lib_dir]
     subprocess.check_call(pip_cmd)
     sys.path.append(lib_dir)
+    import junit_xml
 
 def emit_junit_xml(cluster_launch_attempts, frameworks):
     """Write out all the test actions failures to a junit file for jenkins or
     similar"""
+    import junit_xml
     launch_fake_testcases = []
     for launch_attempt in cluster_launch_attempts:
         attempt_duration = launch_attempt.end_time - launch_attempt.start_time
@@ -616,8 +618,8 @@ def report_failed_actions():
     """Do useful things with the recorded successful and failed actions"""
     # These are our data sources
     cluster_launch_attempts = clustinfo.get_launch_attempts()
-    framework_infos = fwinfo.get_frameworks()
-    if 'junit_xml' in globals():
+    frameworks = fwinfo.get_frameworks()
+    if 'junit_xml' in sys.modules:
         emit_junit_xml(cluster_launch_attempts, frameworks)
     # maybe log them to the terminal as well? (this is at the end)
 
