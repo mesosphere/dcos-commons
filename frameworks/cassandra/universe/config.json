@@ -74,7 +74,7 @@
         "mem": {
           "type": "integer",
           "description": "The amount of memory, in MB, allocated to the Cassandra process.",
-          "default": 10240
+          "default": 4096
         },
         "disk": {
           "type": "integer",
