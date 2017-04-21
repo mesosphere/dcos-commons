@@ -37,8 +37,8 @@ def get_download_platform():
 
 
 def get_cluster_version(dcos_url):
-    """Given a cluster url, return its version string, such as 1.7, 1.8, 1.9,
-    1.9-dev, etc"""
+    """Given a cluster url, return its version string, such as 1.7, 1.8,
+    1.8.8, 1.9, 1.9-dev, etc"""
     version_url = "%s/%s" % (dcos_url, "dcos-metadata/dcos-version.json")
     # Since our test clusters have weird certs that won't validate, turn off
     # validation
@@ -111,6 +111,8 @@ def download_cli(dcos_url, write_dir):
     # we only care about the target release number
     if '-' in cluster_version:
         cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
+    major, minor = cluster_version.split('.')[:2] # 1.8.8 -> 1.8
+    cluster_version = '%s.%s' % (major, minor)
     cli_url = url_template.format(get_download_platform(), cluster_version,
                                   get_cli_filename())
     # actually download to unique filename, then rename into place atomically.
