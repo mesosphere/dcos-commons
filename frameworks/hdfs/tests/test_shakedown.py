@@ -34,6 +34,7 @@ def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
+@pytest.mark.skip(reason="HDFS-451")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
@@ -51,6 +52,7 @@ def test_integrity_on_data_node_failure():
     check_healthy()
 
 
+@pytest.mark.skip(reason="HDFS-451")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_name_node_failure():
