@@ -136,7 +136,7 @@ public class ExecutorRequirement {
 
     public OfferEvaluationStage getEvaluationStage() {
         Protos.ExecutorID executorID = null;
-        if (getExecutorInfo().hasExecutorId() && !getExecutorInfo().getExecutorId().getValue().isEmpty()) {
+        if (ExecutorUtils.hasExecutorId(getExecutorInfo())) {
             executorID = getExecutorInfo().getExecutorId();
         }
 

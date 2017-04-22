@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
+import com.mesosphere.sdk.executor.ExecutorUtils;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
@@ -87,11 +88,15 @@ public class OfferEvaluator {
 
         evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
-            for (ResourceRequirement r :
-                    offerRequirement.getExecutorRequirementOptional().get().getResourceRequirements()) {
-                evaluationPipeline.add(r.getEvaluationStage(null));
+            ExecutorRequirement executorRequirement = offerRequirement.getExecutorRequirementOptional().get();
+
+            // If this executor already has an ID, it's running. Don't attempt to claim its resources again.
+            if (!ExecutorUtils.hasExecutorId(executorRequirement.getExecutorInfo())) {
+                for (ResourceRequirement r : executorRequirement.getResourceRequirements()) {
+                    evaluationPipeline.add(r.getEvaluationStage(null));
+                }
             }
-            evaluationPipeline.add(offerRequirement.getExecutorRequirementOptional().get().getEvaluationStage());
+            evaluationPipeline.add(executorRequirement.getEvaluationStage());
         } else {
             evaluationPipeline.add(new ExecutorEvaluationStage());
         }
