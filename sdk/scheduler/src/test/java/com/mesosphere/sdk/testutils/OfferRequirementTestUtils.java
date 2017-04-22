@@ -9,7 +9,6 @@ import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
-import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.commons.lang.StringUtils;
