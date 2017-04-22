@@ -23,10 +23,7 @@ def update_app(app_name, config):
 
 
 def destroy_app(app_name):
-    sdk_cmd.request('delete', api_url_with_param('apps', app_name))
-
-    # Make sure the scheduler has been destroyed
-    sdk_spin.time_wait_noisy(lambda: (shakedown.get_service(app_name) is None))
+    shakedown.delete_app_wait(app_name)
 
 
 def api_url(basename):
