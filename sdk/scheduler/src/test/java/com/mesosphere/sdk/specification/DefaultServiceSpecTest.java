@@ -12,11 +12,14 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
 
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
+import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 import org.apache.curator.test.TestingServer;
@@ -685,6 +688,30 @@ public class DefaultServiceSpecTest {
 
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
+    }
+
+    @Test
+    public void testConfigurationComparatorPlacementRules() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-placement.yml").getFile());
+        DefaultServiceSpec serviceSpecX = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        // Change the placement rule for serviceSpecY
+        List<PodSpec> pods = serviceSpecX.getPods().stream()
+                .map(podSpec -> DefaultPodSpec.newBuilder(podSpec))
+                .map(builder -> builder.placementRule(new PassthroughRule()).build())
+                .collect(Collectors.toList());
+        DefaultServiceSpec serviceSpecY = DefaultServiceSpec.newBuilder(serviceSpecX)
+                .pods(pods)
+                .build();
+
+        ConfigurationComparator<ServiceSpec> comparator = DefaultServiceSpec.getComparatorInstance();
+        Optional<PlacementRule> placementRuleX = serviceSpecX.getPods().get(0).getPlacementRule();
+        Optional<PlacementRule> placementRuleY = serviceSpecY.getPods().get(0).getPlacementRule();
+
+        Assert.assertFalse(placementRuleX.equals(placementRuleY));
+        Assert.assertFalse(placementRuleX.get().equals(placementRuleY.get()));
+        Assert.assertTrue(comparator.equals(serviceSpecX, serviceSpecY));
     }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {

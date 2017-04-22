@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -92,16 +93,17 @@ public class DefaultServiceSpec implements ServiceSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultServiceSpec copy) {
+    public static Builder newBuilder(ServiceSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.role = copy.role;
-        builder.principal = copy.principal;
-        builder.apiPort = copy.apiPort;
-        builder.zookeeperConnection = copy.zookeeperConnection;
-        builder.webUrl = copy.webUrl;
-        builder.pods = copy.pods;
-        builder.replacementFailurePolicy = copy.replacementFailurePolicy;
+        builder.name = copy.getName();
+        builder.role = copy.getRole();
+        builder.principal = copy.getPrincipal();
+        builder.apiPort = copy.getApiPort();
+        builder.zookeeperConnection = copy.getZookeeperConnection();
+        builder.webUrl = copy.getWebUrl();
+        builder.pods = copy.getPods();
+        builder.replacementFailurePolicy =
+                copy.getReplacementFailurePolicy().isPresent() ? copy.getReplacementFailurePolicy().get() : null;
         return builder;
     }
 
@@ -175,9 +177,22 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         @Override
-        public boolean equals(ServiceSpec first, ServiceSpec second) {
-            return EqualsBuilder.reflectionEquals(first, second);
+        public boolean equals(ServiceSpec current, ServiceSpec proposed) {
+            return EqualsBuilder.reflectionEquals(
+                    removePlacementRules(current),
+                    removePlacementRules(proposed));
         }
+    }
+
+    private static ServiceSpec removePlacementRules(ServiceSpec serviceSpec) {
+        DefaultServiceSpec.Builder specBuilder = DefaultServiceSpec.newBuilder(serviceSpec);
+
+        List<PodSpec> pods = specBuilder.pods.stream()
+                .map(podSpec -> DefaultPodSpec.newBuilder(podSpec))
+                .map(podBuilder -> podBuilder.placementRule(new PassthroughRule()).build())
+                .collect(Collectors.toList());
+
+        return specBuilder.pods(pods).build();
     }
 
     /**
