@@ -8,7 +8,13 @@
         "name": {
           "description": "The name of the Cassandra service instance.",
           "type": "string",
-          "default": "cassandra"
+          "default": "beta-cassandra"
+        },
+        "beta-optin":{
+          "description":"I have been invited to the Beta Program and accept the all terms of the Beta Agreement.",
+          "type": "boolean",
+          "title": "Agree to Beta terms",
+          "default": ""
         },
         "secret_name": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -54,6 +60,7 @@
       },
       "required": [
         "name",
+        "beta-optin",
         "user"
       ]
     },
