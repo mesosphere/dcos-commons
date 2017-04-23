@@ -40,9 +40,28 @@ def install_cassandra_jobs():
         os.path.dirname(os.path.realpath(__file__)), 'jobs'
     )
     for job in TEST_JOBS:
-        cmd.run_cli('job add {}'.format(
-            os.path.join(jobs_folder, '{}.json'.format(job))
-        ))
+        install_job(job, jobs_folder)
+
+
+def install_job(job_name, jobs_folder):
+    template_filename = os.path.join(jobs_folder, '{}.json.template'.format(job_name))
+    with open(template_filename) as f:
+        job_contents = f.read()
+
+    job_contents = job_contents.replace(
+        '{{NODE_ADDRESS}}',
+        os.getenv('CASSANDRA_NODE_ADDRESS', 'node-0-server.cassandra.mesos')
+    )
+    job_contents = job_contents.replace(
+        '{{NODE_PORT}}',
+        os.getenv('CASSANDRA_NODE_PORT', '9042')
+    )
+
+    job_filename = os.path.join(jobs_folder, '{}.json'.format(job_name))
+    with open(job_filename, 'w') as f:
+        f.write(job_contents)
+
+    cmd.run_cli('job add {}'.format(job_filename))
 
 
 def launch_and_verify_job(job_name, expected_successes=1):

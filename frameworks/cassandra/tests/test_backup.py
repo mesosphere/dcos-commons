@@ -17,10 +17,10 @@ def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
 
+    install_cassandra_jobs()
+
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
-
-    install_cassandra_jobs()
 
 
 def setup_function(function):
@@ -35,6 +35,10 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 def test_backup_and_restore_flow():
+    run_backup_and_restore()
+
+
+def run_backup_and_restore():
     backup_parameters = {
         'S3_BUCKET_NAME': os.getenv(
             'AWS_BUCKET_NAME', 'infinity-framework-test'
