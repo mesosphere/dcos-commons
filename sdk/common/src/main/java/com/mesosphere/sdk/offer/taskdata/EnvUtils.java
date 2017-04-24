@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.apache.mesos.Protos.Environment;
 
 /**
- * Utilities relating to environment variable manipulation
- * TODO(nickbp): Remove in favor of boilerplated env access
+ * Utilities relating to environment variable manipulation.
+ * TODO(nickbp): Remove in favor of boilerplated env access.
  */
 public class EnvUtils {
 

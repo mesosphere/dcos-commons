@@ -2,7 +2,7 @@ package com.mesosphere.sdk.executor;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader;
-import com.mesosphere.sdk.offer.taskdata.TaskPacking;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
@@ -65,7 +65,7 @@ public class CustomExecutor implements Executor {
         LOGGER.info("Launching task: {}", TextFormat.shortDebugString(task));
 
         try {
-            Protos.TaskInfo unpackedTaskInfo = TaskPacking.unpack(task);
+            Protos.TaskInfo unpackedTaskInfo = TaskPackingUtils.unpack(task);
             LOGGER.info("Unpacked task: {}", TextFormat.shortDebugString(unpackedTaskInfo));
             LOGGER.info("Unpacked command: {}", TextFormat.shortDebugString(unpackedTaskInfo.getCommand()));
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(unpackedTaskInfo, driver);

@@ -24,12 +24,12 @@ import com.google.protobuf.InvalidProtocolBufferException;
  *     - data: custom
  *     - command
  */
-public class TaskPacking {
+public class TaskPackingUtils {
 
     /** Used to mark packed task data within an {@link ExecutorInfo}. */
     private static final String COMMAND_DATA_PACKAGE_EXECUTORID = "command_data_package_executor";
 
-    private TaskPacking() {
+    private TaskPackingUtils() {
         // do not instantiate
     }
 
@@ -96,5 +96,4 @@ public class TaskPacking {
             return taskBuilder.build();
         }
     }
-
 }

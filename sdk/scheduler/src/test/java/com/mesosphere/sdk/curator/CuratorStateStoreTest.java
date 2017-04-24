@@ -6,7 +6,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPacking;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -233,7 +233,7 @@ public class CuratorStateStoreTest {
         origInfoBuilder.getExecutorBuilder().getExecutorIdBuilder().setValue("hi");
         Protos.TaskInfo origInfo = origInfoBuilder.build();
 
-        Protos.TaskInfo packedInfo = TaskPacking.pack(origInfo);
+        Protos.TaskInfo packedInfo = TaskPackingUtils.pack(origInfo);
         assertFalse(packedInfo.hasCommand());
         assertTrue(packedInfo.hasExecutor());
         assertTrue(packedInfo.hasData());
