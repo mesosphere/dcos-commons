@@ -41,7 +41,7 @@ def test_hostname_unique():
 
     install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options)
     # hello deploys first. One "world" task should end up placed with each "hello" task.
-    plan.get_deployment_plan(PACKAGE_NAME)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # ensure "hello" task can still be placed with "world" task
     cmd.run_cli('hello-world pods replace hello-0')
@@ -69,7 +69,7 @@ def test_max_per_hostname():
     }
 
     install.install(PACKAGE_NAME, num_private_agents * 5, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_multiple_per_agent(hello=2, world=3)
 
 
@@ -92,7 +92,7 @@ def test_rr_by_hostname():
     }
 
     install.install(PACKAGE_NAME, num_private_agents * 4, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_multiple_per_agent(hello=2, world=2)
 
 
@@ -115,7 +115,7 @@ def test_cluster():
     }
 
     install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
-    plan.get_deployment_plan(PACKAGE_NAME)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_multiple_per_agent(hello=num_private_agents, world=0)
 
 

@@ -89,8 +89,7 @@ def upgrade_or_downgrade(package_name, running_task_count, additional_options, p
         package_version=package_version,
         check_suppression=False)
     sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
-    spin.time_wait_noisy(lambda: (
-        plan.get_deployment_plan(package_name).json()['status'] == 'COMPLETE'))
+    plan.wait_for_completed_deployment(package_name)
     sdk_utils.out('Checking that all tasks have restarted')
     tasks.check_tasks_updated(package_name, '', task_ids)
 
