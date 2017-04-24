@@ -8,6 +8,7 @@ com.mesosphere.sdk.executor
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement
+com.mesosphere.sdk.offer.taskdata
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler
 com.mesosphere.sdk.scheduler.plan

@@ -312,7 +312,7 @@ var activeTableTab = "activeTableTab";
 <pre>void&nbsp;storeStatus(TaskStatus&nbsp;status)
           throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores the TaskStatus of a particular Task. The <code>TaskInfo</code> for this exact task MUST have already been
- written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by <a href="../../../../com/mesosphere/sdk/offer/CommonTaskUtils.html#toTaskId-java.lang.String-"><code>CommonTaskUtils.toTaskId(String)</code></a>.</div>
+ written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>CommonIdUtils.toTaskId(String)</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - The status to be stored, which meets the above requirements</dd>

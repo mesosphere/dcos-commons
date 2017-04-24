@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -205,27 +205,54 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isRecoveryNeeded-TaskStatus-">isRecoveryNeeded</a></span>(TaskStatus&nbsp;taskStatus)</code>
+<div class="block">Returns whether the provided <code>TaskStatus</code> shows that the task needs to recover.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">isSamePodInstance</a></span>(TaskInfo&nbsp;taskInfo,
+                 <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
+<div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
+ <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>) are both effectively for the same pod instance.</div>
+</td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-TaskInfo-java.lang.String-int-">isSamePodInstance</a></span>(TaskInfo&nbsp;taskInfo,
+                 java.lang.String&nbsp;type,
+                 int&nbsp;index)</code>
+<div class="block">Returns whether the provided <code>TaskInfo</code> is in the provided pod type and index.</div>
+</td>
+</tr>
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-TaskState-">isTerminal</a></span>(TaskState&nbsp;taskState)</code>
+<div class="block">Returns whether the provided <code>TaskState</code> has reached a terminal state.</div>
+</td>
+</tr>
+<tr id="i16" class="altColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-TaskStatus-">isTerminal</a></span>(TaskStatus&nbsp;taskStatus)</code>
+<div class="block">Returns whether the provided <code>TaskStatus</code> has reached a terminal state.</div>
+</td>
+</tr>
+<tr id="i17" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#needsRecovery-com.mesosphere.sdk.specification.TaskSpec-TaskStatus-">needsRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec,
              TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Determines whether a Task needs to eb reovered based on its current definition (TaskSpec) and status
  (TaskStatus).</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
-<td class="colFirst"><code>static TaskInfo.Builder</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#setGoalState-TaskInfo.Builder-com.mesosphere.sdk.specification.TaskSpec-">setGoalState</a></span>(TaskInfo.Builder&nbsp;taskInfoBuilder,
-            <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec)</code>
-<div class="block">Sets a label on a TaskInfo indicating the Task's <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>.</div>
-</td>
-</tr>
-<tr id="i14" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#toEnvName-java.lang.String-">toEnvName</a></span>(java.lang.String&nbsp;str)</code>
 <div class="block">Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase
  letters, and underscores.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#volumesEqual-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-">volumesEqual</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;first,
             <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;second)</code>
@@ -339,6 +366,40 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="isSamePodInstance-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isSamePodInstance</h4>
+<pre>public static&nbsp;boolean&nbsp;isSamePodInstance(TaskInfo&nbsp;taskInfo,
+                                        <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)
+                                 throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
+ <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>) are both effectively for the same pod instance.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="isSamePodInstance-TaskInfo-java.lang.String-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isSamePodInstance</h4>
+<pre>public static&nbsp;boolean&nbsp;isSamePodInstance(TaskInfo&nbsp;taskInfo,
+                                        java.lang.String&nbsp;type,
+                                        int&nbsp;index)
+                                 throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Returns whether the provided <code>TaskInfo</code> is in the provided pod type and index.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+</dl>
+</li>
+</ul>
 <a name="areDifferent-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-">
 <!--   -->
 </a>
@@ -370,24 +431,6 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>whether the volume lists are equal</dd>
-</dl>
-</li>
-</ul>
-<a name="setGoalState-TaskInfo.Builder-com.mesosphere.sdk.specification.TaskSpec-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setGoalState</h4>
-<pre>public static&nbsp;TaskInfo.Builder&nbsp;setGoalState(TaskInfo.Builder&nbsp;taskInfoBuilder,
-                                            <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec)</pre>
-<div class="block">Sets a label on a TaskInfo indicating the Task's <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskInfoBuilder</code> - The TaskInfo to be labeled.</dd>
-<dd><code>taskSpec</code> - The TaskSpec containing the goal state.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The labeled TaskInfo</dd>
 </dl>
 </li>
 </ul>
@@ -460,6 +503,36 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
 </dl>
+</li>
+</ul>
+<a name="isRecoveryNeeded-TaskStatus-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isRecoveryNeeded</h4>
+<pre>public static&nbsp;boolean&nbsp;isRecoveryNeeded(TaskStatus&nbsp;taskStatus)</pre>
+<div class="block">Returns whether the provided <code>TaskStatus</code> shows that the task needs to recover.</div>
+</li>
+</ul>
+<a name="isTerminal-TaskStatus-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isTerminal</h4>
+<pre>public static&nbsp;boolean&nbsp;isTerminal(TaskStatus&nbsp;taskStatus)</pre>
+<div class="block">Returns whether the provided <code>TaskStatus</code> has reached a terminal state.</div>
+</li>
+</ul>
+<a name="isTerminal-TaskState-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isTerminal</h4>
+<pre>public static&nbsp;boolean&nbsp;isTerminal(TaskState&nbsp;taskState)</pre>
+<div class="block">Returns whether the provided <code>TaskState</code> has reached a terminal state.</div>
 </li>
 </ul>
 <a name="needsRecovery-com.mesosphere.sdk.specification.TaskSpec-TaskStatus-">
