@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -22,9 +21,9 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.mockito.Mockito.*;
 
 /**
- * This class tests the HealthCheckHandler class.
+ * Tests for {@link CheckHandler}
  */
-public class HealthCheckHandlerTest {
+public class CheckHandlerTest {
 
     private static final double SHORT_INTERVAL_S = 0.001;
     private static final double SHORT_DELAY_S = 0.002;
@@ -32,7 +31,7 @@ public class HealthCheckHandlerTest {
     private static final double TIMEOUT_S = 456;
 
     private ScheduledExecutorService scheduledExecutorService;
-    @Mock private HealthCheckHandler.ProcessRunner mockProcessRunner;
+    @Mock private CheckHandler.ProcessRunner mockProcessRunner;
     @Mock private ExecutorDriver executorDriver;
     @Captor private ArgumentCaptor<Protos.TaskStatus> taskStatusCaptor;
     private Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
@@ -61,14 +60,15 @@ public class HealthCheckHandlerTest {
     @Test
     public void testSingleFailure() throws Exception {
         int maxConsecutiveFailures = 1;
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1);
 
@@ -90,14 +90,15 @@ public class HealthCheckHandlerTest {
     @Test
     public void testThriceFailure() throws Exception {
         int maxConsecutiveFailures = 3;
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1);
 
@@ -119,14 +120,15 @@ public class HealthCheckHandlerTest {
     @Test
     public void testSingleException() throws Exception {
         int maxConsecutiveFailures = 1;
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenThrow(new IllegalArgumentException("hello"));
 
@@ -148,14 +150,15 @@ public class HealthCheckHandlerTest {
     @Test
     public void testThriceException() throws Exception {
         int maxConsecutiveFailures = 3;
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenThrow(new IllegalArgumentException("hello"));
 
@@ -176,14 +179,15 @@ public class HealthCheckHandlerTest {
 
     @Test
     public void testSuccess() throws Exception {
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getHealthCheck(1),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
 
@@ -198,76 +202,81 @@ public class HealthCheckHandlerTest {
         verify(mockProcessRunner, atLeast((int)consecutiveSuccesses)).run(any(), eq(TIMEOUT_S));
     }
 
-    @Test(expected=HealthCheckHandler.HealthCheckValidationException.class)
-    public void testFailHasHealthCheckValidation() throws HealthCheckHandler.HealthCheckValidationException {
+    @Test(expected=CheckHandler.CheckValidationException.class)
+    public void testFailHasHealthCheckValidation() throws CheckHandler.CheckValidationException {
         Protos.TaskInfo taskInfo = getTask().toBuilder()
                 .clearHealthCheck()
                 .build();
 
-        HealthCheckHandler.create(
+        CheckHandler.create(
                 executorDriver,
                 taskInfo,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
-                new HealthCheckStats("test"));
+                new CheckStats("test"),
+                "test");
     }
 
-    @Test(expected=HealthCheckHandler.HealthCheckValidationException.class)
-    public void testFailHttpHealthCheckValidation() throws HealthCheckHandler.HealthCheckValidationException {
+    @Test(expected=CheckHandler.CheckValidationException.class)
+    public void testFailHttpHealthCheckValidation() throws CheckHandler.CheckValidationException {
         Protos.TaskInfo taskInfo = getTask().toBuilder()
                 .setHealthCheck(Protos.HealthCheck.newBuilder()
                         .setHttp(Protos.HealthCheck.HTTPCheckInfo.newBuilder().setPort(2))
                         .build())
                 .build();
 
-        HealthCheckHandler.create(
+        CheckHandler.create(
                 executorDriver,
                 taskInfo,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
-                new HealthCheckStats("test"));
+                new CheckStats("test"),
+                "test");
     }
 
-    @Test(expected=HealthCheckHandler.HealthCheckValidationException.class)
-    public void testFailNoCommandHealthCheckValidation() throws HealthCheckHandler.HealthCheckValidationException {
+    @Test(expected=CheckHandler.CheckValidationException.class)
+    public void testFailNoCommandHealthCheckValidation() throws CheckHandler.CheckValidationException {
         Protos.TaskInfo taskInfo = getTask().toBuilder()
                 .setHealthCheck(getHealthCheck(1).toBuilder().clearCommand())
                 .build();
 
-        HealthCheckHandler.create(
+        CheckHandler.create(
                 executorDriver,
                 taskInfo,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
-                new HealthCheckStats("test"));
+                new CheckStats("test"),
+                "test");
     }
 
-    @Test(expected=HealthCheckHandler.HealthCheckValidationException.class)
-    public void testFailNoShellHealthCheckValidation() throws HealthCheckHandler.HealthCheckValidationException {
+    @Test(expected=CheckHandler.CheckValidationException.class)
+    public void testFailNoShellHealthCheckValidation() throws CheckHandler.CheckValidationException {
         Protos.HealthCheck.Builder healthCheckBuilder = getHealthCheck(1).toBuilder();
         healthCheckBuilder.getCommandBuilder().setShell(false);
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(getTask())
                 .setHealthCheck(healthCheckBuilder)
                 .build();
 
-        HealthCheckHandler.create(
+        CheckHandler.create(
                 executorDriver,
                 taskInfo,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
-                new HealthCheckStats("test"));
+                new CheckStats("test"),
+                "test");
     }
 
     @Test
     public void testReadinessSuccess() throws Exception {
-        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
-        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+        CheckStats healthCheckStats = new CheckStats("test");
+        CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
                 mockProcessRunner,
                 getReadinessCheck(),
                 scheduledExecutorService,
-                healthCheckStats);
+                healthCheckStats,
+                "test");
 
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
 
@@ -285,7 +294,7 @@ public class HealthCheckHandlerTest {
         verify(executorDriver, atLeastOnce()).sendStatusUpdate(taskStatusCaptor.capture());
         String readinessCheckKey = taskStatusCaptor.getValue().getLabels().getLabels(0).getKey();
         String readinessCheckValue = taskStatusCaptor.getValue().getLabels().getLabels(0).getValue();
-        Assert.assertEquals(Constants.READINESS_CHECK_PASSED_LABEL, readinessCheckKey);
+        Assert.assertEquals("readiness_check_passed", readinessCheckKey);
         Assert.assertEquals("true", readinessCheckValue);
     }
 

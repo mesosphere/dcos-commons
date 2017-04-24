@@ -168,7 +168,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
                     state = taskStatusOptional.get().getState();
                 }
 
-                if (!CommonTaskUtils.isTerminal(state)) {
+                if (!TaskUtils.isTerminal(state)) {
                     taskKiller.killTask(taskInfo.getTaskId(), false);
                 }
             }

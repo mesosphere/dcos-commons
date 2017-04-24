@@ -68,7 +68,7 @@
 
 1. __Enterprise DC/OS Role Based Access Control (RBAC) Integration__: With the Enterprise DC/OS Roles Based Access Control feature, ACLs are applied to Marathon folders to control access.
 
-1. __Enterprise DC/OS Service Account Configuration__: Wrap the [process](https://docs.mesosphere.com/latest/administration/id-and-access-mgt/service-auth/custom-service-auth) of configuring an Enterprise DC/OS Service Account.
+1. __Enterprise DC/OS Service Account Configuration__: Wrap the [process](https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/) of configuring an Enterprise DC/OS Service Account.
 
 1. __Scheduler and Executor Metrics__: Instrument the default scheduler and executor to send performance / health / usage metrics for monitoring and troubleshooting via [DC/OS Metrics](https://github.com/dcos/dcos-metrics).
 

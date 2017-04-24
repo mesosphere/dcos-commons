@@ -2,7 +2,7 @@ package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -37,8 +37,10 @@ public class EndpointsResourceTest {
     private static final TaskInfo TASK_WITH_VIPS_2;
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
-        CommonTaskUtils.setHostname(builder, OfferTestUtils.getOffer(Collections.emptyList()));
-        CommonTaskUtils.setType(builder, "some-task-type");
+        builder.setLabels(new SchedulerLabelWriter(builder)
+                .setHostname(OfferTestUtils.getOffer(Collections.emptyList()))
+                .setType("some-task-type")
+                .toProto());
         TASK_WITH_METADATA = builder.build();
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-ports-1");

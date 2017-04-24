@@ -8,7 +8,7 @@ enterprise: 'no'
 1. Perform a default installation of HDFS by following the instructions in the Install and Customize section of this topic.
   **Note:** Your cluster must have a minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
 
-1. [SSH into a DC/OS node](https://docs.mesosphere.com/1.9/administration/sshcluster/).
+1. [SSH into a DC/OS node](https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/).
 
     ```bash
     $ dcos node ssh --leader --master-proxy

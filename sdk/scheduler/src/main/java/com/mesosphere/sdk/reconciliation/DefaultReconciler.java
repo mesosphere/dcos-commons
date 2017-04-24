@@ -7,7 +7,7 @@ import com.google.inject.Singleton;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class DefaultReconciler implements Reconciler {
 
         synchronized (unreconciled) {
             for (TaskStatus status : taskStatuses) {
-                if (!CommonTaskUtils.isTerminal(status)) {
+                if (!TaskUtils.isTerminal(status)) {
                     unreconciled.put(status.getTaskId().getValue(), status);
                 }
             }

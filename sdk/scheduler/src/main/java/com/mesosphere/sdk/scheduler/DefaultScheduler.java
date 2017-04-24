@@ -854,7 +854,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
                     if (status.getState().equals(Protos.TaskState.TASK_RUNNING)
                             || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
-                        String taskName = CommonTaskUtils.toTaskName(status.getTaskId());
+                        String taskName = CommonIdUtils.toTaskName(status.getTaskId());
                         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
                         if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
                             stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));

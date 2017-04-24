@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.offer.taskdata;
 
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Value.Type;
