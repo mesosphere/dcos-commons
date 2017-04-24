@@ -2,7 +2,7 @@ This template README may be used as a starting point for writing a Service Guide
 
 In particular, the parts in _ALL-CAPS ITALICS_ should be updated to reflect your service.
 
-Many sections are left unfilled as they depend on how your service works. For example, we leave empty sections for you to describe how users may [Disaster Recovery](#disaster-recovery), because most persistent services support Disaster Recovery.
+Many sections are left unfilled as they depend on how your service works. For example, we leave empty sections for you to describe how users may perform [Disaster Recovery](#disaster-recovery), because most persistent services support Disaster Recovery.
 
 ---
 
