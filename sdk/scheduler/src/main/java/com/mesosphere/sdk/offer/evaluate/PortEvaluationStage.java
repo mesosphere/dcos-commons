@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -93,19 +96,13 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 LOGGER.info("Health check is not defined for task: {}", taskName);
             }
 
-            // Add port to the readiness check (if defined)
+            // Add port to the readiness check (if a readiness check is defined)
             try {
-                Optional<Protos.HealthCheck> readinessCheck = CommonTaskUtils.getReadinessCheck(taskBuilder.build());
-                if (readinessCheck.isPresent()) {
-                    Protos.HealthCheck.Builder readinessCheckWithPortBuilder =
-                            Protos.HealthCheck.newBuilder(readinessCheck.get());
-                    setPortEnvironmentVariable(readinessCheckWithPortBuilder.getCommandBuilder(), port);
-                    CommonTaskUtils.setReadinessCheck(taskBuilder, readinessCheckWithPortBuilder.build());
-                } else {
-                    LOGGER.info("Readiness check is not defined for task: {}", taskName);
-                }
+                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(), Long.toString(port))
+                        .toProto());
             } catch (TaskException e) {
-                LOGGER.error("Got exception while adding PORT env vars to ReadinessCheck", e);
+                LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
             resourceBuilder = ResourceUtils.getResourceBuilder(taskBuilder, resource);
         } else {
@@ -174,7 +171,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private String getPortEnvironmentVariable() {
         String draftEnvName = customEnvKey.isPresent()
                 ? customEnvKey.get() // use custom name as-is
-                : Constants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
+                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return TaskUtils.toEnvName(draftEnvName);
     }

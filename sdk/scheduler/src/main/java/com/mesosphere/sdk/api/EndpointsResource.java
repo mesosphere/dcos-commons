@@ -9,9 +9,9 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -153,7 +153,7 @@ public class EndpointsResource {
                     : taskInfo.getName(),
                     serviceName);
             // Hostname of agent at offer time:
-            String nativeHost = CommonTaskUtils.getHostname(taskInfo);
+            String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
 
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
@@ -218,7 +218,7 @@ public class EndpointsResource {
 
         if (!foundAnyVips) {
             // No VIPs found for this port. file direct host:port against task type.
-            final String taskType = CommonTaskUtils.getType(taskInfo);
+            final String taskType = new SchedulerLabelReader(taskInfo).getType();
 
             JSONObject taskEndpoint = endpointsByName.get(taskType);
             if (taskEndpoint == null) {

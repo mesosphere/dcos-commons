@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.ArrayList;
 import java.util.Arrays;

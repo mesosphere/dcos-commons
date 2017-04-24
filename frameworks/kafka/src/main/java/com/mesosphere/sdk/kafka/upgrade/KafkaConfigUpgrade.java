@@ -7,9 +7,9 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
@@ -121,7 +121,7 @@ public class KafkaConfigUpgrade {
                 continue;
             }
             try {
-                taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
+                taskConfigId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
                 LOGGER.error("Unable to extract configuration id from task {}: {}  error: {}",
                         taskInfo.getName(), TextFormat.shortDebugString(taskInfo), e.getMessage());
@@ -280,11 +280,12 @@ public class KafkaConfigUpgrade {
 
             Protos.TaskInfo.Builder taskInfoBuilder = oldTaskInfo.get().toBuilder();
             taskInfoBuilder.setName(newName);
-            taskInfoBuilder = CommonTaskUtils.setIndex(taskInfoBuilder, brokerId);
-            taskInfoBuilder = CommonTaskUtils.setType(taskInfoBuilder, "kafka");
-            taskInfoBuilder = TaskUtils.setGoalState(taskInfoBuilder,
-                    newServiceSpec.getPods().get(0).getTasks().get(0));
-            taskInfoBuilder = CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, newTargetId);
+            taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+                    .setIndex(brokerId)
+                    .setType("kafka")
+                    .setGoalState(newServiceSpec.getPods().get(0).getTasks().get(0).getGoal())
+                    .setTargetConfiguration(newTargetId)
+                    .toProto());
 
             List<Protos.Resource> resourcesList = new ArrayList<>();
             for (Protos.Resource resource : oldTaskInfo.get().getResourcesList()) {

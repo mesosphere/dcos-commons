@@ -16,7 +16,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Value;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.AttributeStringUtils;
+import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 
 /**
  * Tests for {@link AttributeRule}.
