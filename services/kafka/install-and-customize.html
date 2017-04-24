@@ -183,9 +183,9 @@
 <h2 id="prerequisites"><a name="install-enterprise"></a>Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/service-docs/kafka/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
-      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
@@ -209,7 +209,7 @@
 </code></pre>
 </div>
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/1.9/usage/managing-services/install/">install Kafka from the DC/OS web interface</a>. If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/1.9/deploying-services/install/">install Kafka from the DC/OS web interface</a>. If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install kafka --cli
 </code></pre>
@@ -266,7 +266,7 @@
 </code></pre>
 </div>
 
-<p>See <a href="https://docs.mesosphere.com/1.9/usage/service-guides/kafka/configure#configuration-options">Configuration Options</a> for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.</p>
+<p>See <a href="https://docs.mesosphere.com/service-docs/kafka/configure/#configuration-options">Configuration Options</a> for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.</p>
 
 <h1 id="multiple-kafka-cluster-installation">Multiple Kafka cluster installation</h1>
 

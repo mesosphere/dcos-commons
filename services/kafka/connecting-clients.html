@@ -209,7 +209,7 @@
 
 <h2 id="user-token-authentication">User token authentication</h2>
 
-<p>DC/OS Enterprise Edition comes with support for <a href="https://docs.mesosphere.com/1.8/administration/id-and-access-mgt/">user ACLs</a>. To interact with the Kafka REST API you must first retrieve an auth token from the <a href="https://docs.mesosphere.com/1.8/administration/id-and-access-mgt/iam-api/">auth HTTP endpoint</a>, then provide this token in following requests.</p>
+<p>DC/OS Enterprise Edition comes with support for <a href="https://docs.mesosphere.com/1.9/security/users-groups/">user ACLs</a>. To interact with the Kafka REST API you must first retrieve an auth token from the <a href="https://docs.mesosphere.com/1.9/security/iam-api/">auth HTTP endpoint</a>, then provide this token in following requests.</p>
 
 <p>First, we retrieve <code class="highlighter-rouge">uSeR_t0k3n</code> with our user credentials and store the token as an environment variable:</p>
 
@@ -249,7 +249,7 @@ export auth_token=uSeR_t0k3n
     “vip”: “broker.kafka.l4lb.thisdcos.directory:9092”
   }</p>
 
-<p>This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. <a href="https://docs.mesosphere.com/1.8/usage/service-discovery/">Learn more about load balancing and VIPs in DC/OS</a>.</p>
+<p>This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. <a href="https://docs.mesosphere.com/1.9/networking/">Learn more about load balancing and VIPs in DC/OS</a>.</p>
 
 <h1 id="configuring-the-kafka-client-library">Configuring the Kafka Client Library</h1>
 
