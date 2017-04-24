@@ -129,14 +129,18 @@ public class ExecutorRequirement {
             if (!executorName.equals(executorInfo.getName())) {
                 throw new InvalidRequirementException(String.format(
                         "When non-empty, ExecutorInfo.id must align with ExecutorInfo.name. Use "
-                        + "ExecutorUtils.toExecutorId(): %s", executorInfo));
+                        + "CommonIdUtils.toExecutorId(): %s", executorInfo));
             }
         }
     }
 
+    public boolean isRunningExecutor() {
+        return executorInfo.hasExecutorId() && !StringUtils.isEmpty(executorInfo.getExecutorId().getValue());
+    }
+
     public OfferEvaluationStage getEvaluationStage() {
         Protos.ExecutorID executorID = null;
-        if (ExecutorUtils.hasExecutorId(getExecutorInfo())) {
+        if (isRunningExecutor()) {
             executorID = getExecutorInfo().getExecutorId();
         }
 

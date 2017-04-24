@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.executor.ExecutorUtils;
 import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
@@ -34,7 +33,7 @@ public class PodInfoBuilder {
         // If this executor is already running, we won't be claiming any new resources for it, and we want to make sure
         // to provide an identical ExecutorInfo to Mesos for any other tasks that are going to launch in this pod.
         // So don't clear the resources on the existing protobuf, we're just going to pass it as is.
-        if (executorBuilder != null && !ExecutorUtils.hasExecutorId(executorRequirement.get().getExecutorInfo())) {
+        if (executorBuilder != null && !executorRequirement.get().isRunningExecutor()) {
             clearResources(executorBuilder);
         }
     }
