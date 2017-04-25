@@ -22,7 +22,7 @@ public class PlanSummaryInfo {
     }
 
     @JsonCreator
-    public PlanSummaryInfo(
+    private PlanSummaryInfo(
             @JsonProperty("name") final String name,
             @JsonProperty("status") final Status status,
             @JsonProperty("message") final String msg) {

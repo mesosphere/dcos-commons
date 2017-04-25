@@ -6,7 +6,6 @@ import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -16,11 +15,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
-import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.*;
 
 /**
  * API for management of Plan(s).
@@ -48,39 +46,54 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     /**
-     * Returns a summary of all plans.
-     */
-    @GET
-    @Path("/plan-summary")
-    public Response getPlanSummary() {
-        List<PlanSummaryInfo> planSummaries = planCoordinator.getPlanManagers().stream()
-                .map(planManager -> planManager.getPlan())
-                .map(plan -> PlanSummaryInfo.forPlan(plan))
-                .collect(Collectors.toList());
-
-        long incompletePlanCount = planSummaries.stream()
-                .filter(planSummaryInfo -> !planSummaryInfo.getStatus().equals(Status.COMPLETE))
-                .count();
-
-        Response.Status status = incompletePlanCount == 0 ? Response.Status.OK : Response.Status.ACCEPTED;
-
-        return jsonResponseBean(planSummaries, status);
-    }
-
-    /**
      * Returns a full list of the {@link Plan}'s contents (incl all {@link Phase}s/{@link Step}s).
      */
     @GET
     @Path("/plans/{planName}")
-    public Response getPlanInfo(@PathParam("planName") String planName) {
+    public Response getPlanInfo(
+            @PathParam("planName") String planName,
+            @QueryParam("view") String view) {
+        if (view == null) {
+            view = "";
+        }
+
+        if (planName.equalsIgnoreCase("all")) {
+            return getAllPlanInfos(view);
+        }
+
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
             return jsonResponseBean(
-                    PlanInfo.forPlan(plan),
+                    getPlanInfoView(plan, view),
                     plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
+        }
+    }
+
+    private Response getAllPlanInfos(String view) {
+        Map<String, Object> planInfos = new HashMap<>();
+        List<Plan> plans = planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan())
+                .collect(Collectors.toList());
+
+        for (Plan plan : plans) {
+            planInfos.put(plan.getName(), getPlanInfoView(plan, view));
+        }
+
+        return Response
+                .ok(planInfos, MediaType.APPLICATION_JSON)
+                .entity(planInfos)
+                .build();
+    }
+
+    private Object getPlanInfoView(Plan plan, String view) {
+        switch (view) {
+            case "summary":
+                return PlanSummaryInfo.forPlan(plan);
+            default:
+                return PlanInfo.forPlan(plan);
         }
     }
 
@@ -232,7 +245,7 @@ public class PlansResource extends PrettyJsonResource {
     @Deprecated
     @Path("/plan")
     public Response getFullInfo() {
-        return getPlanInfo("deploy");
+        return getPlanInfo("deploy", "");
     }
 
     @POST
