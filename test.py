@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import os
-import sys
 
 import argparse
 import logging
+import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -19,6 +19,7 @@ sys.path.append(os.path.join(get_repo_root(), 'tools'))
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
+import junit_write
 
 
 work_dir = None
@@ -563,65 +564,15 @@ def run_test(framework, cluster, repo_root):
         logger.info(msg, runtests_script, framework.name)
         raise CommandFailure(cmd_args)
 
-def setup_junit_xml():
-    """Try to download and import junit_xml"""
-    workdir = get_work_dir()
-    lib_dir = os.path.join(workdir, 'lib', 'python')
-    pip_cmd = ['pip', 'install', 'junit-xml', '-t', lib_dir]
-    subprocess.check_call(pip_cmd)
-    sys.path.append(lib_dir)
-    import junit_xml
-
-def emit_junit_xml(cluster_launch_attempts, frameworks):
-    """Write out all the test actions failures to a junit file for jenkins or
-    similar"""
-    import junit_xml
-    launch_fake_testcases = []
-    for launch_attempt in cluster_launch_attempts:
-        attempt_duration = launch_attempt.end_time - launch_attempt.start_time
-        fake_test = junit_xml.TestCase(launch_attempt.name,
-                                       elapsed_sec=attempt_duration)
-        if launch_attempt.launch_succeeded:
-            fake_test.stdout = "Launch worked"
-        else:
-            fake_test.add_failure_info("Launch failed")
-        launch_fake_testcases.append(fake_test)
-
-    launch_suite = junit_xml.TestSuite("Cluster launches",
-            launch_fake_testcases)
-
-    fake_suites = []
-    fake_suites.append(launch_suite)
-    for framework in frameworks:
-        framework_testcases = []
-        for action_name, action in framework.actions.items():
-            action_duration = action['finish'] - action['start']
-            fake_test = junit_xml.TestCase(action_name,
-                                           elapsed_sec=action_duration,
-                                           stdout = action['stdout'],
-                                           stderr = action['stderr'])
-            if not action['ok']:
-                message = action['error_message']
-                if not message:
-                    message = "%s failed" % action_name
-                fake_test.add_failure_info(message, action['error_output'])
-            framework_testcases.append(fake_test)
-        framework_suite = junit_xml.TestSuite("%s actions" % framework.name,
-                framework_testcases)
-        fake_suites.append(framework_suite)
-
-    with open("junit_testpy.xml", "w") as f:
-        junit_xml.TestSuite.to_file(f, fake_suites)
-
 
 def report_failed_actions():
     """Do useful things with the recorded successful and failed actions"""
     # These are our data sources
     cluster_launch_attempts = clustinfo.get_launch_attempts()
     frameworks = fwinfo.get_frameworks()
-    if 'junit_xml' in sys.modules:
-        emit_junit_xml(cluster_launch_attempts, frameworks)
-    # maybe log them to the terminal as well? (this is at the end)
+    junit_write.emit_junit_xml(cluster_launch_attempts, frameworks)
+    # maybe log them to the terminal as well?
+
 
 def main():
     run_attrs = parse_args()
@@ -631,11 +582,10 @@ def main():
         logger.error("Aborting run.")
         return False
 
-    try:
-        setup_junit_xml()
-    except Exception as e:
-        logging.exception("Failed to load junit_xml; no templated success/fail"
-                          "actions will be reported to jenkins.")
+    lib_dir = os.path.join(get_work_dir(), 'lib', 'python')
+    if not junit_write.setup(lib_dir):
+        logging.error("Failed to load junit_xml; no templated success/fail"
+                      "actions will be reported to jenkins.")
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
