@@ -398,7 +398,7 @@ Neither volume type nor volume size requirements may be changed after initial de
 
 ## Rack-aware Replication
 
-Rack placement and awareness is not support at this time.
+Rack placement and awareness are not supported at this time.
 
 ## Removing a Node
 
