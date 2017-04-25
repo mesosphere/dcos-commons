@@ -15,7 +15,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.*;
@@ -78,12 +77,17 @@ public class PlansResource extends PrettyJsonResource {
                 .map(planManager -> planManager.getPlan())
                 .collect(Collectors.toList());
 
+        boolean complete = true;
         for (Plan plan : plans) {
             planInfos.put(plan.getName(), getPlanInfoView(plan, view));
+            if (!plan.isComplete()) {
+                complete = false;
+            }
         }
 
+        Response.Status status = complete ? Response.Status.OK : Response.Status.ACCEPTED;
         return Response
-                .ok(planInfos, MediaType.APPLICATION_JSON)
+                .status(status)
                 .entity(planInfos)
                 .build();
     }
