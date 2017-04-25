@@ -80,7 +80,7 @@ They store the desired configuration of a service and all relevant information r
 
    Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
 
-1. Build a [package](#packaging).
+1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
 
    ```bash
    $ ./build.sh aws
