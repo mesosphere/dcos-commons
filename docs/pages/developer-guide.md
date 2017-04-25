@@ -14,7 +14,7 @@ This developer guide explains how to create a stateful DC/OS service using the D
 
 # DC/OS Component Overview
 
-The four major components are Mesos, Marathon, Universe, and Zookeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
+The four major components are Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
 
 ## Mesos
 
@@ -36,13 +36,15 @@ A package specification provides a uniform way to define Marathon applications. 
 
 Every DC/OS service must provide a package definition in the format expected by the Universe. [Learn more about creating Universe packages](https://github.com/mesosphere/universe).
 
-## Zookeeper
+## ZooKeeper
 
-Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.
+Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. ZooKeeper provides persistent storage for this information.
 
-Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
+Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
-They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
+They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
+
+# Pre-requisites
 
 # Getting Started
 
@@ -81,7 +83,7 @@ They store the desired configuration of a service and all relevant information r
 
 1. Install your package.
 
-   `build.sh` prints instructions for installing the package.  They will look something like this:
+   `build.sh` prints instructions for installing the package. Make sure you've [installed](https://docs.mesosphere.com/1.9/cli/install/) and [configured](https://docs.mesosphere.com/1.9/cli/configure/) the DC/OS CLI to point to your cluster. The output commands will look something like this:
 
    ```bash
    $ dcos package repo remove myframework-aws
@@ -89,7 +91,7 @@ They store the desired configuration of a service and all relevant information r
    $ dcos package install --yes myframework
    ```
 
-   Navigate to the DC/OS Services UI to view the deployment.
+   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/1.9/gui/#services) to view the deployment.
 
 1. Uninstall your package.
 
@@ -98,8 +100,11 @@ They store the desired configuration of a service and all relevant information r
    $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
    ```
 
-   The second command above runs the **janitor** script.  The janitor script runs inside the DC/OS cluster, cleaning up Zookeeper state and resource reservations made by a framework.  DC/OS will soon support uninstall hooks so this can happen automatically, but for now, you must manually run the janitor script as shown above.
-
+   The second command above runs the **janitor** script.  The janitor
+   script runs inside the DC/OS cluster, cleaning up ZooKeeper state
+   and resource reservations made by a framework.  DC/OS will soon
+   support uninstall hooks so this can happen automatically, but for
+   now, you must manually run the janitor script as shown above.
 
 # Introduction to DC/OS Service Definitions
 
