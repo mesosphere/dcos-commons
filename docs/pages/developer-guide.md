@@ -46,14 +46,21 @@ They store the desired configuration of a service and all relevant information r
 
 # Pre-requisites
 
-# Getting Started
-
-1. Check out dcos-commmons.
+1. dcos-commmons should be checked out locally on your machine.
 
   ```bash
   $ git clone git@github.com:mesosphere/dcos-commons.git
   $ cd dcos-commons
   ```
+
+1. Access to a DC/OS 1.8 (or newer) cluster.
+
+1. The DC/OS CLI [installed](https://docs.mesosphere.com/1.9/cli/install/) and [configured](https://docs.mesosphere.com/1.9/cli/configure/) to point to your cluster.
+
+1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
+
+# Getting Started
+
 
 1. Create your framework.
 
@@ -83,7 +90,7 @@ They store the desired configuration of a service and all relevant information r
 
 1. Install your package.
 
-   `build.sh` prints instructions for installing the package. Make sure you've [installed](https://docs.mesosphere.com/1.9/cli/install/) and [configured](https://docs.mesosphere.com/1.9/cli/configure/) the DC/OS CLI to point to your cluster. The output commands will look something like this:
+   `build.sh` prints instructions for installing the package that look something like this:
 
    ```bash
    $ dcos package repo remove myframework-aws
