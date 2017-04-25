@@ -89,7 +89,7 @@ def _mark_executable(path):
 
 def install_cli_from_dir(src_dir, write_dir):
     src_file = os.path.join(src_dir, get_cli_filename())
-    install_cli(src_file, write_dir)
+    return install_cli(src_file, write_dir)
 
 
 def install_cli(src_file, write_dir):

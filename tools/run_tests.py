@@ -60,7 +60,7 @@ class CITester(object):
         if not local_path:
             src_tmpdir = os.environ.get('TESTRUN_TEMPDIR')
             if src_tmpdir:
-                cli_install.install_cli_from_dir(src_tmpdir, self._sandbox_path)
+                return cli_install.install_cli_from_dir(src_tmpdir, self._sandbox_path)
         if local_path:
             cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
