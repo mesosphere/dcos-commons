@@ -84,6 +84,13 @@ def activate_venv(path):
             sys.path.remove(item)
     sys.path[:0] = new_sys_path
 
+
+def pip_install_module(path, modulename):
+    """Populate a venv with specific module"""
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', modulename])
+
+
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"
     pip_bin = os.path.join(path, 'bin', 'pip')
