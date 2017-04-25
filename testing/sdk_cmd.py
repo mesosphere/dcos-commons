@@ -14,7 +14,7 @@ def request(method, url, retry=True, **kwargs):
         response.raise_for_status()
         return response
     if retry:
-        return sdk_spin.time_wait_return(lambda: fn())
+        return shakedown.wait_while_exceptions(lambda: fn())
     else:
         return fn()
 
