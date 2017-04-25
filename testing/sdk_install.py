@@ -4,6 +4,7 @@ import collections
 import dcos.errors
 import dcos.marathon
 import sdk_api
+import sdk_plan
 import sdk_spin
 import sdk_tasks
 import sdk_utils
@@ -39,6 +40,7 @@ def install(
     # 2. wait for expected tasks to come up
     sdk_utils.out("Waiting for expected tasks to come up...")
     sdk_tasks.check_running(service_name, running_task_count)
+    sdk_plan.wait_for_completed_deployment(service_name)
 
     # 3. check service health
     marathon_client = dcos.marathon.create_client()

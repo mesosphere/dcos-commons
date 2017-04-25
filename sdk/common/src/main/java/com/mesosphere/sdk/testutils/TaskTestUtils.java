@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.Constants;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -25,9 +23,8 @@ public class TaskTestUtils {
                 .setName(TestConstants.TASK_NAME)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setCommand(TestConstants.COMMAND_INFO)
-                .setContainer(TestConstants.CONTAINER_INFO);
-        builder = CommonTaskUtils.setType(builder, TestConstants.TASK_TYPE);
-        builder = CommonTaskUtils.setIndex(builder, index);
+                .setContainer(TestConstants.CONTAINER_INFO)
+                .setLabels(TestConstants.getRequiredTaskLabels(index));
         for (Protos.Resource r : resources) {
             String resourceId = "";
             String dynamicPortAssignment = null;
@@ -42,7 +39,7 @@ public class TaskTestUtils {
                 }
             }
 
-            if (Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
+            if (Objects.equals(r.getName(), "ports")) {
                 String portValue = dynamicPortAssignment == null ?
                         Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
 

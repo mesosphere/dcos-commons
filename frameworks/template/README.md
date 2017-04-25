@@ -86,17 +86,16 @@ _BRIEF OVERVIEW OF YOUR PRODUCT_
 # Quick Start
 
 1. Get a DC/OS cluster. If you don't have one yet, head over to [DC/OS Docs](https://dcos.io/docs/latest) for instructions.
-2. Install the Service in your DC/OS cluster, either via the [DC/OS Dashboard](https://docs.mesosphere.com/latest/usage/webinterface/) or via the [DC/OS CLI](https://docs.mesosphere.com/latest/usage/cli/) as shown here:
-``` shell
-$ dcos config set core.dcos_url http://yourcluster.com
-$ dcos config set core.ssl_verify False # optional
-$ dcos auth login
-```
+
+1. Install the Service in your DC/OS cluster, either via the [DC/OS Dashboard](https://docs.mesosphere.com/1.9/gui/) or via the [DC/OS CLI](https://docs.mesosphere.com/1.9/cli/) as shown here:
+
 ``` shell
 $ dcos package install _PKGNAME_
 ```
-3. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
-4. Now you are ready to connect a client to the service...
+
+1. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
+
+1. Now you are ready to connect a client to the service...
 ``` shell
 $ dcos _PKGNAME_ endpoints
 [
@@ -110,8 +109,8 @@ $ dcos _PKGNAME_ endpoints _ENDPOINT_
   "dns": ["_POD_-0._PKGNAME_.mesos:_PORT_", "_POD_-1._PKGNAME_.mesos:_PORT_", "_POD_-2._PKGNAME_.mesos:_PORT_]
 }
 ```
-5. _SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATE, READ DATA)._
-.
+1. _SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATE, READ DATA)._
+
 <a name="installing-and-customizing"></a>
 # Installing and Customizing
 
@@ -129,7 +128,7 @@ A custom configuration may be specified in an `options.json` file and passed to 
 $ dcos package install _PKGNAME_ --options=options.json
 ```
 
-For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/) for service configuration access.
+For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/config-universe-service/) for service configuration access.
 
 ## Installation from Web
 
@@ -190,7 +189,7 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://docs.mesosphere.com/1.9/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
 - _LIST ANY VOLUMES THAT SHOULD USE DEDICATED SPINDLES IN A PRODUCTION ENVIRONMENT FOR YOUR SERVICE_
 
 ### Placement Constraints
@@ -223,7 +222,7 @@ _E.G., IF YOUR SERVICE SUPPORTS ENABLING/DISABLING CERTAIN COMPONENTS, THIS MAY 
 Follow these steps to uninstall the service.
 
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner).
 
 To uninstall an instance named `_PKGNAME_` (the default), run:
 ``` shell

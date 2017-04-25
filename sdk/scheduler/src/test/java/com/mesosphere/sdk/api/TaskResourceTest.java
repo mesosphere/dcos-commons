@@ -2,7 +2,7 @@ package com.mesosphere.sdk.api;
 
 import org.apache.mesos.Protos.*;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
@@ -79,7 +79,7 @@ public class TaskResourceTest {
     @Test
     public void testGetTaskStatus() {
         String taskName = "task1";
-        TaskID taskId = CommonTaskUtils.toTaskId(taskName);
+        TaskID taskId = CommonIdUtils.toTaskId(taskName);
         TaskStatus taskStatus = TaskStatus.newBuilder()
                 .setState(TaskState.TASK_KILLING)
                 .setTaskId(taskId)
@@ -174,7 +174,7 @@ public class TaskResourceTest {
     private static TaskInfo.Builder getTaskInfoBuilder(String taskName) {
         return TaskInfo.newBuilder()
                 .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
     }
 }

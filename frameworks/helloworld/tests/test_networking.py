@@ -31,6 +31,7 @@ def teardown_module(module):
 @pytest.mark.smoke
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     utils.out("deployment_plan: " + str(deployment_plan))
 
@@ -52,5 +53,4 @@ def test_joins_overlay_network():
 
     The logic for this is in the task itself, which will check the container IP address
     and fail if incorrect, thus preventing the plan from reaching the COMPLETE state."""
-    spin.time_wait_noisy(lambda: (
-        plan.get_deployment_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))
+    plan.wait_for_completed_deployment(PACKAGE_NAME)

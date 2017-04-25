@@ -12,11 +12,10 @@ complete with
 persistent volumes, fault tolerance, and configuration management in
 about 100 lines of code.  This SDK is the product of Mesosphere's
 experience writing production stateful services such as [DC/OS Apache
-Kafka](https://docs.mesosphere.com/latest/usage/service-guides/kafka/)
+Kafka](https://docs.mesosphere.com/service-docs/kafka/)
 , [DC/OS Apache
-Cassandra](https://docs.mesosphere.com/latest/usage/service-guides/
-cassandra/), and [DC/OS Apache
-HDFS](https://docs.mesosphere.com/latest/usage/service-guides/hdfs/).
+Cassandra](https://docs.mesosphere.com/service-docs/cassandra/), and [DC/OS Apache
+HDFS](https://docs.mesosphere.com/service-docs/hdfs/).
 
 Read about the [features](#Features-at-a-glance) to learn more about
 the DC/OS Stateful Service SDK.
@@ -270,7 +269,7 @@ a DC/OS cluster.
 ## Install the DC/OS CLI
 
 If you have not already installed the CLI, do so by following [these
-instructions](https://dcos.io/docs/latest/usage/cli/install/).
+instructions](https://dcos.io/docs/1.9/cli/install/).
 
 ## Install
 
@@ -670,8 +669,7 @@ The `stdout` and `stderr` streams for all tasks running in Mesos,
 including the scheduler and executors, are captured and written to
 files in that task's sandbox. You can view these files from the
 **Services** tab of the DC/OS UI or from the CLI. [Learn
-more](https://docs.mesosphere.com/1.8/administration/logging/service-
-logs/).
+more](https://docs.mesosphere.com/1.9/monitoring/logging/).
 
 All code in `dcos-commons`, including the `DefaultScheduler`, uses
 `slf4j` to write logs to `stderr`.  To write your own logging code,
@@ -809,8 +807,7 @@ In a DC/OS Enterprise Edition cluster running in strict security mode,
 all schedulers must authenticate with the Mesos master using DC/OS
 service accounts.  For instructions on creating a service account,
 read
-[this][https://docs.mesosphere.com/1.8/administration/id-and-access-
-mgt/service-auth/]
+[this][https://docs.mesosphere.com/1.9/security/service-auth/]
 
 Mesos schedulers authenticate to the master by providing a `principal`
 and `secret`.  In DC/OS, the `principal` must be the DC/OS Service
@@ -852,8 +849,7 @@ curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
 
 To learn more about DC/OS Authentication, visit the
 [Managing
-Authentication](https://dcos.io/docs/1.8/administration/id-and-access-
-mgt/managing-authentication/)
+Authentication](https://dcos.io/docs/1.9/security/managing-authentication/
 section of the DC/OS documentation.
 
 The second way to access the HTTP API is from clients running inside

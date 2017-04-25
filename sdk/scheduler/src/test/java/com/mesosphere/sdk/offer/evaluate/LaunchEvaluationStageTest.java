@@ -24,20 +24,22 @@ public class LaunchEvaluationStageTest {
         Assert.assertTrue(outcome.isPassing());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
+        // labels are sorted alphabetically (see LabelUtils):
+
         Protos.Label label = taskBuilder.getLabels().getLabels(0);
-        Assert.assertEquals(label.getKey(), "offer_attributes");
-        Assert.assertEquals(label.getValue(), "");
-
-        label = taskBuilder.getLabels().getLabels(1);
-        Assert.assertEquals(label.getKey(), "task_type");
-        Assert.assertEquals(label.getValue(), TestConstants.TASK_TYPE);
-
-        label = taskBuilder.getLabels().getLabels(2);
         Assert.assertEquals(label.getKey(), "index");
         Assert.assertEquals(label.getValue(), Integer.toString(TestConstants.TASK_INDEX));
 
-        label = taskBuilder.getLabels().getLabels(3);
+        label = taskBuilder.getLabels().getLabels(1);
+        Assert.assertEquals(label.getKey(), "offer_attributes");
+        Assert.assertEquals(label.getValue(), "");
+
+        label = taskBuilder.getLabels().getLabels(2);
         Assert.assertEquals(label.getKey(), "offer_hostname");
         Assert.assertEquals(label.getValue(), TestConstants.HOSTNAME);
+
+        label = taskBuilder.getLabels().getLabels(3);
+        Assert.assertEquals(label.getKey(), "task_type");
+        Assert.assertEquals(label.getValue(), TestConstants.TASK_TYPE);
     }
 }

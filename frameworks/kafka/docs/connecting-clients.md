@@ -67,7 +67,7 @@ The response, for both the CLI and the REST API is as below.
     "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
   }
 
-This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.8/usage/service-discovery/).
+This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.9/networking/).
 
 # Configuring the Kafka Client Library
 
@@ -174,5 +174,5 @@ The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-co
     root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/kafka --topic topic1 --from-beginning
     Hello, World.
 
- [13]: https://docs.mesosphere.com/1.8/administration/id-and-access-mgt/
- [14]: https://docs.mesosphere.com/1.8/administration/id-and-access-mgt/iam-api/
+ [13]: https://docs.mesosphere.com/1.9/security/users-groups/
+ [14]: https://docs.mesosphere.com/1.9/security/iam-api/

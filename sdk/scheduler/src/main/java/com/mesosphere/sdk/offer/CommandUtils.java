@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.specification.CommandSpec;
 import org.apache.mesos.Protos;
 
@@ -19,9 +20,9 @@ public class CommandUtils {
             Protos.CommandInfo.Builder builder,
             String key,
             String value) {
-        Map<String, String> envMap = CommonTaskUtils.fromEnvironmentToMap(builder.getEnvironment());
+        Map<String, String> envMap = EnvUtils.fromEnvironmentToMap(builder.getEnvironment());
         envMap.put(key, value);
-        builder.setEnvironment(CommonTaskUtils.fromMapToEnvironment(envMap));
+        builder.setEnvironment(EnvUtils.fromMapToEnvironment(envMap));
     }
 
     /**

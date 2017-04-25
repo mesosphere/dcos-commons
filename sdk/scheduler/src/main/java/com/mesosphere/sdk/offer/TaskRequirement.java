@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.LaunchEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -32,7 +34,7 @@ public class TaskRequirement {
             Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
         validateTaskInfo(taskInfo);
         // TaskID is always overwritten with a new UUID, even if already present:
-        taskId = CommonTaskUtils.toTaskId(taskInfo.getName());
+        taskId = CommonIdUtils.toTaskId(taskInfo.getName());
         this.taskInfo = TaskInfo.newBuilder(taskInfo)
                 .setTaskId(taskId)
                 .build();
@@ -74,7 +76,7 @@ public class TaskRequirement {
             // We must allow Task ID to be present but empty because it is a required proto field.
             String taskName;
             try {
-                taskName = CommonTaskUtils.toTaskName(taskInfo.getTaskId());
+                taskName = CommonIdUtils.toTaskName(taskInfo.getTaskId());
             } catch (TaskException e) {
                 throw new InvalidRequirementException(String.format(
                         "When non-empty, TaskInfo.id must be a valid ID. "
@@ -94,14 +96,16 @@ public class TaskRequirement {
                     + "Use ExecutorRequirement for any Executor requirements: %s", taskInfo));
         }
 
+        SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+
         try {
-            CommonTaskUtils.getType(taskInfo);
+            labels.getType();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
 
         try {
-            CommonTaskUtils.getIndex(taskInfo);
+            labels.getIndex();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }

@@ -11,36 +11,40 @@ import java.util.concurrent.Future;
 /**
  * This class reacts to the failure of a health check by calling the stop() method of the ExecutorTask.
  */
-public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> {
-    private final HealthCheckHandler healthCheckHandler;
-    private final LaunchedTask launchedTask;
+public class CheckMonitor implements Callable<Optional<CheckStats>> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Protos.HealthCheck healthCheck;
 
-    public HealthCheckMonitor(
+    private final CheckHandler healthCheckHandler;
+    private final LaunchedTask launchedTask;
+    private final Protos.HealthCheck healthCheck;
+    private final String checkType;
+
+    public CheckMonitor(
             Protos.HealthCheck healthCheck,
-            HealthCheckHandler healthCheckHandler,
-            LaunchedTask launchedTask) {
+            CheckHandler healthCheckHandler,
+            LaunchedTask launchedTask,
+            String checkType) {
         this.healthCheck = healthCheck;
         this.healthCheckHandler = healthCheckHandler;
         this.launchedTask = launchedTask;
+        this.checkType = checkType;
     }
 
     @Override
-    public Optional<HealthCheckStats> call() throws Exception {
+    public Optional<CheckStats> call() throws Exception {
         Future<?> healthCheck = healthCheckHandler.start();
-        Optional<HealthCheckStats> healthCheckStats = Optional.empty();
+        Optional<CheckStats> healthCheckStats = Optional.empty();
 
         try {
             healthCheck.get();
         } catch (Throwable t) {
 
-            if (t.getCause() instanceof HealthCheckHandler.HealthCheckRuntimeException) {
-                HealthCheckHandler.HealthCheckRuntimeException healthCheckRuntimeException =
-                        (HealthCheckHandler.HealthCheckRuntimeException) t.getCause();
+            if (t.getCause() instanceof CheckHandler.CheckRuntimeException) {
+                CheckHandler.CheckRuntimeException healthCheckRuntimeException =
+                        (CheckHandler.CheckRuntimeException) t.getCause();
                 healthCheckStats = Optional.of(healthCheckRuntimeException.getHealthCheckStats());
             } else {
-                logger.error("Waiting for health check failed with exception: ", t);
+                logger.error(String.format("Waiting for %s check failed with exception: ", checkType), t);
             }
         }
 

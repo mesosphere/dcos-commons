@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
@@ -15,7 +16,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.CommonTaskUtils.*;
 import static com.mesosphere.sdk.offer.Constants.*;
 
 /**
@@ -34,7 +34,7 @@ public class TaskUtils {
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
     public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
-        String podType = getType(taskInfo);
+        String podType = new SchedulerLabelReader(taskInfo).getType();
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
             if (podSpec.getType().equals(podType)) {
@@ -104,9 +104,21 @@ public class TaskUtils {
                 .collect(Collectors.toList());
     }
 
-    private static boolean isSamePodInstance(TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
-        return getType(taskInfo).equals(podInstance.getPod().getType())
-                && getIndex(taskInfo) == podInstance.getIndex();
+    /**
+     * Returns whether the provided {@link TaskInfo} (representing a launched task) and {@link PodInstance} (from the
+     * {@link ServiceSpec}) are both effectively for the same pod instance.
+     */
+    public static boolean isSamePodInstance(TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
+        return isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
+    }
+
+    /**
+     * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
+     */
+    public static boolean isSamePodInstance(TaskInfo taskInfo, String type, int index) throws TaskException {
+        SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+        return labels.getType().equals(type)
+                && labels.getIndex() == index;
     }
 
     /**
@@ -254,20 +266,6 @@ public class TaskUtils {
     }
 
     /**
-     * Sets a label on a TaskInfo indicating the Task's {@link GoalState}.
-     *
-     * @param taskInfoBuilder The TaskInfo to be labeled.
-     * @param taskSpec        The TaskSpec containing the goal state.
-     * @return The labeled TaskInfo
-     */
-    public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
-        return taskInfoBuilder
-                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
-                        GOAL_STATE_LABEL,
-                        taskSpec.getGoal().name()));
-    }
-
-    /**
      * Gets the {@link GoalState} of Task.
      *
      * @param podInstance A PodInstance containing tasks.
@@ -328,7 +326,7 @@ public class TaskUtils {
             TaskInfo taskInfo) throws TaskException {
 
         PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        Integer index = getIndex(taskInfo);
+        int index = new SchedulerLabelReader(taskInfo).getIndex();
 
         return new DefaultPodInstance(podSpec, index);
     }
@@ -337,7 +335,7 @@ public class TaskUtils {
             ConfigStore<ServiceSpec> configStore,
             TaskInfo taskInfo) throws TaskException {
 
-        UUID configId = getTargetConfiguration(taskInfo);
+        UUID configId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
         try {
@@ -355,6 +353,55 @@ public class TaskUtils {
         } else {
             return podSpecOptional.get();
         }
+    }
+
+    /**
+     * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+     */
+    public static boolean isRecoveryNeeded(TaskStatus taskStatus) {
+        switch (taskStatus.getState()) {
+            case TASK_FINISHED:
+            case TASK_FAILED:
+            case TASK_KILLED:
+            case TASK_ERROR:
+            case TASK_LOST:
+                return true;
+            case TASK_KILLING:
+            case TASK_RUNNING:
+            case TASK_STAGING:
+            case TASK_STARTING:
+                break;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns whether the provided {@link TaskStatus} has reached a terminal state.
+     */
+    public static boolean isTerminal(TaskStatus taskStatus) {
+        return isTerminal(taskStatus.getState());
+    }
+
+    /**
+     * Returns whether the provided {@link TaskState} has reached a terminal state.
+     */
+    public static boolean isTerminal(TaskState taskState) {
+        switch (taskState) {
+            case TASK_FINISHED:
+            case TASK_FAILED:
+            case TASK_KILLED:
+            case TASK_ERROR:
+                return true;
+            case TASK_LOST:
+            case TASK_KILLING:
+            case TASK_RUNNING:
+            case TASK_STAGING:
+            case TASK_STARTING:
+                break;
+        }
+
+        return false;
     }
 
     /**

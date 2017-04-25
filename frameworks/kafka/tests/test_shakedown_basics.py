@@ -23,7 +23,8 @@ from tests.test_utils import (
     DEFAULT_PHASE_NAME,
     DEFAULT_PLAN_NAME,
     DEFAULT_TASK_NAME,
-    service_cli
+    service_cli,
+    broker_count_check
 )
 
 
@@ -104,7 +105,9 @@ def test_pods_replace():
     service_cli('pods replace {}-0'.format(DEFAULT_POD_TYPE))
     tasks.check_tasks_updated(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_0_id)
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-
+    # wait till all brokers register
+    broker_count_check(DEFAULT_BROKER_COUNT)
+    
 
 # --------- Topics -------------
 
