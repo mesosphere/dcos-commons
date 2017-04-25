@@ -411,6 +411,9 @@ Removing a node is not supported at this time.
 
 ## Package Versioning Scheme
 
+- _SERVICENAME_: _WHAT VERSION OF YOUR SERVICE IS INCLUDED IN THE PACKAGE?_
+- DC/OS: _LIST VERSION(S) OF DC/OS THAT YOU'VE TESTED AND SUPPORT_
+
 Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integrtion and `x.y.z` indicates the version of _SERVICENAME_. For example, `1.5.0-3.2.1` indicates version `1.5.0` of the DC/OS integrtion and version `3.2.1` of _SERVICENAME_.
 
 ## Contacting Technical Support
@@ -424,7 +427,7 @@ Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the versio
 
 ### 1.0.1-1.0.0
 #### Breaking Changes
-#### Features
+#### New Features
 #### Improvements
 #### Bug Fixes
 
