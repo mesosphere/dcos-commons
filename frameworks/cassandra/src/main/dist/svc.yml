@@ -11,7 +11,6 @@ pods:
       - {{SCHEDULER_URI}}
       - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
       - {{BOOTSTRAP_URI}}
-      - {{S3CLI_URI}}
     user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
@@ -43,7 +42,8 @@ pods:
         goal: RUNNING
         resource-set: server-resources
         cmd: >
-                ./bootstrap
+                ./bootstrap ;
+                pip install awscli
 
                 ARGS='-f'
 
@@ -82,14 +82,15 @@ pods:
         resource-set: sidecar-resources
       backup-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos" > container-path/schema.cql
+        cmd: >
+                mkdir container-path/snapshot ;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
       snapshot:
         goal: FINISHED
         cmd: >
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
 
-                mkdir container-path/snapshot ;
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
                     qualified_table="$(echo "$f" | sed -E 's/[^\/]+\/[^\/]+\/([^\/]+)\/([^-]+)-.*/\1 \2/g')" ;
                     keyspace=$(echo "$qualified_table" | cut -d ' ' -f 1) ;
@@ -97,67 +98,38 @@ pods:
 
                     mkdir -p container-path/snapshot/"$keyspace" ;
                     (cd container-path/snapshot/"$keyspace" && ln -s ../../../"$f" "$table") ;
-                done ;
-                (cd container-path && tar czhvf snapshot.tar.gz snapshot/)
-
-                rm -r container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p {{TASKCFG_ALL_JMX_PORT}} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
+                done
         resource-set: sidecar-resources
-      upload-schema-s3:
+      upload-s3:
+        goal: FINISHED
+        cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
+        resource-set: sidecar-resources
+      cleanup-snapshot:
         goal: FINISHED
         cmd: >
-                chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
- 
-                ./{{S3CLI_VERSION}} -c config.json put container-path/schema.cql schema.cql
-
-                if [ $? -eq 0 ] ; then
-                    rm container-path/schema.cql ;
-                else
-                    (exit 1) ;
-                fi
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p {{TASKCFG_ALL_JMX_PORT}} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
+                rm -r container-path/snapshot
         resource-set: sidecar-resources
-      upload-snapshot-s3:
+      fetch-s3:
         goal: FINISHED
         cmd: >
-                chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
- 
-                ./{{S3CLI_VERSION}} -c config.json put container-path/snapshot.tar.gz "${SNAPSHOT_NAME}_${POD_INSTANCE_INDEX}"
-
-                if [ $? -eq 0 ] ; then
-                    rm container-path/snapshot.tar.gz ;
-                else
-                    (exit 1) ;
-                fi
-        resource-set: sidecar-resources
-      fetch-snapshot-s3:
-        goal: FINISHED
-        cmd: >
-                chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
- 
-                ./{{S3CLI_VERSION}} -c config.json get "${SNAPSHOT_NAME}_${POD_INSTANCE_INDEX}" container-path/snapshot.tar.gz
-        resource-set: sidecar-resources
-      fetch-schema-s3:
-        goal: FINISHED
-        cmd: >
-                chmod a+x {{S3CLI_VERSION}} && eval "echo \"$(sed 's/\"/\\\"/g' < s3config.json)\"" > config.json
- 
-                ./{{S3CLI_VERSION}} -c config.json get schema.cql container-path/schema.cql
+                mkdir container-path/snapshot ;
+                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh --cqlversion="3.4.0" -e "source 'container-path/schema.cql'" node-0-server.{{SERVICE_NAME}}.mesos
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
         resource-set: sidecar-resources
       restore-snapshot:
         goal: FINISHED
         cmd: >
-                (cd container-path && tar xvzf snapshot.tar.gz)
-
-                for f in $(find container-path/snapshot -maxdepth 2 -mindepth 2 -type d) ; do
-                    ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -d {{TASKCFG_ALL_LOCAL_SEEDS}} "$f" ;
+                for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*") ; do
+                    for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -d {{TASKCFG_ALL_LOCAL_SEEDS}} "$t" ;
+                    done
                 done
 
-                rm -r container-path/snapshot ;
-                rm container-path/snapshot.tar.gz
+                rm -r container-path/snapshot
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -191,32 +163,37 @@ plans:
         strategy: serial
         pod: node
         steps:
-          - 0: [[backup-schema], [upload-schema-s3]]
+          - default: [[backup-schema]]
       create-snapshots:
         strategy: parallel
         pod: node
         steps:
           - default: [[snapshot]]
-      upload-snapshots:
+      upload-backups:
         strategy: {{BACKUP_RESTORE_STRATEGY}}
         pod: node
         steps:
-          - default: [[upload-snapshot-s3]]
+          - default: [[upload-s3]]
+      cleanup-snapshots:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[cleanup-snapshot]]
   restore-s3:
     strategy: serial
     phases:
+      fetch-s3:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[fetch-s3]]
       restore-schema:
         strategy: serial
         pod: node
         steps:
-          - 0: [[fetch-schema-s3], [restore-schema]]
-      fetch-snapshots:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[fetch-snapshot-s3]]
+          - default: [[restore-schema]]
       restore-snapshots:
-        strategy: parallel
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
         pod: node
         steps:
           - default: [[restore-snapshot]]
