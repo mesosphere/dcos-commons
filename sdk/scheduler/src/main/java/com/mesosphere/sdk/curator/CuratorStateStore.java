@@ -2,7 +2,8 @@ package com.mesosphere.sdk.curator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -219,7 +220,7 @@ public class CuratorStateStore implements StateStore {
 
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
-                && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
+                && TaskUtils.isTerminal(currentStatusOptional.get())) {
             throw new StateStoreException(Reason.LOGIC_ERROR,
                     String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
                             currentStatusOptional.get().getState(), taskName));
@@ -297,7 +298,7 @@ public class CuratorStateStore implements StateStore {
                 // TODO(nick): This unpack operation is no longer needed, but it doesn't hurt anything to leave it in
                 // place to support reading older data. Remove this unpack call after services have had time to stop
                 // storing packed TaskInfos in zk (after June 2017 or so?).
-                return Optional.of(CommonTaskUtils.unpackTaskInfo(Protos.TaskInfo.parseFrom(bytes)));
+                return Optional.of(TaskPackingUtils.unpack(Protos.TaskInfo.parseFrom(bytes)));
             } else {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Empty TaskInfo for TaskName: %s", taskName));

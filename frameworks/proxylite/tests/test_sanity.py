@@ -49,4 +49,4 @@ def test_httpd():
 
 @pytest.mark.sanity
 def test_plan():
-    plan.get_deployment_plan(PACKAGE_NAME)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)

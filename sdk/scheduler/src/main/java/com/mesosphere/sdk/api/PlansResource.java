@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.api.types.PlanSummaryInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
@@ -47,6 +48,26 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     /**
+     * Returns a summary of all plans.
+     */
+    @GET
+    @Path("/plan-summary")
+    public Response getPlanSummary() {
+        List<PlanSummaryInfo> planSummaries = planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan())
+                .map(plan -> PlanSummaryInfo.forPlan(plan))
+                .collect(Collectors.toList());
+
+        long incompletePlanCount = planSummaries.stream()
+                .filter(planSummaryInfo -> !planSummaryInfo.getStatus().equals(Status.COMPLETE))
+                .count();
+
+        Response.Status status = incompletePlanCount == 0 ? Response.Status.OK : Response.Status.ACCEPTED;
+
+        return jsonResponseBean(planSummaries, status);
+    }
+
+    /**
      * Returns a full list of the {@link Plan}'s contents (incl all {@link Phase}s/{@link Step}s).
      */
     @GET
@@ -57,7 +78,7 @@ public class PlansResource extends PrettyJsonResource {
             Plan plan = planManagerOptional.get().getPlan();
             return jsonResponseBean(
                     PlanInfo.forPlan(plan),
-                    plan.isComplete() ? Response.Status.OK : Response.Status.SERVICE_UNAVAILABLE);
+                    plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }

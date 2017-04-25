@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -55,7 +55,7 @@ public class DefaultStepTest {
 
         Assert.assertTrue(step.isPending());
         String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
-        Protos.TaskID taskID = CommonTaskUtils.toTaskId(taskName);
+        Protos.TaskID taskID = CommonIdUtils.toTaskId(taskName);
 
         LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),

@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mesosphere.sdk.offer.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Objects;
 
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -61,28 +60,11 @@ public class PlacementUtils {
      * representing a new task about to be launched.
      */
     public static boolean areEquivalent(TaskInfo taskInfo, OfferRequirement offerRequirement) {
-        // Check task types
-        String taskInfoType;
         try {
-            taskInfoType = CommonTaskUtils.getType(taskInfo);
+            return TaskUtils.isSamePodInstance(taskInfo, offerRequirement.getType(), offerRequirement.getIndex());
         } catch (TaskException e) {
-            LOGGER.warn("Unable to extract task type from taskinfo", e);
-            taskInfoType = null;
-        }
-
-        if (!Objects.equal(taskInfoType, offerRequirement.getType())) {
+            LOGGER.warn("Unable to extract pod type or index from TaskInfo", e);
             return false;
         }
-
-        // Check pod index
-        Integer index;
-        try {
-            index = CommonTaskUtils.getIndex(taskInfo);
-        } catch (TaskException e) {
-            LOGGER.warn("Unable to extract index from taskinfo", e);
-            index = null;
-        }
-
-        return Objects.equal(index, offerRequirement.getIndex());
     }
 }

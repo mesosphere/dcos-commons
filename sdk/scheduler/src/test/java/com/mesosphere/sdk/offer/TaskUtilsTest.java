@@ -2,14 +2,13 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
-import org.apache.mesos.Protos;
-
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.testutils.TestConstants;
+
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.*;
 
 import javax.validation.ValidationException;
@@ -19,31 +18,16 @@ import javax.validation.ValidationException;
  */
 public class TaskUtilsTest {
     private static final String testTaskName = "test-task-name";
-    private static final String testTaskId = "test-task-id";
-    private static final String testAgentId = "test-agent-id";
-    private static final UUID testTargetConfigurationId = UUID.randomUUID();
 
     @Test
     public void testValidToTaskName() throws Exception {
-        Protos.TaskID validTaskId = getTaskId(testTaskName + "__id");
-        Assert.assertEquals(testTaskName, CommonTaskUtils.toTaskName(validTaskId));
+        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(testTaskName + "__id").build();
+        Assert.assertEquals(testTaskName, CommonIdUtils.toTaskName(validTaskId));
     }
 
     @Test(expected = TaskException.class)
     public void testInvalidToTaskName() throws Exception {
-        CommonTaskUtils.toTaskName(getTaskId(testTaskName + "_id"));
-    }
-
-    @Test(expected = TaskException.class)
-    public void testGetTargetConfigurationFailure() throws Exception {
-        CommonTaskUtils.getTargetConfiguration(getTestTaskInfo());
-    }
-
-    @Test
-    public void testSetTargetConfiguration() throws Exception {
-        Protos.TaskInfo taskInfo = CommonTaskUtils.setTargetConfiguration(
-                getTestTaskInfo().toBuilder(), testTargetConfigurationId).build();
-        Assert.assertEquals(testTargetConfigurationId, CommonTaskUtils.getTargetConfiguration(taskInfo));
+        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
     }
 
     @Test
@@ -221,15 +205,12 @@ public class TaskUtilsTest {
                         new DefaultConfigFileSpec("config", "../relative/path/to/config2", "same name should fail")));
     }
 
-    private static Protos.TaskID getTaskId(String value) {
-        return Protos.TaskID.newBuilder().setValue(value).build();
-    }
-
-    private static Protos.TaskInfo getTestTaskInfo() {
-        return Protos.TaskInfo.newBuilder()
-                .setName(testTaskName)
-                .setTaskId(Protos.TaskID.newBuilder().setValue(testTaskId))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(testAgentId))
+    @Test
+    public void testTaskLostNeedsRecovery() {
+        Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setState(Protos.TaskState.TASK_LOST)
                 .build();
+        Assert.assertTrue(TaskUtils.isRecoveryNeeded(taskStatus));
     }
 }

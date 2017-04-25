@@ -8,7 +8,9 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.Test;
 
@@ -474,19 +476,18 @@ public class MaxPerAttributeRuleTest {
         TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
         taskBuilder.getTaskIdBuilder().setValue(id);
         try {
-            taskBuilder.setName(CommonTaskUtils.toTaskName(taskBuilder.getTaskId()));
+            taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        return CommonTaskUtils.setOfferAttributes(taskBuilder, offer).build();
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setOfferAttributes(offer).toProto());
+        return taskBuilder.build();
     }
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(
-                    CommonTaskUtils.getType(taskInfo),
-                    CommonTaskUtils.getIndex(taskInfo),
-                    Arrays.asList(taskInfo));
+            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            return OfferRequirement.create(labels.getType(), labels.getIndex(), Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

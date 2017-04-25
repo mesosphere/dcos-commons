@@ -9,8 +9,8 @@ HDFS is available in the Universe and can be installed by using either the web i
 
 ## Prerequisites
 
-- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/hdfs-auth/) before installing HDFS. Only someone with `superuser` permission can create the service account.
-	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
+- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/) before installing HDFS. Only someone with `superuser` permission can create the service account.
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security) requires a service account.  
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
 - A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
@@ -28,7 +28,7 @@ This command creates a new HDFS cluster with two name nodes, three journal nodes
 
 The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
 
-**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/deploying-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
 dcos package install hdfs --cli

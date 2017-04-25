@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -141,7 +141,7 @@ public class CuratorStateStoreFilterTest {
         for (String taskName : taskNames) {
             taskInfos.add(Protos.TaskInfo.newBuilder()
                     .setName(taskName)
-                    .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                    .setTaskId(CommonIdUtils.toTaskId(taskName))
                     .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                     .build());
         }
@@ -158,7 +158,7 @@ public class CuratorStateStoreFilterTest {
 
     private Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
         return Protos.TaskStatus.newBuilder()
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setState(TASK_STATE)
                 .setTaskId(taskId).build();
     }

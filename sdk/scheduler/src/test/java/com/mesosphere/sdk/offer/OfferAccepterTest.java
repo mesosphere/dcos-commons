@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -41,12 +42,12 @@ public class OfferAccepterTest {
     public void testLaunchTransient() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
-        TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-        taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
+        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -58,20 +59,20 @@ public class OfferAccepterTest {
     public void testClearTransient() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
-        TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-        taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
+        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
                 anyCollectionOf(Operation.class),
                 anyObject());
 
-        taskInfo = CommonTaskUtils.clearTransient(taskInfo.toBuilder()).build();
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).clearTransient().toProto());
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(
                 anyCollectionOf(OfferID.class),

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
@@ -67,7 +68,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
         if (podSpecOptional.isPresent()) {
             // Find the TaskSpec for the TaskInfo
-            int index = CommonTaskUtils.getIndex(taskInfo);
+            int index = new SchedulerLabelReader(taskInfo).getIndex();
             PodInstance podInstance = new DefaultPodInstance(podSpecOptional.get(), index);
             Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
 

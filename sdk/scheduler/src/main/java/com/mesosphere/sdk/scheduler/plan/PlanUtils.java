@@ -1,10 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.slf4j.LoggerFactory;
-
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
-import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +11,6 @@ import java.util.stream.Collectors;
  * Common utility methods for {@link PlanManager}s.
  */
 public class PlanUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlanUtils.class);
 
     private PlanUtils() {
         // do not instantiate
