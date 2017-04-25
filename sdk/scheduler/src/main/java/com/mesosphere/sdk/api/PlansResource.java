@@ -64,10 +64,6 @@ public class PlansResource extends PrettyJsonResource {
             view = "";
         }
 
-        if (planName.equalsIgnoreCase("all")) {
-            return getAllPlanInfos(view);
-        }
-
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
@@ -97,6 +93,7 @@ public class PlansResource extends PrettyJsonResource {
         return Response
                 .status(status)
                 .entity(planInfos)
+                .type(MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
 

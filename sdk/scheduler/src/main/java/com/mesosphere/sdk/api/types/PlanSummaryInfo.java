@@ -13,27 +13,19 @@ import java.util.Objects;
  * Immutable JSON serialization object for a summary of a {@link Plan}.
  */
 public class PlanSummaryInfo {
-    private final String name;
     private final Status status;
     private final String msg;
 
     public static PlanSummaryInfo forPlan(final Plan plan) {
-        return new PlanSummaryInfo(plan.getName(), plan.getStatus(), plan.getMessage());
+        return new PlanSummaryInfo(plan.getStatus(), plan.getMessage());
     }
 
     @JsonCreator
     private PlanSummaryInfo(
-            @JsonProperty("name") final String name,
             @JsonProperty("status") final Status status,
             @JsonProperty("message") final String msg) {
-        this.name = name;
         this.status = status;
         this.msg = msg;
-    }
-
-    @JsonProperty("name")
-    public String getName() {
-        return name;
     }
 
     @JsonProperty("status")
@@ -53,7 +45,7 @@ public class PlanSummaryInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getStatus(), getMessage());
+        return Objects.hash(getStatus(), getMessage());
     }
 
     @Override
