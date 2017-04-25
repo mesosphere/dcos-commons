@@ -30,7 +30,12 @@ class CITester(object):
 
     def _configure_cli_sandbox(self):
         if not self._sandbox_path:
-            self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
+            preexisting_testtmp = os.environ.get('TESTRUN_TEMPDIR')
+            if preexisting_testtmp:
+                self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-',
+                        dir=preexisting_testtmp)
+            else:
+                self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
         # ask for unbuffered stdout, since test output randomly uses stdout
         # vs stderr
@@ -52,6 +57,10 @@ class CITester(object):
     def _download_cli_to_sandbox(self):
         # TODO: provide non-env interface to copy a dcos cli
         local_path = os.environ.get('DCOS_CLI_PATH')
+        if not local_path:
+            src_tmpdir = os.environ.get('TESTRUN_TEMPDIR')
+            if src_tmpdir:
+                return cli_install.install_cli_from_dir(src_tmpdir, self._sandbox_path)
         if local_path:
             cli_filepath = cli_install.install_cli(local_path, self._sandbox_path)
         else:
@@ -268,10 +277,9 @@ def main(argv):
         else:
             raise Exception('Unsupported test type: {}'.format(test_type))
 
-        tester.delete_sandbox()
-    except:
-        tester.delete_sandbox()
-        raise
+    finally:
+        if not 'KEEP_SANDBOX' in os.environ:
+            tester.delete_sandbox()
     return 0
 
 
