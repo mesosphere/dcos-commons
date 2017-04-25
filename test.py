@@ -566,7 +566,6 @@ def run_test(framework, cluster, repo_root):
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
     custom_env['TESTRUN_TEMPDIR'] = get_work_dir()
-    custom_env['TESTRUN_TEMPDIR'] = get_work_dir()
     runtests_script = os.path.join(repo_root, 'tools', 'run_tests.py')
     # Why this trailing slash here? no idea.
     framework_testdir = os.path.join(framework.dir, 'tests') + "/"
@@ -608,7 +607,7 @@ def main():
         if run_attrs.run_tests:
             if run_attrs.keep_workdir:
                 set_work_dir(location='repo_root')
-                os.envion['KEEP_SANDBOX'] = 'yes'
+                os.environ['KEEP_SANDBOX'] = 'yes'
             else:
                 set_work_dir(location='tmp')
 
