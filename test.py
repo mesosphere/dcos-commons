@@ -414,7 +414,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     start_config = launch_ccm_cluster.StartConfig(private_agents=6)
                     avail_cluster = clustinfo.start_cluster(start_config,
                             reporting_name="Cluster %s" % human_count)
-                    cli_install.ensure_cli_downloaded(avial_cluster.url, get_work_dir())
+                    cli_install.ensure_cli_downloaded(avail_cluster.url, get_work_dir())
                 elif not avail_cluster:
                     # We're not supposed to start more clusters, so wait, and
                     # check for test completion.
