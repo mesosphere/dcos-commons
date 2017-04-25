@@ -108,7 +108,7 @@ _BRIEF OVERVIEW OF YOUR PRODUCT_
 	  "dns": ["_POD_-0._PKGNAME_.mesos:_PORT_", "_POD_-1._PKGNAME_.mesos:_PORT_", "_POD_-2._PKGNAME_.mesos:_PORT_]
 	}
 	```
-  
+
   1. _SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATE, READ DATA)._
 
 <a name="installing-and-customizing"></a>
@@ -117,7 +117,7 @@ _BRIEF OVERVIEW OF YOUR PRODUCT_
 The default _SERVICENAME_ installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.
 
 ## Prerequisities
-- If you are using Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account. 
+- If you are using Enterprise DC/OS, you may [need to provision a service account](https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/) before installing _SERVICENAME_. Only someone with `superuser` permission can create the service account.
 	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
@@ -140,13 +140,13 @@ $ dcos package install _PKGNAME_ --options=your-options.json
 For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/config-universe-service/) for service configuration access.
 
 ## Installation from the DC/OS Web Interface
- 
+
  You can [install _SERVICENAME_ from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install _SERVICENAME_ from the web interface, you must install the _SERVICENAME_ DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
- 
+
  ```bash
- dcos package install kafka --cli
+ dcos package install _SERVICENAME_ --cli
  ```
- 
+
  Choose `ADVANCED INSTALLATION` to perform a custom installation.
 
 <a name="service-settings"></a>
@@ -263,8 +263,8 @@ Once the service is running, you may view information about its endpoints via ei
   - List endpoint types: `dcos _PKGNAME_ endpoints`
   - View endpoints for an endpoint type: `dcos _PKGNAME_ endpoints <endpoint>`
 - Web:
-  - List endpoint types: `https://yourcluster.com/service/_PKGNAME_/v1/endpoints`
-  - View endpoints for an endpoint type: `https://yourcluster.com/service/_PKGNAME_/v1/endpoints/<endpoint>`
+  - List endpoint types: `<dcos-url>/service/_PKGNAME_/v1/endpoints`
+  - View endpoints for an endpoint type: `<dcos-url>/service/_PKGNAME_/v1/endpoints/<endpoint>`
 
 Returned endpoints will include the following:
 - `.mesos` hostnames for each instance that will follow them if they're moved within the DC/OS cluster.
@@ -292,7 +292,7 @@ Nodes are configured with a "Readiness check" to ensure that the underlying serv
 Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
 To make configuration changes via scheduler environment updates, perform the following steps:
-1. Visit https:<dcos-url> to access the DC/OS web interface.
+1. Visit <dcos-url> to access the DC/OS web interface.
 1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
@@ -401,13 +401,13 @@ Logs for the scheduler and all service nodes can be viewed from the DC/OS web in
 In all cases, logs are generally piped to files named `stdout` and/or `stderr`.
 
 To view logs for a given node, perform the following steps:
-1. Visit https://<dcos-url> to access the DC/OS web interface.
+1. Visit <dcos-url> to access the DC/OS web interface.
 1. Navigate to `Services` and click on the service to be examined (default _`PKGNAME`_).
 1. In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each `_NODEPOD_-#-node`).
 1. In the task details, click on the `Logs` tab to go into the log viewer. By default, you will see `stdout`, but `stderr` is also useful. Use the pull-down in the upper right to select the file to be examined.
 
 You can also access the logs via the Mesos UI:
-1. Visit https://<dcos-url>/mesos to view the Mesos UI.
+1. Visit <dcos-url>/mesos to view the Mesos UI.
 1. Click the `Frameworks` tab in the upper left to get a list of services running in the cluster.
 1. Navigate into the correct framework for your needs. The scheduler runs under `marathon` with a task name matching the service name (default _`PKGNAME`_). Service nodes run under a framework whose name matches the service name (default _`PKGNAME`_).
 1. You should now see two lists of tasks. `Active Tasks` are tasks currently running, and `Completed Tasks` are tasks that have exited. Click the `Sandbox` link for the task you wish to examine.
