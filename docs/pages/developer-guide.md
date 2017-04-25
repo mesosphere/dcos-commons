@@ -46,6 +46,13 @@ They store the desired configuration of a service and all relevant information r
 
 # Getting Started
 
+1. Check out dcos-commmons.
+
+  ```bash
+  $ git clone git@github.com:mesosphere/dcos-commons.git
+  $ cd dcos-commons
+  ```
+
 1. Create your framework.
 
    ```bash
