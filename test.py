@@ -457,17 +457,64 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 framework.popen.terminate() # does nothing if already completed
     return all_ok
 
+def download_diagnostic(cluster, bundle_name):
+    download_dir = os.path.join(get_work_dir(), 'diagnostics')
+    os.makedirs(download_dir)
+    logger.info("Downloading diagnostics from cluster: %s", cluster.url)
+    cmd = ['dcos', 'node', 'diagnostics', 'download', bundle_name,
+           '--location', download_dir]
+    cluster.dcoscli_run_yes(cmd)
+
+
+def fetch_diagnostics():
+    "Collect diagnostic informaion from all clusters"
+    # XXX move to clustinfo?
+    logger.info("Collecting diagnostics from clusters")
+    for cluster in clustinfo._clusters:
+        cmd = ["dcos", "node" "diagnostics", "create", "all"]
+        cluster.dcoscli_run(cmd)
+        logger.info("Spawned diagnostics on cluster: %s", cluster.url)
+
+    unfinished_clusters = clustinfo._clusters
+    while True:
+        # do this for each cluster
+        cmd = ["dcos", "node" "diagnostics", "--status", "--json"]
+        # doesn't return json on error; but returns 1 too so w/e
+        output = cluster.dcoscli_run_output(cmd)
+        data = json.loads(output)
+        # this awesome output could include an infinite number of previously
+        # created diagnostics; though not in CI
+        first_server_diagnostics = data.items()[0]
+        if first_server_diagnostics:
+            logger.info("Checking diagnostics on cluster: %s", cluster.url)
+            first_diagnostic = first_server_diagnostics[0]
+            if first_diagnostic['job_progress_percentage'] == 100:
+                logger.info("Diagnostics complete on cluster: %s", cluster.url)
+                # this path is 100% useless
+                bundle_path = first_diagnostic['last_bundle_dir']
+                bundle_name = os.path.basename(bundle_path)
+                download_diagnostic(cluster, bundle_name)
+
+
+
+
+
+
+
+
 def run_tests(run_attrs, repo_root):
     logger.info("cluster_teardown policy: %s", run_attrs.cluster_teardown)
     try: # all clusters are set up inside this try
         all_passed = False
         if run_attrs.parallel:
-            logger.debug("Running m ulticluster test run")
+            logger.debug("Running multicluster test run")
             all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
             all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
         if not all_passed:
             raise Exception("Some tests failed.")
+    except:
+        fetch_diagnostics()
     finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
