@@ -43,7 +43,7 @@ Get started by forking https://github.com/mesosphere/dcos-commons, and cloning i
 #### Host inside Monorepo
 
 ```bash
-(dcos-commons)$ ./new-service.sh frameworks/helloworldjava
+(dcos-commons)$ ./new-framework.sh frameworks/helloworldjava
 ```
 
 The command above generates a new project at location `frameworks/helloworldjava/`:

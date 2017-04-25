@@ -8,7 +8,7 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
 
 #### Steps:
 
-1. Change directory into `dcos-commons` and create a new service by running: `cd /dcos-commons && ./new-service examples/kafka`.
+1. Change directory into `dcos-commons` and create a new service by running: `cd /dcos-commons && ./new-framework examples/kafka`.
  1. This will create a clone of the `hello-world` service which you should then modify.
 2. Next change directory to where the Kafka service definition is: `cd examples/kafka/src/main/dist/`
 3. With an editor of your choice open `svc.yml`. Notice that some values, such as `<task-name>_COUNT` and `<task-name>_CPUS` are mustached.[0]

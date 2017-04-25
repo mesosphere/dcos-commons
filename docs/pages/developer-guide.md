@@ -49,11 +49,12 @@ They store the desired configuration of a service and all relevant information r
 1. Create your framework.
 
    ```bash
-   $ ./new-service.sh frameworks/myframework
+   $ ./new-framework.sh frameworks/myframework
    $ cd frameworks/myframework
    ```
 
-   `new-service.sh` creates a skeleton framework.  You will extend this skeleton.
+   `new-framework.sh` creates a skeleton framework.  You will extend
+   this skeleton.
 
 1. View `svc.yml`.
 
