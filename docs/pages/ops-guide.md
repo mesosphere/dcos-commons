@@ -16,11 +16,11 @@ Before we get into performing specific operations, we should look into the parts
 
 ## Components
 
-The following components are key to deploying and maintaining the service, each with its own separate responsibilities:
+The following components are key to deploying and maintaining the service, each with its own separate responsibilities. Here's a quick overview of how those components come together to deploy and manage a stateful service on DC/OS:
 
 - Packaging
 
-  Each DC/OS package follows the [Universe schema](https://github.com/mesosphere/universe). When a package is installed to the cluster, the packaging service (named 'Cosmos') will contact the necessary cluster services in order to get the package up and running. In the case of an SDK service, this consists of sending an RPC to Marathon which launches the service Scheduler, based on the `marathon.json.mustache` provided by the package.
+  DC/OS packages follow [Universe schema](https://github.com/mesosphere/universe), which defines how packages expose customization options at initial installation. When a package is installed to the cluster, the packaging service (named 'Cosmos') create a Marathon app containing a rendered version of the `marathon.json.mustache` template provided by the package. In an SDK service, this Marathon app is the Scheduler for the service.
 
 - Scheduler
 
@@ -28,44 +28,145 @@ The following components are key to deploying and maintaining the service, each 
 
 - Marathon
 
-  Marathon is the 'init system' of the DC/OS cluster. Marathon launches tasks in the cluster and keeps them running. Marathon is effectively itself another Scheduler, running its own tasks, but Marathon is more generalized and mainly focuses on tasks which don't require persistent state. In the case of an SDK service, Marathon's role is to keep the SDK service's own Scheduler up and running. The service Scheduler is in turn responsible for maintaining its own service tasks, without any direct involvement by Marathon.
+  Marathon is the 'init system' of the DC/OS cluster. Marathon launches tasks in the cluster and keeps them running. Where Mesos is concerned, Marathon is effectively itself another Scheduler running its own tasks. Marathon is more general than SDK Schedulers, and mainly focuses on tasks which don't require managing local persistent state. SDK services rely on Marathon to run the Scheduler, and to provide it with a configuration via environment variables. The Scheduler is in turn responsible for maintaining its own service tasks, without any direct involvement by Marathon.
 
 - Mesos
 
-  Mesos is the foundation of the DC/OS cluster. Everything launched within the cluster is allocated and managed by Mesos. Mesos operates TODO
+  Mesos is the foundation of the DC/OS cluster. Everything launched within the cluster is allocated and managed by Mesos. A typical Mesos cluster has one or three Masters which manage available resources for the entire cluster. In DC/OS the machines running the Mesos Masters will typically run other cluster services as well, such as Marathon and Cosmos, as local system processes. Separately from the Master machines are the Agent machines, which are where in-cluster processes are run. For more information on Mesos architecture, see the [Apache Mesos docs](https://mesos.apache.org/documentation/latest/architecture/).
+
+- Zookeeper
+
+  DC/OS comes with Zookeeper installed by default, typically with one instance per DC/OS master. Zookeeper is a common foundation for DC/OS system components like Marathon and Mesos. The same Zookeeper instance is also used by SDK Schedulers for storing persistent state across restarts (under ZK nodes named `dcos-service-<svcname>`). This allows Schedulers to be killed at any time and continue where they left off. Note that while Zookeeper itself is currently required, any persistent configuration storage (such as etcd) could fit this role. However Zookeeper is a convenient default because it's always present in DC/OS clusters.
 
 ## Deployment
 
-Deploying a new service works as follows:
+The SDK internally treats "Deployment" as moving from one state to another state. By this definition, "Deployment" applies to many scenarios:
+- When a service is first installed, deployment is moving from a null configuration to a deployed configuration.
+- When the deployed configuration is changed by editing an environment variable in the Scheduler, deployment is moving from an initial running configuration to a new proposed configuration.
 
-1. The user runs `dcos package install <pkg>` in the DC/OS CLI, or clicks `Install` for a given package in the DC/OS Dashboard.
-1. A request is sent to the Cosmos packaging service to deploy the requested package, along with a set of configuration options.
-1. Cosmos creates a Marathon app definition by rendering the package's `marathon.json.mustache` with the configuration options provided in the request. In the case of an SDK service, this app represents the service's Scheduler. Cosmos queries Marathon to create the app.
-1. Marathon launches the service's Scheduler somewhere in the cluster, using the rendered app definition provided by Cosmos.
-1. (At this point, we switch from DC/OS cluster infrastructure over to the SDK itself)
-1. The service Scheduler is launched and performs the following:
-TODO describe the deployment flow and the caveats along the way
+In this section we'll describe how each of these scenarios is handled by the Scheduler:
 
-1. Marathon task add
-1. Scheduler launch
-  1. Read ZK
-  1. Register with mesos
-  1. Check config for changes
-  1. Deploy new or update tasks: get system state to match config
-1. Executor launch
-  1. Launch tasks
+### Initial Install
+
+The flow for deploying a new service works as follows:
+
+1. First, the steps handled by the DC/OS cluster itself:
+  1. The user runs `dcos package install <pkg>` in the DC/OS CLI, or clicks `Install` for a given package in the DC/OS Dashboard.
+  1. A request is sent to the Cosmos packaging service to deploy the requested package, along with a set of configuration options.
+  1. Cosmos creates a Marathon app definition by rendering the package's `marathon.json.mustache` with the configuration options provided in the request. In the case of an SDK service, this app represents the service's Scheduler. Cosmos queries Marathon to create the app.
+  1. Marathon launches the service's Scheduler somewhere in the cluster, using the rendered app definition provided by Cosmos.
+  1. The service Scheduler is launched. From this point onwards, the deployment is being handled by the SDK.
+
+The service Scheduler's `main()` function is run like any other Java application. At this point the Scheduler has the following state to bootstrap from:
+- `svc.yml` template representing the service configuration.
+- Environment variables provided by Marathon, to be applied onto the `svc.yml` template.
+- Any custom logic implemented by the service developer in their Main function (we'll be assuming this is left with defaults for the purposes of this explanation)
+
+1. The Scheduler uses the above pieces to bootstrap itself into a running service as follows:
+  1. The `svc.yml` template is rendered using the environment variables provided by Marathon.
+  1. The rendered `svc.yml` "Service Spec" contains the host/port for the Zookeeper instance which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named `dcos-service-<svcname>`.
+  1. The scheduler connects to that Zookeeper instance and checks to see if it's previously stored a Mesos Framework ID for itself.
+    - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
+    - If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.
+1. Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the [Offer Cycle](#offer-cycle) and deploying the service. See that section for more information.
+  1. The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks which should be launched (all of the tasks, in fact, as this is the first launch).
+  1. The Scheduler proceeds to deploy those missing tasks through the Mesos offer cycle, using a [Deployment Plan](#plans) to determine the ordering of that deployment.
+1. Once the Scheduler has launched the missing tasks, its current configuration should match the desired configuration defined by the "Service Spec" extracted from `svc.yml`.
+  1. The Scheduler will tell Mesos to suspend sending new offers as there's nothing to be done.
+  1. The Scheduler effectively idles until it receives an RPC from Mesos notifying of a task status change, or an RPC from an end user against one of its HTTP APIs, or until it's killed by Marathon as the result of a configuration change.
+
+### Reconfiguration
+
+The flow for reconfiguring a running service works as follows:
+
+1. First, the steps handled by the DC/OS cluster itself:
+  1. The user edits the Scheduler's environment variables, either via the DC/OS Dashboard's Services section, or via Marathon directly (at `yourcluster.com/marathon`).
+  1. Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.
+
+As with initial install above, the Scheduler is re-launched with the same three pieces it had before:
+- `svc.yml` template
+- New environment variables
+- Custom logic implemented by the service developer (if any)
+
+In addition, the Scheduler now has a fourth piece:
+- Preexisting state in Zookeeper
+
+As such, the Scheduler deployment is slightly different before as it is now comparing its current state to a non-empty prior state and determining what needs to be changed.
+
+1. After the Scheduler has rendered its `svc.yml` against the new environment variables, it has two Service Specs, reflecting two different configurations:
+  1. The Service Spec that was just rendered, reflecting the config change.
+  1. The prior Service Spec (or "Target Configuration") which was previously stored in ZK.
+1. The Scheduler will automatically compare the changes between the old and new Service Specs:
+  1. Change validation: Certain changes such as editing volumes and scale-down are not currently supported, as they are both complicated and dangerous to get wrong.
+    - If an invalid change is detected, the scheduler will emit an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.
+    - Otherwise, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.
+  1. Change deployment: The Scheduler effectively produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc...) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks which aren't affected by the configuration change will be left as-is.
+
+## Offer Cycle
+
+The Offer Cycle is a core concept of Mesos, and often a source of confusion when running services on Mesos. In short, Mesos will periodically notify subscribed Schedulers of resources in the cluster, and the Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what's being explicitly offered to them. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler's end.
+
+Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
+
+  1. Task Reconciliation: Mesos is the source of truth for what's running in the system, and Task Reconciliation is a way for Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, and not general task information. As such the Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
+  1. Offer Acceptance: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. Add more/bigger nodes, or reduce the requirements of the service.
+  1. Resource Cleanup: The Offers provided by Mesos will include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example if an agent machine went away for several days and then came back, it's resources may still be considered reserved by Mesos while the Scheduler has already moved on and doesn't know about it anymore. At this point the Scheduler will automatically clean up those resources.
+
+Note that SDK Schedulers will automatically notify Mesos to stop sending offers, or suspend offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the Offer which matches that task's reservation, and then launching the task against those resources once more.
 
 ## Recovery
 
-1. Mesos notification
-1. Scheduler relaunch (via recovery plan)
-1. Executor launch
+In addition to sending Offers as described above, Mesos will periodically send Task Status updates which notify the Scheduler about the state of its tasks. Task Status updates can be sent during startup to let the scheduler know when a task has started running, or know when the task has exited successfully, or when the cluster has lost contact with the machine hosting that task. As such the Scheduler needs to decide whether a given status update indicates a task which needs to be relaunched. When this is the case, the Scheduler will simply wait on the Offer cycle. We've mentioned the [Deployment Plan](#plans) earlier, but the Scheduler has many Plans for various operations, some included by default and others defined for custom service-specific behavior. Another common/default Plan is the Recovery Plan, which handles bringing back tasks which have failed. The Recovery Plan listens for offers which may be used to bring back those tasks, and then relaunches tasks against those offers.
 
-## Resources
+In practice there are two types of recovery, permanent and temporary. The difference is mainly an issue of whether the task being recovered should stay on the same machine, and the side effects that result from that:
 
-### Volumes
+- Temporary recovery:
+  - Hiccup in the task or the host machine.
+  - Recovery involves relaunching the task on the same machine as before.
+  - Recovery occurs automatically.
+  - Any data in the task's persistent volumes survives the outage.
+  - May be manually triggered by a `pods restart` command.
+- Permanent recovery:
+  - Permanent failure of the host machine, no reason to stick around.
+  - Recovery involves discarding any persistent volumes that the task once had on the host machine.
+  - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
 
-Explain mount vs root
+Per above, triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake this destructive operation is currently not triggered automatically by the SDK itself.
+
+## Persistent Volumes
+
+While CPU and Memory are pretty easy to understand, persistent volumes are a bit more complicated. Indeed the added complexity of dealing with persistent volumes is one of the reasons why the SDK exists as opposed to just using Marathon in all situations. SDK services currently treat volumes as tied to specific agent machines, as one might have in a datacenter with local drives in each system. While e.g. EBS or SAN volumes could be re-mounted and reused across machines, this isn't yet supported in the SDK.
+
+Volumes are advertised as resources by Mesos, and Mesos offers multiple types of persistent volumes. The SDK supports two of these types: MOUNT volumes and ROOT volumes.
+
+- ROOT volumes:
+  - Uses a shared filesystem tree.
+  - Shares I/O with anything else on that filesystem.
+  - Supported by default in new deployments, doesn't require additional configuration.
+  - Space reservations can exactly fit the requirements of the service.
+- MOUNT volumes:
+  - Uses a dedicated partition.
+  - Dedicated I/O for the partition.
+  - Requires additional (but straightforward) configuration when setting up the DC/OS cluster.
+  - Reservations are all-or-nothing; mount volumes cannot be further subdivided between services.
+
+The last point about all-or-nothing is important, as it means that if multiple services are deployed with MOUNT volumes, then they can quickly be unable to densely colocate within the cluster, unless many MOUNT volumes are created on each agent. Let's look at the following deployment scenario across three DC/OS agent machines, each with two enabled MOUNT volumes labeled A and B:
+
+- Agent 1: A B
+- Agent 2: A B
+- Agent 3: A B
+
+Now we install a service X with two nodes that each use one mount volume. The service consumes volume A on agents 1 and 3:
+
+- Agent 1: X B
+- Agent 2: A B
+- Agent 3: X B
+
+Now a service Y is installed with two nodes that each use two mount volumes. The service consumes volume A and B on agent 2, but then is stuck without being able to deploy anything else:
+
+- Agent 1: X B
+- Agent 2: Y Y
+- Agent 3: X B
 
 # Diagnosis tools
 
@@ -120,6 +221,10 @@ DC/OS comes with Exhibitor pre-installed by default, accessible at http://yourcl
 ## Unable to deploy due to recovery needed (or was it vice versa?)
 
 Give example scenario and show how to get out of it
+
+## Deleting a task in ZK to clear that task
+
+What situation(s) does this solve?
 
 # DC/OS Component Overview
 
