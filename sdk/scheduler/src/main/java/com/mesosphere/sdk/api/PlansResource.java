@@ -40,7 +40,15 @@ public class PlansResource extends PrettyJsonResource {
      */
     @GET
     @Path("/plans")
-    public Response listPlans() {
+    public Response listPlans(@QueryParam("view") String view) {
+        if (view == null) {
+            view = "";
+        }
+
+        if (view.equalsIgnoreCase("summary")) {
+            return getAllPlanInfos(view);
+        }
+
         return jsonOkResponse(new JSONArray(getPlanNames()));
     }
 

@@ -61,7 +61,7 @@ public class PlansResourceTest {
     @Test
     public void testListPlans() {
         when(mockPlan.isComplete()).thenReturn(true);
-        Response response = resource.listPlans();
+        Response response = resource.listPlans(null);
         assertEquals(200, response.getStatus());
         assertEquals(String.format("[\"%s\"]", planName), response.getEntity().toString());
     }
