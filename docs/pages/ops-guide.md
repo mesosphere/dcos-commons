@@ -1,5 +1,5 @@
 ---
-title: SDK Ops Guide
+title: SDK Operations Guide
 menu_order: 1
 ---
 
@@ -52,39 +52,39 @@ In this section we'll describe how each of these scenarios is handled by the Sch
 The flow for deploying a new service works as follows:
 
 1. First, the steps handled by the DC/OS cluster itself:
-  1. The user runs `dcos package install <pkg>` in the DC/OS CLI, or clicks `Install` for a given package in the DC/OS Dashboard.
-  1. A request is sent to the Cosmos packaging service to deploy the requested package, along with a set of configuration options.
-  1. Cosmos creates a Marathon app definition by rendering the package's `marathon.json.mustache` with the configuration options provided in the request. In the case of an SDK service, this app represents the service's Scheduler. Cosmos queries Marathon to create the app.
-  1. Marathon launches the service's Scheduler somewhere in the cluster, using the rendered app definition provided by Cosmos.
-  1. The service Scheduler is launched. From this point onwards, the deployment is being handled by the SDK.
+    1. The user runs `dcos package install <pkg>` in the DC/OS CLI, or clicks `Install` for a given package in the DC/OS Dashboard.
+    1. A request is sent to the Cosmos packaging service to deploy the requested package, along with a set of configuration options.
+    1. Cosmos creates a Marathon app definition by rendering the package's `marathon.json.mustache` with the configuration options provided in the request. In the case of an SDK service, this app represents the service's Scheduler. Cosmos queries Marathon to create the app.
+    1. Marathon launches the service's Scheduler somewhere in the cluster, using the rendered app definition provided by Cosmos.
+    1. The service Scheduler is launched. From this point onwards, the deployment is being handled by the SDK.
 
-The service Scheduler's `main()` function is run like any other Java application. At this point the Scheduler has the following state to bootstrap from:
+The service Scheduler's `main()` function is run like any other Java application. At this point the Scheduler has the following state to start from:
 - `svc.yml` template representing the service configuration.
 - Environment variables provided by Marathon, to be applied onto the `svc.yml` template.
 - Any custom logic implemented by the service developer in their Main function (we'll be assuming this is left with defaults for the purposes of this explanation)
 
 1. The Scheduler uses the above pieces to bootstrap itself into a running service as follows:
-  1. The `svc.yml` template is rendered using the environment variables provided by Marathon.
-  1. The rendered `svc.yml` "Service Spec" contains the host/port for the Zookeeper instance which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named `dcos-service-<svcname>`.
-  1. The scheduler connects to that Zookeeper instance and checks to see if it's previously stored a Mesos Framework ID for itself.
-    - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
-    - If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.
+    1. The `svc.yml` template is rendered using the environment variables provided by Marathon.
+    1. The rendered `svc.yml` "Service Spec" contains the host/port for the Zookeeper instance which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named `dcos-service-<svcname>`.
+    1. The scheduler connects to that Zookeeper instance and checks to see if it's previously stored a Mesos Framework ID for itself.
+        - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
+        - If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.
 1. Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the [Offer Cycle](#offer-cycle) and deploying the service. See that section for more information.
-  1. The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks which should be launched (all of the tasks, in fact, as this is the first launch).
-  1. The Scheduler proceeds to deploy those missing tasks through the Mesos offer cycle, using a [Deployment Plan](#plans) to determine the ordering of that deployment.
+    1. The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks which should be launched (all of the tasks, in fact, as this is the first launch).
+    1. The Scheduler proceeds to deploy those missing tasks through the Mesos offer cycle, using a [Deployment Plan](#plans) to determine the ordering of that deployment.
 1. Once the Scheduler has launched the missing tasks, its current configuration should match the desired configuration defined by the "Service Spec" extracted from `svc.yml`.
-  1. The Scheduler will tell Mesos to suspend sending new offers as there's nothing to be done.
-  1. The Scheduler effectively idles until it receives an RPC from Mesos notifying of a task status change, or an RPC from an end user against one of its HTTP APIs, or until it's killed by Marathon as the result of a configuration change.
+    1. The Scheduler will tell Mesos to suspend sending new offers as there's nothing to be done.
+    1. The Scheduler effectively idles until it receives an RPC from Mesos notifying of a task status change, or an RPC from an end user against one of its HTTP APIs, or until it's killed by Marathon as the result of a configuration change.
 
 ### Reconfiguration
 
 The flow for reconfiguring a running service works as follows:
 
 1. First, the steps handled by the DC/OS cluster itself:
-  1. The user edits the Scheduler's environment variables, either via the DC/OS Dashboard's Services section, or via Marathon directly (at `yourcluster.com/marathon`).
-  1. Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.
+    1. The user edits the Scheduler's environment variables, either via the DC/OS Dashboard's Services section, or via Marathon directly (at `yourcluster.com/marathon`).
+    1. Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.
 
-As with initial install above, the Scheduler is re-launched with the same three pieces it had before:
+As with initial install above, at this point the Scheduler is re-launched with the same three sources of information it had before:
 - `svc.yml` template
 - New environment variables
 - Custom logic implemented by the service developer (if any)
@@ -92,16 +92,16 @@ As with initial install above, the Scheduler is re-launched with the same three 
 In addition, the Scheduler now has a fourth piece:
 - Preexisting state in Zookeeper
 
-As such, the Scheduler deployment is slightly different before as it is now comparing its current state to a non-empty prior state and determining what needs to be changed.
+As such, Scheduler reconfiguration is slightly different from initial deployment, as the Scheduler is now comparing its current state to a non-empty prior state and determining what needs to be changed.
 
 1. After the Scheduler has rendered its `svc.yml` against the new environment variables, it has two Service Specs, reflecting two different configurations:
-  1. The Service Spec that was just rendered, reflecting the config change.
-  1. The prior Service Spec (or "Target Configuration") which was previously stored in ZK.
+    1. The Service Spec that was just rendered, reflecting the config change.
+    1. The prior Service Spec (or "Target Configuration") which was previously stored in ZK.
 1. The Scheduler will automatically compare the changes between the old and new Service Specs:
-  1. Change validation: Certain changes such as editing volumes and scale-down are not currently supported, as they are both complicated and dangerous to get wrong.
-    - If an invalid change is detected, the scheduler will emit an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.
-    - Otherwise, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.
-  1. Change deployment: The Scheduler effectively produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc...) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks which aren't affected by the configuration change will be left as-is.
+    1. __Change validation__: Certain changes such as editing volumes and scale-down are not currently supported, as they are both complicated and dangerous to get wrong.
+        - If an invalid change is detected, the scheduler will emit an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.
+        - Otherwise, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.
+    1. __Change deployment__: The Scheduler effectively produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc...) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks which aren't affected by the configuration change will be left as-is.
 
 ## Offer Cycle
 
@@ -109,28 +109,61 @@ The Offer Cycle is a core concept of Mesos, and often a source of confusion when
 
 Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
 
-  1. Task Reconciliation: Mesos is the source of truth for what's running in the system, and Task Reconciliation is a way for Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, and not general task information. As such the Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
-  1. Offer Acceptance: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. Add more/bigger nodes, or reduce the requirements of the service.
-  1. Resource Cleanup: The Offers provided by Mesos will include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example if an agent machine went away for several days and then came back, it's resources may still be considered reserved by Mesos while the Scheduler has already moved on and doesn't know about it anymore. At this point the Scheduler will automatically clean up those resources.
+1. __Task Reconciliation__: Mesos is the source of truth for what's running in the system, and Task Reconciliation is a way for Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, and not general task information. As such the Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
+1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. Add more/bigger nodes, or reduce the requirements of the service.
+1. __Resource Cleanup__: The Offers provided by Mesos will include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example if an agent machine went away for several days and then came back, it's resources may still be considered reserved by Mesos while the Scheduler has already moved on and doesn't know about it anymore. At this point the Scheduler will automatically clean up those resources.
 
-Note that SDK Schedulers will automatically notify Mesos to stop sending offers, or suspend offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the Offer which matches that task's reservation, and then launching the task against those resources once more.
+Note that SDK Schedulers will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the Offer which matches that task's reservation, and then launching the task against those resources once more.
 
-## Recovery
+## Plans
+
+The Scheduler organizes its work into a list of Plans. Every SDK Scheduler has at least a Deployment Plan and a [Recovery Plan](#recovery-plan), but other Plans may also be added for things like Backup and Restore operations. The Deployment Plan is in change of performing an initial deployment of the service, as well as redeploying the service after a configuration change (or in more abstract terms, handling the transition needed to get the service from some state to another state). The Recovery Plan is in charge of relaunching any exited tasks which should always be running.
+
+Plans have a fixed three-level hierarchy. Plans contain Phases, and Phases contain Steps. A good way of describing this hierarchy is to give an example. Let's imagine a service with two `index` nodes and three `data` nodes. The Plan structure for a Scheduler in this configuration could look like this:
+
+- Deployment Plan
+    - Index Node Phase
+        - Index Node 0 Step
+        - Index Node 1 Step
+    - Data Node Phase
+        - Data Node 0 Step
+        - Data Node 1 Step
+        - Data Node 2 Step
+- Recovery Plan
+    - _(phases and steps are autogenerated as failures occur)_
+- Index Backup Plan
+    - Run Reindex Phase
+        - Index Node 0 Step
+        - Index Node 1 Step
+    - Upload Data Phase
+        - Index Node 0 Step
+        - Index Node 1 Step
+- Data Backup Plan
+    - Data Backup Phase
+        - Data Node 0 Step
+        - Data Node 1 Step
+        - Data Node 2 Step
+
+As you can see, in addition to the default Deployment and Recovery plans, this Scheduler also has auxiliary Plans which support custom behavior, specifically one Plan which handles backing up Index nodes, and another for backing up Data nodes. In practice there would likely also be Plans for restoring these backups but those are omitted here for brevity.
+
+So in short, Plans are the SDK's abstraction for a sequence of tasks to be performed by the Scheduler. By default these include deploying and maintaining the cluster, but additional maintenance operations may also be fit into this structure.
+
+### Recovery Plan
 
 In addition to sending Offers as described above, Mesos will periodically send Task Status updates which notify the Scheduler about the state of its tasks. Task Status updates can be sent during startup to let the scheduler know when a task has started running, or know when the task has exited successfully, or when the cluster has lost contact with the machine hosting that task. As such the Scheduler needs to decide whether a given status update indicates a task which needs to be relaunched. When this is the case, the Scheduler will simply wait on the Offer cycle. We've mentioned the [Deployment Plan](#plans) earlier, but the Scheduler has many Plans for various operations, some included by default and others defined for custom service-specific behavior. Another common/default Plan is the Recovery Plan, which handles bringing back tasks which have failed. The Recovery Plan listens for offers which may be used to bring back those tasks, and then relaunches tasks against those offers.
 
 In practice there are two types of recovery, permanent and temporary. The difference is mainly an issue of whether the task being recovered should stay on the same machine, and the side effects that result from that:
 
-- Temporary recovery:
-  - Hiccup in the task or the host machine.
-  - Recovery involves relaunching the task on the same machine as before.
-  - Recovery occurs automatically.
-  - Any data in the task's persistent volumes survives the outage.
-  - May be manually triggered by a `pods restart` command.
-- Permanent recovery:
-  - Permanent failure of the host machine, no reason to stick around.
-  - Recovery involves discarding any persistent volumes that the task once had on the host machine.
-  - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
+- __Temporary__ recovery:
+    - Hiccup in the task or the host machine.
+    - Recovery involves relaunching the task on the same machine as before.
+    - Recovery occurs automatically.
+    - Any data in the task's persistent volumes survives the outage.
+    - May be manually triggered by a `pods restart` command.
+- __Permanent__ recovery:
+    - Permanent failure of the host machine, no reason to stick around.
+    - Recovery involves discarding any persistent volumes that the task once had on the host machine.
+    - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
 
 Per above, triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake this destructive operation is currently not triggered automatically by the SDK itself.
 
@@ -140,34 +173,40 @@ While CPU and Memory are pretty easy to understand, persistent volumes are a bit
 
 Volumes are advertised as resources by Mesos, and Mesos offers multiple types of persistent volumes. The SDK supports two of these types: MOUNT volumes and ROOT volumes.
 
-- ROOT volumes:
-  - Uses a shared filesystem tree.
-  - Shares I/O with anything else on that filesystem.
-  - Supported by default in new deployments, doesn't require additional configuration.
-  - Space reservations can exactly fit the requirements of the service.
-- MOUNT volumes:
-  - Uses a dedicated partition.
-  - Dedicated I/O for the partition.
-  - Requires [additional configuration](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/) when setting up the DC/OS cluster.
-  - Reservations are all-or-nothing; MOUNT volumes cannot be further subdivided between services.
+- __ROOT__ volumes:
+    - Use a shared filesystem tree.
+    - Share I/O with anything else on that filesystem.
+    - Are supported by default in new deployments, doesn't require additional cluster-level configuration.
+    - Are allocated exactly the amount of disk space that was requested.
+- __MOUNT__ volumes:
+    - Use a dedicated partition.
+    - Have dedicated I/O for the partition.
+    - Require [additional configuration](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/) when setting up the DC/OS cluster.
+    - Are allocated the entire partition, so allocated space can far exceed what was originally requested. MOUNT volumes cannot be further subdivided between services.
 
 The last point about all-or-nothing is important, as it means that if multiple services are deployed with MOUNT volumes, then they can quickly be unable to densely colocate within the cluster, unless many MOUNT volumes are created on each agent. Let's look at the following deployment scenario across three DC/OS agent machines, each with two enabled MOUNT volumes labeled A and B:
 
-- Agent 1: A B
-- Agent 2: A B
-- Agent 3: A B
+```
+Agent 1: A B
+Agent 2: A B
+Agent 3: A B
+```
 
 Now we install a service X with two nodes that each use one mount volume. The service consumes volume A on agents 1 and 3:
 
-- Agent 1: X B
-- Agent 2: A B
-- Agent 3: X B
+```
+Agent 1: X B
+Agent 2: A B
+Agent 3: X B
+```
 
 Now a service Y is installed with two nodes that each use two mount volumes. The service consumes volume A and B on agent 2, but then is stuck without being able to deploy anything else:
 
-- Agent 1: X B
-- Agent 2: Y Y
-- Agent 3: X B
+```
+Agent 1: X B
+Agent 2: Y Y
+Agent 3: X B
+```
 
 Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services will support customizing this setting when it's relevant while others may assume one or the other.
 
@@ -189,8 +228,8 @@ You must include spare capacity in this list so that if one of the whitelisted s
 ### Updating placement constraints
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
-- Update the placement constraint definition at the scheduler
-- FOR ONE POD AT A TIME, perform a `pods replace` for any pods which need to be moved to reflect the change
+- Update the placement constraint definition at the Scheduler.
+- For each pod, _one at a time_, perform a `pods replace` for any pods which need to be moved to reflect the change.
 
 As an example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
 
@@ -204,7 +243,7 @@ As an example, let's say we have the following deployment of our imaginary `data
 10.0.10.84: [empty]
 ```
 
-Given the above configuration, let's assume `10.0.10.8` is being decommissioned and we should move away from it. Steps:
+Given the above configuration, let's assume `10.0.10.8` is being decommissioned and our service should be moved off of it. Steps:
 
 1. Remove the decommissioned IP and add a new IP to the placement rule whitelist, by configuring the Scheduler environment with a new `DATA_NODE_PLACEMENT` setting:
    ```
@@ -221,7 +260,7 @@ The ability to configure placement constraints is defined on a per-service basis
 Follow these steps to uninstall a service.
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
    For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
 
 For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
 ```bash
@@ -235,7 +274,7 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
 
 # Diagnosis tools
 
-Different components in a DC/OS cluster provide ways to diagnose services which are running in that cluster. In addition to that, the SDK itself offers its own endpoints which describe what the Scheduler is doing at a given time.
+DC/OS clusters have several available tools which can be used to diagnose services which are running in that cluster. In addition to that, the SDK itself offers its own endpoints which describe what the Scheduler itself is doing at any given time.
 
 ## Logging
 
@@ -351,12 +390,11 @@ We can also run interactive commands using the `-it` flags (short for `--interac
 
 ```bash
 $ dcos task exec --interactive --tty broker-0__75 /bin/bash
-root@ip-10-0-3-27 / # echo hello world
+broker-container# echo hello world
 hello world
-root@ip-10-0-3-27 / # pwd
+broker-container# pwd
 /
-root@ip-10-0-3-27 / # exit
-$
+broker-container# exit
 ```
 
 Note that while you could technically change the container filesystem via this, any changes will be destroyed if the container restarts. So don't do that and expect any changes to stick around.
@@ -384,13 +422,13 @@ In this case we're interested in the `broker-0` on `10.0.1.151`. We can see that
 
 ```bash
 $ dcos node ssh --master-proxy --mesos-id=2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
-core@ip-10-0-1-151 ~ $
+agent-system$
 ```
 
 Now that we're logged into the host Agent machine, we need to find a relevant PID for the `broker-0` container. This can take some guesswork:
 
 ```bash
-core@ip-10-0-1-151 ~ $ ps aux | grep -i confluent
+agent-system$ ps aux | grep -i confluent
 ...
 root      5772  0.6  3.3 6204460 520280 ?      Sl   Apr25   2:34 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0004/executors/broker-0__1eb65420-535e-477b-9ac1-797e79c15277/runs/f5377eac-3a87-4080-8b80-128434e42a25/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
 root      6059  0.7 10.3 6203432 1601008 ?     Sl   Apr25   2:43 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0003/executors/broker-1__8de30046-1016-4634-b43e-45fe7ede0817/runs/19982072-08c3-4be6-9af9-efcd3cc420d3/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
@@ -400,8 +438,8 @@ root      6059  0.7 10.3 6203432 1601008 ?     Sl   Apr25   2:43 /var/lib/mesos/
 As we can see above, there appear to be two likely candidates, one on PID 5772 and the other on PID 6059. The one on PID 5772 has mention of `broker-0` so that's probably the one we want. Lets run the `nsenter` command using PID 6059:
 
 ```bash
-core@ip-10-0-1-151 ~ $ sudo nsenter --mount --uts --ipc --net --pid --target 6059
-ip-10-0-0-242 / #
+agent-system$ sudo nsenter --mount --uts --ipc --net --pid --target 6059
+broker-container#
 ```
 
 Looks like we were successful! Now we can run commands inside this container to verify that it's the one we really want, and then proceed with the diagnosis.
@@ -410,9 +448,9 @@ Looks like we were successful! Now we can run commands inside this container to 
 
 The Scheduler exposes several HTTP endpoints which provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the . The Scheduler endpoints most useful to field diagnosis come from three sections:
 
-- Plan: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
-- Pods: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
-- State: Access to other miscellaneous state information such as service-specific properties data.
+- __Plan__: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
+- __Pods__: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
+- __State__: Access to other miscellaneous state information such as service-specific properties data.
 
 For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/swagger-api/). Here is an example of invoking one of these commands against a service named `hello-world` via `curl`:
 
@@ -464,17 +502,17 @@ $ dcos beta-dse --name=dse -v pods list
 
 ## Zookeeper/Exhibitor
 
-**Note: This should only be used as a last resort (i.e. break glass in case of emergency). Touching anything in ZK may cause your service to behave in inconsistent, even incomprehensible ways.**
+**Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZK directly may cause your service to behave in inconsistent, even incomprehensible ways.**
 
-DC/OS comes with Exhibitor, a commonly used frontend for viewing zookeeper. Exhibitor may be accessed at `https://yourcluster.com/exhibitor`. A given SDK service will have a `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
+DC/OS comes with Exhibitor, a commonly used frontend for viewing Zookeeper. Exhibitor may be accessed at `https://yourcluster.com/exhibitor`. A given SDK service will have a node named `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
 
 [<img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400"/>](img/ops-guide-exhibitor-view-taskstatus.png)
 
-# Performing common operations
+# Common operations
 
 This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we'll start looking at how that knowledge can be applied to a running service.
 
-## Initial configuration
+## Initial service configuration
 
 The DC/OS package format allows packages to define user-visible install options. To ensure consistent installs, we recommend exporting the options you use into an `options.json` file which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.
 
@@ -546,7 +584,7 @@ $ dcos package install --options=elastic-prod-options.json elastic
 
 Once we know the configuration is good, we will then add it to our source control for tracking.
 
-## Configuration update
+## Updating service configuration
 
 Early on, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.
 
@@ -570,6 +608,7 @@ After clicking `Change and deploy`, the following will happen:
 
 We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
 
+[<img src="img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](img/ops-guide-mesos-tasks-reconfigured.png)
 
 If we look at the Scheduler logs we can even see where it detected the change. The `api-port` value is random on each Scheduler restart so it tends to always display as 'different' in this log:
 
@@ -593,7 +632,7 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
              "ranges" : null,
 ```
 
-The above behavior applies to any configuration change. The Scheduler is restarted, detects the config change, and then restarts the affected task(s). When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task n+1 is only redeployed after task n has successfully started with the change.
+The above steps apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy after being relaunched with the new configuration.
 
 ### Add a node
 
@@ -606,19 +645,27 @@ The correct environment variable for a given setting can vary depending on the s
 For example, let's look at the most recent release of `confluent-kafka` as of this writing. The number of brokers is configured using a [`count` setting in the `brokers` section](https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/config.json#L133):
 
 ```json
-"count":{
-  "description":"Number of brokers to run",
-  "type":"number",
-  "default":3
+{
+  "...": "...",
+  "count": {
+    "description":"Number of brokers to run",
+    "type":"number",
+    "default":3
+  },
+  "...": "..."
 }
 ```
 
 To see where this setting is passed when the Scheduler is first launched, we can look at the adjacent [`marathon.json.mustache` template file](https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/marathon.json.mustache#L34). Searching for `brokers.count` in `marathon.json.mustache` reveals the environment variable that we should change:
 
 ```json
-"env": {
+{
   "...": "...",
-  "BROKER_COUNT": "{{brokers.count}}",
+  "env": {
+    "...": "...",
+    "BROKER_COUNT": "{{brokers.count}}",
+    "...": "..."
+  },
   "...": "..."
 }
 ```
@@ -627,7 +674,7 @@ This method can be used mapping any configuration setting (applicable during ini
 
 ## Restart a pod
 
-Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery).
+Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
 Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms are effectively hitting the same API. In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
@@ -677,7 +724,7 @@ All tasks within the pod are restarted as a unit. The response lists the names o
 
 ## Replace a pod
 
-Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if a given agent machine has gone down and is never coming back, or if an agent is about to undergo downtime. Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However operators are free to build their own tooling to make this decision and invoke the replace call. For more information see [Recovery](#recovery).
+Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if a given agent machine has gone down and is never coming back, or if an agent is about to undergo downtime. Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However operators are free to build their own tooling to make this decision and invoke the replace call. For more information see [Recovery](#recovery-plan).
 
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
@@ -703,9 +750,9 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 }
 ```
 
-# Getting out of bad situations
+# Troubleshooting
 
-Some problems are more common than others, particularly when setting up a new cluster. This section goes over some common pitfalls when deploying a new cluster and/or service.
+Some problems are more common than others, particularly when setting up a new cluster. This section goes over some common pitfalls and how to fix them.
 
 ## Tasks not deploying / Resource starvation
 
@@ -828,7 +875,9 @@ $ dcos cassandra plan show deploy
       "name": "cassandra-phase",
       "steps": [
         ...
-        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" }, # stuck here
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "PENDING" },
         ...
       ],
       "status": "IN_PROGRESS"
@@ -844,7 +893,7 @@ $ dcos plan force deploy cassandra-phase node-394:[node]
 }
 ```
 
-Now we can see that the step is marked as `COMPLETE` and the deployment is able to proceed normally:
+After forcing the `node-394:[node]` step, we can then see that the Plan shows it in a `COMPLETE` state, and that the Plan is proceeding with `node-395`:
 
 ```
 $ dcos cassandra plan show deploy
@@ -855,7 +904,9 @@ $ dcos cassandra plan show deploy
       "name": "cassandra-phase",
       "steps": [
         ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
         { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "COMPLETE" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "PENDING" },
         ...
       ],
       "status": "IN_PROGRESS"
@@ -887,7 +938,9 @@ $ dcos cassandra plan show deploy
       "name": "cassandra-phase",
       "steps": [
         ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
         { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "COMPLETE" },
         ...
       ],
       "status": "IN_PROGRESS"
@@ -899,17 +952,17 @@ $ dcos cassandra plan show deploy
 }
 ```
 
-By this example we can see that any deployment step can be manually retriggered in the cluster. This doesn't come up often, but it can be a useful tool in certain situations if needed.
+This example shows how steps in the deployment Plan (or any other Plan) can be manually retriggered or forced to a completed state by querying the Scheduler. This doesn't come up often, but it can be a useful tool in certain situations if needed.
 
 Note: The `dcos plan` commands will also accept UUID `id` values instead of the `name` values for the `phase` and `step` arguments. Providing UUIDs will avoid the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn't the same one we were expecting (but which regardless had the same name).
 
 ## Deleting a task in ZK to forcibly wipe that task
 
-If the scheduler is truly flummoxed by a given task and simply doing a `pods replace <name>` to clear it isn't doing the trick, a last resort is to use Exhibitor to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+If the scheduler is truly flummoxed by a given task and simply doing a `pods replace <name>` to clear it isn't doing the trick, a last resort is to use [Exhibitor](#zookeeperexhibitor) to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 
-Keep in mind however that this can easily lead to a completely broken service. Do this at your own risk. [Break glass in case of emergency](img/ops-guide-exhibitor-delete-task.png)
+Keep in mind however that this can easily lead to a completely broken service. __Do this at your own risk.__ [Break glass in case of emergency](img/ops-guide-exhibitor-delete-task.png)
 
 ## OOMed task
 
