@@ -83,8 +83,6 @@ pods:
 
 In above YAML file, we have:
 * Defined a service with the name `helloworld`
-* Configured the service to use ZooKeeper at `master.mesos:2181` for storing framework state and configuration.
-* Configured the API port using `api-port: 8080`. By default, each service comes with a default set of useful APIs to enable operationalization.
 * Defined a pod specification for our `helloworld` pod using:
 
 ```yaml
