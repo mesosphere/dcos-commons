@@ -415,7 +415,7 @@ The following events occur to select a target configuration and move a service f
 
 1. Define a target configuration
 
-    a. Deploy a Marathon application definition for your service’s scheduler
+    a. Deploy a Marathon application definition for your service’s scheduler.
 
     b. The scheduler renders the `ServiceSpec` and Plan definitions in the service’s YAML definition.
 
@@ -423,11 +423,11 @@ The following events occur to select a target configuration and move a service f
 
     a. The scheduler compares previous and current `ServiceSpec`s:
 
-       i. Validate the `ServiceSpec`
+       i. Validate the `ServiceSpec`.
 
-       ii. Determine scenario (install, update or no change)
+       ii. Determine scenario (install, update or no change).
 
-    b. The plan is chosen and executed
+    b. The plan is chosen and executed.
 
 These steps are discussed in more detail below.
 
