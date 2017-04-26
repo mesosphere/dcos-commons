@@ -153,7 +153,7 @@ pods:
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
-* **Pods**: A pod can be defined most simply as a set of tasks.
+* **Pods**: A pod is simply a set of tasks.
 
 * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
