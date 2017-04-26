@@ -655,11 +655,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
+        TaskStatusWriter taskStatusWriter = new TaskStatusWriter(this, driver);
         if (customRestartHook.isPresent()) {
-            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
+            resources.add(new PodsResource(taskKiller, taskStatusWriter, stateStore, customRestartHook.get()));
         } else {
-            resources.add(new PodsResource(taskKiller, stateStore));
+            resources.add(new PodsResource(taskKiller, taskStatusWriter, stateStore));
         }
+        resources.add(new TaskStatusResource(taskStatusWriter, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
     }

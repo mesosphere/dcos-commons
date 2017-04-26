@@ -15,7 +15,8 @@ public class DefaultTaskKiller implements TaskKiller {
     private final TaskFailureListener taskFailureListener;
     private final SchedulerDriver driver;
 
-    public DefaultTaskKiller(TaskFailureListener taskFailureListener, SchedulerDriver driver) {
+    public DefaultTaskKiller(TaskFailureListener taskFailureListener,
+                             SchedulerDriver driver) {
         this.taskFailureListener = taskFailureListener;
         this.driver = driver;
     }

@@ -5,6 +5,7 @@ import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.TaskStatusWriter;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -110,6 +111,7 @@ public class PodsResourceTest {
 
     @Mock private TaskKiller mockTaskKiller;
     @Mock private StateStore mockStateStore;
+    @Mock private TaskStatusWriter mockTaskStatusWriter;
     @Mock private RestartHook mockRestartHook;
 
     private PodsResource resource;
@@ -117,7 +119,7 @@ public class PodsResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new PodsResource(mockTaskKiller, mockStateStore, mockRestartHook);
+        resource = new PodsResource(mockTaskKiller, mockTaskStatusWriter, mockStateStore, mockRestartHook);
     }
 
     @Test
@@ -293,6 +295,8 @@ public class PodsResourceTest {
         verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), false);
         verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), false);
         verifyNoMoreInteractions(mockTaskKiller);
+
+        verifyZeroInteractions(mockTaskStatusWriter);
     }
 
     @Test
@@ -315,6 +319,8 @@ public class PodsResourceTest {
         verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), false);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), false);
         verifyNoMoreInteractions(mockTaskKiller);
+
+        verifyZeroInteractions(mockTaskStatusWriter);
     }
 
     @Test
@@ -329,6 +335,7 @@ public class PodsResourceTest {
         assertEquals(409, response.getStatus());
 
         verifyZeroInteractions(mockTaskKiller);
+        verifyZeroInteractions(mockTaskStatusWriter);
         verify(mockRestartHook).notify(anyCollectionOf(TaskInfoAndStatus.class), anyBoolean());
     }
 
@@ -343,7 +350,7 @@ public class PodsResourceTest {
     }
 
     @Test
-    public void testReplacePodManyRunning() {
+    public void testReplacePodManyRunning() throws Exception {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         when(mockRestartHook.notify(Arrays.asList(
@@ -368,10 +375,17 @@ public class PodsResourceTest {
         verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), true);
         verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), true);
         verifyNoMoreInteractions(mockTaskKiller);
+
+        String message = "Task killed by explicit TaskStatusWriter call in PodsResource";
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_KILLED, message);
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_0_TASK_B.getTaskId(), TaskState.TASK_KILLED, message);
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_0_TASK_C.getTaskId(), TaskState.TASK_KILLED, message);
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_0_TASK_D.getTaskId(), TaskState.TASK_KILLED, message);
+        verifyNoMoreInteractions(mockTaskStatusWriter);
     }
 
     @Test
-    public void testReplacePodOneRunning() {
+    public void testReplacePodOneRunning() throws Exception {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         when(mockRestartHook.notify(Arrays.asList(
@@ -390,6 +404,11 @@ public class PodsResourceTest {
         verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), true);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), true);
         verifyNoMoreInteractions(mockTaskKiller);
+
+        String message = "Task killed by explicit TaskStatusWriter call in PodsResource";
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_KILLED, message);
+        verify(mockTaskStatusWriter).writeTaskStatus(POD_1_TASK_B.getTaskId(), TaskState.TASK_KILLED, message);
+        verifyNoMoreInteractions(mockTaskStatusWriter);
     }
 
     @Test
