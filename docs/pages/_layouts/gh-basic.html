@@ -68,8 +68,9 @@
   <li>
     <span>Documentation</span>
     <ul>
-      {% comment %}List all the non-tutorials, skipping the front page.{% endcomment %}
-      {% for p in site.pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size < 3 and p.url != "/" %}
+      {% comment %}List all the non-tutorials, skipping the front page, ordered by menu_order if any.{% endcomment %}
+      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size < 3 and p.url != "/" %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
       <li><a href="{{ rootdir }}/swagger-api">REST APIs</a></li>
@@ -79,8 +80,9 @@
   <li>
     <span>Tutorials</span>
     <ul>
-      {% comment %}List only the tutorials.{% endcomment %}
-      {% for p in site.pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "tutorials" %}
+      {% comment %}List only the tutorials, ordered by menu_order if any.{% endcomment %}
+      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "tutorials" %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
     </ul>
@@ -99,7 +101,7 @@
         <span>{{ service | capitalize }}</span>
         {% endif %}
         <ul>
-          {% comment %}List the pages for this service:{% endcomment %}
+          {% comment %}List the pages for this service, ordered by menu_order if any:{% endcomment %}
           {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size == 4 and urltokens[1] == "services" and urltokens[2] == service %}
           <li><a href="{{ rootdir }}{{ p.url }}">{{ p.post_title }}</a></li>
           {% endif %}{% endfor %}
