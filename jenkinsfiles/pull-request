@@ -1,0 +1,60 @@
+// This defines the test we use during pull requests to master`
+
+node('infinity') {
+    try {
+        withCredentials([
+            string(credentialsId: 'd146870f-03b0-4f6a-ab70-1d09757a51fc', variable: 'GITHUB_TOKEN_REPO_STATUS'),
+            string(credentialsId: '8e2b2400-0f14-4e4d-b319-e1360f97627d', variable: 'CCM_AUTH_TOKEN'),
+            string(credentialsId: '914ef0de-77c0-482f-b08a-56e9b3135e4b', variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: '6b4ab72e-e638-4f37-95b5-6af7c007e600', variable: 'AWS_SECRET_ACCESS_KEY'),
+            // We should kill off the docker bit
+            string(credentialsId: '7bdd2775-2911-41ba-918f-59c8ae52326d', variable: 'DOCKER_HUB_USERNAME'),
+            string(credentialsId: '42f2e3fb-3f4f-47b2-a128-10ac6d0f6825', variable: 'DOCKER_HUB_PASSWORD'),
+            string(credentialsId: '4551c307-10ae-40f9-a0ac-f1bb44206b5b', variable: 'DOCKER_HUB_EMAIL'),
+        ]) {
+            // mesosphere-ci & mesosphere-ccm keys
+            sshagent(credentials: ['4ff09dce-407b-41d3-847a-9e6609dd91b8', 'e1ea4ca2-3bf9-4c4d-a121-57b29dc363ec']) {
+                stage('Checkout') {
+                    checkout scm
+                    // clear any old failure/success on this commit
+                    sh("./tools/github_update.py reset")
+                    // merge master into the pull request branch
+                    sh("./tools/merge_master.py")
+                 }
+                stage('Build') {
+                    // Establish docker auth for proxylite
+                    sh("docker login -u \"${DOCKER_HUB_USERNAME}\" -p \"${DOCKER_HUB_PASSWORD}\" -e \"${DOCKER_HUB_EMAIL}\"")
+                    // build the sdk
+                    sh("./build.sh")
+                    // and the frameworks which are classically built by the test script.  Woohoo
+                    sh("./test.py --build-only")
+                    stash(name: 'built_state', useDefaultExcludes: false)
+                }
+            }
+        }
+    } catch (err) {
+        currentBuild.result = 'FAILURE'
+        // TODO: send failure slack to pull request user
+        throw err
+    }
+}
+node('infinity-small') {
+    try {
+        stage('Test') {
+            unstash('built_state')
+            // mesosphere-ci & mesosphere-ccm keys
+            sshagent(['e1ea4ca2-3bf9-4c4d-a121-57b29dc363ec', '4ff09dce-407b-41d3-847a-9e6609dd91b8']) {
+                withCredentials([
+                    string(credentialsId: '8e2b2400-0f14-4e4d-b319-e1360f97627d', variable: 'CCM_AUTH_TOKEN'),
+                    string(credentialsId: 'd146870f-03b0-4f6a-ab70-1d09757a51fc', variable: 'GITHUB_TOKEN_REPO_STATUS'),
+                ]) {
+                    sh("TEST_TYPES=\"sanity not shutdown_node\" CCM_DURATION=250 ./test.py --parallel --test-only")
+                }
+            }
+        }
+        // TODO: send success to pull request user.
+    } catch (err) {
+        currentBuild.result = 'FAILURE'
+        // TODO: send failure slack to pull request user
+    }
+}
