@@ -60,7 +60,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
       - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.2/support-diagnostics-5.2-dist.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -81,6 +81,9 @@ pods:
               port: 9200
           transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
+            vip:
+              prefix: master
+              port: 9300
         volume:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
@@ -117,7 +120,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
       - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.2/support-diagnostics-5.2-dist.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -138,6 +141,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: data
+              port: 9300
         volume:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
@@ -174,7 +180,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
       - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.2/support-diagnostics-5.2-dist.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -195,6 +201,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: ingest
+              port: 9300
         volume:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
@@ -231,7 +240,7 @@ pods:
       - {{SCHEDULER_URI}}
       - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
       - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.2/support-diagnostics-5.2-dist.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -252,6 +261,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: coordinator
+              port: 9300
         volume:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}

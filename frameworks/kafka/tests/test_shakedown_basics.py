@@ -23,7 +23,8 @@ from tests.test_utils import (
     DEFAULT_PHASE_NAME,
     DEFAULT_PLAN_NAME,
     DEFAULT_TASK_NAME,
-    service_cli
+    service_cli,
+    broker_count_check
 )
 
 
@@ -104,7 +105,9 @@ def test_pods_replace():
     service_cli('pods replace {}-0'.format(DEFAULT_POD_TYPE))
     tasks.check_tasks_updated(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_0_id)
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-
+    # wait till all brokers register
+    broker_count_check(DEFAULT_BROKER_COUNT)
+    
 
 # --------- Topics -------------
 
@@ -115,7 +118,7 @@ def test_topic_create():
     create_info = service_cli(
         'topic create {}'.format(EPHEMERAL_TOPIC_NAME)
     )
-    print(create_info)
+    utils.out(create_info)
     assert ('Created topic "%s".\n' % EPHEMERAL_TOPIC_NAME in create_info['message'])
     assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
     topic_list_info = service_cli('topic list')

@@ -2,8 +2,8 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.google.common.collect.ImmutableMap;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -102,10 +102,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         String fileStr = new String(bytes, Charset.defaultCharset());
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         Map<String, String> updatedEnv = new HashMap<>(allEnv);
-        updatedEnv.put(Constants.FRAMEWORK_NAME_TASKENV, System.getenv(Constants.FRAMEWORK_NAME_TASKENV));
+        updatedEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
-        String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, updatedEnv);
+        String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));
-        Assert.assertTrue(CommonTaskUtils.isMustacheFullyRendered(renderedFileStr));
+        Assert.assertTrue(TemplateUtils.isMustacheFullyRendered(renderedFileStr));
     }
 }

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -24,14 +24,8 @@ public class CuratorStateStoreFilterTest {
     private static final int RETRY_DELAY_MS = 1000;
     private static final String ZOOKEEPER_ROOT_NODE_NAME = "zookeeper";
 
-    private static final Protos.FrameworkID FRAMEWORK_ID =
-            Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
-    private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonTaskUtils.toTaskId("taskName"))
-            .setState(TASK_STATE)
-            .build();
     private static TestingServer testZk;
     private CuratorStateStoreFilter store;
 
@@ -147,7 +141,7 @@ public class CuratorStateStoreFilterTest {
         for (String taskName : taskNames) {
             taskInfos.add(Protos.TaskInfo.newBuilder()
                     .setName(taskName)
-                    .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                    .setTaskId(CommonIdUtils.toTaskId(taskName))
                     .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                     .build());
         }
@@ -164,7 +158,7 @@ public class CuratorStateStoreFilterTest {
 
     private Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
         return Protos.TaskStatus.newBuilder()
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setState(TASK_STATE)
                 .setTaskId(taskId).build();
     }

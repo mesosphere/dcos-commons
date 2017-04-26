@@ -16,6 +16,7 @@ public class SchedulerErrorCode {
     public static final SchedulerErrorCode PLAN_CREATE_FAILURE = new SchedulerErrorCode(7);
     public static final SchedulerErrorCode LOCK_UNAVAILABLE = new SchedulerErrorCode(8);
     public static final SchedulerErrorCode API_SERVER_TIMEOUT = new SchedulerErrorCode(9);
+    public static final SchedulerErrorCode SCHEDULER_BUILD_FAILED = new SchedulerErrorCode(10);
 
     private final int value;
 

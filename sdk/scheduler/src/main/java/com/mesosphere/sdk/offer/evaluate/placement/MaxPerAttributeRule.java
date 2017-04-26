@@ -2,10 +2,11 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.AttributeStringUtils;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
@@ -120,7 +121,7 @@ public class MaxPerAttributeRule implements PlacementRule {
                 // redeploying a given task with a new configuration (old data not deleted yet).
                 continue;
             }
-            for (String taskAttributeString : CommonTaskUtils.getOfferAttributeStrings(task)) {
+            for (String taskAttributeString : new SchedulerLabelReader(task).getOfferAttributeStrings()) {
                 // only tally attribute values that are actually present in the offer
                 if (!offerAttributeStrings.contains(taskAttributeString)) {
                     continue;

@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -14,9 +16,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
  * This class tests the DefaultOfferRequirementProvider.
  */
 public class DefaultOfferRequirementProviderTest {
+    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     private static final double CPU = 1.0;
     private static final PlacementRule ALLOW_ALL = new PlacementRule() {
         @Override
@@ -37,10 +38,6 @@ public class DefaultOfferRequirementProviderTest {
             return EvaluationOutcome.pass(this, "pass for test");
         }
     };
-
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
-            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
 
     private DefaultOfferRequirementProvider provider;
 
@@ -58,11 +55,12 @@ public class DefaultOfferRequirementProviderTest {
         podInstance = getPodInstance("valid-minimal-health-configfile.yml");
 
         uuid = UUID.randomUUID();
-        provider = new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, uuid);
+        provider = new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, uuid, flags);
     }
 
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
-        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, mockFileReader);
+        DefaultServiceSpec serviceSpec =
+                ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, mockFileReader, flags);
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule(ALLOW_ALL)
@@ -106,7 +104,7 @@ public class DefaultOfferRequirementProviderTest {
         CommandInfo taskCommand = taskInfo.getCommand();
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
-        Map<String, String> taskEnv = CommonTaskUtils.fromEnvironmentToMap(taskCommand.getEnvironment());
+        Map<String, String> taskEnv = EnvUtils.fromEnvironmentToMap(taskCommand.getEnvironment());
         Assert.assertEquals(taskEnv.toString(), 6, taskEnv.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, taskEnv.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
@@ -267,7 +265,7 @@ public class DefaultOfferRequirementProviderTest {
 
         Assert.assertTrue(taskInfo.getCommand().getUrisList().isEmpty());
 
-        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, envvars.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
@@ -288,7 +286,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
@@ -297,7 +295,7 @@ public class DefaultOfferRequirementProviderTest {
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
@@ -338,7 +336,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
         offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement.withParameters(parameters));
@@ -346,7 +344,7 @@ public class DefaultOfferRequirementProviderTest {
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
 }

@@ -7,10 +7,11 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
@@ -48,17 +49,17 @@ public class KafkaConfigUpgrade {
     /**
      *  KafkaConfigUpgrade.
      */
-    public KafkaConfigUpgrade(ServiceSpec serviceSpec) throws Exception {
+    public KafkaConfigUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this.stateStore = new CuratorStateStoreUpdate(serviceSpec.getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
 
         // if framework_id exist and not disabled
         if (!KafkaConfigUpgrade.disabled() && !runningFirstTime(stateStore)) {
-            startUpgrade(serviceSpec);
+            startUpgrade(serviceSpec, schedulerFlags);
         }
     }
 
-    private void startUpgrade(ServiceSpec serviceSpec) throws Exception{
+    private void startUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception{
         Optional<KafkaSchedulerConfiguration> kafkaSchedulerConfiguration = getOldConfiguration(serviceSpec);
         if (!kafkaSchedulerConfiguration.isPresent()){
             LOGGER.info("\n ---------------------------------------------------- \n " +
@@ -74,7 +75,8 @@ public class KafkaConfigUpgrade {
             throw new KafkaConfigUpgradeException("Aborting Kafka Configuration Upgrade !!!");
         }
         verifyNewSpec(serviceSpec);
-        ServiceSpec newServiceSpec = generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec);
+        ServiceSpec newServiceSpec =
+                generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec, schedulerFlags);
 
         LOGGER.info("\n ---------------------------------------------------- \n " +
                     "          Kafka Configuration Upgrade started. \n" +
@@ -119,7 +121,7 @@ public class KafkaConfigUpgrade {
                 continue;
             }
             try {
-                taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
+                taskConfigId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
                 LOGGER.error("Unable to extract configuration id from task {}: {}  error: {}",
                         taskInfo.getName(), TextFormat.shortDebugString(taskInfo), e.getMessage());
@@ -201,7 +203,8 @@ public class KafkaConfigUpgrade {
     }
 
     private ServiceSpec generateServiceSpec(KafkaSchedulerConfiguration kafkaSchedulerConfiguration,
-                                            ServiceSpec serviceSpec) {
+                                            ServiceSpec serviceSpec,
+                                            SchedulerFlags schedulerFlags) {
         /* TODO(mb): why I can not create RawPort. See below:
         LinkedHashMap<String, RawPort> portMap = new WriteOnceLinkedHashMap<>();
         portMap.put("broker",
@@ -232,7 +235,7 @@ public class KafkaConfigUpgrade {
                 .resourceSet(newResourceSet)
                 .build();
 
-        PodSpec newPodSpec = DefaultPodSpec.newBuilder()
+        PodSpec newPodSpec = DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
                 .user(kafkaSchedulerConfiguration.getServiceConfiguration().getUser())
                 .count(kafkaSchedulerConfiguration.getServiceConfiguration().getCount())
                 .type(serviceSpec.getPods().get(0).getType())
@@ -277,11 +280,12 @@ public class KafkaConfigUpgrade {
 
             Protos.TaskInfo.Builder taskInfoBuilder = oldTaskInfo.get().toBuilder();
             taskInfoBuilder.setName(newName);
-            taskInfoBuilder = CommonTaskUtils.setIndex(taskInfoBuilder, brokerId);
-            taskInfoBuilder = CommonTaskUtils.setType(taskInfoBuilder, "kafka");
-            taskInfoBuilder = TaskUtils.setGoalState(taskInfoBuilder,
-                    newServiceSpec.getPods().get(0).getTasks().get(0));
-            taskInfoBuilder = CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, newTargetId);
+            taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+                    .setIndex(brokerId)
+                    .setType("kafka")
+                    .setGoalState(newServiceSpec.getPods().get(0).getTasks().get(0).getGoal())
+                    .setTargetConfiguration(newTargetId)
+                    .toProto());
 
             List<Protos.Resource> resourcesList = new ArrayList<>();
             for (Protos.Resource resource : oldTaskInfo.get().getResourcesList()) {

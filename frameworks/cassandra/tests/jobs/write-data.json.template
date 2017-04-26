@@ -1,0 +1,16 @@
+{
+  "description": "Cassandra backup test data job",
+  "id": "test.cassandra.write-data",
+  "run": {
+    "cmd": "cqlsh --cqlversion=3.4.0 -e \"CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 }; USE testspace1; CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key)); INSERT INTO testspace1.testtable1(key, value) VALUES('testkey1', 'testvalue1'); CREATE KEYSPACE testspace2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 }; USE testspace2; CREATE TABLE testtable2 (key varchar, value varchar, PRIMARY KEY(key)); INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');\" {{NODE_ADDRESS}} {{NODE_PORT}}",
+    "docker": {
+      "image": "cassandra:3.0.10"
+    },
+    "cpus": 1,
+    "mem": 512,
+    "user": "root",
+    "restart": {
+      "policy": "NEVER"
+    }
+  }
+}

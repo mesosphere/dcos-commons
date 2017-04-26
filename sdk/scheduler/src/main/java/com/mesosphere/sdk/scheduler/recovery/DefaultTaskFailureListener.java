@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
     @Override
     public void taskFailed(Protos.TaskID taskId) {
         try {
-            Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonTaskUtils.toTaskName(taskId));
+            Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
             if (optionalTaskInfo.isPresent()) {
                 Protos.TaskInfo taskInfo = FailureUtils.markFailed(optionalTaskInfo.get());
                 stateStore.storeTasks(Arrays.asList(taskInfo));

@@ -14,19 +14,27 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'com.github.ksoichiro.console.reporter'
 
+    // Double quotes are required for $rootDir to be resolved:
     apply from: "$rootDir/gradle/quality.gradle"
 
+    group = 'mesosphere'
     // ---
-    // To create a release release:
-    // 1. Merge a PR with "-SNAPSHOT" suffix removed
-    // 2. Merge a second PR which bumps the version with "-SNAPSHOT" suffix added back
-    // For example, given a version of "1.2.3-SNAPSHOT", merge "1.2.3" then "1.2.4-SNAPSHOT".
-    // ---
-    // In general, users of this SDK should NOT depend on "-SNAPSHOT" builds, as they may break
-    // at ANY TIME as changes are merged into master. They represent a fully unstable API.
-    // ---
-    group = "mesosphere"
-    version = "0.14.0-SNAPSHOT"
+    // INFO:
+    //
+    // In general, users of this SDK may use '-SNAPSHOT' builds for testing or development, but
+    // they MUST NOT be used for releases. A given '-SNAPSHOT' build will vary on a per-PR basis
+    // and APIs WILL break at any time. See the tags in this repo for a list of stable releases.
+    //
+    // In repo master, this version MUST ALWAYS be a '-SNAPSHOT' version.
+    // Release versions are ONLY published inside of tags.
+    // --
+    // INSTRUCTIONS: How to cut a release of e.g. '0.10.0', then start the '0.11.0-SNAPSHOT' track:
+    //
+    // 1. Run a CI job which calls './release.sh -r 0.10.0' to create the release tag from current master.
+    // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
+    // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
+    // --
+    version = '0.15.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -37,8 +45,8 @@ allprojects {
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-    compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-    compileTestJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    compileJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
+    compileTestJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
 
     task wrapper(type: Wrapper) {
         gradleVersion = '3.2'
@@ -63,7 +71,7 @@ allprojects {
     // Print results on the fly
     test {
         testLogging {
-            events "passed", "skipped", "failed"
+            events 'passed', 'skipped', 'failed'
         }
     }
 
@@ -76,11 +84,12 @@ allprojects {
 }
 
 ext {
-    mesosVer = "1.2.0-rc1"
+    mesosVer = '1.2.0-rc1'
 }
 
 subprojects {
     dependencies {
+        // Double quotes are required for $mesosVer to be resolved:
         compile "org.apache.mesos:mesos:${mesosVer}"
     }
 }

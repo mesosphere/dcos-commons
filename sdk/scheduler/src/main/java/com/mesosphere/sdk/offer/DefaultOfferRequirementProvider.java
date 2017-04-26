@@ -2,12 +2,16 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.slf4j.Logger;
@@ -32,15 +36,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private final StateStore stateStore;
     private final String serviceName;
     private final UUID targetConfigurationId;
+    private final SchedulerFlags schedulerFlags;
 
     /**
      * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which
      * updates tasks which are not tagged with the provided {@code targetConfigurationId}.
      */
-    public DefaultOfferRequirementProvider(StateStore stateStore, String serviceName, UUID targetConfigurationId) {
+    public DefaultOfferRequirementProvider(
+            StateStore stateStore, String serviceName, UUID targetConfigurationId, SchedulerFlags schedulerFlags) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
         this.targetConfigurationId = targetConfigurationId;
+        this.schedulerFlags = schedulerFlags;
     }
 
     @Override
@@ -115,7 +122,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.TaskInfo taskInfo = getNewTaskInfo(
                 podInstance, taskSpec, environment, serviceName, targetConfigurationId);
         if (isTransient) {
-            taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
+            taskInfo = taskInfo.toBuilder()
+                    .setLabels(new SchedulerLabelWriter(taskInfo).setTransient().toProto())
+                    .build();
         }
 
         Collection<ResourceRequirement> resourceRequirements = getResourceRequirements(taskSpec);
@@ -178,7 +187,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId));
+        return ExecutorRequirement.create(getNewExecutorInfo(
+                podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags));
     }
 
     @Override
@@ -226,7 +236,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getIndex(),
                 taskRequirements,
                 ExecutorRequirement.create(getExecutor(podInstance, serviceName, targetConfigurationId)),
-                podInstance.getPod().getPlacementRule());
+                // Do not add placement rules to getExistingOfferRequirement
+                Optional.empty()
+                );
     }
 
     private static Protos.TaskInfo getNewTaskInfo(
@@ -238,15 +250,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Collection<Protos.Resource> resources) throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
-                .setTaskId(CommonTaskUtils.emptyTaskId())
-                .setSlaveId(CommonTaskUtils.emptyAgentId())
+                .setTaskId(CommonIdUtils.emptyTaskId())
+                .setSlaveId(CommonIdUtils.emptyAgentId())
                 .addAllResources(resources);
 
         // create default labels:
-        CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
-        TaskUtils.setGoalState(taskInfoBuilder, taskSpec);
-        CommonTaskUtils.setType(taskInfoBuilder, podInstance.getPod().getType());
-        CommonTaskUtils.setIndex(taskInfoBuilder, podInstance.getIndex());
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+                .setTargetConfiguration(targetConfigurationId)
+                .setGoalState(taskSpec.getGoal())
+                .setType(podInstance.getPod().getType())
+                .setIndex(podInstance.getIndex())
+                .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -299,12 +313,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .clearExecutor()
                 .addAllResources(getUpdatedResources(otherResources, taskSpec))
                 .addAllResources(diskResources)
-                .setTaskId(CommonTaskUtils.emptyTaskId())
-                .setSlaveId(CommonTaskUtils.emptyAgentId());
-
-        // update some data:
-        CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
-        CommonTaskUtils.clearTransient(taskInfoBuilder);
+                .setTaskId(CommonIdUtils.emptyTaskId())
+                .setSlaveId(CommonIdUtils.emptyAgentId())
+                .setLabels(new SchedulerLabelWriter(taskInfo)
+                        .setTargetConfiguration(targetConfigurationId)
+                        .clearTransient()
+                        .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -370,33 +384,35 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
         Map<String, String> environment = new HashMap<>();
 
-        // Developer-provided or user-provided TASKCFG_* envvars (overrides ServiceSpec)
+        // Task envvars from either of the following sources:
+        // - ServiceSpec (provided by developer)
+        // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
         environment.putAll(commandSpec.getEnvironment());
 
         // Default envvars for use by executors/developers:
 
         // Inject Pod Instance Index
-        environment.put(POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        environment.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
-        environment.put(FRAMEWORK_NAME_TASKENV, serviceName);
+        environment.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject TASK_NAME as KEY:VALUE
-        environment.put(TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+        environment.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return CommonTaskUtils.fromMapToEnvironment(environment).build();
+        return EnvUtils.fromMapToEnvironment(environment).build();
     }
 
-    private static Protos.Environment mergeEnvironments(Protos.Environment lhs, Protos.Environment rhs) {
-        Map<String, String> lhsVariables = CommonTaskUtils.fromEnvironmentToMap(lhs);
-        Map<String, String> rhsVariables = CommonTaskUtils.fromEnvironmentToMap(rhs);
-        for (Map.Entry<String, String> entry : rhsVariables.entrySet()) {
-            if (!lhsVariables.containsKey(entry.getKey())) {
-                lhsVariables.put(entry.getKey(), entry.getValue());
+    private static Protos.Environment.Builder mergeEnvironments(
+            Protos.Environment primary, Protos.Environment secondary) {
+        Map<String, String> primaryVariables = EnvUtils.fromEnvironmentToMap(primary);
+        for (Map.Entry<String, String> secondaryEntry : EnvUtils.fromEnvironmentToMap(secondary).entrySet()) {
+            if (!primaryVariables.containsKey(secondaryEntry.getKey())) {
+                primaryVariables.put(secondaryEntry.getKey(), secondaryEntry.getValue());
             }
         }
 
-        return CommonTaskUtils.fromMapToEnvironment(lhsVariables).build();
+        return EnvUtils.fromMapToEnvironment(primaryVariables);
     }
 
     private static void validateTaskRequirements(List<TaskRequirement> taskRequirements)
@@ -407,14 +423,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         String taskType = "";
         try {
-            taskType = CommonTaskUtils.getType(taskRequirements.get(0).getTaskInfo());
+            taskType = new SchedulerLabelReader(taskRequirements.get(0).getTaskInfo()).getType();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
 
         for (TaskRequirement taskRequirement : taskRequirements) {
             try {
-                String localTaskType = CommonTaskUtils.getType(taskRequirement.getTaskInfo());
+                String localTaskType = new SchedulerLabelReader(taskRequirement.getTaskInfo()).getType();
                 if (!localTaskType.equals(taskType)) {
                     throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
                 }
@@ -539,7 +555,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
+        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
     }
 
     private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
@@ -623,7 +639,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.ExecutorInfo getNewExecutorInfo(
-            PodSpec podSpec, String serviceName, UUID targetConfigurationId) throws IllegalStateException {
+            PodSpec podSpec,
+            String serviceName,
+            UUID targetConfigurationId,
+            SchedulerFlags schedulerFlags) throws IllegalStateException {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
@@ -638,27 +657,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
                 "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
+         // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
+                "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
                 "$MESOS_SANDBOX/executor/bin/executor");
 
         if (podSpec.getUser().isPresent()) {
             executorCommandBuilder.setUser(podSpec.getUser().get());
         }
 
-        // URIs:
-
-        // Required in scheduler env.
-        String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);
-        if (libmesosUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI_SCHEDENV);
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(libmesosUri);
-
-        // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
-        String javaUri = System.getenv(JAVA_URI_SCHEDENV);
-        if (StringUtils.isBlank(javaUri)) {
-            throw new IllegalStateException("Missing required environment variable: " + JAVA_URI_SCHEDENV);
-        }
-        executorCommandBuilder.addUrisBuilder().setValue(javaUri);
+        // Required URIs from the scheduler environment:
+        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
+        executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
 
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
@@ -695,14 +704,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
-        taskInfo.getHealthCheckBuilder()
+        Protos.HealthCheck.Builder healthCheckBuilder = taskInfo.getHealthCheckBuilder();
+        healthCheckBuilder
                 .setDelaySeconds(healthCheckSpec.getDelay())
                 .setIntervalSeconds(healthCheckSpec.getInterval())
                 .setTimeoutSeconds(healthCheckSpec.getTimeout())
                 .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
                 .setGracePeriodSeconds(healthCheckSpec.getGracePeriod());
 
-        Protos.CommandInfo.Builder healthCheckCommandBuilder = taskInfo.getHealthCheckBuilder().getCommandBuilder()
+        Protos.CommandInfo.Builder healthCheckCommandBuilder = healthCheckBuilder.getCommandBuilder()
                 .setValue(healthCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
             healthCheckCommandBuilder.setEnvironment(
@@ -736,6 +746,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
         }
 
-        CommonTaskUtils.setReadinessCheck(taskInfoBuilder, builder.build());
+        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+                .setReadinessCheck(builder.build())
+                .toProto());
     }
 }

@@ -2,9 +2,12 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 
 import java.time.Duration;
 import java.util.concurrent.*;
@@ -36,7 +39,18 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             boolean exitOnTermination) {
-        return create(executorDriver, taskInfo, CommonTaskUtils.getProcess(taskInfo), exitOnTermination);
+        return create(executorDriver, taskInfo, getProcess(taskInfo), exitOnTermination);
+    }
+
+    public static ProcessBuilder getProcess(TaskInfo taskInfo) {
+        CommandInfo commandInfo = taskInfo.getCommand();
+        String cmd = commandInfo.getValue();
+
+        ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
+        builder.inheritIO();
+        builder.environment().putAll(EnvUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
+
+        return builder;
     }
 
     public static ProcessTask create(
@@ -77,26 +91,28 @@ public class ProcessTask implements ExecutorTask {
 
             if (processBuilder.command().isEmpty()) {
                 final String errorMessage = "Empty command found for: " + taskInfo.getName();
-                CommonTaskUtils.sendStatus(
+                TaskStatusUtils.sendStatus(
                         driver,
-                        Protos.TaskState.TASK_ERROR,
+                        Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
-                        errorMessage);
+                        errorMessage,
+                        false);
                 return;
             }
 
             this.process = processBuilder.start();
 
             final String startMessage = "Launching Task: " + taskInfo.getName();
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    startMessage);
+                    startMessage,
+                    true);
             initialized.complete(true);
 
             LOGGER.info(startMessage);
@@ -106,24 +122,28 @@ public class ProcessTask implements ExecutorTask {
             exit.complete(exitValue);
             Protos.TaskState taskState;
 
+            boolean isHealthy = true;
             if (exitValue == 0) {
                 taskState = Protos.TaskState.TASK_FINISHED;
                 exitMessage += exitValue;
             } else if (exitValue > 128) {
                 taskState = Protos.TaskState.TASK_KILLED;
                 exitMessage += (exitValue - 128);
+                isHealthy = false;
             } else {
-                taskState = Protos.TaskState.TASK_ERROR;
+                taskState = Protos.TaskState.TASK_FAILED;
                 exitMessage += exitValue;
+                isHealthy = false;
             }
 
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     taskState,
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    exitMessage);
+                    exitMessage,
+                    isHealthy);
 
             LOGGER.info(exitMessage);
             if (exitOnTermination) {
@@ -135,13 +155,14 @@ public class ProcessTask implements ExecutorTask {
             LOGGER.error("Process task failed.", e);
             initialized.complete(false);
             exit.complete(1);
-            CommonTaskUtils.sendStatus(
+            TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_FAILED,
                     taskInfo.getTaskId(),
                     taskInfo.getSlaveId(),
                     taskInfo.getExecutor().getExecutorId(),
-                    e.getMessage());
+                    e.getMessage(),
+                    false);
             if (exitOnTermination) {
                 driver.abort();
             }

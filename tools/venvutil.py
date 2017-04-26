@@ -5,6 +5,8 @@ import os
 import os.path
 import subprocess
 import sys
+import tempfile
+import venv
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
@@ -18,78 +20,76 @@ def shared_tools_venv():
 def venv_exists(path):
     return os.path.isfile(path, 'bin', 'python')
 
-try:
-    import venv
-    # python3.3 or later
 
-    def create_venv(path, with_pip=True, symlinks=True, py3=False):
-        "Create, but do not activate, a virtual env"
-        # ignoring py3; if we're already running py3, always py3
-        path = os.path.abspath(path)
-        builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
-        builder.create(path)
+def create_venv(path, with_pip=True, symlinks=True):
+    "Create, but do not activate, a virtual env"
+    path = os.path.abspath(path)
+    logger.info("using venv module at path %s", venv.__file__)
+    builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
 
-    def activate_venv(path):
-        "Activate a given venv for the current python process."
-        # "modified from virtualenv's activate_this.py", incorporated here because
-        # venv does not provide.
 
-        path = os.path.abspath(path)
-        venv_bin = os.path.join(path, 'bin')
+    logger.info("Creating venv at %s", path)
+    logger.info("current environment is: %s", os.environ)
+    #builder.create(path)
+    context = builder.ensure_directories(path)
+    logger.info("venv context: %s", context)
+    logger.info("venv listing: %s", ", ".join(os.listdir(path)))
+    builder.create_configuration(context)
+    cfg_file = os.path.join(path, 'pyvenv.cfg')
+    with open(cfg_file) as f:
+        logger.info("venv pyvenv.cfg: %s", f.read())
 
-        base = path
-        if sys.platform == 'win32':
-            site_packages = os.path.join(base, 'Lib', 'site-packages')
-        else:
-            site_packages = os.path.join(base, 'lib', 'python%s' % sys.version[:3], 'site-packages')
+    builder.setup_python(context)
+    bin_dir = os.path.join(path, 'bin')
+    dirents1 =  os.listdir(bin_dir)
+    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
 
-        # if already activated, do nothing
-        if site_packages == sys.path[0]:
-            return
+    builder._setup_pip(context)
+    dirents2 =  os.listdir(bin_dir)
+    logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))
 
-        old_os_path = os.environ.get('PATH', '')
-        os.environ['PATH'] = venv_bin + os.pathsep + old_os_path
 
-        prev_sys_path = list(sys.path)
-        import site
-        site.addsitedir(site_packages)
-        sys.real_prefix = sys.prefix
-        sys.prefix = base
-        # Move the added items to the front of the path:
-        new_sys_path = []
-        for item in list(sys.path):
-            if item not in prev_sys_path:
-                new_sys_path.append(item)
-                sys.path.remove(item)
-        sys.path[:0] = new_sys_path
-except:
-    def create_venv(path, with_pip=True, symlinks=True, py3=False):
-        "Create, but do not activate, a virtual env"
-        path = os.path.abspath(path)
-        use_shell=False
-        cmd = ['virtualenv']
-        if py3:
-            # 2.7 has no shutil.which; do ourselves.
-            result = subprocess.check_output(["which", "python3"])
-            py3path = result.strip()
-            cmd.extend(['-p', py3path])
-        if not symlinks:
-            cmd.append('--always-copy')
-        if not with_pip:
-            cmd.append('--no-pip')
-        cmd.append(path)
-        logger.error("Running %s", " ".join(cmd))
 
-        subprocess.check_call(cmd, shell=use_shell, stdout=sys.stdout,
-                stderr=sys.stderr)
+def activate_venv(path):
+    "Activate a given venv for the current python process."
+    # "modified from virtualenv's activate_this.py", incorporated here because
+    # venv does not provide.
 
-    def activate_venv(path):
-        "Activate a given venv for the current python process."
-        path = os.path.abspath(path)
-        activate_script = os.path.join(path, 'bin', 'activate_this.py')
-        with open(activate_script) as script_file:
-            script_text = script_file.read()
-            exec(script_text, dict(__file__ = activate_script))
+    path = os.path.abspath(path)
+    venv_bin = os.path.join(path, 'bin')
+
+    base = path
+    if sys.platform == 'win32':
+        site_packages = os.path.join(base, 'Lib', 'site-packages')
+    else:
+        site_packages = os.path.join(base, 'lib', 'python%s' % sys.version[:3], 'site-packages')
+
+    # if already activated, do nothing
+    if site_packages == sys.path[0]:
+        return
+
+    old_os_path = os.environ.get('PATH', '')
+    os.environ['PATH'] = venv_bin + os.pathsep + old_os_path
+
+    prev_sys_path = list(sys.path)
+    import site
+    site.addsitedir(site_packages)
+    sys.real_prefix = sys.prefix
+    sys.prefix = base
+    # Move the added items to the front of the path:
+    new_sys_path = []
+    for item in list(sys.path):
+        if item not in prev_sys_path:
+            new_sys_path.append(item)
+            sys.path.remove(item)
+    sys.path[:0] = new_sys_path
+
+
+def pip_install_module(path, modulename):
+    """Populate a venv with specific module"""
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', modulename])
+
 
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"
@@ -97,7 +97,7 @@ def pip_install(path, requirements_filepath):
     run_cmd(path, [pip_bin, 'install', '-r', requirements_filepath])
 
 def run_cmd(path, cmd, *args, **kwargs):
-    "Run an external command with a particular virtualenv"
+    "Run an external command with a particular venv"
     venv_bin = os.path.join(path, 'bin')
     if 'env' in kwargs:
         custom_env = kwargs['env']
@@ -117,3 +117,28 @@ def run_py(path, func, *args, **kwargs):
     # theoretically save and restore is possible, but probably not a good idea
     raise NotImplementedError
 
+def create_default_requirementsfile(filename):
+    with open(filename, 'w') as reqfile:
+        reqfile.write('''
+requests==2.10.0
+
+-e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+''')
+
+def create_dcoscommons_venv(path):
+    create_venv(path)
+    req_filename = os.path.join(path, 'requirements.txt')
+    create_default_requirementsfile(req_filename)
+    pip_install(path, req_filename)
+
+
+
+if __name__ == "__main__":
+    # only creating default venv so far
+    if len(sys.argv) < 3:
+        sys.exit("Too few arguments\nusage: venvutil.py create <dir>")
+    if sys.argv[1] != "create":
+        sys.exit("Unknown command {}\nusage: venvutil.py create <dir>".format(sys.argv))
+    venv_tgt_dir = sys.argv[2]
+    os.makedirs(venv_tgt_dir)
+    create_dcoscommons_venv(venv_tgt_dir)

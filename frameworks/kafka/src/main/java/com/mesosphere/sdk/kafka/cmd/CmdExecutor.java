@@ -23,7 +23,6 @@ import java.util.ArrayList;
  */
 public class CmdExecutor {
     private static final Log log = LogFactory.getLog(CmdExecutor.class);
-    private static final String BIN_DIR = "/bin/";
 
     private final String binPath;
     private final String zkPath;

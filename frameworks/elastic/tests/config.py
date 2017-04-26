@@ -2,6 +2,7 @@ import json
 from functools import wraps
 
 import shakedown
+import sdk_utils
 
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 9
@@ -64,7 +65,7 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    print('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
+    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 

@@ -5,7 +5,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -26,7 +27,7 @@ public class CuratorStateStoreTest {
     private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonTaskUtils.toTaskId(TASK_NAME))
+            .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
             .setState(TASK_STATE)
             .build();
     public static final String PROPERTY_VALUE = "DC/OS";
@@ -232,7 +233,7 @@ public class CuratorStateStoreTest {
         origInfoBuilder.getExecutorBuilder().getExecutorIdBuilder().setValue("hi");
         Protos.TaskInfo origInfo = origInfoBuilder.build();
 
-        Protos.TaskInfo packedInfo = CommonTaskUtils.packTaskInfo(origInfo);
+        Protos.TaskInfo packedInfo = TaskPackingUtils.pack(origInfo);
         assertFalse(packedInfo.hasCommand());
         assertTrue(packedInfo.hasExecutor());
         assertTrue(packedInfo.hasData());
@@ -389,7 +390,7 @@ public class CuratorStateStoreTest {
     // taskid is required and cannot be unset, so lets try the next best thing
     @Test(expected=StateStoreException.class)
     public void testStoreStatusEmptyTaskId() throws Exception {
-        store.storeStatus(createTaskStatus(CommonTaskUtils.emptyTaskId()));
+        store.storeStatus(createTaskStatus(CommonIdUtils.emptyTaskId()));
     }
 
     @Test(expected=StateStoreException.class)
@@ -526,7 +527,7 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testMismatchedTaskIds() {
-        Protos.TaskID taskID = CommonTaskUtils.toTaskId(TestConstants.TASK_NAME);
+        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.TASK_NAME);
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(TestConstants.TASK_INFO)
                 .setTaskId(taskID)
                 .build();
@@ -568,7 +569,7 @@ public class CuratorStateStoreTest {
     private static Protos.TaskInfo createTask(String taskName) {
         return Protos.TaskInfo.newBuilder()
                 .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
     }

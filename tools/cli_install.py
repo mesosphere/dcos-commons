@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import json
 import logging
@@ -9,14 +9,7 @@ import ssl
 import sys
 import tempfile
 import time
-
-try:
-    from urllib.request import URLopener
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from urllib import URLopener
-    from urllib import urlopen
+import urllib.request
 
 
 logger = logging.getLogger(__name__)
@@ -44,8 +37,8 @@ def get_download_platform():
 
 
 def get_cluster_version(dcos_url):
-    """Given a cluster url, return its version string, such as 1.7, 1.8, 1.9,
-    1.9-dev, etc"""
+    """Given a cluster url, return its version string, such as 1.7, 1.8,
+    1.8.8, 1.9, 1.9-dev, etc"""
     version_url = "%s/%s" % (dcos_url, "dcos-metadata/dcos-version.json")
     # Since our test clusters have weird certs that won't validate, turn off
     # validation
@@ -70,7 +63,7 @@ def get_cluster_version(dcos_url):
             logger.error("*VERY* old python.  Very weak/unsafe encryption ahoy.")
             noverify_context =  ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
-    response = urlopen(version_url, context=noverify_context)
+    response = urllib.request.urlopen(version_url, context=noverify_context)
     encoding = 'utf-8' # default
     try:
         #python3
@@ -83,6 +76,7 @@ def get_cluster_version(dcos_url):
     ver_s = json.loads(json_s)['version']
     return ver_s
 
+
 def _get_tempfilename(a_dir):
     temp_target_f = tempfile.NamedTemporaryFile(dir=a_dir, delete=False)
     temp_target_f.close()
@@ -91,6 +85,12 @@ def _get_tempfilename(a_dir):
 
 def _mark_executable(path):
     os.chmod(path, 0o755)
+
+
+def install_cli_from_dir(src_dir, write_dir):
+    src_file = os.path.join(src_dir, get_cli_filename())
+    return install_cli(src_file, write_dir)
+
 
 def install_cli(src_file, write_dir):
     """Copy an existing cli to a target directory path, updating the target
@@ -110,6 +110,18 @@ def install_cli(src_file, write_dir):
             os.unlink(temp_target)
     return output_filepath
 
+
+def ensure_cli_downloaded(dcos_url, write_dir):
+    """If the cli filename is not present in write_dir, download the correct
+    cli version for a given cluster url.
+    No attempt is made to verify it's the correct version, so a per-cluster or
+    per-run dir should be used."""
+    output_filepath = os.path.join(write_dir, get_cli_filename())
+    if os.path.exists(output_filepath):
+        return output_filepath
+    return download_cli(dcos_url, write_dir)
+
+
 def download_cli(dcos_url, write_dir):
     """Download the correct cli version for a given cluster url, placing it in
     a target directory and causing the target executable to update atomically"""
@@ -118,6 +130,8 @@ def download_cli(dcos_url, write_dir):
     # we only care about the target release number
     if '-' in cluster_version:
         cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
+    major, minor = cluster_version.split('.')[:2] # 1.8.8 -> 1.8
+    cluster_version = '%s.%s' % (major, minor)
     cli_url = url_template.format(get_download_platform(), cluster_version,
                                   get_cli_filename())
     # actually download to unique filename, then rename into place atomically.
@@ -130,7 +144,7 @@ def download_cli(dcos_url, write_dir):
                                                                    output_filepath,
                                                                    attempt))
             try:
-                URLopener().retrieve(cli_url, temp_target)
+                urllib.request.URLopener().retrieve(cli_url, temp_target)
                 break
             except Exception as e:
                 logger.info("Attempt {} failed: {}".format(attempt, e))
@@ -151,21 +165,32 @@ if __name__ == "__main__":
         f.write("usage: cli_install.py <path_to_existing_cli> <target_dir>\n")
         f.write("  OR\n")
         f.write("usage: cli_install.py <cluster_url> <target_dir>\n")
+        f.write("  OR\n")
+        f.write("usage: cli_install.py ensure_installed <cluster_url> <target_dir>\n")
 
 
     if not len(sys.argv) == 3:
         usage()
         sys.exit(1)
 
-    source = sys.argv[1]
-    target_dir = sys.argv[2]
+    args = sys.argv[1:]
+    maybe_install = False
+    if args[0] == "ensure_installed":
+        maybe_install=True
+        args=args[1:]
+
+    source = args[1]
+    target_dir = args[2]
 
     # convenience for command line
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
     if source.startswith('http://') or source.startswith('https://'):
-        download_cli(source, target_dir)
+        if maybe_install:
+            ensure_cli_downloaded(source, target_dir)
+        else:
+            download_cli(source, target_dir)
     elif os.path.isfile(source):
         install_cli(source, target_dir)
     else:

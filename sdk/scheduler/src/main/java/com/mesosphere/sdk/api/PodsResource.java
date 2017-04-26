@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
@@ -304,9 +304,8 @@ public class PodsResource extends PrettyJsonResource {
 
     private static Optional<String> getPodInstanceName(TaskInfo taskInfo) {
         try {
-            return Optional.of(PodInstance.getName(
-                    CommonTaskUtils.getType(taskInfo),
-                    CommonTaskUtils.getIndex(taskInfo)));
+            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            return Optional.of(PodInstance.getName(labels.getType(), labels.getIndex()));
         } catch (Exception e) {
             LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
             return Optional.empty();

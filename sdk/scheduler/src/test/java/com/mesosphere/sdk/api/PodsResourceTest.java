@@ -2,7 +2,8 @@ package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -58,32 +59,34 @@ public class PodsResourceTest {
     static {
         // pod 0
         TaskInfo.Builder infoBuilder = NO_POD_TASK.toBuilder();
-        CommonTaskUtils.setType(infoBuilder, "test");
-        CommonTaskUtils.setIndex(infoBuilder, 0);
-        POD_0_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
+                .setType("test")
+                .setIndex(0)
+                .toProto());
+        POD_0_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_0_STATUS_A = TaskTestUtils.generateStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("b").setTaskId(CommonTaskUtils.toTaskId("b")).build();
+        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("b").setTaskId(CommonIdUtils.toTaskId("b")).build();
         POD_0_STATUS_B = TaskTestUtils.generateStatus(POD_0_TASK_B.getTaskId(), TaskState.TASK_STAGING);
 
-        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("c").setTaskId(CommonTaskUtils.toTaskId("c")).build();
+        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("c").setTaskId(CommonIdUtils.toTaskId("c")).build();
         POD_0_STATUS_C = TaskTestUtils.generateStatus(POD_0_TASK_C.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("d").setTaskId(CommonTaskUtils.toTaskId("d")).build();
+        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("d").setTaskId(CommonIdUtils.toTaskId("d")).build();
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
-        CommonTaskUtils.setIndex(infoBuilder, 1);
-        POD_1_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(1).toProto());
+        POD_1_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
-        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("b").setTaskId(CommonTaskUtils.toTaskId("b")).build();
+        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("b").setTaskId(CommonIdUtils.toTaskId("b")).build();
         POD_1_STATUS_B = TaskTestUtils.generateStatus(POD_1_TASK_B.getTaskId(), TaskState.TASK_RUNNING);
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
-        CommonTaskUtils.setIndex(infoBuilder, 2);
-        POD_2_TASK_A = infoBuilder.setName("a").setTaskId(CommonTaskUtils.toTaskId("a")).build();
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(2).toProto());
+        POD_2_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }
     private static final Collection<TaskInfo> TASK_INFOS = Arrays.asList(

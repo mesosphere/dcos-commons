@@ -1,12 +1,8 @@
-<p align="left"><img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/></p>
-
-# Your Name Here
-
 This template README may be used as a starting point for writing a Service Guide for your DC/OS Service.
 
 In particular, the parts in _ALL-CAPS ITALICS_ should be updated to reflect your service.
 
-Many sections are left unfilled as they depend on how your service works. For example, we leave empty sections for you to describe how users may [Backup and Restore their data](#disaster-recovery), because any persistent service should have a backup option.
+Many sections are left unfilled as they depend on how your service works. For example, we leave empty sections for you to describe how users may perform [Disaster Recovery](#disaster-recovery), because most persistent services support Disaster Recovery.
 
 ---
 
@@ -15,104 +11,105 @@ Many sections are left unfilled as they depend on how your service works. For ex
 ## Table of Contents
 
 - [Overview](#overview)
-  - Features
+  - [Features](#features)
 - [Quick Start](#quick-start)
 - [Installing and Customizing](#installing-and-customizing)
-  - Installation with Default Settings
-  - Installation with Custom Settings
-  - Service Settings
-    - Service Name
-    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - Node Settings
-    - Node Count
-    - CPU
-    - Memory
-    - Ports
-    - Storage Volumes
-    - Placement Constraints
-    - _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - _STEP-BY-STEP GUIDES FOR ANY ADDITIONAL CONFIG SCENARIOS TO POINT OUT_
+  - [Installation with Default Settings](#installation-with-default-settings)
+  - [Installation with Custom Settings](#installation-with-custom-settings)
+  - [Service Settings](#service-settings)
+    - [Service Name](#service-name)
+    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
+  - [Node Settings](#node-settings)
+    - [Node Count](#node-count)
+    - [CPU](#cpu)
+    - [Memory](#memory)
+    - [Ports](#ports)
+    - [Storage Volumes](#storage-volumes)
+    - [Placement Constraints](#placement-constraints)
+    - _PER-NODE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 - [Uninstalling](#uninstalling)
 - [Connecting Clients](#connecting-clients)
-  - Discovering endpoints
-  - Connecting clients to endpoints
+  - [Discovering Endpoints](#discovering-endpoints)
+  - [Connecting Clients to Endpoints](#connecting-clients-to-endpoints)
 - [Managing](#managing)
-  - Updating Configuration
-    - Adding a Node
-    - Resizing a Node
-    - _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-    - Updating Placement Constraints
-    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-  - Restarting nodes
-  - Replacing nodes
+  - [Updating Configuration](#updating-configuration)
+    - [Adding a Node](#adding-a-node)
+    - [Resizing a Node](#resizing-a-node)
+    - [Updating Placement Constraints](#updating-placement-constraints)
+    - _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
+    - _PER-NODE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
+  - [Restarting a Node](#restarting-a-node)
+  - [Replacing a Node](#replacing-a-node)
+  - _MAINTAINENCE OPERATIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 - [Disaster Recovery](#disaster-recovery)
-  - Backup
-  - Restore
-- [Deployment Best Practices](#deploy-best-practices)
+  - _BACKUP OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
+  - _RESTORE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 - [Troubleshooting](#troubleshooting)
-  - Accessing Logs
-- [Known Issues](#knownissues)
+  - [Accessing Logs](#accessing-logs)
+  - [Accessing Metrics](#accessing-metrics)
 - [Limitations](#limitations)
-  - Removing a Node
-  - Automatic Failed Node Recovery
-  - Updating Storage Volumes
-  - Rack-aware Replication
-  - _ANY OTHER CAVEATS TO MENTION HERE?_
-- [Terms](#terms)
+  - [Removing a Node](#removing-a-node)
+  - [Updating Storage Volumes](#updating-storage-volumes)
+  - [Rack-aware Replication](#rack-aware-replication)
+  - _CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 - [Support](#support)
-  - Supported Versions
-  - Package Versioning
-    - Upgrades/downgrades
-  - Reaching Technical Support
+  - [Package Versioning Scheme](#package-versioning-scheme)
+  - [Contacting Technical Support](#contacting-technical-support)
+- [Changelog](#changelog)
+  - [1.0.1-1.0.1](#1.0.1-1.0.1)
+  - [1.0.0-1.0.0](#1.0.0-1.0.0)
 
 <a name="overview"></a>
 # Overview
 
-DC/OS _SERVICENAME_ is an automated service that makes it easy to deploy and manage _SERVICENAME_ on [Mesosphere DC/OS](http://dcos.io). For more information on _SERVICENAME_, see its _[documentation](http://example.com)_.
+DC/OS _SERVICENAME_ is an automated service that makes it easy to deploy and manage _SERVICENAME_ on [Mesosphere Enterprise DC/OS](https://mesosphere.com/product/).
 
-The service comes with a reasonable initial configuration for evaluation use. Additional customizations may be made to the service configuration at initial install, and later updated once the service is already running through a configuration rollout process. If you just want to try out the service, you can use the default configuration and be up and running within moments.
-
-Interoperating clients and services may take advantage of DC/OS service discovery features to directly access _SERVICENAME_ via advertised endpoints, regardless of where the instance is currently located within a DC/OS Cluster.
-
-Multiple instances can be installed on DC/OS and managed independently. This allows different teams within an organization to have isolated instances of the service.
+_BRIEF OVERVIEW OF YOUR PRODUCT_
 
 ## Features
 
-- _BENEFITS OF YOUR IMPLEMENTATION GO HERE. WHAT BENEFITS ARE PROVIDED OVER THE ALTERNATIVES?_
-- Multiple instances sharing the same physical systems (requires custom port configuration).
-- Vertical (resource) and horizontal (node count) scaling.
-- Easy redeployment to new systems upon scheduled or unscheduled outages.
-- Consistent DNS addresses regardless of where nodes are located in the cluster.
-- Node placement may be customized via Placement Constraints.
+- Single command installation for rapid provisioning
+- CLI for easy management
+- Multiple _SERVICENAME_ clusters sharing a single DC/OS cluster for multi-tenancy
+- Multiple _SERVICENAME_ instances sharing the same hosts for improved utilization
+- Placement constraints for fine-grained instance placement
+- Vertical and horizontal for managing capacity
+- Rolling software and configuration updates for runtime maintainence
+- Integrated with Enterprise DC/OS Storage capabilities
+- Integrated with Enterprise DC/OS Networking capabilities
+- Integrated with Enterprise DC/OS Monitoring and Troubleshooting capabilities
+- Integrated with Enterprise DC/OS Security capabilities
+- _OTHER BENEFITS YOUR PRODUCT WITH DC/OS_
+
 
 <a name="quick-start"></a>
 # Quick Start
 
 1. Get a DC/OS cluster. If you don't have one yet, head over to [DC/OS Docs](https://dcos.io/docs/latest) for instructions.
-2. Install the Service in your DC/OS cluster, either via the [DC/OS Dashboard](https://docs.mesosphere.com/latest/usage/webinterface/) or via the [DC/OS CLI](https://docs.mesosphere.com/latest/usage/cli/) as shown here:
+
+1. Install the Service in your DC/OS cluster, either via the [DC/OS Dashboard](https://docs.mesosphere.com/1.9/gui/) or via the [DC/OS CLI](https://docs.mesosphere.com/1.9/cli/) as shown here:
+
+``` shell
+$ dcos package install _PKGNAME_
 ```
-dcos config set core.dcos_url http://your-cluster.com
-dcos config set core.ssl_verify False # optional
-dcos auth login
-```
-```
-dcos package install _PKGNAME_
-```
-3. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
-4. Now you are ready to connect a client to the service...
-```
-dcos _PKGNAME_ endpoints
+
+1. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
+
+1. Now you are ready to connect a client to the service...
+``` shell
+$ dcos _PKGNAME_ endpoints
 [
   "_LIST_",
   "_OF_",
   "_ENDPOINTS_"
 ]
-dcos _PKGNAME_ endpoints _ENDPOINT_
+$ dcos _PKGNAME_ endpoints _ENDPOINT_
 {
   "address": ["10.0.3.156:_PORT_", "10.0.3.84:_PORT_"],
   "dns": ["_POD_-0._PKGNAME_.mesos:_PORT_", "_POD_-1._PKGNAME_.mesos:_PORT_", "_POD_-2._PKGNAME_.mesos:_PORT_]
 }
 ```
+1. _SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATE, READ DATA)._
 
 <a name="installing-and-customizing"></a>
 # Installing and Customizing
@@ -122,16 +119,16 @@ When installing the service without any additional customizations, reasonable de
 ## Installation from CLI
 
 From the DC/OS CLI, _SERVICENAME_ may be installed with a default testing/non-production configuration as follows:
-```
-dcos package install _PKGNAME_
+``` shell
+$ dcos package install _PKGNAME_
 ```
 
 A custom configuration may be specified in an `options.json` file and passed to the the DC/OS CLI as follows:
-```
-$ dcos package install _PKGNAME_ --options=your-options.json
+``` shell
+$ dcos package install _PKGNAME_ --options=options.json
 ```
 
-For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/) for service configuration access.
+For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/config-universe-service/) for service configuration access.
 
 ## Installation from Web
 
@@ -153,11 +150,11 @@ A customized installation may be performed from the DC/OS Dashboard as follows:
 
 Each instance of _SERVICENAME_ in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the **service** section of the install settings. The default service name (used in many examples here) is _`PKGNAME`_.
 
-### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
+### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
 _CREATE ONE OR MORE SECTIONS FOR ADDITIONAL SERVICE-WIDE CUSTOMIZATIONS THAT YOU EXPOSE._
 
-_FOR EXAMPLE, THIS MAY INCLUDE OPTIONAL FEATURES THAT MAY BE ENABLED/DISABLED BY A USER._
+_E.G., THIS MAY INCLUDE OPTIONAL FEATURES THAT MAY BE ENABLED/DISABLED BY A USER._
 
 ## Node Settings
 
@@ -192,7 +189,7 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://docs.mesosphere.com/1.9/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. To ensure reliable and consistent performance in a production environment, you should configure `MOUNT` volumes on the machines which will run the service in your cluster and then configure the following as `MOUNT` volumes:
 - _LIST ANY VOLUMES THAT SHOULD USE DEDICATED SPINDLES IN A PRODUCTION ENVIRONMENT FOR YOUR SERVICE_
 
 ### Placement Constraints
@@ -211,13 +208,13 @@ You must include spare capacity in this list so that if one of the whitelisted s
 
 For an example of updating placement constraints, see [Managing](#managing) below.
 
-### _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
+### _PER-NODE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
-_CREATE ONE OR MORE SECTIONS FOR ADDITIONAL PER-NODE CUSTOMIZATIONS THAT YOU EXPOSE. FOR EXAMPLE, CUSTOMIZATION OF EXPOSED CONFIG FILE OPTIONS._
+_CREATE ONE OR MORE SECTIONS FOR ADDITIONAL PER-NODE CUSTOMIZATIONS THAT YOU EXPOSE. E.G., CUSTOMIZATION OF EXPOSED CONFIG FILE OPTIONS._
 
 ## _STEP-BY-STEP GUIDES FOR ANY ADDITIONAL CONFIG SCENARIOS TO POINT OUT_
 
-_FOR EXAMPLE, IF YOUR SERVICE SUPPORTS ENABLING/DISABLING CERTAIN COMPONENTS, THIS MAY BE A GOOD PLACE TO PROVIDE TUTORIALS ON HOW TO CONFIGURE THEM SUCCESSFULLY_
+_E.G., IF YOUR SERVICE SUPPORTS ENABLING/DISABLING CERTAIN COMPONENTS, THIS MAY BE A GOOD PLACE TO PROVIDE TUTORIALS ON HOW TO CONFIGURE THEM SUCCESSFULLY_
 
 <a name="uninstalling"></a>
 # Uninstalling
@@ -225,24 +222,24 @@ _FOR EXAMPLE, IF YOUR SERVICE SUPPORTS ENABLING/DISABLING CERTAIN COMPONENTS, TH
 Follow these steps to uninstall the service.
 
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner).
 
 To uninstall an instance named `_PKGNAME_` (the default), run:
-```
-MY_SERVICE_NAME=_PKGNAME_
-dcos package uninstall --app-id=$MY_SERVICE_NAME _PKGNAME_
-dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r $MY_SERVICE_NAME-role \
-    -p $MY_SERVICE_NAME-principal \
-    -z dcos-service-$MY_SERVICE_NAME"
+``` shell
+$ MY_SERVICE_NAME=_PKGNAME_
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME _PKGNAME_
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
+      -r $MY_SERVICE_NAME-role \
+      -p $MY_SERVICE_NAME-principal \
+      -z dcos-service-$MY_SERVICE_NAME"
 ```
 
 <a name="connecting-clients"></a>
-# Connecting clients
+# Connecting Clients
 
 One of the benefits of running containerized services is that they can be placed anywhere in the cluster. This benefit brings up the question on how to find those services once they're deployed. Clients need a way to connect to the service regardless of where it's currently located in the cluster. This is where service discovery comes in.
 
-## Discovering endpoints
+## Discovering Endpoints
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
@@ -259,7 +256,7 @@ Returned endpoints will include the following:
 
 In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you may either use the direct IPs, or set up a proxy service which acts as a frontend to your _SERVICENAME_ instance. For development and testing purposes, you may use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
 
-## Connecting clients to endpoints
+## Connecting Clients to Endpoints
 
 _GIVEN A RELEVANT EXAMPLE CLIENT FOR YOUR SERVICE, PROVIDE INSTRUCTIONS FOR CONNECTING THAT CLIENT USING THE ENDPOINTS LISTED ABOVE. WE RECOMMEND USING THE .MESOS ENDPOINTS IN YOUR EXAMPLE AS THEY WILL FOLLOW TASKS IF THEY ARE MOVED WITHIN THE CLUSTER._
 
@@ -298,20 +295,14 @@ The CPU and Memory requirements of each node may be increased or decreased as fo
 
 Note that volume requirements (type and/or size) may not be changed after initial deployment.
 
-### _PER-NODE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
-
-_ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED NODE-SPECIFIC OPTIONS THAT YOUR SERVICE EXPOSES_
-
 ### Updating Placement Constraints
 
-TODO(nickbp): Placement constraint updates currently aren't well tested. This is at your own risk.
+Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
 
-~~Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.~~
+Let's say we have the following deployment of our nodes
 
-~~Let's say we have the following deployment of our nodes~~
-
-- ~~Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`~~
-- ~~Tasks:~~
+- Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
+- Tasks:
 ```
 10.0.10.3: _NODEPOD_-0
 10.0.10.8: _NODEPOD_-1
@@ -320,27 +311,31 @@ TODO(nickbp): Placement constraint updates currently aren't well tested. This is
 10.0.10.84: empty
 ```
 
-~~`10.0.10.8` is being decommissioned and we should move away from it. Steps:~~
+`10.0.10.8` is being decommissioned and we should move away from it. Steps:
 
-1. ~~Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `NODE_PLACEMENT`:~~
+1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `NODE_PLACEMENT`:
 
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. ~~Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pods replace _NODEPOD_-1`~~
-1. ~~Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.~~
+1. Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pods replace _NODEPOD_-1`
+1. Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.
 
-### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR IMPLEMENTATION GO HERE_
+### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
-_ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED SERVICE-WIDE OPTIONS EXPOSED BY YOUR IMPLEMENTATION_
+_ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED SERVICE-WIDE OPTIONS EXPOSED BY YOUR PRODUCT INTEGRATION_
 
-## Restarting nodes
+### _PER-NODE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
+
+_ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED NODE-SPECIFIC OPTIONS THAT YOUR SERVICE EXPOSES_
+
+## Restarting a Node
 
 This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data which isn't in a persistent volume, via the magic of containers.
 
 1. Run `dcos _PKGNAME_ pods restart _NODEPOD_-<NUM>`, e.g. `_NODEPOD_-2`.
 
-## Replacing nodes
+## Replacing a Node
 
 This operation will move a node to a new system, and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined. Note that nodes are not moved automatically; you must manually perform the following steps to move nodes to new systems. You may build your own automation to perform node replacement automatically according to your own preferences.
 
@@ -351,27 +346,20 @@ For example, let's say `_NODEPOD_-3`'s host system has died and `_NODEPOD_-3` ne
 
 1. _DETAILED INSTRUCTIONS FOR WINDING DOWN A NODE, IF NEEDED FOR YOUR SERVICE, GO HERE_
 1. _"NOW THAT THE NODE HAS BEEN DECOMMISSIONED," (IF NEEDED BY YOUR SERVICE)_ start `_NODEPOD_-3` at a new location in the cluster.
-	```
-	dcos _PKGNAME_ pods replace _NODEPOD_-3
+	``` shell
+	$ dcos _PKGNAME_ pods replace _NODEPOD_-3
 	```
 
 <a name="disaster-recovery"></a>
 # Disaster Recovery
 
-## Backup
+## _BACKUP OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
-_INSTRUCTIONS FOR BACKING UP DATA FROM YOUR SERVICE. CONSIDER SPECIFYING A SIDECAR TASK IN SVC.YML TO AUTOMATE THIS_
+_INSTRUCTIONS FOR BACKING UP DATA FROM YOUR SERVICE._
 
-## Restore
+## _ RESTORE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
-_INSTRUCTIONS FOR RESTORING BACKED UP DATA TO YOUR SERVICE. CONSIDER SPECIFYING A SIDECAR TASK IN SVC.YML TO AUTOMATE THIS_
-
-<a name="#deploy-best-practices"></a>
-# Deployment Best Practices
-
-- Run [backups](#disaster-recovery) on a regular basis, and test your backups.
-- Configure alerting/monitoring of your service to detect downtime and other issues.
-- If your cluster has been [configured with availability zones (e.g. Rack IDs)](https://github.com/dcos/dcos-docs/blob/51fe4641152e2c9361877439c40ddfeab61506e0/1.8/administration/faq.md#q-how-to-add-mesos-attributes-to-nodes-in-order-to-use-marathon-constraints), Placement Constraints may be used to map the service across those zones.
+_INSTRUCTIONS FOR RESTORING BACKED UP DATA TO YOUR SERVICE._
 
 <a name="troubleshooting"></a>
 # Troubleshooting
@@ -398,24 +386,11 @@ In case of problems with accessing the DC/OS Dashboard, logs may also be accesse
 1. You should now see two lists of tasks. `Active Tasks` are what's currently running, and `Completed Tasks` are what has since exited. Click on the `Sandbox` link for the task you wish to examine.
 1. The `Sandbox` view will list files named `stdout` and `stderr`. Click the file names to view the files in the browser, or click `Download` to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.
 
-<a name="knownissues"></a>
-# Known Issues
-
-- _LIST ANY KNOWN BUGS OR ISSUES WITH YOUR SERVICE INTEGRATION (AND THEIR WORKAROUNDS) HERE_
 
 <a name="limitations"></a>
 # Limitations
 
-- _LIST SUMMARY OF CAVEATS OR USEFUL KNOWLEDGE FOR RUNNING THE SERVICE HERE_
-- Shrinking cluster size (number of nodes) is not supported.
-
-## Removing a Node
-
-Removing a node is not supported at this time.
-
-## Automatic Failed Node Recovery
-
-Nodes are not automatically replaced by the service in the event a system goes down. You may either manually replace nodes as described under [Managing](#managing), or build your own ruleset and automation to perform this operation automatically.
+_MANAGE CUSTOMER EXPECTIONS BY DISCLOSING ANY FEATURES OF YOUR PRODUCT THAT ARE NOT SUPPORTED WITH DC/OS, FEATURES MISSING FROM THE DC/OS INTEGRATION, ETC._
 
 ## Updating Storage Volumes
 
@@ -423,33 +398,41 @@ Neither volume type nor volume size requirements may be changed after initial de
 
 ## Rack-aware Replication
 
-Rack awareness within the service is not currently supported, but is planned to be supported with a future release of DC/OS.
+Rack placement and awareness are not supported at this time.
 
-## _ANY OTHER CAVEATS TO MENTION HERE?
+## Removing a Node
 
-_FOR EXAMPLE, DOES YOUR SERVICE REQUIRE MANUAL INVOLVEMENT BY THE USER IN CERTAIN SCENARIOS?_
+Removing a node is not supported at this time.
 
-<a name="terms"></a>
-# Terms of Use
-
-_ANY RISK WARNINGS OR REQUIREMENTS FOR SUPPORTED ENVIRONMENTS GO HERE_
+## _OTHER CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
 <a name="support"></a>
 # Support
 
-## Supported Versions
+## Package Versioning Scheme
 
 - _SERVICENAME_: _WHAT VERSION OF YOUR SERVICE IS INCLUDED IN THE PACKAGE?_
 - DC/OS: _LIST VERSION(S) OF DC/OS THAT YOU'VE TESTED AND SUPPORT_
 
-## Package Versioning
+Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integrtion and `x.y.z` indicates the version of _SERVICENAME_. For example, `1.5.0-3.2.1` indicates version `1.5.0` of the DC/OS integrtion and version `3.2.1` of _SERVICENAME_.
 
-Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the service management layer and `x.y.z` indicates the version of _SERVICENAME_. For example, `1.5.0-3.2.1` indicates version `1.5.0` of the service management layer and version `3.2.1` of _SERVICENAME_.
+## Contacting Technical Support
 
-### Upgrades/downgrades
+### _YOUR TECHNICAL SUPPORT CONTACT INFORMATION_
 
-The package supports upgrade and rollback between adjacent versions only. For example, to upgrade from version 2 to version 4, you must first complete an upgrade to version 3, followed by an upgrade to version 4.
+### Mesosphere
+[Submit a request](https://support.mesosphere.com/hc/en-us/requests/new).
 
-## Reaching Technical Support
+## Changelog
 
-_PLACES TO GET HELP GO HERE: MAILING LISTS? SLACK? SUPPORT CONTACTS?_
+### 1.0.1-1.0.0
+#### Breaking Changes
+#### New Features
+#### Improvements
+#### Bug Fixes
+
+### 1.0.0-1.0.0
+#### Breaking Changes
+#### Features
+#### Improvements
+#### Bug Fixes

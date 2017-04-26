@@ -62,7 +62,7 @@ def test_port_static_to_static_port():
     broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
-    print('Old Config :{}'.format(config))
+    utils.out('Old Config :{}'.format(config))
 
     for broker_id in range(DEFAULT_BROKER_COUNT):
         result = service_cli('broker get {}'.format(broker_id))
@@ -79,7 +79,7 @@ def test_port_static_to_static_port():
 
     config['env']['BROKER_PORT'] = '9095'
     marathon.update_app(SERVICE_NAME, config)
-    print('New Config :{}'.format(config))
+    utils.out('New Config :{}'.format(config))
 
     tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running

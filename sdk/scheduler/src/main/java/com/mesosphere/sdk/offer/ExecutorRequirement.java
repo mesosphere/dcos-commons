@@ -7,8 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
-import com.mesosphere.sdk.executor.ExecutorTaskException;
-import com.mesosphere.sdk.executor.ExecutorUtils;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -110,8 +108,8 @@ public class ExecutorRequirement {
             // proto field.
             String executorName;
             try {
-                executorName = ExecutorUtils.toExecutorName(executorInfo.getExecutorId());
-            } catch (ExecutorTaskException e) {
+                executorName = CommonIdUtils.toExecutorName(executorInfo.getExecutorId());
+            } catch (TaskException e) {
                 throw new InvalidRequirementException(String.format(
                         "When non-empty, ExecutorInfo.id must be a valid ID. "
                         + "Set to an empty string or leave existing valid value. %s %s",

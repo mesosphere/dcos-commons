@@ -224,11 +224,7 @@ func (cmd *PlanHandler) RunList(c *kingpin.ParseContext) error {
 
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
 	response := HTTPQuery(CreateHTTPRequest("GET", fmt.Sprintf("v1/plans/%s", GetPlanName(cmd))))
-
-	// custom behavior: ignore 503 error
-	if response.StatusCode != 503 {
-		CheckHTTPResponse(response)
-	}
+	CheckHTTPResponse(response)
 	PrintJSON(response)
 	return nil
 }

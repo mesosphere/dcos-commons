@@ -3,7 +3,7 @@ package com.mesosphere.sdk.executor;
 /**
  * This class encapsulates the relevant statistics associated with a single HealthCheck.
  */
-public class HealthCheckStats {
+public class CheckStats {
     private final String name;
 
     private Object failureLock = new Object();
@@ -14,7 +14,7 @@ public class HealthCheckStats {
     private long totalSuccesses = 0;
     private long consecutiveSuccesses = 0;
 
-    public HealthCheckStats(String name) {
+    public CheckStats(String name) {
         this.name = name;
     }
 
@@ -71,7 +71,7 @@ public class HealthCheckStats {
 
     @Override
     public String toString() {
-        return "HealthCheckStats{" +
+        return "CheckStats{" +
                 "name='" + name + '\'' +
                 ", totalFailures=" + totalFailures +
                 ", totalSuccesses=" + totalSuccesses +

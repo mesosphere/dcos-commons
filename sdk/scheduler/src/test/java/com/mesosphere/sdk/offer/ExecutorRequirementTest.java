@@ -65,7 +65,7 @@ public class ExecutorRequirementTest {
     @Test
     public void testEmptyExecIdValid() throws Exception {
         ExecutorRequirement.create(VALID_EXECINFO.toBuilder()
-                .setExecutorId(CommonTaskUtils.emptyExecutorId())
+                .setExecutorId(CommonIdUtils.emptyExecutorId())
                 .build());
     }
 

@@ -3,7 +3,7 @@ package com.mesosphere.sdk.kafka.upgrade;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError;
 import org.apache.curator.RetryPolicy;
@@ -80,7 +80,7 @@ public class CuratorStateStoreUpdate extends CuratorStateStore {
 
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
-                && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
+                && TaskUtils.isTerminal(currentStatusOptional.get())) {
             throw new StateStoreException(StorageError.Reason.LOGIC_ERROR,
                     String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
                             currentStatusOptional.get().getState(), taskName));
