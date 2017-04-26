@@ -187,15 +187,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-        Map<String, Protos.Resource> volumeMap = new HashMap<>();
         if (executorInfo == null) {
             executorInfo = getNewExecutorInfo(
                     podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
-        } else {
-            volumeMap.putAll(executorInfo.getResourcesList().stream()
-                    .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
-                    .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
         }
+
+        Map<String, Protos.Resource> volumeMap = new HashMap<>();
+        volumeMap.putAll(executorInfo.getResourcesList().stream()
+                .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
+                .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
 
         List<ResourceRequirement> resourceRequirements = new ArrayList<>();
         for (VolumeSpec v : podInstance.getPod().getVolumes()) {
