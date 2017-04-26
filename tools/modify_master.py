@@ -44,10 +44,12 @@ class MesosMasterModifier():
 
     def __enter__(self):
         #Get the envvars at the start
-        self.fetch_current_envvars()
+        self._fetch_current_envvars()
+        return self
 
-    def __exit__(self):
-        self.write_envvars()
+    def __exit__(self, *stuff):
+        _ = stuff
+        self._write_envvars()
         self.restart_master()
         logger.info("Modification complete.")
 
@@ -59,6 +61,7 @@ class MesosMasterModifier():
         :param value: the value to use for envvar
         :type value: str
         """
+        logger.info("Setting %s=%s", envvar, value)
         envvars = {envvar: value}
         self.set_master_envvars(envvars)
 
@@ -68,11 +71,12 @@ class MesosMasterModifier():
         :param envvars: A dictionary of envvar names and values
         :type envvars: dict
         """
+        logger.info("Setting envvars: %s", envvars)
         def set_vars(previous_envvars, updates=envvars):
             new_envvars = previous_envvars.copy()
             new_envvars.update(updates)
             return new_envvars
-        _modify_envvars(set_vars)
+        self._modify_envvars(set_vars)
 
 
     def remove_master_envvar(self, envvar):
@@ -81,11 +85,12 @@ class MesosMasterModifier():
         :param envvar: The envvar name to remove
         :type envvar: str
         """
+        logger.info("Unsetting %s", envvar)
         def remove_var(previous_envvars, remove_var=envvar):
             new_envvars = previous_envvars.copy()
             del new_envvars[remove_var]
             return new_envvars
-        _modify_envvars(remove_var)
+        self._modify_envvars(remove_var)
 
 
     def _fetch_current_envvars(self):
@@ -99,7 +104,7 @@ class MesosMasterModifier():
             raise RuntimeError("Unable to get current envvars")
 
         logger.info("Current envvars:\n{}".format(out))
-        envvars, commented_lines = _decode_master_config(out)
+        envvars, commented_lines = self._decode_master_config(out)
         self.master_envvars = envvars
         self.commented_lines = commented_lines
 
@@ -142,7 +147,7 @@ class MesosMasterModifier():
         return envvars, commented_lines
 
 
-    def write_envvars():
+    def _write_envvars(self):
         logger.info("Writing envvars out to mesos master...")
         content = []
         for name, value in self.master_envvars.items():
@@ -161,7 +166,7 @@ class MesosMasterModifier():
             raise RuntimeError("Failure while attempting to modify envvars on master")
 
 
-    def restart_master():
+    def restart_master(self):
         logger.info("Restarting master process...")
 
         success, out = shakedown.run_command_on_master('sudo systemctl restart dcos-mesos-master && while true; do curl leader.mesos:5050; if [ $? == 0 ]; then break; fi; done')
