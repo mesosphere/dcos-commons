@@ -1,6 +1,7 @@
 ---
 title: SDK Operations Guide
 menu_order: 1
+redirect_from: "/ops-guide"
 ---
 
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
