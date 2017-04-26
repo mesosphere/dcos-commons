@@ -1,5 +1,6 @@
 ---
-title: SDK Service Ops Guide
+title: SDK Ops Guide
+menu_order: 1
 ---
 
 <!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
@@ -147,8 +148,8 @@ Volumes are advertised as resources by Mesos, and Mesos offers multiple types of
 - MOUNT volumes:
   - Uses a dedicated partition.
   - Dedicated I/O for the partition.
-  - Requires additional (but straightforward) configuration when setting up the DC/OS cluster.
-  - Reservations are all-or-nothing; mount volumes cannot be further subdivided between services.
+  - Requires [additional configuration](https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/) when setting up the DC/OS cluster.
+  - Reservations are all-or-nothing; MOUNT volumes cannot be further subdivided between services.
 
 The last point about all-or-nothing is important, as it means that if multiple services are deployed with MOUNT volumes, then they can quickly be unable to densely colocate within the cluster, unless many MOUNT volumes are created on each agent. Let's look at the following deployment scenario across three DC/OS agent machines, each with two enabled MOUNT volumes labeled A and B:
 
@@ -168,1616 +169,752 @@ Now a service Y is installed with two nodes that each use two mount volumes. The
 - Agent 2: Y Y
 - Agent 3: X B
 
+Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services will support customizing this setting when it's relevant while others may assume one or the other.
+
+## Pods vs Tasks
+
+A Task generally maps to a process. A Pod is a collection of Tasks which share an environment with each other. In practice, all Tasks in a Pod will come up and go down together, hence why [restart](#restart-a-pod)/[replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
+
+## Placement Constraints
+
+Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
+
+A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
+```
+hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+```
+
+You must include spare capacity in this list so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pods replace`](#replace-a-pod)) without that system.
+
+### Updating placement constraints
+
+Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
+- Update the placement constraint definition at the scheduler
+- FOR ONE POD AT A TIME, perform a `pods replace` for any pods which need to be moved to reflect the change
+
+As an example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
+
+- Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
+- Tasks:
+```
+10.0.10.3: data-0
+10.0.10.8: data-1
+10.0.10.26: data-2
+10.0.10.28: [empty]
+10.0.10.84: [empty]
+```
+
+Given the above configuration, let's assume `10.0.10.8` is being decommissioned and we should move away from it. Steps:
+
+1. Remove the decommissioned IP and add a new IP to the placement rule whitelist, by configuring the Scheduler environment with a new `DATA_NODE_PLACEMENT` setting:
+   ```
+   hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+   ```
+1. Wait for the Scheduler to restart with the new placement constraint setting.
+1. Trigger a redeployment of `data-1` from the decommissioned node to a new machine within the new whitelist: `dcos myservice node replace data-1`
+1. Wait for `data-1` to be up and healthy before continuing with any other replacement operations.
+
+The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in practice they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
+
+## Uninstall
+
+Follow these steps to uninstall a service.
+1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+```bash
+$ MY_SERVICE_NAME=kafka-dev
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
+    -r $MY_SERVICE_NAME-role \
+    -p $MY_SERVICE_NAME-principal \
+    -z dcos-service-$MY_SERVICE_NAME"
+```
+
 # Diagnosis tools
 
-## Querying the Scheduler
-
-- Plan
-- State
+Different components in a DC/OS cluster provide ways to diagnose services which are running in that cluster. In addition to that, the SDK itself offers its own endpoints which describe what the Scheduler is doing at a given time.
 
 ## Logging
 
-Given the above information about the components, here's how you can tell what's going on:
+The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which Task's logs are relevant.
 
-- Scheduler logs (stdout/stderr)
-- Executor and task logs (stdout/stderr)
-- Mesos agent logs (diagnose e.g. `Killed` => OOM)
+As of this writing, the best and fastest way to view and download logs is via the Mesos UI at `https://yourcluster.com/mesos`. On the Mesos front page you will see two lists: A list of currently running tasks, followed by a list of completed tasks (whether successful or failed).
 
-## Debugging, Running Commands
+[<img src="img/ops-guide-all-tasks.png" alt="mesos frontpage showing all tasks in the cluster" width="400"/>](img/ops-guide-all-tasks.png)
 
-- `dcos task exec`
-- `nsenter --target $PID --mount --uts --ipc --net --pid`
+If we click the `Sandbox` link for one of these tasks, we will be presented with a listing of files from within the task itself. For example, here's a sandbox view of a `broker-2` task from the above list:
 
-## Metrics
+[<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
 
-Largely out of scope but supported by some services, see day2ops docs
+If the task is based on a Docker image, this listing will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running Commands](#running-commands).
+
+In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of `confluent-kafka` and they're each running a `broker-0`. As the cluster grows this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click "Frameworks" on the upper left to see a list of all the installed frameworks (mapping to our services):
+
+[<img src="img/ops-guide-frameworks-list.png" alt="listing of frameworks installed to the cluster" width="400"/>](img/ops-guide-frameworks-list.png)
+
+We then need to decide which framework to select from this list. This depends on what task we want to view:
+
+### Scheduler logs
+
+In practice, if the issue is one of deployment or management, e.g. a service is 'stuck' in initial deployment, or a task that previously went down isn't being brought back at all, then the Scheduler logs will likely be the place to find out why.
+
+From Mesos's perspective the Scheduler is being run as a Marathon app. Therefore we should pick `marathon` from this list and then find our Scheduler in the list of tasks.
+
+[<img src="img/ops-guide-framework-tasks-marathon.png" alt="listing of tasks running in the marathon framework (Marathon apps)" width="400"/>](img/ops-guide-framework-tasks-marathon.png)
+
+Per above, Scheduler logs can be found either via the main Mesos frontpage in small clusters (possibly using the filter box at the top right), or by navigating into the list of tasks registered against the `marathon` framework in large clusters. In SDK services, the Scheduler is typically given the same name as the service. For example a `kafka-dev` service's Scheduler would be named `kafka-dev`. We click the `Sandbox` link to view the Sandbox portion of the Scheduler filesystem, which contains files named `stdout` and `stderr`. These files respectively receive the stdout/stderr output of the Scheduler process, and can be examined to see what the Scheduler is doing.
+
+[<img src="img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400"/>](img/ops-guide-scheduler-sandbox.png)
+
+For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of [Tasks not deploying / Resource starvation](#tasks-not-deploying---resource-starvation).
+
+### Task logs
+
+When the issue being diagnosed has to do with the service itself having problems, e.g. a given task is crash looping, then the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore we should pick `<svcname>` from this list to view a list of tasks specific to that service.
+
+[<img src="img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400"/>](img/ops-guide-framework-tasks-service.png)
+
+In the above list we see separate lists of Active and Completed tasks:
+- Active tasks are what's still running. These give a picture of the current activity of the service.
+- Completed tasks are what's exited for some reason, whether successfully or due to a failure. These give a picture of recent activity of the service. Note that older completed tasks will automatically be garbage collected and their data may no longer be available here.
+
+Either or both of these lists may be useful depending on the context. Click on the `Sandbox` link for one of these tasks and then start looking at sandbox content. In particular there will be files named `stderr` and `stdout` which hold logs emitted both by the SDK Executor process (a small wrapper around the service task) as well as any logs emitted by the task itself. These files are automatically paginated at 2MB increments, so older logs may also be examined until they are automatically pruned. For an example of this behavior, see the [scheduler sandbox](img/ops-guide-scheduler-sandbox.png) linked earlier.
+
+[<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
+
+### Mesos Agent logs
+
+Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. There's one Mesos Agent running on each system. These logs can be useful for determining if there's a problem at the system level that's causing alerts across multiple services which happen to be present on that system.
+
+Navigating to the agent to be viewed can either be done directly from a task by clicking the "Agent" item in the breadcrumb when viewing a task (this will go directly to the agent hosting the task), or by navigating through the "Agents" menu item at the top of the screen (need to select the desired agent from the list).
+
+In either case, once you're in the Agent view, you'll see a list of frameworks with a presence on that Agent, and in the left pane you'll see a plain link named "LOG". Click that link to view the agent logs.
+
+[<img src="img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400"/>](img/ops-guide-agent.png)
+
+### Logs via the CLI
+
+While the above examples show retrieval of logs via the Mesos UI, we can also access them via the [DC/OS CLI](https://dcos.io/docs/latest/usage/cli/install/) using the `dcos task log` command. For example, lets assume the following list of tasks in a cluster:
+
+```bash
+$ dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.0.242  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+broker-1              10.0.0.242  root    R    broker-1__6bf127ab-5edc-4888-9dd3-f00be92b291c
+broker-1              10.0.1.188  root    R    broker-1__d799afdb-78bf-44e9-bb63-d16cfc797d00
+broker-2              10.0.1.151  root    R    broker-2__4a293161-b89f-429e-a22e-57a1846eb271
+broker-2              10.0.3.60   root    R    broker-2__76f45cb0-4db9-41ad-835c-2cedf3d7f725
+[...]
+```
+
+In this case we have two overlapping sets of brokers, from two different Kafka installs. Given these tasks, we can do several different things by combining task filters, file selection, and the `--follow` argument:
+
+```bash
+$ dcos task log broker                # get recent stdout logs from all six 'broker-#' instances
+$ dcos task log broker-0              # get recent stdout logs from two 'broker-0' instances
+$ dcos task log broker-0__75          # get recent stdout logs from the 'broker-0' instance on 10.0.3.27
+$ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that broker instance
+$ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
+```
+
+## Running Commands within containers
+
+An extremely useful tool for diagnosing task state is the ability to run arbitrary commands _within_ the task. The available tools for doing this depend on the version of DC/OS you're using:
+
+### DC/OS >= 1.9
+
+DC/OS 1.9 introduced the `task exec` command as a convenient frontend to `nsenter`, which is described below. In order to use `task exec` you will need to have SSH keys for accessing your cluster already configured (i.e. via `ssh-add`), as SSH is used behind the scenes to get into the cluster. You should also be sure to get a [recent version of the DC/OS CLI](https://dcos.io/docs/latest/usage/cli/install/) with support for the `task exec` command.
+
+Once you're set up, running commands is very straightforward. For example, let's assume the list of tasks from the CLI logs section above, where there's two `broker-0` tasks, one named `broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21` and another named `broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237`. Unlike with `task logs`, we can only run `task exec` on one command at a time, so if two tasks match the task filter then we see the following error:
+
+```bash
+$ dcos task exec broker-0 echo hello world
+There are multiple tasks with ID matching [broker-0]. Please choose one:
+	broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+	broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+```
+
+Therefore we need to be more specific:
+
+```bash
+$ dcos task exec broker-0__75 echo hello world
+hello world
+$ dcos task exec broker-0__75 pwd
+/
+```
+
+We can also run interactive commands using the `-it` flags (short for `--interactive --tty`):
+
+```bash
+$ dcos task exec --interactive --tty broker-0__75 /bin/bash
+root@ip-10-0-3-27 / # echo hello world
+hello world
+root@ip-10-0-3-27 / # pwd
+/
+root@ip-10-0-3-27 / # exit
+$
+```
+
+Note that while you could technically change the container filesystem via this, any changes will be destroyed if the container restarts. So don't do that and expect any changes to stick around.
+
+### DC/OS <= 1.8
+
+DC/OS 1.8 and earlier do not support `dcos task exec`, but `dcos node ssh` and `nsenter` may be used instead to get the same thing, with a little more effort.
+
+First, we should run `dcos task` to get the list of tasks (and their respective IPs), and cross-reference that with `dcos node` to get the list of agents (and their respective IPs). For example:
+
+```bash
+$ dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.1.151  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+$ dcos node
+ HOSTNAME       IP                         ID
+10.0.0.242  10.0.0.242  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0
+10.0.1.151  10.0.1.151  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+10.0.1.188  10.0.1.188  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S2
+...
+```
+
+In this case we're interested in the `broker-0` on `10.0.1.151`. We can see that `broker-0`'s Mesos Agent has an ID of `2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1`. Let's SSH into that machine using `dcos node ssh`:
+
+```bash
+$ dcos node ssh --master-proxy --mesos-id=2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+core@ip-10-0-1-151 ~ $
+```
+
+Now that we're logged into the host Agent machine, we need to find a relevant PID for the `broker-0` container. This can take some guesswork:
+
+```bash
+core@ip-10-0-1-151 ~ $ ps aux | grep -i confluent
+...
+root      5772  0.6  3.3 6204460 520280 ?      Sl   Apr25   2:34 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0004/executors/broker-0__1eb65420-535e-477b-9ac1-797e79c15277/runs/f5377eac-3a87-4080-8b80-128434e42a25/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+root      6059  0.7 10.3 6203432 1601008 ?     Sl   Apr25   2:43 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0003/executors/broker-1__8de30046-1016-4634-b43e-45fe7ede0817/runs/19982072-08c3-4be6-9af9-efcd3cc420d3/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+...
+```
+
+As we can see above, there appear to be two likely candidates, one on PID 5772 and the other on PID 6059. The one on PID 5772 has mention of `broker-0` so that's probably the one we want. Lets run the `nsenter` command using PID 6059:
+
+```bash
+core@ip-10-0-1-151 ~ $ sudo nsenter --mount --uts --ipc --net --pid --target 6059
+ip-10-0-0-242 / #
+```
+
+Looks like we were successful! Now we can run commands inside this container to verify that it's the one we really want, and then proceed with the diagnosis.
+
+## Querying the Scheduler
+
+The Scheduler exposes several HTTP endpoints which provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the . The Scheduler endpoints most useful to field diagnosis come from three sections:
+
+- Plan: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
+- Pods: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
+- State: Access to other miscellaneous state information such as service-specific properties data.
+
+For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/swagger-api/). Here is an example of invoking one of these commands against a service named `hello-world` via `curl`:
+
+```bash
+$ export AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
+$ curl -k -H "Authorization: token=$AUTH_TOKEN" https://<dcos_url>/service/hello-world/v1/plans/deploy
+```
+
+These endpoints may also be conveniently accessed using the SDK CLI after installing a service. See `dcos <svcname> -h` for a list of all commands. These are effectively thin wrappers around the above API.
+
+For example, let's get a list of pods using the CLI, and then using the HTTP API directly:
+
+```bash
+$ dcos beta-dse --name=dse pods list
+[
+  "dse-0",
+  "dse-1",
+  "dse-2",
+  "opscenter-0",
+  "studio-0"
+]
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" https://yourcluster.com/service/dse/v1/pods
+[
+  "dse-0",
+  "dse-1",
+  "dse-2",
+  "opscenter-0",
+  "studio-0"
+]
+```
+
+Note that when invoking CLI commands the `-v` (or `--verbose`) argument may also be used to view and diagnose the underlying requests made by the CLI:
+
+```bash
+$ dcos beta-dse --name=dse -v pods list
+2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pods
+2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token
+2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.ssl_verify
+[
+  "dse-0",
+  "dse-1",
+  "dse-2",
+  "opscenter-0",
+  "studio-0"
+]
+2017/04/25 15:03:44 Response: 200 OK (-1 bytes)
+```
 
 ## Zookeeper/Exhibitor
 
-**Note: This should only be used as a last resort (i.e. break glass in case of emergency). Changes made here may cause your service to behave in inconsistent, even incomprehensible ways.**
+**Note: This should only be used as a last resort (i.e. break glass in case of emergency). Touching anything in ZK may cause your service to behave in inconsistent, even incomprehensible ways.**
 
-DC/OS comes with Exhibitor pre-installed by default, accessible at http://yourcluster.com/exhibitor . A given SDK service will have a `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state.
+DC/OS comes with Exhibitor, a commonly used frontend for viewing zookeeper. Exhibitor may be accessed at `https://yourcluster.com/exhibitor`. A given SDK service will have a `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
 
-- Overview of node paths within exhibitor
+[<img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400"/>](img/ops-guide-exhibitor-view-taskstatus.png)
 
 # Performing common operations
 
+This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we'll start looking at how that knowledge can be applied to a running service.
+
+## Initial configuration
+
+The DC/OS package format allows packages to define user-visible install options. To ensure consistent installs, we recommend exporting the options you use into an `options.json` file which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.
+
+To see what options are available for a given package, you can perform the following:
+
+```bash
+$ dcos package describe elastic --config
+{
+  "properties": {
+    "coordinator_nodes": {
+      "description": "Elasticsearch coordinator node configuration properties",
+      "properties": {
+        "count": {
+          "default": 1,
+          "description": "Number of coordinator nodes to run",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cpus": {
+          "default": 1.0,
+          "description": "Node cpu requirements",
+          "type": "number"
+        },
+        ...
+      }
+    }
+    "service": {
+      "description": "DC/OS service configuration properties",
+      "properties": {
+        ...
+        "name": {
+          "default": "elastic",
+          "description": "The name of the Elasticsearch service instance",
+          "type": "string"
+        },
+        ...
+        "user": {
+          "default": "core",
+          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+...
+```
+
+Given the above example, let's build an `elastic-prod-options.json` which customizes the above values:
+
+```json
+{
+  "coordinator_nodes": {
+    "count": 3,
+    "cpus": 2.0
+  },
+  "service": {
+    "name": "elastic-prod",
+    "user": "elastic"
+  }
+}
+```
+
+Given the above `elastic-prod-options.json`, we can install a service instance that uses it as follows:
+
+```bash
+$ dcos package install --options=elastic-prod-options.json elastic
+```
+
+Once we know the configuration is good, we will then add it to our source control for tracking.
+
 ## Configuration update
 
-## Add a node
+Early on, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.
 
-## Restart a node
+Configuration updates are performed by updating the process environment of the Scheduler. The Scheduler runs as a Marathon application, so we can perform the change there.
 
-## Move/replace a node
+First, we can go to `https://yourcluster.com/marathon` and find the Scheduler App in Marathon. In this case we'll use `dse`:
 
-# Getting out of common scenarios
+[<img src="img/ops-guide-marathon-app-list.png" alt="list of Marathon apps" width="400"/>](img/ops-guide-marathon-app-list.png)
 
-## Tasks not deploying / Resource starvation
+We click on the `dse` app and then the `Configuration` tab. In here we see an `Edit` button tucked away off to the right of the screen:
 
-## Accidentially deleted Marathon task but not service
+[<img src="img/ops-guide-marathon-config-section.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-section.png)
 
-## 'Framework has been removed'
+Clicking that button brings up a popup window. In the window we click on the `Environment Variables` section in the left menu. Here we see a list of the Scheduler's environment variables. For the sake of this demo we will increase an `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
 
-## Unable to deploy due to recovery needed (or was it vice versa?)
+[<img src="img/ops-guide-marathon-config-env.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-env.png)
 
-Give example scenario and show how to get out of it
+After clicking `Change and deploy`, the following will happen:
+- Marathon will restart the Scheduler so that it picks up our change.
+- The Scheduler will detect that the OpsCenter task's configuration has changed. The OpsCenter task will be restarted with the change applied. In this case, with allocated RAM increased from 4000 to 5000 MB.
 
-## Deleting a task in ZK to clear that task
+We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
 
-What situation(s) does this solve?
 
-# DC/OS Component Overview
-
-The four major components are Mesos, Marathon, Universe, and Zookeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
-
-## Mesos
-
-DC/OS is modeled on an operating system with Mesos as its kernel. Mesos provides an abstraction to enable consumption of the resources a datacenter provides.  In a typical case, these resources are CPU, memory, disk space, and ports. Tasks are launched in the datacenter and consume particular subsets of resources. The programs that can receive resource offers and launch tasks that consume are called **frameworks**. The component of a framework that receives offers and launches tasks is called the **scheduler**.
-
-Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include *staging, running, failed*,* *etc.  To learn more about Mesos, consult the  "[Mesos Advanced Course](https://open.mesosphere.com/advanced-course/)".
-
-## Marathon
-
-The scheduler is the  entity that can launch tasks on DC/OS.  The role of Marathon is to launch Mesos tasks and to restart them if they crash.  In the context of the SDK, the tasks that Marathon launches are schedulers.  These schedulers in turn launch the tasks necessary for the operation of a DC/OS service. Therefore, if a scheduler crashes, it is Marathon’s responsibility to restart the scheduler.
-
-If we consider Mesos to be DC/OS’ kernel, then Marathon is its init system. It launches and keeps up the software that should be running on the operating system.
-
-Marathon is itself a Mesos framework. Some of the tasks it launches are the schedulers written with the SDK described here. Use an application or pod definition to tell. Application and pods definitions are declarative JSON representations of a task or tasks that Marathon should run.To learn more, consult the [Marathon documentation](https://mesosphere.github.io/marathon/).
-
-## Universe
-
-A package specification provides a uniform way to define Marathon applications.  Those packages are stored in the Universe so end-users can easily install these DC/OS services in their datacenters..
-
-Every DC/OS service must provide a package definition in the format expected by the Universe. [Learn more about creating Universe packages](https://github.com/mesosphere/universe).
-
-## Zookeeper
-
-Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.
-
-Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
-
-They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
-
-
-# Introduction to DC/OS Service Definitions
-
-At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
-
-<a name="service-spec"></a>
-## ServiceSpec
-
-There are two ways to generate a valid `ServiceSpec`: creating a YAML file or writing Java code. Both produce a valid implementation of the Java `ServiceSpec` interface.  A `ServiceSpec` may be used to launch one or more instances of the same service within a DC/OS cluster.
-
-For example, one could write a `ServiceSpec` that describes a DC/OS service that deploys a Kafka cluster. One could then install one or more instances of a Kafka cluster in a DC/OS cluster. A `ServiceSpec` is in this sense similar to a class definition, which may be used to create many objects that are instances of the class.
-
-### Annotated Example of a `ServiceSpec`
-
-This simple YAML definition of a DC/OS service that prints "hello world" to stdout in a container sandbox every 1000 seconds.
-
-```yaml
-name: "hello-world"
-scheduler:
-  principal: "hello-world-principal"
-  api-port: {{PORT_API}}
-pods:
-  hello-world-pod:
-    count: 1
-    tasks:
-      hello-world-task:
-        goal: RUNNING
-        cmd: "echo hello world && sleep 1000"
-        cpus: 0.1
-        memory: 512
-```
-
-* **name**:  This is the name of an instance of a DC/OS service. No two instances of any service may have the same name in the same cluster.
-
-* **scheduler**: The Scheduler manages the service and keeps it running. This section contains settings which apply to the Scheduler. The `scheduler` section may be omitted to use reasonable defaults for all of these settings.
-
-    * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
-
-    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
-
-* **Pods**: A pod can be defined most simply as a set of tasks.
-
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
-
-* **count**: The number of instances of the pod.
-
-* **tasks**: The list of tasks in the pod.
-
-* **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
-
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a Task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
-
-* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
-
-* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
-
-* **memory**: This entry defines how much memory will be allocated to the task’s container.
-
-
-### Summary
-
-A set of pods defines *what* your service is. Pods are composed of task definitions.
-
-In the example, we have only defined types of pods and tasks. When the service is deployed and instantiated into instances of these types, we get a Mesos task like the following:
-
-<table>
-  <tr>
-    <td>Task Name</td>
-    <td>Task ID</td>
-    <td>Task Status</td>
-  </tr>
-  <tr>
-    <td>hello-world-pod-0-hello-world-task</td>
-    <td>hello-world-pod-0-hello-world-task__c111c97e-7236-4fea-b06f-0216c93b853b</td>
-    <td>TASK_RUNNING</td>
-  </tr>
-</table>
-
-
-Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.
-
-<a name="plans"></a>
-## Plans
-
-In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
-
-The example below defines a service with two types of pods, each of which deploys two instances.
-
-```yaml
-name: "hello-world"
-pods:
-  hello-pod:
-    count: 2
-    tasks:
-      hello-task:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 512
-  world-pod:
-    count: 2
-    tasks:
-      world-task:
-        goal: RUNNING
-        cmd: "echo world && sleep 1000"
-        cpus: 0.1
-        memory: 512
-```
-
-There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying.
-
-By default, the SDK will deploy all instances of pods serially.  In the example above, the default deployment order would be:
-
-1. hello-pod-0-hello-task
-
-1. hello-pod-1-hello-task
-
-1. world-pod-0-world-task
-
-1. world-pod-1-world-task
-
-Each pod’s task must reach its goal of `RUNNING` before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
-
-However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment.
-
-In this section we focus on using plans to define the initial deployment of a service. However, you can also use plans to orchestrate configuration updates, software upgrades, and recovery from complex, service-specific failure scenarios.
-
-As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a `RUNNING` state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:
-
-```yaml
-name: "hello-world"
-pods:
-  hello-pod:
-  count: 2
-  tasks:
-    hello-task:
-      goal: RUNNING
-      cmd: "echo hello && sleep 1000"
-      cpus: 0.1
-      memory: 512
-  world-pod:
-    count: 2
-    tasks:
-      hello-task:
-        goal: RUNNING
-        cmd: "echo world && sleep 1000"
-        cpus: 0.1
-        memory: 512
-plans:
-  deploy:
-    strategy: serial
-    phases:
-      hello-phase:
-        strategy: parallel
-        pod: hello-pod
-      world-phase:
-        strategy: serial
-        pod: world-pod
-```
-
-A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
-
-![plans vs services](img/dev-guide-plans-vs-services.png)
-
-A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.
-
-The hello-phase of the example has two elements: a strategy and a pod.
-
-```yaml
-plans:
-  deploy:
-    strategy: serial
-    phases:
-      hello-phase:
-        strategy: parallel
-        pod: hello-pod
-      world-phase:
-        strategy: serial
-        pod: world-pod
-```
-
-The pod parameter references the pod definition earlier in the `ServiceSpec`. The strategy declares how to deploy the instances of the pod. Here, they will be deployed in parallel. The world-phase section is identical, except that its elements will be deployed serially.
-
-The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.
-
-![deployment steps](img/dev-guide-deployment-steps.png)
-
-The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
-
-More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 2
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: hello-data
-          size: 5000
-          type: ROOT
-    tasks:
-      init:
-        goal: FINISHED
-        cmd: "./init"
-        resource-set: hello-resources
-      main:
-        goal: RUNNING
-        cmd: "./main"
-        resource-set: hello-resources
-```
-
-By default a the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
-
-```yaml
-plans:
-  deploy:
-    strategy: serial
-    pod: hello
-    steps:
-      - default: [[init], [main]]
-```
-
-This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
-
-1. hello-0-init
-1. hello-0-main
-1. hello-1-init
-1. hello-1-main
-
-Consider the case where the init task should only occur once for the first pod, and all subsequent pods should just launch their `main` task. Such a plan could be written as follows:
-
-```yaml
-plans:
-  deploy:
-    strategy: serial
-    pod: hello
-    steps:
-      - 0: [[init], [main]]
-      - default: [[main]]
-```
-
-This plan would result in steps generating the following tasks:
-
-1. hello-0-init
-1. hello-0-main
-1. hello-1-main
-
-You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
-
-<a name="packaging"></a>
-## Packaging
-
-A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
-
-### Universe Package Files At-a-Glance
-
-For a fully detailed explanation of service packaging [see here](https://dcos.io/docs/1.8/development/create-package/); below we provide a brief introduction to the required files.
-
-* `marathon.json.mustache` -   A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
-
-* `Resource.json` -  A list of URIs of all downloaded elements.This list allows your service to be deployed in datacenters without Internet access.
-
-* `command.json` - This file contains elements specific to a CLI for your service if you want to provide one.
-
-* `package.json` - This file contains metadata of interest to the Universe, including the minimum version of DC/OS on which the service may be deployed.
-
-The SDK provides utilities for building a package definition and deploying it to a DC/OS cluster for development purposes.  An example build.sh script constructs a package and provides instructions for the deployment.  The helloworld framework’s build.sh script provides the following output:
-
-```bash
-$ ./build.sh aws
-<snip>
-Install your package using the following commands:
-dcos package repo remove hello-world-aws
-dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
-dcos package install --yes hello-world
-```
-
-The build.sh script takes an optional argument of aws or local:
-
-* `./build.sh aws`: The package definition and build artifacts are uploaded to an S3 bucket in AWS. If you would like to override the S3 bucket location where the packages are uploaded, please add S3_BUCKET environment variable with the bucket name. For example:
-
-```bash
-$ export S3_BUCKET=my_universe_s3_bucket
-```
-
-* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server.
-
-Executing the final command, `dcos package install --yes hello-world` deploys the service to a DC/OS cluster.
-
-# Basic Operations
-
-You can perform three fundamental operations on any instance of a DC/OS service: install, update, and uninstall.  With the exception of uninstall, they all follow a fundamental design principle.
-
-All services written with the SDK determine what actions to take based on a target configuration they are trying to reach.  The `ServiceSpec` defines the target configuration. When installing for the first time, a service is going from nothing to the target configuration. When performing a configuration update, a service is going from the current configuration to the target configuration. A software update is identical to a configuration update except that that the software artifacts to be deployed are changed, not just the configuration. The path a service takes to a new target configuration is always defined by a plan.
-
-The following events occur to select a target configuration and move a service from its current configuration to the target.
-
-1. Define a target configuration
-
-    a. Deploy a Marathon application definition for your service’s scheduler
-
-    b. The scheduler renders the `ServiceSpec` and Plan definitions in the service’s YAML definition.
-
-1. Plan Execution
-
-    a. The scheduler compares previous and current `ServiceSpec`s:
-
-       i. Validate the `ServiceSpec`
-
-       ii. Determine scenario (install, update or no change)
-
-    b. The plan is chosen and executed
-
-These steps are discussed in more detail below.
-
-<a name="define-target-config"></a>
-
-## Defining a Target Configuration
-
-We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the `ServiceSpec`s and plans.
-
-This nested structure of declarative interfaces requires two layers of template rendering. First, the Marathon application definition must be rendered at initial install time from the combination of the marathon.json.mustache, config.json, and resource.json files. Then, the service’s YAML template is rendered using the environment variables presented to the scheduler. Let’s walk through the [checked-in helloworld example](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld).  Pay particular attention to the templated values surrounded in curly braces, as in `{{value}}`.
-
-helloworld has a [marathon.json.mustache template](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/marathon.json.mustache) which, in part, looks as follows:
+If we look at the Scheduler logs we can even see where it detected the change. The `api-port` value is random on each Scheduler restart so it tends to always display as 'different' in this log:
 
 ```
-{
-    "env": {
-        "FRAMEWORK_NAME": "{{service.name}}",
-        "HELLO_COUNT": "{{hello.count}}",
-        "HELLO_CPUS": "{{hello.cpus}}",
-        "...": "..."
-    },
-    "uris": [
-        "{{resource.assets.uris.scheduler-zip}}",
-        "..."
-    ],
-    "portDefinitions": [
-        {
-            "port": 0,
-            "protocol": "tcp",
-            "name": "api",
-            "labels": { "VIP_0": "/api.{{service.name}}:80" }
-        }
-    ],
-    "...": "..."
+INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurationUpdater:printConfigDiff(215): Difference between configs:
+--- ServiceSpec.old
++++ ServiceSpec.new
+@@ -3,5 +3,5 @@
+   "role" : "dse-role",
+   "principal" : "dse-principal",
+-  "api-port" : 18446,
++  "api-port" : 15063,
+   "web-url" : null,
+   "zookeeper" : "master.mesos:2181",
+@@ -40,5 +40,5 @@
+             "type" : "SCALAR",
+             "scalar" : {
+-              "value" : 4000.0
++              "value" : 5000.0
+             },
+             "ranges" : null,
+```
+
+The above behavior applies to any configuration change. The Scheduler is restarted, detects the config change, and then restarts the affected task(s). When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task n+1 is only redeployed after task n has successfully started with the change.
+
+### Add a node
+
+Adding a task node to the service is just another type of configuration change. In this case we're looking for a specific config value in the package's `config.json`, and then mapping that configuration value to the relevant environment variable in the Scheduler. In the case of the above `dse` service, it'd just be a matter of increasing the Scheduler's `DSE_NODE_POD_COUNT` from `3` (the default) to `4`. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.
+
+### Finding the correct environment variable
+
+The correct environment variable for a given setting can vary depending on the service. For example with increasing the number of nodes, some services will have multiple types of nodes, each with separate count settings. Determining the correct environment variable in this case takes some detective work.
+
+For example, let's look at the most recent release of `confluent-kafka` as of this writing. The number of brokers is configured using a [`count` setting in the `brokers` section](https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/config.json#L133):
+
+```json
+"count":{
+  "description":"Number of brokers to run",
+  "type":"number",
+  "default":3
 }
 ```
 
-The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/config.json) file is in part:
+To see where this setting is passed when the Scheduler is first launched, we can look at the adjacent [`marathon.json.mustache` template file](https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/marathon.json.mustache#L34). Searching for `brokers.count` in `marathon.json.mustache` reveals the environment variable that we should change:
 
-```
-{
-    "type":"object",
-    "properties":{
-        "service":{
-            "type":"object",
-            "description": "DC/OS service configuration properties",
-            "properties":{
-                "name" : {
-                    "description":"The name of the service instance",
-                    "type":"string",
-                    "default":"hello-world"
-                },
-                "...": "..."
-            }
-        },
-        "hello":{
-            "type":"object",
-            "description":"Hello Pod configuration properties",
-            "properties":{
-                "cpus":{
-                    "description":"Hello Pod cpu requirements",
-                    "type":"number",
-                    "default":0.1
-                },
-                "count":{
-                    "description":"Number of Hello Pods to run",
-                    "type":"integer",
-                    "default":1
-                },
-                "...": "..."
-            }
-        }
-    }
-}
-```
-
-The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
-
-```
-{
-  "assets": {
-    "uris": {
-      "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
-      "...": "..."
-    }
-  },
+```json
+"env": {
+  "...": "...",
+  "BROKER_COUNT": "{{brokers.count}}",
   "...": "..."
 }
 ```
 
-The `marathon.json.mustache` template pulls values from `config.json` and `resource.json` and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values when installing via the command line](https://docs.mesosphere.com/latest/usage/managing-services/config/).
+This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
 
-**Important:** The environment variable field of the Marathon application definition defines values specific to the helloworld service.
+## Restart a pod
 
-The following is the typical flow of configuration values as represented by environment variables:
+Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery).
 
-![configuration values across files](img/dev-guide-configuration-values-across-files.png)
+Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms are effectively hitting the same API. In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
-Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
+Via the CLI:
 
-```yaml
-// ...
-pods:
-    hello:
-        count: {{HELLO_COUNT}}
-        tasks:
-            server:
-                // ...
-                cpus: {{HELLO_CPUS}}
-                // ...
-```
-
-The port definition in `marathon.json.mustache` makes the `PORT0` environment variables available to the scheduler. The `HELLO_COUNT` and `HELLO_CPUS` environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered `marathon.json.mustache` template.
-
-<a name="rendered-spec"></a>
-The final rendered `ServiceSpec` is:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.1
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-```
-
-<a name="plan-execution"></a>
-## Plan Execution
-
-### Plan Acceptance or Rejection
-
-Once a proposed target configuration has been defined in the form of a `ServiceSpec`, and, optionally, a deployment plan, the scheduler must decide  what course of action to take. At the outset, a scheduler may choose to accept or reject a proposed target configuration. When a scheduler rejections a proposed target configuration the target configuration does  not change and the previous target configuration remains the target. The scheduler may reject a target configuration because it is malformed, or violates a business logic or other constraint.
-
-### Executing a Plan
-
-Once a proposed target configuration is accepted as the target configuration, the scheduler must determine which plan to execute to reach the target. By default, if no overriding deployment plan is provided, the pods defined in the `ServiceSpec` will be rolled out serially.
-
-There are two fundamental plan execution scenarios: **install** and **update**.  Let’s first walk through the deployment of the [hello world service](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml) in the install case.
-
-### Install
-
-Recall the [rendered `ServiceSpec` from above](#rendered-spec). A single pod containing a single task is defined generating the following plan:
-
-```
+```bash
+$ dcos beta-dse --name=dse pods list
+[
+  "dse-0",
+  "dse-1",
+  "dse-2",
+  "opscenter-0",
+  "studio-0"
+]
+$ dcos beta-dse --name=dse pods restart dse-1
 {
-    "phases": [{
-        "id": "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
-        "name": "hello",
-        "steps": [{
-            "id": "2e3dde39-3ea3-408b-8e00-3346bef93054",
-            "status": "COMPLETE",
-            "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
-        }],
-        "status": "COMPLETE"
-    }],
-    "errors": [],
-    "status": "COMPLETE"
+  "pod": "dse-1",
+  "tasks": [
+    "dse-1-agent",
+    "dse-1-node"
+  ]
 }
 ```
 
-Each pod is deployed with a phase, so we have a single phase named after the pod "hello".  Each instance of a pod is deployed with a step within that phase. Since there is a single pod instance, we have a single step named “hello-0:[server]”.  The name of the step indicates that it is deploying instance 0 of the pod “hello” with a single task named “server”.
+Via the HTTP API directly:
 
-Every element of the plan has an associated status with the following possible values: PENDING, PREPARED, STARTING, COMPLETE, WAITING, and ERROR.
+```bash
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" https://yourcluster.com/service/dse/v1/pods
+[
+  "dse-0",
+  "dse-1",
+  "dse-2",
+  "opscenter-0",
+  "studio-0"
+]
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pods/dse-1/restart
+{
+  "pod": "dse-1",
+  "tasks": [
+    "dse-1-agent",
+    "dse-1-node"
+  ]
+}
+```
 
-Normally, steps progress through statuses in the following order:
+All tasks within the pod are restarted as a unit. The response lists the names of the two tasks which were members of the pod.
 
-PENDING → PREPARED → STARTING → COMPLETE
+## Replace a pod
 
-The status of a phase or a plan is determined by examination of the step elements.  A step may enter an ERROR state when its construction is malformed or whenever the service author determines it to be appropriate. The WAITING state occurs when the operator of the service indicates that an element should be paused. An operator might want to pause a deployment for a multitude of reasons, including unexpected failures during an update.
+Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if a given agent machine has gone down and is never coming back, or if an agent is about to undergo downtime. Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However operators are free to build their own tooling to make this decision and invoke the replace call. For more information see [Recovery](#recovery).
 
-### Update
+As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
-In the update case, a scheduler goes from one target configuration to the next. The two examples below show how pods are only restarted to consume new configuration information when that information is relevant to the pod.
+```bash
+$ dcos beta-dse --name=dse pods replace dse-1
+{
+  "pod": "dse-1",
+  "tasks": [
+    "dse-1-agent",
+    "dse-1-node"
+  ]
+}
+```
 
-#### Vertical Scale Example
+```bash
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pods/dse-1/replace
+{
+  "pod": "dse-1",
+  "tasks": [
+    "dse-1-agent",
+    "dse-1-node"
+  ]
+}
+```
 
-This example updates the target configuration we defined in the install above. The new target configuration below increases the amount of CPU consumed by the server task.
+# Getting out of bad situations
 
-In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS. Below, we update this value in Marathon from 0.1 to 0.2.
+Some problems are more common than others, particularly when setting up a new cluster. This section goes over some common pitfalls when deploying a new cluster and/or service.
+
+## Tasks not deploying / Resource starvation
+
+When the Scheduler is performing offer evaluation, it will log its decisions about offers it's received. This can be useful in the common case of determining why a task is failing to deploy.
+
+In this example we have a newly-deployed `dse` Scheduler which isn't deploying the third `dsenode` task that we requested. This can often happen if our cluster doesn't have any machines with enough room to run the task.
+
+If we look at the Scheduler's logs in `stdout` (or `stderr` in older SDK versions) we find several examples of offers which were insufficient to deploy the remaining node. It's important to remember that _offers will regularly be rejected_ due to not meeting the needs of a deployed task and that this is _completely normal_. What we're looking for is a common theme across those rejections that would indicate what we're missing.
+
+From scrolling through the scheduler logs we see a couple patterns. First there are failures like this, where the only thing missing is CPUs. The remaining task requires 2 CPUs but this offer apparently didn't have enough:
 
 ```
+INFO  2017-04-25 19:17:13,846 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 1 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'cpus': requirement=type: SCALAR scalar { value: 0.5 }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 8000.0 }
+  PASS(MultiEvaluationStage): All child stages passed
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9042 end: 9042 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9160 end: 9160 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7000 end: 7000 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7001 end: 7001 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8609 end: 8609 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8182 end: 8182 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7199 end: 7199 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 21621 end: 21621 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8983 end: 8983 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7077 end: 7077 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7080 end: 7080 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7081 end: 7081 } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+```
+
+If we scroll up from this rejection summary, we find a message describing what the agent had offered in terms of CPU:
+
+```
+INFO  2017-04-25 19:17:13,834 [pool-8-thread-1] com.mesosphere.sdk.offer.MesosResourcePool:consumeUnreservedMerged(239): Offered quantity of cpus is insufficient: desired type: SCALAR scalar { value: 2.0 }, offered type: SCALAR scalar { value: 0.5 }
+```
+
+Understandably, our Scheduler is refusing to launch a DSE node on a system with 0.5 remaining CPUs when the DSE node needs 2.0 CPUs.
+
+Another pattern we see is a message like this, where the offer is being rejected for several reasons:
+
+```
+INFO  2017-04-25 19:17:14,849 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 6 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 0.5 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'mem': name: "mem" type: SCALAR scalar { value: 8000.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(MultiEvaluationStage): Failed to pass all child stages
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9042 end: 9042 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9160 end: 9160 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7000 end: 7000 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7001 end: 7001 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8609 end: 8609 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8182 end: 8182 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7199 end: 7199 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 21621 end: 21621 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8983 end: 8983 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7077 end: 7077 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7080 end: 7080 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7081 end: 7081 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "dse-role" disk { persistence { id: "" principal: "dse-principal" } volume { container_path: "dse-data" mode: RW } } reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "dse-role" disk { persistence { id: "" principal: "dse-principal" } volume { container_path: "solr-data" mode: RW } } reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+```
+
+In this case it's pretty apparent that none of the ports our DSE task needs are available on this system (not to mention the lack of sufficient CPU and RAM). This will typically happen when we're looking at an agent that we've already deployed to. The agent in question here is likely running either `dsenode-0` or `dsenode-1`, where we had already reserved those ports ourselves.
+
+Ultimately, we're seeing that none of the remaining agents in the cluster have room to fit our `dsenode-2`. To resolve this we need to either add more agents to the DC/OS cluster, or we need to reduce the requirements of our service to make it fit. In the latter case, be aware of any performance issues that may result if resource usage is reduced too far. Insufficient CPU quota will result in throttled tasks, and insufficient RAM quota will result in OOMed tasks.
+
+This is a good example of the kind of diagnosis you can perform by simply skimming the SDK Scheduler logs.
+
+## Accidentially deleted Marathon task but not service
+
+A common user mistake is to remove the Scheduler task from Marathon, which doesn't do anything to uninstall the service tasks themselves. If you do this, you have two options:
+
+### Uninstall the rest of the service
+
+If you really wanted to uninstall the service, you just need to complete the normal `package uninstall` + `janitor.py` steps described under [Uninstall](#uninstall).
+
+### Recover the Scheduler
+
+If you want to bring the Scheduler back, you can do a `dcos package install` using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it'll resume where it left off. To ensure that you don't forget the options your services are configured with, we recommend keeping a copy of your service's `options.json` in source control so that you can easily recover it later. See also [Initial configuration](#initial-configuration).
+
+## 'Framework has been removed'
+
+Long story short, you forgot to run `janitor.py` the last time you ran the service. See [Uninstall](#uninstall) for steps on doing that. In case you're curious, here's what happened:
+
+1. You ran `dcos package uninstall`. This destroyed the scheduler and its associated tasks, _but didn't clean up its reserved resources_.
+1. Later on you tried to reinstall the service. The Scheduler came up and found an entry in Zookeeper with the previous framework ID, which would have been cleaned up by `janitor.py`. The Scheduler tried to re-register using that framework ID.
+1. Mesos returned an error because it knows that framework ID is no longer valid. Hence the confusing 'Framework has been removed' error.
+
+## Stuck deployments
+
+You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and for whatever reason we don't have the time or the inclination to `pods replace` it and wait for it to come back.
+
+In this case we can use `plan` commands to "force" the Scheduler to skip node #394 and proceed with the rest of the deployment, by forcing the associated step to be complete:
+
+```bash
+$ dcos cassandra plan show deploy
 {
-    "id": "/hello-world",
-    "env": {
-        "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "1",
-        "SLEEP_DURATION": "1000",
-        "...": "..."
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
     },
-    "...": "..."
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+$ dcos plan force deploy cassandra-phase node-394:[node]
+{
+  "message": "Received cmd: forceComplete"
 }
 ```
 
-This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below. Note that the value of `cpus` has changed to 0.2.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-```
-
-A new plan is then generated and execution begins:
+Now we can see that the step is marked as `COMPLETE` and the deployment is able to proceed normally:
 
 ```
+$ dcos cassandra plan show deploy
 {
-    "phases": [{
-        "id": "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
-        "name": "hello",
-        "steps": [{
-            "id": "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
-            "status": "STARTING",
-            "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
-        }],
-        "status": "STARTING"
-    }],
-    "errors": [],
-    "status": "STARTING"
-}
-```
-
-In this case, we have changed the resources consumed for a running task. In order for it to consume new resources, the task must be killed and restarted consuming more resources. When in the PREPARED state, the task has been killed and will be restarted as soon as appropriate resources are available.
-
-#### Horizontal Scale Example
-
-In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.
-
-```
-{
-    "id": "/hello-world",
-    "env": {
-        "HELLO_CPUS": "0.2",
-        "HELLO_COUNT": "2",
-        "SLEEP_DURATION": "1000",
-        "...": "..."
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "COMPLETE" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
     },
-    "...": "..."
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
 }
 ```
 
-This generates the following Plan:
+If we want to go back and fix the deployment of that node, we can simply "force" the scheduler to treat it as a pending operation again:
 
 ```
+$ dcos plan restart deploy cassandra-phase node-394:[node]
 {
-    "phases": [{
-        "id": "25e741c8-a775-481e-9247-d9073002bb3d",
-        "name": "hello",
-        "steps": [{
-            "id": "6780372e-9154-419b-91c4-e0347ca961af",
-            "status": "COMPLETE",
-            "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
-        }, {
-            "id": "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
-            "status": "PENDING",
-            "name": "hello-1:[server]",
-            "message": "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
-        }],
-        "status": "STARTING"
-    }],
-    "errors": [],
-    "status": "STARTING"
+  "message": "Received cmd: restart"
 }
 ```
 
-The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.
-
-### Rollback
-
-A special rollback operation is not defined. To roll back a given deployment, deploy the previous configuration as the new target.
-
-### Software Upgrade
-
-Like rollback, a special software upgrade operation is not defined. To perform an upgrade, just specify a new target configuration. When performing an upgrade, you are probably creating a target configuration that refers to new URIs with new software to launch tasks. This target configuration change is rolled out like any other update.
-
-### API
-
-#### View
-
-You can view the deployment plan via a REST endpoint your scheduler provides. The plans shown in the examples above were accessed by:
-
-```bash
-$ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy
-```
-
-#### Interrupt
-
-You can interrupt the execution of a plan by issuing a `POST` request to the appropriate endpoint:
-
-```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt
-```
-
-Interrupting a plan stops any steps that were not being processed from being processed in the future. Any steps that were actively being processed at the time of an interrupt call will continue.
-
-The interrupt may also be issued against a specific phase within the plan:
-
-```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt?phase=data-nodes
-```
-
-Interrupting a phase of a plan only stops the steps within that phase, without affecting other phases.
-
-#### Continue
-
-Continue plan execution by issuing a `POST` request to the continue endpoint:
-
-```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue
-```
-
-Continue may also be issued on a per-phase basis:
-
-```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue?phase=data-nodes
-```
-
-# Service Discovery
-
-There are two service discovery options that are relevant to the SDK: mesos-dns and VIPs.  Mesos-dns provides a stable, predictable address for individual Mesos tasks.  VIPs provide a load balancing mechanism across multiple instances of a class of tasks.
-
-## [Mesos-DNS](https://github.com/mesosphere/mesos-dns)
-
-All tasks launched in DC/OS receive a DNS address. It is of the form:
+Now we see that the step is again marked as `PENDING` as the Scheduler again attempts to redeploy that node:
 
 ```
-<task-name>.<framework-name>.mesos
-```
-
-So a service defined as follows:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-```
-
-would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.mesos". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      pod-resources:
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      init:
-        goal: FINISHED
-        resource-set: pod-resources
-        cmd: "echo init >> hello-container-path/output && sleep 1000"
-        discovery:
-          prefix: hello
-      server:
-        goal: RUNNING
-        resource-set: pod-resources
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        discovery:
-          prefix: hello
-```
-
-In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.mesos", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
-
-**Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
-
-## [VIP](https://github.com/dcos/minuteman)
-
-You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.2
-        memory: 256
-        ports:
-            http:
-                protocol: tcp
-                port: 8080
-                vip:
-                    prefix: server-lb
-                    port: 80
-                    advertise: true
-```
-
-Defining a VIP is additional information that can be applied to a port. VIPs are defined by a prefix, an internal port, and an external port. The internal port in this example is 8080 and the external port is 80. The prefix is automatically expanded to become an address of the form:
-
-```
-<prefix>.<framework-name>.l4lb.thisdcos.directory
-```
-
-In the example above, a server task can be accessed through the address:
-
-```
-server-lb.hello-world.l4lb.thisdcos.directory:80
-```
-
-# Testing
-
-The SDK provides assistance for writing both unit and integration tests.
-
-## Unit tests
-
-Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/HelloWorldServiceSpecTest.java).
-
-**Important:** In order to avoid unintentional execution of other framework tests, you must include [a test filter similar to the one defined by the hello-world framework](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45).
-
-Unit tests that follow the pattern described above will be automatically run on all pull requests, and test failures will block merges. Unit tests can be manually executed either through standard IDE test integrations or through standard gradle commands.
-
-* All tests: `gradlew check`
-
-* Individual framework: `gradlew check -p frameworks/<framework-name>`
-
-## Integration tests
-
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and a failure blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
-
-You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you have a particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
-
-```python
-@pytest.mark.special
-def test_upgrade_downgrade():
-    pass # ...
-```
-
-If the following command was entered in the shell:
-
-```bash
-$ export TEST_TYPES="special"
-```
-
-Then, only tests marked special would be executed.  A one line example is as follows:
-
-```bash
-$ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
-```
-
-# Advanced DC/OS Service Definition
-
-## `ServiceSpec` (YAML)
-
-The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
-
-### Containers
-
-Each pod runs inside a single container. The `ServiceSpec` specifies the Docker image to run for that container, the virtual network memberships, and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    image: ubuntu
-    networks:
-      dcos: {}
-    rlimits:
-      RLIMIT_NOFILE:
-        soft: 1024
-        hard: 2048
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
-```
-
-Currently an empty YAML dictionary is passed as the body for each network definition under `networks`, since we only support joining virtual networks by name, but in the future it will be possible to specify port mappings and other information in a network definition.
-
-**Note:** Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
-
-### Placement Rules
-
-Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using either of the following formats: `["field", "operator"[, "parameter"]]`, or `field:operator[:parameter]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
-
-We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 3
-    placement: {{HELLO_PLACEMENT}}
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
-```
-
-
-In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `"hostname:UNIQUE"` to ensure that no two hello instances are on the same agent at a time, or `“rack_id:LIKE:rack-foo-.*”` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `“rack-foo-”`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”`.
-
-<a name="resource-sets"></a>
-### Resource Sets
-
-A Mesos task is always a process that consumes some resources. In the example below, the server task is a command that prints "hello" to a file while consuming 1.0 CPUs, 256 MB of memory, and 50 MB of disk space for its volume.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-```
-
-An equivalent way to define the same task is as follows:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        resource-set: hello-resources/
-```
-
-In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.
-
-**Important:** At any given point in time, only a single process may be consuming a given set of resources. **Resources may never be shared simultaneously by multiple tasks**.  Any attempt to launch a task consuming an already consumed resource-set will result in the killing of the task which is currently running and the launch of the new task.
-
-This alternative formulation of tasks is useful when several tasks should be sequenced in the same container and have a cumulative effect on data in a volume. For example, if you want to initialize something before running the long running server task, you could write the following:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      initialize:
-        goal: FINISHED
-        cmd: "echo initialize >> hello-container-path/output"
-        resource-set: hello-resources
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        resource-set: hello-resources
-```
-
-Both tasks now refer to the same resource set. However, since they cannot consume this resource simultaneously we must impose an ordering. We want to run the initialize task, allow it to finish, and then start the long running server task, which produces the following output in the hello-container-path/output file:
-
-```
-initialize
-hello
-```
-
-Provide an ordering by specifying a custom deployment plan. The final YAML file would be:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      initialize:
-        goal: FINISHED
-        cmd: "echo initialize >> hello-container-path/output"
-        resource-set: hello-resources
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        resource-set: hello-resources
-plans:
-  deploy:
-    phases:
-      hello-deploy:
-        strategy: serial
-        pod: hello
-        steps:
-          - default: [[initialize], [server]]
-```
-
-The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, [see the HDFS service here](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/hdfs_svc.yml).
-
-### Sidecar Plans
-
-You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1
-        memory: 256
-      sidecar-resources:
-        cpus: 0.1
-        memory: 256
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
-        resource-set: hello-resources
-        env:
-          SLEEP_DURATION: 1000
-      sidecar:
-        goal: FINISHED
-        cmd: "echo $PLAN_PARAMETER1 $PLAN_PARAMETER2 >> output"
-        resource-set: sidecar-resources
-plans:
-  sidecar-example:
-    strategy: serial
-    phases:
-      sidecar-deploy:
-        strategy: parallel
-        pod: hello
-        tasks: [sidecar]
-```
-
-The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
-
-To initiate the plan, execute an HTTP POST request against the `/v1/plans/sidecar-example/start` endpoint with the header `Content-Type: application/json` set and a JSON body consisting of environment variable name/value pairs. For example:
-
-```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/hello-world/v1/plans/sidecar-example/start
-```
-
-You can also use the DC/OS CLI:
-```bash
-$ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
-```
-
-When no parameters are specified, the body of the POST request must be an empty JSON object (`{}`). Supply default values with standard Bash syntax. In the above case, you can declare the default value of `PLAN_PARAMETER1` to be `sidecar` by changing the task's command string to `echo ${PLAN_PARAMETER1:-sidecar} >> output`.
-
-Monitor sidecar plan progress like any other plan: by issuing GET requests against the `/v1/plans/sidecar-example` endpoint.
-
-Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod, including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
-
-### URIs
-
-You can include an arbitrary list of URIs to download before launching a task or before launching a pod. The Mesos fetcher automatically extracts and caches the URIs. To attach URIs to the context of a task, modify the YAML as below:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
-        uris:
-          - https://foo.bar.com/package.tar.gz
-          - https://foo.bar.com/bundle.tar.gz
-```
-
-To add URIs to a pod, modify the YAML as below:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    uris:
-      - https://foo.bar.com/package.tar.gz
-      - https://foo.bar.com/bundle.tar.gz
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
-```
-
-URIs included in a pod are accessible to all its tasks.
-
-### Configuration Templates
-
-It is common for a service to require configuration files to be present in the context of a task.  The SDK provides a method for defining and placing task-specific configuration files. A configuration file is template that can be dynamically rendered by environment variables. Add a configuration file to a task in the following way:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-        configs:
-          config.xml:
-            template: "config.xml.mustache"
-            dest: etc/config.xml
-```
-
-The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#bootstrap) for more information. at the beginning of the task.
-
-For example, say you had a container with the following environment variables:
-
-```bash
-PORT_FOO=1984
-FRAMEWORK_NAME=mysvc
-```
-
-And a `config.xml.mustache` template like this:
-
-```xml
-<config>
-  <port>{{PORT_FOO}}</port>
-  <service>{{FRAMEWORK_NAME}}</service>
-  <!-- ... -->
-</config>
-```
-
-When the `bootstrap` helper is run, it would automatically create a populated version of that file in `etc/config.xml`:
-
-```xml
-<config>
-  <port>1984</port>
-  <game>mysvc</game>
-  <!-- ... -->
-<config>
-```
-
-To be clear, the config templating provided by the `bootstrap` tool may be applied to _any text format_, not just XML as in this example. This makes it a powerful tool for handling any config files your service may need. Read more about setting this up in the [Bootstrap Tool](#bootstrap) section.
-
-### Task Environment
-
-While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.
-
-You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-        env:
-          FOO: bar
-          BAZ: {{BAZ}}
-```
-
-As in any other case, environment variables may be templated values. Schedulers written using the SDK also detect particular formats of environment. To inject a common set of environment variables into the contexts of all tasks, you can add environment variables to the scheduler’s context in the form below:
-
-    TASKCFG_ALL_<KEY>: <VALUE>
-
-For example:
-
-    TASKCFG_ALL_FOO: BAR → FOO: BAR
-
-To inject environment variables into the contexts of all instances of a particular pod type, define environment variables of the form below to the scheduler’s context.
-
-    TASKCFG_<POD-NAME>_<KEY>: <VALUE>
-
-For example:
-
-    TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
-
-<a name="bootstrap"></a>
-### Task Bootstrap
-
-The `cmd` in each task defines what's run for the lifetime of that task. A common problem when defining tasks is providing some sort of initial configuration, waiting for hosts to resolve, and other up-front work.
-
-The `bootstrap` utility executable is available for running at the start of your tasks to perform these common task operations, including:
-
-- Logging `env` (useful for debugging)
-- Rendering any `configs` provided in the task definition and writing the result to the configured `dest`s.
-- Waiting for the task's own hostname to be resolvable, or optionally wait for other custom hostnames to be resolvable, before exiting
-
-These operations may be enabled, disabled, and customized via `bootstrap`s commandline arguments in your `cmd`. See the [source code](https://github.com/mesosphere/dcos-commons/blob/master/sdk/bootstrap/main.go) for more details on what specific options are available.
-
-Including `bootstrap` in your tasks is a manual but straightforward operation. First, you should to add it to the package definition (`resources.json` and `marathon.json.mustache`), then include it in the service definition (`svc.yml`):
-
-`resources.json`:
-
-```json
+$ dcos cassandra plan show deploy
 {
-  "assets": {
-    "uris": {
-      "...": "...",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "...": "..."
-    }
-  }
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
+    },
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
 }
 ```
 
-`marathon.json.mustache`:
+By this example we can see that any deployment step can be manually retriggered in the cluster. This doesn't come up often, but it can be a useful tool in certain situations if needed.
 
-```json
-{
-  "id": "{{service.name}}",
-  "cpus": 1.0,
-  "mem": 2048,
-  "env": {
-    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
-    "...": "..."
-  }
-}
-```
+Note: The `dcos plan` commands will also accept UUID `id` values instead of the `name` values for the `phase` and `step` arguments. Providing UUIDs will avoid the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn't the same one we were expecting (but which regardless had the same name).
 
-`svc.yml`:
+## Deleting a task in ZK to forcibly wipe that task
 
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    uris:
-      - {{BOOTSTRAP_URI}} # fetch/unpack bootstrap.zip into this pod
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "./bootstrap && echo hello && sleep 1000" # run 'bootstrap' before 'hello'
-        cpus: 0.1
-        memory: 256
-        configs:
-          config.xml:
-            template: "config.xml.mustache"
-            dest: etc/config.xml
-```
+If the scheduler is truly flummoxed by a given task and simply doing a `pods replace <name>` to clear it isn't doing the trick, a last resort is to use Exhibitor to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+- Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
+- Automatically redeploy the task on a new agent.
 
-Now the `bootstrap` executable will automatically be run at the start of `hello` tasks. By default it will first print the `env`, then will handle rendering the `config.xml.mustache` template to `etc/config.xml`, then wait for the hello task's hostname to be locally resolvable.
+Keep in mind however that this can easily lead to a completely broken service. Do this at your own risk. [Break glass in case of emergency](img/ops-guide-exhibitor-delete-task.png)
 
-### Health Checks
+## OOMed task
 
-If a task is unhealthy, the scheduler will kill and restart it.  You may define a health check for a task by adding a `health-check` parameter to its `TaskSpec`:
+Your tasks can be killed from an OOM if you didn't give them sufficient quota. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
+- Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pods status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
+- Check [Agent logs](#mesos-agent-logs) directly for mention of the Mesos Agent killing a task due to excess memory usage.
 
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-      health-check:
-        cmd: "./check-up"
-        interval: 5
-        grace-period: 30
-        max-consecutive-failures: 3
-        delay: 0
-        timeout: 10
-```
-
-The interval, grace-period, delay, and timeout elements are denominated in seconds. If the maximum consecutive number of failures is exceeded, the task will be killed.
-
-### Readiness Checks
-
-Use a readiness check when a task must perform some initialization before subsequent steps run.  By default, a [step](#plans) will be `COMPLETE` when its task reaches its goal state (`RUNNING` or `COMPLETED`), but if the task has a **readiness check**, its step won't be `COMPLETE` until its readiness check passes.  You may define a readiness check for a task by adding a `readiness-check` parameter to its `TaskSpec`:
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-      readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10
-```
-
-The interval, delay, and timeout elements are denominated in seconds.
-
-### Volumes
-
-Persistent volumes allow data to be stored on disks and survive.
-
-```yaml
-name: "hello-world"
-pods:
-  hello:
-    count: 3
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 5000
-```
-
-The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
-
-<a name="proxy"></a>
-### Proxy
-
-The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.
-
-**Important:** Read through all these instructions before you begin.
-
-```yaml
-web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
-pods:
-  proxylite:
-    image: mesosphere/proxylite:2.1.0
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "/proxylite/run.sh"
-        cpus: {{PROXYLITE_CPUS}}
-        memory: {{PROXYLITE_MEM}}
-        ports:
-          proxylite:
-            env-key: PORT_PROXYLITE
-            port: {{PROXYLITE_PORT}}
-        env:
-          ROOT_REDIRECT: "/example"
-          EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: "http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"
-```
-
-
-1. Delete these 3 labels from your marathon application definition:
-    * `DCOS_FRAMEWORK_NAME`
-    * `DCOS_SERVICE_PORT_INDEX`
-    * `DCOS_SERVICE_SCHEME`
-
-1. Add `ROOT_REDIRECT` to your service definition.
-
-    * `ROOT_REDIRECT` sets a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{FRAMEWORK_NAME}}` to `<adminrouter>/service/{{FRAMEWORK_NAME}}/example`
-
-1. Add `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` to your service definition.
-
-    * The `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` have a 1:1 mapping (they are both comma-separated lists).
-
-    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
-
-1. Things to watch out for:
-    *  No trailing slashes in `EXTERNAL_ROUTES` or `INTERNAL_ROUTES`.
-    * The external route is *replaced* with the internal route.
-        - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
-        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
-
-      You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
-
-      ```yaml
-      cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
-      ```
-
-### Proxy Fallback
-
-Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
-
-## `ServiceSpec` (Java)
-
-The YAML-based `ServiceSpec` is flexible and powerful, but once a service moves beyond purely declarative requirements, its static nature becomes a barrier to development. The `ServiceSpec` as defined in YAML is actually just a convenience for generating a Java implementation of the [`ServiceSpec` interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java), which is arbitrarily modifiable by users of the SDK.
-
-All of the interfaces of the `ServiceSpec` have default implementations. For example, the `ServiceSpec` interface is implemented by the [`DefaultServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java). The default interface implementations also provide convenient fluent style construction. For example a `DefaultServiceSpec` can be constructed in the following way:
-
-```java
-DefaultServiceSpec.newBuilder()
-    .name(FRAMEWORK_NAME)
-    .role(ROLE)
-    .principal(PRINCIPAL)
-    .apiPort(8080)
-    .zookeeperConnection("foo.bar.com")
-    .pods(Arrays.asList(pods))
-    .build();
-```
-
-The same pattern holds for all components of the `ServiceSpec`. [Resource sets](#resource-sets) are one area of difference between Java and YAML `ServiceSpec` definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
-
-<a name="placement-rules"></a>
-### Placement Rules
-
-The physical location of tasks in Mesos clusters has important implications for the availability and robustness to data loss of stateful services. You can control the placement of pods by adding placement rules to PodSpecs.
-
-You can add placement constraints to a PodSpec that has already been defined either through YAML or Java. This Java interface allows full customization of placement logic, whereas the [YAML interface](#placement-rules) only supports specifying Marathon-style constraints. Note that the two will automatically be ANDed together if they are both provided. This allows users to specify their own deployment constraints on top of any hardcoded service constraints.
-
-One common placement constraint is to avoid placing pods of the same type together in order to avoid correlated failures. If, for example, you want to deploy all pods of type "hello" on different Mesos agents, extend the PodSpec as follows:
-
-```java
-PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-        .placementRule(TaskTypeRule.avoid("hello"))
-        .build();
-```
-
-This is equivalent to specifying a "hostname:UNIQUE" Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pods of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:
-
-
-```java
-PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-        .placementRule(
-                new AndRule(
-                        TaskTypeRule.avoid("hello"),
-                        TaskTypeRule.colocateWith("world")))
-        .build();
-```
-
-In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. [A practical example is also available in the HDFS framework](https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69).
-
-<a name="custom-plans-java"></a>
-## Custom Plans (Java)
-
-The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate [Java plan interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java) for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by [s](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java). Default implementations of all interfaces are provided. [DefaultPlan](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java), [DefaultPhase](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java), and [DefaultStep](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultStep.java) will be of interest to advanced service authors.
-
-<a name="internals"></a>
-### Internals
-
-Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
-
-![plans and the offer cycle](img/dev-guide-plans-and-the-offer-cycle.png)
-
-There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
-
-**Plan managers** determine what steps in a plan should be executed.
-
-A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.
-
-The **plan scheduler** attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.
-
-The state transitions of steps determine the overall progress of plans as they are the leaf elements of the Plan → Phase → Step hierarchy.
-
-<table>
-  <tr>
-    <td>State</td>
-    <td>Meaning</td>
-  </tr>
-  <tr>
-    <td>Pending</td>
-    <td>No operations have been performed.</td>
-  </tr>
-  <tr>
-    <td>Prepared</td>
-    <td>Any tasks/pods that needed to be killed have been killed.</td>
-  </tr>
-  <tr>
-    <td>Starting</td>
-    <td>Operations have been performed, but their status has not yet been reported by Mesos.</td>
-  </tr>
-  <tr>
-    <td>Complete</td>
-    <td>The desired work has been accomplished.</td>
-  </tr>
-  <tr>
-    <td>Waiting</td>
-    <td>Outside intervention has occurred blocking processing.</td>
-  </tr>
-  <tr>
-    <td>Error</td>
-    <td>An error has occurred in construction or execution.</td>
-  </tr>
-</table>
-
-
-Typically, a step transitions through states as follows: Pending → Prepared → Starting → Complete. There are no enforced restrictions on state transitions. However, there are conventional meanings to states that determine the behavior of plan execution. The most important concept here is the InProgress meta-state. By default, if a step is prepared or starting, it is determined to be InProgress. This state is the core of the anti-contention mechanism between plans. If a step is in progress, by default, no other plan will attempt to execute steps pertaining to the same pod instance
-
-Steps in the pending or prepared states undergo offer evaluation. That is, matching against Mesos offers is attempted. There is no need for offer evaluation in any of the other states.
-
-### Strategy
-
-Fundamentally, the execution of a plan is the execution of steps in some order. The component that determines this ordering is a strategy. Every element of a plan has a strategy that determines the deployment order of its child elements. A plan has a strategy that determines the deployment order of phases. A phase, in turn, has has a strategy that determines the deployment order of steps.
-
-### Example
-
-In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We recommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.
-
-You could generate three steps in the following way:
-
-```java
-StepFactory stepFactory = new DefaultStepFactory(configStore, stateStore);
-
-List<Step> steps = new ArrayList<>();
-steps.add(stepFactory.getStep(podInstance0, tasksToLaunch0));
-steps.add(stepFactory.getStep(podInstance1, tasksToLaunch1));
-steps.add(stepFactory.getStep(podInstance2, tasksToLaunch2));
-```
-
-Then steps can be grouped in a phase with an accompanying strategy.
-
-```java
-Phase phase = new DefaultPhase(
-        "phase-name",
-        steps,
-        new SerialStrategy<>(),
-        Collections.emptyList()); // No errors
-```
-
-The phase defined above will execute its steps in a serial order. The phase can be added to a plan.
-
-```java
-Plan customPlan = new DefaultPlan(
-        "plan-name",
-        Arrays.asList(phase),
-        new ParallelStrategy<>());
-```
-
-In the plan above, a parallel strategy is defined so all phases will be executed simultaneously. There is only one phase in this case. Once a plan is defined, it must be added to the PlanCoordinator/PlanManager system [described above](#internals).
-
-The easiest way to do this is to extend the DefaultService provided by the SDK.
-
-```java
-public class CustomService extends DefaultService {
-    public CustomService(File yamlFile, Plan customPlan) throws Exception {
-        RawServiceSpecification rawServiceSpecification =
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlFile);
-        DefaultServiceSpec defaultServiceSpec =
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-
-        serviceSpec = defaultServiceSpec;
-        init();
-        plans = generatePlansFromRawSpec(rawServiceSpecification);
-        plans.add(customPlan);
-
-        register(serviceSpec, plans);
-    }
-}
-```
-
-All plans provided in the register call will be executed.
+After you've been able to confirm that the problem is indeed an OOM, you can solve it by either [updating the service configuration](#configuration-update) to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).

@@ -1,5 +1,6 @@
 ---
 title: SDK Developer Guide
+menu_order: 2
 redirect_from: "/dev-guide/developer-guide"
 ---
 

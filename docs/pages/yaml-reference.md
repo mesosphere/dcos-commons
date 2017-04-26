@@ -1,5 +1,6 @@
 ---
 title: YAML Reference
+menu_order: 3
 stylesheet: yaml-reference.css
 ---
 
