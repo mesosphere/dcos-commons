@@ -311,8 +311,9 @@ def setup_clusters(run_attrs):
     else:
         count = run_attrs.cluster_count
     if count == 1 and run_attrs.cluster_url and run_attrs.cluster_token:
-        clustinfo.add_running_cluster(run_attrs.cluster_url,
-                run_attrs.cluster_token)
+        clustinfo.add_running_cluster(get_work_dir(),
+                                      run_attrs.cluster_url,
+                                      run_attrs.cluster_token)
         cli_install.ensure_cli_downloaded(run_attrs.cluster_url,
                                           get_work_dir())
         return
@@ -320,10 +321,9 @@ def setup_clusters(run_attrs):
         sys.exit("Sorry, no support for multiple externally set up clusters yet.")
     for i in range(count):
         human_count = i+1
-        cluster = clustinfo.start_cluster(reporting_name="cluster number %s" % human_count)
+        clustinfo.start_cluster(get_work_dir(), reporting_name="cluster number %s" % human_count)
         # ensure_cli_downloaded only actually does anything the first time
         cli_install.ensure_cli_downloaded(cluster.url, get_work_dir())
-
 
 def teardown_clusters():
     logger.info("Shutting down all clusters.")
@@ -331,11 +331,12 @@ def teardown_clusters():
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
     if run_attrs.cluster_url and run_attrs.cluster_token:
-        clustinfo.add_running_cluster(run_attrs.cluster_url,
+        clustinfo.add_running_cluster(get_work_dir(),
+                                      run_attrs.cluster_url,
                                       run_attrs.cluster_token)
     else:
         start_config = launch_ccm_cluster.StartConfig(private_agents=6)
-        clustinfo.start_cluster(start_config)
+        clustinfo.start_cluster(get_work_dir(), start_config)
 
     cluster = clustinfo._clusters[0]
     cli_install.ensure_cli_downloaded(cluster.url, get_work_dir())
@@ -413,7 +414,8 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                                   human_count, run_attrs.cluster_count)
                     # TODO: retry cluster launches
                     start_config = launch_ccm_cluster.StartConfig(private_agents=6)
-                    avail_cluster = clustinfo.start_cluster(start_config,
+                    avail_cluster = clustinfo.start_cluster(get_work_dir(),
+                            start_config,
                             reporting_name="Cluster %s" % human_count)
                     cli_install.ensure_cli_downloaded(avail_cluster.url, get_work_dir())
                 elif not avail_cluster:
@@ -469,51 +471,6 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 framework.popen.terminate() # does nothing if already completed
     return all_ok
 
-def download_diagnostic(cluster, bundle_name):
-    download_dir = os.path.join(get_work_dir(), 'diagnostics')
-    os.makedirs(download_dir)
-    logger.info("Downloading diagnostics from cluster: %s", cluster.url)
-    cmd = ['dcos', 'node', 'diagnostics', 'download', bundle_name,
-           '--location', download_dir]
-    cluster.dcoscli_run_yes(cmd)
-
-
-def fetch_diagnostics():
-    "Collect diagnostic informaion from all clusters"
-    # XXX move to clustinfo?
-    logger.info("Collecting diagnostics from clusters")
-    for cluster in clustinfo._clusters:
-        cmd = ["dcos", "node" "diagnostics", "create", "all"]
-        cluster.dcoscli_run(cmd)
-        logger.info("Spawned diagnostics on cluster: %s", cluster.url)
-
-    unfinished_clusters = clustinfo._clusters
-    while True:
-        # do this for each cluster
-        cmd = ["dcos", "node" "diagnostics", "--status", "--json"]
-        # doesn't return json on error; but returns 1 too so w/e
-        output = cluster.dcoscli_run_output(cmd)
-        data = json.loads(output)
-        # this awesome output could include an infinite number of previously
-        # created diagnostics; though not in CI
-        first_server_diagnostics = data.items()[0]
-        if first_server_diagnostics:
-            logger.info("Checking diagnostics on cluster: %s", cluster.url)
-            first_diagnostic = first_server_diagnostics[0]
-            if first_diagnostic['job_progress_percentage'] == 100:
-                logger.info("Diagnostics complete on cluster: %s", cluster.url)
-                # this path is 100% useless
-                bundle_path = first_diagnostic['last_bundle_dir']
-                bundle_name = os.path.basename(bundle_path)
-                download_diagnostic(cluster, bundle_name)
-
-
-
-
-
-
-
-
 def run_tests(run_attrs, repo_root):
     logger.info("cluster_teardown policy: %s", run_attrs.cluster_teardown)
     try: # all clusters are set up inside this try
@@ -526,7 +483,8 @@ def run_tests(run_attrs, repo_root):
         if not all_passed:
             raise Exception("Some tests failed.")
     except:
-        fetch_diagnostics()
+        clustinfo.fetch_diagnostics(get_work_dir())
+        raise
     finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
