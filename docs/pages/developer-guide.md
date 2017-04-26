@@ -163,7 +163,7 @@ pods:
 
 * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a Task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
 * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
