@@ -2,7 +2,7 @@ Refer to the [top-level tutorial document](../../docs/pages/tutorial.md).
 
 # Sample configuration files
 
-Four sample configuration files are given here (change the name of the input yml file at "universe/marathon.json.mustache"):
+Four sample configuration files are given here (change the name of the input YAML file at "universe/marathon.json.mustache"):
 
  - [svc.yml](src/main/dist/svc.yml): Two pods, with volumes. Used in the 'official' `hello-world` package.
  - [svc_simple.yml](src/main/dist/svc_simple.yml): Bare minimum example. Just one pod, with no extra features.
