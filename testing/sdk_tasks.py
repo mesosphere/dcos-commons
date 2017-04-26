@@ -68,11 +68,11 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=-1):
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
+    sdk_plan.wait_for_completed_recovery(service_name)
     task_ids = get_task_ids(service_name, prefix)
-    msg = 'Checking tasks starting with "{}" have not been updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
-        prefix, old_task_ids, task_ids)
-    sdk_utils.out(msg)
-    assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated"
+    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(old_task_ids, task_ids)
+    sdk_utils.out('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
+    assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated:{}".format(task_sets)
 
 
 def kill_task_with_pattern(pattern, host=None):
