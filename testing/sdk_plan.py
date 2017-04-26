@@ -8,7 +8,6 @@ import shakedown
 
 
 def get_deployment_plan(service_name):
-    sdk_utils.out("Waiting for deploy plan to complete...")
     return get_plan(service_name, "deploy")
 
 
@@ -26,6 +25,8 @@ def start_plan(service_name, plan, parameters=None):
 
 
 def get_plan(service_name, plan):
+    sdk_utils.out("Waiting for {} plan to complete...".format(service_name))
+
     def fn():
         return sdk_api.get(service_name, "/v1/plans/{}".format(plan))
     return sdk_spin.time_wait_return(fn)
@@ -37,9 +38,21 @@ def wait_for_completed_deployment(service_name):
     return sdk_spin.time_wait_return(fn)
 
 
+def wait_for_completed_recovery(service_name):
+    def fn():
+        return recovery_plan_is_finished(service_name)
+    return sdk_spin.time_wait_return(fn)
+
+
 def deployment_plan_is_finished(service_name):
     finished = plan_is_finished(service_name, 'deploy')
     sdk_utils.out("Deployment plan for {} is finished: {}".format(service_name, finished))
+    return finished
+
+
+def recovery_plan_is_finished(service_name):
+    finished = plan_is_finished(service_name, 'recovery')
+    sdk_utils.out("Recovery plan for {} is finished: {}".format(service_name, finished))
     return finished
 
 
