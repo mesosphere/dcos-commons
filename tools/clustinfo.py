@@ -14,6 +14,7 @@ import os
 import subprocess
 import time
 
+import cli_install
 import launch_ccm_cluster
 
 logger = logging.getLogger(__name__)
@@ -117,6 +118,7 @@ def fetch_diagnostics(tgt_dir):
             time.sleep(30)
         logger.info("Diagnostics complete on cluster: %s, downloading...", cluster.url)
         cluster.fetch_complete_diagnostics(tgt_dir)
+        logger.info("Diagnostics stored in %s.", tgt_dir)
 
 class ClusterInfo(object):
     def __init__(self, url, auth_token, config_dir, cluster_id=None, external=False):
@@ -129,12 +131,11 @@ class ClusterInfo(object):
         # self.node_count etc
         self.custom_env = {}     # for use by the dcos cli
 
-        self._configure_cli()
+        dcos_bindir = os.path.dirname(config_dir)
 
-    def dcoscli_run_yes(self, cmd):
-        pobj = subprocess.Popen(cmd, stdin=subprocess.PIPE,
-                env=self.custom_env)
-        pobj.communicate(input="yes\n", timeout=400)
+        self._cli_install(dcos_bindir)
+        self.dcos_bin_loc = os.path.join(dcos_bindir, 'dcos')
+        self._configure_cli()
 
 
     def claim(self, framework):
@@ -149,59 +150,81 @@ class ClusterInfo(object):
     def is_running(self):
         return True
 
-    def dcoscli_run_output(self, cmd):
+    def _cmd_from_args(self, args):
+        return [self.dcos_bin_loc] + args
+
+    def dcoscli_run_yes(self, args):
+        cmd = self._cmd_from_args(args)
+        pobj = subprocess.Popen(cmd, stdin=subprocess.PIPE,
+                env=self.custom_env)
+        pobj.communicate(input=b"yes\n", timeout=400)
+
+    def dcoscli_run_output(self, args):
+        cmd = self._cmd_from_args(args)
         return subprocess.check_output(cmd, env=self.custom_env)
 
-    def dcoscli_run(self, cmd):
+    def dcoscli_run(self, args):
+        cmd = self._cmd_from_args(args)
         subprocess.check_call(cmd, env=self.custom_env)
+
+    def _cli_install(self, bindir):
+        logging.info("Installing cli to %s", bindir)
+        cli_install.ensure_cli_downloaded(self.url, bindir)
 
     def _dcoscli_config_set(self, setting, value):
         """Set a dcos cli setting to a value"""
-        cmd = ['dcos', 'config', 'set', setting, value]
-        self.dcoscli_run(cmd)
+        args = ['config', 'set', setting, value]
+        self.dcoscli_run(args)
 
     def _configure_cli(self):
         """Set up a dcos configuration file for ongoing use with the
         cluster."""
         self.custom_env['HOME'] = self.config_dir
-        self.custom_env['DCOS_CONFIG'] = os.path.join(self.config_dir,
-                                                      'cli-config')
+        config_path = os.path.join(self.config_dir, 'cli-config')
+        os.makedirs(self.config_dir)
+        self.custom_env['DCOS_CONFIG'] = config_path
+
         self._dcoscli_config_set('core.dcos_url', self.url)
         self._dcoscli_config_set('core.ssl_verify', 'false')
         self._dcoscli_config_set('core.reporting', 'True') # What does this do?
-        self._dcoscli_config_set('core.timeout', 10)
+        self._dcoscli_config_set('core.timeout', '10')
+
+        self._dcoscli_config_set('core.dcos_acs_token', self.auth_token)
+
 
     def start_diagnostics(self):
-        cmd = ["dcos", "node" "diagnostics", "create", "all"]
-        self.dcoscli_run(cmd)
+        args = ["node", "diagnostics", "create", "all"]
+        self.dcoscli_run(args)
 
     def diagnostics_complete(self):
-        cmd = ["dcos", "node" "diagnostics", "--status", "--json"]
+        args = ["node", "diagnostics", "--status", "--json"]
         # doesn't return json on error; but returns 1 which will throw an
         # exception
-        output = self.dcoscli_run_output(cmd)
-        data = json.loads(output)
+        output = self.dcoscli_run_output(args)
+        output_s = output.decode('utf-8')
+        logger.info("diagnostics status output: %s", output_s)
+        data = json.loads(output_s)
         # this awesome output could include an infinite number of previously
         # created diagnostics; though not in jenkins runs at least
-        first_server, diagnostics_list = data.items()[0]
-        if not diagnostics_list:
+        first_server, diagnostics_entry = data.popitem()
+        if not diagnostics_entry:
             msg = "No diagnostics items in the json output"
             logger.error("%s: %s", msg, output)
             raise Exception(msg)
-        first_diagnostic = diagnostics_list[0]
-        if not first_diagnostic['job_progress_percentage'] == 100:
+        logger.info("diagnostics_entry: %s", diagnostics_entry)
+        if not diagnostics_entry['job_progress_percentage'] == 100:
             return False
         # this path is 100% useless
-        bundle_path = first_diagnostic['last_bundle_dir']
+        bundle_path = diagnostics_entry['last_bundle_dir']
         self.bundle_name = os.path.basename(bundle_path)  # HACK
         return True
 
     def fetch_complete_diagnostics(self, tgt_dir):
         download_dir = os.path.join(tgt_dir, 'diagnostics')
         os.makedirs(download_dir)
-        cmd = ['dcos', 'node', 'diagnostics', 'download', self.bundle_name,
+        args = ['node', 'diagnostics', 'download', self.bundle_name,
                '--location', download_dir]
-        self.dcoscli_run_yes(cmd)
+        self.dcoscli_run_yes(args)
 
 class _LaunchRecorder(object):
     class Entry(object):

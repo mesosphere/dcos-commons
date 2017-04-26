@@ -61,8 +61,9 @@ def parse_args(args=sys.argv):
             help="On test completion, shut down any cluster(s) automatically created.  "
             'For "success-only", test failures will leave the cluster running.')
     parser.add_argument("--keep-workdir", action='store_true',
-            help="place the working directory in the source repo, and do not "
-            "delete on completion")
+            help="place the working directory in the source repo, do not "
+            "delete on completion, and download diagnostics to it on test "
+            "failure")
     parser.add_argument("test", nargs="*", help="Test or tests to run.  "
             "If no args provided, run all.")
     run_attrs = parser.parse_args()
@@ -483,7 +484,8 @@ def run_tests(run_attrs, repo_root):
         if not all_passed:
             raise Exception("Some tests failed.")
     except:
-        clustinfo.fetch_diagnostics(get_work_dir())
+        if run_attrs.keep_workdir:
+            clustinfo.fetch_diagnostics(get_work_dir())
         raise
     finally:
         if run_attrs.cluster_teardown == "always":
