@@ -1091,7 +1091,7 @@ The plan defined above, the instance of the hello pod with index 0 should first 
 
 ### Sidecar Plans
 
-You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
+You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to perform, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
 
 ```yaml
 name: "hello-world"
