@@ -1,0 +1,1342 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>SDK Operations Guide</title>
+<link rel="stylesheet" type="text/css" media="all" href="./style/gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="./style/Dropdown.css" />
+<script src="./style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href=".">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href=".">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      <li><a href="./operations-guide.html">SDK Operations Guide</a></li>
+      
+      <li><a href="./developer-guide.html">SDK Developer Guide</a></li>
+      
+      <li><a href="./yaml-reference.html">YAML Reference</a></li>
+      
+      <li><a href="./glossary.html">Glossary</a></li>
+      
+      <li><a href="./faq.html">Frequently Asked Questions</a></li>
+      
+      <li><a href="./ops-guide"></a></li>
+      
+      <li><a href="./swagger-api">REST APIs</a></li>
+      <li><a href="./api">Javadoc Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+      <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/elastic/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="./services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="./services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="./services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="./services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="./services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="./services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="./services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="./services/elastic/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="./services/hdfs/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="./services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="./services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="./services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="./services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="./services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="./services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="./services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="./services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="./services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="./services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="./services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>SDK Operations Guide</h1>
+<div id="content">
+<!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
+<ul id="markdown-toc">
+  <li><a href="#a-brief-overview-of-how-things-work" id="markdown-toc-a-brief-overview-of-how-things-work">A Brief Overview of How Things Work</a>    <ul>
+      <li><a href="#components" id="markdown-toc-components">Components</a></li>
+      <li><a href="#deployment" id="markdown-toc-deployment">Deployment</a>        <ul>
+          <li><a href="#initial-install" id="markdown-toc-initial-install">Initial Install</a></li>
+          <li><a href="#reconfiguration" id="markdown-toc-reconfiguration">Reconfiguration</a></li>
+        </ul>
+      </li>
+      <li><a href="#offer-cycle" id="markdown-toc-offer-cycle">Offer Cycle</a></li>
+      <li><a href="#plans" id="markdown-toc-plans">Plans</a>        <ul>
+          <li><a href="#recovery-plan" id="markdown-toc-recovery-plan">Recovery Plan</a></li>
+        </ul>
+      </li>
+      <li><a href="#persistent-volumes" id="markdown-toc-persistent-volumes">Persistent Volumes</a></li>
+      <li><a href="#pods-vs-tasks" id="markdown-toc-pods-vs-tasks">Pods vs Tasks</a></li>
+      <li><a href="#placement-constraints" id="markdown-toc-placement-constraints">Placement Constraints</a>        <ul>
+          <li><a href="#updating-placement-constraints" id="markdown-toc-updating-placement-constraints">Updating placement constraints</a></li>
+        </ul>
+      </li>
+      <li><a href="#uninstall" id="markdown-toc-uninstall">Uninstall</a></li>
+    </ul>
+  </li>
+  <li><a href="#diagnosis-tools" id="markdown-toc-diagnosis-tools">Diagnosis tools</a>    <ul>
+      <li><a href="#logging" id="markdown-toc-logging">Logging</a>        <ul>
+          <li><a href="#scheduler-logs" id="markdown-toc-scheduler-logs">Scheduler logs</a></li>
+          <li><a href="#task-logs" id="markdown-toc-task-logs">Task logs</a></li>
+          <li><a href="#mesos-agent-logs" id="markdown-toc-mesos-agent-logs">Mesos Agent logs</a></li>
+          <li><a href="#logs-via-the-cli" id="markdown-toc-logs-via-the-cli">Logs via the CLI</a></li>
+        </ul>
+      </li>
+      <li><a href="#running-commands-within-containers" id="markdown-toc-running-commands-within-containers">Running Commands within containers</a>        <ul>
+          <li><a href="#dcos--19" id="markdown-toc-dcos--19">DC/OS &gt;= 1.9</a></li>
+          <li><a href="#dcos--18" id="markdown-toc-dcos--18">DC/OS &lt;= 1.8</a></li>
+        </ul>
+      </li>
+      <li><a href="#querying-the-scheduler" id="markdown-toc-querying-the-scheduler">Querying the Scheduler</a></li>
+      <li><a href="#zookeeperexhibitor" id="markdown-toc-zookeeperexhibitor">Zookeeper/Exhibitor</a></li>
+    </ul>
+  </li>
+  <li><a href="#common-operations" id="markdown-toc-common-operations">Common operations</a>    <ul>
+      <li><a href="#initial-service-configuration" id="markdown-toc-initial-service-configuration">Initial service configuration</a></li>
+      <li><a href="#updating-service-configuration" id="markdown-toc-updating-service-configuration">Updating service configuration</a>        <ul>
+          <li><a href="#add-a-node" id="markdown-toc-add-a-node">Add a node</a></li>
+          <li><a href="#finding-the-correct-environment-variable" id="markdown-toc-finding-the-correct-environment-variable">Finding the correct environment variable</a></li>
+        </ul>
+      </li>
+      <li><a href="#restart-a-pod" id="markdown-toc-restart-a-pod">Restart a pod</a></li>
+      <li><a href="#replace-a-pod" id="markdown-toc-replace-a-pod">Replace a pod</a></li>
+    </ul>
+  </li>
+  <li><a href="#troubleshooting" id="markdown-toc-troubleshooting">Troubleshooting</a>    <ul>
+      <li><a href="#tasks-not-deploying--resource-starvation" id="markdown-toc-tasks-not-deploying--resource-starvation">Tasks not deploying / Resource starvation</a></li>
+      <li><a href="#accidentially-deleted-marathon-task-but-not-service" id="markdown-toc-accidentially-deleted-marathon-task-but-not-service">Accidentially deleted Marathon task but not service</a>        <ul>
+          <li><a href="#uninstall-the-rest-of-the-service" id="markdown-toc-uninstall-the-rest-of-the-service">Uninstall the rest of the service</a></li>
+          <li><a href="#recover-the-scheduler" id="markdown-toc-recover-the-scheduler">Recover the Scheduler</a></li>
+        </ul>
+      </li>
+      <li><a href="#framework-has-been-removed" id="markdown-toc-framework-has-been-removed">‘Framework has been removed’</a></li>
+      <li><a href="#stuck-deployments" id="markdown-toc-stuck-deployments">Stuck deployments</a></li>
+      <li><a href="#deleting-a-task-in-zk-to-forcibly-wipe-that-task" id="markdown-toc-deleting-a-task-in-zk-to-forcibly-wipe-that-task">Deleting a task in ZK to forcibly wipe that task</a></li>
+      <li><a href="#oomed-task" id="markdown-toc-oomed-task">OOMed task</a></li>
+    </ul>
+  </li>
+</ul>
+
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
+<p>This operations guide describes how to manage stateful DC/OS services which have been based on the DC/OS SDK. For information about building DC/OS SDK services, look at the <a href="developer-guide.html">Developer Guide</a>.</p>
+
+<h1 id="a-brief-overview-of-how-things-work">A Brief Overview of How Things Work</h1>
+
+<p>Before we get into performing specific operations, we should look into the parts of a DC/OS SDK service, how they work, and their respective roles within the larger system. Next we’ll look at how those components come together in common scenarios.</p>
+
+<h2 id="components">Components</h2>
+
+<p>The following components are key to deploying and maintaining the service, each with its own separate responsibilities. Here’s a quick overview of how those components come together to deploy and manage a stateful service on DC/OS:</p>
+
+<ul>
+  <li>
+    <p>Packaging</p>
+
+    <p>DC/OS packages follow <a href="https://github.com/mesosphere/universe">Universe schema</a>, which defines how packages expose customization options at initial installation. When a package is installed to the cluster, the packaging service (named ‘Cosmos’) create a Marathon app containing a rendered version of the <code class="highlighter-rouge">marathon.json.mustache</code> template provided by the package. In an SDK service, this Marathon app is the Scheduler for the service.</p>
+  </li>
+  <li>
+    <p>Scheduler</p>
+
+    <p>The Scheduler is effectively the ‘management layer’ of the service. It handles launching the service nodes and keeping them running. It also exposes endpoints allowing end users to diagnose and control the service. The Scheduler itself is kept online by the cluster’s ‘init system’, named Marathon. The Scheduler itself is effectively a Java application which is configured via environment variables provided by Marathon.</p>
+  </li>
+  <li>
+    <p>Marathon</p>
+
+    <p>Marathon is the ‘init system’ of the DC/OS cluster. Marathon launches tasks in the cluster and keeps them running. Where Mesos is concerned, Marathon is effectively itself another Scheduler running its own tasks. Marathon is more general than SDK Schedulers, and mainly focuses on tasks which don’t require managing local persistent state. SDK services rely on Marathon to run the Scheduler, and to provide it with a configuration via environment variables. The Scheduler is in turn responsible for maintaining its own service tasks, without any direct involvement by Marathon.</p>
+  </li>
+  <li>
+    <p>Mesos</p>
+
+    <p>Mesos is the foundation of the DC/OS cluster. Everything launched within the cluster is allocated and managed by Mesos. A typical Mesos cluster has one or three Masters which manage available resources for the entire cluster. In DC/OS the machines running the Mesos Masters will typically run other cluster services as well, such as Marathon and Cosmos, as local system processes. Separately from the Master machines are the Agent machines, which are where in-cluster processes are run. For more information on Mesos architecture, see the <a href="https://mesos.apache.org/documentation/latest/architecture/">Apache Mesos docs</a>.</p>
+  </li>
+  <li>
+    <p>Zookeeper</p>
+
+    <p>DC/OS comes with Zookeeper installed by default, typically with one instance per DC/OS master. Zookeeper is a common foundation for DC/OS system components like Marathon and Mesos. The same Zookeeper instance is also used by SDK Schedulers for storing persistent state across restarts (under ZK nodes named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>). This allows Schedulers to be killed at any time and continue where they left off. Note that while Zookeeper itself is currently required, any persistent configuration storage (such as etcd) could fit this role. However Zookeeper is a convenient default because it’s always present in DC/OS clusters.</p>
+  </li>
+</ul>
+
+<h2 id="deployment">Deployment</h2>
+
+<p>The SDK internally treats “Deployment” as moving from one state to another state. By this definition, “Deployment” applies to many scenarios:</p>
+<ul>
+  <li>When a service is first installed, deployment is moving from a null configuration to a deployed configuration.</li>
+  <li>When the deployed configuration is changed by editing an environment variable in the Scheduler, deployment is moving from an initial running configuration to a new proposed configuration.</li>
+</ul>
+
+<p>In this section we’ll describe how each of these scenarios is handled by the Scheduler:</p>
+
+<h3 id="initial-install">Initial Install</h3>
+
+<p>The flow for deploying a new service works as follows:</p>
+
+<ol>
+  <li>First, the steps handled by the DC/OS cluster itself:
+    <ol>
+      <li>The user runs <code class="highlighter-rouge">dcos package install &lt;pkg&gt;</code> in the DC/OS CLI, or clicks <code class="highlighter-rouge">Install</code> for a given package in the DC/OS Dashboard.</li>
+      <li>A request is sent to the Cosmos packaging service to deploy the requested package, along with a set of configuration options.</li>
+      <li>Cosmos creates a Marathon app definition by rendering the package’s <code class="highlighter-rouge">marathon.json.mustache</code> with the configuration options provided in the request. In the case of an SDK service, this app represents the service’s Scheduler. Cosmos queries Marathon to create the app.</li>
+      <li>Marathon launches the service’s Scheduler somewhere in the cluster, using the rendered app definition provided by Cosmos.</li>
+      <li>The service Scheduler is launched. From this point onwards, the deployment is being handled by the SDK.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>The service Scheduler’s <code class="highlighter-rouge">main()</code> function is run like any other Java application. At this point the Scheduler has the following state to start from:</p>
+<ul>
+  <li><code class="highlighter-rouge">svc.yml</code> template representing the service configuration.</li>
+  <li>Environment variables provided by Marathon, to be applied onto the <code class="highlighter-rouge">svc.yml</code> template.</li>
+  <li>Any custom logic implemented by the service developer in their Main function (we’ll be assuming this is left with defaults for the purposes of this explanation)</li>
+</ul>
+
+<ol>
+  <li>The Scheduler uses the above pieces to bootstrap itself into a running service as follows:
+    <ol>
+      <li>The <code class="highlighter-rouge">svc.yml</code> template is rendered using the environment variables provided by Marathon.</li>
+      <li>The rendered <code class="highlighter-rouge">svc.yml</code> “Service Spec” contains the host/port for the Zookeeper instance which the Scheduler uses for persistent configuration/state storage. The default is <code class="highlighter-rouge">master.mesos:2181</code>, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>.</li>
+      <li>The scheduler connects to that Zookeeper instance and checks to see if it’s previously stored a Mesos Framework ID for itself.
+        <ul>
+          <li>If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a “Framework has been removed” error if Mesos doesn’t recognize that Framework ID, indicating an incomplete uninstall.</li>
+          <li>If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.</li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+  <li>Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the <a href="#offer-cycle">Offer Cycle</a> and deploying the service. See that section for more information.
+    <ol>
+      <li>The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks which should be launched (all of the tasks, in fact, as this is the first launch).</li>
+      <li>The Scheduler proceeds to deploy those missing tasks through the Mesos offer cycle, using a <a href="#plans">Deployment Plan</a> to determine the ordering of that deployment.</li>
+    </ol>
+  </li>
+  <li>Once the Scheduler has launched the missing tasks, its current configuration should match the desired configuration defined by the “Service Spec” extracted from <code class="highlighter-rouge">svc.yml</code>.
+    <ol>
+      <li>The Scheduler will tell Mesos to suspend sending new offers as there’s nothing to be done.</li>
+      <li>The Scheduler effectively idles until it receives an RPC from Mesos notifying of a task status change, or an RPC from an end user against one of its HTTP APIs, or until it’s killed by Marathon as the result of a configuration change.</li>
+    </ol>
+  </li>
+</ol>
+
+<h3 id="reconfiguration">Reconfiguration</h3>
+
+<p>The flow for reconfiguring a running service works as follows:</p>
+
+<ol>
+  <li>First, the steps handled by the DC/OS cluster itself:
+    <ol>
+      <li>The user edits the Scheduler’s environment variables, either via the DC/OS Dashboard’s Services section, or via Marathon directly (at <code class="highlighter-rouge">yourcluster.com/marathon</code>).</li>
+      <li>Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>As with initial install above, at this point the Scheduler is re-launched with the same three sources of information it had before:</p>
+<ul>
+  <li><code class="highlighter-rouge">svc.yml</code> template</li>
+  <li>New environment variables</li>
+  <li>Custom logic implemented by the service developer (if any)</li>
+</ul>
+
+<p>In addition, the Scheduler now has a fourth piece:</p>
+<ul>
+  <li>Preexisting state in Zookeeper</li>
+</ul>
+
+<p>As such, Scheduler reconfiguration is slightly different from initial deployment, as the Scheduler is now comparing its current state to a non-empty prior state and determining what needs to be changed.</p>
+
+<ol>
+  <li>After the Scheduler has rendered its <code class="highlighter-rouge">svc.yml</code> against the new environment variables, it has two Service Specs, reflecting two different configurations:
+    <ol>
+      <li>The Service Spec that was just rendered, reflecting the config change.</li>
+      <li>The prior Service Spec (or “Target Configuration”) which was previously stored in ZK.</li>
+    </ol>
+  </li>
+  <li>The Scheduler will automatically compare the changes between the old and new Service Specs:
+    <ol>
+      <li><strong>Change validation</strong>: Certain changes such as editing volumes and scale-down are not currently supported, as they are both complicated and dangerous to get wrong.
+        <ul>
+          <li>If an invalid change is detected, the scheduler will emit an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.</li>
+          <li>Otherwise, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.</li>
+        </ul>
+      </li>
+      <li><strong>Change deployment</strong>: The Scheduler effectively produces a <code class="highlighter-rouge">diff</code> between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc…) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks which aren’t affected by the configuration change will be left as-is.</li>
+    </ol>
+  </li>
+</ol>
+
+<h2 id="offer-cycle">Offer Cycle</h2>
+
+<p>The Offer Cycle is a core concept of Mesos, and often a source of confusion when running services on Mesos. In short, Mesos will periodically notify subscribed Schedulers of resources in the cluster, and the Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what’s being explicitly offered to them. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler’s end.</p>
+
+<p>Schedulers written using the SDK perform the following operations as Offers are received from Mesos:</p>
+
+<ol>
+  <li><strong>Task Reconciliation</strong>: Mesos is the source of truth for what’s running in the system, and Task Reconciliation is a way for Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler’s tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, and not general task information. As such the Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.</li>
+  <li><strong>Offer Acceptance</strong>: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn’t launching tasks. This is generally because the Scheduler isn’t able to find offered machines with enough room to fit the tasks. Add more/bigger nodes, or reduce the requirements of the service.</li>
+  <li><strong>Resource Cleanup</strong>: The Offers provided by Mesos will include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example if an agent machine went away for several days and then came back, it’s resources may still be considered reserved by Mesos while the Scheduler has already moved on and doesn’t know about it anymore. At this point the Scheduler will automatically clean up those resources.</li>
+</ol>
+
+<p>Note that SDK Schedulers will automatically notify Mesos to stop sending offers, or “suspend” offers, when the Scheduler doesn’t have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the Offer which matches that task’s reservation, and then launching the task against those resources once more.</p>
+
+<h2 id="plans">Plans</h2>
+
+<p>The Scheduler organizes its work into a list of Plans. Every SDK Scheduler has at least a Deployment Plan and a <a href="#recovery-plan">Recovery Plan</a>, but other Plans may also be added for things like Backup and Restore operations. The Deployment Plan is in change of performing an initial deployment of the service, as well as redeploying the service after a configuration change (or in more abstract terms, handling the transition needed to get the service from some state to another state). The Recovery Plan is in charge of relaunching any exited tasks which should always be running.</p>
+
+<p>Plans have a fixed three-level hierarchy. Plans contain Phases, and Phases contain Steps. A good way of describing this hierarchy is to give an example. Let’s imagine a service with two <code class="highlighter-rouge">index</code> nodes and three <code class="highlighter-rouge">data</code> nodes. The Plan structure for a Scheduler in this configuration could look like this:</p>
+
+<ul>
+  <li>Deployment Plan
+    <ul>
+      <li>Index Node Phase
+        <ul>
+          <li>Index Node 0 Step</li>
+          <li>Index Node 1 Step</li>
+        </ul>
+      </li>
+      <li>Data Node Phase
+        <ul>
+          <li>Data Node 0 Step</li>
+          <li>Data Node 1 Step</li>
+          <li>Data Node 2 Step</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Recovery Plan
+    <ul>
+      <li><em>(phases and steps are autogenerated as failures occur)</em></li>
+    </ul>
+  </li>
+  <li>Index Backup Plan
+    <ul>
+      <li>Run Reindex Phase
+        <ul>
+          <li>Index Node 0 Step</li>
+          <li>Index Node 1 Step</li>
+        </ul>
+      </li>
+      <li>Upload Data Phase
+        <ul>
+          <li>Index Node 0 Step</li>
+          <li>Index Node 1 Step</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Data Backup Plan
+    <ul>
+      <li>Data Backup Phase
+        <ul>
+          <li>Data Node 0 Step</li>
+          <li>Data Node 1 Step</li>
+          <li>Data Node 2 Step</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>As you can see, in addition to the default Deployment and Recovery plans, this Scheduler also has auxiliary Plans which support custom behavior, specifically one Plan which handles backing up Index nodes, and another for backing up Data nodes. In practice there would likely also be Plans for restoring these backups but those are omitted here for brevity.</p>
+
+<p>So in short, Plans are the SDK’s abstraction for a sequence of tasks to be performed by the Scheduler. By default these include deploying and maintaining the cluster, but additional maintenance operations may also be fit into this structure.</p>
+
+<h3 id="recovery-plan">Recovery Plan</h3>
+
+<p>In addition to sending Offers as described above, Mesos will periodically send Task Status updates which notify the Scheduler about the state of its tasks. Task Status updates can be sent during startup to let the scheduler know when a task has started running, or know when the task has exited successfully, or when the cluster has lost contact with the machine hosting that task. As such the Scheduler needs to decide whether a given status update indicates a task which needs to be relaunched. When this is the case, the Scheduler will simply wait on the Offer cycle. We’ve mentioned the <a href="#plans">Deployment Plan</a> earlier, but the Scheduler has many Plans for various operations, some included by default and others defined for custom service-specific behavior. Another common/default Plan is the Recovery Plan, which handles bringing back tasks which have failed. The Recovery Plan listens for offers which may be used to bring back those tasks, and then relaunches tasks against those offers.</p>
+
+<p>In practice there are two types of recovery, permanent and temporary. The difference is mainly an issue of whether the task being recovered should stay on the same machine, and the side effects that result from that:</p>
+
+<ul>
+  <li><strong>Temporary</strong> recovery:
+    <ul>
+      <li>Hiccup in the task or the host machine.</li>
+      <li>Recovery involves relaunching the task on the same machine as before.</li>
+      <li>Recovery occurs automatically.</li>
+      <li>Any data in the task’s persistent volumes survives the outage.</li>
+      <li>May be manually triggered by a <code class="highlighter-rouge">pods restart</code> command.</li>
+    </ul>
+  </li>
+  <li><strong>Permanent</strong> recovery:
+    <ul>
+      <li>Permanent failure of the host machine, no reason to stick around.</li>
+      <li>Recovery involves discarding any persistent volumes that the task once had on the host machine.</li>
+      <li>Recovery only occurs in response to a manual <code class="highlighter-rouge">pods replace</code> command (or operators may build their own tooling to invoke the replace command).</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Per above, triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes. This is desirable when the operator knows that the previous machine isn’t coming back. For safety’s sake this destructive operation is currently not triggered automatically by the SDK itself.</p>
+
+<h2 id="persistent-volumes">Persistent Volumes</h2>
+
+<p>While CPU and Memory are pretty easy to understand, persistent volumes are a bit more complicated. Indeed the added complexity of dealing with persistent volumes is one of the reasons why the SDK exists as opposed to just using Marathon in all situations. SDK services currently treat volumes as tied to specific agent machines, as one might have in a datacenter with local drives in each system. While e.g. EBS or SAN volumes could be re-mounted and reused across machines, this isn’t yet supported in the SDK.</p>
+
+<p>Volumes are advertised as resources by Mesos, and Mesos offers multiple types of persistent volumes. The SDK supports two of these types: MOUNT volumes and ROOT volumes.</p>
+
+<ul>
+  <li><strong>ROOT</strong> volumes:
+    <ul>
+      <li>Use a shared filesystem tree.</li>
+      <li>Share I/O with anything else on that filesystem.</li>
+      <li>Are supported by default in new deployments, doesn’t require additional cluster-level configuration.</li>
+      <li>Are allocated exactly the amount of disk space that was requested.</li>
+    </ul>
+  </li>
+  <li><strong>MOUNT</strong> volumes:
+    <ul>
+      <li>Use a dedicated partition.</li>
+      <li>Have dedicated I/O for the partition.</li>
+      <li>Require <a href="https://dcos.io/docs/1.8/administration/storage/mount-disk-resources/">additional configuration</a> when setting up the DC/OS cluster.</li>
+      <li>Are allocated the entire partition, so allocated space can far exceed what was originally requested. MOUNT volumes cannot be further subdivided between services.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>The last point about all-or-nothing is important, as it means that if multiple services are deployed with MOUNT volumes, then they can quickly be unable to densely colocate within the cluster, unless many MOUNT volumes are created on each agent. Let’s look at the following deployment scenario across three DC/OS agent machines, each with two enabled MOUNT volumes labeled A and B:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Agent 1: A B
+Agent 2: A B
+Agent 3: A B
+</code></pre>
+</div>
+
+<p>Now we install a service X with two nodes that each use one mount volume. The service consumes volume A on agents 1 and 3:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Agent 1: X B
+Agent 2: A B
+Agent 3: X B
+</code></pre>
+</div>
+
+<p>Now a service Y is installed with two nodes that each use two mount volumes. The service consumes volume A and B on agent 2, but then is stuck without being able to deploy anything else:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Agent 1: X B
+Agent 2: Y Y
+Agent 3: X B
+</code></pre>
+</div>
+
+<p>Configuring <code class="highlighter-rouge">ROOT</code> vs <code class="highlighter-rouge">MOUNT</code> volumes may depend on the service. Some services will support customizing this setting when it’s relevant while others may assume one or the other.</p>
+
+<h2 id="pods-vs-tasks">Pods vs Tasks</h2>
+
+<p>A Task generally maps to a process. A Pod is a collection of Tasks which share an environment with each other. In practice, all Tasks in a Pod will come up and go down together, hence why <a href="#restart-a-pod">restart</a>/<a href="#replace-a-pod">replace</a> operations are at Pod granularity rather than Task granularity.</p>
+
+<h2 id="placement-constraints">Placement Constraints</h2>
+
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, if the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should  use <code class="highlighter-rouge">hostname:UNIQUE</code>.</p>
+
+<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+</code></pre>
+</div>
+
+<p>You must include spare capacity in this list so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pods replace</code></a>) without that system.</p>
+
+<h3 id="updating-placement-constraints">Updating placement constraints</h3>
+
+<p>Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:</p>
+<ul>
+  <li>Update the placement constraint definition at the Scheduler.</li>
+  <li>For each pod, <em>one at a time</em>, perform a <code class="highlighter-rouge">pods replace</code> for any pods which need to be moved to reflect the change.</li>
+</ul>
+
+<p>As an example, let’s say we have the following deployment of our imaginary <code class="highlighter-rouge">data</code> nodes, with manual IPs defined for placing the nodes in the cluster:</p>
+
+<ul>
+  <li>Placement constraint of: <code class="highlighter-rouge">hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84</code></li>
+  <li>Tasks:
+    <div class="highlighter-rouge"><pre class="highlight"><code>10.0.10.3: data-0
+10.0.10.8: data-1
+10.0.10.26: data-2
+10.0.10.28: [empty]
+10.0.10.84: [empty]
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<p>Given the above configuration, let’s assume <code class="highlighter-rouge">10.0.10.8</code> is being decommissioned and our service should be moved off of it. Steps:</p>
+
+<ol>
+  <li>Remove the decommissioned IP and add a new IP to the placement rule whitelist, by configuring the Scheduler environment with a new <code class="highlighter-rouge">DATA_NODE_PLACEMENT</code> setting:
+    <div class="highlighter-rouge"><pre class="highlight"><code>hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+</code></pre>
+    </div>
+  </li>
+  <li>Wait for the Scheduler to restart with the new placement constraint setting.</li>
+  <li>Trigger a redeployment of <code class="highlighter-rouge">data-1</code> from the decommissioned node to a new machine within the new whitelist: <code class="highlighter-rouge">dcos myservice node replace data-1</code></li>
+  <li>Wait for <code class="highlighter-rouge">data-1</code> to be up and healthy before continuing with any other replacement operations.</li>
+</ol>
+
+<p>The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You’ll need to consult the documentation for the service in question, but in practice they should all understand the same set of <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators</a>.</p>
+
+<h2 id="uninstall">Uninstall</h2>
+
+<p>Follow these steps to uninstall a service.</p>
+<ol>
+  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
+For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kafka-dev confluent-kafka</code>.</li>
+  <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
+</ol>
+
+<p>For example, to uninstall a Confluent Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>kafka-dev
+<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> confluent-kafka<span class="sb">`</span>.
+<span class="gp">$ </span>dcos node ssh --master-proxy --leader <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
+    -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
+    -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
+    -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
+</code></pre>
+</div>
+
+<h1 id="diagnosis-tools">Diagnosis tools</h1>
+
+<p>DC/OS clusters have several available tools which can be used to diagnose services which are running in that cluster. In addition to that, the SDK itself offers its own endpoints which describe what the Scheduler itself is doing at any given time.</p>
+
+<h2 id="logging">Logging</h2>
+
+<p>The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which Task’s logs are relevant.</p>
+
+<p>As of this writing, the best and fastest way to view and download logs is via the Mesos UI at <code class="highlighter-rouge">https://yourcluster.com/mesos</code>. On the Mesos front page you will see two lists: A list of currently running tasks, followed by a list of completed tasks (whether successful or failed).</p>
+
+<p><a href="img/ops-guide-all-tasks.png"><img src="img/ops-guide-all-tasks.png" alt="mesos frontpage showing all tasks in the cluster" width="400" /></a></p>
+
+<p>If we click the <code class="highlighter-rouge">Sandbox</code> link for one of these tasks, we will be presented with a listing of files from within the task itself. For example, here’s a sandbox view of a <code class="highlighter-rouge">broker-2</code> task from the above list:</p>
+
+<p><a href="img/ops-guide-task-sandbox.png"><img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
+
+<p>If the task is based on a Docker image, this listing will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands">Running Commands</a>.</p>
+
+<p>In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of <code class="highlighter-rouge">confluent-kafka</code> and they’re each running a <code class="highlighter-rouge">broker-0</code>. As the cluster grows this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click “Frameworks” on the upper left to see a list of all the installed frameworks (mapping to our services):</p>
+
+<p><a href="img/ops-guide-frameworks-list.png"><img src="img/ops-guide-frameworks-list.png" alt="listing of frameworks installed to the cluster" width="400" /></a></p>
+
+<p>We then need to decide which framework to select from this list. This depends on what task we want to view:</p>
+
+<h3 id="scheduler-logs">Scheduler logs</h3>
+
+<p>In practice, if the issue is one of deployment or management, e.g. a service is ‘stuck’ in initial deployment, or a task that previously went down isn’t being brought back at all, then the Scheduler logs will likely be the place to find out why.</p>
+
+<p>From Mesos’s perspective the Scheduler is being run as a Marathon app. Therefore we should pick <code class="highlighter-rouge">marathon</code> from this list and then find our Scheduler in the list of tasks.</p>
+
+<p><a href="img/ops-guide-framework-tasks-marathon.png"><img src="img/ops-guide-framework-tasks-marathon.png" alt="listing of tasks running in the marathon framework (Marathon apps)" width="400" /></a></p>
+
+<p>Per above, Scheduler logs can be found either via the main Mesos frontpage in small clusters (possibly using the filter box at the top right), or by navigating into the list of tasks registered against the <code class="highlighter-rouge">marathon</code> framework in large clusters. In SDK services, the Scheduler is typically given the same name as the service. For example a <code class="highlighter-rouge">kafka-dev</code> service’s Scheduler would be named <code class="highlighter-rouge">kafka-dev</code>. We click the <code class="highlighter-rouge">Sandbox</code> link to view the Sandbox portion of the Scheduler filesystem, which contains files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. These files respectively receive the stdout/stderr output of the Scheduler process, and can be examined to see what the Scheduler is doing.</p>
+
+<p><a href="img/ops-guide-scheduler-sandbox.png"><img src="img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400" /></a></p>
+
+<p>For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of <a href="#tasks-not-deploying---resource-starvation">Tasks not deploying / Resource starvation</a>.</p>
+
+<h3 id="task-logs">Task logs</h3>
+
+<p>When the issue being diagnosed has to do with the service itself having problems, e.g. a given task is crash looping, then the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore we should pick <code class="highlighter-rouge">&lt;svcname&gt;</code> from this list to view a list of tasks specific to that service.</p>
+
+<p><a href="img/ops-guide-framework-tasks-service.png"><img src="img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400" /></a></p>
+
+<p>In the above list we see separate lists of Active and Completed tasks:</p>
+<ul>
+  <li>Active tasks are what’s still running. These give a picture of the current activity of the service.</li>
+  <li>Completed tasks are what’s exited for some reason, whether successfully or due to a failure. These give a picture of recent activity of the service. Note that older completed tasks will automatically be garbage collected and their data may no longer be available here.</li>
+</ul>
+
+<p>Either or both of these lists may be useful depending on the context. Click on the <code class="highlighter-rouge">Sandbox</code> link for one of these tasks and then start looking at sandbox content. In particular there will be files named <code class="highlighter-rouge">stderr</code> and <code class="highlighter-rouge">stdout</code> which hold logs emitted both by the SDK Executor process (a small wrapper around the service task) as well as any logs emitted by the task itself. These files are automatically paginated at 2MB increments, so older logs may also be examined until they are automatically pruned. For an example of this behavior, see the <a href="img/ops-guide-scheduler-sandbox.png">scheduler sandbox</a> linked earlier.</p>
+
+<p><a href="img/ops-guide-task-sandbox.png"><img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
+
+<h3 id="mesos-agent-logs">Mesos Agent logs</h3>
+
+<p>Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. There’s one Mesos Agent running on each system. These logs can be useful for determining if there’s a problem at the system level that’s causing alerts across multiple services which happen to be present on that system.</p>
+
+<p>Navigating to the agent to be viewed can either be done directly from a task by clicking the “Agent” item in the breadcrumb when viewing a task (this will go directly to the agent hosting the task), or by navigating through the “Agents” menu item at the top of the screen (need to select the desired agent from the list).</p>
+
+<p>In either case, once you’re in the Agent view, you’ll see a list of frameworks with a presence on that Agent, and in the left pane you’ll see a plain link named “LOG”. Click that link to view the agent logs.</p>
+
+<p><a href="img/ops-guide-agent.png"><img src="img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400" /></a></p>
+
+<h3 id="logs-via-the-cli">Logs via the CLI</h3>
+
+<p>While the above examples show retrieval of logs via the Mesos UI, we can also access them via the <a href="https://dcos.io/docs/latest/usage/cli/install/">DC/OS CLI</a> using the <code class="highlighter-rouge">dcos task log</code> command. For example, lets assume the following list of tasks in a cluster:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.0.242  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+broker-1              10.0.0.242  root    R    broker-1__6bf127ab-5edc-4888-9dd3-f00be92b291c
+broker-1              10.0.1.188  root    R    broker-1__d799afdb-78bf-44e9-bb63-d16cfc797d00
+broker-2              10.0.1.151  root    R    broker-2__4a293161-b89f-429e-a22e-57a1846eb271
+broker-2              10.0.3.60   root    R    broker-2__76f45cb0-4db9-41ad-835c-2cedf3d7f725
+<span class="o">[</span>...]
+</code></pre>
+</div>
+
+<p>In this case we have two overlapping sets of brokers, from two different Kafka installs. Given these tasks, we can do several different things by combining task filters, file selection, and the <code class="highlighter-rouge">--follow</code> argument:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task log broker                <span class="c"># get recent stdout logs from all six 'broker-#' instances</span>
+<span class="gp">$ </span>dcos task log broker-0              <span class="c"># get recent stdout logs from two 'broker-0' instances</span>
+<span class="gp">$ </span>dcos task log broker-0__75          <span class="c"># get recent stdout logs from the 'broker-0' instance on 10.0.3.27</span>
+<span class="gp">$ </span>dcos task log --follow broker-0__75 <span class="c"># 'tail -f' the stdout logs from that broker instance</span>
+<span class="gp">$ </span>dcos task log broker-0__75 stderr   <span class="c"># get recent stderr logs from that broker instance</span>
+</code></pre>
+</div>
+
+<h2 id="running-commands-within-containers">Running Commands within containers</h2>
+
+<p>An extremely useful tool for diagnosing task state is the ability to run arbitrary commands <em>within</em> the task. The available tools for doing this depend on the version of DC/OS you’re using:</p>
+
+<h3 id="dcos--19">DC/OS &gt;= 1.9</h3>
+
+<p>DC/OS 1.9 introduced the <code class="highlighter-rouge">task exec</code> command as a convenient frontend to <code class="highlighter-rouge">nsenter</code>, which is described below. In order to use <code class="highlighter-rouge">task exec</code> you will need to have SSH keys for accessing your cluster already configured (i.e. via <code class="highlighter-rouge">ssh-add</code>), as SSH is used behind the scenes to get into the cluster. You should also be sure to get a <a href="https://dcos.io/docs/latest/usage/cli/install/">recent version of the DC/OS CLI</a> with support for the <code class="highlighter-rouge">task exec</code> command.</p>
+
+<p>Once you’re set up, running commands is very straightforward. For example, let’s assume the list of tasks from the CLI logs section above, where there’s two <code class="highlighter-rouge">broker-0</code> tasks, one named <code class="highlighter-rouge">broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21</code> and another named <code class="highlighter-rouge">broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237</code>. Unlike with <code class="highlighter-rouge">task logs</code>, we can only run <code class="highlighter-rouge">task exec</code> on one command at a time, so if two tasks match the task filter then we see the following error:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task <span class="nb">exec </span>broker-0 <span class="nb">echo </span>hello world
+There are multiple tasks with ID matching <span class="o">[</span>broker-0]. Please choose one:
+	broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+	broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+</code></pre>
+</div>
+
+<p>Therefore we need to be more specific:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task <span class="nb">exec </span>broker-0__75 <span class="nb">echo </span>hello world
+hello world
+<span class="gp">$ </span>dcos task <span class="nb">exec </span>broker-0__75 <span class="nb">pwd</span>
+/
+</code></pre>
+</div>
+
+<p>We can also run interactive commands using the <code class="highlighter-rouge">-it</code> flags (short for <code class="highlighter-rouge">--interactive --tty</code>):</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task <span class="nb">exec</span> --interactive --tty broker-0__75 /bin/bash
+<span class="gp">broker-container# </span><span class="nb">echo </span>hello world
+hello world
+<span class="gp">broker-container# </span><span class="nb">pwd</span>
+/
+<span class="gp">broker-container# </span><span class="nb">exit</span>
+</code></pre>
+</div>
+
+<p>Note that while you could technically change the container filesystem via this, any changes will be destroyed if the container restarts. So don’t do that and expect any changes to stick around.</p>
+
+<h3 id="dcos--18">DC/OS &lt;= 1.8</h3>
+
+<p>DC/OS 1.8 and earlier do not support <code class="highlighter-rouge">dcos task exec</code>, but <code class="highlighter-rouge">dcos node ssh</code> and <code class="highlighter-rouge">nsenter</code> may be used instead to get the same thing, with a little more effort.</p>
+
+<p>First, we should run <code class="highlighter-rouge">dcos task</code> to get the list of tasks (and their respective IPs), and cross-reference that with <code class="highlighter-rouge">dcos node</code> to get the list of agents (and their respective IPs). For example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.1.151  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+<span class="gp">$ </span>dcos node
+ HOSTNAME       IP                         ID
+10.0.0.242  10.0.0.242  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0
+10.0.1.151  10.0.1.151  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+10.0.1.188  10.0.1.188  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S2
+...
+</code></pre>
+</div>
+
+<p>In this case we’re interested in the <code class="highlighter-rouge">broker-0</code> on <code class="highlighter-rouge">10.0.1.151</code>. We can see that <code class="highlighter-rouge">broker-0</code>’s Mesos Agent has an ID of <code class="highlighter-rouge">2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1</code>. Let’s SSH into that machine using <code class="highlighter-rouge">dcos node ssh</code>:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --master-proxy --mesos-id<span class="o">=</span>2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+agent-system<span class="err">$</span>
+</code></pre>
+</div>
+
+<p>Now that we’re logged into the host Agent machine, we need to find a relevant PID for the <code class="highlighter-rouge">broker-0</code> container. This can take some guesswork:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">agent-system$ </span>ps aux | grep -i confluent
+...
+root      5772  0.6  3.3 6204460 520280 ?      Sl   Apr25   2:34 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0004/executors/broker-0__1eb65420-535e-477b-9ac1-797e79c15277/runs/f5377eac-3a87-4080-8b80-128434e42a25/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+root      6059  0.7 10.3 6203432 1601008 ?     Sl   Apr25   2:43 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0003/executors/broker-1__8de30046-1016-4634-b43e-45fe7ede0817/runs/19982072-08c3-4be6-9af9-efcd3cc420d3/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+...
+</code></pre>
+</div>
+
+<p>As we can see above, there appear to be two likely candidates, one on PID 5772 and the other on PID 6059. The one on PID 5772 has mention of <code class="highlighter-rouge">broker-0</code> so that’s probably the one we want. Lets run the <code class="highlighter-rouge">nsenter</code> command using PID 6059:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">agent-system$ </span>sudo nsenter --mount --uts --ipc --net --pid --target 6059
+broker-container#
+</code></pre>
+</div>
+
+<p>Looks like we were successful! Now we can run commands inside this container to verify that it’s the one we really want, and then proceed with the diagnosis.</p>
+
+<h2 id="querying-the-scheduler">Querying the Scheduler</h2>
+
+<p>The Scheduler exposes several HTTP endpoints which provide information on any current deployment as well as the Scheduler’s view of its tasks. For a full listing of HTTP endpoints, see the . The Scheduler endpoints most useful to field diagnosis come from three sections:</p>
+
+<ul>
+  <li><strong>Plan</strong>: Describes any work that the Scheduler is currently doing, and what work it’s about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they’re stuck.</li>
+  <li><strong>Pods</strong>: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.</li>
+  <li><strong>State</strong>: Access to other miscellaneous state information such as service-specific properties data.</li>
+</ul>
+
+<p>For full documentation of each command, see the <a href="https://mesosphere.github.io/dcos-commons/swagger-api/">API Reference</a>. Here is an example of invoking one of these commands against a service named <code class="highlighter-rouge">hello-world</code> via <code class="highlighter-rouge">curl</code>:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">AUTH_TOKEN</span><span class="o">=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span>
+<span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> https://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy
+</code></pre>
+</div>
+
+<p>These endpoints may also be conveniently accessed using the SDK CLI after installing a service. See <code class="highlighter-rouge">dcos &lt;svcname&gt; -h</code> for a list of all commands. These are effectively thin wrappers around the above API.</p>
+
+<p>For example, let’s get a list of pods using the CLI, and then using the HTTP API directly:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods list
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+<span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> https://yourcluster.com/service/dse/v1/pods
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+</code></pre>
+</div>
+
+<p>Note that when invoking CLI commands the <code class="highlighter-rouge">-v</code> (or <code class="highlighter-rouge">--verbose</code>) argument may also be used to view and diagnose the underlying requests made by the CLI:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse -v pods list
+2017/04/25 15:03:43 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_url
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pods
+2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_acs_token
+2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.ssl_verify
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+2017/04/25 15:03:44 Response: 200 OK <span class="o">(</span>-1 bytes<span class="o">)</span>
+</code></pre>
+</div>
+
+<h2 id="zookeeperexhibitor">Zookeeper/Exhibitor</h2>
+
+<p><strong>Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZK directly may cause your service to behave in inconsistent, even incomprehensible ways.</strong></p>
+
+<p>DC/OS comes with Exhibitor, a commonly used frontend for viewing Zookeeper. Exhibitor may be accessed at <code class="highlighter-rouge">https://yourcluster.com/exhibitor</code>. A given SDK service will have a node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code> visible here. This is where the Scheduler puts its state, so that it isn’t lost if the Scheduler is restarted. In practice it’s far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.</p>
+
+<p><a href="img/ops-guide-exhibitor-view-taskstatus.png"><img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400" /></a></p>
+
+<h1 id="common-operations">Common operations</h1>
+
+<p>This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we’ll start looking at how that knowledge can be applied to a running service.</p>
+
+<h2 id="initial-service-configuration">Initial service configuration</h2>
+
+<p>The DC/OS package format allows packages to define user-visible install options. To ensure consistent installs, we recommend exporting the options you use into an <code class="highlighter-rouge">options.json</code> file which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.</p>
+
+<p>To see what options are available for a given package, you can perform the following:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package describe elastic --config
+<span class="o">{</span>
+  <span class="s2">"properties"</span>: <span class="o">{</span>
+    <span class="s2">"coordinator_nodes"</span>: <span class="o">{</span>
+      <span class="s2">"description"</span>: <span class="s2">"Elasticsearch coordinator node configuration properties"</span>,
+      <span class="s2">"properties"</span>: <span class="o">{</span>
+        <span class="s2">"count"</span>: <span class="o">{</span>
+          <span class="s2">"default"</span>: 1,
+          <span class="s2">"description"</span>: <span class="s2">"Number of coordinator nodes to run"</span>,
+          <span class="s2">"minimum"</span>: 0,
+          <span class="s2">"type"</span>: <span class="s2">"integer"</span>
+        <span class="o">}</span>,
+        <span class="s2">"cpus"</span>: <span class="o">{</span>
+          <span class="s2">"default"</span>: 1.0,
+          <span class="s2">"description"</span>: <span class="s2">"Node cpu requirements"</span>,
+          <span class="s2">"type"</span>: <span class="s2">"number"</span>
+        <span class="o">}</span>,
+        ...
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="s2">"service"</span>: <span class="o">{</span>
+      <span class="s2">"description"</span>: <span class="s2">"DC/OS service configuration properties"</span>,
+      <span class="s2">"properties"</span>: <span class="o">{</span>
+        ...
+        <span class="s2">"name"</span>: <span class="o">{</span>
+          <span class="s2">"default"</span>: <span class="s2">"elastic"</span>,
+          <span class="s2">"description"</span>: <span class="s2">"The name of the Elasticsearch service instance"</span>,
+          <span class="s2">"type"</span>: <span class="s2">"string"</span>
+        <span class="o">}</span>,
+        ...
+        <span class="s2">"user"</span>: <span class="o">{</span>
+          <span class="s2">"default"</span>: <span class="s2">"core"</span>,
+          <span class="s2">"description"</span>: <span class="s2">"The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox."</span>,
+          <span class="s2">"type"</span>: <span class="s2">"string"</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+...
+</code></pre>
+</div>
+
+<p>Given the above example, let’s build an <code class="highlighter-rouge">elastic-prod-options.json</code> which customizes the above values:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"coordinator_nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"elastic-prod"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"elastic"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Given the above <code class="highlighter-rouge">elastic-prod-options.json</code>, we can install a service instance that uses it as follows:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install --options<span class="o">=</span>elastic-prod-options.json elastic
+</code></pre>
+</div>
+
+<p>Once we know the configuration is good, we will then add it to our source control for tracking.</p>
+
+<h2 id="updating-service-configuration">Updating service configuration</h2>
+
+<p>Early on, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.</p>
+
+<p>Configuration updates are performed by updating the process environment of the Scheduler. The Scheduler runs as a Marathon application, so we can perform the change there.</p>
+
+<p>First, we can go to <code class="highlighter-rouge">https://yourcluster.com/marathon</code> and find the Scheduler App in Marathon. In this case we’ll use <code class="highlighter-rouge">dse</code>:</p>
+
+<p><a href="img/ops-guide-marathon-app-list.png"><img src="img/ops-guide-marathon-app-list.png" alt="list of Marathon apps" width="400" /></a></p>
+
+<p>We click on the <code class="highlighter-rouge">dse</code> app and then the <code class="highlighter-rouge">Configuration</code> tab. In here we see an <code class="highlighter-rouge">Edit</code> button tucked away off to the right of the screen:</p>
+
+<p><a href="img/ops-guide-marathon-config-section.png"><img src="img/ops-guide-marathon-config-section.png" alt="dse app configuration in Marathon" width="400" /></a></p>
+
+<p>Clicking that button brings up a popup window. In the window we click on the <code class="highlighter-rouge">Environment Variables</code> section in the left menu. Here we see a list of the Scheduler’s environment variables. For the sake of this demo we will increase an <code class="highlighter-rouge">OPSCENTER_MEM</code> value from <code class="highlighter-rouge">4000</code> to <code class="highlighter-rouge">5000</code>, thereby increasing the RAM quota for the OpsCenter task in this service:</p>
+
+<p><a href="img/ops-guide-marathon-config-env.png"><img src="img/ops-guide-marathon-config-env.png" alt="dse app configuration in Marathon" width="400" /></a></p>
+
+<p>After clicking <code class="highlighter-rouge">Change and deploy</code>, the following will happen:</p>
+<ul>
+  <li>Marathon will restart the Scheduler so that it picks up our change.</li>
+  <li>The Scheduler will detect that the OpsCenter task’s configuration has changed. The OpsCenter task will be restarted with the change applied. In this case, with allocated RAM increased from 4000 to 5000 MB.</li>
+</ul>
+
+<p>We can see the result by looking at the Mesos task list. At the top we see the new <code class="highlighter-rouge">dse</code> Scheduler and new OpsCenter instance. At the bottom we see the previous <code class="highlighter-rouge">dse</code> Scheduler and OpsCenter instance which were replaced due to our change:</p>
+
+<p><a href="img/ops-guide-mesos-tasks-reconfigured.png"><img src="img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400" /></a></p>
+
+<p>If we look at the Scheduler logs we can even see where it detected the change. The <code class="highlighter-rouge">api-port</code> value is random on each Scheduler restart so it tends to always display as ‘different’ in this log:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurationUpdater:printConfigDiff(215): Difference between configs:
+--- ServiceSpec.old
++++ ServiceSpec.new
+@@ -3,5 +3,5 @@
+   "role" : "dse-role",
+   "principal" : "dse-principal",
+-  "api-port" : 18446,
++  "api-port" : 15063,
+   "web-url" : null,
+   "zookeeper" : "master.mesos:2181",
+@@ -40,5 +40,5 @@
+             "type" : "SCALAR",
+             "scalar" : {
+-              "value" : 4000.0
++              "value" : 5000.0
+             },
+             "ranges" : null,
+</code></pre>
+</div>
+
+<p>The above steps apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task <code class="highlighter-rouge">N+1</code> is only redeployed after task <code class="highlighter-rouge">N</code> appears to be healthy after being relaunched with the new configuration.</p>
+
+<h3 id="add-a-node">Add a node</h3>
+
+<p>Adding a task node to the service is just another type of configuration change. In this case we’re looking for a specific config value in the package’s <code class="highlighter-rouge">config.json</code>, and then mapping that configuration value to the relevant environment variable in the Scheduler. In the case of the above <code class="highlighter-rouge">dse</code> service, it’d just be a matter of increasing the Scheduler’s <code class="highlighter-rouge">DSE_NODE_POD_COUNT</code> from <code class="highlighter-rouge">3</code> (the default) to <code class="highlighter-rouge">4</code>. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.</p>
+
+<h3 id="finding-the-correct-environment-variable">Finding the correct environment variable</h3>
+
+<p>The correct environment variable for a given setting can vary depending on the service. For example with increasing the number of nodes, some services will have multiple types of nodes, each with separate count settings. Determining the correct environment variable in this case takes some detective work.</p>
+
+<p>For example, let’s look at the most recent release of <code class="highlighter-rouge">confluent-kafka</code> as of this writing. The number of brokers is configured using a <a href="https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/config.json#L133"><code class="highlighter-rouge">count</code> setting in the <code class="highlighter-rouge">brokers</code> section</a>:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"description"</span><span class="p">:</span><span class="s2">"Number of brokers to run"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"default"</span><span class="p">:</span><span class="mi">3</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>To see where this setting is passed when the Scheduler is first launched, we can look at the adjacent <a href="https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/marathon.json.mustache#L34"><code class="highlighter-rouge">marathon.json.mustache</code> template file</a>. Searching for <code class="highlighter-rouge">brokers.count</code> in <code class="highlighter-rouge">marathon.json.mustache</code> reveals the environment variable that we should change:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"BROKER_COUNT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{brokers.count}}"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).</p>
+
+<h2 id="restart-a-pod">Restart a pod</h2>
+
+<p>Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see <a href="#recovery-plan">Recovery</a>.</p>
+
+<p>Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms are effectively hitting the same API. In these examples we list the known pods, and then restart the one named <code class="highlighter-rouge">dse-1</code>, which contains tasks named <code class="highlighter-rouge">dse-1-agent</code> and <code class="highlighter-rouge">dse-1-node</code>:</p>
+
+<p>Via the CLI:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods list
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+<span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods restart dse-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"dse-1-agent"</span>,
+    <span class="s2">"dse-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<p>Via the HTTP API directly:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> https://yourcluster.com/service/dse/v1/pods
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+<span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> http://yourcluster.com/service/dse/v1/pods/dse-1/restart
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"dse-1-agent"</span>,
+    <span class="s2">"dse-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<p>All tasks within the pod are restarted as a unit. The response lists the names of the two tasks which were members of the pod.</p>
+
+<h2 id="replace-a-pod">Replace a pod</h2>
+
+<p>Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if a given agent machine has gone down and is never coming back, or if an agent is about to undergo downtime. Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However operators are free to build their own tooling to make this decision and invoke the replace call. For more information see <a href="#recovery-plan">Recovery</a>.</p>
+
+<p>As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods replace dse-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"dse-1-agent"</span>,
+    <span class="s2">"dse-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> http://yourcluster.com/service/dse/v1/pods/dse-1/replace
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"dse-1-agent"</span>,
+    <span class="s2">"dse-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<h1 id="troubleshooting">Troubleshooting</h1>
+
+<p>Some problems are more common than others, particularly when setting up a new cluster. This section goes over some common pitfalls and how to fix them.</p>
+
+<h2 id="tasks-not-deploying--resource-starvation">Tasks not deploying / Resource starvation</h2>
+
+<p>When the Scheduler is performing offer evaluation, it will log its decisions about offers it’s received. This can be useful in the common case of determining why a task is failing to deploy.</p>
+
+<p>In this example we have a newly-deployed <code class="highlighter-rouge">dse</code> Scheduler which isn’t deploying the third <code class="highlighter-rouge">dsenode</code> task that we requested. This can often happen if our cluster doesn’t have any machines with enough room to run the task.</p>
+
+<p>If we look at the Scheduler’s logs in <code class="highlighter-rouge">stdout</code> (or <code class="highlighter-rouge">stderr</code> in older SDK versions) we find several examples of offers which were insufficient to deploy the remaining node. It’s important to remember that <em>offers will regularly be rejected</em> due to not meeting the needs of a deployed task and that this is <em>completely normal</em>. What we’re looking for is a common theme across those rejections that would indicate what we’re missing.</p>
+
+<p>From scrolling through the scheduler logs we see a couple patterns. First there are failures like this, where the only thing missing is CPUs. The remaining task requires 2 CPUs but this offer apparently didn’t have enough:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>INFO  2017-04-25 19:17:13,846 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 1 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'cpus': requirement=type: SCALAR scalar { value: 0.5 }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 8000.0 }
+  PASS(MultiEvaluationStage): All child stages passed
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9042 end: 9042 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9160 end: 9160 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7000 end: 7000 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7001 end: 7001 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8609 end: 8609 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8182 end: 8182 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7199 end: 7199 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 21621 end: 21621 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8983 end: 8983 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7077 end: 7077 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7080 end: 7080 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7081 end: 7081 } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+</code></pre>
+</div>
+
+<p>If we scroll up from this rejection summary, we find a message describing what the agent had offered in terms of CPU:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>INFO  2017-04-25 19:17:13,834 [pool-8-thread-1] com.mesosphere.sdk.offer.MesosResourcePool:consumeUnreservedMerged(239): Offered quantity of cpus is insufficient: desired type: SCALAR scalar { value: 2.0 }, offered type: SCALAR scalar { value: 0.5 }
+</code></pre>
+</div>
+
+<p>Understandably, our Scheduler is refusing to launch a DSE node on a system with 0.5 remaining CPUs when the DSE node needs 2.0 CPUs.</p>
+
+<p>Another pattern we see is a message like this, where the offer is being rejected for several reasons:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>INFO  2017-04-25 19:17:14,849 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 6 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 0.5 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'mem': name: "mem" type: SCALAR scalar { value: 8000.0 } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(MultiEvaluationStage): Failed to pass all child stages
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9042 end: 9042 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9160 end: 9160 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7000 end: 7000 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7001 end: 7001 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8609 end: 8609 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8182 end: 8182 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7199 end: 7199 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 21621 end: 21621 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8983 end: 8983 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7077 end: 7077 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7080 end: 7080 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7081 end: 7081 } } role: "dse-role" reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "dse-role" disk { persistence { id: "" principal: "dse-principal" } volume { container_path: "dse-data" mode: RW } } reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "dse-role" disk { persistence { id: "" principal: "dse-principal" } volume { container_path: "solr-data" mode: RW } } reservation { principal: "dse-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+</code></pre>
+</div>
+
+<p>In this case it’s pretty apparent that none of the ports our DSE task needs are available on this system (not to mention the lack of sufficient CPU and RAM). This will typically happen when we’re looking at an agent that we’ve already deployed to. The agent in question here is likely running either <code class="highlighter-rouge">dsenode-0</code> or <code class="highlighter-rouge">dsenode-1</code>, where we had already reserved those ports ourselves.</p>
+
+<p>Ultimately, we’re seeing that none of the remaining agents in the cluster have room to fit our <code class="highlighter-rouge">dsenode-2</code>. To resolve this we need to either add more agents to the DC/OS cluster, or we need to reduce the requirements of our service to make it fit. In the latter case, be aware of any performance issues that may result if resource usage is reduced too far. Insufficient CPU quota will result in throttled tasks, and insufficient RAM quota will result in OOMed tasks.</p>
+
+<p>This is a good example of the kind of diagnosis you can perform by simply skimming the SDK Scheduler logs.</p>
+
+<h2 id="accidentially-deleted-marathon-task-but-not-service">Accidentially deleted Marathon task but not service</h2>
+
+<p>A common user mistake is to remove the Scheduler task from Marathon, which doesn’t do anything to uninstall the service tasks themselves. If you do this, you have two options:</p>
+
+<h3 id="uninstall-the-rest-of-the-service">Uninstall the rest of the service</h3>
+
+<p>If you really wanted to uninstall the service, you just need to complete the normal <code class="highlighter-rouge">package uninstall</code> + <code class="highlighter-rouge">janitor.py</code> steps described under <a href="#uninstall">Uninstall</a>.</p>
+
+<h3 id="recover-the-scheduler">Recover the Scheduler</h3>
+
+<p>If you want to bring the Scheduler back, you can do a <code class="highlighter-rouge">dcos package install</code> using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it’ll resume where it left off. To ensure that you don’t forget the options your services are configured with, we recommend keeping a copy of your service’s <code class="highlighter-rouge">options.json</code> in source control so that you can easily recover it later. See also <a href="#initial-configuration">Initial configuration</a>.</p>
+
+<h2 id="framework-has-been-removed">‘Framework has been removed’</h2>
+
+<p>Long story short, you forgot to run <code class="highlighter-rouge">janitor.py</code> the last time you ran the service. See <a href="#uninstall">Uninstall</a> for steps on doing that. In case you’re curious, here’s what happened:</p>
+
+<ol>
+  <li>You ran <code class="highlighter-rouge">dcos package uninstall</code>. This destroyed the scheduler and its associated tasks, <em>but didn’t clean up its reserved resources</em>.</li>
+  <li>Later on you tried to reinstall the service. The Scheduler came up and found an entry in Zookeeper with the previous framework ID, which would have been cleaned up by <code class="highlighter-rouge">janitor.py</code>. The Scheduler tried to re-register using that framework ID.</li>
+  <li>Mesos returned an error because it knows that framework ID is no longer valid. Hence the confusing ‘Framework has been removed’ error.</li>
+</ol>
+
+<h2 id="stuck-deployments">Stuck deployments</h2>
+
+<p>You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it’s failing to come back, and for whatever reason we don’t have the time or the inclination to <code class="highlighter-rouge">pods replace</code> it and wait for it to come back.</p>
+
+<p>In this case we can use <code class="highlighter-rouge">plan</code> commands to “force” the Scheduler to skip node #394 and proceed with the rest of the deployment, by forcing the associated step to be complete:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos cassandra plan show deploy
+<span class="o">{</span>
+  <span class="s2">"phases"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"aefd33e3-af78-425e-ad2e-6cc4b0bc1907"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"cassandra-phase"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        ...
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"f108a6a8-d41f-4c49-a1c0-4a8540876f6f"</span>, <span class="s2">"name"</span>: <span class="s2">"node-393:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span> <span class="o">}</span>,
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"83a7f8bc-f593-452a-9ceb-627d101da545"</span>, <span class="s2">"name"</span>: <span class="s2">"node-394:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"PENDING"</span> <span class="o">}</span>, <span class="c"># stuck here</span>
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"61ce9d7d-b023-4a8a-9191-bfa261ace064"</span>, <span class="s2">"name"</span>: <span class="s2">"node-395:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"PENDING"</span> <span class="o">}</span>,
+        ...
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+    <span class="o">}</span>,
+    ...
+  <span class="o">]</span>,
+  <span class="s2">"errors"</span>: <span class="o">[]</span>,
+  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+<span class="o">}</span>
+<span class="gp">$ </span>dcos plan force deploy cassandra-phase node-394:[node]
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Received cmd: forceComplete"</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+<p>After forcing the <code class="highlighter-rouge">node-394:[node]</code> step, we can then see that the Plan shows it in a <code class="highlighter-rouge">COMPLETE</code> state, and that the Plan is proceeding with <code class="highlighter-rouge">node-395</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan show deploy
+{
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "COMPLETE" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "PENDING" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
+    },
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+</code></pre>
+</div>
+
+<p>If we want to go back and fix the deployment of that node, we can simply “force” the scheduler to treat it as a pending operation again:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos plan restart deploy cassandra-phase node-394:[node]
+{
+  "message": "Received cmd: restart"
+}
+</code></pre>
+</div>
+
+<p>Now we see that the step is again marked as <code class="highlighter-rouge">PENDING</code> as the Scheduler again attempts to redeploy that node:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan show deploy
+{
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "COMPLETE" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
+    },
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+</code></pre>
+</div>
+
+<p>This example shows how steps in the deployment Plan (or any other Plan) can be manually retriggered or forced to a completed state by querying the Scheduler. This doesn’t come up often, but it can be a useful tool in certain situations if needed.</p>
+
+<p>Note: The <code class="highlighter-rouge">dcos plan</code> commands will also accept UUID <code class="highlighter-rouge">id</code> values instead of the <code class="highlighter-rouge">name</code> values for the <code class="highlighter-rouge">phase</code> and <code class="highlighter-rouge">step</code> arguments. Providing UUIDs will avoid the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn’t the same one we were expecting (but which regardless had the same name).</p>
+
+<h2 id="deleting-a-task-in-zk-to-forcibly-wipe-that-task">Deleting a task in ZK to forcibly wipe that task</h2>
+
+<p>If the scheduler is truly flummoxed by a given task and simply doing a <code class="highlighter-rouge">pods replace &lt;name&gt;</code> to clear it isn’t doing the trick, a last resort is to use <a href="#zookeeperexhibitor">Exhibitor</a> to delete the offending task from the Scheduler’s ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:</p>
+<ul>
+  <li>Automatically unreserve the task’s previous resources with Mesos because it doesn’t recognize them anymore (via the Resource Cleanup operation described earlier).</li>
+  <li>Automatically redeploy the task on a new agent.</li>
+</ul>
+
+<p>Keep in mind however that this can easily lead to a completely broken service. <strong>Do this at your own risk.</strong> <a href="img/ops-guide-exhibitor-delete-task.png">Break glass in case of emergency</a></p>
+
+<h2 id="oomed-task">OOMed task</h2>
+
+<p>Your tasks can be killed from an OOM if you didn’t give them sufficient quota. This will manifest as sudden <code class="highlighter-rouge">Killed</code> messages in <a href="#task-logs">Task logs</a>, sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:</p>
+<ul>
+  <li>Check <a href="#scheduler-logs">Scheduler logs</a> (or <code class="highlighter-rouge">dcos &lt;svcname&gt; pods status &lt;podname&gt;)</code> to see TaskStatus updates from mesos for a given failed pod.</li>
+  <li>Check <a href="#mesos-agent-logs">Agent logs</a> directly for mention of the Mesos Agent killing a task due to excess memory usage.</li>
+</ul>
+
+<p>After you’ve been able to confirm that the problem is indeed an OOM, you can solve it by either <a href="#configuration-update">updating the service configuration</a> to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).</p>
+
+</div>
+</div>
+</body>
+
+</html>
