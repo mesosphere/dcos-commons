@@ -1442,7 +1442,7 @@ pods:
 ```
 
 
-1. Delete these 3 labels from your marathon application definition:
+1. Delete these 3 labels from your Marathon application definition:
     * `DCOS_FRAMEWORK_NAME`
     * `DCOS_SERVICE_PORT_INDEX`
     * `DCOS_SERVICE_SCHEME`
