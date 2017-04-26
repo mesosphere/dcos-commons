@@ -3,9 +3,12 @@ discovery.zen.ping.unicast.hosts:
   - "master-1-node.{{FRAMEWORK_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
   - "master-2-node.{{FRAMEWORK_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
 discovery.zen.minimum_master_nodes: 2
-network.host:
-  - "_site_"
-  - "_local_"
+network.bind_host:
+  - {{LIBPROCESS_IP}}
+  - _local_
+network.publish_host:
+  - {{LIBPROCESS_IP}}
+  - _local_
 cluster.name: {{FRAMEWORK_NAME}}
 node.name: {{TASK_NAME}}
 path.data: "container-path/data"
