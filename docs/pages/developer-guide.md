@@ -4,8 +4,8 @@ menu_order: 2
 redirect_from: "/dev-guide/developer-guide"
 ---
 
-<!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
-* TOC GOES HERE AUTOMATICALLY
+<!-- Generate TOC. Both of the following lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
+* LOOKING FOR THE DEVELOPER GUIDE? [GO HERE](https://mesosphere.github.io/dcos-commons/developer-guide.html). (THIS LINE IS A STUB FOR RENDERING THE TOC AUTOMATICALLY)
 {:toc}
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
@@ -53,22 +53,15 @@ They store the desired configuration of a service and all relevant information r
    $ cd frameworks/myframework
    ```
 
-   `new-service.sh` creates a skeleton framework.  You will extend
-   this skeleton.
+   `new-service.sh` creates a skeleton framework.  You will extend this skeleton.
 
 1. View `svc.yml`.
 
-   Take a look at `src/main/dist/svc.yml`.  This is the YAML file that
-   defines your framework.  You will be editing this file.
+   Take a look at `src/main/dist/svc.yml`.  This is the YAML file that defines your framework.  You will be editing this file.
 
 1. View `Main.java`.
 
-   Take a look at
-   `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.
-   This is the main method for your scheduler, which will be run in
-   DC/OS via Marathon.  It reads `svc.yml`, which defines its
-   behavior.  If you need any advanced functionality not provided by
-   YAML, such as complex deployment plans, you will write it here.
+   Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
 
 1. Build a [package](#packaging).
 
@@ -76,13 +69,11 @@ They store the desired configuration of a service and all relevant information r
    $ ./build.sh aws
    ```
 
-   You will deploy your framework to DC/OS as a
-   [package](#packaging).  `build.sh` creates this package.
+   You will deploy your framework to DC/OS as a [package](#packaging).  `build.sh` creates this package.
 
 1. Install your package.
 
-   `build.sh` prints instructions for installing the package.  They
-   will look something like this:
+   `build.sh` prints instructions for installing the package.  They will look something like this:
 
    ```bash
    $ dcos package repo remove myframework-aws
@@ -99,11 +90,7 @@ They store the desired configuration of a service and all relevant information r
    $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
    ```
 
-   The second command above runs the **janitor** script.  The janitor
-   script runs inside the DC/OS cluster, cleaning up Zookeeper state
-   and resource reservations made by a framework.  DC/OS will soon
-   support uninstall hooks so this can happen automatically, but for
-   now, you must manually run the janitor script as shown above.
+   The second command above runs the **janitor** script.  The janitor script runs inside the DC/OS cluster, cleaning up Zookeeper state and resource reservations made by a framework.  DC/OS will soon support uninstall hooks so this can happen automatically, but for now, you must manually run the janitor script as shown above.
 
 
 # Introduction to DC/OS Service Definitions
@@ -143,7 +130,7 @@ pods:
 
     * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
 
-    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
+    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
 * **Pods**: A pod can be defined most simply as a set of tasks.
 
@@ -163,6 +150,7 @@ pods:
 
 * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
+For a full listing of available fields and what they mean, see the [YAML Reference](yaml-reference.html).
 
 ### Summary
 
@@ -186,7 +174,6 @@ In the example, we have only defined types of pods and tasks. When the service i
 
 Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.
 
-<a name="plans"></a>
 ## Plans
 
 In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
@@ -358,7 +345,6 @@ This plan would result in steps generating the following tasks:
 
 You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
 
-<a name="packaging"></a>
 ## Packaging
 
 A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
@@ -367,9 +353,9 @@ A DC/OS service must provide a package definition in order to be installed on a 
 
 For a fully detailed explanation of service packaging [see here](https://dcos.io/docs/1.8/development/create-package/); below we provide a brief introduction to the required files.
 
-* `marathon.json.mustache` -   A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
+* `marathon.json.mustache` - A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
 
-* `Resource.json` -  A list of URIs of all downloaded elements.This list allows your service to be deployed in datacenters without Internet access.
+* `resource.json` - A list of URIs of all downloaded elements.This list allows your service to be deployed in datacenters without Internet access.
 
 * `command.json` - This file contains elements specific to a CLI for your service if you want to provide one.
 
@@ -423,8 +409,6 @@ The following events occur to select a target configuration and move a service f
     b. The plan is chosen and executed
 
 These steps are discussed in more detail below.
-
-<a name="define-target-config"></a>
 
 ## Defining a Target Configuration
 
@@ -555,7 +539,6 @@ pods:
           size: 50
 ```
 
-<a name="plan-execution"></a>
 ## Plan Execution
 
 ### Plan Acceptance or Rejection
@@ -581,7 +564,7 @@ Recall the [rendered `ServiceSpec` from above](#rendered-spec). A single pod con
             "id": "2e3dde39-3ea3-408b-8e00-3346bef93054",
             "status": "COMPLETE",
             "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+            "message": "'hello-0:[server]' has status: 'COMPLETE'."
         }],
         "status": "COMPLETE"
     }],
@@ -653,7 +636,7 @@ A new plan is then generated and execution begins:
             "id": "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
             "status": "STARTING",
             "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
+            "message": "'hello-0:[server]' has status: 'STARTING'."
         }],
         "status": "STARTING"
     }],
@@ -692,12 +675,12 @@ This generates the following Plan:
             "id": "6780372e-9154-419b-91c4-e0347ca961af",
             "status": "COMPLETE",
             "name": "hello-0:[server]",
-            "message": "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+            "message": "'hello-0:[server]' has status: 'COMPLETE'."
         }, {
             "id": "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
             "status": "PENDING",
             "name": "hello-1:[server]",
-            "message": "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
+            "message": "'hello-1:[server]' has status: 'PENDING'."
         }],
         "status": "STARTING"
     }],
@@ -950,7 +933,6 @@ pods:
 
 In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `"hostname:UNIQUE"` to ensure that no two hello instances are on the same agent at a time, or `“rack_id:LIKE:rack-foo-.*”` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `“rack-foo-”`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”`.
 
-<a name="resource-sets"></a>
 ### Resource Sets
 
 A Mesos task is always a process that consumes some resources. In the example below, the server task is a command that prints "hello" to a file while consuming 1.0 CPUs, 256 MB of memory, and 50 MB of disk space for its volume.
@@ -1203,7 +1185,7 @@ pods:
             dest: etc/config.xml
 ```
 
-The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#bootstrap) for more information. at the beginning of the task.
+The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#task-bootstrap) for more information. at the beginning of the task.
 
 For example, say you had a container with the following environment variables:
 
@@ -1272,7 +1254,6 @@ For example:
 
     TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
 
-<a name="bootstrap"></a>
 ### Task Bootstrap
 
 The `cmd` in each task defines what's run for the lifetime of that task. A common problem when defining tasks is providing some sort of initial configuration, waiting for hosts to resolve, and other up-front work.
@@ -1411,7 +1392,6 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
-<a name="proxy"></a>
 ### Proxy
 
 The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.
@@ -1492,7 +1472,6 @@ DefaultServiceSpec.newBuilder()
 
 The same pattern holds for all components of the `ServiceSpec`. [Resource sets](#resource-sets) are one area of difference between Java and YAML `ServiceSpec` definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
 
-<a name="placement-rules"></a>
 ### Placement Rules
 
 The physical location of tasks in Mesos clusters has important implications for the availability and robustness to data loss of stateful services. You can control the placement of pods by adding placement rules to PodSpecs.
@@ -1517,16 +1496,14 @@ PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
                         TaskTypeRule.avoid("hello"),
                         TaskTypeRule.colocateWith("world")))
         .build();
-```
+``` divided
 
 In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. [A practical example is also available in the HDFS framework](https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69).
 
-<a name="custom-plans-java"></a>
 ## Custom Plans (Java)
 
-The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate [Java plan interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java) for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by [s](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java). Default implementations of all interfaces are provided. [DefaultPlan](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java), [DefaultPhase](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java), and [DefaultStep](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultStep.java) will be of interest to advanced service authors.
+The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate [Java plan interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java) for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by [s](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java). Default implementations of all interfaces are provided. [DefaultPlan](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java), [DefaultPhase](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java), and [DeploymentStep](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DeploymentStep.java) will be of interest to advanced service authors.
 
-<a name="internals"></a>
 ### Internals
 
 Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
@@ -1535,11 +1512,11 @@ Understanding plan execution can help you take advantage of the full capabilitie
 
 There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
 
-**Plan managers** determine what steps in a plan should be executed.
+**Plan Managers** determine what steps in a plan should be executed.
 
-A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.
+A **Plan Coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.
 
-The **plan scheduler** attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.
+The **Plan Scheduler** attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.
 
 The state transitions of steps determine the overall progress of plans as they are the leaf elements of the Plan → Phase → Step hierarchy.
 

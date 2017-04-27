@@ -4,13 +4,19 @@ menu_order: 1
 redirect_from: "/ops-guide"
 ---
 
-<!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
-* TOC GOES HERE AUTOMATICALLY
+<!-- Generate TOC. Both of the following lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
+* LOOKING FOR THE OPERATIONS GUIDE? [GO HERE](https://mesosphere.github.io/dcos-commons/operations-guide.html). (THIS LINE IS A STUB FOR RENDERING THE TOC AUTOMATICALLY)
 {:toc}
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This operations guide describes how to manage stateful DC/OS services which have been based on the DC/OS SDK. For information about building DC/OS SDK services, look at the [Developer Guide](developer-guide.html).
+
+This guide is structured into three major sections:
+- Background information about how the various parts of the system work together, so that you can better model their interactions while managing a DC/OS cluster.
+- Listing of the available tools and how to use them, so that you can more easily and thoroughly examine and diagnose running services.
+- Applying the above background to performing common operations in the cluster, and how to monitor the progress of those operations using the above tools.
+- Troubleshooting specific problems which may be encountered in the field, and how to identify those problems using the above tools.
 
 # A Brief Overview of How Things Work
 
@@ -289,7 +295,7 @@ If we click the `Sandbox` link for one of these tasks, we will be presented with
 
 [<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
 
-If the task is based on a Docker image, this listing will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running Commands](#running-commands).
+If the task is based on a Docker image, this listing will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running Commands](#running-commands-within-containers).
 
 In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of `confluent-kafka` and they're each running a `broker-0`. As the cluster grows this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click "Frameworks" on the upper left to see a list of all the installed frameworks (mapping to our services):
 
@@ -309,7 +315,7 @@ Per above, Scheduler logs can be found either via the main Mesos frontpage in sm
 
 [<img src="img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400"/>](img/ops-guide-scheduler-sandbox.png)
 
-For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of [Tasks not deploying / Resource starvation](#tasks-not-deploying---resource-starvation).
+For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of [Tasks not deploying / Resource starvation](#tasks-not-deploying--resource-starvation).
 
 ### Task logs
 
@@ -851,7 +857,7 @@ If you really wanted to uninstall the service, you just need to complete the nor
 
 ### Recover the Scheduler
 
-If you want to bring the Scheduler back, you can do a `dcos package install` using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it'll resume where it left off. To ensure that you don't forget the options your services are configured with, we recommend keeping a copy of your service's `options.json` in source control so that you can easily recover it later. See also [Initial configuration](#initial-configuration).
+If you want to bring the Scheduler back, you can do a `dcos package install` using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it'll resume where it left off. To ensure that you don't forget the options your services are configured with, we recommend keeping a copy of your service's `options.json` in source control so that you can easily recover it later. See also [Initial configuration](#initial-service-configuration).
 
 ## 'Framework has been removed'
 
@@ -971,4 +977,4 @@ Your tasks can be killed from an OOM if you didn't give them sufficient quota. T
 - Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pods status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
 - Check [Agent logs](#mesos-agent-logs) directly for mention of the Mesos Agent killing a task due to excess memory usage.
 
-After you've been able to confirm that the problem is indeed an OOM, you can solve it by either [updating the service configuration](#configuration-update) to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).
+After you've been able to confirm that the problem is indeed an OOM, you can solve it by either [updating the service configuration](#updating-service-configuration) to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).

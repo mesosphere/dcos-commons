@@ -6,7 +6,7 @@ stylesheet: yaml-reference.css
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](developer-guide.html#introduction-to-dcos-service-definitions). For an example of a YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml).
+This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](developer-guide.html#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](developer-guide.html).
 
 This documentation effectively reflects the Java object tree under [RawServiceSpec](api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](developer-guide.html).
 
@@ -92,7 +92,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `image`/`networks`/`rlimits`
 
-    These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. Only one of the two sections may be specified at a time. See above. (TODO(nickbp) remove duplicate path?)
+    These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
 
   * `strategy`
 
@@ -116,7 +116,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `goal`
 
-      The goal state of the task. Must be either `RUNNING` or `FINISHED` (TODO(nickbp): what about `NONE`?):
+      The goal state of the task. Must be either `RUNNING` or `FINISHED`:
       <div class="noyaml"><ul>
       <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
       <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
@@ -188,6 +188,8 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
         HTTP_ROOT: {{WEB_ROOT_DIR}}
       ```
+
+      See the [SDK Developer Guide](developer-guide.html) more information on each of these files.
 
       * `template`
 
@@ -275,7 +277,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `max-consecutive-failures`
 
-        The number of consecutive health check failures which are allowed before the task is restarted. TODO(nick): what if this isn't specified? relationship to timeout?
+        The number of consecutive health check failures which are allowed before the task is restarted. An unset value is treated as equivalent to no retries.
 
       * `delay`
 
@@ -331,15 +333,17 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `discovery`
 
-      This may be used to define custom discovery information for the task. TODO(nickbp): This is a guess and needs more information.
+      This may be used to define custom discovery information for the task, affecting how it's advertised in Mesos DNS.
 
       * `prefix`
 
-        The custom name to be used for the discovery prefix. By default this is the pod name. TODO(nickbp): Is this right?
+        A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pods with discovery names of `foo-0`, `foo-1`, and so on.
+        This value may be used to have pods whose hostname in Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
+        Note that to avoid name collisions, different pods are not allowed to share the same prefix value.
 
       * `visibility`
 
-        The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. TODO(nickbp): more info on each type. are they actually used anywhere?
+        The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
 
   * `user`
 
@@ -347,24 +351,24 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `plans`
 
-  TODO
+  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
 
   * `strategy`
 
-    TODO
+    How the phases within a given plan should be deployed, either `serial` or `parallel`. For example, a `serial` strategy will ensure Phase 1 is only stared after Phase 0 is complete, while a `parallel` strategy will start both Phase 0 and Phase 1 at the same time.
 
   * `phases`
 
-    TODO
+    The list of Phases which compose a given Plan. In the canonical case of a deployment of separate `index` and `data` nodes, a Phase would represent deploying all of one of those types of nodes.
 
     * `strategy`
 
-      TODO
+      How the steps within a given plan should be deployed. This may be any of `serial`, `parallel`, `serial-canary`, or `parallel-canary`. The `-canary` strategies will invoke the first step as a "trial", and then wait for the operator to manually confirm that the "trial" step was successful and invoke a `plan continue` call to continue the rollout. This may be useful in the case of deploying a configuration change to the cluster, where the first change is checked against a "canary" node before applying the rollout further.
 
     * `pod`
 
-      TODO
+      The name of the pod (listed above) against which this phase will be invoked.
 
     * `steps`
 
-      TODO
+      This section allows specifying non-default behavior for completing Steps. It may be used for e.g. defining custom init operations to be performed in the `deploy` plan, or for defining entirely custom plans for things like Backup and Restore. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on specifying custom steps.
