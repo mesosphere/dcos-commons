@@ -77,7 +77,7 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
     }
 
     @Override
-    public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
         /**
          * Always allow the default recovery manager to update its plan.  Otherwise, later
          * calls to {@link #getPlan()} will not contain the correct default recovery plan.
@@ -137,24 +137,29 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
     private Phase initNNRecoveryPhase(Plan inputPlan, int index) {
         Phase inputPhase = inputPlan.getChildren().get(0);
         int offset = index * 2;
+
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
+        PodInstanceRequirement bootstrapPpodInstanceRequirement = PodInstanceRequirement.create(
+                inputBootstrapStep.start().get().getPodInstance(),
+                inputBootstrapStep.start().get().getTasksToLaunch());
         Step bootstrapStep =
                 new DefaultRecoveryStep(
                         inputBootstrapStep.getName(),
                         Status.PENDING,
-                        inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch(),
+                        bootstrapPpodInstanceRequirement,
                         RecoveryType.PERMANENT,
                         launchConstrainer,
                         stateStore);
 
         Step inputNodeStep = inputPhase.getChildren().get(offset + 1);
+        PodInstanceRequirement nameNodePpodInstanceRequirement = PodInstanceRequirement.create(
+                inputNodeStep.start().get().getPodInstance(),
+                inputNodeStep.start().get().getTasksToLaunch());
         Step nodeStep =
                 new DefaultRecoveryStep(
                         inputNodeStep.getName(),
                         Status.PENDING,
-                        inputNodeStep.start().get().getPodInstance(),
-                        inputNodeStep.start().get().getTasksToLaunch(),
+                        nameNodePpodInstanceRequirement,
                         RecoveryType.TRANSIENT,
                         launchConstrainer,
                         stateStore);

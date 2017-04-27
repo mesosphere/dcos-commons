@@ -6,7 +6,6 @@ import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -27,17 +26,11 @@ public class DefaultRecoveryStep extends DeploymentStep {
     public DefaultRecoveryStep(
             String name,
             Status status,
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch,
+            PodInstanceRequirement podInstanceRequirement,
             RecoveryType recoveryType,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
-        super(name,
-                status,
-                recoveryType == RecoveryType.PERMANENT ?
-                        PodInstanceRequirement.createPermanentReplacement(podInstance, tasksToLaunch) :
-                        PodInstanceRequirement.create(podInstance, tasksToLaunch),
-                Collections.emptyList());
+        super(name, status, podInstanceRequirement, Collections.emptyList());
         this.recoveryType = recoveryType;
         this.launchConstrainer = launchConstrainer;
         this.stateStore = stateStore;

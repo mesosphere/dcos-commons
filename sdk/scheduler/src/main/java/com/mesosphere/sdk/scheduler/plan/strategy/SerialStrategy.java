@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +17,7 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
     protected DependencyStrategyHelper<C> dependencyStrategyHelper;
 
     @Override
-    public Collection<C> getCandidates(Collection<C> elements, Collection<String> dirtyAssets) {
+    public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
         // Configure prerequisites before getting candidates:
         return getDependencyStrategyHelper(elements).getCandidates(isInterrupted(), dirtyAssets);
     }

@@ -41,7 +41,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         final Set<OfferID> dirtiedOffers = new HashSet<>();
 
         // Assets that are being actively worked on
-        final Set<String> dirtiedAssets = new HashSet<>();
+        final Set<PodInstanceRequirement> dirtiedAssets = new HashSet<>();
 
         // Offers that are available for scheduling (copy original list to allow modification below)
         final List<Offer> offers = new ArrayList<>(offersToProcess);
@@ -63,7 +63,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             }
 
             try {
-                Set<String> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
+                Set<PodInstanceRequirement> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
                 LOGGER.info("Processing offers for plan: '{}' with relevant dirtied assets: {}.",
                         planManager.getPlan().getName(), relevantDirtyAssets);
 
@@ -114,8 +114,10 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         return planManagers;
     }
 
-    private Set<String> getRelevantDirtyAssets(PlanManager planManager, Set<String> dirtiedAssets) {
-        Set<String> relevantDirtyAssets = new HashSet<>(dirtiedAssets);
+    private Set<PodInstanceRequirement> getRelevantDirtyAssets(
+            PlanManager planManager,
+            Set<PodInstanceRequirement> dirtiedAssets) {
+        Set<PodInstanceRequirement> relevantDirtyAssets = new HashSet<>(dirtiedAssets);
         relevantDirtyAssets.removeAll(planManager.getDirtyAssets());
         return relevantDirtyAssets;
     }

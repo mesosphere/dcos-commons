@@ -89,7 +89,7 @@ public interface Element extends Observable {
     /**
      * Indicates whether this Element is capable of being started.
      */
-    default boolean isEligible(Collection<String> dirtyAssets) {
+    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return !isComplete() && !hasErrors();
     }
 

@@ -74,7 +74,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     @Override
-    public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
         synchronized (planLock) {
             updatePlan(dirtyAssets);
             return getPlan().getCandidates(dirtyAssets).stream()
@@ -101,7 +101,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
-    protected void updatePlan(Collection<String> dirtyAssets) {
+    protected void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
         logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
 
         synchronized (planLock) {
@@ -134,7 +134,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DeployPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Step> createSteps(Collection<String> dirtyAssets) throws TaskException {
+    private List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
         Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap =
                 TaskUtils.getPodMap(
                         configStore,
@@ -168,11 +168,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toList())
                     .size();
 
-            if (dirtyAssets.contains(podInstance.getName())) {
-                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.",
-                        podInstance.getName());
-                continue;
-            }
 
             List<TaskSpec> expectedRunningTasks = podInstance.getPod().getTasks().stream()
                     .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
@@ -197,24 +192,27 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             // Pods are atomic, even when considering their status as having either permanently or transiently failed.
             // In order for a Pod to be considered permanently failed, all its constituent tasks must have permanently
             // failed.  Otherwise, we will continue to recover from task failures, in place.
+            PodInstanceRequirement podInstanceRequirement = null;
+            RecoveryType recoveryType = null;
             if (failedTasks.stream().allMatch(isPodPermanentlyFailed)) {
                 logger.info("Recovering permanently failed pod: '{}'", podInstance.getName());
-                recoverySteps.add(new DefaultRecoveryStep(
-                        TaskUtils.getStepName(podInstance, tasksToLaunch),
-                        Status.PENDING,
-                        podInstance,
-                        tasksToLaunch,
-                        RecoveryType.PERMANENT,
-                        launchConstrainer,
-                        stateStore));
+                recoveryType = RecoveryType.PERMANENT;
+                podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(podInstance, tasksToLaunch);
             } else if (failedTasks.stream().noneMatch(isPodPermanentlyFailed)) {
                 logger.info("Recovering transiently failed pod: '{}'", podInstance.getName());
+                recoveryType = RecoveryType.TRANSIENT;
+                podInstanceRequirement = PodInstanceRequirement.create(podInstance, tasksToLaunch);
+            }
+
+            if (PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets)) {
+                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.",
+                        podInstance.getName());
+            } else {
                 recoverySteps.add(new DefaultRecoveryStep(
                         TaskUtils.getStepName(podInstance, tasksToLaunch),
                         Status.PENDING,
-                        podInstance,
-                        tasksToLaunch,
-                        RecoveryType.TRANSIENT,
+                        podInstanceRequirement,
+                        recoveryType,
                         launchConstrainer,
                         stateStore));
             }
@@ -224,13 +222,15 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     @Override
-    public Set<String> getDirtyAssets() {
-        Set<String> dirtyAssets = new HashSet<>();
+    public Set<PodInstanceRequirement> getDirtyAssets() {
+        Set<PodInstanceRequirement> dirtyAssets = new HashSet<>();
         if (plan != null) {
             dirtyAssets.addAll(plan.getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
                     .filter(step -> step.isPrepared())
-                    .map(step -> step.getName())
+                    .map(step -> step.getPodInstanceRequirement())
+                    .filter(podInstanceRequirement -> podInstanceRequirement.isPresent())
+                    .map(podInstanceRequirement -> podInstanceRequirement.get())
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;

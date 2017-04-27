@@ -93,7 +93,7 @@ public class DefaultStepTest {
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));
 
-        Collection<String> dirtyAssets = Arrays.asList(step.getAsset().get());
+        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getAsset().get());
         Assert.assertFalse(step.isEligible(dirtyAssets));
     }
 }
