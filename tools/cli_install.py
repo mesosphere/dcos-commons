@@ -179,8 +179,8 @@ if __name__ == "__main__":
         maybe_install=True
         args=args[1:]
 
-    source = args[1]
-    target_dir = args[2]
+    source = args[0]
+    target_dir = args[1]
 
     # convenience for command line
     if not os.path.exists(target_dir):
