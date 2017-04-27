@@ -110,7 +110,7 @@ class MesosMasterModifier():
 
     def _modify_envvars(self, modifier_f):
         """Performs a transformation on the mesos master environment
-        variables.  Accepts a funciton which accepts the mesos environment
+        variables.  Accepts a function which accepts the mesos environment
         before the transformation, and returns the new environment.  The
         function should accept and return dicts of str:str
 
