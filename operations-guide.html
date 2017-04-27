@@ -184,7 +184,7 @@
 </ul>
 <h1>SDK Operations Guide</h1>
 <div id="content">
-<!-- Generate TOC. Both lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
+<!-- Generate TOC. Both of the following lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
 <ul id="markdown-toc">
   <li><a href="#a-brief-overview-of-how-things-work" id="markdown-toc-a-brief-overview-of-how-things-work">A Brief Overview of How Things Work</a>    <ul>
       <li><a href="#components" id="markdown-toc-components">Components</a></li>
@@ -253,6 +253,14 @@
 <!--  disable mustache templating in this file: retain templated examples as-is -->
 
 <p>This operations guide describes how to manage stateful DC/OS services which have been based on the DC/OS SDK. For information about building DC/OS SDK services, look at the <a href="developer-guide.html">Developer Guide</a>.</p>
+
+<p>This guide is structured into three major sections:</p>
+<ul>
+  <li>Background information about how the various parts of the system work together, so that you can better model their interactions while managing a DC/OS cluster.</li>
+  <li>Listing of the available tools and how to use them, so that you can more easily and thoroughly examine and diagnose running services.</li>
+  <li>Applying the above background to performing common operations in the cluster, and how to monitor the progress of those operations using the above tools.</li>
+  <li>Troubleshooting specific problems which may be encountered in the field, and how to identify those problems using the above tools.</li>
+</ul>
 
 <h1 id="a-brief-overview-of-how-things-work">A Brief Overview of How Things Work</h1>
 
@@ -639,7 +647,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
 
 <p><a href="img/ops-guide-task-sandbox.png"><img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
 
-<p>If the task is based on a Docker image, this listing will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands">Running Commands</a>.</p>
+<p>If the task is based on a Docker image, this listing will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands-within-containers">Running Commands</a>.</p>
 
 <p>In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of <code class="highlighter-rouge">confluent-kafka</code> and they’re each running a <code class="highlighter-rouge">broker-0</code>. As the cluster grows this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click “Frameworks” on the upper left to see a list of all the installed frameworks (mapping to our services):</p>
 
@@ -659,7 +667,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
 
 <p><a href="img/ops-guide-scheduler-sandbox.png"><img src="img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400" /></a></p>
 
-<p>For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of <a href="#tasks-not-deploying---resource-starvation">Tasks not deploying / Resource starvation</a>.</p>
+<p>For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of <a href="#tasks-not-deploying--resource-starvation">Tasks not deploying / Resource starvation</a>.</p>
 
 <h3 id="task-logs">Task logs</h3>
 
@@ -1207,7 +1215,7 @@ broker-container#
 
 <h3 id="recover-the-scheduler">Recover the Scheduler</h3>
 
-<p>If you want to bring the Scheduler back, you can do a <code class="highlighter-rouge">dcos package install</code> using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it’ll resume where it left off. To ensure that you don’t forget the options your services are configured with, we recommend keeping a copy of your service’s <code class="highlighter-rouge">options.json</code> in source control so that you can easily recover it later. See also <a href="#initial-configuration">Initial configuration</a>.</p>
+<p>If you want to bring the Scheduler back, you can do a <code class="highlighter-rouge">dcos package install</code> using the options that you had configured before. This will re-install a new Scheduler which should match the previous one (assuming you got your options right), and it’ll resume where it left off. To ensure that you don’t forget the options your services are configured with, we recommend keeping a copy of your service’s <code class="highlighter-rouge">options.json</code> in source control so that you can easily recover it later. See also <a href="#initial-service-configuration">Initial configuration</a>.</p>
 
 <h2 id="framework-has-been-removed">‘Framework has been removed’</h2>
 
@@ -1333,7 +1341,7 @@ broker-container#
   <li>Check <a href="#mesos-agent-logs">Agent logs</a> directly for mention of the Mesos Agent killing a task due to excess memory usage.</li>
 </ul>
 
-<p>After you’ve been able to confirm that the problem is indeed an OOM, you can solve it by either <a href="#configuration-update">updating the service configuration</a> to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).</p>
+<p>After you’ve been able to confirm that the problem is indeed an OOM, you can solve it by either <a href="#updating-service-configuration">updating the service configuration</a> to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).</p>
 
 </div>
 </div>

@@ -186,7 +186,7 @@
 <div id="content">
 <!--  disable mustache templating in this file: retain templated examples as-is -->
 
-<p>This reference document is a field-by-field listing of the YAML schema used for <a href="developer-guide.html#introduction-to-dcos-service-definitions">Service Specifications</a>. For an example of a YAML Service Spec, see the <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml">svc.yml for hello-world</a>.</p>
+<p>This reference document is a field-by-field listing of the YAML schema used for <a href="developer-guide.html#introduction-to-dcos-service-definitions">Service Specifications</a>. For an example of a real-world YAML Service Spec, see the <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml">svc.yml for hello-world</a>. For several smaller examples, see the <a href="developer-guide.html">SDK Developer Guide</a>.</p>
 
 <p>This documentation effectively reflects the Java object tree under <a href="api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html">RawServiceSpec</a>, which is what’s used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the <a href="developer-guide.html">SDK Developer Guide</a>.</p>
 
@@ -301,7 +301,7 @@
       <li>
         <p><code class="highlighter-rouge">image</code>/<code class="highlighter-rouge">networks</code>/<code class="highlighter-rouge">rlimits</code></p>
 
-        <p>These values are respectively equivalent to <code class="highlighter-rouge">image-name</code>, <code class="highlighter-rouge">networks</code>, and <code class="highlighter-rouge">rlimits</code> under <code class="highlighter-rouge">container</code>. Only one of the two sections may be specified at a time. See above. (TODO(nickbp) remove duplicate path?)</p>
+        <p>These values are respectively equivalent to <code class="highlighter-rouge">image-name</code>, <code class="highlighter-rouge">networks</code>, and <code class="highlighter-rouge">rlimits</code> under <code class="highlighter-rouge">container</code>. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">strategy</code></p>
@@ -331,7 +331,7 @@
           <li>
             <p><code class="highlighter-rouge">goal</code></p>
 
-            <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code> or <code class="highlighter-rouge">FINISHED</code> (TODO(nickbp): what about <code class="highlighter-rouge">NONE</code>?):</p>
+            <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code> or <code class="highlighter-rouge">FINISHED</code>:</p>
             <div class="noyaml"><ul>
 <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
 <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
@@ -406,6 +406,8 @@ root: {{ROOT_DIR}}
   HTTP_ROOT: {{WEB_ROOT_DIR}}
 </code></pre>
             </div>
+
+            <p>See the <a href="developer-guide.html">SDK Developer Guide</a> more information on each of these files.</p>
 
             <ul>
               <li>
@@ -521,7 +523,7 @@ root: {{ROOT_DIR}}
               <li>
                 <p><code class="highlighter-rouge">max-consecutive-failures</code></p>
 
-                <p>The number of consecutive health check failures which are allowed before the task is restarted. TODO(nick): what if this isn’t specified? relationship to timeout?</p>
+                <p>The number of consecutive health check failures which are allowed before the task is restarted. An unset value is treated as equivalent to no retries.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">delay</code></p>
@@ -598,18 +600,20 @@ root: {{ROOT_DIR}}
           <li>
             <p><code class="highlighter-rouge">discovery</code></p>
 
-            <p>This may be used to define custom discovery information for the task. TODO(nickbp): This is a guess and needs more information.</p>
+            <p>This may be used to define custom discovery information for the task, affecting how it’s advertised in Mesos DNS.</p>
 
             <ul>
               <li>
                 <p><code class="highlighter-rouge">prefix</code></p>
 
-                <p>The custom name to be used for the discovery prefix. By default this is the pod name. TODO(nickbp): Is this right?</p>
+                <p>A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named <code class="highlighter-rouge">foo</code> will by default have pods with discovery names of <code class="highlighter-rouge">foo-0</code>, <code class="highlighter-rouge">foo-1</code>, and so on.
+This value may be used to have pods whose hostname in Mesos DNS (default <code class="highlighter-rouge">&lt;podname&gt;-&lt;#&gt;-&lt;taskname&gt;.&lt;servicename&gt;.mesos</code>) is different from their task name.
+Note that to avoid name collisions, different pods are not allowed to share the same prefix value.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">visibility</code></p>
 
-                <p>The default visibility for the discovery information. May be <code class="highlighter-rouge">FRAMEWORK</code>, <code class="highlighter-rouge">CLUSTER</code>, or <code class="highlighter-rouge">EXTERNAL</code>. TODO(nickbp): more info on each type. are they actually used anywhere?</p>
+                <p>The default visibility for the discovery information. May be <code class="highlighter-rouge">FRAMEWORK</code>, <code class="highlighter-rouge">CLUSTER</code>, or <code class="highlighter-rouge">EXTERNAL</code>. If unset this defaults to <code class="highlighter-rouge">CLUSTER</code>. See <a href="http://mesos.apache.org/documentation/latest/app-framework-development-guide/">Mesos documentation</a> on service discovery for more information on these visibility values.</p>
               </li>
             </ul>
           </li>
@@ -625,34 +629,34 @@ root: {{ROOT_DIR}}
   <li>
     <p><code class="highlighter-rouge">plans</code></p>
 
-    <p>TODO</p>
+    <p>This section allows specifying custom deployment behavior, either by replacing the default <code class="highlighter-rouge">deploy</code> plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the <a href="developer-guide.html#plans">SDK Developer Guide</a> for some examples and additional information on customizing Plans.</p>
 
     <ul>
       <li>
         <p><code class="highlighter-rouge">strategy</code></p>
 
-        <p>TODO</p>
+        <p>How the phases within a given plan should be deployed, either <code class="highlighter-rouge">serial</code> or <code class="highlighter-rouge">parallel</code>. For example, a <code class="highlighter-rouge">serial</code> strategy will ensure Phase 1 is only stared after Phase 0 is complete, while a <code class="highlighter-rouge">parallel</code> strategy will start both Phase 0 and Phase 1 at the same time.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">phases</code></p>
 
-        <p>TODO</p>
+        <p>The list of Phases which compose a given Plan. In the canonical case of a deployment of separate <code class="highlighter-rouge">index</code> and <code class="highlighter-rouge">data</code> nodes, a Phase would represent deploying all of one of those types of nodes.</p>
 
         <ul>
           <li>
             <p><code class="highlighter-rouge">strategy</code></p>
 
-            <p>TODO</p>
+            <p>How the steps within a given plan should be deployed. This may be any of <code class="highlighter-rouge">serial</code>, <code class="highlighter-rouge">parallel</code>, <code class="highlighter-rouge">serial-canary</code>, or <code class="highlighter-rouge">parallel-canary</code>. The <code class="highlighter-rouge">-canary</code> strategies will invoke the first step as a “trial”, and then wait for the operator to manually confirm that the “trial” step was successful and invoke a <code class="highlighter-rouge">plan continue</code> call to continue the rollout. This may be useful in the case of deploying a configuration change to the cluster, where the first change is checked against a “canary” node before applying the rollout further.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">pod</code></p>
 
-            <p>TODO</p>
+            <p>The name of the pod (listed above) against which this phase will be invoked.</p>
           </li>
           <li>
             <p><code class="highlighter-rouge">steps</code></p>
 
-            <p>TODO</p>
+            <p>This section allows specifying non-default behavior for completing Steps. It may be used for e.g. defining custom init operations to be performed in the <code class="highlighter-rouge">deploy</code> plan, or for defining entirely custom plans for things like Backup and Restore. See the <a href="developer-guide.html#plans">SDK Developer Guide</a> for some examples and additional information on specifying custom steps.</p>
           </li>
         </ul>
       </li>
