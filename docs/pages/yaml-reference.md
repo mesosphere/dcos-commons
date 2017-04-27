@@ -106,6 +106,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     If you wish to use `configs` in your tasks, this needs to include a URI to download the `bootstrap` executable.
 
+  * `volume`/`volumes`
+
+    One or more persistent volumes to be mounted into the pod environment. These behave the same as volumes on a task or resource set, but are guaranteed to be shared between tasks in a pod. Although volumes defined on a task currently behave the same way, individual tasks will not be able to access volumes defined by another task in the future.
+
   * `tasks`
 
     This section lists the tasks which run within a given pod. All tasks share the same pod environment and resources. Resources may be more granularly allocated on a per-task basis in the future.

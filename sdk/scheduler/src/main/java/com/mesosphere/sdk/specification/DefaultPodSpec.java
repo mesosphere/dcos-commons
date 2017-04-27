@@ -48,6 +48,8 @@ public class DefaultPodSpec implements PodSpec {
     private final PlacementRule placementRule;
     @Valid
     private final Collection<URI> uris;
+    @Valid
+    private Collection<VolumeSpec> volumes;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -59,7 +61,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("rlimits") Collection<RLimit> rlimits,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
-            @JsonProperty("placement-rule") PlacementRule placementRule) {
+            @JsonProperty("placement-rule") PlacementRule placementRule,
+            @JsonProperty("volumes") Collection<VolumeSpec> volumes) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -69,12 +72,14 @@ public class DefaultPodSpec implements PodSpec {
         this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
+        this.volumes = (volumes != null) ? volumes : Collections.emptyList();
     }
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count,
              builder.image, builder.networks, builder.rlimits,
-             builder.uris, builder.tasks, builder.placementRule);
+             builder.uris, builder.tasks, builder.placementRule,
+             builder.volumes);
         ValidationUtils.validate(this);
     }
 
@@ -94,6 +99,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
+        builder.volumes = copy.getVolumes();
         return builder;
     }
 
@@ -143,6 +149,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<VolumeSpec> getVolumes() {
+        return volumes;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -168,6 +179,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
+        private Collection<VolumeSpec> volumes;
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -300,6 +312,18 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder placementRule(PlacementRule placementRule) {
             this.placementRule = placementRule;
+            return this;
+        }
+
+        /**
+         * Sets the {@code volumes} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param volumes the {@code volumes} to set
+         * @return a reference to this Builder
+         */
+        public Builder volumes(Collection<VolumeSpec> volumes) {
+            this.volumes = volumes;
             return this;
         }
 

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
  */
 public class ExecutorRequirement {
     private ExecutorInfo executorInfo;
+    private Collection<ResourceRequirement> resourceRequirements;
 
     /**
      * This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
@@ -24,27 +25,34 @@ public class ExecutorRequirement {
      * second case, if an ExecutorInfo with a valid name is presented a requirement indicating use of an already running
      * Executor is generated.
      * @param executorInfo is the ExecutorInfo indicate what requirement should be generated.
+     * @param resourceRequirements the requirements for resources attached to this executor
      * @return an ExecutorRequirement to be used to evaluate Offers by the OfferEvaluator
      * @throws InvalidRequirementException when a malformed ExecutorInfo is presented indicating an invalid
      * ExecutorRequirement.
      */
-    public static ExecutorRequirement create(ExecutorInfo executorInfo)
-        throws InvalidRequirementException {
+    public static ExecutorRequirement create(
+            ExecutorInfo executorInfo,
+            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
         if (executorInfo.getExecutorId().getValue().isEmpty()) {
-            return createExecutorRequirement(executorInfo);
+            return createExecutorRequirement(executorInfo, resourceRequirements);
         } else {
             return getExistingExecutorRequirement(executorInfo);
         }
     }
 
-    private static ExecutorRequirement createExecutorRequirement(ExecutorInfo executorInfo)
-            throws InvalidRequirementException{
-        return new ExecutorRequirement(executorInfo);
+    public static ExecutorRequirement create(ExecutorInfo executorInfo) throws InvalidRequirementException {
+        return create(executorInfo, null);
+    }
+
+    private static ExecutorRequirement createExecutorRequirement(
+            ExecutorInfo executorInfo,
+            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
+        return new ExecutorRequirement(executorInfo, resourceRequirements);
     }
 
     private static ExecutorRequirement getExistingExecutorRequirement(ExecutorInfo executorInfo)
         throws InvalidRequirementException {
-        ExecutorRequirement executorRequirement = new ExecutorRequirement(executorInfo);
+        ExecutorRequirement executorRequirement = new ExecutorRequirement(executorInfo, null);
 
         if (executorRequirement.desiresResources()) {
             throw new InvalidRequirementException("When using an existing Executor, no new resources may be required.");
@@ -53,10 +61,15 @@ public class ExecutorRequirement {
         }
     }
 
-    private ExecutorRequirement(ExecutorInfo executorInfo)
-            throws InvalidRequirementException {
+    private ExecutorRequirement(
+            ExecutorInfo executorInfo,
+            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
         validateExecutorInfo(executorInfo);
         this.executorInfo = executorInfo;
+        this.resourceRequirements = resourceRequirements != null ? resourceRequirements :
+                executorInfo.getResourcesList().stream()
+                        .map(r -> new ResourceRequirement(r))
+                        .collect(Collectors.toList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -64,9 +77,7 @@ public class ExecutorRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return executorInfo.getResourcesList().stream()
-                .map(r -> new ResourceRequirement(r))
-                .collect(Collectors.toList());
+        return resourceRequirements;
     }
 
     public Collection<String> getResourceIds() {
@@ -118,14 +129,18 @@ public class ExecutorRequirement {
             if (!executorName.equals(executorInfo.getName())) {
                 throw new InvalidRequirementException(String.format(
                         "When non-empty, ExecutorInfo.id must align with ExecutorInfo.name. Use "
-                        + "ExecutorUtils.toExecutorId(): %s", executorInfo));
+                        + "CommonIdUtils.toExecutorId(): %s", executorInfo));
             }
         }
     }
 
+    public boolean isRunningExecutor() {
+        return executorInfo.hasExecutorId() && !StringUtils.isEmpty(executorInfo.getExecutorId().getValue());
+    }
+
     public OfferEvaluationStage getEvaluationStage() {
         Protos.ExecutorID executorID = null;
-        if (getExecutorInfo().hasExecutorId() && !getExecutorInfo().getExecutorId().getValue().isEmpty()) {
+        if (isRunningExecutor()) {
             executorID = getExecutorInfo().getExecutorId();
         }
 

@@ -604,6 +604,85 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
+    public void testReserveExecutorVolume() throws Exception {
+        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getUnreservedMountVolume(2000),
+                ResourceTestUtils.getUnreservedCpu(1.0));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(4, recommendations.size());
+
+        // Validate just the operations pertaining to the executor
+        // Validate RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+
+        // Validate CREATE Operation
+        String resourceId = getFirstLabel(reserveResource).getValue();
+        Operation createOperation = recommendations.get(1).getOperation();
+        Resource createResource =
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
+
+        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertTrue(createResource.getDisk().hasVolume());
+    }
+
+    @Test
+    public void testUpdateExecutorVolumeSuccess() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);
+        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
+    public void testUpdateExecutorVolumeFailure() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(2500, resourceId);
+        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
+
+        Offer offer = OfferTestUtils.getOffer(offeredResources);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
     public void testReserveLaunchScalar() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
         Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
