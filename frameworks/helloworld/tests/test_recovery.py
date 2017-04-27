@@ -89,6 +89,7 @@ def test_pods_replace():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.shutdown_node
 def test_pods_replace_dead_agent():
     # Find a pod that is on a different agent than the scheduler.
     scheduler_ip = shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()
@@ -109,7 +110,7 @@ def test_pods_replace_dead_agent():
     # Initial task id
     task_ids = tasks.get_task_ids(PACKAGE_NAME, 'world-{}'.format(pod_id))
     stdout = cmd.run_cli('{} state property suppressed'.format(PACKAGE_NAME))
-    assert stdout == 'true' # make sure we're already suppressed.
+    assert stdout.rstrip('\n') == 'true' # make sure we're already suppressed.
 
     # Don't use `shutdown now` so that SSH command completes successfully.
     status, stdout = shakedown.run_command_on_agent(agent_to_kill, 'sudo shutdown -h +1')
@@ -120,7 +121,7 @@ def test_pods_replace_dead_agent():
     cmd.run_cli('{} replace pod world-{}'.format(PACKAGE_NAME, pod_id))
     time.sleep(5)
     stdout = cmd.run_cli('{} state property suppressed'.format(PACKAGE_NAME))
-    assert stdout == 'false' # make sure we've revived.
+    assert stdout.rstrip('\n') == 'false' # make sure we've revived.
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'node', task_ids)
 
