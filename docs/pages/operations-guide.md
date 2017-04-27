@@ -12,7 +12,7 @@ redirect_from: "/ops-guide"
 
 This operations guide describes how to manage stateful DC/OS services which have been based on the DC/OS SDK. For information about building DC/OS SDK services, look at the [Developer Guide](developer-guide.html).
 
-This guide is structured into three major sections:
+This guide is structured into four major sections:
 - Background information about how the various parts of the system work together, so that you can better model their interactions while managing a DC/OS cluster.
 - Listing of the available tools and how to use them, so that you can more easily and thoroughly examine and diagnose running services.
 - Applying the above background to performing common operations in the cluster, and how to monitor the progress of those operations using the above tools.
