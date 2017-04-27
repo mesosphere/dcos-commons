@@ -44,6 +44,11 @@ def create_venv(path, with_pip=True, symlinks=True):
     dirents1 =  os.listdir(bin_dir)
     logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
 
+    builder.setup_scripts(context)
+    bin_dir = os.path.join(path, 'bin')
+    dirents1 =  os.listdir(bin_dir)
+    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
+
     builder._setup_pip(context)
     dirents2 =  os.listdir(bin_dir)
     logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))

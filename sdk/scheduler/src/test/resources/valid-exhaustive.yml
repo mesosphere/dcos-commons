@@ -16,6 +16,11 @@ pods:
       RLIMIT_AS:
         soft: 5
         hard: 10
+    volumes:
+      shared:
+        path: "shared-container-path"
+        type: ROOT
+        size: 3000
     resource-sets:
       meta-data-resources:
         cpus: 0.1

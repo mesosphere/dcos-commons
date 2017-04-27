@@ -1,0 +1,68 @@
+name: "hello-world"
+pods:
+  hello:
+    count: 2
+    volume:
+      path: "hello-container-path"
+      type: ROOT
+      size: 1024
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: 1000
+      sidecar:
+        goal: FINISHED
+        cmd: "echo 'sidecar' >> hello-container-path/output"
+        cpus: 0.1
+        memory: 256
+  world:
+    count: 1
+    volumes:
+      world-volume:
+        path: "world-container-path"
+        type: ROOT
+        size: 1024
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> world-container-path/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: 1000
+      once:
+        goal: FINISHED
+        cmd: "echo $TASK_NAME >> world-container-path/output"
+        cpus: 0.1
+        memory: 256
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]
+      world-server-deploy:
+        strategy: parallel
+        pod: world
+        steps:
+          - default: [[server]]
+      world-once-deploy:
+        strategy: parallel
+        pod: world
+        steps:
+          - default: [[once]]
+  sidecar:
+    strategy: serial
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[sidecar]]

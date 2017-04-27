@@ -23,6 +23,8 @@ public class RawPod implements RawContainerInfoProvider {
     private final Collection<String> uris;
     private final WriteOnceLinkedHashMap<String, RawTask> tasks;
     private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
+    private final RawVolume volume;
+    private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -35,7 +37,9 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("strategy") String strategy,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-            @JsonProperty("user") String user) {
+            @JsonProperty("user") String user,
+            @JsonProperty("volume") RawVolume volume,
+            @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes) {
         this.placement = placement;
         this.count = count;
         this.container = container;
@@ -47,6 +51,8 @@ public class RawPod implements RawContainerInfoProvider {
         this.uris = uris;
         this.tasks = tasks;
         this.resourceSets = resourceSets;
+        this.volume = volume;
+        this.volumes = volumes == null ? new WriteOnceLinkedHashMap<>() : volumes;
     }
 
     public String getPlacement() {
@@ -91,5 +97,13 @@ public class RawPod implements RawContainerInfoProvider {
 
     public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
         return resourceSets;
+    }
+
+    public RawVolume getVolume() {
+        return volume;
+    }
+
+    public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
+        return volumes;
     }
 }

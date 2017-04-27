@@ -3,7 +3,7 @@
 set -e
 
 CLEANUP_PATH=`pwd`
-VERSION="0.12.0"
+VERSION="0.15.0"
 
 cleanup() {
     debug "Cleaning up"
