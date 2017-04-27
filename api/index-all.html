@@ -768,10 +768,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html#create-java.lang.String-">create(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegexMatcher</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-">create(ExecutorInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-java.util.Collection-">create(ExecutorInfo, Collection&lt;ResourceRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></dt>
 <dd>
 <div class="block">This method generates one of two possible Executor requirements.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-">create(ExecutorInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRequirement.html#create-java.lang.String-int-java.util.Collection-java.util.Optional-java.util.Optional-">create(String, int, Collection&lt;TaskInfo&gt;, Optional&lt;ExecutorInfo&gt;, Optional&lt;PlacementRule&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>.</div>
@@ -1158,7 +1160,7 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimit&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimit&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultPodSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -3380,13 +3382,21 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawDiscovery.html#getVisibility--">getVisibility()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawDiscovery.html" title="class in com.mesosphere.sdk.specification.yaml">RawDiscovery</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getVolume--">getVolume()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawResourceSet.html#getVolume--">getVolume()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawResourceSet.html" title="class in com.mesosphere.sdk.specification.yaml">RawResourceSet</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTask.html#getVolume--">getVolume()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTask.html" title="class in com.mesosphere.sdk.specification.yaml">RawTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getVolumes--">getVolumes()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#getVolumes--">getVolumes()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getVolumes--">getVolumes()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ResourceSet.html#getVolumes--">getVolumes()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getVolumes--">getVolumes()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawResourceSet.html#getVolumes--">getVolumes()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawResourceSet.html" title="class in com.mesosphere.sdk.specification.yaml">RawResourceSet</a></dt>
 <dd>&nbsp;</dd>
@@ -3791,6 +3801,8 @@
 <dd>
 <div class="block">Status is in one of the running states.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ExecutorRequirement.html#isRunningExecutor--">isRunningExecutor()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">isSamePodInstance(TaskInfo, PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
@@ -6529,6 +6541,11 @@ the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/VolumeRequirement.html#VolumeRequirement-Protos.Resource-">VolumeRequirement(Protos.Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/VolumeRequirement.html" title="class in com.mesosphere.sdk.offer">VolumeRequirement</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#volumes-java.util.Collection-">volumes(Collection&lt;VolumeSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
+<dd>
+<div class="block">Sets the <code>volumes</code> and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#volumes-java.util.Collection-">volumes(Collection&lt;VolumeSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>volumes</code> and returns a reference to this Builder so that the methods can be chained together.</div>

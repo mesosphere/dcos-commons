@@ -1317,6 +1317,25 @@ installed the
 
 <p>In this case, the resources are declared separately from the server task in a resource set named <code class="highlighter-rouge">hello-resources</code>. They are referenced by a <code class="highlighter-rouge">resource-set</code> element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.</p>
 
+<p>Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on <a href="https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md">Mesos Task Groups</a>. Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">volumes</span><span class="pi">:</span>
+      <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">shared-container-path"</span>
+      <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+      <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">shared-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+</code></pre>
+</div>
+
 <p><strong>Important:</strong> At any given point in time, only a single process may be consuming a given set of resources. <strong>Resources may never be shared simultaneously by multiple tasks</strong>.  Any attempt to launch a task consuming an already consumed resource-set will result in the killing of the task which is currently running and the launch of the new task.</p>
 
 <p>This alternative formulation of tasks is useful when several tasks should be sequenced in the same container and have a cumulative effect on data in a volume. For example, if you want to initialize something before running the long running server task, you could write the following:</p>

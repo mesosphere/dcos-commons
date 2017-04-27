@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -131,35 +131,44 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-">create</a></span>(ExecutorInfo&nbsp;executorInfo)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-">create</a></span>(ExecutorInfo&nbsp;executorInfo)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#create-ExecutorInfo-java.util.Collection-">create</a></span>(ExecutorInfo&nbsp;executorInfo,
+      java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&gt;&nbsp;resourceRequirements)</code>
 <div class="block">This method generates one of two possible Executor requirements.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#desiresResources--">desiresResources</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#getEvaluationStage--">getEvaluationStage</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>ExecutorInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#getExecutorInfo--">getExecutorInfo</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#getPersistenceIds--">getPersistenceIds</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#getResourceIds--">getResourceIds</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#getResourceRequirements--">getResourceRequirements</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#isRunningExecutor--">isRunningExecutor</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -185,13 +194,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="create-ExecutorInfo-">
+<a name="create-ExecutorInfo-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>create</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a>&nbsp;create(ExecutorInfo&nbsp;executorInfo)
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a>&nbsp;create(ExecutorInfo&nbsp;executorInfo,
+                                         java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&gt;&nbsp;resourceRequirements)
                                   throws <a href="../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
 <div class="block">This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
  presented in the ExecutorInfo an ExecutorRequirement representing a need for a new Executor is returned.  In the
@@ -200,11 +210,26 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>executorInfo</code> - is the ExecutorInfo indicate what requirement should be generated.</dd>
+<dd><code>resourceRequirements</code> - the requirements for resources attached to this executor</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an ExecutorRequirement to be used to evaluate Offers by the OfferEvaluator</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></code> - when a malformed ExecutorInfo is presented indicating an invalid
  ExecutorRequirement.</dd>
+</dl>
+</li>
+</ul>
+<a name="create-ExecutorInfo-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>create</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a>&nbsp;create(ExecutorInfo&nbsp;executorInfo)
+                                  throws <a href="../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -251,6 +276,15 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>desiresResources</h4>
 <pre>public&nbsp;boolean&nbsp;desiresResources()</pre>
+</li>
+</ul>
+<a name="isRunningExecutor--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isRunningExecutor</h4>
+<pre>public&nbsp;boolean&nbsp;isRunningExecutor()</pre>
 </li>
 </ul>
 <a name="getEvaluationStage--">

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":9,"i12":9};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9,"i13":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -154,7 +154,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-">DefaultPodSpec</a></span>(java.lang.String&nbsp;type,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-">DefaultPodSpec</a></span>(java.lang.String&nbsp;type,
               java.lang.String&nbsp;user,
               java.lang.Integer&nbsp;count,
               java.lang.String&nbsp;image,
@@ -162,7 +162,8 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util">RLimit</a>&gt;&nbsp;rlimits,
               java.util.Collection&lt;java.net.URI&gt;&nbsp;uris,
               java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;&nbsp;tasks,
-              <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;placementRule)</code>&nbsp;</td>
+              <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;placementRule,
+              java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;volumes)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -220,14 +221,18 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getUser--">getUser</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getVolumes--">getVolumes</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#newBuilder-com.mesosphere.sdk.specification.PodSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#newBuilder-java.lang.String-">newBuilder</a></span>(java.lang.String&nbsp;executorUri)</code>&nbsp;</td>
 </tr>
@@ -260,7 +265,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-">
+<a name="DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -274,7 +279,8 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
                       java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util">RLimit</a>&gt;&nbsp;rlimits,
                       java.util.Collection&lt;java.net.URI&gt;&nbsp;uris,
                       java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;&nbsp;tasks,
-                      <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;placementRule)</pre>
+                      <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;placementRule,
+                      java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;volumes)</pre>
 </li>
 </ul>
 </li>
@@ -417,6 +423,19 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html#getPlacementRule--">getPlacementRule</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getVolumes--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getVolumes</h4>
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;getVolumes()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html#getVolumes--">getVolumes</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></dd>
 </dl>
 </li>
 </ul>
