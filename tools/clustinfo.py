@@ -111,9 +111,7 @@ def fetch_diagnostics(tgt_dir):
         logger.info("Spawned diagnostics on cluster: %s", cluster.url)
 
     for cluster in _clusters:
-        while True:
-            if cluster.diagnostics_complete():
-                break
+        while cluster.diagnostics_complete():
             logger.info("Waiting for diagnostics on cluster %s", cluster.url)
             time.sleep(30)
         logger.info("Diagnostics complete on cluster: %s, downloading...", cluster.url)
@@ -190,7 +188,6 @@ class ClusterInfo(object):
         self._dcoscli_config_set('core.timeout', '10')
 
         self._dcoscli_config_set('core.dcos_acs_token', self.auth_token)
-
 
     def start_diagnostics(self):
         args = ["node", "diagnostics", "create", "all"]
