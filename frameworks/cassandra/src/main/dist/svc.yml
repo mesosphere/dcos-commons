@@ -123,7 +123,7 @@ pods:
       restore-snapshot:
         goal: FINISHED
         cmd: >
-                for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*") ; do
+                for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -d {{TASKCFG_ALL_LOCAL_SEEDS}} "$t" ;
                     done
