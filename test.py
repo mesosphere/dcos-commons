@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+import os
+import sys
 
 import argparse
 import logging
-import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import time
 
@@ -20,7 +20,6 @@ import cli_install
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
-import junit_write
 
 
 work_dir = None
@@ -577,15 +576,16 @@ def run_test(framework, cluster, repo_root):
         logger.info(msg, runtests_script, framework.name)
         raise CommandFailure(cmd_args)
 
-
 def report_failed_actions():
-    """Do useful things with the recorded successful and failed actions"""
+    "Do useful things with the recorded successful and failed actions"
     # These are our data sources
     cluster_launch_attempts = clustinfo.get_launch_attempts()
-    frameworks = fwinfo.get_frameworks()
-    junit_write.emit_junit_xml(cluster_launch_attempts, frameworks)
-    # maybe log them to the terminal as well?
-
+    _ = cluster_launch_attempts
+    for framework in fwinfo.get_frameworks():
+        actions = framework.actions
+        _ = actions
+    # We actually have no functionality to report them right now.
+    pass
 
 def main():
     run_attrs = parse_args()
@@ -594,11 +594,6 @@ def main():
     except TestRequirementsNotMet:
         logger.error("Aborting run.")
         return False
-
-    lib_dir = os.path.join(get_work_dir(), 'lib', 'python')
-    if not junit_write.setup(lib_dir):
-        logging.error("Failed to load junit_xml; no templated success/fail"
-                      "actions will be reported to jenkins.")
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
