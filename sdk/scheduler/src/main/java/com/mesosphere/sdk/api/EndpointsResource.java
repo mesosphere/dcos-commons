@@ -21,7 +21,6 @@ import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
