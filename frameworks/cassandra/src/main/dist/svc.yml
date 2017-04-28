@@ -42,7 +42,7 @@ pods:
         goal: RUNNING
         resource-set: server-resources
         cmd: >
-                ./bootstrap ;
+                ./bootstrap
 
                 ARGS='-f'
 
