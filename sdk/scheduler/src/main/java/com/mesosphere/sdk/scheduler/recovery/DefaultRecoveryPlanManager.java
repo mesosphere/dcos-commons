@@ -135,13 +135,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
-        Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap =
-                TaskUtils.getPodMap(
-                        configStore,
-                        StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore));
+        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
+        List<PodInstanceRequirement> failedPods = TaskUtils.getPodMap(configStore, failedTasks);
 
-        List<String> podNames = failedPodsMap.keySet().stream()
-                .map(podInstance -> podInstance.getName())
+        List<String> podNames = failedPods.stream()
+                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
                 .collect(Collectors.toList());
         logger.info("Found pods needing recovery: " + podNames);
 
@@ -149,44 +147,14 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
 
         List<Step> recoverySteps = new ArrayList<>();
-        for (Map.Entry<PodInstance, List<Protos.TaskInfo>> failedPod : failedPodsMap.entrySet()) {
+        for (PodInstanceRequirement failedPod : failedPods) {
+            logger.info("Attempting to recover : {}", failedPod);
 
-            PodInstance podInstance = failedPod.getKey();
-            List<Protos.TaskInfo> failedTasks = failedPod.getValue();
-
-            Integer failedRunningTaskCount = failedTasks.stream()
-                    .map(taskInfo -> {
-                        try {
-                            return TaskUtils.getGoalState(podInstance, taskInfo.getName());
-                        } catch (TaskException e) {
-                            logger.error("Failed to determine goal state of: {}", taskInfo.getName());
-                            return null;
-                        }
-                    })
-                    .filter(goalState -> goalState != null)
-                    .filter(goalState -> goalState.equals(GoalState.RUNNING))
-                    .collect(Collectors.toList())
-                    .size();
-
-
-            List<TaskSpec> expectedRunningTasks = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
-                    .collect(Collectors.toList());
-
-            Integer expectedRunningCount = expectedRunningTasks.size();
-
-            logger.info(
-                    "Attempting to recover pod tasks: {}",
-                    failedTasks.stream().map(taskInfo -> taskInfo.getName()).collect(Collectors.toList()));
-
-            if (!Objects.equals(failedRunningTaskCount, expectedRunningCount)) {
-                logger.warn("Pod: '{}' is not recoverable. Failed task count: {}, Expected task count: {}",
-                        podInstance.getName(), failedRunningTaskCount, expectedRunningCount);
-                continue;
-            }
-
-            Collection<String> tasksToLaunch = expectedRunningTasks.stream()
-                    .map(taskSpec -> taskSpec.getName())
+            List<Protos.TaskInfo> failedPodTaskInfos = failedPod.getTasksToLaunch().stream()
+                    .map(taskSpecName -> TaskSpec.getInstanceName(failedPod.getPodInstance(), taskSpecName))
+                    .map(taskInfoName -> stateStore.fetchTask(taskInfoName))
+                    .filter(taskInfo -> taskInfo.isPresent())
+                    .map(taskInfo -> taskInfo.get())
                     .collect(Collectors.toList());
 
             // Pods are atomic, even when considering their status as having either permanently or transiently failed.
@@ -194,22 +162,24 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             // failed.  Otherwise, we will continue to recover from task failures, in place.
             PodInstanceRequirement podInstanceRequirement = null;
             RecoveryType recoveryType = null;
-            if (failedTasks.stream().allMatch(isPodPermanentlyFailed)) {
-                logger.info("Recovering permanently failed pod: '{}'", podInstance.getName());
+            if (failedPodTaskInfos.stream().allMatch(isPodPermanentlyFailed)) {
+                logger.info("Recovering permanently failed pod: '{}'", failedPod);
                 recoveryType = RecoveryType.PERMANENT;
-                podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(podInstance, tasksToLaunch);
-            } else if (failedTasks.stream().noneMatch(isPodPermanentlyFailed)) {
-                logger.info("Recovering transiently failed pod: '{}'", podInstance.getName());
+                podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(failedPod);
+            } else if (failedPodTaskInfos.stream().noneMatch(isPodPermanentlyFailed)) {
+                logger.info("Recovering transiently failed pod: '{}'", failedPod);
                 recoveryType = RecoveryType.TRANSIENT;
-                podInstanceRequirement = PodInstanceRequirement.create(podInstance, tasksToLaunch);
+                podInstanceRequirement = PodInstanceRequirement.createTransientRecovery(failedPod);
+            } else {
+                logger.error("Tasks have failed in a mixture of transient and permanent states and cannot be processed");
+                continue;
             }
 
             if (PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets)) {
-                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.",
-                        podInstance.getName());
+                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.", failedPod);
             } else {
                 recoverySteps.add(new DefaultRecoveryStep(
-                        TaskUtils.getStepName(podInstance, tasksToLaunch),
+                        failedPod.toString(),
                         Status.PENDING,
                         podInstanceRequirement,
                         recoveryType,

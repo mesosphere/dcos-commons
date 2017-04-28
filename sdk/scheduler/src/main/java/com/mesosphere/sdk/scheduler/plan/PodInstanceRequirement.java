@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 
 import java.util.Collection;
@@ -38,10 +39,30 @@ public class PodInstanceRequirement {
     /**
      * Creates a new instance which is marked as a permanent replacement.
      */
+    public static PodInstanceRequirement createTransientRecovery(PodInstanceRequirement podInstanceRequirement) {
+        return create(podInstanceRequirement.getPodInstance(), podInstanceRequirement.getTasksToLaunch());
+    }
+
+    /**
+     * Creates a new instance which is marked as a permanent replacement.
+     */
     public static PodInstanceRequirement createPermanentReplacement(
             PodInstance podInstance,
             Collection<String> tasksToLaunch) {
-        return new PodInstanceRequirement(podInstance, tasksToLaunch, null, true);
+        return new PodInstanceRequirement(
+                podInstance,
+                tasksToLaunch,
+                null,
+                true);
+    }
+
+    /**
+     * Creates a new instance which is marked as a permanent replacement.
+     */
+    public static PodInstanceRequirement createPermanentReplacement(PodInstanceRequirement podInstanceRequirement) {
+        return createPermanentReplacement(
+                podInstanceRequirement.getPodInstance(),
+                podInstanceRequirement.getTasksToLaunch());
     }
 
     /**
@@ -94,5 +115,10 @@ public class PodInstanceRequirement {
      */
     public boolean isPermanentReplacement() {
         return isPermanentReplacement;
+    }
+
+    @Override
+    public String toString() {
+        return TaskUtils.getStepName(getPodInstance(), getTasksToLaunch());
     }
 }

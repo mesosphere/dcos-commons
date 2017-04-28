@@ -33,17 +33,23 @@ public class PlanUtils {
 
     public static boolean assetConflicts(PodInstanceRequirement asset, Collection<PodInstanceRequirement> dirtyAssets) {
         for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
-            PodInstance dirytPodInstance = dirtyAsset.getPodInstance();
+            PodInstance dirtyPodInstance = dirtyAsset.getPodInstance();
             Set<String> dirtyTaskNames = new HashSet<>(dirtyAsset.getTasksToLaunch());
 
             PodInstance assetPodInstance = asset.getPodInstance();
             Set<String> assetTaskNames = new HashSet<>(asset.getTasksToLaunch());
 
-            if (dirytPodInstance.equals(assetPodInstance)) {
-                return assetTaskNames.removeAll(dirtyTaskNames);
+            if (podInstancesConflict(dirtyPodInstance, assetPodInstance) && assetTaskNames.removeAll(dirtyTaskNames)) {
+                return true;
             }
         }
 
         return false;
+    }
+
+    private static boolean podInstancesConflict(PodInstance podInstance0, PodInstance podInstance1) {
+        boolean sameType = podInstance0.getPod().getType().equals(podInstance1.getPod().getType());
+        boolean sameIndex = podInstance0.getIndex() == podInstance1.getIndex();
+        return sameType && sameIndex;
     }
 }

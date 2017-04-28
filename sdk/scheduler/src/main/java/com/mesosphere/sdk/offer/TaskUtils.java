@@ -4,6 +4,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
@@ -298,27 +299,49 @@ public class TaskUtils {
         return Optional.empty();
     }
 
-    public static Map<PodInstance, List<TaskInfo>> getPodMap(
+    public static List<PodInstanceRequirement> getPodMap(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> taskInfos)
             throws TaskException {
-        Map<PodInstance, List<TaskInfo>> podMap = new HashMap<>();
 
+        Map<PodInstance, List<String>> podMap = new HashMap<>();
         for (TaskInfo taskInfo : taskInfos) {
             PodInstance podInstance = getPodInstance(configStore, taskInfo);
-            List<TaskInfo> taskList = podMap.get(podInstance);
+            Map<String, String> nameMap = getTaskNameMap(podInstance);
+
+            List<String> taskList = podMap.get(podInstance);
 
             if (taskList == null) {
-                taskList = Arrays.asList(taskInfo);
+                taskList = Arrays.asList(nameMap.get(taskInfo.getName()));
             } else {
                 taskList = new ArrayList<>(taskList);
-                taskList.add(taskInfo);
+                taskList.add(nameMap.get(taskInfo.getName()));
             }
 
             podMap.put(podInstance, taskList);
         }
 
-        return podMap;
+        return podMap.entrySet().stream()
+                .map(podInstanceListEntry -> PodInstanceRequirement.create(
+                        podInstanceListEntry.getKey(),
+                        podInstanceListEntry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Provides a map of fully extended names to original TaskSpec name.
+     *
+     * e.g.
+     * pod-0-taskA --> taskA
+     * pod-0-taskB --> taskB
+     */
+    private static Map<String, String> getTaskNameMap(PodInstance podInstance) {
+        Map<String, String> nameMap = new HashMap<>();
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            nameMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), taskSpec.getName());
+        }
+
+        return nameMap;
     }
 
     public static PodInstance getPodInstance(
