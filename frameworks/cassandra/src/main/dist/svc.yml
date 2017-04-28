@@ -43,7 +43,6 @@ pods:
         resource-set: server-resources
         cmd: >
                 ./bootstrap ;
-                pip install awscli
 
                 ARGS='-f'
 
