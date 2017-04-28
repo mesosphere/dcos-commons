@@ -82,7 +82,7 @@ fi
 # launch_ccm_cluster.py may have fetched already
 if [ ! -f $TESTRUN_TEMPDIR/dcos ]; then
     echo "Fetching dcos cli"
-    python3 ${REPO_ROOT_DIR}/tools/cli_install.py $CLUSTER_URL $TESTRUN_TEMPDIR
+    ${REPO_ROOT_DIR}/tools/cli_install.py $CLUSTER_URL $TESTRUN_TEMPDIR
 fi
 
 # A specific framework can be specified to run its tests
