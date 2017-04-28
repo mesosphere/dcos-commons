@@ -595,12 +595,6 @@ def main():
         logger.error("Aborting run.")
         return False
 
-    if run_attrs.keep_workdir:
-        set_work_dir(location='repo_root')
-        os.environ['KEEP_SANDBOX'] = 'yes'
-    else:
-        set_work_dir(location='tmp')
-
     lib_dir = os.path.join(get_work_dir(), 'lib', 'python')
     if not junit_write.setup(lib_dir):
         logging.error("Failed to load junit_xml; no templated success/fail"
@@ -616,6 +610,11 @@ def main():
             build_and_upload(run_attrs)
 
         if run_attrs.run_tests:
+            if run_attrs.keep_workdir:
+                set_work_dir(location='repo_root')
+                os.environ['KEEP_SANDBOX'] = 'yes'
+            else:
+                set_work_dir(location='tmp')
 
             # if we're only testing, use stub_universes from before (they're
             # normally calculated during the build)
