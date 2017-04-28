@@ -44,11 +44,6 @@ def create_venv(path, with_pip=True, symlinks=True):
     dirents1 =  os.listdir(bin_dir)
     logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
 
-    builder.setup_scripts(context)
-    bin_dir = os.path.join(path, 'bin')
-    dirents1 =  os.listdir(bin_dir)
-    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
-
     builder._setup_pip(context)
     dirents2 =  os.listdir(bin_dir)
     logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))
@@ -88,13 +83,6 @@ def activate_venv(path):
             new_sys_path.append(item)
             sys.path.remove(item)
     sys.path[:0] = new_sys_path
-
-
-def pip_install_module(path, modulename):
-    """Populate a venv with specific module"""
-    pip_bin = os.path.join(path, 'bin', 'pip')
-    run_cmd(path, [pip_bin, 'install', modulename])
-
 
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"

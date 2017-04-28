@@ -54,10 +54,8 @@ class ClusterInitializer(object):
     def _install_cli(self):
         # create_service_account relies on dcos cli, which we may not have
         # at this point.
-        self.cli_tempdir = os.environ.get('TESTRUN_TEMPDIR')
-        if not self.cli_tempdir:
-            self.cli_tempdir = tempfile.mkdtemp(prefix="conf_cluster")
-        cli_install.ensure_cli_downloaded(self.dcos_url, self.cli_tempdir)
+        self.cli_tempdir = tempfile.mkdtemp(prefix="conf_cluster")
+        cli_install.download_cli(self.dcos_url, self.cli_tempdir)
 
     def _run_shellscript_with_cli(self, script, args):
         custom_env = os.environ.copy()
@@ -66,8 +64,7 @@ class ClusterInitializer(object):
         _run_script(script, args, env=custom_env)
 
     def __del__(self):
-        # clean up if we created it.
-        if self.cli_tempdir and not 'TESTRUN_TEMPDIR' in os.environ:
+        if self.cli_tempdir:
             shutil.rmtree(self.cli_tempdir)
 
     def create_service_account(self):
