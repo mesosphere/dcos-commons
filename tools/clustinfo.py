@@ -15,6 +15,7 @@ import subprocess
 import time
 
 import cli_install
+import dcos_login
 import launch_ccm_cluster
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ def _cluster_dir():
     return "cluster_{}".format(cluster_num)
 
 def start_cluster(temp_dir, launch_config=None, reporting_name=None):
+    """Launch a new cluster and retain it in the set of known running clusters"""
     if not reporting_name:
         reporting_name="only_cluster"
 
@@ -49,8 +51,11 @@ def get_launch_attempts():
     return _launch_recorder.get_list()
 
 
-def add_running_cluster(temp_dir, url, auth_token):
+def add_running_cluster(temp_dir, url):
+    """Add an already running cluster to the set of known running clusters"""
     config_dir = os.path.join(temp_dir, _cluster_dir())
+    cli_install.ensure_cli_downloaded(url, temp_dir)
+    auth_token = dcos_login.DCOSLogin(url).get_acs_token()
     cluster = ClusterInfo(url, auth_token, config_dir, external=True)
     _clusters.append(cluster)
     return cluster
@@ -111,12 +116,14 @@ def fetch_diagnostics(tgt_dir):
         logger.info("Spawned diagnostics on cluster: %s", cluster.url)
 
     for cluster in _clusters:
-        while cluster.diagnostics_complete():
+        while not cluster.diagnostics_complete():
             logger.info("Waiting for diagnostics on cluster %s", cluster.url)
             time.sleep(30)
         logger.info("Diagnostics complete on cluster: %s, downloading...", cluster.url)
         cluster.fetch_complete_diagnostics(tgt_dir)
         logger.info("Diagnostics stored in %s.", tgt_dir)
+        logger.info("Retreiving logs for all tasks on cluster: %s ...", cluster.url)
+        cluster.fetch_all_task_logs(tgt_dir)
 
 class ClusterInfo(object):
     def __init__(self, url, auth_token, config_dir, cluster_id=None, external=False):
@@ -153,16 +160,19 @@ class ClusterInfo(object):
 
     def dcoscli_run_yes(self, args):
         cmd = self._cmd_from_args(args)
+        logger.debug("running (with yes); %s", " ".join(cmd))
         pobj = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                 env=self.custom_env)
         pobj.communicate(input=b"yes\n", timeout=400)
 
-    def dcoscli_run_output(self, args):
+    def dcoscli_run_output(self, args, **kwargs):
         cmd = self._cmd_from_args(args)
-        return subprocess.check_output(cmd, env=self.custom_env)
+        logger.debug("running; %s", " ".join(cmd))
+        return subprocess.check_output(cmd, env=self.custom_env, **kwargs)
 
     def dcoscli_run(self, args):
         cmd = self._cmd_from_args(args)
+        logger.debug("running; %s", " ".join(cmd))
         subprocess.check_call(cmd, env=self.custom_env)
 
     def _cli_install(self, bindir):
@@ -222,6 +232,54 @@ class ClusterInfo(object):
         args = ['node', 'diagnostics', 'download', self.bundle_name,
                '--location', download_dir]
         self.dcoscli_run_yes(args)
+
+    def fetch_all_task_logs(self, tgt_dir):
+        download_dir = os.path.join(tgt_dir, 'task_logs')
+        os.makedirs(download_dir)
+        args = ['task', '--completed']
+        output = self.dcoscli_run_output(args)
+        lines = output.splitlines()
+        failures = []
+        for line in lines[1:]: # skip header
+            name, host, user, state, task_id = line.split()
+            for logtype in ('stdout', 'stderr'):
+                task_id_s = task_id.decode('utf-8')
+                filename = "%s.%s" % (task_id_s, logtype)
+
+                # we must NOT provide --completed for running tasks, but MUST
+                # provide it for completed tasks, and they can complete while
+                # we're about to ask.  So just try both.
+
+                args_for_running_task = ['task', 'log',
+                            '--lines=99999', # cli does not have a get all
+                            task_id_s, logtype]
+                args_for_completed_task = ['task', 'log',
+                            '--completed',   # cli requires to be told tasks are
+                                             # completed in order to get their logs (???)
+                            '--lines=99999', # cli does not have a get all
+                            task_id_s, logtype]
+                log_and_spew = None
+                try:
+                    log_and_spew = self.dcoscli_run_output(
+                            args_for_running_task,
+                            stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError:
+                    try:
+                        log_and_spew = self.dcoscli_run_output(
+                                args_for_completed_task,
+                                stderr=subprocess.STDOUT)
+                    except subprocess.CalledProcessError as e:
+                        failures.append((task_id_s, logtype))
+                        logger.debug("failed to fetch %s log for task %s, %s",
+                                logtype, task_id, e)
+                if log_and_spew:
+                    write_path = os.path.join(download_dir, filename)
+                    with open(write_path, "wb") as f:
+                        f.write(log_and_spew)
+
+        logger.info("Failed to collect the following log combinations: %s",
+            failures)
+
 
 class _LaunchRecorder(object):
     class Entry(object):
