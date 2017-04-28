@@ -46,7 +46,7 @@ They store the desired configuration of a service and all relevant information r
 
 # Pre-requisites
 
-1. dcos-commmons should be checked out locally on your machine.
+1. `dcos-commmons` should be checked out locally on your machine.
 
   ```bash
   $ git clone git@github.com:mesosphere/dcos-commons.git
@@ -55,7 +55,7 @@ They store the desired configuration of a service and all relevant information r
 
 1. Access to a DC/OS 1.8 (or newer) cluster.
 
-1. The DC/OS CLI [installed](https://docs.mesosphere.com/1.9/cli/install/) and [configured](https://docs.mesosphere.com/1.9/cli/configure/) to point to your cluster.
+1. The DC/OS CLI [installed](https://docs.mesosphere.com/latest/cli/install/) and [configured](https://docs.mesosphere.com/latest/cli/configure/) to point to your cluster.
 
 1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
 
@@ -99,7 +99,7 @@ They store the desired configuration of a service and all relevant information r
    $ dcos package install --yes myframework
    ```
 
-   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/1.9/gui/#services) to view the deployment.
+   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
 
 1. Uninstall your package.
 

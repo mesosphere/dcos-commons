@@ -4,7 +4,7 @@ Refer to the [top-level tutorial document](../../docs/pages/tutorial.md).
 
 The default example [svc.yml](src/main/dist/svc.yml) has two pods, with volumes and is used in the 'official' `hello-world` package.
 
-[Multiple example configuration files](src/main/dist/examples/) are also provided (change the name of the default YAML file at "universe/config.json"). In particular:
+[Multiple example configuration files](src/main/dist/examples/) are also provided (change the name of the default YAML file at ["universe/config.json"](universe/config.json)). In particular:
 
  - [simple.yml](src/main/dist/examples/simple.yml): Bare minimum example. Just one pod, with no extra features.
  - [plan.yml](src/main/dist/examples/plan.yml): Two pods, with healthcheck, volumes, ports, and with a plan structure.

@@ -81,7 +81,7 @@ pods:
           size: 64
 ```
 
-In above YAML file, we have:
+In the above YAML file, we have:
 * Defined a service with the name `helloworld`
 * Defined a pod specification for our `helloworld` pod using:
 
