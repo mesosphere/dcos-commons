@@ -118,7 +118,7 @@ class CITester(object):
             requirements_file = open(requirements_txt, 'w')
             requirements_file.write('''
 requests==2.10.0
-
+boto==2.46.1
 -e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
 ''')
             requirements_file.flush()
