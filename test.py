@@ -55,20 +55,21 @@ def parse_args(args=sys.argv):
             "In the case of no tests listed, ordered means alpha order.")
     parser.add_argument("--cluster-url", help="Use this already existing cluster, "
             "don't bring up new ones.")
-    parser.add_argument("--cluster-token", help="Auth access when using cluster-url.")
     parser.add_argument("--cluster-teardown", choices=('success-only', 'always', 'never'),
             default='success-only',
             help="On test completion, shut down any cluster(s) automatically created.  "
             'For "success-only", test failures will leave the cluster running.')
     parser.add_argument("--keep-workdir", action='store_true',
-            help="place the working directory in the source repo, and do not "
-            "delete on completion")
+            help="place the working directory in the source repo, do not "
+            "delete on completion, and download diagnostics to it on test "
+            "failure")
     parser.add_argument("test", nargs="*", help="Test or tests to run.  "
             "If no args provided, run all.")
     run_attrs = parser.parse_args()
-    if (run_attrs.cluster_url or run_attrs.cluster_token) and not (
-            run_attrs.cluster_url and run_attrs.cluster_token):
-        raise Exception("Currently cluster url and token must be used together.")
+    if (run_attrs.cluster_url and run_attrs.parallel):
+        if '--cluster-count' in args:
+            logger.info("Overriding cluster-count with 1 for the external cluster case")
+        run_attrs.cluster_count = 1
     return run_attrs
 
 
@@ -305,37 +306,17 @@ def build_and_upload_single(framework, run_attrs):
             framework.name, framework.stub_universe_url)
 
 
-def setup_clusters(run_attrs):
-    if not run_attrs.parallel:
-        count = 1
-    else:
-        count = run_attrs.cluster_count
-    if count == 1 and run_attrs.cluster_url and run_attrs.cluster_token:
-        clustinfo.add_running_cluster(run_attrs.cluster_url,
-                run_attrs.cluster_token)
-        cli_install.ensure_cli_downloaded(run_attrs.cluster_url,
-                                          get_work_dir())
-        return
-    elif count > 1 and (run_attrs.cluster_url):
-        sys.exit("Sorry, no support for multiple externally set up clusters yet.")
-    for i in range(count):
-        human_count = i+1
-        cluster = clustinfo.start_cluster(reporting_name="cluster number %s" % human_count)
-        # ensure_cli_downloaded only actually does anything the first time
-        cli_install.ensure_cli_downloaded(cluster.url, get_work_dir())
-
-
 def teardown_clusters():
     logger.info("Shutting down all clusters.")
     clustinfo.shutdown_clusters()
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
-    if run_attrs.cluster_url and run_attrs.cluster_token:
-        clustinfo.add_running_cluster(run_attrs.cluster_url,
-                                      run_attrs.cluster_token)
+    if run_attrs.cluster_url:
+        clustinfo.add_running_cluster(get_work_dir(),
+                                      run_attrs.cluster_url)
     else:
         start_config = launch_ccm_cluster.StartConfig(private_agents=6)
-        clustinfo.start_cluster(start_config)
+        clustinfo.start_cluster(get_work_dir(), start_config)
 
     cluster = clustinfo._clusters[0]
     cli_install.ensure_cli_downloaded(cluster.url, get_work_dir())
@@ -397,6 +378,10 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
     next_test = None
     all_ok = False # only one completion state out of the loop
     try:
+        # for user-provided cluster, prepopulate clusterinfo
+        if run_attrs.cluster_url:
+            clustinfo.add_running_cluster(get_work_dir(),
+                                          run_attrs.cluster_url)
         while True:
             # acquire the next test, if there is one
             if not next_test and test_list:
@@ -413,7 +398,8 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                                   human_count, run_attrs.cluster_count)
                     # TODO: retry cluster launches
                     start_config = launch_ccm_cluster.StartConfig(private_agents=6)
-                    avail_cluster = clustinfo.start_cluster(start_config,
+                    avail_cluster = clustinfo.start_cluster(get_work_dir(),
+                            start_config,
                             reporting_name="Cluster %s" % human_count)
                     cli_install.ensure_cli_downloaded(avail_cluster.url, get_work_dir())
                 elif not avail_cluster:
@@ -469,17 +455,22 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 framework.popen.terminate() # does nothing if already completed
     return all_ok
 
+
 def run_tests(run_attrs, repo_root):
     logger.info("cluster_teardown policy: %s", run_attrs.cluster_teardown)
     try: # all clusters are set up inside this try
         all_passed = False
         if run_attrs.parallel:
-            logger.debug("Running m ulticluster test run")
+            logger.debug("Running multicluster test run")
             all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
             all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
         if not all_passed:
             raise Exception("Some tests failed.")
+    except:
+        if run_attrs.keep_workdir:
+            clustinfo.fetch_diagnostics(get_work_dir())
+        raise
     finally:
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
