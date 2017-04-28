@@ -11,8 +11,7 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -29,6 +28,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -424,5 +424,82 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
+    }
+
+    @Test
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void testCreateStepsDirtyAssetConflict() throws Exception {
+        final List<Offer> offers = getOffers();
+
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+
+        stateStore.storeTasks(taskInfos);
+        stateStore.storeStatus(status);
+        when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
+        launchConstrainer.setCanLaunch(true);
+
+        recoveryManager.update(status);
+
+        // Construct conflicting PodInstanceRequirement
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
+                podInstance,
+                Arrays.asList("test-task-name"));
+
+        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        Assert.assertTrue(steps.isEmpty());
+    }
+
+    @Test
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void testCreateStepsDirtyAssetNoConflictDifferentPod() throws Exception {
+        final List<Offer> offers = getOffers();
+
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+
+        stateStore.storeTasks(taskInfos);
+        stateStore.storeStatus(status);
+        when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
+        launchConstrainer.setCanLaunch(true);
+
+        recoveryManager.update(status);
+
+        // Construct conflicting PodInstanceRequirement
+        PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
+                .type("non-conflicting-type")
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
+                podInstance,
+                Arrays.asList("test-task-name"));
+
+        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        Assert.assertFalse(steps.isEmpty());
+    }
+
+    @Test
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void testCreateStepsDirtyAssetNoConflictDifferentIndex() throws Exception {
+        final List<Offer> offers = getOffers();
+
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+
+        stateStore.storeTasks(taskInfos);
+        stateStore.storeStatus(status);
+        when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
+        launchConstrainer.setCanLaunch(true);
+
+        recoveryManager.update(status);
+
+        // Construct conflicting PodInstanceRequirement
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 1);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
+                podInstance,
+                Arrays.asList("test-task-name"));
+
+        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        Assert.assertFalse(steps.isEmpty());
     }
 }

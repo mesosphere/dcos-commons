@@ -134,7 +134,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DeployPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
+    List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
         Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap =
                 TaskUtils.getPodMap(
                         configStore,
