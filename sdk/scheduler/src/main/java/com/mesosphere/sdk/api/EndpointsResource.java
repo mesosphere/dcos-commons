@@ -220,7 +220,7 @@ public class EndpointsResource {
             String vipHostPort = String.format("%s.%s.%s:%d",
                     vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port);
             Boolean foundVip = false;
-            try {
+            if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
                 JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
                 for (Object vipPresent : vips) {
                     if (vipHostPort.equals((String) vipPresent)) {
@@ -228,7 +228,6 @@ public class EndpointsResource {
                         break;
                     }
                 }
-            } catch (JSONException ex) {
             }
             if (!foundVip) {
                 vipEndpoint.append(RESPONSE_KEY_VIPS, vipHostPort);
