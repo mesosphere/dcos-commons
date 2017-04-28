@@ -39,7 +39,7 @@ public class PlanUtils {
             PodInstance assetPodInstance = asset.getPodInstance();
             Set<String> assetTaskNames = new HashSet<>(asset.getTasksToLaunch());
 
-            if (podInstancesConflict(dirtyPodInstance, assetPodInstance) && assetTaskNames.removeAll(dirtyTaskNames)) {
+            if (podInstancesConflict(dirtyPodInstance, assetPodInstance)) {
                 return true;
             }
         }
@@ -47,7 +47,7 @@ public class PlanUtils {
         return false;
     }
 
-    private static boolean podInstancesConflict(PodInstance podInstance0, PodInstance podInstance1) {
+    public static boolean podInstancesConflict(PodInstance podInstance0, PodInstance podInstance1) {
         boolean sameType = podInstance0.getPod().getType().equals(podInstance1.getPod().getType());
         boolean sameIndex = podInstance0.getIndex() == podInstance1.getIndex();
         return sameType && sameIndex;

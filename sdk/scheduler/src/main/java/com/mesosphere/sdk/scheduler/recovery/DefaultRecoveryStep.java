@@ -20,18 +20,15 @@ import java.util.Objects;
 public class DefaultRecoveryStep extends DeploymentStep {
 
     private final LaunchConstrainer launchConstrainer;
-    private final RecoveryType recoveryType;
     private final StateStore stateStore;
 
     public DefaultRecoveryStep(
             String name,
             Status status,
             PodInstanceRequirement podInstanceRequirement,
-            RecoveryType recoveryType,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
         super(name, status, podInstanceRequirement, Collections.emptyList());
-        this.recoveryType = recoveryType;
         this.launchConstrainer = launchConstrainer;
         this.stateStore = stateStore;
     }
@@ -41,18 +38,18 @@ public class DefaultRecoveryStep extends DeploymentStep {
         super.updateOfferStatus(recommendations);
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof LaunchOfferRecommendation) {
-                launchConstrainer.launchHappened((LaunchOfferRecommendation) recommendation, recoveryType);
+                launchConstrainer.launchHappened((LaunchOfferRecommendation) recommendation, getRecoveryType());
             }
         }
     }
 
     public RecoveryType getRecoveryType() {
-        return recoveryType;
+        return podInstanceRequirement.getRecoveryType();
     }
 
     @Override
     public String getMessage() {
-        return super.getMessage() + " RecoveryType: " + recoveryType.name();
+        return super.getMessage() + " RecoveryType: " + getRecoveryType().name();
     }
 
     @Override

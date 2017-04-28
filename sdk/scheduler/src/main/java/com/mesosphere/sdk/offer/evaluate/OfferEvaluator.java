@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -131,7 +132,7 @@ public class OfferEvaluator {
 
         final String description;
         final boolean shouldGetNewRequirement;
-        if (podInstanceRequirement.isPermanentReplacement()) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noTasksExist) {

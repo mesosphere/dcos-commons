@@ -84,6 +84,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
+
     /**
      * Updates the recovery plan if necessary.
      * <p>
@@ -134,7 +135,9 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DeployPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
+    private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
+            throws TaskException {
+
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodMap(configStore, failedTasks);
 
@@ -146,10 +149,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
 
-        List<Step> recoverySteps = new ArrayList<>();
+        List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
         for (PodInstanceRequirement failedPod : failedPods) {
-            logger.info("Attempting to recover : {}", failedPod);
-
             List<Protos.TaskInfo> failedPodTaskInfos = failedPod.getTasksToLaunch().stream()
                     .map(taskSpecName -> TaskSpec.getInstanceName(failedPod.getPodInstance(), taskSpecName))
                     .map(taskInfoName -> stateStore.fetchTask(taskInfoName))
@@ -178,13 +179,34 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             if (PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets)) {
                 logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.", failedPod);
             } else {
+                recoveryRequirements.add(podInstanceRequirement);
+            }
+        }
+
+        return recoveryRequirements;
+    }
+
+    List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
+        List<Step> recoverySteps = new ArrayList<>();
+        for (PodInstanceRequirement recoveryRequirement : getRecoveryRequirements(dirtyAssets)) {
+            logger.info("Attempting to recover: {}", recoveryRequirement);
+
+            List<String> runningTaskNames = recoveryRequirement.getPodInstance().getPod().getTasks().stream()
+                    .map(taskSpec -> taskSpec.getName())
+                    .collect(Collectors.toList());
+
+            boolean recoveryIsReady = runningTaskNames.size() == recoveryRequirement.getTasksToLaunch().size();
+
+            if (recoveryIsReady) {
                 recoverySteps.add(new DefaultRecoveryStep(
-                        failedPod.toString(),
+                        recoveryRequirement.toString(),
                         Status.PENDING,
-                        podInstanceRequirement,
-                        recoveryType,
+                        recoveryRequirement,
                         launchConstrainer,
                         stateStore));
+            } else {
+                logger.warn("Recovery is not yet ready. Should launch: {}, Attempting to launch: {}",
+                        runningTaskNames, recoveryRequirement.getTasksToLaunch());
             }
         }
 

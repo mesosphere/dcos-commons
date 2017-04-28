@@ -63,7 +63,8 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             }
 
             try {
-                Set<PodInstanceRequirement> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
+                Collection<PodInstanceRequirement> relevantDirtyAssets =
+                        getRelevantDirtyAssets(planManager, dirtiedAssets);
                 LOGGER.info("Processing offers for plan: '{}' with relevant dirtied assets: {}.",
                         planManager.getPlan().getName(), relevantDirtyAssets);
 
@@ -114,11 +115,18 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         return planManagers;
     }
 
-    private Set<PodInstanceRequirement> getRelevantDirtyAssets(
+    private Collection<PodInstanceRequirement> getRelevantDirtyAssets(
             PlanManager planManager,
-            Set<PodInstanceRequirement> dirtiedAssets) {
-        Set<PodInstanceRequirement> relevantDirtyAssets = new HashSet<>(dirtiedAssets);
-        relevantDirtyAssets.removeAll(planManager.getDirtyAssets());
+            Set<PodInstanceRequirement> dirtyAssets) {
+        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
+        for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
+            for (PodInstanceRequirement localDirtyAsset : planManager.getDirtyAssets()) {
+                if (!PlanUtils.podInstancesConflict(dirtyAsset.getPodInstance(), localDirtyAsset.getPodInstance())) {
+                    relevantDirtyAssets.add(dirtyAsset);
+                }
+            }
+        }
+
         return relevantDirtyAssets;
     }
 }
