@@ -566,6 +566,8 @@ You can backup an entire cluster's data and schema to Amazon S3 using the `backu
 
 Make sure that you provision your nodes with enough disk space to perform a backup. The backups that Apache Cassandra are stored on disk before being uploaded to S3, and will take up as much space as the data currently in the tables, so you'll need half of your total available space to be free to backup every keyspace at once.
 
+As noted in the documentation for the [backup/restore strategy configuration option](#backup-restore-strategy), it is possible to run transfers to S3 either in serial or in parallel, but care must be taken not to exceed any throughput limits you may have in your cluster. Throughput depends on a variety of factors, including uplink speed, proximity to region where the backups are being uploaded and downloaded, and the performance of the underlying storage infrastructure. You should perform periodic tests in your local environment to understand what you can expect from S3.
+
 You can configure whether snapshots are created and uploaded in serial, the default, or in parallel (see [backup/restore strategy](#backup-restore-strategy)), but the serial backup/restore strategy is recommended.
 
 You can initiate this plan from the command line:
