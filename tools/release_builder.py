@@ -14,6 +14,7 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
+from collections import OrderedDict
 
 
 logger = logging.getLogger(__name__)
