@@ -11,6 +11,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
+import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -117,7 +118,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     /**
      * Builder class for {@link DefaultScheduler}s. Uses provided custom values or reasonable defaults.
      *
-     * Instances may be created via {@link DefaultScheduler#newBuilder(ServiceSpec)}.
+     * Instances may be created via {@link DefaultScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
      */
     public static class Builder {
         private final ServiceSpec serviceSpec;
@@ -151,7 +152,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec)} will be used.
+         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
          *
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
@@ -178,7 +179,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link DefaultScheduler#createStateStore(ServiceSpec)}.
+         * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
          *
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
@@ -212,9 +213,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         /**
          * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
          * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
-         *
-         * These validators are only used if {@link #withOfferRequirementProvider(OfferRequirementProvider)} was NOT
-         * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
             this.configValidatorsOptional = Optional.ofNullable(configValidators);
@@ -265,7 +263,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
          *
          * @throws IllegalStateException if the plans were already set either via this call or via
-         *     {@link #setPlans(RawServiceSpec)}
+         *     {@link #setPlansFrom(RawServiceSpec)}
          */
         public Builder setPlans(Collection<Plan> plans) {
             this.manualPlans.clear();
@@ -369,7 +367,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             List<String> errors = configUpdateResult.errors.stream()
-                    .map(configValidationError -> configValidationError.toString())
+                    .map(ConfigValidationError::toString)
                     .collect(Collectors.toList());
             plans = updateDeployPlan(plans, errors);
 
@@ -399,11 +397,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Creates and returns a new default {@link StateStore} suitable for passing to
-     * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
+     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to {@link DefaultScheduler#registered
-     * (SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
+     * signified by a call to
+     * {@link DefaultScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
@@ -418,7 +415,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createStateStore(ServiceSpec, String)} with the specification name as the
+     * Calls {@link #createStateStore(ServiceSpec, SchedulerFlags, String)} with the specification name as the
      * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
@@ -429,7 +426,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
-     * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
+     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
      * signified by a call to {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
      *
@@ -464,7 +461,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createConfigStore(ServiceSpec, Collection)} with an empty list of
+     * Calls {@link #createConfigStore(ServiceSpec, String)} with an empty list of
      * custom deserialization types.
      *
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
@@ -704,7 +701,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
         try {
-            ResourceCleaner cleaner = new ResourceCleaner(stateStore);
+            ResourceCleaner cleaner = new DefaultResourceCleaner(stateStore);
             return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
         } catch (Exception ex) {
             LOGGER.error("Failed to construct ResourceCleaner", ex);

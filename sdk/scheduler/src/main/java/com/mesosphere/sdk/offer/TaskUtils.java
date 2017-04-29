@@ -8,7 +8,10 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.Label;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +19,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.*;
+import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
@@ -405,7 +408,7 @@ public class TaskUtils {
     }
 
     /**
-     * Determines whether a Task needs to eb reovered based on its current definition (TaskSpec) and status
+     * Determines whether a Task needs to be recovered based on its current definition (TaskSpec) and status
      * (TaskStatus).
      *
      * @param taskSpec   The definition of a task
@@ -436,8 +439,8 @@ public class TaskUtils {
      */
     public static Collection<TaskInfo> clearReservations(Collection<TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(taskInfo -> ResourceUtils.clearResourceIds(taskInfo))
-                .map(taskInfo -> ResourceUtils.clearPersistence(taskInfo))
+                .map(ResourceUtils::clearResourceIds)
+                .map(ResourceUtils::clearPersistence)
                 .collect(Collectors.toList());
     }
 }

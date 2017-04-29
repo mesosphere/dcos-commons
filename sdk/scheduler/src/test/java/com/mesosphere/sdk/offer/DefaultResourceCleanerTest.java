@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ResourceCleanerTest {
+public class DefaultResourceCleanerTest {
 
     private static final String EXPECTED_RESOURCE_1_ID = "expected-resource-id";
     private static final String EXPECTED_RESOURCE_2_ID = "expected-volume-id";
@@ -78,19 +78,19 @@ public class ResourceCleanerTest {
     private final List<ResourceCleaner> populatedCleaners = new ArrayList<>();
     private final List<ResourceCleaner> allCleaners = new ArrayList<>();
 
-    public ResourceCleanerTest() {
+    public DefaultResourceCleanerTest() {
         // Validate ResourceCleaner statelessness by only initializing them once
 
         StateStore mockStateStore = mock(StateStore.class);
 
         // cleaners without any expected resources
         when(mockStateStore.fetchTasks()).thenReturn(new ArrayList<>());
-        emptyCleaners.add(new ResourceCleaner(mockStateStore));
+        emptyCleaners.add(new DefaultResourceCleaner(mockStateStore));
 
         // cleaners with expected resources
         when(mockStateStore.fetchTasks())
                 .thenReturn(Arrays.asList(TASK_INFO_1, TASK_INFO_2));
-        populatedCleaners.add(new ResourceCleaner(mockStateStore));
+        populatedCleaners.add(new DefaultResourceCleaner(mockStateStore));
 
         allCleaners.addAll(emptyCleaners);
         allCleaners.addAll(populatedCleaners);

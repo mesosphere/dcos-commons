@@ -1,31 +1,25 @@
 package com.mesosphere.sdk.specification;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
-
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
-import com.mesosphere.sdk.state.StateStore;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,9 +37,10 @@ public class DefaultService implements Service {
     protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
-    private DefaultScheduler.Builder schedulerBuilder;
-
+    private Scheduler scheduler;
     private ServiceSpec serviceSpec;
+    private StateStore stateStore;
+    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
@@ -78,20 +73,35 @@ public class DefaultService implements Service {
     }
 
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        this.schedulerBuilder = schedulerBuilder;
+        try {
+            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+                LOGGER.info("Launching UninstallScheduler...");
+                UninstallScheduler.Builder uninstallSchedulerBuilder = UninstallScheduler.newBuilder(
+                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags());
+                this.scheduler = uninstallSchedulerBuilder.build();
+                this.stateStore = uninstallSchedulerBuilder.getStateStore();
+            } else {
+                this.scheduler = schedulerBuilder.build();
+                this.stateStore = schedulerBuilder.getStateStore();
+            }
+        } catch (Throwable e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
     }
 
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
 
         CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
+                serviceSpec.getZookeeperConnection(), CuratorUtils.getDefaultRetry());
         curatorClient.start();
 
-        InterProcessMutex curatorMutex = lock(curatorClient, schedulerBuilder.getServiceSpec().getName());
+        InterProcessMutex curatorMutex = lock(curatorClient, serviceSpec.getName());
         try {
             register();
         } finally {
@@ -118,9 +128,9 @@ public class DefaultService implements Service {
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);
-        final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?",
-                lockPath, serviceName, serviceName);
+        String format = "Failed to acquire ZK lock on %s. " +
+                "Duplicate service named '%s', or recently restarted instance of '%s'?";
+        final String failureLogMsg = String.format(format, lockPath, serviceName, serviceName);
         try {
             for (int i = 0; i < lockAttempts; ++i) {
                 if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
@@ -153,20 +163,13 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = null;
-        try {
-            defaultScheduler = schedulerBuilder.build();
-        } catch (Throwable e) {
-            LOGGER.error("Failed to build scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
-        }
-
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-        registerAndRunFramework(
-                defaultScheduler,
-                getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
-                serviceSpec.getZookeeperConnection(),
-                schedulerBuilder.getSchedulerFlags());
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
+        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        Protos.Status status = new SchedulerDriverFactory().create(scheduler, frameworkInfo, zkUri, schedulerFlags).
+                run();
+        // TODO(nickbp): Exit scheduler process here?
+        LOGGER.error("Scheduler driver exited with status: {}", status);
     }
 
     protected ServiceSpec getServiceSpec() {
@@ -187,18 +190,6 @@ public class DefaultService implements Service {
         return false;
     }
 
-    private static void registerAndRunFramework(
-            Scheduler sched,
-            Protos.FrameworkInfo frameworkInfo,
-            String zookeeperHost,
-            SchedulerFlags schedulerFlags) {
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        Protos.Status status = new SchedulerDriverFactory().create(
-                sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost), schedulerFlags).run();
-        // TODO(nickbp): Exit scheduler process here?
-        LOGGER.error("Scheduler driver exited with status: {}", status);
-    }
-
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
     }
@@ -211,10 +202,10 @@ public class DefaultService implements Service {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                                                                     .setName(serviceName)
-                                                                     .setFailoverTimeout(failoverTimeoutSec)
-                                                                     .setUser(userString)
-                                                                     .setCheckpoint(true);
+                .setName(serviceName)
+                .setFailoverTimeout(failoverTimeoutSec)
+                .setUser(userString)
+                .setCheckpoint(true);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
@@ -237,9 +228,7 @@ public class DefaultService implements Service {
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
-        if (optionalFrameworkId.isPresent()) {
-            fwkInfoBuilder.setId(optionalFrameworkId.get());
-        }
+        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
