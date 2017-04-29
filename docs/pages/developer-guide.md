@@ -1115,7 +1115,7 @@ $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: applic
 
 You can also use the DC/OS CLI:
 ```bash
-$ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
+$ dcos $FRAMEWORK_NAME plan start sidecar-example -p PLAN_PARAMETER1=sidecar -p PLAN_PARAMETER2=plan
 ```
 
 When no parameters are specified, the body of the POST request must be an empty JSON object (`{}`). Supply default values with standard Bash syntax. In the above case, you can declare the default value of `PLAN_PARAMETER1` to be `sidecar` by changing the task's command string to `echo ${PLAN_PARAMETER1:-sidecar} >> output`.
