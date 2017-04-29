@@ -76,7 +76,6 @@ def get_cluster_version(dcos_url):
     ver_s = json.loads(json_s)['version']
     return ver_s
 
-
 def _get_tempfilename(a_dir):
     temp_target_f = tempfile.NamedTemporaryFile(dir=a_dir, delete=False)
     temp_target_f.close()
@@ -85,12 +84,6 @@ def _get_tempfilename(a_dir):
 
 def _mark_executable(path):
     os.chmod(path, 0o755)
-
-
-def install_cli_from_dir(src_dir, write_dir):
-    src_file = os.path.join(src_dir, get_cli_filename())
-    return install_cli(src_file, write_dir)
-
 
 def install_cli(src_file, write_dir):
     """Copy an existing cli to a target directory path, updating the target
@@ -109,18 +102,6 @@ def install_cli(src_file, write_dir):
         if os.path.exists(temp_target):
             os.unlink(temp_target)
     return output_filepath
-
-
-def ensure_cli_downloaded(dcos_url, write_dir):
-    """If the cli filename is not present in write_dir, download the correct
-    cli version for a given cluster url.
-    No attempt is made to verify it's the correct version, so a per-cluster or
-    per-run dir should be used."""
-    output_filepath = os.path.join(write_dir, get_cli_filename())
-    if os.path.exists(output_filepath):
-        return output_filepath
-    return download_cli(dcos_url, write_dir)
-
 
 def download_cli(dcos_url, write_dir):
     """Download the correct cli version for a given cluster url, placing it in
@@ -165,32 +146,21 @@ if __name__ == "__main__":
         f.write("usage: cli_install.py <path_to_existing_cli> <target_dir>\n")
         f.write("  OR\n")
         f.write("usage: cli_install.py <cluster_url> <target_dir>\n")
-        f.write("  OR\n")
-        f.write("usage: cli_install.py ensure_installed <cluster_url> <target_dir>\n")
 
 
     if not len(sys.argv) == 3:
         usage()
         sys.exit(1)
 
-    args = sys.argv[1:]
-    maybe_install = False
-    if args[0] == "ensure_installed":
-        maybe_install=True
-        args=args[1:]
-
-    source = args[0]
-    target_dir = args[1]
+    source = sys.argv[1]
+    target_dir = sys.argv[2]
 
     # convenience for command line
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
     if source.startswith('http://') or source.startswith('https://'):
-        if maybe_install:
-            ensure_cli_downloaded(source, target_dir)
-        else:
-            download_cli(source, target_dir)
+        download_cli(source, target_dir)
     elif os.path.isfile(source):
         install_cli(source, target_dir)
     else:
