@@ -4,10 +4,7 @@ import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,5 +48,26 @@ public class PlanUtils {
         boolean sameType = podInstance0.getPod().getType().equals(podInstance1.getPod().getType());
         boolean sameIndex = podInstance0.getIndex() == podInstance1.getIndex();
         return sameType && sameIndex;
+    }
+
+    public static Collection<PodInstanceRequirement> getRelevantDirtyAssets(
+            PlanManager planManager,
+            Set<PodInstanceRequirement> dirtyAssets) {
+        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
+        for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
+            for (PodInstanceRequirement localDirtyAsset : planManager.getDirtyAssets()) {
+                if (!PlanUtils.podInstancesConflict(dirtyAsset.getPodInstance(), localDirtyAsset.getPodInstance())) {
+                    relevantDirtyAssets.add(dirtyAsset);
+                }
+            }
+        }
+
+        return relevantDirtyAssets;
+    }
+
+    public static List<PlanManager> getActivePlanManagers(List<PlanManager> planManagers) {
+        return planManagers.stream()
+                .filter(planManager -> !planManager.getPlan().isInterrupted())
+                .collect(Collectors.toList());
     }
 }

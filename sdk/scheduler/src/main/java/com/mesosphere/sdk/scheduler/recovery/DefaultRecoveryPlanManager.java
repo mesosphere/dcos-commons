@@ -34,6 +34,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected static final String RECOVERY_ELEMENT_NAME = "recovery";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConfigStore<ServiceSpec> configStore;
+    private final List<PlanManager> overrideRecoveryManagers;
 
     protected volatile Plan plan;
 
@@ -47,10 +48,20 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             ConfigStore<ServiceSpec> configStore,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
+        this(stateStore, configStore, launchConstrainer, failureMonitor, Collections.emptyList());
+    }
+
+    public DefaultRecoveryPlanManager(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            LaunchConstrainer launchConstrainer,
+            FailureMonitor failureMonitor,
+            List<PlanManager> overrideRecoveryManagers) {
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
+        this.overrideRecoveryManagers = overrideRecoveryManagers;
         plan = new DefaultPlan(RECOVERY_ELEMENT_NAME, Collections.emptyList());
     }
 
@@ -139,7 +150,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             throws TaskException {
 
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
-        List<PodInstanceRequirement> failedPods = TaskUtils.getPodMap(configStore, failedTasks);
+        List<PodInstanceRequirement> failedPods = TaskUtils.getPodMap(
+                configStore,
+                failedTasks,
+                stateStore.fetchTasks());
 
         List<String> podNames = failedPods.stream()
                 .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
@@ -190,24 +204,17 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         List<Step> recoverySteps = new ArrayList<>();
         for (PodInstanceRequirement recoveryRequirement : getRecoveryRequirements(dirtyAssets)) {
             logger.info("Attempting to recover: {}", recoveryRequirement);
+            recoverySteps.add(new DefaultRecoveryStep(
+                    recoveryRequirement.toString(),
+                    Status.PENDING,
+                    recoveryRequirement,
+                    launchConstrainer,
+                    stateStore));
+        }
 
-            List<String> runningTaskNames = recoveryRequirement.getPodInstance().getPod().getTasks().stream()
-                    .map(taskSpec -> taskSpec.getName())
-                    .collect(Collectors.toList());
-
-            boolean recoveryIsReady = runningTaskNames.size() == recoveryRequirement.getTasksToLaunch().size();
-
-            if (recoveryIsReady) {
-                recoverySteps.add(new DefaultRecoveryStep(
-                        recoveryRequirement.toString(),
-                        Status.PENDING,
-                        recoveryRequirement,
-                        launchConstrainer,
-                        stateStore));
-            } else {
-                logger.warn("Recovery is not yet ready. Should launch: {}, Attempting to launch: {}",
-                        runningTaskNames, recoveryRequirement.getTasksToLaunch());
-            }
+        for (PlanManager ovverrideRecoveryManager : overrideRecoveryManagers) {
+            Collection<? extends Step> ovverrideSteps = ovverrideRecoveryManager.getCandidates(dirtyAssets);
+            recoverySteps = override(recoverySteps, ovverrideSteps);
         }
 
         return recoverySteps;
@@ -226,5 +233,30 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;
+    }
+
+    private List<Step> override(List<Step> oldSteps, Collection<? extends Step> newSteps) {
+        List<Step> filteredSteps = new ArrayList<>();
+        oldSteps = oldSteps.stream()
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .collect(Collectors.toList());
+
+        for (Step oldStep : oldSteps) {
+            PodInstance oldPodInstance = oldStep.getPodInstanceRequirement().get().getPodInstance();
+            boolean overridden = newSteps.stream()
+                    .filter(step -> step.getPodInstanceRequirement().isPresent())
+                    .map(step -> step.getPodInstanceRequirement().get().getPodInstance())
+                    .filter(podInstance -> PlanUtils.podInstancesConflict(podInstance, oldPodInstance))
+                    .count() > 0;
+
+            if (!overridden) {
+                filteredSteps.add(oldStep);
+            } else {
+                logger.info("Step {} is overriden.", oldStep);
+            }
+        }
+
+        filteredSteps.addAll(newSteps);
+        return filteredSteps;
     }
 }

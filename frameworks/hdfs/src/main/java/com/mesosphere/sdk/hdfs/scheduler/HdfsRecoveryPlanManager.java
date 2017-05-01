@@ -76,12 +76,12 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
                 Collections.emptyList());
     }
 
+    /*
     @Override
     public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
         /**
          * Always allow the default recovery manager to update its plan.  Otherwise, later
          * calls to {@link #getPlan()} will not contain the correct default recovery plan.
-         */
         updatePlan(dirtyAssets);
 
         Map<PodInstance, List<Protos.TaskInfo>> failedNameNodes;
@@ -129,11 +129,12 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
                         launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryType()))
                 .collect(Collectors.toList());
     }
-
+*/
     private void setNameNodePhase(Phase phase) {
         this.nameNodeRecoveryPhase = phase;
     }
 
+    /*
     private Phase initNNRecoveryPhase(Plan inputPlan, int index) {
         Phase inputPhase = inputPlan.getChildren().get(0);
         int offset = index * 2;
@@ -170,4 +171,5 @@ public class HdfsRecoveryPlanManager extends DefaultRecoveryPlanManager {
                 new SerialStrategy<>(),
                 Collections.emptyList());
     }
+    */
 }

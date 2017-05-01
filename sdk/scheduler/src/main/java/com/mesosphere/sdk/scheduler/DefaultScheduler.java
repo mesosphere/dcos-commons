@@ -665,22 +665,24 @@ public class DefaultScheduler implements Scheduler, Observer {
             failureMonitor = new NeverFailureMonitor();
         }
 
+        List<PlanManager> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanManagerFactoryOptional.isPresent()) {
-            LOGGER.info("Using custom recovery plan manager.");
-            this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
+            LOGGER.info("Adding overriding recovery plan manager.");
+            overrideRecoveryPlanManagers.add(recoveryPlanManagerFactoryOptional.get().create(
                     stateStore,
                     configStore,
                     launchConstrainer,
                     failureMonitor,
-                    plans);
-        } else {
-            LOGGER.info("Using default recovery plan manager.");
-            this.recoveryPlanManager = new DefaultRecoveryPlanManager(
-                    stateStore,
-                    configStore,
-                    launchConstrainer,
-                    failureMonitor);
+                    plans));
         }
+
+        LOGGER.info("Using default recovery plan manager.");
+        this.recoveryPlanManager = new DefaultRecoveryPlanManager(
+                stateStore,
+                configStore,
+                launchConstrainer,
+                failureMonitor,
+                overrideRecoveryPlanManagers);
     }
 
     protected void initializePlanCoordinator() {

@@ -301,31 +301,38 @@ public class TaskUtils {
 
     public static List<PodInstanceRequirement> getPodMap(
             ConfigStore<ServiceSpec> configStore,
-            Collection<TaskInfo> taskInfos)
-            throws TaskException {
+            Collection<TaskInfo> failedTasks,
+            Collection<TaskInfo> allTasks) throws TaskException {
 
-        Map<PodInstance, List<String>> podMap = new HashMap<>();
-        for (TaskInfo taskInfo : taskInfos) {
-            PodInstance podInstance = getPodInstance(configStore, taskInfo);
-            Map<String, String> nameMap = getTaskNameMap(podInstance);
+        Set<PodInstance> pods = new HashSet<>();
 
-            List<String> taskList = podMap.get(podInstance);
-
-            if (taskList == null) {
-                taskList = Arrays.asList(nameMap.get(taskInfo.getName()));
-            } else {
-                taskList = new ArrayList<>(taskList);
-                taskList.add(nameMap.get(taskInfo.getName()));
+        for (TaskInfo taskInfo : failedTasks) {
+            try {
+                pods.add(getPodInstance(configStore, taskInfo));
+            } catch (TaskException e) {
+                LOGGER.error("Failed to get pod instance for TaskInfo: {} with exception: {}", taskInfo, e);
             }
-
-            podMap.put(podInstance, taskList);
         }
 
-        return podMap.entrySet().stream()
-                .map(podInstanceListEntry -> PodInstanceRequirement.create(
-                        podInstanceListEntry.getKey(),
-                        podInstanceListEntry.getValue()))
+        List<String> allTaskNames = allTasks.stream()
+                .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
+
+        List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
+
+        for (PodInstance podInstance : pods) {
+            List<String> tasksToLaunch = new ArrayList<>();
+            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+                String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
+                if (taskSpec.getGoal() == GoalState.RUNNING && allTaskNames.contains(fullTaskName)) {
+                    tasksToLaunch.add(taskSpec.getName());
+                }
+            }
+
+            podInstanceRequirements.add(PodInstanceRequirement.create(podInstance, tasksToLaunch));
+        }
+
+        return podInstanceRequirements;
     }
 
     /**
