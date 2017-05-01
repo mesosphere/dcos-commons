@@ -164,12 +164,12 @@ httpd.serve_forever()
 
         if not os.path.isdir(self._http_dir):
             os.makedirs(self._http_dir)
-        httpd_py_file = file(httpd_py_path, 'w+')
+        httpd_py_file = open(httpd_py_path, 'w+')
         httpd_py_file.write(httpd_py_content)
         httpd_py_file.flush()
         httpd_py_file.close()
 
-        os.chmod(httpd_py_path, 0744)
+        os.chmod(httpd_py_path, 0o744)
         logger.info('Launching HTTPD: {}'.format(httpd_py_path))
         subprocess.Popen([httpd_py_path, "2&1>", "/dev/null"])
 
