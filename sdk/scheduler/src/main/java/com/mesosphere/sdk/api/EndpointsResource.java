@@ -36,7 +36,9 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DNS = "dns";
     private static final String RESPONSE_KEY_ADDRESS = "address";
+    // deprecated in favor of vips (RESPONSE_KEY_VIPS), remove at 1.9 -> 2.0 cutover
     private static final String RESPONSE_KEY_VIP = "vip";
+    private static final String RESPONSE_KEY_VIPS = "vips";
 
     private final StateStore stateStore;
     private final String serviceName;
@@ -199,6 +201,7 @@ public class EndpointsResource {
             if (vipInfo == null) {
                 continue;
             }
+
             // VIP found. file host:port against the VIP name.
             foundAnyVips = true;
 
@@ -211,9 +214,27 @@ public class EndpointsResource {
             // append entry to 'dns' and 'address' arrays for this task:
             vipEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
             vipEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
-            // populate 'vip' field if not yet populated (due to another task with the same vip):
-            vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.%s:%d",
-                    vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port));
+
+            // (distinctly) append entry to 'vips' for this task:
+            String vipHostPort = String.format("%s.%s.%s:%d",
+                    vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port);
+            Boolean foundVip = false;
+            if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
+                JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
+                for (Object vipPresent : vips) {
+                    if (vipHostPort.equals((String) vipPresent)) {
+                        foundVip = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundVip) {
+                vipEndpoint.append(RESPONSE_KEY_VIPS, vipHostPort);
+            }
+
+            // deprecated in favor of vips (RESPONSE_KEY_VIPS), remove at 1.9 -> 2.0 cutover
+            // behavior here is last in wins for a 1:n field
+            vipEndpoint.put(RESPONSE_KEY_VIP, vipHostPort);
         }
 
         if (!foundAnyVips) {

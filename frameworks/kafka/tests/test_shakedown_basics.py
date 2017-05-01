@@ -49,9 +49,10 @@ def test_endpoints_address():
         if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
-    address = spin.time_wait_return(fun)
-    assert len(address) == 3
-    assert len(address['dns']) == DEFAULT_BROKER_COUNT
+    endpoints = spin.time_wait_return(fun)
+    # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
+    assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
+    assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
 
 
 @pytest.mark.smoke
@@ -107,7 +108,7 @@ def test_pods_replace():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
     # wait till all brokers register
     broker_count_check(DEFAULT_BROKER_COUNT)
-    
+
 
 # --------- Topics -------------
 

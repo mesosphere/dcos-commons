@@ -42,7 +42,9 @@ enterprise: 'no'
             "kafka-0-broker.kafka.mesos:1025",
             "kafka-1-broker.kafka.mesos:1025"
           ],
-          "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+          "vips": [
+            "broker.kafka.l4lb.thisdcos.directory:9092"
+          ]
         }
 
 1. Produce and consume data.
