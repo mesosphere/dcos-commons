@@ -31,15 +31,24 @@ func GetArguments() []string {
 	return os.Args[2:]
 }
 
+func GetVariablePair(pairString string) ([]string, error) {
+	elements := strings.Split(pairString, "=")
+	if len(elements) < 2 {
+		return nil, errors.New(fmt.Sprintf(
+			"Must have one variable name and one variable value per definition"))
+	}
+
+	return []string{elements[0], strings.Join(elements[1:], "=")}, nil
+}
+
 func GetPlanParameterPayload(parameters []string) (string, error) {
 	envPairs := make(map[string]string)
-	for _, pair := range parameters {
-		elements := strings.Split(pair, "=")
-		if len(elements) < 2 {
-			return "", errors.New(fmt.Sprintf(
-				"Must have one variable name and one variable value per definition"))
+	for _, pairString := range parameters {
+		pair, err := GetVariablePair(pairString)
+		if err != nil {
+			return "", err
 		}
-		envPairs[elements[0]] = strings.Join(elements[1:], "=")
+		envPairs[pair[0]] = pair[1]
 	}
 
 	jsonVal, err := json.Marshal(envPairs)
