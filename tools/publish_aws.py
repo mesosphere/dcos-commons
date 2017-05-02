@@ -90,14 +90,16 @@ class AWSPublisher(object):
             self._artifact_paths.append(artifact_path)
 
 
-    def _upload_artifact(self, filepath):
+    def _upload_artifact(self, filepath, content_type=None):
         filename = os.path.basename(filepath)
+        cmdlist = ['aws s3']
         if self._aws_region:
-            cmd = 'aws s3 --region={} cp --acl public-read {} {}/{} 1>&2'.format(
-                self._aws_region, filepath, self._s3_directory, filename)
-        else:
-            cmd = 'aws s3 cp --acl public-read {} {}/{} 1>&2'.format(
-                filepath, self._s3_directory, filename)
+            cmdlist.append('--region={}'.format(self._aws_region))
+        cmdlist.append('cp --acl public-read')
+        if content_type:
+            cmdlist.append('--content-type "{}"'.format(content_type))
+        cmdlist.append('{} {}/{} 1>&2'.format(filepath, self._s3_directory, filename))
+        cmd = ' '.join(cmdlist)
         if self._dry_run:
             logger.info('[DRY RUN] {}'.format(cmd))
             ret = 0
@@ -140,17 +142,18 @@ class AWSPublisher(object):
 
     def upload(self):
         '''generates a unique directory, then uploads artifacts and a new stub universe to that directory'''
+        builder = universe_builder.UniversePackageBuilder(
+            self._pkg_name, self._pkg_version,
+            self._input_dir_path, self._http_directory, self._artifact_paths)
         try:
-            universe_path = universe_builder.UniversePackageBuilder(
-                self._pkg_name, self._pkg_version,
-                self._input_dir_path, self._http_directory, self._artifact_paths).build_zip()
+            universe_path = builder.build_package()
         except Exception as e:
             err = 'Failed to create stub universe: {}'.format(str(e))
             self._github_updater.update('error', err)
             raise
 
         # print universe url early
-        universe_url = self._upload_artifact(universe_path)
+        universe_url = self._upload_artifact(universe_path, content_type=builder.content_type())
         logger.info('---')
         logger.info('Uploading {} artifacts:'.format(len(self._artifact_paths)))
 
