@@ -62,7 +62,7 @@
 
 1. __DC/OS Networking API Integration for Tasks__: Support for integrating with DC/OS Networking. DC/OS supports [Container Networking Interface](https://github.com/containernetworking/cni/blob/master/SPEC.md).
 
-1. __External Storage Volumes for Pods__: Add support for external storage volumes via a standard API - e.g., Container Volume Interface (CVI).
+1. __External Storage Volumes for Pods__: Add support for external storage volumes via Container Storage Interface (CSI).
 
 1. __Enterprise DC/OS Secrets Management API__: Integrate with Enterprise DC/OS API for secure distribution of secrets such as certificates, keytab, and other sensitive files.
 
@@ -72,7 +72,7 @@
 
 1. __Scheduler and Executor Metrics__: Instrument the default scheduler and executor to send performance / health / usage metrics for monitoring and troubleshooting via [DC/OS Metrics](https://github.com/dcos/dcos-metrics).
 
-1. __Map Agent Attributes to Racks for Pods__: Many stateful services such as Elasticsearch, Kafka, Cassandra, and HDFS are "rack-aware". This feature is to support mapping a DC/OS Agent attribute to rack configuration.
+1. __Rack-aware Placement and Data Replication__: Many stateful services such as Elasticsearch, Kafka, Cassandra, and HDFS are "rack-aware". This feature depends on [Apache Mesos Fault Domains](https://docs.google.com/document/d/1gEugdkLRbBsqsiFv3urRPRNrHwUC-i1HwfFfHR_MvC8/edit).
 
 1. __Non-reserved Resources for Tasks__: Currently the SDK always reserves resources. This is because the initial focus for the SDK is stateful workloads, where reserving resources in essential for safe operations. For other workloads like twelve-factor apps and analytics jobs, reserving resources is generally undesirable.
 
