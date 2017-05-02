@@ -31,15 +31,24 @@ func GetArguments() []string {
 	return os.Args[2:]
 }
 
-func GetPlanParameterPayload(parameters string) (string, error) {
+func GetVariablePair(pairString string) ([]string, error) {
+	elements := strings.Split(pairString, "=")
+	if len(elements) < 2 {
+		return nil, errors.New(fmt.Sprintf(
+			"Must have one variable name and one variable value per definition"))
+	}
+
+	return []string{elements[0], strings.Join(elements[1:], "=")}, nil
+}
+
+func GetPlanParameterPayload(parameters []string) (string, error) {
 	envPairs := make(map[string]string)
-	for _, pair := range strings.Split(parameters, ",") {
-		elements := strings.Split(pair, "=")
-		if len(elements) != 2 {
-			return "", errors.New(fmt.Sprintf(
-				"Must have one variable name and one variable value per definition"))
+	for _, pairString := range parameters {
+		pair, err := GetVariablePair(pairString)
+		if err != nil {
+			return "", err
 		}
-		envPairs[elements[0]] = elements[1]
+		envPairs[pair[0]] = pair[1]
 	}
 
 	jsonVal, err := json.Marshal(envPairs)
@@ -203,7 +212,7 @@ func HandleEndpointsSection(app *kingpin.Application) {
 
 type PlanHandler struct {
 	PlanName   string
-	Parameters string
+	Parameters []string
 	Phase      string
 	Step       string
 }
@@ -299,7 +308,7 @@ func HandlePlanSection(app *kingpin.Application) {
 
 	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.RunStart)
 	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
-	start.Arg("params", "Comma-separated list of VAR=value pairs").StringVar(&cmd.Parameters)
+	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
 
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
