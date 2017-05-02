@@ -46,7 +46,7 @@ They store the desired configuration of a service and all relevant information r
 
 # Pre-requisites
 
-1. `dcos-commmons` should be checked out locally on your machine.
+1. `dcos-commmons` checked out locally on your machine.
 
   ```bash
   $ git clone git@github.com:mesosphere/dcos-commons.git
