@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import base64
+import collections
 import difflib
+import http.client
 import json
 import logging
 import os
@@ -13,8 +15,6 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
-from collections import OrderedDict
-import http.client
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class UniverseReleaseBuilder(object):
                  release_dir_path=os.environ.get('RELEASE_DIR_PATH', ''),
                  beta_release=os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
-        self._force_upload = bool(os.environ.get('FORCE_ARTIFACT_UPLOAD', ''))
+        self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
         name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
@@ -73,79 +73,86 @@ class UniverseReleaseBuilder(object):
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
 
+    def _unpack_stub_universe_zip(self, scratchdir, stub_universe_file):
+        zipin = zipfile.ZipFile(stub_universe_file, 'r')
+        badfile = zipin.testzip()
+        if badfile:
+            raise Exception('Failed to unpack {} in downloaded {}'.format(
+                badfile, self._stub_universe_url))
+        zipin.extractall(scratchdir)
+        # check for (and return) path to stub-universe-pkgname/repo/packages/P/pkgname/0/:
+        pkgdir_path = os.path.join(
+            scratchdir,
+            'stub-universe-{}'.format(self._pkg_name),
+            'repo',
+            'packages',
+            self._pkg_name[0].upper(),
+            self._pkg_name,
+            '0')
+        if not os.path.isdir(pkgdir_path):
+            raise Exception('Didn\'t find expected path {} after unzipping {}'.format(
+                pkgdir_path, self._stub_universe_url))
+        return pkgdir_path
+
+    def _unpack_stub_universe_json(self, scratchdir, stub_universe_file):
+        stub_universe_json = json.loads(stub_universe_file.read().decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+
+        # put package files into a subdir of scratchdir: avoids conflicts with reuse of scratchdir elsewhere
+        pkgdir = os.path.join(scratchdir, 'stub-universe-{}'.format(self._pkg_name))
+        os.makedirs(pkgdir)
+
+        if 'packages' not in stub_universe_json:
+            raise Exception('Expected "packages" key in root of stub universe JSON: {}'.format(
+                self._stub_universe_url))
+        if len(stub_universe_json['packages']) != 1:
+            raise Exception('Expected single "packages" entry in stub universe JSON: {}'.format(
+                self._stub_universe_url))
+
+        # note: we delete elements from package_json they're unpacked, as package_json is itself written to a file
+        package_json = stub_universe_json['packages'][0]
+
+        def extract_json_file(package_dict, name):
+            file_dict = package_dict.get(name)
+            if file_dict is not None:
+                del package_dict[name]
+                # ensure that the file has a trailing newline (json.dump() doesn't!)
+                fileref = open(os.path.join(pkgdir, name + '.json'), 'w')
+                content = json.dumps(file_dict, indent=2)
+                fileref.write(content)
+                if not content.endswith('\n'):
+                    fileref.write('\n')
+                fileref.flush()
+                fileref.close()
+        extract_json_file(package_json, 'command')
+        extract_json_file(package_json, 'config')
+        extract_json_file(package_json, 'resource')
+
+        marathon_json = package_json.get('marathon', {}).get('v2AppMustacheTemplate')
+        if marathon_json is not None:
+            del package_json['marathon']
+            marathon_file = open(os.path.join(pkgdir, 'marathon.json.mustache'), 'w')
+            marathon_file.write(base64.standard_b64decode(marathon_json).decode())
+            marathon_file.flush()
+            marathon_file.close()
+
+        if 'releaseVersion' in package_json:
+            del package_json['releaseVersion']
+
+        json.dump(package_json, open(os.path.join(pkgdir, 'package.json'), 'w'), indent=2)
+
+        return pkgdir
+
     def _download_unpack_stub_universe(self, scratchdir):
         '''Returns the path to the package directory in the stub universe.'''
         stub_universe_file = urllib.request.urlopen(self._stub_universe_url)
 
-        stub_universe_extension = os.path.splitext(self._stub_universe_url)[1]
+        _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
         if stub_universe_extension == '.zip':
             # stub universe zip package (universe 2.x only)
-            zipin = zipfile.ZipFile(stub_universe_file, 'r')
-            badfile = zipin.testzip()
-            if badfile:
-                raise Exception('Failed to unpack {} in downloaded {}'.format(
-                    badfile, self._stub_universe_url))
-            zipin.extractall(scratchdir)
-            # check for (and return) path to stub-universe-pkgname/repo/packages/P/pkgname/0/:
-            pkgdir_path = os.path.join(
-                scratchdir,
-                'stub-universe-{}'.format(self._pkg_name),
-                'repo',
-                'packages',
-                self._pkg_name[0].upper(),
-                self._pkg_name,
-                '0')
-            if not os.path.isdir(pkgdir_path):
-                raise Exception('Didn\'t find expected path {} after unzipping {}'.format(
-                    pkgdir_path, self._stub_universe_url))
-            return pkgdir_path
+            return self._unpack_stub_universe_zip(scratchdir, stub_universe_file)
         elif stub_universe_extension == '.json':
             # stub universe json file (universe 3.x+ only)
-            stub_universe_json = json.loads(stub_universe_file.read().decode('utf-8'), object_pairs_hook=OrderedDict)
-
-            # put package files into a subdir of scratchdir: avoids conflicts with reuse of scratchdir elsewhere
-            pkgdir = os.path.join(scratchdir, 'stub-universe-{}'.format(self._pkg_name))
-            os.makedirs(pkgdir)
-
-            if 'packages' not in stub_universe_json:
-                raise Exception('Expected "packages" key in root of stub universe JSON: {}'.format(
-                    self._stub_universe_url))
-            if len(stub_universe_json['packages']) != 1:
-                raise Exception('Expected single "packages" entry in stub universe JSON: {}'.format(
-                    self._stub_universe_url))
-
-            package_json = stub_universe_json['packages'][0]
-
-            def extract_json_file(package_dict, name):
-                file_dict = package_dict.get(name, None)
-                if file_dict is not None:
-                    del package_dict[name]
-                    # ensure that the file has a trailing newline (json.dump() doesn't!)
-                    fileref = open(os.path.join(pkgdir, name + '.json'), 'w')
-                    content = json.dumps(file_dict, indent=2)
-                    fileref.write(content)
-                    if not content.endswith('\n'):
-                        fileref.write('\n')
-                    fileref.flush()
-                    fileref.close()
-            extract_json_file(package_json, 'command')
-            extract_json_file(package_json, 'config')
-            extract_json_file(package_json, 'resource')
-
-            marathon_json = package_json.get('marathon', {}).get('v2AppMustacheTemplate', None)
-            if marathon_json is not None:
-                del package_json['marathon']
-                marathon_file = open(os.path.join(pkgdir, 'marathon.json.mustache'), 'w')
-                marathon_file.write(base64.standard_b64decode(marathon_json).decode())
-                marathon_file.flush()
-                marathon_file.close()
-
-            if 'releaseVersion' in package_json:
-                del package_json['releaseVersion']
-
-            json.dump(package_json, open(os.path.join(pkgdir, 'package.json'), 'w'), indent=2)
-
-            return pkgdir
+            return self._unpack_stub_universe_json(scratchdir, stub_universe_file)
         else:
             raise Exception('Expected .zip or .json extension for stub universe: {}'.format(
                 self._stub_universe_url))
@@ -393,7 +400,7 @@ class UniverseReleaseBuilder(object):
     def _original_docker_image(self, pkgdir):
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f, object_pairs_hook=OrderedDict)
+            resource_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             try:
                 docker_dict = resource_json['assets']['container']['docker']
                 assert len(docker_dict) == 1
@@ -414,7 +421,7 @@ class UniverseReleaseBuilder(object):
 
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f, object_pairs_hook=OrderedDict)
+            resource_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             docker_dict = resource_json['assets']['container']['docker']
             key = list(docker_dict.keys())[0]
             docker_dict[key] = self._release_docker_image
@@ -430,7 +437,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta optin bool to config.json
         config_file_name = os.path.join(pkgdir, 'config.json')
         with open(config_file_name) as f:
-            config_json = json.load(f, object_pairs_hook=OrderedDict)
+            config_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             service_dict = config_json['properties']['service']
             service_dict['properties']['beta-optin'] = {
                 "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
@@ -447,7 +454,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta prefix to package.json
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
-            package_json = json.load(f, object_pairs_hook=OrderedDict)
+            package_json = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         package_json['selected'] = False
         package_json['name'] = 'beta-' + package_json['name']

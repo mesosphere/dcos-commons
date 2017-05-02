@@ -92,13 +92,14 @@ class AWSPublisher(object):
 
     def _upload_artifact(self, filepath, content_type=None):
         filename = os.path.basename(filepath)
-        cmd = 'aws s3'
+        cmdlist = ['aws s3']
         if self._aws_region:
-            cmd += ' --region={}'.format(self._aws_region)
-        cmd += ' cp --acl public-read'
+            cmdlist.append('--region={}'.format(self._aws_region))
+        cmdlist.append('cp --acl public-read')
         if content_type:
-            cmd += ' --content-type "{}"'.format(content_type)
-        cmd += ' {} {}/{} 1>&2'.format(filepath, self._s3_directory, filename)
+            cmdlist.append('--content-type "{}"'.format(content_type))
+        cmdlist.append('{} {}/{} 1>&2'.format(filepath, self._s3_directory, filename))
+        cmd = ' '.join(cmdlist)
         if self._dry_run:
             logger.info('[DRY RUN] {}'.format(cmd))
             ret = 0

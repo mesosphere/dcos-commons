@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import base64
+import collections
 import difflib
 import hashlib
 import json
@@ -10,7 +11,6 @@ import os.path
 import re
 import sys
 import tempfile
-from collections import OrderedDict
 
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class UniversePackageBuilder(object):
         for env_key, env_val in os.environ.items():
             if env_key.startswith('TEMPLATE_'):
                 # 'TEMPLATE_SOME_KEY' => 'some-key'
-                template_mapping[env_key[9:].lower().replace('_', '-')] = env_val
+                template_mapping[env_key[len('TEMPLATE_'):].lower().replace('_', '-')] = env_val
 
         return template_mapping
 
@@ -135,26 +135,26 @@ class UniversePackageBuilder(object):
 
 
     def _generate_packages_dict(self, package_files):
-        package_json = json.loads(package_files[_package_json_filename], object_pairs_hook=OrderedDict)
+        package_json = json.loads(package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict)
         package_json['releaseVersion'] = 0
         package_json['packagingVersion'] = '{}.0'.format(self._cosmos_packaging_version)
 
-        command_json = package_files.get(_command_json_filename, None)
+        command_json = package_files.get(_command_json_filename)
         if command_json is not None:
-            package_json['command'] = json.loads(command_json, object_pairs_hook=OrderedDict)
+            package_json['command'] = json.loads(command_json, object_pairs_hook=collections.OrderedDict)
 
-        config_json = package_files.get(_config_json_filename, None)
+        config_json = package_files.get(_config_json_filename)
         if config_json is not None:
-            package_json['config'] = json.loads(config_json, object_pairs_hook=OrderedDict)
+            package_json['config'] = json.loads(config_json, object_pairs_hook=collections.OrderedDict)
 
-        marathon_json = package_files.get(_marathon_json_filename, None)
+        marathon_json = package_files.get(_marathon_json_filename)
         if marathon_json is not None:
             package_json['marathon'] = {
                 'v2AppMustacheTemplate': base64.standard_b64encode(bytearray(marathon_json, 'utf-8')).decode()}
 
-        resource_json = package_files.get(_resource_json_filename, None)
+        resource_json = package_files.get(_resource_json_filename)
         if resource_json is not None:
-            package_json['resource'] = json.loads(resource_json, object_pairs_hook=OrderedDict)
+            package_json['resource'] = json.loads(resource_json, object_pairs_hook=collections.OrderedDict)
 
         return {'packages': [package_json]}
 
