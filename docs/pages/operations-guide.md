@@ -128,7 +128,7 @@ Scheduler reconfiguration is slightly different from initial deployment because 
     1. The prior Service Spec (or "Target Configuration") that was previously stored in ZK.
 1. The Scheduler automatically compares the changes between the old and new Service Specs.
     1. __Change validation__: Certain changes, such as editing volumes and scale-down, are not currently supported because they are complicated and dangerous to get wrong.
-        - If an invalid change is detected, the Scheduler will send an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config. <!-- or a different, correct, configuration? -->
+        - If an invalid change is detected, the Scheduler will send an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.
         - If the changes are valid, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.
     1. __Change deployment__: The Scheduler produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren't affected by the configuration change will be left as-is.
 
@@ -181,7 +181,7 @@ As you can see, in addition to the default Deployment and Recovery plans, this S
 
 In short, Plans are the SDK's abstraction for a sequence of tasks to be performed by the Scheduler. By default, these include deploying and maintaining the cluster, but additional maintenance operations may also be fit into this structure.
 
-### Recovery Plan <!-- I'd like someone to look this over -->
+### Recovery Plan
 
 Another common/default Plan is the Recovery Plan, which handles bringing back failed tasks. The Recovery Plan listens for offers that can be used to bring back those tasks and then relaunches tasks against those offers.
 
@@ -494,7 +494,7 @@ Looks like we were successful! Now we can run commands inside this container to 
 
 ## Querying the Scheduler
 
-The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the . <!-- the... --> The Scheduler endpoints most useful to field diagnosis come from three sections:
+The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the . The Scheduler endpoints most useful to field diagnosis come from three sections:
 
 - __Plan__: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
 - __Pods__: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
@@ -642,7 +642,7 @@ First, we can go to `<dcos-url>/marathon` and find the Scheduler App in Marathon
 
 [<img src="img/ops-guide-marathon-app-list.png" alt="list of Marathon apps" width="400"/>](img/ops-guide-marathon-app-list.png)
 
-We click on the `dse` app and then the `Configuration` tab. In here we see an `Edit` button tucked away off to the right of the screen: <!-- we can do this from the DC/OS UI, right? -->
+We click on the `dse` app and then the `Configuration` tab. In here we see an `Edit` button tucked away off to the right of the screen:
 
 [<img src="img/ops-guide-marathon-config-section.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-section.png)
 
@@ -1008,7 +1008,7 @@ This example shows how steps in the deployment Plan (or any other Plan) can be m
 
 ## Deleting a task in ZK to forcibly wipe that task
 
-If the scheduler is truly flummoxed by a given task and doing a `pods replace <name>` to clear it is not working, a last resort is to use [Exhibitor](#zookeeperexhibitor) to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+If the scheduler is still failing after `pods replace <name>` to clear a task, a last resort is to use [Exhibitor](#zookeeperexhibitor) to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 
