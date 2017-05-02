@@ -59,13 +59,6 @@ func GetPlanParameterPayload(parameters []string) (string, error) {
 	return string(jsonVal), nil
 }
 
-//TODO: remove NewApp and HandleCommonFlags (in favor of New()) on or after April 2017
-func NewApp(version string, author string, longDescription string) (*kingpin.Application, error) {
-	return New(), nil
-}
-func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
-}
-
 func New() *kingpin.Application {
 	modName, err := GetModuleName()
 	if err != nil {
