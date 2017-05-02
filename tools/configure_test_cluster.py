@@ -126,7 +126,11 @@ class ClusterInitializer(object):
                     os.dup2(sys.stderr.fileno(), stdout_fd)
 
                     self.create_service_account()
-                    if initmaster:
+                    if initmaster and self.security != 'strict':
+                        # XXX: modify_master is hanging in strict mode:
+                        # INFINITY-1439; remove second half of boolean once
+                        # solved.
+
                         # currently, the create_service_account.sh script sets up the
                         # cli itself so we initialize it in the style that test logic
                         # expects after.
