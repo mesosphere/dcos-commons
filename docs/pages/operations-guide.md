@@ -642,7 +642,7 @@ First, we can go to `<dcos-url>/marathon` and find the Scheduler App in Marathon
 
 [<img src="img/ops-guide-marathon-app-list.png" alt="list of Marathon apps" width="400"/>](img/ops-guide-marathon-app-list.png)
 
-We click on the `dse` app and then the `Configuration` tab. In here we see an `Edit` button tucked away off to the right of the screen:
+Click on the `dse` app and then the `Configuration` tab. Here, we see an `Edit` button on the right hand side of the screen:
 
 [<img src="img/ops-guide-marathon-config-section.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-section.png)
 
