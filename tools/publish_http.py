@@ -36,7 +36,7 @@ class HTTPPublisher(object):
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
 
-        self._http_dir = os.environ.get('HTTP_DIR', '/tmp/dcos-http-{}/'.format(self._pkg_name))
+        self._http_dir = os.environ.get('HTTP_DIR', '/tmp/dcos-http-{}/'.format(package_name))
         self._http_host = os.environ.get('HTTP_HOST', '172.17.0.1')
         self._http_port = int(os.environ.get('HTTP_PORT', '0'))
 
@@ -97,9 +97,7 @@ class HTTPPublisher(object):
     def build(self, http_url_root):
         '''copies artifacts and a new stub universe into the http root directory'''
         try:
-            universe_path = universe_builder.UniversePackageBuilder(
-                self._pkg_name, self._pkg_version,
-                self._input_dir_path, http_url_root, self._artifact_paths).build_zip()
+            universe_path = self._package_builder.build_package()
         except Exception as e:
             err = 'Failed to create stub universe: {}'.format(str(e))
             self._github_updater.update('error', err)
@@ -149,31 +147,48 @@ class HTTPPublisher(object):
         else:
             port = self._http_port
 
+        http_url_root = 'http://{}:{}'.format(self._http_host, port)
+
+        self._package_builder = universe_builder.UniversePackageBuilder(
+            self._pkg_name, self._pkg_version,
+            self._input_dir_path, http_url_root, self._artifact_paths)
+
         # hack: write httpd script then run it directly
-        httpd_py_content = '''#!/usr/bin/python
-import os, SimpleHTTPServer, SocketServer
+        httpd_py_content = '''#!/usr/bin/env python3
+import os, socketserver
+from http.server import SimpleHTTPRequestHandler
 rootdir = '{}'
 host = '{}'
 port = {}
+json_content_type = '{}'
+
+class CustomTypeHandler(SimpleHTTPRequestHandler):
+    def __init__(self, req, client_addr, server):
+        SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
+    def guess_type(self, path):
+        if path.endswith('.json'):
+            return json_content_type
+        return SimpleHTTPRequestHandler.guess_type(self, path)
+
 os.chdir(rootdir)
-httpd = SocketServer.TCPServer((host, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+httpd = socketserver.TCPServer((host, port), CustomTypeHandler)
 print('Serving %s at http://%s:%s' % (rootdir, host, port))
 httpd.serve_forever()
-'''.format(self._http_dir, self._http_host, port)
-        httpd_py_path = os.path.join(self._http_dir, procname)
+'''.format(self._http_dir, self._http_host, port, self._package_builder.content_type())
 
+        httpd_py_path = os.path.join(self._http_dir, procname)
         if not os.path.isdir(self._http_dir):
             os.makedirs(self._http_dir)
-        httpd_py_file = file(httpd_py_path, 'w+')
+        httpd_py_file = open(httpd_py_path, 'w+')
         httpd_py_file.write(httpd_py_content)
         httpd_py_file.flush()
         httpd_py_file.close()
 
-        os.chmod(httpd_py_path, 0744)
+        os.chmod(httpd_py_path, 0o744)
         logger.info('Launching HTTPD: {}'.format(httpd_py_path))
         subprocess.Popen([httpd_py_path, "2&1>", "/dev/null"])
 
-        return 'http://{}:{}'.format(self._http_host, port)
+        return http_url_root
 
     def add_repo_to_cli(self, repo_url):
         try:
