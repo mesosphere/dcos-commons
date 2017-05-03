@@ -9,7 +9,7 @@ pods:
     image: mesosphere/cassandra:1.0.26-3.0.10
     uris:
       - {{SCHEDULER_URI}}
-      - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
+      - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin.tar.gz
       - {{BOOTSTRAP_URI}}
     user: {{SERVICE_USER}}
     resource-sets:

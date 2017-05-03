@@ -34,7 +34,7 @@ def test_backup_and_restore():
 @pytest.mark.soak_upgrade
 def test_soak_upgrade_downgrade():
     """Install the Cassandra Universe package and attempt upgrade to master.
-    
+
     Assumes that the install options file is placed in the repo root."""
     with open('cassandra.json') as options_file:
         install_options = json.load(options_file)
