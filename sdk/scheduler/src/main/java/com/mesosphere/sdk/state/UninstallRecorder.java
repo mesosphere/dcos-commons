@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.OperationRecorder;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.UninstallScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import org.apache.mesos.Protos;
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
  * Records to persistent storage the result of uninstalling/destroying resources.
  */
 public class UninstallRecorder implements OperationRecorder {
+    public static final String TOMBSTONE_MARKER = "uninstalled_";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
     private final ServiceSpec serviceSpec;
@@ -48,12 +52,13 @@ public class UninstallRecorder implements OperationRecorder {
         stateStore.storeTasks(updateResources(resource, tasksToUpdate));
     }
 
-    private Collection<Protos.TaskInfo> updateResources(Protos.Resource resource, List<Protos.TaskInfo> tasksToUpdate) {
-        // create new copies of taskinfo's with updated resources
+    private Collection<Protos.TaskInfo> updateResources(Protos.Resource resource,
+                                                        List<Protos.TaskInfo> tasksToUpdate) {
+        // create new copies of taskinfos with updated resources
         String initialResourceId = ResourceUtils.getResourceId(resource);
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
         for (Protos.TaskInfo taskInfoToUpdate : tasksToUpdate) {
-            Collection<Protos.Resource> updatedResources = markResources(initialResourceId,
+            Collection<Protos.Resource> updatedResources = updatedResources(initialResourceId,
                     taskInfoToUpdate.getResourcesList());
             Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate).clearResources()
                     .addAllResources(updatedResources).build();
@@ -62,32 +67,27 @@ public class UninstallRecorder implements OperationRecorder {
         return updatedTaskInfos;
     }
 
-    private Collection<Protos.Resource> markResources(String initialResourceId, List<Protos.Resource> resourcesList) {
+    private Collection<Protos.Resource> updatedResources(String initialResourceId,
+                                                         List<Protos.Resource> resourcesList) {
         // find the matching resource in each task and update its resource_id
-        String uninstalledResourceId = "uninstalled_" + initialResourceId;
-        List<Protos.Resource> markedResources = new ArrayList<>();
+        String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
+        List<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource resource : resourcesList) {
-            Protos.Resource.Builder resourceBuilder = resource.toBuilder();
             if (initialResourceId.equals(ResourceUtils.getResourceId(resource))) {
-                Protos.Labels.Builder labelsBuilder = resourceBuilder.getReservationBuilder().getLabelsBuilder();
-                for (Protos.Label.Builder label : labelsBuilder.getLabelsBuilderList()) {
-                    if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                        label.setValue(uninstalledResourceId);
-                    }
-                }
-
+                updatedResources.add(ResourceUtils.setResourceId(resource, uninstalledResourceId));
+            } else {
+                updatedResources.add(resource);
             }
-            markedResources.add(resourceBuilder.build());
         }
-        return markedResources;
+        return updatedResources;
     }
 
-    private boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
+    private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
         return taskInfo.getResourcesList().stream()
                 .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
     }
 
-    private boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
+    private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
         return ResourceUtils.getResourceId(resource).equals(ResourceUtils.getResourceId(taskInfoResource));
     }
 
