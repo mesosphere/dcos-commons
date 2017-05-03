@@ -95,7 +95,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    protected final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
 
@@ -136,8 +136,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
-        private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
         private Collection<Object> resources = new ArrayList<>();
+        private RecoveryPlanOverriderFactory recoveryPlanOverriderFactor;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
             this.serviceSpec = serviceSpec;
@@ -277,10 +277,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
-         * @param recoveryManagerFactory the factory whcih generates the custom recovery plan manager
+         * @param recoveryPlanOverriderFactory the factory whcih generates the custom recovery plan manager
          */
-        public Builder setRecoveryManagerFactory(RecoveryPlanManagerFactory recoveryManagerFactory) {
-            this.recoveryPlanManagerFactory = recoveryManagerFactory;
+        public Builder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
+            this.recoveryPlanOverriderFactor = recoveryPlanOverriderFactory;
             return this;
         }
 
@@ -387,7 +387,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                             stateStore, serviceSpec.getName(), configUpdateResult.getTargetId(), getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
-                    Optional.ofNullable(recoveryPlanManagerFactory),
+                    Optional.ofNullable(recoveryPlanOverriderFactor),
                     configUpdateResult);
         }
 
@@ -576,7 +576,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RestartHook> restartHookOptional,
-            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional,
+            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
@@ -587,7 +587,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
-        this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
+        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
     }
@@ -665,10 +665,10 @@ public class DefaultScheduler implements Scheduler, Observer {
             failureMonitor = new NeverFailureMonitor();
         }
 
-        List<PlanManager> overrideRecoveryPlanManagers = new ArrayList<>();
-        if (recoveryPlanManagerFactoryOptional.isPresent()) {
+        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
+        if (recoveryPlanOverriderFactory.isPresent()) {
             LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanManagerFactoryOptional.get().create(
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(
                     stateStore,
                     configStore,
                     launchConstrainer,

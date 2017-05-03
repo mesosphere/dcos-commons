@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,14 +39,19 @@ public class PodInstanceRequirement {
         return new PodInstanceRequirement(podInstance, tasksToLaunch, environment, RecoveryType.NONE);
     }
 
+    public static PodInstanceRequirement createTransientRecovery(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch) {
+        return createRecoveryRequirement(podInstance, tasksToLaunch, RecoveryType.TRANSIENT);
+    }
+
     /**
      * Creates a new instance which is marked as a permanent replacement.
      */
     public static PodInstanceRequirement createTransientRecovery(PodInstanceRequirement podInstanceRequirement) {
-        return createRecoveryRequirement(
+        return createTransientRecovery(
                 podInstanceRequirement.getPodInstance(),
-                podInstanceRequirement.getTasksToLaunch(),
-                RecoveryType.TRANSIENT);
+                podInstanceRequirement.getTasksToLaunch());
     }
 
     /**
@@ -129,5 +135,16 @@ public class PodInstanceRequirement {
     @Override
     public String toString() {
         return TaskUtils.getStepName(getPodInstance(), getTasksToLaunch());
+    }
+
+    public boolean conflicts(PodInstanceRequirement podInstanceRequirement) {
+        PodInstance podInstance = podInstanceRequirement.getPodInstance();
+        boolean samePodInstance = PlanUtils.podInstancesConflict(
+                podInstance,
+                getPodInstance());
+        boolean sameTasksToLaunch = CollectionUtils.isEqualCollection(
+                podInstanceRequirement.getTasksToLaunch(),
+                getTasksToLaunch());
+        return samePodInstance && sameTasksToLaunch;
     }
 }

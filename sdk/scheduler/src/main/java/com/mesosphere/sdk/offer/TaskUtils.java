@@ -299,7 +299,7 @@ public class TaskUtils {
         return Optional.empty();
     }
 
-    public static List<PodInstanceRequirement> getPodMap(
+    public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
             Collection<TaskInfo> allTasks) throws TaskException {

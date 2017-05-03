@@ -118,15 +118,25 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
     private Collection<PodInstanceRequirement> getRelevantDirtyAssets(
             PlanManager planManager,
             Set<PodInstanceRequirement> dirtyAssets) {
-        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
-        for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
-            for (PodInstanceRequirement localDirtyAsset : planManager.getDirtyAssets()) {
-                if (!PlanUtils.podInstancesConflict(dirtyAsset.getPodInstance(), localDirtyAsset.getPodInstance())) {
-                    relevantDirtyAssets.add(dirtyAsset);
-                }
-            }
-        }
+        LOGGER.info("Input dirty assets: {}", dirtyAssets);
+        LOGGER.info("Plan's dirty assets: {}", planManager.getDirtyAssets());
 
-        return relevantDirtyAssets;
+        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
+        Plan plan = planManager.getPlan();
+        return dirtyAssets.stream()
+                .filter(podInstanceRequirement -> assetIsRelevant(podInstanceRequirement, plan))
+                .collect(Collectors.toList());
+    }
+
+    private boolean assetIsRelevant(PodInstanceRequirement podInstanceRequirement, Plan plan) {
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .filter(step -> step.isInProgress())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .filter(podRequirement -> PlanUtils.podInstancesConflict(
+                        podInstanceRequirement.getPodInstance(),
+                        podInstanceRequirement.getPodInstance()))
+                .count() == 0;
     }
 }

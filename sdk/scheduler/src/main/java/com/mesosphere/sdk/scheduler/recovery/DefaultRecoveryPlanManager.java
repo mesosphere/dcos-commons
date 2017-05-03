@@ -5,11 +5,11 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.RandomStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -31,10 +31,11 @@ import java.util.stream.Collectors;
  * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
-    protected static final String RECOVERY_ELEMENT_NAME = "recovery";
+    public static final String DEFAULT_RECOVERY_PLAN_NAME= "recovery";
+    public static final String DEFAULT_RECOVERY_PHASE_NAME= "default";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConfigStore<ServiceSpec> configStore;
-    private final List<PlanManager> overrideRecoveryManagers;
+    private final List<RecoveryPlanOverrider> overrideRecoveryManagers;
 
     protected volatile Plan plan;
 
@@ -56,13 +57,13 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             ConfigStore<ServiceSpec> configStore,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
-            List<PlanManager> overrideRecoveryManagers) {
+            List<RecoveryPlanOverrider> overrideRecoveryManagers) {
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
         this.overrideRecoveryManagers = overrideRecoveryManagers;
-        plan = new DefaultPlan(RECOVERY_ELEMENT_NAME, Collections.emptyList());
+        plan = new DefaultPlan(DEFAULT_RECOVERY_PLAN_NAME, Collections.emptyList());
     }
 
     @Override
@@ -117,40 +118,94 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
 
         synchronized (planLock) {
-            // This list will not contain any Complete steps.
-            List<Step> steps = null;
+            Collection<PodInstanceRequirement> podInstanceRequirements = null;
+
             try {
-                steps = createSteps(dirtyAssets);
+                podInstanceRequirements = getRecoveryRequirements(dirtyAssets);
             } catch (TaskException e) {
                 logger.error("Failed to generate steps.", e);
                 return;
             }
 
-            List<String> stepNames = steps.stream().map(step -> step.getName()).collect(Collectors.toList());
-            logger.info("New recovery steps: {}", stepNames);
+            List<PodInstanceRequirement> defaultRequirements = new ArrayList<>();
+            List<Phase> phases = new ArrayList<>();
+            for (PodInstanceRequirement requirement : podInstanceRequirements) {
+                boolean overriden = false;
+                for (RecoveryPlanOverrider overrider : overrideRecoveryManagers) {
+                    Optional<Phase> override  = overrider.override(requirement);
+                    if (override.isPresent()) {
+                        overriden = true;
+                        Phase phase = override.get();
+                        phases.add(phase);
+                    }
+                }
 
-            List<Step> oldSteps = getPlan().getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> !stepNames.contains(step.getName()))
-                    .collect(Collectors.toList());
-            logger.info("Old recovery steps: {}",
-                    oldSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
+                if (!overriden) {
+                    defaultRequirements.add(requirement);
+                }
+            }
 
-            steps.addAll(oldSteps);
-            setPlan(createPlan(steps));
+            List<Step> steps = createSteps(defaultRequirements);
+            Phase defaultPhase =
+                    new DefaultPhase(
+                            DEFAULT_RECOVERY_PHASE_NAME,
+                            steps,
+                            new ParallelStrategy<Step>(),
+                            Collections.emptyList());
+
+            setPlan(updatePhases(phases, defaultPhase));
         }
     }
 
-    private Plan createPlan(List<Step> steps) {
-        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, steps, new RandomStrategy<>());
-        return DeployPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
+    private Plan updatePhases(List<Phase> overridePhases, Phase defaultPhase) {
+        Map<String, Phase> phaseMap = new HashMap<>();
+        // Add original phases
+        getPlan().getChildren().forEach(phase -> phaseMap.put(phase.getName(), phase));
+        // Add ovverrides
+        overridePhases.forEach(phase -> phaseMap.put(phase.getName(), phase));
+        // Update default phase
+        phaseMap.put(defaultPhase.getName(), updateDefaultPhase(defaultPhase));
+        List<Phase> phases = new ArrayList<>(phaseMap.values());
+
+        return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
+    }
+
+    private Phase updateDefaultPhase(Phase phase) {
+        Optional<Phase> oldDefault = getPlan().getChildren().stream()
+                .filter(p -> p.getName().equals(DEFAULT_RECOVERY_PHASE_NAME))
+                .findFirst();
+
+        if (!oldDefault.isPresent()) {
+            return phase;
+        }
+
+        List<PodInstanceRequirement> newRequirements = phase.getChildren().stream()
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .collect(Collectors.toList());
+
+        List<Step> steps = new ArrayList<>();
+        List<Step> oldSteps = oldDefault.get().getChildren().stream()
+                .filter(oldStep -> oldStep.getPodInstanceRequirement().isPresent())
+                .collect(Collectors.toList());
+
+        for (Step oldStep : oldSteps) {
+            if (!PlanUtils.assetConflicts(
+                    oldStep.getPodInstanceRequirement().get(),
+                    newRequirements)) {
+                steps.add(oldStep);
+            }
+        }
+
+        steps.addAll(phase.getChildren());
+        return new DefaultPhase(phase.getName(), steps, phase.getStrategy(), phase.getErrors());
     }
 
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
-        List<PodInstanceRequirement> failedPods = TaskUtils.getPodMap(
+        List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
                 configStore,
                 failedTasks,
                 stateStore.fetchTasks());
@@ -200,24 +255,20 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return recoveryRequirements;
     }
 
-    List<Step> createSteps(Collection<PodInstanceRequirement> dirtyAssets) throws TaskException {
-        List<Step> recoverySteps = new ArrayList<>();
-        for (PodInstanceRequirement recoveryRequirement : getRecoveryRequirements(dirtyAssets)) {
-            logger.info("Attempting to recover: {}", recoveryRequirement);
-            recoverySteps.add(new DefaultRecoveryStep(
-                    recoveryRequirement.toString(),
-                    Status.PENDING,
-                    recoveryRequirement,
-                    launchConstrainer,
-                    stateStore));
-        }
+    List<Step> createSteps(Collection<PodInstanceRequirement> podInstanceRequirements) {
+        return podInstanceRequirements.stream()
+                .map(podInstanceRequirement -> createStep(podInstanceRequirement))
+                .collect(Collectors.toList());
+    }
 
-        for (PlanManager ovverrideRecoveryManager : overrideRecoveryManagers) {
-            Collection<? extends Step> ovverrideSteps = ovverrideRecoveryManager.getCandidates(dirtyAssets);
-            recoverySteps = override(recoverySteps, ovverrideSteps);
-        }
-
-        return recoverySteps;
+    Step createStep(PodInstanceRequirement podInstanceRequirement) {
+        logger.info("Creating step: {}", podInstanceRequirement);
+        return new DefaultRecoveryStep(
+                podInstanceRequirement.toString(),
+                Status.PENDING,
+                podInstanceRequirement,
+                launchConstrainer,
+                stateStore);
     }
 
     @Override
@@ -233,30 +284,5 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;
-    }
-
-    private List<Step> override(List<Step> oldSteps, Collection<? extends Step> newSteps) {
-        List<Step> filteredSteps = new ArrayList<>();
-        oldSteps = oldSteps.stream()
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .collect(Collectors.toList());
-
-        for (Step oldStep : oldSteps) {
-            PodInstance oldPodInstance = oldStep.getPodInstanceRequirement().get().getPodInstance();
-            boolean overridden = newSteps.stream()
-                    .filter(step -> step.getPodInstanceRequirement().isPresent())
-                    .map(step -> step.getPodInstanceRequirement().get().getPodInstance())
-                    .filter(podInstance -> PlanUtils.podInstancesConflict(podInstance, oldPodInstance))
-                    .count() > 0;
-
-            if (!overridden) {
-                filteredSteps.add(oldStep);
-            } else {
-                logger.info("Step {} is overriden.", oldStep);
-            }
-        }
-
-        filteredSteps.addAll(newSteps);
-        return filteredSteps;
     }
 }

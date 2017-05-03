@@ -11,11 +11,11 @@ import com.mesosphere.sdk.state.StateStore;
 import java.util.Collection;
 
 /**
- * Implementations of this interface allow the replacement of the {@link DefaultRecoveryPlanManager} with a custom
- * implementation that addresses applicaiton specific failure recovery mechanisms.
+ * Implementations of this interface allow the overriding of behavior in the {@link DefaultRecoveryPlanManager}
+ * with a custom implementation that addresses applicaiton specific failure recovery mechanisms.
  */
-public interface RecoveryPlanManagerFactory {
-    PlanManager create(
+public interface RecoveryPlanOverriderFactory {
+    RecoveryPlanOverrider create(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             LaunchConstrainer launchConstrainer,

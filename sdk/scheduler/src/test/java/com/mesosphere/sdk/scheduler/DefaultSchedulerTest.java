@@ -960,7 +960,7 @@ public class DefaultSchedulerTest {
                     defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
-                    defaultScheduler.recoveryPlanManagerFactoryOptional,
+                    defaultScheduler.recoveryPlanOverriderFactory,
                     new ConfigurationUpdater.UpdateResult(
                             UUID.randomUUID(),
                             ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,

@@ -86,6 +86,10 @@ public interface Element extends Observable {
         return getStatus().equals(Status.COMPLETE);
     }
 
+    default boolean isInProgress() {
+        return isPrepared() || isStarting() || getStatus().equals(Status.IN_PROGRESS);
+    }
+
     /**
      * Indicates whether this Element is capable of being started.
      */

@@ -2,8 +2,8 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -15,9 +15,9 @@ import java.util.Optional;
 /**
  * The HdfsRecoveryPlanManagerFactory generates {@link HdfsRecoveryPlanManager}s.
  */
-public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanManagerFactory {
+public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFactory {
     @Override
-    public PlanManager create(
+    public RecoveryPlanOverrider create(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             LaunchConstrainer launchConstrainer,
@@ -26,8 +26,6 @@ public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanManagerFactor
         return new HdfsRecoveryPlanManager(
                 stateStore,
                 configStore,
-                launchConstrainer,
-                failureMonitor,
                 getNameNodeReplacementPlan(plans));
     }
 

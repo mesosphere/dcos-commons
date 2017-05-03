@@ -50,21 +50,6 @@ public class PlanUtils {
         return sameType && sameIndex;
     }
 
-    public static Collection<PodInstanceRequirement> getRelevantDirtyAssets(
-            PlanManager planManager,
-            Set<PodInstanceRequirement> dirtyAssets) {
-        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
-        for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
-            for (PodInstanceRequirement localDirtyAsset : planManager.getDirtyAssets()) {
-                if (!PlanUtils.podInstancesConflict(dirtyAsset.getPodInstance(), localDirtyAsset.getPodInstance())) {
-                    relevantDirtyAssets.add(dirtyAsset);
-                }
-            }
-        }
-
-        return relevantDirtyAssets;
-    }
-
     public static List<PlanManager> getActivePlanManagers(List<PlanManager> planManagers) {
         return planManagers.stream()
                 .filter(planManager -> !planManager.getPlan().isInterrupted())
