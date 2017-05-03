@@ -52,7 +52,7 @@
 <a name="overview"></a>
 # Overview
 
-DC/OS Apache Cassandra is an automated service that makes it easy to deploy and manage Apache Cassandra on [DC/OS](https://mesosphere.com/product/). Apache Cassandra is a distributed, NoSQL database offering high availability, fault tolerance and scalability across data centers.
+DC/OS Apache Cassandra is an automated service that makes it easy to deploy and manage Apache Cassandra on [DC/OS](https://mesosphere.com/product/). Apache Cassandra is a distributed NoSQL database offering high availability, fault tolerance and scalability across data centers.
 
 For more information on Apache Cassandra, see the Apache Cassandra [documentation](http://cassandra.apache.org/doc/latest/).
 
@@ -71,15 +71,15 @@ For more information on Apache Cassandra, see the Apache Cassandra [documentatio
 1. Install DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.
 1. If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
     ```
-    dcos package install cassandra
+    dcos package install beta-cassandra
     ```
 You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
 1. The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.
 1. Connect a client to the DC/OS Apache Cassandra service.
     ```
-    dcos cassandra endpoints
+    dcos beta-cassandra endpoints
     ["node"]
-    dcos cassandra endpoints node
+    dcos beta-cassandra endpoints node
     {
       "address": [
         "10.0.1.125:9042",
@@ -127,10 +127,10 @@ dcos package install beta-cassandra
 You can specify a custom configuration in an `options.json` file and pass it to `dcos package install` using the `--options` parameter.
 
 ```
-$ dcos package install beta-cassandra --options=your-options.json
+$ dcos package install beta-cassandra --options=<options>.json
 ```
 
-For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/) for service configuration access.
+For more information about building the `options.json` file, see the [DC/OS documentation](https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/) for service configuration access.
 
 ## Installation from the DC/OS Web Interface
 
@@ -366,12 +366,12 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 Follow these steps to uninstall the service.
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner).
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. [More information about the framework cleaner script](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner).
 
 To uninstall an instance named `cassandra` (the default), run:
 ```
 MY_SERVICE_NAME=cassandra
-dcos package uninstall --app-id=$MY_SERVICE_NAME cassandra
+dcos package uninstall --app-id=$MY_SERVICE_NAME beta-cassandra
 dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
     -r $MY_SERVICE_NAME-role \
     -p $MY_SERVICE_NAME-principal \
@@ -388,13 +388,13 @@ Clients communicating with Apache Cassandra use the Cassandra Query Language (CQ
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
-  - List endpoint types: `dcos cassandra endpoints`
-  - View endpoints for an endpoint type: `dcos cassandra endpoints <endpoint>`
+  - List endpoint types: `dcos beta-cassandra endpoints`
+  - View endpoints for an endpoint type: `dcos beta-cassandra endpoints <endpoint>`
 - Web:
   - List endpoint types: `<dcos-url>/service/cassandra/v1/endpoints`
   - View endpoints for an endpoint type: `<dcos-url>/service/cassandra/v1/endpoints/<endpoint>`
 
-The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint type, which shows the locations for all Cassandra nodes in the cluster. To see node addresses, run `dcos cassandra endpoints node`. A typical response will look like the following:
+The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint type, which shows the locations for all Cassandra nodes in the cluster. To see node addresses, run `dcos beta-cassandra endpoints node`. A typical response will look like the following:
 
 ```json
 {
@@ -441,7 +441,7 @@ Nodes are configured with a "Readiness check" to ensure that the underlying serv
 
 Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
-To see a full listing of available options, run `dcos package describe --config cassandra` in the CLI, or browse the DC/OS Apache Cassandra Service install dialog in the DC/OS Dashboard.
+To see a full listing of available options, run `dcos package describe --config beta-cassandra` in the CLI, or browse the DC/OS Apache Cassandra Service install dialog in the DC/OS Dashboard.
 
 <a name="adding-a-node"></a>
 ### Adding a Node
@@ -455,7 +455,7 @@ The CPU and Memory requirements of each node may be increased or decreased as fo
 - CPU (1.0 = 1 core): `CASSANDRA_CPUS`
 - Memory (in MB): `CASSANDRA_MEMORY_MB`. To prevent out of memory errors, you must ensure that the `TASKCFG_ALL_CASSANDRA_HEAP_SIZE` environment variable is less than `$CASSANDRA_MEMORY_MB`.
 
-Note that volume requirements (type and/or size) may not be changed after initial deployment.
+Note: volume requirements (type and/or size) can not be changed after initial deployment.
 
 <a name="updating-placement-constraints"></a>
 ### Updating Placement Constraints
@@ -481,7 +481,7 @@ Let's say we have the following deployment of our nodes
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos cassandra pods replace node-1`
+1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos beta-cassandra pods replace node-1`
 1. Wait for `node-1` to be up and healthy before continuing with any other replacement operations.
 
 <a name="restarting-a-node"></a>
@@ -489,7 +489,7 @@ Let's say we have the following deployment of our nodes
 
 This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
-1. Run `dcos cassandra pods restart node-<NUM>`, e.g. `node-2`.
+1. Run `dcos beta-cassandra pods restart node-<NUM>`, e.g. `node-2`.
 
 <a name="replacing-a-node"></a>
 ## Replacing a Node
@@ -498,11 +498,11 @@ This operation will move a node to a new system and will discard the persistent 
 
 **Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.
 
-1. Run `dcos cassandra pods replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
+1. Run `dcos beta-cassandra pods replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
 
 For example, let's say `node-2`'s host system has died and `node-2` needs to be moved.
 ```
-dcos cassandra pods replace node-2
+dcos beta-cassandra pods replace node-2
 ```
 
 <a name="configuring-multi-data-center-deployments"></a>
@@ -512,10 +512,10 @@ To replicate data across data centers, Apache Cassandra requires that you config
 
 Launch the first cluster with the default configuration:
 ```
-dcos package install cassandra
+dcos package install beta-cassandra
 ```
 
-Create an options.json file for the second cluster that specifies a different service name and data center name:
+Create an `options.json` file for the second cluster that specifies a different service name and data center name:
 ```json
 {
   "service": {
@@ -527,7 +527,7 @@ Create an options.json file for the second cluster that specifies a different se
 
 Launch the second cluster with these custom options:
 ```
-dcos package install cassandra --options=options.json
+dcos package install beta-cassandra --options=<options>.json
 ```
 
 Get the list of seed node addresses for the first cluster from the scheduler HTTP API:
@@ -564,7 +564,7 @@ You can backup an entire cluster's data and schema to Amazon S3 using the `backu
 - `AWS_REGION`: the region of the S3 bucket being used to store this backup.
 - `S3_BUCKET_NAME`: the name of the S3 bucket to store this backup in.
 
-Make sure that you provision your nodes with enough disk space to perform a backup. The backups that Apache Cassandra are stored on disk before being uploaded to S3, and will take up as much space as the data currently in the tables, so you'll need half of your total available space to be free to backup every keyspace at once.
+Make sure that you provision your nodes with enough disk space to perform a backup. Apache Cassandra backups are stored on disk before being uploaded to S3, and will take up as much space as the data currently in the tables, so you'll need half of your total available space to be free to backup every keyspace at once.
 
 As noted in the documentation for the [backup/restore strategy configuration option](#backup-restore-strategy), it is possible to run transfers to S3 either in serial or in parallel, but care must be taken not to exceed any throughput limits you may have in your cluster. Throughput depends on a variety of factors, including uplink speed, proximity to region where the backups are being uploaded and downloaded, and the performance of the underlying storage infrastructure. You should perform periodic tests in your local environment to understand what you can expect from S3.
 
@@ -578,12 +578,12 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
+dcos beta-cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
 ```
 
 If you're backing up multiple keyspaces, you must wrap them in escaped quotation marks (`\"`) for the backup to run successfully. If the `CASSANDRA_KEYSPACES` parameter isn't supplied, then every keyspace in your cluster will be backed up.
 
-**IMPORTANT**: To ensure that sensitive information such as your AWS secret access key remains secure, make sure that you've set the `core.dcos_url` configuration property in the DC/OS CLI to an HTTPS URL.
+**IMPORTANT**: To ensure that sensitive information, such as your AWS secret access key, remains secure, make sure that you've set the `core.dcos_url` configuration property in the DC/OS CLI to an HTTPS URL.
 
 <a name="restore"></a>
 ## Restore
@@ -602,7 +602,7 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
+dcos beta-cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
 ```
 
 This will restore the schema from every keyspace backed up with the `backup-s3` plan and populate those keyspaces with the data they contained at the time the snapshot was taken. Downloading and restoration of backups will use the configured backup/restore strategy. This plan assumes that the keyspaces being restored do not already exist in the current cluster, and will fail if any keyspace with the same name is present.
