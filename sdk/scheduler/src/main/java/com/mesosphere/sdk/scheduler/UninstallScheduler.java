@@ -19,10 +19,10 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPlanScheduler;
 import com.mesosphere.sdk.scheduler.plan.PlanScheduler;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.state.UninstallRecorder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -222,7 +222,7 @@ public class UninstallScheduler implements Scheduler {
         LOGGER.info("Initializing globals...");
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
+        offerAccepter = new OfferAccepter(Arrays.asList(new UninstallRecorder(stateStore)));
         OfferEvaluator offerEvaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
         planScheduler = new DefaultPlanScheduler(offerAccepter, offerEvaluator, stateStore, taskKiller);
     }

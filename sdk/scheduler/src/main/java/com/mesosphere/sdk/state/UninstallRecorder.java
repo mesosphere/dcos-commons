@@ -4,10 +4,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
-import com.mesosphere.sdk.scheduler.UninstallScheduler;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +20,9 @@ public class UninstallRecorder implements OperationRecorder {
     public static final String TOMBSTONE_MARKER = "uninstalled_";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
-    private final ServiceSpec serviceSpec;
-    private final Scheduler uninstallScheduler;
 
-    public UninstallRecorder(StateStore stateStore, ServiceSpec serviceSpec, UninstallScheduler uninstallScheduler) {
+    public UninstallRecorder(StateStore stateStore) {
         this.stateStore = stateStore;
-        this.serviceSpec = serviceSpec;
-        this.uninstallScheduler = uninstallScheduler;
     }
 
     @Override
