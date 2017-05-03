@@ -8,7 +8,7 @@ This quick start guide introduces key concepts that we will use for modeling rea
 In this tutorial, we'll build our `helloworld` service using the Java interface. The `helloworld` service will be composed of a single instance of the `helloworld` pod, running a single `server` task.
 
 ### Step 0 - Clone the project
-Get started by forking: https://github.com/mesosphere/dcos-commons and cloning it on your workstation. Change your working directory to `dcos-commons`.
+Get started by forking: [https://github.com/mesosphere/dcos-commons](https://github.com/mesosphere/dcos-commons) and cloning it on your workstation. Change your working directory to `dcos-commons`.
 
 ```bash
 $ cd dcos-commons
@@ -43,7 +43,7 @@ Get started by forking https://github.com/mesosphere/dcos-commons, and cloning i
 #### Host inside Monorepo
 
 ```bash
-(dcos-commons)$ ./new-service.sh frameworks/helloworldjava
+(dcos-commons)$ ./new-framework.sh frameworks/helloworldjava
 ```
 
 The command above generates a new project at location `frameworks/helloworldjava/`:
