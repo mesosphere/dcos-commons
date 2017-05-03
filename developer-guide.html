@@ -190,9 +190,10 @@
       <li><a href="#mesos" id="markdown-toc-mesos">Mesos</a></li>
       <li><a href="#marathon" id="markdown-toc-marathon">Marathon</a></li>
       <li><a href="#universe" id="markdown-toc-universe">Universe</a></li>
-      <li><a href="#zookeeper" id="markdown-toc-zookeeper">Zookeeper</a></li>
+      <li><a href="#zookeeper" id="markdown-toc-zookeeper">ZooKeeper</a></li>
     </ul>
   </li>
+  <li><a href="#pre-requisites" id="markdown-toc-pre-requisites">Pre-requisites</a></li>
   <li><a href="#getting-started" id="markdown-toc-getting-started">Getting Started</a></li>
   <li><a href="#introduction-to-dcos-service-definitions" id="markdown-toc-introduction-to-dcos-service-definitions">Introduction to DC/OS Service Definitions</a>    <ul>
       <li><a href="#servicespec" id="markdown-toc-servicespec">ServiceSpec</a>        <ul>
@@ -271,7 +272,7 @@
 
 <h1 id="dcos-component-overview">DC/OS Component Overview</h1>
 
-<p>The four major components are Mesos, Marathon, Universe, and Zookeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.</p>
+<p>The four major components are Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.</p>
 
 <h2 id="mesos">Mesos</h2>
 
@@ -293,13 +294,36 @@
 
 <p>Every DC/OS service must provide a package definition in the format expected by the Universe. <a href="https://github.com/mesosphere/universe">Learn more about creating Universe packages</a>.</p>
 
-<h2 id="zookeeper">Zookeeper</h2>
+<h2 id="zookeeper">ZooKeeper</h2>
 
-<p>Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.</p>
+<p>Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. ZooKeeper provides persistent storage for this information.</p>
 
-<p>Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java">ConfigStore</a> and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java">StateStore</a> interfaces are generic and unopinionated about the backing persistent metadata store.</p>
+<p>Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java">ConfigStore</a> and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java">StateStore</a> interfaces are generic and unopinionated about the backing persistent metadata store.</p>
 
-<p>They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.</p>
+<p>They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.</p>
+
+<h1 id="pre-requisites">Pre-requisites</h1>
+
+<ol>
+  <li><code class="highlighter-rouge">dcos-commmons</code> checked out locally on your machine.</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>  <span class="nv">$ </span>git clone git@github.com:mesosphere/dcos-commons.git
+  <span class="nv">$ </span><span class="nb">cd </span>dcos-commons
+</code></pre>
+</div>
+
+<ol>
+  <li>
+    <p>Access to a DC/OS 1.8 (or newer) cluster.</p>
+  </li>
+  <li>
+    <p>The DC/OS CLI <a href="https://docs.mesosphere.com/latest/cli/install/">installed</a> and <a href="https://docs.mesosphere.com/latest/cli/configure/">configured</a> to point to your cluster.</p>
+  </li>
+  <li>
+    <p><a href="https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables">Required AWS credentials set in your environment</a>.</p>
+  </li>
+</ol>
 
 <h1 id="getting-started">Getting Started</h1>
 
@@ -307,12 +331,13 @@
   <li>
     <p>Create your framework.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./new-service.sh frameworks/myframework
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./new-framework.sh frameworks/myframework
 <span class="gp">$ </span><span class="nb">cd </span>frameworks/myframework
 </code></pre>
     </div>
 
-    <p><code class="highlighter-rouge">new-service.sh</code> creates a skeleton framework.  You will extend this skeleton.</p>
+    <p><code class="highlighter-rouge">new-framework.sh</code> creates a skeleton framework.  You will extend
+this skeleton.</p>
   </li>
   <li>
     <p>View <code class="highlighter-rouge">svc.yml</code>.</p>
@@ -325,18 +350,19 @@
     <p>Take a look at <code class="highlighter-rouge">src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java</code>.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads <code class="highlighter-rouge">svc.yml</code>, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.</p>
   </li>
   <li>
-    <p>Build a <a href="#packaging">package</a>.</p>
+    <p>Build a <a href="#packaging">package</a>. You must run the build.sh that is within <code class="highlighter-rouge">frameworks/myframework</code> directory that was just generated.</p>
 
     <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./build.sh aws
 </code></pre>
     </div>
 
-    <p>You will deploy your framework to DC/OS as a <a href="#packaging">package</a>.  <code class="highlighter-rouge">build.sh</code> creates this package.</p>
+    <p>You will deploy your framework to DC/OS as a
+<a href="#packaging">package</a>.  <code class="highlighter-rouge">build.sh</code> creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.</p>
   </li>
   <li>
     <p>Install your package.</p>
 
-    <p><code class="highlighter-rouge">build.sh</code> prints instructions for installing the package.  They will look something like this:</p>
+    <p><code class="highlighter-rouge">build.sh</code> prints instructions for installing the package that look something like this:</p>
 
     <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package repo remove myframework-aws
 <span class="gp">$ </span>dcos package repo add --index<span class="o">=</span>0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
@@ -344,7 +370,7 @@
 </code></pre>
     </div>
 
-    <p>Navigate to the DC/OS Services UI to view the deployment.</p>
+    <p>Navigate to the <a href="https://docs.mesosphere.com/latest/gui/#services">DC/OS Services UI</a> to view the deployment.</p>
   </li>
   <li>
     <p>Uninstall your package.</p>
@@ -354,7 +380,11 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
 </code></pre>
     </div>
 
-    <p>The second command above runs the <strong>janitor</strong> script.  The janitor script runs inside the DC/OS cluster, cleaning up Zookeeper state and resource reservations made by a framework.  DC/OS will soon support uninstall hooks so this can happen automatically, but for now, you must manually run the janitor script as shown above.</p>
+    <p>The second command above runs the <strong>janitor</strong> script.  The janitor
+script runs inside the DC/OS cluster, cleaning up ZooKeeper state
+and resource reservations made by a framework.  DC/OS will soon
+support uninstall hooks so this can happen automatically, but for
+now, you must manually run the janitor script as shown above.</p>
   </li>
 </ol>
 
@@ -406,7 +436,7 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
     </ul>
   </li>
   <li>
-    <p><strong>Pods</strong>: A pod can be defined most simply as a set of tasks.</p>
+    <p><strong>Pods</strong>: A pod is simply a set of tasks.</p>
   </li>
   <li>
     <p><strong>hello-world-pod</strong>: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is <code class="highlighter-rouge">hello-world-pod</code>.</p>
@@ -421,7 +451,7 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
     <p><strong>hello-world-task</strong>: In this example, the single pod definition is composed of a single task. The name of this task is “hello-world-task”.</p>
   </li>
   <li>
-    <p><strong>goal</strong>: Every task must have a goal state. There are two possible goal states: <code class="highlighter-rouge">RUNNING</code> and <code class="highlighter-rouge">FINISHED</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a Task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISHED</code> indicates that if a task finishes successfully it does not need to be restarted.</p>
+    <p><strong>goal</strong>: Every task must have a goal state. There are two possible goal states: <code class="highlighter-rouge">RUNNING</code> and <code class="highlighter-rouge">FINISHED</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISHED</code> indicates that if a task finishes successfully it does not need to be restarted.</p>
   </li>
   <li>
     <p><strong>cmd</strong>: The command to run to start a task. Here, the task will print “hello world” to stdout and sleep for 1000 seconds. Because its goal state is <code class="highlighter-rouge">RUNNING</code>, it will be started again upon exit.</p>
@@ -701,7 +731,7 @@ dcos package install --yes hello-world
   <li>
     <p>Define a target configuration</p>
 
-    <p>a. Deploy a Marathon application definition for your service’s scheduler</p>
+    <p>a. Deploy a Marathon application definition for your service’s scheduler.</p>
 
     <p>b. The scheduler renders the <code class="highlighter-rouge">ServiceSpec</code> and Plan definitions in the service’s YAML definition.</p>
   </li>
@@ -710,13 +740,13 @@ dcos package install --yes hello-world
 
     <p>a. The scheduler compares previous and current <code class="highlighter-rouge">ServiceSpec</code>s:</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>i. Validate the `ServiceSpec`
+    <div class="highlighter-rouge"><pre class="highlight"><code>i. Validate the `ServiceSpec`.
 
-ii. Determine scenario (install, update or no change)
+ii. Determine scenario (install, update or no change).
 </code></pre>
     </div>
 
-    <p>b. The plan is chosen and executed</p>
+    <p>b. The plan is chosen and executed.</p>
   </li>
 </ol>
 
@@ -1386,7 +1416,7 @@ hello
 
 <h3 id="sidecar-plans">Sidecar Plans</h3>
 
-<p>You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.</p>
+<p>You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to perform, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1747,7 +1777,7 @@ hello
 </div>
 
 <ol>
-  <li>Delete these 3 labels from your marathon application definition:
+  <li>Delete these 3 labels from your Marathon application definition:
     <ul>
       <li><code class="highlighter-rouge">DCOS_FRAMEWORK_NAME</code></li>
       <li><code class="highlighter-rouge">DCOS_SERVICE_PORT_INDEX</code></li>

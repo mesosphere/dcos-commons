@@ -467,7 +467,7 @@ root: {{ROOT_DIR}}
 
                 <p>This may be used to customize the environment variable used to advertise this port within the task.</p>
 
-                <p>By default, ports are automatically advertised as <code class="highlighter-rouge">PORT_&lt;NAME&gt;</code>, where any punctuation in <code class="highlighter-rouge">NAME</code> is converted to underscores. For example, a port named <code class="highlighter-rouge">http-api</code> would be advertised as <code class="highlighter-rouge">PORT_HTTP_API</code> by default.</p>
+                <p>By default, environment variables for ports are automatically populated as <code class="highlighter-rouge">PORT_&lt;NAME&gt;</code> in the launched tasks, where any punctuation in <code class="highlighter-rouge">NAME</code> is converted to underscores. For example, a port named <code class="highlighter-rouge">http-api</code> would be advertised as <code class="highlighter-rouge">PORT_HTTP_API</code> by default in the task environment.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">vip</code></p>
