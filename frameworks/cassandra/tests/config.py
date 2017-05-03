@@ -70,7 +70,10 @@ def launch_and_verify_job(job_name):
 
     output = cmd.run_cli('job run {}'.format(job_name))
     # Get the id of the run we just initiated
-    run_id = output.strip().split()[-1]
+    run_id = (
+        cmd.run_cli('job show runs {}'.format(job_name))
+            .strip().split('\n')[-1].split()[0]
+    )
 
     # Verify that our most recent run succeeded
     spin.time_wait_noisy(lambda: (
