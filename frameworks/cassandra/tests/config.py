@@ -74,7 +74,7 @@ def launch_and_verify_job(job_name):
 
     output = cmd.run_cli('job run {}'.format(job_name))
     # Get the id of the run we just initiated
-    run_info = json.loads(
+    run_id = json.loads(
         cmd.run_cli('job show runs {} --json'.format(job_name))
     )[0]['id']
 
