@@ -52,7 +52,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 TextFormat.shortDebugString(taskInfo));
 
         updateResources(taskInfo);
-        stateStore.storeTasks(Arrays.asList(taskInfo));
+        stateStore.storeTasks(Collections.singletonList(taskInfo));
         if (taskStatus != null) {
             stateStore.storeStatus(taskStatus);
         }

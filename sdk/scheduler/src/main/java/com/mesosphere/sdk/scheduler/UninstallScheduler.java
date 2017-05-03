@@ -433,14 +433,15 @@ public class UninstallScheduler implements Scheduler {
     private void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
+        // phase 1 complete
         revive();
         Collection<String> taskNames = stateStore.fetchTaskNames();
         LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
         for (String taskName : taskNames) {
             Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
             taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
-//            stateStore.clearTask(taskName);
         }
+        // phase 2 complete
     }
 
 }
