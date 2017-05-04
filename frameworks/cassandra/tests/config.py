@@ -38,12 +38,13 @@ def qualified_job_name(job_name):
     return 'test.cassandra.{}'.format(job_name)
 
 
+def get_jobs_folder():
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'jobs')
+
+
 def install_cassandra_jobs():
-    jobs_folder = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'jobs'
-    )
     for job in TEST_JOBS:
-        install_job(job, jobs_folder)
+        install_job(job, get_jobs_folder())
 
 
 def install_job(job_name, jobs_folder):
@@ -91,4 +92,8 @@ def launch_and_verify_job(job_name):
 
 def remove_cassandra_jobs():
     for job in TEST_JOBS:
-        cmd.run_cli('job remove {}'.format(qualified_job_name(job)))
+        remove_job(job)
+
+
+def remove_job(job_name):
+    cmd.run_cli('job remove {}'.format(qualified_job_name(job_name)))
