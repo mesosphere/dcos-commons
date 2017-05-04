@@ -1,3 +1,12 @@
+package commands
+
+
+import (
+    "fmt"
+    "github.com/mesosphere/dcos-commons/cli/utils"
+    "gopkg.in/alecthomas/kingpin.v2"
+    "strings"
+)
 
 // Connection section, manually implemented by some services (DEPRECATED, use common Endpoints)
 
@@ -8,10 +17,10 @@ type ConnectionHandler struct {
 func (cmd *ConnectionHandler) RunConnection(c *kingpin.ParseContext) error {
     if len(cmd.TypeName) == 0 {
         // Root endpoint: Always produce JSON
-        PrintJSON(HTTPGet("v1/connection"))
+        utils.PrintJSON(utils.HTTPGet("v1/connection"))
     } else {
         // Any custom type endpoints: May be any format, so just print the raw text
-        PrintText(HTTPGet(fmt.Sprintf("v1/connection/%s", cmd.TypeName)))
+        utils.PrintText(utils.HTTPGet(fmt.Sprintf("v1/connection/%s", cmd.TypeName)))
     }
     return nil
 }

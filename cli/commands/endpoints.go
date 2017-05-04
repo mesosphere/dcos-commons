@@ -1,3 +1,10 @@
+package commands
+
+import (
+    "github.com/mesosphere/dcos-commons/cli/utils"
+    "gopkg.in/alecthomas/kingpin.v2"
+    "log"
+)
 
 // Endpoints section
 
@@ -16,13 +23,13 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
     if len(cmd.Name) != 0 {
         path += "/" + cmd.Name
     }
-    response := HTTPGet(path)
+    response := utils.HTTPGet(path)
     if len(cmd.Name) == 0 {
         // Root endpoint: Always produce JSON
-        PrintJSON(response)
+        utils.PrintJSON(response)
     } else {
         // Any specific endpoints: May be any format, so just print the raw text
-        PrintText(response)
+        utils.PrintText(response)
     }
     return nil
 }
@@ -31,7 +38,5 @@ func HandleEndpointsSection(app *kingpin.Application) {
     // endpoints [type]
     cmd := &EndpointsHandler{}
     endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
-    // TODO(nickbp): Remove deprecated argument after April 2017:
-    endpoints.Flag("native", "deprecated argument").BoolVar(&cmd.PrintDeprecatedNotice)
     endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }

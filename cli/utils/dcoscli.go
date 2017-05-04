@@ -1,6 +1,7 @@
-package cli
+package utils
 
 import (
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"log"
 	"os"
 	"os/exec"
@@ -10,7 +11,7 @@ import (
 // TODO(nick): Consider breaking this config retrieval out into a separate independent library?
 
 func RunCLICommand(arg ...string) (string, error) {
-	if Verbose {
+	if config.Verbose {
 		log.Printf("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
 	}
 	outBytes, err := exec.Command("dcos", arg...).CombinedOutput()

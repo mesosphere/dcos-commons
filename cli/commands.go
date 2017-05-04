@@ -1,18 +1,14 @@
 package cli
 
 import (
-	"encoding/json"
+	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/mesosphere/dcos-commons/cli/utils"
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
-	"net/url"
 	"os"
 	"strings"
-)
-
-var (
-	Verbose bool
 )
 
 func GetModuleName() (string, error) {
@@ -68,7 +64,7 @@ func New() *kingpin.Application {
 	app := kingpin.New(fmt.Sprintf("dcos %s", modName), "")
 
 	app.HelpFlag.Short('h') // in addition to default '--help'
-	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&Verbose)
+	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&config.Verbose)
 
 	// This fulfills an interface that's expected by the main DC/OS CLI:
 	// Prints a description of the module.
@@ -78,23 +74,23 @@ func New() *kingpin.Application {
 		return nil
 	}).Bool()
 
-	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&tlsForceInsecure)
+	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&config.TlsForceInsecure)
 
 	// Overrides of data that we fetch from DC/OS CLI:
 
 	// Support using "DCOS_AUTH_TOKEN" or "AUTH_TOKEN" when available
-	app.Flag("custom-auth-token", "Custom auth token to use when querying service").Envar("DCOS_AUTH_TOKEN").PlaceHolder("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
+	app.Flag("custom-auth-token", "Custom auth token to use when querying service").Envar("DCOS_AUTH_TOKEN").PlaceHolder("DCOS_AUTH_TOKEN").StringVar(&config.DcosAuthToken)
 	// Support using "DCOS_URI" or "DCOS_URL" when available
-	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service").Envar("DCOS_URI").Envar("DCOS_URL").PlaceHolder("DCOS_URI/DCOS_URL").StringVar(&dcosUrl)
+	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service").Envar("DCOS_URI").Envar("DCOS_URL").PlaceHolder("DCOS_URI/DCOS_URL").StringVar(&config.DcosUrl)
 	// Support using "DCOS_CA_PATH" or "DCOS_CERT_PATH" when available
-	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").Envar("DCOS_CA_PATH").Envar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&tlsCACertPath)
+	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").Envar("DCOS_CA_PATH").Envar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&config.TlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	serviceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	serviceName := utils.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
 	if len(serviceName) == 0 {
 		serviceName = modName
 	}
-	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&ServiceName)
+	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&config.ServiceName)
 
 	return app
 }

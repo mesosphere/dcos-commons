@@ -1,35 +1,17 @@
-package cli
+package utils
 
 import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
-)
-
-type tlsSetting int
-
-const (
-	tlsUnknown tlsSetting = iota
-	tlsUnverified
-	tlsVerified
-	tlsSpecificCert
-)
-
-var (
-	dcosAuthToken string
-	dcosUrl       string
-	ServiceName   string
-
-	tlsForceInsecure bool
-	tlsCliSetting    tlsSetting = tlsUnknown
-	tlsCACertPath    string
 )
 
 func HTTPGet(urlPath string) *http.Response {
@@ -85,40 +67,40 @@ func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
 }
 
 func HTTPQuery(request *http.Request) *http.Response {
-	if tlsForceInsecure { // user override via '--force-insecure'
-		tlsCliSetting = tlsUnverified
+	if config.TlsForceInsecure { // user override via '--force-insecure'
+		config.TlsCliSetting = config.TlsUnverified
 	}
-	if tlsCliSetting == tlsUnknown {
+	if config.TlsCliSetting == config.TlsUnknown {
 		// get CA settings from CLI
 		cliVerifySetting := OptionalCLIConfigValue("core.ssl_verify")
 		if strings.EqualFold(cliVerifySetting, "false") {
 			// 'false': disable cert validation
-			tlsCliSetting = tlsUnverified
+			config.TlsCliSetting = config.TlsUnverified
 		} else if strings.EqualFold(cliVerifySetting, "true") {
 			// 'true': require validation against default CAs
-			tlsCliSetting = tlsVerified
+			config.TlsCliSetting = config.TlsVerified
 		} else if len(cliVerifySetting) != 0 {
 			// '<other string>': path to local/custom cert file
-			if len(tlsCACertPath) == 0 {
-				tlsCACertPath = cliVerifySetting
+			if len(config.TlsCACertPath) == 0 {
+				config.TlsCACertPath = cliVerifySetting
 			}
-			tlsCliSetting = tlsSpecificCert
+			config.TlsCliSetting = config.TlsSpecificCert
 		} else {
 			// this shouldn't happen: 'auth login' requires a non-empty setting.
 			// play it safe and leave cert verification enabled by default.
-			tlsCliSetting = tlsVerified
+			config.TlsCliSetting = config.TlsVerified
 		}
 	}
 
 	// allow unverified certs if user invoked --force-insecure, or if it's configured that way in CLI:
-	tlsConfig := &tls.Config{InsecureSkipVerify: (tlsCliSetting == tlsUnverified)}
+	tlsConfig := &tls.Config{InsecureSkipVerify: (config.TlsCliSetting == config.TlsUnverified)}
 
 	// import custom cert if user manually set the flag, or if it's configured in CLI:
-	if len(tlsCACertPath) != 0 {
+	if len(config.TlsCACertPath) != 0 {
 		// include custom CA cert as verified
-		cert, err := ioutil.ReadFile(tlsCACertPath)
+		cert, err := ioutil.ReadFile(config.TlsCACertPath)
 		if err != nil {
-			log.Fatalf("Unable to read from CA certificate file %s: %s", tlsCACertPath, err)
+			log.Fatalf("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
 		}
 		certPool := x509.NewCertPool()
 		certPool.AppendCertsFromPEM(cert)
@@ -147,7 +129,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 			log.Fatalf("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
-	if Verbose {
+	if config.Verbose {
 		log.Printf("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
 	return response
@@ -161,7 +143,7 @@ func CheckHTTPResponse(response *http.Response) *http.Response {
 	case response.StatusCode == 500:
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
-		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", ServiceName)
+		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
 		log.Fatalf("- Was the service recently installed? It may still be initializing, Wait a bit and try again.")
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		log.Fatalf("HTTP %s Query for %s failed: %s",
@@ -192,25 +174,25 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 
 func CreateURL(urlPath, urlQuery string) *url.URL {
 	// get data from CLI, if overrides were not provided by user:
-	if len(dcosUrl) == 0 {
-		dcosUrl = RequiredCLIConfigValue(
+	if len(config.DcosUrl) == 0 {
+		config.DcosUrl = RequiredCLIConfigValue(
 			"core.dcos_url",
 			"DC/OS Cluster URL",
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
-	dcosUrl = strings.TrimRight(dcosUrl, "#/")
-	parsedUrl, err := url.Parse(dcosUrl)
+	config.DcosUrl = strings.TrimRight(config.DcosUrl, "#/")
+	parsedUrl, err := url.Parse(config.DcosUrl)
 	if err != nil {
-		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", dcosUrl, err)
+		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
 	}
-	parsedUrl.Path = path.Join("service", ServiceName, urlPath)
+	parsedUrl.Path = path.Join("service", config.ServiceName, urlPath)
 	parsedUrl.RawQuery = urlQuery
 	return parsedUrl
 }
 
 func CreateHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
-	if Verbose {
+	if config.Verbose {
 		log.Printf("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
 			log.Printf("  Payload: %s", payload)
@@ -220,13 +202,13 @@ func CreateHTTPURLRequest(method string, url *url.URL, payload, contentType stri
 	if err != nil {
 		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, url, err)
 	}
-	if len(dcosAuthToken) == 0 {
+	if len(config.DcosAuthToken) == 0 {
 		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
 		// this value is optional: clusters can be configured to not require any auth
-		dcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
+		config.DcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
 	}
-	if len(dcosAuthToken) != 0 {
-		request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
+	if len(config.DcosAuthToken) != 0 {
+		request.Header.Set("Authorization", fmt.Sprintf("token=%s", config.DcosAuthToken))
 	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)

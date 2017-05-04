@@ -1,3 +1,10 @@
+package commands
+
+import (
+    "github.com/mesosphere/dcos-commons/cli/utils"
+    "gopkg.in/alecthomas/kingpin.v2"
+    "fmt"
+)
 
 // State section
 
@@ -6,19 +13,19 @@ type StateHandler struct {
 }
 
 func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPGet("v1/state/frameworkId"))
+    utils.PrintJSON(utils.HTTPGet("v1/state/frameworkId"))
     return nil
 }
 func (cmd *StateHandler) RunProperties(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPGet("v1/state/properties"))
+    utils.PrintJSON(utils.HTTPGet("v1/state/properties"))
     return nil
 }
 func (cmd *StateHandler) RunProperty(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
+    utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
     return nil
 }
 func (cmd *StateHandler) RunRefreshCache(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPPut("v1/state/refresh"))
+    utils.PrintJSON(utils.HTTPPut("v1/state/refresh"))
     return nil
 }
 

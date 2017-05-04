@@ -1,3 +1,10 @@
+package commands
+
+import (
+    "fmt"
+    "github.com/mesosphere/dcos-commons/cli/utils"
+    "gopkg.in/alecthomas/kingpin.v2"
+)
 
 // Pods section
 
@@ -6,27 +13,27 @@ type PodsHandler struct {
 }
 
 func (cmd *PodsHandler) RunList(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPGet("v1/pods"))
+    utils.PrintJSON(utils.HTTPGet("v1/pods"))
     return nil
 }
 func (cmd *PodsHandler) RunStatus(c *kingpin.ParseContext) error {
     if len(cmd.PodName) == 0 {
-        PrintJSON(HTTPGet("v1/pods/status"))
+        utils.PrintJSON(utils.HTTPGet("v1/pods/status"))
     } else {
-        PrintJSON(HTTPGet(fmt.Sprintf("v1/pods/%s/status", cmd.PodName)))
+        utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/pods/%s/status", cmd.PodName)))
     }
     return nil
 }
 func (cmd *PodsHandler) RunInfo(c *kingpin.ParseContext) error {
-    PrintJSON(HTTPGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName)))
+    utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName)))
     return nil
 }
 func (cmd *PodsHandler) RunRestart(c *kingpin.ParseContext) error {
-    PrintText(HTTPPost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
+    utils.PrintText(utils.HTTPPost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
     return nil
 }
 func (cmd *PodsHandler) RunReplace(c *kingpin.ParseContext) error {
-    PrintText(HTTPPost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
+    utils.PrintText(utils.HTTPPost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
     return nil
 }
 

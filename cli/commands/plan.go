@@ -1,3 +1,15 @@
+package commands
+
+import (
+    "github.com/mesosphere/dcos-commons/cli/utils"
+    "gopkg.in/alecthomas/kingpin.v2"
+    "encoding/json"
+    "errors"
+    "fmt"
+    "net/url"
+    "strings"
+)
+
 // Plan section
 
 type PlanHandler struct {
@@ -35,15 +47,15 @@ func GetPlanName(cmd *PlanHandler) string {
 }
 
 func (cmd *PlanHandler) RunList(c *kingpin.ParseContext) error {
-    response := HTTPGet("/v1/plans")
-    PrintJSON(response)
+    response := utils.HTTPGet("/v1/plans")
+    utils.PrintJSON(response)
     return nil
 }
 
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
-    response := HTTPQuery(CreateHTTPRequest("GET", fmt.Sprintf("v1/plans/%s", GetPlanName(cmd))))
-    CheckHTTPResponse(response)
-    PrintJSON(response)
+    response := utils.HTTPQuery(utils.CreateHTTPRequest("GET", fmt.Sprintf("v1/plans/%s", GetPlanName(cmd))))
+    utils.CheckHTTPResponse(response)
+    utils.PrintJSON(response)
     return nil
 }
 
@@ -56,14 +68,14 @@ func (cmd *PlanHandler) RunStart(c *kingpin.ParseContext) error {
         }
         payload = parameterPayload
     }
-    response := HTTPPostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
-    PrintJSON(response)
+    response := utils.HTTPPostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
+    utils.PrintJSON(response)
     return nil
 }
 
 func (cmd *PlanHandler) RunStop(c *kingpin.ParseContext) error {
-    response := HTTPPost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
-    PrintJSON(response)
+    response := utils.HTTPPost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
+    utils.PrintJSON(response)
     return nil
 }
 
@@ -72,8 +84,8 @@ func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
     if len(cmd.Phase) > 0 {
         query.Set("phase", cmd.Phase)
     }
-    response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)), query.Encode())
-    PrintJSON(response)
+    response := utils.HTTPPostQuery(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)), query.Encode())
+    utils.PrintJSON(response)
     return nil
 }
 
@@ -82,8 +94,8 @@ func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
     if len(cmd.Phase) > 0 {
         query.Set("phase", cmd.Phase)
     }
-    response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)), query.Encode())
-    PrintJSON(response)
+    response := utils.HTTPPostQuery(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)), query.Encode())
+    utils.PrintJSON(response)
     return nil
 }
 
@@ -91,8 +103,8 @@ func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
     query := url.Values{}
     query.Set("phase", cmd.Phase)
     query.Set("step", cmd.Step)
-    response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/restart", GetPlanName(cmd)), query.Encode())
-    PrintJSON(response)
+    response := utils.HTTPPostQuery(fmt.Sprintf("v1/plans/%s/restart", GetPlanName(cmd)), query.Encode())
+    utils.PrintJSON(response)
     return nil
 }
 
@@ -100,8 +112,8 @@ func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
     query := url.Values{}
     query.Set("phase", cmd.Phase)
     query.Set("step", cmd.Step)
-    response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", GetPlanName(cmd)), query.Encode())
-    PrintJSON(response)
+    response := utils.HTTPPostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", GetPlanName(cmd)), query.Encode())
+    utils.PrintJSON(response)
     return nil
 }
 
