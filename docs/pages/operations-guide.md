@@ -42,7 +42,7 @@ The following work together to deploy and maintain the service.
 
 - Scheduler
 
-  The Scheduler is the "management layer" of the service. It launches the service nodes and keeps them running. It also exposes endpoints to allow end users to control the service and diagnose problems. The Scheduler is kept online by the cluster's "init system", named Marathon. The Scheduler itself is effectively a Java application that is configured via environment variables provided by Marathon.
+  The Scheduler is the "management layer" of the service. It launches the service nodes and keeps them running. It also exposes endpoints to allow end users to control the service and diagnose problems. The Scheduler is kept online by the cluster's "init system", Marathon. The Scheduler itself is effectively a Java application that is configured via environment variables provided by Marathon.
 
 - Packaging
 
@@ -105,8 +105,6 @@ The service Scheduler's `main()` function is run like any other Java application
     1. The Scheduler idles until it receives an RPC from Mesos notifying it of a task status change, it receives an RPC from an end user against one of its HTTP APIs, or until it is killed by Marathon as the result of a configuration change.
 
 ### Reconfiguration
-
-This is the flow for reconfiguring a running service:
 
 #### Steps handled by the DC/OS cluster
 
@@ -184,7 +182,7 @@ In short, Plans are the SDK's abstraction for a sequence of tasks to be performe
 
 ### Recovery Plan
 
-Another common/default Plan is the Recovery Plan, which handles bringing back failed tasks. The Recovery Plan listens for offers that can be used to bring back those tasks and then relaunches tasks against those offers.
+The other default Plan is the Recovery Plan, which handles bringing back failed tasks. The Recovery Plan listens for offers that can be used to bring back those tasks and then relaunches tasks against those offers.
 
 The Scheduler learns whether a task has failed by receiving Task Status updates from Mesos. Task Status updates can be sent during startup to let the scheduler know when a task has started running, to know when the task has exited successfully, or to know when the cluster has lost contact with the machine hosting that task.
 
@@ -205,7 +203,7 @@ There are two types of recovery, permanent and temporary. The difference is main
     - Recovery involves discarding any persistent volumes that the task once had on the host machine.
     - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
 
-Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the task being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
+Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the pod being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
 
 ## Persistent Volumes
 
@@ -271,7 +269,7 @@ Clusters change, and as such so should your placement constraints. We recommend 
 - Update the placement constraint definition at the Scheduler.
 - For each pod, _one at a time_, perform a `pods replace` for any pods that need to be moved to reflect the change.
 
-FOr example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
+For example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
 
 - Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
 - Tasks:
