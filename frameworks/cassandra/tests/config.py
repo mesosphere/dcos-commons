@@ -10,7 +10,9 @@ PACKAGE_NAME = 'cassandra'
 DEFAULT_TASK_COUNT = 3
 WAIT_TIME_IN_SECONDS = 360
 DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
-DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
+DCOS_TOKEN = shakedown.run_dcos_command(
+    'config show core.dcos_acs_token'
+)[0].strip()
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
 
@@ -44,7 +46,9 @@ def install_cassandra_jobs():
 
 
 def install_job(job_name, jobs_folder):
-    template_filename = os.path.join(jobs_folder, '{}.json.template'.format(job_name))
+    template_filename = os.path.join(
+        jobs_folder, '{}.json.template'.format(job_name)
+    )
     with open(template_filename) as f:
         job_contents = f.read()
 

@@ -97,7 +97,7 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 1. Write some data to your cluster:
 ```
 dcos node ssh --master-proxy --leader
-core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.10 cqlsh node-0-server.cassandra.mesos
+core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
 > CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 > USE space1;
 > CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));
@@ -424,10 +424,10 @@ dcos node ssh --leader --master-proxy
 
 Then, use the `cassandra` Docker image to run `cqlsh`, passing as an argument the address of one of the Apache Cassandra nodes in the cluster:
 ```
-docker run cassandra:3.0.10 cqlsh node-0-server.cassandra.mesos
+docker run cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
 ```
 
-This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.10.
+This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.13.
 
 <a name="managing"></a>
 # Managing
@@ -643,4 +643,4 @@ You can also access the logs via the Mesos UI:
 
 ## Supported Versions
 
-The DC/OS Apache Cassandra Service runs Cassandra v3.0.10. It supports DC/OS version 1.8 and later.
+The DC/OS Apache Cassandra Service runs Cassandra v3.0.13. It supports DC/OS version 1.8 and later.
