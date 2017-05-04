@@ -1,6 +1,6 @@
 ---
-post_title: Kick the Tires
-menu_order: 0
+post_title: Usage Example 
+menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
 ---
