@@ -46,7 +46,7 @@ The following work together to deploy and maintain the service.
 
 - Packaging
 
-  SDK Schedulers are packaged for deployment on DC/OS. DC/OS packages follow the [Universe schema](https://github.com/mesosphere/universe), which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named 'Cosmos') creates a Marathon app that contains a rendered version of the `marathon.json.mustache` template provided by the package. For an SDK service, this Marathon app is the Scheduler for the service.
+  SDK services are packaged for deployment on DC/OS. DC/OS packages follow the [Universe schema](https://github.com/mesosphere/universe), which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named 'Cosmos') creates a Marathon app that contains a rendered version of the `marathon.json.mustache` template provided by the package. For an SDK service, this Marathon app is the Scheduler for the service.
 
 For further discussion of DC/OS components, see the [architecture documentation](https://docs.mesosphere.com/1.9/overview/architecture/components/).
 
@@ -75,18 +75,19 @@ This is the flow for deploying a new service:
 
 1. The service Scheduler is launched. From this point onwards, the SDK handles deployment.
 
-The service Scheduler's `main()` function is run like any other Java application. At this point, the Scheduler has the following state to start from:
-- `svc.yml` template that represent the service configuration.
-- Environment variables provided by Marathon, to be applied onto the `svc.yml` template.
-- Any custom logic implemented by the service developer in their Main function (we'll be assuming this is left with defaults for the purposes of this explanation)
+#### Steps handled by the Scheduler
 
-#### The Scheduler uses the above pieces to bootstrap itself into a running service
+The service Scheduler's `main()` function is run like any other Java application. The Scheduler starts with the following state:
+
+- A `svc.yml` template that represents the service configuration.
+- Environment variables provided by Marathon, to be applied onto the `svc.yml` template.
+- Any custom logic implemented by the service developer in their Main function (we'll be assuming this is left with defaults for the purposes of this explanation).
 
 1. The `svc.yml` template is rendered using the environment variables provided by Marathon.
 
 1. The rendered `svc.yml` "Service Spec" contains the host/port for the Zookeeper instance, which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named `dcos-service-<svcname>`.
 
-1. The scheduler connects to that Zookeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.
+1. The Scheduler connects to that Zookeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.
 
   - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
 
@@ -142,7 +143,7 @@ Schedulers written using the SDK perform the following operations as Offers are 
 
 1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
 1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.
-1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
+1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
 
 SDK Schedulers will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
 
@@ -200,11 +201,11 @@ There are two types of recovery, permanent and temporary. The difference is main
     - Any data in the task's persistent volumes survives the outage.
     - May be manually triggered by a `pods restart` command.
 - __Permanent__ recovery:
-    - Permanent recovery is triggered when the host machine fails permanently.
+    - Permanent recovery can be requested when the host machine fails permanently or when the host machine is scheduled for downtime.
     - Recovery involves discarding any persistent volumes that the task once had on the host machine.
     - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
 
-Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
+Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the task being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
 
 ## Persistent Volumes
 
@@ -251,7 +252,7 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 
 ## Pods vs Tasks
 
-A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod)/[replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
+A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
 
 ## Placement Constraints
 
@@ -262,7 +263,7 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 ```
 
-You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pods replace`](#replace-a-pod)) without that system.
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pods replace`](#replace-a-pod)) without requiring that system.
 
 ### Updating placement constraints
 
@@ -314,7 +315,7 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
 
 # Diagnostic Tools
 
-DC/OS clusters provide several tools for diagnosing services are running in the cluster. In addition, the SDK itself  its own endpoints, which describe what the Scheduler is doing at any given time.
+DC/OS clusters provide several tools for diagnosing problems with services running in the cluster. In addition, the SDK has its own endpoints that describe what the Scheduler is doing at any given time.
 
 ## Logging
 
@@ -352,7 +353,7 @@ For a good example of the kind of diagnosis you can perform using SDK Scheduler 
 
 ### Task logs
 
-When the issue being diagnosed has to do with the service, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore we should pick `<service-name>` from this list to view a list of tasks specific to that service.
+When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore we should pick `<service-name>` from this list to view a list of tasks specific to that service.
 
 [<img src="img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400"/>](img/ops-guide-framework-tasks-service.png)
 
@@ -366,7 +367,7 @@ Either or both of these lists may be useful depending on the context. Click on t
 
 ### Mesos Agent logs
 
-Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. One Mesos Agent runs on each system. These logs can be useful for determining if there's a problem at the system level that is causing alerts across multiple present on that system.
+Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. One Mesos Agent runs on each system. These logs can be useful for determining if there's a problem at the system level that is causing alerts across multiple services on that system.
 
 Navigate to the agent you want to view either directly from a task by clicking the "Agent" item in the breadcrumb when viewing a task (this will go directly to the agent hosting the task), or by navigating through the "Agents" menu item at the top of the screen (you will need to select the desired agent from the list).
 
@@ -494,7 +495,7 @@ Looks like we were successful! Now we can run commands inside this container to 
 
 ## Querying the Scheduler
 
-The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the . The Scheduler endpoints most useful to field diagnosis come from three sections:
+The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the [API reference](http://mesosphere.github.io/dcos-commons/swagger-api/). The Scheduler endpoints most useful to field diagnosis come from three sections:
 
 - __Plan__: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
 - __Pods__: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
@@ -530,7 +531,7 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
 ]
 ```
 
-The `-v` (or `--verbose`) allows you to view and diagnose the underlying requests made by the CLI:
+The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
 $ dcos beta-dse --name=dse -v pods list
@@ -688,7 +689,7 @@ Adding a task node to the service is just another type of configuration change. 
 
 ### Finding the correct environment variable
 
-The correct environment variable for a given setting can vary depending on the service. For example, with increasing the number of nodes, some services will have multiple types of nodes, each with separate count settings. Determining the correct environment variable in this case takes some detective work.
+The correct environment variable for a given setting can vary depending on the service. For instance, some services have multiple types of nodes, each with separate count settings. If you want to increase the number of nodes, it would take some detective work to find the correct environment variable.
 
 For example, let's look at the most recent release of `confluent-kafka` as of this writing. The number of brokers is configured using a [`count` setting in the `brokers` section](https://github.com/mesosphere/universe/blob/98a21f4f3710357a235f0549c3caabcab66893fd/repo/packages/C/confluent-kafka/16/config.json#L133):
 
@@ -724,7 +725,7 @@ This method can be used mapping any configuration setting (applicable during ini
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
-Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use API. In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
+Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
 Via the CLI:
 
@@ -774,7 +775,7 @@ All tasks within the pod are restarted as a unit. The response lists the names o
 
 Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.
 
-Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However operators are free to build their own tooling to make this decision and invoke the replace call. For more information see [Recovery](#recovery-plan).
+Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However, operators are free to build their own tooling to make this decision and invoke the replace call automatically. For more information see [Recovery](#recovery-plan).
 
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
@@ -1016,7 +1017,7 @@ If the scheduler is still failing after `pods replace <name>` to clear a task, a
 
 ## OOMed task
 
-Your tasks can be killed from an OOM if you didn't give them sufficient quota. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
+Your tasks can be killed from an OOM if you didn't give them sufficient resources. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
 - Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pods status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
 - Check [Agent logs](#mesos-agent-logs) directly for mention of the Mesos Agent killing a task due to excess memory usage.
 
