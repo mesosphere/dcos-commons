@@ -1,10 +1,10 @@
 package cli
 
 import (
-	"github.com/mesosphere/dcos-commons/cli/config"
-	"github.com/mesosphere/dcos-commons/cli/utils"
 	"errors"
 	"fmt"
+	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/mesosphere/dcos-commons/cli/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
 	"os"
