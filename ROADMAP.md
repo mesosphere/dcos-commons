@@ -58,6 +58,10 @@
 
 * __Readiness Checks for Tasks__: Readiness checks enable plans that restart pods to wait until data replication has caught up before proceeding.
 
+1. __Updatable Placement Constraints for Pods__: Enable operators to update pods placement constraints so that pods can safely replace without losing data or violating performance SLAs.
+
+1. __GPU Resources for Pods__: Support for [GPU resources](http://mesos.apache.org/documentation/latest/gpu-support/) to enable analytics workloads such as TensorFlow.
+
 ### Planned Features
 
 1. __DC/OS Networking API Integration for Tasks__: Support for integrating with DC/OS Networking. DC/OS supports [Container Networking Interface](https://github.com/containernetworking/cni/blob/master/SPEC.md).
@@ -76,15 +80,11 @@
 
 1. __Non-reserved Resources for Tasks__: Currently the SDK always reserves resources. This is because the initial focus for the SDK is stateful workloads, where reserving resources in essential for safe operations. For other workloads like twelve-factor apps and analytics jobs, reserving resources is generally undesirable.
 
-1. __GPU Resources for Pods__: Support for [GPU resources](http://mesos.apache.org/documentation/latest/gpu-support/) to enable analytics workloads such as TensorFlow.
-
 1. __FINISHED Goal State for Default Scheduler__: Currently services have an implied RUNNING goal state, which is appropriate for long running services. To support batch workloads such as TensorFlow, a new concept of a service goal state will be introduced with support for RUNNING and FINISHED goal states.
 
 1. __Graceful Shutdown for Tasks__: Support for graceful shutdown of services such as [Apache Kafka](https://kafka.apache.org/documentation#basic_ops_restarting). This is considered an optimization since hardware and software can fail unexpectedly.
 
 1. __Advanced Docker Image Support for Tasks__: Support for Docker image per task within a pod.
-
-1. __Updatable Placement Constraints for Pods__: Enable operators to update pods placement constraints so that pods can safely replace without losing data or violating performance SLAs.
 
 1. __Partition-Aware API Integration__: Support for Apache Mesos partition-aware frameworks APIs. For more details see [MESOS-5344](https://issues.apache.org/jira/browse/MESOS-5344) and [MESOS-6394](https://issues.apache.org/jira/browse/MESOS-6394).
 
