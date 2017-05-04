@@ -2,17 +2,18 @@ package main
 
 import (
 	"github.com/mesosphere/dcos-commons/cli"
+    "github.com/mesosphere/dcos-commons/cli/commands"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
 	app := cli.New()
 
-	cli.HandleConfigSection(app)
-	cli.HandleEndpointsSection(app)
-	cli.HandlePlanSection(app)
-	cli.HandlePodsSection(app)
-	cli.HandleStateSection(app)
+	commands.HandleConfigSection(app)
+	commands.HandleEndpointsSection(app)
+	commands.HandlePlanSection(app)
+	commands.HandlePodsSection(app)
+	commands.HandleStateSection(app)
 
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
 }
