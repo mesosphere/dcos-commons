@@ -6,11 +6,8 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.RandomStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -145,60 +142,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 }
             }
 
-            List<Step> steps = createSteps(defaultRequirements);
-            Phase defaultPhase =
-                    new DefaultPhase(
-                            DEFAULT_RECOVERY_PHASE_NAME,
-                            steps,
-                            new ParallelStrategy<Step>(),
-                            Collections.emptyList());
-
-            setPlan(updatePhases(phases, defaultPhase));
+            phases.addAll(createPhases(defaultRequirements));
+            setPlan(updatePhases(phases));
         }
     }
 
-    private Plan updatePhases(List<Phase> overridePhases, Phase defaultPhase) {
+    private Plan updatePhases(List<Phase> overridePhases) {
         Map<String, Phase> phaseMap = new HashMap<>();
-        // Add original phases
         getPlan().getChildren().forEach(phase -> phaseMap.put(phase.getName(), phase));
-        // Add ovverrides
         overridePhases.forEach(phase -> phaseMap.put(phase.getName(), phase));
-        // Update default phase
-        phaseMap.put(defaultPhase.getName(), updateDefaultPhase(defaultPhase));
         List<Phase> phases = new ArrayList<>(phaseMap.values());
 
         return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
-    }
-
-    private Phase updateDefaultPhase(Phase phase) {
-        Optional<Phase> oldDefault = getPlan().getChildren().stream()
-                .filter(p -> p.getName().equals(DEFAULT_RECOVERY_PHASE_NAME))
-                .findFirst();
-
-        if (!oldDefault.isPresent()) {
-            return phase;
-        }
-
-        List<PodInstanceRequirement> newRequirements = phase.getChildren().stream()
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .collect(Collectors.toList());
-
-        List<Step> steps = new ArrayList<>();
-        List<Step> oldSteps = oldDefault.get().getChildren().stream()
-                .filter(oldStep -> oldStep.getPodInstanceRequirement().isPresent())
-                .collect(Collectors.toList());
-
-        for (Step oldStep : oldSteps) {
-            if (!PlanUtils.assetConflicts(
-                    oldStep.getPodInstanceRequirement().get(),
-                    newRequirements)) {
-                steps.add(oldStep);
-            }
-        }
-
-        steps.addAll(phase.getChildren());
-        return new DefaultPhase(phase.getName(), steps, phase.getStrategy(), phase.getErrors());
     }
 
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
@@ -214,6 +169,28 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
                 .collect(Collectors.toList());
         logger.info("Found pods needing recovery: " + podNames);
+
+        List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> !step.isComplete())
+                .map(step -> step.getPodInstanceRequirement())
+                .filter(requirement -> requirement.isPresent())
+                .map(requirement -> requirement.get())
+                .collect(Collectors.toList());
+
+        List<String> inProgressPodNames = inProgressRecoveries.stream()
+                .map(podInstanceRequirement -> podInstanceRequirement.toString())
+                .collect(Collectors.toList());
+        logger.info("Found recoveries already in progress: " + inProgressPodNames);
+
+        failedPods = failedPods.stream()
+                .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
+                .collect(Collectors.toList());
+
+        podNames = failedPods.stream()
+                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
+                .collect(Collectors.toList());
+        logger.info("New pods needing recovery: " + podNames);
 
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
@@ -255,9 +232,14 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return recoveryRequirements;
     }
 
-    List<Step> createSteps(Collection<PodInstanceRequirement> podInstanceRequirements) {
+    List<Phase> createPhases(Collection<PodInstanceRequirement> podInstanceRequirements) {
         return podInstanceRequirements.stream()
                 .map(podInstanceRequirement -> createStep(podInstanceRequirement))
+                .map(step -> new DefaultPhase(
+                        step.getName(),
+                        Arrays.asList(step),
+                        new ParallelStrategy<Step>(),
+                        Collections.emptyList()))
                 .collect(Collectors.toList());
     }
 

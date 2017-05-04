@@ -294,10 +294,10 @@ plans:
         strategy: serial
         pod: data
 
-  replace-nn:
+  replace:
     strategy: serial
     phases:
-      nn-deploy:
+      name:
         strategy: serial
         pod: name
         steps:

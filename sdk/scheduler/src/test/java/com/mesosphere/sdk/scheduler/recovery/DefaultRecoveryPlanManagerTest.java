@@ -447,7 +447,7 @@ public class DefaultRecoveryPlanManagerTest {
                 podInstance,
                 Arrays.asList("test-task-name"));
 
-        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
         Assert.assertTrue(steps.isEmpty());
     }
 
@@ -474,7 +474,7 @@ public class DefaultRecoveryPlanManagerTest {
                 podInstance,
                 Arrays.asList("test-task-name"));
 
-        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
         Assert.assertFalse(steps.isEmpty());
     }
 
@@ -499,7 +499,7 @@ public class DefaultRecoveryPlanManagerTest {
                 podInstance,
                 Arrays.asList("test-task-name"));
 
-        List<Step> steps = recoveryManager.createSteps(Arrays.asList(podInstanceRequirement));
+        List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
         Assert.assertFalse(steps.isEmpty());
     }
 }

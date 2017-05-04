@@ -36,26 +36,26 @@ public class HdfsRecoveryPlanManager implements RecoveryPlanOverrider {
 
     @Override
     public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
-        if (stoppedPod.getRecoveryType() == RecoveryType.PERMANENT) {
-            logger.info("Overriding original requirement: {}", stoppedPod);
-            Phase nnPhase = null;
-            switch (stoppedPod.getPodInstance().getIndex()) {
-                case 0:
-                    logger.info("Returning replacement plan for namenode 0.");
-                    return Optional.of(getNNRecoveryPhase(replaceNameNodePlan, 0));
-                case 1:
-                    logger.info("Returning replacement plan for namenode 1.");
-                    return Optional.of(getNNRecoveryPhase(replaceNameNodePlan, 1));
-                default:
-                    logger.error(
-                            "Encountered unexpected index: {}, falling back to default recovery plan manager.",
-                            stoppedPod.getPodInstance().getIndex());
-                    return Optional.empty();
-            }
+        if (!stoppedPod.getPodInstance().getPod().getType().equals("name")
+                || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
+            logger.info("No overrides necessary.");
+            return Optional.empty();
         }
 
-        logger.debug("No overrides necessary.");
-        return Optional.empty();
+        Phase nnPhase = null;
+        switch (stoppedPod.getPodInstance().getIndex()) {
+            case 0:
+                logger.info("Returning replacement plan for namenode 0.");
+                return Optional.of(getNNRecoveryPhase(replaceNameNodePlan, 0));
+            case 1:
+                logger.info("Returning replacement plan for namenode 1.");
+                return Optional.of(getNNRecoveryPhase(replaceNameNodePlan, 1));
+            default:
+                logger.error(
+                        "Encountered unexpected index: {}, falling back to default recovery plan manager.",
+                        stoppedPod.getPodInstance().getIndex());
+                return Optional.empty();
+        }
     }
 
     private Phase getNNRecoveryPhase(Plan inputPlan, int index) {

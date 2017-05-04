@@ -16,6 +16,8 @@ import java.util.Optional;
  * The HdfsRecoveryPlanManagerFactory generates {@link HdfsRecoveryPlanManager}s.
  */
 public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFactory {
+    private static final String REPLACE_PLAN_NAME = "replace";
+
     @Override
     public RecoveryPlanOverrider create(
             StateStore stateStore,
@@ -30,15 +32,14 @@ public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFact
     }
 
     private Plan getNameNodeReplacementPlan(Collection<Plan> plans) {
-        String planName = "replace-nn";
         Optional<Plan> planOptional = plans.stream()
-                .filter(plan -> plan.getName().equals(planName))
+                .filter(plan -> plan.getName().equals(REPLACE_PLAN_NAME))
                 .findFirst();
 
         if (planOptional.isPresent()) {
             return planOptional.get();
         } else {
-            throw new RuntimeException("Failed to find plan: " + planName);
+            throw new RuntimeException("Failed to find plan: " + REPLACE_PLAN_NAME);
         }
     }
 }

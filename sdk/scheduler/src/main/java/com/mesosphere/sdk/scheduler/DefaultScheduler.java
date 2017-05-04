@@ -31,10 +31,7 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstr
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
-import com.mesosphere.sdk.specification.DefaultPlanGenerator;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
-import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -906,15 +903,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                     planCoordinator.getPlanManagers().stream()
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
-
-                    if (status.getState().equals(Protos.TaskState.TASK_RUNNING)
-                            || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
-                        String taskName = CommonIdUtils.toTaskName(status.getTaskId());
-                        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-                        if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
-                            stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));
-                        }
-                    }
 
                     if (StateStoreUtils.isSuppressed(stateStore)
                             && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
