@@ -200,7 +200,7 @@ There are two types of recovery, permanent and temporary. The difference is main
     - May be manually triggered by a `pods restart` command.
 - __Permanent__ recovery:
     - Permanent recovery can be requested when the host machine fails permanently or when the host machine is scheduled for downtime.
-    - Recovery involves discarding any persistent volumes that the task once had on the host machine.
+    - Recovery involves discarding any persistent volumes that the pod once had on the host machine.
     - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
 
 Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the pod being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
