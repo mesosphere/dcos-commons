@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -77,11 +78,12 @@ public class ResourceCleanerTest {
     private final List<ResourceCleaner> emptyCleaners = new ArrayList<>();
     private final List<ResourceCleaner> populatedCleaners = new ArrayList<>();
     private final List<ResourceCleaner> allCleaners = new ArrayList<>();
+    private final StateStore mockStateStore;
 
     public ResourceCleanerTest() {
         // Validate ResourceCleaner statelessness by only initializing them once
 
-        StateStore mockStateStore = mock(StateStore.class);
+        mockStateStore = mock(StateStore.class);
 
         // cleaners without any expected resources
         when(mockStateStore.fetchTasks()).thenReturn(new ArrayList<>());
@@ -290,5 +292,36 @@ public class ResourceCleanerTest {
 
             assertEquals("Got: " + recommendations, 0, recommendations.size());
         }
+    }
+
+    @Test
+    public void testExpectedPermanentlyFailedResource() {
+        TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_1);
+        when(mockStateStore.fetchTasks())
+                .thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
+        ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
+
+        List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
+        List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+        assertEquals("Got: " + recommendations, 1, recommendations.size());
+        assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+    }
+
+    @Test
+    public void testExpectedPermanentlyFailedVolume() {
+        TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_2);
+        when(mockStateStore.fetchTasks())
+                .thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
+        ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
+        List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
+        List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+        assertEquals("Got: " + recommendations, 2, recommendations.size());
+
+        OfferRecommendation rec = recommendations.get(0);
+        assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+
+        rec = recommendations.get(1);
+        assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
     }
 }
