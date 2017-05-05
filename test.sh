@@ -57,6 +57,12 @@ REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $REPO_ROOT_DIR
 
+# ensure we have a dcos binary
+TESTRUN_TEMPDIR=$(mktemp -d /tmp/sdktest.XXXXXXXX)
+export TESTRUN_TEMPDIR
+echo "test workdir set to $TESTRUN_TEMPDIR"
+export PATH=$TESTRUN_TEMPDIR:$PATH
+
 # Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
 if [ -z "$CLUSTER_URL" ]; then
     echo "CLUSTER_URL is empty/unset, launching new cluster."
@@ -71,6 +77,12 @@ if [ -z "$CLUSTER_URL" ]; then
 else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
     CLUSTER_CREATED=""
+fi
+
+# launch_ccm_cluster.py may have fetched already
+if [ ! -f $TESTRUN_TEMPDIR/dcos ]; then
+    echo "Fetching dcos cli"
+    python3 ${REPO_ROOT_DIR}/tools/cli_install.py $CLUSTER_URL $TESTRUN_TEMPDIR
 fi
 
 # A specific framework can be specified to run its tests
