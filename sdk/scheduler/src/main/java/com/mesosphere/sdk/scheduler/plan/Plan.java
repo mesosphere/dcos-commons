@@ -8,7 +8,7 @@ import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 /**
  * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
  * processing those {@link Phase}s. The Plan is a representation of any work that is currently being
- * performed, divided into steps represented by one or more {@link Phase}s, and each step divided
+ * performed. A Plan is divided into one or more {@link Phase}s, each of which is divided
  * into one or more {@link Step}s. This structure is a logical abstraction of a multi-phase process
  * for performing upgrades or maintenance on a service.
  * <p>

@@ -12,11 +12,10 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanScheduler;
-import com.mesosphere.sdk.scheduler.plan.PlanScheduler;
+import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -35,6 +34,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 
 /**
  * This scheduler uninstalls the framework and releases all of its resources.
@@ -47,9 +49,8 @@ public class UninstallScheduler implements Scheduler {
      * Default: 10 seconds
      */
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
-
+    static final String RESOURCE_PHASE = "resource-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
-
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
@@ -59,96 +60,25 @@ public class UninstallScheduler implements Scheduler {
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final StateStore stateStore;
-
-    private JettyApiServer apiServer;
-    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
-
+    private final Plan uninstallPlan;
     protected SchedulerDriver driver;
-    protected OfferRequirementProvider offerRequirementProvider;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
-    protected PlanScheduler planScheduler;
     protected Collection<Object> resources;
+    private JettyApiServer apiServer;
+    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
     /**
-     * Builder class for {@link UninstallScheduler}s. Uses provided custom values or reasonable defaults.
-     *
-     * Instances may be created via {@link UninstallScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
+     * Creates a new UninstallScheduler. See information about parameters in {@link Builder}.
      */
-    public static class Builder {
-        private final ServiceSpec serviceSpec;
-        private final SchedulerFlags schedulerFlags;
-
-        // When these optionals are unset, we use default values:
-        private Optional<StateStore> stateStoreOptional = Optional.empty();
-
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-            this.serviceSpec = serviceSpec;
-            this.schedulerFlags = schedulerFlags;
-        }
-
-        /**
-         * Returns the {@link ServiceSpec} which was provided via the constructor.
-         */
-        public ServiceSpec getServiceSpec() {
-            return serviceSpec;
-        }
-
-        /**
-         * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
-         *
-         * The state store persists copies of task information and task status for all tasks running in the service.
-         *
-         * @throws IllegalStateException if the state store is already set, via a previous call to either
-         *                               {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
-         */
-        public Builder setStateStore(StateStore stateStore) {
-            if (stateStoreOptional.isPresent()) {
-                // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
-                throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
-            }
-            this.stateStoreOptional = Optional.ofNullable(stateStore);
-            return this;
-        }
-
-        /**
-         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
-         *
-         * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-         * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
-         */
-        public StateStore getStateStore() {
-            if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
-            }
-            return stateStoreOptional.get();
-        }
-
-        /**
-         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
-         */
-        public SchedulerFlags getSchedulerFlags() {
-            return schedulerFlags;
-        }
-
-        /**
-         * Creates a new scheduler instance with the provided values or their defaults.
-         *
-         * @return a new scheduler instance
-         * @throws IllegalStateException if config validation failed when updating the target config for a default
-         *                               {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore}
-         *                               failed
-         */
-        public UninstallScheduler build() {
-            // Get custom or default state store (defaults handled by getStateStore())::
-            final StateStore stateStore = getStateStore();
-
-            return new UninstallScheduler(serviceSpec, schedulerFlags, stateStore);
-        }
+    protected UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
+                                 Plan uninstallPlan) {
+        this.serviceSpec = serviceSpec;
+        this.schedulerFlags = schedulerFlags;
+        this.stateStore = stateStore;
+        this.uninstallPlan = uninstallPlan;
     }
 
     /**
@@ -189,15 +119,6 @@ public class UninstallScheduler implements Scheduler {
         return createStateStore(serviceSpec, schedulerFlags, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    /**
-     * Creates a new UninstallScheduler. See information about parameters in {@link Builder}.
-     */
-    protected UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
-        this.serviceSpec = serviceSpec;
-        this.schedulerFlags = schedulerFlags;
-        this.stateStore = stateStore;
-    }
-
     public Collection<Object> getResources() throws InterruptedException {
         return resources;
     }
@@ -213,20 +134,23 @@ public class UninstallScheduler implements Scheduler {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
         initializeGlobals(driver);
+        initializeDeploymentPlan();
 //        initializeApiServer();
         LOGGER.info("Done initializing.");
     }
-
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new UninstallRecorder(stateStore)));
-        OfferEvaluator offerEvaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
-        planScheduler = new DefaultPlanScheduler(offerAccepter, offerEvaluator, stateStore, taskKiller);
+        offerAccepter = new OfferAccepter(Collections.singletonList(new UninstallRecorder(stateStore,
+                uninstallPlan.getChildren().get(0))));
     }
 
+    private void initializeDeploymentPlan() {
+        LOGGER.info("Proceeding with uninstall plan...");
+        uninstallPlan.proceed();
+    }
 
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
@@ -442,6 +366,102 @@ public class UninstallScheduler implements Scheduler {
             taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
         }
         // phase 2 complete
+    }
+
+    /**
+     * Builder class for {@link UninstallScheduler}s. Uses provided custom values or reasonable defaults.
+     *
+     * Instances may be created via {@link UninstallScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
+     */
+    public static class Builder {
+        private final ServiceSpec serviceSpec;
+        private final SchedulerFlags schedulerFlags;
+
+        // When these optionals are unset, we use default values:
+        private Optional<StateStore> stateStoreOptional = Optional.empty();
+
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+            this.serviceSpec = serviceSpec;
+            this.schedulerFlags = schedulerFlags;
+        }
+
+        /**
+         * Returns the {@link ServiceSpec} which was provided via the constructor.
+         */
+        public ServiceSpec getServiceSpec() {
+            return serviceSpec;
+        }
+
+        /**
+         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
+         * created via {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
+         *
+         * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
+         * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
+         */
+        public StateStore getStateStore() {
+            if (!stateStoreOptional.isPresent()) {
+                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
+            }
+            return stateStoreOptional.get();
+        }
+
+        /**
+         * Specifies a custom {@link StateStore}, otherwise the return value of
+         * {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
+         *
+         * The state store persists copies of task information and task status for all tasks running in the service.
+         *
+         * @throws IllegalStateException if the state store is already set, via a previous call to either
+         *                               {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+         */
+        public Builder setStateStore(StateStore stateStore) {
+            if (stateStoreOptional.isPresent()) {
+                // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
+                throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
+            }
+            this.stateStoreOptional = Optional.ofNullable(stateStore);
+            return this;
+        }
+
+        /**
+         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
+         */
+        public SchedulerFlags getSchedulerFlags() {
+            return schedulerFlags;
+        }
+
+        /**
+         * Creates a new scheduler instance with the provided values or their defaults.
+         *
+         * @return a new scheduler instance
+         * @throws IllegalStateException if config validation failed when updating the target config for a default
+         *                               {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore}
+         *                               failed
+         */
+        public UninstallScheduler build() {
+            // Get custom or default state store (defaults handled by getStateStore())::
+            final StateStore stateStore = getStateStore();
+            // create one UninstallStep per unique Resource
+            List<Step> taskSteps = stateStore.fetchTasks().stream()
+                    .map(Protos.TaskInfo::getResourcesList)
+                    .flatMap(Collection::stream)
+                    .map(ResourceUtils::getResourceId)
+                    .distinct()
+                    .map(this::getStep)
+                    .collect(Collectors.toList());
+
+            Phase uninstallTasksPhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
+                    Collections.emptyList());
+            List<Phase> phases = Collections.singletonList(uninstallTasksPhase);
+            Plan uninstallPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
+            return new UninstallScheduler(serviceSpec, schedulerFlags, stateStore, uninstallPlan);
+        }
+
+        private Step getStep(String resourceId) {
+            Status status = resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
+            return new UninstallStep(resourceId, status);
+        }
     }
 
 }

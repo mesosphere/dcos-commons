@@ -4,25 +4,39 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
+import com.mesosphere.sdk.scheduler.plan.Phase;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 
 /**
  * Records to persistent storage the result of uninstalling/destroying resources.
  */
 public class UninstallRecorder implements OperationRecorder {
-    public static final String TOMBSTONE_MARKER = "uninstalled_";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
+    private final Phase resourcePhase;
 
-    public UninstallRecorder(StateStore stateStore) {
+    public UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
         this.stateStore = stateStore;
+        this.resourcePhase = resourcePhase;
+    }
+
+    private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
+        return taskInfo.getResourcesList().stream()
+                .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
+    }
+
+    private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
+        return ResourceUtils.getResourceId(resource).equals(ResourceUtils.getResourceId(taskInfoResource));
     }
 
     @Override
@@ -41,8 +55,13 @@ public class UninstallRecorder implements OperationRecorder {
                 .filter(taskSpec -> containsResource(taskSpec, resource))
                 .collect(Collectors.toList());
         logger.info("Resource found in tasks: {}", tasksToUpdate);
+        if (!tasksToUpdate.isEmpty()) {
+            stateStore.storeTasks(updateResources(resource, tasksToUpdate));
 
-        stateStore.storeTasks(updateResources(resource, tasksToUpdate));
+            // broadcast uninstallRecommendation to each UninstallStep in resource phase
+            List<OfferRecommendation> uninstallRecommendations = Collections.singletonList(uninstallRecommendation);
+            resourcePhase.getChildren().forEach(step -> step.updateOfferStatus(uninstallRecommendations));
+        }
     }
 
     private Collection<Protos.TaskInfo> updateResources(Protos.Resource resource,
@@ -73,15 +92,6 @@ public class UninstallRecorder implements OperationRecorder {
             }
         }
         return updatedResources;
-    }
-
-    private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
-        return taskInfo.getResourcesList().stream()
-                .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
-    }
-
-    private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
-        return ResourceUtils.getResourceId(resource).equals(ResourceUtils.getResourceId(taskInfoResource));
     }
 
 }
