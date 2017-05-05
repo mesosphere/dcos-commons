@@ -113,6 +113,11 @@ def download_cli(dcos_url, write_dir):
         cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
     major, minor = cluster_version.split('.')[:2] # 1.8.8 -> 1.8
     cluster_version = '%s.%s' % (major, minor)
+
+    # XXX 1.10 has compatability issues; so until we hae the time to modify
+    # all our tests
+    cluster_version="1.9"
+
     cli_url = url_template.format(get_download_platform(), cluster_version,
                                   get_cli_filename())
     # actually download to unique filename, then rename into place atomically.
