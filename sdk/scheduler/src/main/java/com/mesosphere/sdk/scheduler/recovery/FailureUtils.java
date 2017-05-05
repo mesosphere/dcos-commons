@@ -38,7 +38,7 @@ public class FailureUtils {
      * @param taskInfo The Task to be marked.
      * @return The marked TaskInfo which may be a copy of the original TaskInfo.
      */
-    public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
+    static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
         if (isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }
@@ -59,7 +59,7 @@ public class FailureUtils {
     /**
      * Remove the permanently failed label from the TaskInfo.
      */
-    public static Protos.TaskInfo clearFailed(Protos.TaskInfo taskInfo) {
+    static Protos.TaskInfo clearFailed(Protos.TaskInfo taskInfo) {
         if (!isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }

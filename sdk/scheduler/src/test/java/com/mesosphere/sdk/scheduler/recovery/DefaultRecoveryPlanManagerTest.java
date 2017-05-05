@@ -28,7 +28,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -448,7 +447,7 @@ public class DefaultRecoveryPlanManagerTest {
                 Arrays.asList("test-task-name"));
 
         List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
-        Assert.assertTrue(steps.isEmpty());
+        assertTrue(steps.isEmpty());
     }
 
     @Test
@@ -475,7 +474,7 @@ public class DefaultRecoveryPlanManagerTest {
                 Arrays.asList("test-task-name"));
 
         List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
-        Assert.assertFalse(steps.isEmpty());
+        assertFalse(steps.isEmpty());
     }
 
     @Test
@@ -500,6 +499,6 @@ public class DefaultRecoveryPlanManagerTest {
                 Arrays.asList("test-task-name"));
 
         List<Phase> steps = recoveryManager.createPhases(Arrays.asList(podInstanceRequirement));
-        Assert.assertFalse(steps.isEmpty());
+        assertFalse(steps.isEmpty());
     }
 }

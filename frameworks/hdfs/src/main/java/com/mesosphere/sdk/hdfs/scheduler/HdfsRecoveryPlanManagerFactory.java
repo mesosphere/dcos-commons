@@ -4,8 +4,6 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -22,8 +20,6 @@ public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFact
     public RecoveryPlanOverrider create(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            LaunchConstrainer launchConstrainer,
-            FailureMonitor failureMonitor,
             Collection<Plan> plans) {
         return new HdfsRecoveryPlanManager(
                 stateStore,

@@ -30,7 +30,6 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
-import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -622,7 +621,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
-        taskFailureListener = new DefaultTaskFailureListener(stateStore);
+        taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
@@ -653,14 +652,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         LaunchConstrainer launchConstrainer;
         FailureMonitor failureMonitor;
         if (failurePolicyOptional.isPresent()) {
-            ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
-            launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
-            failureMonitor = new TimedFailureMonitor(Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()));
-        } else {
-            launchConstrainer = new UnconstrainedLaunchConstrainer();
-            failureMonitor = new NeverFailureMonitor();
+            LOGGER.error("Ignoring failure policy.");
         }
+
+        launchConstrainer = new UnconstrainedLaunchConstrainer();
+        failureMonitor = new NeverFailureMonitor();
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
@@ -668,8 +664,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(
                     stateStore,
                     configStore,
-                    launchConstrainer,
-                    failureMonitor,
                     plans));
         }
 
@@ -765,6 +759,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void update(Observable observable) {
         if (observable == planCoordinator) {
             suppressOrRevive();
+            clearPermanentlyFailedPods();
             completeDeploy();
         }
     }
@@ -774,6 +769,22 @@ public class DefaultScheduler implements Scheduler, Observer {
             StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult);
         }
     }
+
+    private void clearPermanentlyFailedPods() {
+        Collection<PodInstance> completePods = planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan())
+                .filter(plan -> plan.getName().equals(DefaultRecoveryPlanManager.DEFAULT_RECOVERY_PLAN_NAME))
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.isComplete())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get().getPodInstance())
+                .collect(Collectors.toList());
+
+        completePods.forEach(
+                podInstance -> stateStore.storeTasks(FailureUtils.clearFailed(podInstance, stateStore)));
+    }
+
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {

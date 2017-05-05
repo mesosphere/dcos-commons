@@ -8,7 +8,6 @@ import org.apache.commons.collections.CollectionUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.

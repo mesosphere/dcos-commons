@@ -31,11 +31,7 @@ public class PlanUtils {
     public static boolean assetConflicts(PodInstanceRequirement asset, Collection<PodInstanceRequirement> dirtyAssets) {
         for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
             PodInstance dirtyPodInstance = dirtyAsset.getPodInstance();
-            Set<String> dirtyTaskNames = new HashSet<>(dirtyAsset.getTasksToLaunch());
-
             PodInstance assetPodInstance = asset.getPodInstance();
-            Set<String> assetTaskNames = new HashSet<>(asset.getTasksToLaunch());
-
             if (podInstancesConflict(dirtyPodInstance, assetPodInstance)) {
                 return true;
             }

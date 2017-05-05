@@ -121,7 +121,6 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         LOGGER.info("Input dirty assets: {}", dirtyAssets);
         LOGGER.info("Plan's dirty assets: {}", planManager.getDirtyAssets());
 
-        Collection<PodInstanceRequirement> relevantDirtyAssets = new ArrayList<>();
         Plan plan = planManager.getPlan();
         return dirtyAssets.stream()
                 .filter(podInstanceRequirement -> assetIsRelevant(podInstanceRequirement, plan))

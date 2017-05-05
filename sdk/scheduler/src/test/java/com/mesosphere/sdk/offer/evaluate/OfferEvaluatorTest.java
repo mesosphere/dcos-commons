@@ -1140,7 +1140,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build());
 
         Assert.assertEquals(Status.PENDING, deploymentStep.getStatus());
-        stateStore.storeTasks(Arrays.asList(FailureUtils.markFailed(taskInfo)));
+        stateStore.storeTasks(
+                FailureUtils.markFailed(
+                        deploymentStep.getPodInstanceRequirement().get().getPodInstance(),
+                        stateStore));
 
         Assert.assertTrue(FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskInfo.getName()).get()));
 

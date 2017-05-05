@@ -620,62 +620,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testClearFailureMarkOnRunning() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testClearFailureMarkOnFinished() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnFailure() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnError() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
-    }
-
-    @Test
     public void testApiServerNotReadyDecline() {
         TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
         testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));

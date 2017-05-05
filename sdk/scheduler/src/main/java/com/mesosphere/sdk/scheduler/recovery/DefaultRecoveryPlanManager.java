@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
-    public static final String DEFAULT_RECOVERY_PLAN_NAME= "recovery";
-    public static final String DEFAULT_RECOVERY_PHASE_NAME= "default";
+    public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
+    public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConfigStore<ServiceSpec> configStore;
     private final List<RecoveryPlanOverrider> overrideRecoveryManagers;
@@ -218,7 +218,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 recoveryType = RecoveryType.TRANSIENT;
                 podInstanceRequirement = PodInstanceRequirement.createTransientRecovery(failedPod);
             } else {
-                logger.error("Tasks have failed in a mixture of transient and permanent states and cannot be processed");
+                logger.error("Tasks have failed in transient and permanent states and cannot be processed");
                 continue;
             }
 
