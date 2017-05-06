@@ -26,9 +26,9 @@ def teardown_module(module):
 def test_backup_and_restore():
     run_backup_and_restore()
 
-    # Since this is run on the soak cluster and state is retained, we have to
-    # also delete the test data in preparation for the next run.
-    launch_and_verify_job(DELETE_DATA_JOB, expected_successes=2)
+    # Since this is run on the soak cluster and state is retained, we have to also delete the test
+    # data in preparation for the next run.
+    launch_and_verify_job(DELETE_DATA_JOB)
 
 
 @pytest.mark.soak_upgrade
