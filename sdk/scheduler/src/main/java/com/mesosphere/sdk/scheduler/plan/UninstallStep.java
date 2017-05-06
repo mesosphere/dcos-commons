@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.UninstallRecommendation;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class UninstallStep extends AbstractStep {
 
     @Override
     public List<String> getErrors() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

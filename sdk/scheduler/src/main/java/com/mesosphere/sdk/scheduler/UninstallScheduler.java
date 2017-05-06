@@ -1,10 +1,9 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.api.EndpointsResource;
 import com.mesosphere.sdk.api.JettyApiServer;
+import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.PodsResource;
 import com.mesosphere.sdk.api.StateResource;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
@@ -16,7 +15,7 @@ import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -48,33 +47,33 @@ public class UninstallScheduler implements Scheduler {
      *
      * Default: 10 seconds
      */
-    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
     static final String RESOURCE_PHASE = "resource-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
-    protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
+    private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final StateStore stateStore;
     private final Plan uninstallPlan;
     protected SchedulerDriver driver;
-    protected Reconciler reconciler;
-    protected TaskFailureListener taskFailureListener;
-    protected TaskKiller taskKiller;
-    protected OfferAccepter offerAccepter;
+    private Reconciler reconciler;
+    private TaskKiller taskKiller;
+    private OfferAccepter offerAccepter;
     protected Collection<Object> resources;
     private JettyApiServer apiServer;
     private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
+    private PlanManager uninstallPlanManager;
 
     /**
      * Creates a new UninstallScheduler. See information about parameters in {@link Builder}.
      */
-    protected UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
-                                 Plan uninstallPlan) {
+    UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
+                       Plan uninstallPlan) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.stateStore = stateStore;
@@ -101,6 +100,7 @@ public class UninstallScheduler implements Scheduler {
      */
     public static StateStore createStateStore(
             ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, String zkConnectionString) {
+
         StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
         if (schedulerFlags.isStateCacheEnabled()) {
             return StateStoreCache.getInstance(stateStore);
@@ -123,39 +123,38 @@ public class UninstallScheduler implements Scheduler {
         return resources;
     }
 
-    @VisibleForTesting
-    void awaitTermination() throws InterruptedException {
-        executor.shutdown();
-        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    }
-
     private void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
         initializeGlobals(driver);
-        initializeDeploymentPlan();
-//        initializeApiServer();
+        initializeDeploymentPlanManager();
+        initializeResources();
+        initializeApiServer();
         LOGGER.info("Done initializing.");
     }
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
-        taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
+        taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore), driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Collections.singletonList(new UninstallRecorder(stateStore,
-                uninstallPlan.getChildren().get(0))));
+        Phase resourcePhase = uninstallPlan.getChildren().get(0);
+        UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
+        offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
     }
 
-    private void initializeDeploymentPlan() {
+    private void initializeDeploymentPlanManager() {
         LOGGER.info("Proceeding with uninstall plan...");
-        uninstallPlan.proceed();
+        uninstallPlanManager = new DefaultPlanManager(uninstallPlan);
+        uninstallPlanManager.getPlan().proceed();
     }
 
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
-        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
-        resources.add(endpointsResource);
+        resources = new ArrayList<>();
+        List<PlanManager> planManagers = Collections.singletonList(uninstallPlanManager);
+        PlansResource plansResource = new PlansResource(planManagers);
+        resources.add(plansResource);
         resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
@@ -357,7 +356,6 @@ public class UninstallScheduler implements Scheduler {
     private void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        // phase 1 complete
         revive();
         Collection<String> taskNames = stateStore.fetchTaskNames();
         LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
@@ -365,7 +363,6 @@ public class UninstallScheduler implements Scheduler {
             Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
             taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
         }
-        // phase 2 complete
     }
 
     /**
