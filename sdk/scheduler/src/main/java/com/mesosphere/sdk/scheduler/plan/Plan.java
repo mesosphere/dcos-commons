@@ -18,7 +18,7 @@ import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
  * is upgrading the Data nodes and Phase-1 is upgrading the Index nodes. Each Phase would then
  * contain a list of {@link Step}s which each reference an individual Data or Index node to be upgraded.
  * If any errors occurred during the rollout, the process would pause and the Plan would contain a
- * list of one or more error messages to be shown to the user,
+ * list of one or more error messages to be shown to the user.
  */
 public interface Plan extends ParentElement<Phase> {
     default Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {

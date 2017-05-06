@@ -4,15 +4,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.state.*;
+import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,7 @@ public class CuratorStateStore implements StateStore {
     protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
+    private final String rootPath;
 
     /**
      * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy} and
@@ -123,7 +127,7 @@ public class CuratorStateStore implements StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
-        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
+        this.rootPath = CuratorUtils.toServiceRootPath(frameworkName);
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
@@ -245,7 +249,18 @@ public class CuratorStateStore implements StateStore {
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Task should not result in an exception from us.
             logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
-            return;
+        } catch (Exception e) {
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        }
+    }
+
+    @Override
+    public void clearServiceRoot() throws StateStoreException {
+        logger.debug("Clearing service at '{}'", rootPath);
+        try {
+            curator.delete(rootPath);
+        } catch (KeeperException.NoAuthException e) {
+            logger.warn("Unauthorized to delete the root node! Continuing silently: {}", rootPath, e);
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }

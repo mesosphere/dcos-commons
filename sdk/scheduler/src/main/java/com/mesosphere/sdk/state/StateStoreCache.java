@@ -3,7 +3,6 @@ package com.mesosphere.sdk.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -172,6 +171,19 @@ public class StateStoreCache implements StateStore {
                         taskName, nameToTask.keySet());
             }
             nameToStatus.remove(taskName);
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    /**
+     * Deletes the root service node from the StateStore
+     */
+    @Override
+    public void clearServiceRoot() throws StateStoreException {
+        RWLOCK.lock();
+        try {
+            store.clearServiceRoot();
         } finally {
             RWLOCK.unlock();
         }

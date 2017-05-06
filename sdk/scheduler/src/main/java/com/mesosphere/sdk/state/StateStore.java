@@ -87,6 +87,11 @@ public interface StateStore {
     void clearTask(String taskName) throws StateStoreException;
 
 
+    /**
+     * Deletes the root service node from the StateStore
+     */
+    void clearServiceRoot() throws StateStoreException;
+
     // Read Tasks
 
 

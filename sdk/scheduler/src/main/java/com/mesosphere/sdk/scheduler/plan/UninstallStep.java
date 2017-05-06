@@ -26,6 +26,7 @@ public class UninstallStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         if (getStatus().equals(Status.PENDING)) {
+            logger.info("Prepared UninstallStep for resource {}", getName());
             setStatus(Status.PREPARED);
         }
         return Optional.empty();

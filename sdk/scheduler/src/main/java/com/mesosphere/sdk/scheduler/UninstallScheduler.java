@@ -15,6 +15,7 @@ import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -49,6 +50,7 @@ public class UninstallScheduler implements Scheduler {
      */
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
     static final String RESOURCE_PHASE = "resource-phase";
+    static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
@@ -254,11 +256,11 @@ public class UninstallScheduler implements Scheduler {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-//            if (!apiServerReady()) {
-//                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-//                declineOffers(driver, Collections.emptyList(), offersToProcess);
-//                return;
-//            }
+            if (!apiServerReady()) {
+                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
+                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                return;
+            }
 
             LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
             for (int i = 0; i < offers.size(); ++i) {
@@ -276,7 +278,15 @@ public class UninstallScheduler implements Scheduler {
                 return;
             }
 
-            // Destroy/Unreserve everything
+            // Get candidate steps to be scheduled
+            Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
+            if (!candidateSteps.isEmpty()) {
+                LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
+                        candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
+                candidateSteps.forEach(Step::start);
+            }
+
+            // Destroy/Unreserve any reserved resource or volume that is offered
             final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
             offersWithReservedResources.addAll(getCleanerScheduler().resourceOffers(driver, offers));
 
@@ -357,6 +367,11 @@ public class UninstallScheduler implements Scheduler {
         reconciler.start();
         reconciler.reconcile(driver);
         revive();
+
+        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep
+        DeregisterStep deregisterStep = (DeregisterStep) uninstallPlan.getChildren().get(1).getChildren().get(1);
+        deregisterStep.setSchedulerDriver(driver);
+
         Collection<String> taskNames = stateStore.fetchTaskNames();
         LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
         for (String taskName : taskNames) {
@@ -448,9 +463,17 @@ public class UninstallScheduler implements Scheduler {
                     .map(this::getStep)
                     .collect(Collectors.toList());
 
-            Phase uninstallTasksPhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
+            Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                     Collections.emptyList());
-            List<Phase> phases = Collections.singletonList(uninstallTasksPhase);
+
+            Step deleteServiceRootPathStep = new DeleteServiceRootPathStep(stateStore, Status.PENDING);
+            // We don't have access to the SchedulerDriver yet, so that gets set later
+            Step deregisterStep = new DeregisterStep(Status.PENDING);
+            List<Step> miscSteps = Arrays.asList(deleteServiceRootPathStep, deregisterStep);
+            Phase miscPhase = new DefaultPhase(MISC_PHASE, miscSteps, new SerialStrategy<>(),
+                    Collections.emptyList());
+
+            List<Phase> phases = Arrays.asList(resourcePhase, miscPhase);
             Plan uninstallPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
             return new UninstallScheduler(serviceSpec, schedulerFlags, stateStore, uninstallPlan);
         }
