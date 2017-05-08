@@ -8,6 +8,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import com.mesosphere.sdk.scheduler.Observable;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
@@ -143,7 +145,16 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             }
 
             phases.addAll(createPhases(defaultRequirements));
-            setPlan(updatePhases(phases));
+            Plan plan = updatePhases(phases);
+
+            // Subscribe to state changes in recovery steps
+            List<Step> steps = plan.getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(step -> step instanceof DefaultRecoveryStep)
+                    .collect(Collectors.toList());
+            steps.forEach(step -> ((DefaultRecoveryStep) step).subscribe(this));
+
+            setPlan(plan);
         }
     }
 
@@ -266,5 +277,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;
+    }
+
+    @Override
+    public void update(Observable obj) {
+        if (obj instanceof DefaultRecoveryStep) {
+            DefaultRecoveryStep step = (DefaultRecoveryStep) obj;
+            if (step.isComplete() && step.getPodInstanceRequirement().isPresent()) {
+                PodInstance podInstance = step.getPodInstanceRequirement().get().getPodInstance();
+                stateStore.storeTasks(FailureUtils.clearFailed(podInstance, stateStore));
+            }
+        }
+
+        notifyObservers();
     }
 }

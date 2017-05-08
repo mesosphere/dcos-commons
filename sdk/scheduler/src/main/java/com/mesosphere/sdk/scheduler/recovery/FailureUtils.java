@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -64,7 +65,7 @@ public class FailureUtils {
             return taskInfo;
         }
 
-        LOGGER.info("Clearing permanent failure mark from: {}", taskInfo);
+        LOGGER.info("Clearing permanent failure mark from: {}", TextFormat.shortDebugString(taskInfo));
         List<Protos.Label> labels = taskInfo.getLabels().getLabelsList().stream()
                 .filter(label -> label.hasKey() && !label.getKey().equals(PERMANENTLY_FAILED_KEY))
                 .collect(Collectors.toList());
