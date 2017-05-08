@@ -36,7 +36,7 @@ public class DefaultRecoveryStep extends DeploymentStep {
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        stateStore.storeTasks(FailureUtils.markFailed(podInstanceRequirement.getPodInstance(), stateStore));
+        FailureUtils.markFailed(podInstanceRequirement.getPodInstance(), stateStore);
         return super.start();
     }
 

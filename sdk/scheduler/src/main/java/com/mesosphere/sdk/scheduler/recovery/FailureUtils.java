@@ -51,10 +51,11 @@ public class FailureUtils {
                 .build();
     }
 
-    public static Collection<Protos.TaskInfo> markFailed(PodInstance podInstance, StateStore stateStore) {
-        return getTaskInfos(podInstance, stateStore).stream()
-                .map(taskInfo -> FailureUtils.markFailed(taskInfo))
-                .collect(Collectors.toList());
+    public static void markFailed(PodInstance podInstance, StateStore stateStore) {
+        stateStore.storeTasks(
+                getTaskInfos(podInstance, stateStore).stream()
+                        .map(taskInfo -> FailureUtils.markFailed(taskInfo))
+                        .collect(Collectors.toList()));
     }
 
     /**

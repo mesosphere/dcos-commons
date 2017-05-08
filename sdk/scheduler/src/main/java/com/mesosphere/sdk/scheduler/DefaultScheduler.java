@@ -30,7 +30,11 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
+import com.mesosphere.sdk.specification.DefaultPlanGenerator;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -651,12 +655,19 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         LaunchConstrainer launchConstrainer;
         FailureMonitor failureMonitor;
-        if (failurePolicyOptional.isPresent()) {
-            LOGGER.error("Ignoring failure policy.");
-        }
 
-        launchConstrainer = new UnconstrainedLaunchConstrainer();
-        failureMonitor = new NeverFailureMonitor();
+        if (failurePolicyOptional.isPresent()) {
+            ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
+            failureMonitor = new TimedFailureMonitor(
+                    Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()),
+                    stateStore,
+                    configStore);
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {

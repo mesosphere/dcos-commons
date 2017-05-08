@@ -31,9 +31,8 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
         try {
             Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
             if (optionalTaskInfo.isPresent()) {
-                Protos.TaskInfo taskInfo = optionalTaskInfo.get();
-                PodInstance podInstance = TaskUtils.getPodInstance(configStore, taskInfo);
-                stateStore.storeTasks(FailureUtils.markFailed(podInstance, stateStore));
+                PodInstance podInstance = TaskUtils.getPodInstance(configStore, optionalTaskInfo.get());
+                FailureUtils.markFailed(podInstance, stateStore);
             } else {
                 logger.error("TaskInfo for TaskID was not present in the StateStore: " + taskId);
             }
