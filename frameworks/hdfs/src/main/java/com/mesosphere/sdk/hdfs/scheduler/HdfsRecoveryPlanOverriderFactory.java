@@ -11,9 +11,9 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * The HdfsRecoveryPlanManagerFactory generates {@link HdfsRecoveryPlanManager}s.
+ * The HdfsRecoveryPlanManagerFactory generates {@link HdfsRecoveryPlanOverrider}s.
  */
-public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFactory {
+public class HdfsRecoveryPlanOverriderFactory implements RecoveryPlanOverriderFactory {
     private static final String REPLACE_PLAN_NAME = "replace";
 
     @Override
@@ -21,7 +21,7 @@ public class HdfsRecoveryPlanManagerFactory implements RecoveryPlanOverriderFact
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<Plan> plans) {
-        return new HdfsRecoveryPlanManager(
+        return new HdfsRecoveryPlanOverrider(
                 stateStore,
                 configStore,
                 getNameNodeReplacementPlan(plans));

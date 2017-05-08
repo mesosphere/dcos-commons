@@ -34,6 +34,15 @@ public class FailureUtils {
         return false;
     }
 
+    public static boolean isLabeledAsFailed(PodInstance podInstance, StateStore stateStore) {
+        Collection<Protos.TaskInfo> taskInfos = getTaskInfos(podInstance, stateStore);
+        if (taskInfos.isEmpty()) {
+            return false;
+        }
+
+        return taskInfos.stream().allMatch(taskInfo -> isLabeledAsFailed(taskInfo));
+    }
+
     /**
      * Mark a task as permanently failed.  This new marked Task should be persistently stored.
      * @param taskInfo The Task to be marked.

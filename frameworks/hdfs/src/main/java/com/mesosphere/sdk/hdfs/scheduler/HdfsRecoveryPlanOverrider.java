@@ -18,14 +18,14 @@ import java.util.*;
  * The HdfsRecoveryPlanManager handles failure scenarios unique to HDFS.  It falls back to the default recovery behavior
  * when appropriate.
  */
-public class HdfsRecoveryPlanManager implements RecoveryPlanOverrider {
+public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String NN_PHASE_NAME = "permanent-nn-failure-recovery";
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final Plan replaceNameNodePlan;
 
-    public HdfsRecoveryPlanManager(
+    public HdfsRecoveryPlanOverrider(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Plan replaceNameNodePlan) {

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 

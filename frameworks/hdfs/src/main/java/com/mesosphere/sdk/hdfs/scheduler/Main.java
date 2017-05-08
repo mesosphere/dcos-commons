@@ -47,7 +47,7 @@ public class Main {
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags);
         DefaultScheduler.Builder builder = DefaultScheduler
                 .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
-                .setRecoveryManagerFactory(new HdfsRecoveryPlanManagerFactory())
+                .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder
                 .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant(getHdfsSiteXml()))
