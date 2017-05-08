@@ -296,7 +296,7 @@ def build_and_upload_single(framework, run_attrs):
     _action_wrapper("upload %s to aws" % framework.name,
             framework, func, *args)
 
-    logger.info("Built/uploladed framework=%s stub_universe_url=%s.",
+    logger.info("Built/uploaded framework=%s stub_universe_url=%s.",
             framework.name, framework.stub_universe_url)
 
 
