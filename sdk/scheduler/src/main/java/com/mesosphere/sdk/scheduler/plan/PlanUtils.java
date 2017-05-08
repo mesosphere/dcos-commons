@@ -29,21 +29,9 @@ public class PlanUtils {
     }
 
     public static boolean assetConflicts(PodInstanceRequirement asset, Collection<PodInstanceRequirement> dirtyAssets) {
-        for (PodInstanceRequirement dirtyAsset : dirtyAssets) {
-            PodInstance dirtyPodInstance = dirtyAsset.getPodInstance();
-            PodInstance assetPodInstance = asset.getPodInstance();
-            if (podInstancesConflict(dirtyPodInstance, assetPodInstance)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean podInstancesConflict(PodInstance podInstance0, PodInstance podInstance1) {
-        boolean sameType = podInstance0.getPod().getType().equals(podInstance1.getPod().getType());
-        boolean sameIndex = podInstance0.getIndex() == podInstance1.getIndex();
-        return sameType && sameIndex;
+        return dirtyAssets.stream()
+                .filter(dirtyAsset -> asset.conflicts(dirtyAsset))
+                .count() > 0;
     }
 
     public static List<PlanManager> getActivePlanManagers(List<PlanManager> planManagers) {

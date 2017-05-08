@@ -137,13 +137,10 @@ public class PodInstanceRequirement {
     }
 
     public boolean conflicts(PodInstanceRequirement podInstanceRequirement) {
-        PodInstance podInstance = podInstanceRequirement.getPodInstance();
-        boolean samePodInstance = PlanUtils.podInstancesConflict(
-                podInstance,
-                getPodInstance());
-        boolean sameTasksToLaunch = CollectionUtils.isEqualCollection(
+        boolean podConflicts = podInstanceRequirement.getPodInstance().conflicts(getPodInstance());
+        boolean tasksConflict = CollectionUtils.isEqualCollection(
                 podInstanceRequirement.getTasksToLaunch(),
                 getTasksToLaunch());
-        return samePodInstance && sameTasksToLaunch;
+        return podConflicts && tasksConflict;
     }
 }
