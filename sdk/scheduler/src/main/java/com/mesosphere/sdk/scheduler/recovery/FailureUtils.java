@@ -48,7 +48,7 @@ public class FailureUtils {
      * @param taskInfo The Task to be marked.
      * @return The marked TaskInfo which may be a copy of the original TaskInfo.
      */
-    static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
+    public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
         if (isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }
