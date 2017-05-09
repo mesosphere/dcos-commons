@@ -346,6 +346,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             setBootstrapConfigFileEnv(commandBuilder, taskSpec);
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
+            //commandBuilder.setEnvironment(commandBuilder.getEnvironmentBuilder()
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
@@ -689,6 +690,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Required URIs from the scheduler environment:
         executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
         executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
+
+
+        // MB  -> secret env variable
+        String envName = "SECRET1";
+        String secretName = "secret1";
+        executorCommandBuilder.getEnvironmentBuilder().addVariablesBuilder()
+                .setName(envName)
+                .setType(Protos.Environment.Variable.Type.SECRET)
+                .setSecret(Protos.Secret.newBuilder()
+                        .setType(Protos.Secret.Type.REFERENCE)
+                        .setReference(Protos.Secret.Reference.newBuilder().setName(secretName))
+                        .build());
+        // MB -> secret env variable
+
 
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
