@@ -176,6 +176,45 @@ def test_permanently_replace_namenodes():
     replace_name_node(0)
 
 
+@pytest.mark.gabriel
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_permanent_and_transient_namenode_failures_0_1():
+    check_healthy()
+    name_0_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
+    name_1_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-1')
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+
+    cmd.run_cli('hdfs pods replace name-0')
+    cmd.run_cli('hdfs pods restart name-1')
+
+    check_healthy()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name-0', name_0_ids)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name-1', name_1_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+
+@pytest.mark.gabriel
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_permanent_and_transient_namenode_failures_1_0():
+    check_healthy()
+    name_0_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
+    name_1_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-1')
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+
+    cmd.run_cli('hdfs pods replace name-1')
+    cmd.run_cli('hdfs pods restart name-0')
+
+    check_healthy()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name-0', name_0_ids)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name-1', name_1_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+
+
 @pytest.mark.smoke
 def test_install():
     check_healthy()

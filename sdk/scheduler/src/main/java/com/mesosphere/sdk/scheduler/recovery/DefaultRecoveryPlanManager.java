@@ -34,7 +34,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConfigStore<ServiceSpec> configStore;
-    private final List<RecoveryPlanOverrider> overrideRecoveryManagers;
+    private final List<RecoveryPlanOverrider> recoveryPlanOverriders;
 
     protected volatile Plan plan;
 
@@ -61,7 +61,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.configStore = configStore;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.overrideRecoveryManagers = overrideRecoveryManagers;
+        this.recoveryPlanOverriders = overrideRecoveryManagers;
         plan = new DefaultPlan(DEFAULT_RECOVERY_PLAN_NAME, Collections.emptyList());
     }
 
@@ -130,7 +130,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             List<Phase> phases = new ArrayList<>();
             for (PodInstanceRequirement requirement : podInstanceRequirements) {
                 boolean overriden = false;
-                for (RecoveryPlanOverrider overrider : overrideRecoveryManagers) {
+                for (RecoveryPlanOverrider overrider : recoveryPlanOverriders) {
                     Optional<Phase> override  = overrider.override(requirement);
                     if (override.isPresent()) {
                         overriden = true;
