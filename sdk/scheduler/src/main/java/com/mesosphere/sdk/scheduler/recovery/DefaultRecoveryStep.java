@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An extension of {@link DeploymentStep} meant for use with {@link DefaultRecoveryPlanManager}.
@@ -31,6 +32,15 @@ public class DefaultRecoveryStep extends DeploymentStep {
         super(name, status, podInstanceRequirement, Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.stateStore = stateStore;
+    }
+
+    @Override
+    public Optional<PodInstanceRequirement> start() {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+            FailureUtils.markFailed(podInstanceRequirement.getPodInstance(), stateStore);
+        }
+
+        return super.start();
     }
 
     @Override
