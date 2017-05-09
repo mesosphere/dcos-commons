@@ -9,7 +9,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: env && cat secretFile2 && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -33,6 +33,7 @@ pods:
         goal: RUNNING
         cmd: >
                env &&
+               cat secretFile2 &&
                echo world1 >> world-container-path1/output &&
                echo world2 >> world-container-path2/output &&
                sleep $SLEEP_DURATION

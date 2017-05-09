@@ -715,6 +715,31 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             executorInfoBuilder.addResources(getVolumeResource(v));
         }
 
+        //MB
+        String secretName2 = "secret2";
+        String secretFile2 = "secretFile2";
+        Protos.Secret secret = Protos.Secret.newBuilder()
+                .setType(Protos.Secret.Type.REFERENCE)
+                .setReference(Protos.Secret.Reference.newBuilder().setName(secretName2).build()).build();
+
+        Protos.Volume secretVolume = Protos.Volume.newBuilder().setSource(
+                Protos.Volume.Source.newBuilder()
+                        .setType(Protos.Volume.Source.Type.SECRET)
+                        .setSecret(secret).build())
+                        .setContainerPath(secretFile2)
+                        .setMode(Protos.Volume.Mode.RO)
+                        .build();
+
+        if (!executorInfoBuilder.hasContainer()) {
+            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
+                    .setType(Protos.ContainerInfo.Type.MESOS)
+                    .addVolumes(secretVolume).build());
+        } else {
+            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(secretVolume).build());
+        }
+        //MB
+
+
         // Finally any URIs for config templates defined in TaskSpecs.
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
