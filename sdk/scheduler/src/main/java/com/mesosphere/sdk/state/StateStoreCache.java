@@ -28,6 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Implementation note: All write operations always invoke the underlying storage before updating
  * the local cache. This avoids creating an inconsistent cache state if writing to the underlying
  * persistent store fails.
+ * <p>
+ * TODO(nickbp): Replace this with a much simpler version that instead implements/wraps {@link Persister}.
  */
 public class StateStoreCache implements StateStore {
 
@@ -177,48 +179,20 @@ public class StateStoreCache implements StateStore {
     }
 
     /**
-     * Deletes the root service node from the StateStore. This effectively wipes the entire content of the state store.
+     * Wipes the entire content of the state store.
      */
     @Override
-    public void clearServiceRoot() throws StateStoreException {
+    public void clearAllData() throws StateStoreException {
         RWLOCK.lock();
         try {
-            store.clearServiceRoot();
-            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
+            store.clearAllData();
+            // Wipe all local state as well:
+            frameworkId = Optional.empty();
+            nameToTask.clear();
+            nameToStatus.clear();
+            properties.clear();
         } finally {
             RWLOCK.unlock();
-        }
-    }
-
-    @Override
-    public void markUninstallStarted() throws StateStoreException {
-        RWLOCK.lock();
-        try {
-            store.markUninstallStarted();
-            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
-        } finally {
-            RWLOCK.unlock();
-        }
-    }
-
-    @Override
-    public void markUninstallComplete() throws StateStoreException {
-        RWLOCK.lock();
-        try {
-            store.markUninstallComplete();
-            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
-        } finally {
-            RWLOCK.unlock();
-        }
-    }
-
-    @Override
-    public boolean checkUninstallStarted() throws StateStoreException {
-        RLOCK.lock();
-        try {
-            return store.checkUninstallStarted();
-        } finally {
-            RLOCK.unlock();
         }
     }
 

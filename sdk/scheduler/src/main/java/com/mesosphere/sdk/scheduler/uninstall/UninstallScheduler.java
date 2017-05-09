@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
@@ -8,18 +8,28 @@ import com.mesosphere.sdk.api.PodsResource;
 import com.mesosphere.sdk.api.StateResource;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
+import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.state.UninstallRecorder;
 import org.apache.mesos.Protos;
@@ -43,12 +53,6 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  */
 public class UninstallScheduler implements Scheduler {
 
-    /**
-     * Time to wait for the executor thread to terminate. Only used by unit tests.
-     *
-     * Default: 10 seconds
-     */
-    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
     static final String RESOURCE_PHASE = "resource-phase";
     static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
@@ -74,7 +78,7 @@ public class UninstallScheduler implements Scheduler {
     /**
      * Creates a new UninstallScheduler. See information about parameters in {@link Builder}.
      */
-    UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
+    private UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
                        Plan uninstallPlan) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
@@ -87,38 +91,8 @@ public class UninstallScheduler implements Scheduler {
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return new Builder(serviceSpec, schedulerFlags);
-    }
-
-    /**
-     * Creates and returns a new default {@link StateStore} suitable for passing to
-     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
-     * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to
-     * {@link UninstallScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
-     *
-     * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
-     */
-    public static StateStore createStateStore(
-            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, String zkConnectionString) {
-
-        StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
-        if (schedulerFlags.isStateCacheEnabled()) {
-            return StateStoreCache.getInstance(stateStore);
-        } else {
-            return stateStore;
-        }
-    }
-
-    /**
-     * Calls {@link #createStateStore(ServiceSpec, SchedulerFlags, String)} with the specification name as the
-     * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
-     *
-     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
-     */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return createStateStore(serviceSpec, schedulerFlags, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
+        return new Builder(serviceSpec, schedulerFlags, stateStore);
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -194,11 +168,6 @@ public class UninstallScheduler implements Scheduler {
             LOGGER.info("  {}", offerId.getValue());
             driver.declineOffer(offerId);
         });
-    }
-
-    private ResourceCleanerScheduler getCleanerScheduler() {
-        ResourceCleaner cleaner = new UninstallResourceCleaner();
-        return new ResourceCleanerScheduler(cleaner, offerAccepter);
     }
 
     @Override
@@ -288,7 +257,10 @@ public class UninstallScheduler implements Scheduler {
 
             // Destroy/Unreserve any reserved resource or volume that is offered
             final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
-            offersWithReservedResources.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+
+            offersWithReservedResources.addAll(
+                    new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
+                    .resourceOffers(driver, offers));
 
             List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
             offers.clear();
@@ -316,7 +288,6 @@ public class UninstallScheduler implements Scheduler {
             try {
                 stateStore.storeStatus(status);
                 reconciler.update(status);
-
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -388,59 +359,12 @@ public class UninstallScheduler implements Scheduler {
     public static class Builder {
         private final ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
+        private final StateStore stateStore;
 
-        // When these optionals are unset, we use default values:
-        private Optional<StateStore> stateStoreOptional = Optional.empty();
-
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
             this.serviceSpec = serviceSpec;
             this.schedulerFlags = schedulerFlags;
-        }
-
-        /**
-         * Returns the {@link ServiceSpec} which was provided via the constructor.
-         */
-        public ServiceSpec getServiceSpec() {
-            return serviceSpec;
-        }
-
-        /**
-         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
-         *
-         * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-         * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
-         */
-        public StateStore getStateStore() {
-            if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
-            }
-            return stateStoreOptional.get();
-        }
-
-        /**
-         * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link UninstallScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
-         *
-         * The state store persists copies of task information and task status for all tasks running in the service.
-         *
-         * @throws IllegalStateException if the state store is already set, via a previous call to either
-         *                               {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
-         */
-        public Builder setStateStore(StateStore stateStore) {
-            if (stateStoreOptional.isPresent()) {
-                // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
-                throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
-            }
-            this.stateStoreOptional = Optional.ofNullable(stateStore);
-            return this;
-        }
-
-        /**
-         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
-         */
-        public SchedulerFlags getSchedulerFlags() {
-            return schedulerFlags;
+            this.stateStore = stateStore;
         }
 
         /**
@@ -452,8 +376,6 @@ public class UninstallScheduler implements Scheduler {
          *                               failed
          */
         public UninstallScheduler build() {
-            // Get custom or default state store (defaults handled by getStateStore())::
-            final StateStore stateStore = getStateStore();
             // create one UninstallStep per unique Resource
             List<Step> taskSteps = stateStore.fetchTasks().stream()
                     .map(Protos.TaskInfo::getResourcesList)

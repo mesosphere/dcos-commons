@@ -61,7 +61,7 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    private static final String UNINSTALL_MARK_PATH = "UninstallStarted";
+    public static final String LOCK_PATH_NAME = "lock";
 
     protected final CuratorPersister curator;
     protected final TaskPathMapper taskPathMapper;
@@ -257,42 +257,7 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public void markUninstallStarted() throws StateStoreException {
-        try {
-            Date now = new Date();
-            curator.set(CuratorUtils.join(rootPath, UNINSTALL_MARK_PATH), now.toString().getBytes());
-            logger.info("Uninstall start marked at {}", now);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, "Failed to mark uninstall started", e);
-        }
-    }
-
-    @Override
-    public void markUninstallComplete() throws StateStoreException {
-        try {
-            curator.delete(CuratorUtils.join(rootPath, UNINSTALL_MARK_PATH));
-            logger.info("Deleted {}/{}.", rootPath, UNINSTALL_MARK_PATH);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, "Failed to delete uninstall mark", e);
-        }
-    }
-
-    @Override
-    public boolean checkUninstallStarted() throws StateStoreException {
-        try {
-            // If the node exists, then uninstall has started.
-            byte[] mark = curator.get(CuratorUtils.join(rootPath, UNINSTALL_MARK_PATH));
-            logger.info("Uninstall was started at {}", new String(mark));
-            return true;
-        } catch (KeeperException.NoNodeException ne) {
-            return false;
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, "Failed to fetch uninstall mark", e);
-        }
-    }
-
-    @Override
-    public void clearServiceRoot() throws StateStoreException {
+    public void clearAllData() throws StateStoreException {
         logger.info("Clearing service at '{}'", rootPath);
         try {
              /* Effective 5/8/2017:
@@ -327,7 +292,7 @@ public class CuratorStateStore implements StateStore {
     private CuratorTransactionFinal deleteChildren(String root, CuratorTransactionFinal curatorTransactionFinal)
             throws Exception {
         ArrayList<String> children = curator.getChildren(root).stream()
-                .filter(child -> !child.equals("lock") && !child.equals(UNINSTALL_MARK_PATH))
+                .filter(child -> !child.equals(LOCK_PATH_NAME))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         for (String child : children) {

@@ -1,13 +1,17 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -34,7 +38,6 @@ public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
-    protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private Scheduler scheduler;
@@ -76,22 +79,22 @@ public class DefaultService implements Service {
         try {
             // Use a single stateStore for either scheduler as the StateStoreCache
             // requires a single instance of StateStore.
-            StateStore stateStore = schedulerBuilder.getStateStore();
-            this.stateStore = stateStore;
-            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()
-                    || stateStore.checkUninstallStarted()) {
-
-                if (!stateStore.checkUninstallStarted()) {
-                    LOGGER.info("Service has been told to uninstall. Marking this in ZK. Note: Uninstall " +
-                            "is a one way process and is NOT reversible.");
-                    stateStore.markUninstallStarted();
+            this.stateStore = schedulerBuilder.getStateStore();
+            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+                if (!StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                            "Uninstall cannot be canceled once enabled.");
+                    StateStoreUtils.setUninstalling(stateStore, true);
                 }
-
                 LOGGER.info("Launching UninstallScheduler...");
-                UninstallScheduler.Builder uninstallSchedulerBuilder = UninstallScheduler.newBuilder(
-                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags());
-                this.scheduler = uninstallSchedulerBuilder.setStateStore(stateStore).build();
+                this.scheduler = UninstallScheduler.newBuilder(
+                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags(), stateStore).build();
             } else {
+                if (StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                            "Reenable the uninstall flag to complete the process.");
+                    SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+                }
                 this.scheduler = schedulerBuilder.build();
             }
         } catch (Throwable e) {
@@ -112,7 +115,7 @@ public class DefaultService implements Service {
                 serviceSpec.getZookeeperConnection(), CuratorUtils.getDefaultRetry());
         curatorClient.start();
 
-        InterProcessMutex curatorMutex = lock(curatorClient, serviceSpec.getName());
+        InterProcessMutex curatorMutex = lock(curatorClient, serviceSpec.getName(), LOCK_ATTEMPTS);
         try {
             register();
         } finally {
@@ -125,17 +128,9 @@ public class DefaultService implements Service {
      * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
      * same service.
      */
-    private static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName) {
-        return lock(curatorClient, serviceName, LOCK_PATH, LOCK_ATTEMPTS);
-    }
-
-    protected static InterProcessMutex lock(
-            CuratorFramework curatorClient,
-            String serviceName,
-            String lockPathString,
-            int lockAttempts) {
-        String rootPath = CuratorUtils.toServiceRootPath(serviceName);
-        String lockPath = CuratorUtils.join(rootPath, lockPathString);
+    protected static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName, int lockAttempts) {
+        String lockPath = CuratorUtils.join(
+                CuratorUtils.toServiceRootPath(serviceName), CuratorStateStore.LOCK_PATH_NAME);
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);

@@ -1,6 +1,9 @@
-package com.mesosphere.sdk.scheduler.plan;
+package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.scheduler.plan.AbstractStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 
@@ -27,7 +30,7 @@ public class DeleteServiceRootPathStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         logger.info("Deleting service root path for framework...");
-        stateStore.clearServiceRoot();
+        stateStore.clearAllData();
         logger.info("Finished deleting service root path for framework");
         setStatus(Status.COMPLETE);
         return Optional.empty();

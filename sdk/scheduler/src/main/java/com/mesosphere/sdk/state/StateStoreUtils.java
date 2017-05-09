@@ -29,6 +29,7 @@ public class StateStoreUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
     private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
+    private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -210,35 +211,45 @@ public class StateStoreUtils {
      * Returns the current value of the 'suppressed' property in the provided {@link StateStore}.
      */
     public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
-        byte[] bytes = fetchPropertyOrEmptyArray(stateStore, SUPPRESSED_PROPERTY_KEY);
-
-        if (bytes.length == 0) {
-            return false;
-        } else {
-            try {
-                return new JsonSerializer().deserialize(bytes, Boolean.class);
-            } catch (IOException e) {
-                LOGGER.error(String.format("Error converting property '%s' to boolean.", SUPPRESSED_PROPERTY_KEY), e);
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-            }
-        }
+        return fetchBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY);
     }
 
     /**
      * Sets a 'suppressed' property in the provided {@link StateStore} to the provided value.
      */
     public static void setSuppressed(StateStore stateStore, boolean isSuppressed) {
-        byte[] bytes;
-        Serializer serializer = new JsonSerializer();
+        setBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY, isSuppressed);
+    }
 
-        try {
-            bytes = serializer.serialize(isSuppressed);
-        } catch (IOException e) {
-            LOGGER.error(String.format(
-                    "Error serializing property '%s': %s", SUPPRESSED_PROPERTY_KEY, isSuppressed), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+    /**
+     * Returns the current value of the 'uninstall' property in the provided {@link StateStore}.
+     */
+    public static boolean isUninstalling(StateStore stateStore) throws StateStoreException {
+        return fetchBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY);
+    }
+
+    /**
+     * Sets an 'uninstall' property in the provided {@link StateStore} to the provided value.
+     */
+    public static void setUninstalling(StateStore stateStore, boolean isUninstalling) {
+        setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, isUninstalling);
+    }
+
+    private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
+        byte[] bytes = fetchPropertyOrEmptyArray(stateStore, propertyName);
+        if (bytes.length == 0) {
+            return false;
+        } else {
+            try {
+                return new JsonSerializer().deserialize(bytes, Boolean.class);
+            } catch (IOException e) {
+                LOGGER.error(String.format("Error converting property '%s' to boolean.", propertyName), e);
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+            }
         }
+    }
 
-        stateStore.storeProperty(SUPPRESSED_PROPERTY_KEY, bytes);
+    private static void setBooleanProperty(StateStore stateStore, String propertyName, boolean value) {
+        stateStore.storeProperty(propertyName, new JsonSerializer().serialize(value));
     }
 }

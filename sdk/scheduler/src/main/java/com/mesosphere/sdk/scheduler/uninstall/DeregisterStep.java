@@ -1,11 +1,15 @@
-package com.mesosphere.sdk.scheduler.plan;
+package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.scheduler.plan.AbstractStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
-import javax.swing.plaf.nimbus.State;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,8 +43,9 @@ public class DeregisterStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         logger.info("Stopping SchedulerDriver...");
+        // Unregisters the framework in addition to stopping the SchedulerDriver thread:
         schedulerDriver.stop(true);
-        stateStore.markUninstallComplete();
+        StateStoreUtils.setUninstalling(stateStore, false);
         setStatus(Status.COMPLETE);
         return Optional.empty();
     }

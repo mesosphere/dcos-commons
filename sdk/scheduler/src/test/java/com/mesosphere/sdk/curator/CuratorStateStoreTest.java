@@ -148,10 +148,10 @@ public class CuratorStateStoreTest {
     }
 
     @Test
-    public void testStoreClearServiceRoot() throws Exception {
+    public void testStoreClearAllData() throws Exception {
         store.storeTasks(createTasks(TASK_NAME));
         store.storeFrameworkId(FRAMEWORK_ID);
-        store.clearServiceRoot();
+        store.clearAllData();
 
         CuratorFramework client = CuratorFrameworkFactory.newClient(testZk.getConnectString(),
                 CuratorUtils.getDefaultRetry());
@@ -161,15 +161,6 @@ public class CuratorStateStoreTest {
         assertEquals(0,
                 client.getChildren().forPath("/dcos-service-test-root-path").size());
         client.close();
-    }
-
-    @Test
-    public void testStoreUninstallMark() throws Exception {
-        assertFalse(store.checkUninstallStarted());
-
-        store.markUninstallStarted();
-
-        assertTrue(store.checkUninstallStarted());
     }
 
     @Test
