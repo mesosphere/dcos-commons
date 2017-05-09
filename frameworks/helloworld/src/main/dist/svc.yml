@@ -4,12 +4,19 @@ scheduler:
   user: {{SERVICE_USER}}
 pods:
   hello:
+    container:
+      image-name: ubuntu:14.04
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
+    secrets:
+      {{HELLO_SECRET1}}:
+        env-key : SECRET1_ENV
+        file: {{SECRET1_FILE}}
+      {{HELLO_SECRET2}}:
     tasks:
       server:
         goal: RUNNING
-        cmd: env && cat secretFile2 && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: env && cat secretFile && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -28,12 +35,17 @@ pods:
   world:
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
+    secrets:
+      {{WORLD_SECRET1}}:
+        env-key : SECRET1_ENV
+      {{WORLD_SECRET2}}:
+        file: {{SECRET2_FILE}}
     tasks:
       server:
         goal: RUNNING
         cmd: >
                env &&
-               cat secretFile2 &&
+               cat secretFile &&
                echo world1 >> world-container-path1/output &&
                echo world2 >> world-container-path2/output &&
                sleep $SLEEP_DURATION

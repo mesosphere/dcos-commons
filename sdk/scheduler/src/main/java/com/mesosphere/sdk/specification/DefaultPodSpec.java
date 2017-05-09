@@ -50,6 +50,8 @@ public class DefaultPodSpec implements PodSpec {
     private final Collection<URI> uris;
     @Valid
     private Collection<VolumeSpec> volumes;
+    @Valid
+    private Collection<SecretSpec> secrets;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -62,7 +64,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("volumes") Collection<VolumeSpec> volumes) {
+            @JsonProperty("volumes") Collection<VolumeSpec> volumes,
+            @JsonProperty("secrets") Collection<SecretSpec> secrets) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -73,13 +76,14 @@ public class DefaultPodSpec implements PodSpec {
         this.tasks = tasks;
         this.placementRule = placementRule;
         this.volumes = (volumes != null) ? volumes : Collections.emptyList();
+        this.secrets = (secrets != null) ? secrets : Collections.emptyList();
     }
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count,
              builder.image, builder.networks, builder.rlimits,
              builder.uris, builder.tasks, builder.placementRule,
-             builder.volumes);
+             builder.volumes, builder.secrets);
         ValidationUtils.validate(this);
     }
 
@@ -100,6 +104,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
         builder.volumes = copy.getVolumes();
+        builder.secrets = copy.getSecrets();
         return builder;
     }
 
@@ -154,6 +159,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<SecretSpec> getSecrets() {
+        return secrets;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -180,6 +190,7 @@ public class DefaultPodSpec implements PodSpec {
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
         private Collection<VolumeSpec> volumes;
+        private Collection<SecretSpec> secrets;
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -324,6 +335,19 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder volumes(Collection<VolumeSpec> volumes) {
             this.volumes = volumes;
+            return this;
+        }
+
+
+        /**
+         * Sets the {@code secrets} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param secrets the {@code secrets} to set
+         * @return a reference to this Builder
+         */
+        public Builder secrets(Collection<SecretSpec> secrets) {
+            this.secrets = secrets;
             return this;
         }
 

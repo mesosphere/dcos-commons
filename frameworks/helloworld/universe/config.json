@@ -69,13 +69,22 @@
           "count":{
             "description":"Number of Hello pods to run",
             "type":"integer",
-            "default":1
+            "default":2
           },
           "placement":{
             "description":"Marathon-style placement constraint for Hello pods",
             "type":"string",
             "default":"hostname:UNIQUE"
-          }
+          },
+          "secret1":{
+            "description":"secret1",
+            "type":"string",
+            "default":"hello-world/secret1"
+          },
+          "secret2":{
+            "description":"secret2",
+            "type":"string",
+            "default":"hello-world/secret2"
         },
         "required":[
           "cpus",
@@ -107,12 +116,22 @@
           "count":{
             "description":"Number of World pods to run",
             "type":"integer",
-            "default":2
+            "default":3
           },
           "placement":{
             "description":"Marathon-style placement constraint for World pods",
             "type":"string",
             "default":"hostname:UNIQUE"
+          },
+          "secret1":{
+            "description":"secret1",
+            "type":"string",
+            "default":"hello-world/secret1"
+          },
+          "secret2":{
+            "description":"secret2",
+            "type":"string",
+            "default":"hello-world/secret2"
           }
         },
         "required":[

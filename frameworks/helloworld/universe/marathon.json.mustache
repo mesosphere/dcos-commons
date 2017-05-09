@@ -43,6 +43,18 @@
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
+    {{#world.secret1}}
+    "WORLD_SECRET1" : "{{world.secret1}}",
+    {{/world.secret1}}
+    {{#world.secret2}}
+    "WORLD_SECRET2" : "{{world.secret2}}",
+    {{/world.secret2}}
+    {{#hello.secret1}}
+    "HELLO_SECRET1" : "{{hello.secret1}}",
+    {{/hello.secret1}}
+    {{#hello.secret2}}
+    "HELLO_SECRET2" : "{{hello.secret2}}",
+    {{/hello.secret2}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}"
   },
   "uris": [
