@@ -8,10 +8,11 @@ import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.state.StateStoreUtils;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.api.transaction.CuratorTransaction;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -61,7 +62,7 @@ public class CuratorStateStore implements StateStore {
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
-    protected final Persister curator;
+    protected final CuratorPersister curator;
     protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
@@ -256,14 +257,53 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void clearServiceRoot() throws StateStoreException {
-        logger.debug("Clearing service at '{}'", rootPath);
+        logger.info("Clearing service at '{}'", rootPath);
         try {
-            curator.delete(rootPath);
-        } catch (KeeperException.NoAuthException e) {
-            logger.warn("Unauthorized to delete the root node! Continuing silently: {}", rootPath, e);
+             /* Effective 5/8/2017:
+              * We cannot delete the root node of a service directly.
+              * This is due to the ACLs on the global DC/OS ZK.
+              *
+              * The root has:
+              * [zk: localhost:2181(CONNECTED) 1] getAcl /
+              * 'world,'anyone
+              * : cr
+              * 'ip,'127.0.0.1
+              * : cdrwa
+              *
+              * Our service nodes have:
+              * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-hello-world
+              * 'world,'anyone
+              * : cdrwa
+              *
+              * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
+              * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
+              */
+            CuratorTransaction transaction = curator.startTransaction();
+            curator.commitTransaction(deleteChildren(rootPath, transaction.check()
+                    .forPath(rootPath).and()));
+            logger.info("Cleared service at '{}'", rootPath);
         } catch (Exception e) {
+            logger.error(String.format("Encountered exception while attempting to clear %s", rootPath), e);
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
+    }
+
+    public CuratorTransactionFinal deleteChildren(String root, CuratorTransactionFinal curatorTransactionFinal)
+            throws Exception {
+        ArrayList<String> children = curator.getChildren(root).stream()
+                .filter(child -> !child.equals("lock"))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        for (String child : children) {
+            curatorTransactionFinal = deleteChildren(CuratorUtils.join(root, child), curatorTransactionFinal);
+        }
+
+        // Never try to delete the rootPath. It will fail due to the ACLs.
+        if (root.equals(rootPath)) {
+            return curatorTransactionFinal;
+        }
+
+        return curatorTransactionFinal.delete().forPath(root).and();
     }
 
     // Read Tasks
