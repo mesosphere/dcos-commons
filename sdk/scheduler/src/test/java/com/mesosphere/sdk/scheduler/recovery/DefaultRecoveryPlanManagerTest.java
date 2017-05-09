@@ -29,7 +29,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -456,7 +455,7 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeTasks(Arrays.asList(taskInfo0, taskInfo1));
 
         FailureUtils.markFailed(podInstance, stateStore);
-        Assert.assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
+        assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
 
         // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
         // of its permanent failure mark
@@ -470,6 +469,6 @@ public class DefaultRecoveryPlanManagerTest {
                 stateStore);
 
         recoveryManager.update(step);
-        Assert.assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
+        assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
     }
 }
