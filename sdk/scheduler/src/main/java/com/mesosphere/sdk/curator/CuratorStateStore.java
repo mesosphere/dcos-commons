@@ -260,7 +260,7 @@ public class CuratorStateStore implements StateStore {
     public void markUninstallStarted() throws StateStoreException {
         try {
             Date now = new Date();
-            curator.set(CuratorUtils.join(rootPath,UNINSTALL_MARK_PATH), now.toString().getBytes());
+            curator.set(CuratorUtils.join(rootPath, UNINSTALL_MARK_PATH), now.toString().getBytes());
             logger.info("Uninstall start marked at {}", now);
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, "Failed to mark uninstall started", e);
@@ -270,7 +270,7 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void markUninstallComplete() throws StateStoreException {
         try {
-            curator.delete(CuratorUtils.join(rootPath,UNINSTALL_MARK_PATH));
+            curator.delete(CuratorUtils.join(rootPath, UNINSTALL_MARK_PATH));
             logger.info("Deleted {}/{}.", rootPath, UNINSTALL_MARK_PATH);
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, "Failed to delete uninstall mark", e);

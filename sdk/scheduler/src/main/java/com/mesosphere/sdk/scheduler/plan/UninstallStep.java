@@ -26,7 +26,7 @@ public class UninstallStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         if (getStatus().equals(Status.PENDING)) {
-            logger.info("Prepared UninstallStep for resource {}", getName());
+            logger.info("Setting state to Prepared for resource {}", getName());
             setStatus(Status.PREPARED);
         }
         return Optional.empty();
@@ -36,13 +36,13 @@ public class UninstallStep extends AbstractStep {
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // Expecting a singleton UninstallRecommendation attached to a resource with a resource ID. If it matches
         // the resource ID for this step, we mark the step as COMPLETE.
-        boolean is_matched = recommendations.stream()
+        boolean isMatched = recommendations.stream()
                 .filter(offerRecommendation -> offerRecommendation instanceof UninstallRecommendation)
                 .map(offerRecommendation -> (UninstallRecommendation) offerRecommendation)
                 .map(UninstallRecommendation::getResource)
                 .map(ResourceUtils::getResourceId)
                 .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId));
-        if (is_matched) {
+        if (isMatched) {
             logger.info("Completed uninstall step for resource {}", getName());
             setStatus(Status.COMPLETE);
         }
@@ -60,8 +60,6 @@ public class UninstallStep extends AbstractStep {
 
     @Override
     public void update(Protos.TaskStatus status) {
-        logger.info("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
         logger.debug("Step {} ignoring irrelevant TaskStatus: {}", getName(), TextFormat.shortDebugString(status));
     }
-
 }

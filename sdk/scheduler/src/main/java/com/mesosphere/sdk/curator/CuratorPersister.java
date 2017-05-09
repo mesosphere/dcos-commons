@@ -103,7 +103,8 @@ public class CuratorPersister implements Persister {
         return client.inTransaction();
     }
 
-    public Collection<CuratorTransactionResult> commitTransaction(CuratorTransactionFinal curatorTransactionFinal) throws Exception {
+    public Collection<CuratorTransactionResult> commitTransaction(CuratorTransactionFinal curatorTransactionFinal)
+            throws Exception {
         return curatorTransactionFinal.commit();
     }
 

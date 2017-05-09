@@ -12,8 +12,6 @@ public class Constants {
     public static final String PORTS_RESOURCE_TYPE = "ports";
     /** The name used for reserved storage/disk resources. */
     public static final String DISK_RESOURCE_TYPE = "disk";
-    /**
-     * The string prepended to reserved resources to indicate that they are uninstalled
-     */
+    /** The string prepended to reserved resources to indicate that they are uninstalled. */
     public static final String TOMBSTONE_MARKER = "uninstalled_";
 }

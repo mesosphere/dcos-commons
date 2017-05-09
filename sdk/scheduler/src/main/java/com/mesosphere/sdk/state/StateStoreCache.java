@@ -177,13 +177,14 @@ public class StateStoreCache implements StateStore {
     }
 
     /**
-     * Deletes the root service node from the StateStore
+     * Deletes the root service node from the StateStore. This effectively wipes the entire content of the state store.
      */
     @Override
     public void clearServiceRoot() throws StateStoreException {
         RWLOCK.lock();
         try {
             store.clearServiceRoot();
+            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
         } finally {
             RWLOCK.unlock();
         }
@@ -194,6 +195,7 @@ public class StateStoreCache implements StateStore {
         RWLOCK.lock();
         try {
             store.markUninstallStarted();
+            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
         } finally {
             RWLOCK.unlock();
         }
@@ -204,6 +206,7 @@ public class StateStoreCache implements StateStore {
         RWLOCK.lock();
         try {
             store.markUninstallComplete();
+            //TODO(nickbp): DONOTSUBMIT until this updates local cache state to reflect the change!!
         } finally {
             RWLOCK.unlock();
         }

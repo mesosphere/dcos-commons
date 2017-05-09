@@ -64,9 +64,7 @@ public class SchedulerFlags {
     private static final String JAVA_URI_ENV = "JAVA_URI";
     /** Standard Java envvar pointing to the JRE location on disk. */
     private static final String JAVA_HOME_ENV = "JAVA_HOME";
-    /**
-     * When set, specifies uninstall should be performed
-     */
+    /** When set, specifies that uninstall should be performed. */
     private static final String SDK_UNINSTALL = "SDK_UNINSTALL";
 
     /**
