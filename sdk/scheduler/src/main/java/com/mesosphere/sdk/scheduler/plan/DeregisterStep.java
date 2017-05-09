@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -15,13 +17,15 @@ import java.util.Optional;
 public class DeregisterStep extends AbstractStep {
 
     private SchedulerDriver schedulerDriver;
+    private StateStore stateStore;
 
     /**
      * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
      * set separately.
      */
-    public DeregisterStep(Status status) {
+    public DeregisterStep(Status status, StateStore stateStore) {
         super("deregister", status);
+        this.stateStore = stateStore;
     }
 
     /**
@@ -36,6 +40,7 @@ public class DeregisterStep extends AbstractStep {
     public Optional<PodInstanceRequirement> start() {
         logger.info("Stopping SchedulerDriver...");
         schedulerDriver.stop(true);
+        stateStore.markUninstallComplete();
         setStatus(Status.COMPLETE);
         return Optional.empty();
     }

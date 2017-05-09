@@ -190,6 +190,36 @@ public class StateStoreCache implements StateStore {
     }
 
     @Override
+    public void markUninstallStarted() throws StateStoreException {
+        RWLOCK.lock();
+        try {
+            store.markUninstallStarted();
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    @Override
+    public void markUninstallComplete() throws StateStoreException {
+        RWLOCK.lock();
+        try {
+            store.markUninstallComplete();
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    @Override
+    public boolean checkUninstallStarted() throws StateStoreException {
+        RLOCK.lock();
+        try {
+            return store.checkUninstallStarted();
+        } finally {
+            RLOCK.unlock();
+        }
+    }
+
+    @Override
     public Collection<String> fetchTaskNames() throws StateStoreException {
         RLOCK.lock();
         try {

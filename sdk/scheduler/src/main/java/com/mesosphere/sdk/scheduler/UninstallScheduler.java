@@ -468,7 +468,7 @@ public class UninstallScheduler implements Scheduler {
 
             Step deleteServiceRootPathStep = new DeleteServiceRootPathStep(stateStore, Status.PENDING);
             // We don't have access to the SchedulerDriver yet, so that gets set later
-            Step deregisterStep = new DeregisterStep(Status.PENDING);
+            Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
             List<Step> miscSteps = Arrays.asList(deleteServiceRootPathStep, deregisterStep);
             Phase miscPhase = new DefaultPhase(MISC_PHASE, miscSteps, new SerialStrategy<>(),
                     Collections.emptyList());

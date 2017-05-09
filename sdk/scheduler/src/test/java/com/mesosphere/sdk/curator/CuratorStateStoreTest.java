@@ -164,6 +164,15 @@ public class CuratorStateStoreTest {
     }
 
     @Test
+    public void testStoreUninstallMark() throws Exception {
+        assertFalse(store.checkUninstallStarted());
+
+        store.markUninstallStarted();
+
+        assertTrue(store.checkUninstallStarted());
+    }
+
+    @Test
     public void testClearMissingTask() throws Exception {
         store.clearTask(TASK_NAME);
     }

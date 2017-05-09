@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -86,11 +87,6 @@ public interface StateStore {
      */
     void clearTask(String taskName) throws StateStoreException;
 
-
-    /**
-     * Deletes the root service node from the StateStore
-     */
-    void clearServiceRoot() throws StateStoreException;
 
     // Read Tasks
 
@@ -186,4 +182,28 @@ public interface StateStore {
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
+
+
+    // Uninstall Related Methods
+
+
+    /**
+     * Clears the root service node, leaving just the root node behind.
+     */
+    void clearServiceRoot() throws StateStoreException;
+
+    /**
+     * Persists that the service has begun to be uninstalled.
+     */
+    void markUninstallStarted() throws StateStoreException;
+
+    /**
+     * Clears the Uninstall node.
+     */
+    void markUninstallComplete() throws StateStoreException;
+
+    /**
+     * Checks whether the service has begun to be uninstalled.
+     */
+    boolean checkUninstallStarted() throws StateStoreException;
 }

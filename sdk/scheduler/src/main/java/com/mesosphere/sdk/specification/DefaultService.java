@@ -74,20 +74,31 @@ public class DefaultService implements Service {
 
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         try {
-            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+            // Use a single stateStore for either scheduler as the StateStoreCache
+            // requires a single instance of StateStore.
+            StateStore stateStore = schedulerBuilder.getStateStore();
+            this.stateStore = stateStore;
+            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()
+                    || stateStore.checkUninstallStarted()) {
+
+                if (!stateStore.checkUninstallStarted()) {
+                    LOGGER.info("Service has been told to uninstall. Marking this in ZK. Note: Uninstall " +
+                            "is a one way process and is NOT reversible.");
+                    stateStore.markUninstallStarted();
+                }
+
                 LOGGER.info("Launching UninstallScheduler...");
                 UninstallScheduler.Builder uninstallSchedulerBuilder = UninstallScheduler.newBuilder(
                         schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags());
-                this.scheduler = uninstallSchedulerBuilder.build();
-                this.stateStore = uninstallSchedulerBuilder.getStateStore();
+                this.scheduler = uninstallSchedulerBuilder.setStateStore(stateStore).build();
             } else {
                 this.scheduler = schedulerBuilder.build();
-                this.stateStore = schedulerBuilder.getStateStore();
             }
         } catch (Throwable e) {
             LOGGER.error("Failed to build scheduler.", e);
             SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
         }
+
         this.serviceSpec = schedulerBuilder.getServiceSpec();
         this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
     }
