@@ -13,17 +13,18 @@ import java.util.stream.Collectors;
  * The Uninstall Resource Cleaner provides recommended operations for cleaning up
  * all Reserved resources and persistent volumes.
  */
-public class UninstallResourceCleaner extends ResourceCleaner {
+public class UninstallResourceCleaner implements ResourceCleaner {
     private static final Logger logger = LoggerFactory.getLogger(UninstallResourceCleaner.class);
 
     /**
      * Examines the {@link Offer} to determine which reserved {@link Resource}s have resource ID's and therefore
      * should be unreserved.
+     *
      * @param offer The {@link Offer} containing the {@link Resource}s.
      * @return A {@link Collection} of {@link Resource}s that should be unreserved.
      */
     @Override
-    protected Collection<Resource> getReservedResourcesToBeUnreserved(Offer offer) {
+    public Collection<Resource> getReservedResourcesToBeUnreserved(Offer offer) {
         List<Resource> resources = offer.getResourcesList().stream().
                 filter(resource -> ResourceUtils.getResourceId(resource) != null).collect(Collectors.toList());
         logger.info("Reserved resources to be unreserved: {}", resources);
@@ -33,11 +34,12 @@ public class UninstallResourceCleaner extends ResourceCleaner {
     /**
      * Examines the {@link Offer} to determine which volume {@link Resource}s have resource ID's and therefore
      * should be destroyed.
+     *
      * @param offer The {@link Offer} containing the persistent volume {@link Resource}s.
      * @return A {@link Collection} of {@link Resource}s that should be destroyed.
      */
     @Override
-    protected Collection<Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
+    public Collection<Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
         List<Resource> resources = offer.getResourcesList().stream().
                 filter(resource -> ResourceUtils.getPersistenceId(resource) != null).collect(Collectors.toList());
         logger.info("Persistent volumes to be destroyed and unreserved: {}", resources);

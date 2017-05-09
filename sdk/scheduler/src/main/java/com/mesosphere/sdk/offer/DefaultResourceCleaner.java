@@ -14,7 +14,7 @@ import java.util.*;
  * The Resource Cleaner provides recommended operations for cleaning up
  * unexpected Reserved resources and persistent volumes.
  */
-public class DefaultResourceCleaner extends ResourceCleaner {
+public class DefaultResourceCleaner implements ResourceCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DefaultResourceCleaner.class);
 
     // Only Persistent Volumes are DESTROYed
@@ -30,7 +30,6 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      *             if there's a failure when retrieving resource information
      */
     public DefaultResourceCleaner(StateStore stateStore) {
-        super();
         Collection<Resource> expectedResources = getExpectedResources(stateStore);
         this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
         this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
@@ -43,7 +42,7 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      * @return A {@link Collection} of {@link Resource}s that should be unreserved.
      */
     @Override
-    protected Collection<? extends Resource> getReservedResourcesToBeUnreserved(Offer offer) {
+    public Collection<? extends Resource> getReservedResourcesToBeUnreserved(Offer offer) {
         return selectUnexpectedResources(expectedReservedResourceIds, getReservedResourcesById(offer));
     }
 
@@ -54,7 +53,7 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      * @return A {@link Collection} of {@link Resource}s that should be destroyed.
      */
     @Override
-    protected Collection<? extends Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
+    public Collection<? extends Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
         return selectUnexpectedResources(expectedPersistentVolumeIds, getPersistentVolumesById(offer));
     }
 
@@ -64,7 +63,7 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      */
     private static Collection<Resource> selectUnexpectedResources(
             Set<String> expectedIds, Map<String, Resource> resourcesById) {
-        List<Resource> unexpectedResources = new ArrayList<Resource>();
+        List<Resource> unexpectedResources = new ArrayList<>();
 
         for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
             if (!expectedIds.contains(entry.getKey())) {
@@ -135,7 +134,7 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      * @return The map of resources from the {@link Offer}
      */
     private static Map<String, Resource> getPersistentVolumesById(Offer offer) {
-        Map<String, Resource> volumes = new HashMap<String, Resource>();
+        Map<String, Resource> volumes = new HashMap<>();
 
         for (Resource resource : offer.getResourcesList()) {
             String persistenceId = ResourceUtils.getPersistenceId(resource);
@@ -152,7 +151,7 @@ public class DefaultResourceCleaner extends ResourceCleaner {
      * {@link Offer}, or an empty list if no reservation resources are found.
      */
     private static Map<String, Resource> getReservedResourcesById(Offer offer) {
-        Map<String, Resource> reservedResources = new HashMap<String, Resource>();
+        Map<String, Resource> reservedResources = new HashMap<>();
 
         for (Resource resource : offer.getResourcesList()) {
             String resourceId = ResourceUtils.getResourceId(resource);
