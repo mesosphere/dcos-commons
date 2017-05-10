@@ -1,12 +1,19 @@
 import json
 import os
+import uuid
 
+import dcos
 import pytest
+import shakedown
 
 from tests.config import (
     DEFAULT_TASK_COUNT,
     DELETE_DATA_JOB,
     PACKAGE_NAME,
+    TEST_JOBS,
+    VERIFY_DATA_JOB,
+    VERIFY_DELETION_JOB,
+    WRITE_DATA_JOB,
     get_jobs_folder,
     install_cassandra_jobs,
     install_job, 
@@ -35,11 +42,11 @@ class EnvironmentContext(object):
 
     def __enter__(self):
         self.original_variables = os.environ
-        for k, v in self.new_variables.iteritems():
+        for k, v in self.new_variables.items():
             os.environ[k] = v
 
     def __exit__(self, *args):
-        for k, v in self.new_variables.iteritems():
+        for k, v in self.new_variables.items():
             if k not in self.original_variables:
                 del os.environ[k]
             else:
@@ -54,6 +61,7 @@ class JobContext(object):
 
     def __enter__(self):
         for j in self.job_names:
+            print("installing the motherfucking job %s" % j)
             install_job(j, get_jobs_folder())
 
     def __exit__(self, *args):
@@ -77,42 +85,12 @@ class DataContext(object):
             launch_and_verify_job(j)
 
 
-def setup_module(module):
-    install_cassandra_jobs()
-
-
-def teardown_module(module):
-    remove_cassandra_jobs()
-
-
 def get_dcos_cassandra_plan(service_name):
     utils.out('Waiting for {} plan to complete...'.format(service_name))
 
     def fn():
         return api.get(service_name, '/v1/plan')
     return spin.time_wait_return(fn)
-
-
-@pytest.mark.soak_backup
-def test_backup_and_restore():
-    run_backup_and_restore()
-
-    # Since this is run on the soak cluster and state is retained, we have to also delete the test
-    # data in preparation for the next run.
-    launch_and_verify_job(DELETE_DATA_JOB)
-
-
-@pytest.mark.soak_upgrade
-def test_soak_upgrade_downgrade():
-    """Install the Cassandra Universe package and attempt upgrade to master.
-
-    Assumes that the install options file is placed in the repo root."""
-    with open('cassandra.json') as options_file:
-        install_options = json.load(options_file)
-
-    sdk_test_upgrade.soak_upgrade_downgrade(
-        PACKAGE_NAME, DEFAULT_TASK_COUNT, install_options
-    )
 
 
 @pytest.mark.soak_migration
@@ -151,8 +129,11 @@ def test_cassandra_migration():
             's3_secret_key': plan_parameters['AWS_SECRET_ACCESS_KEY'],
             'external_location': 's3://{}' + plan_parameters['S3_BUCKET_NAME'],
         }
-        dcos.http.post(
-            '{}/v1/backup'.format(backup_service_name), json=backup_parameters
+        dcos.http.put(
+            '{}v1/backup/start'.format(
+                shakedown.dcos_service_url(backup_service_name)
+            ),
+            json=backup_parameters
         )
         spin.time_wait_noisy(
             lambda: get_dcos_cassandra_plan().json()['status'] == 'COMPLETE'
