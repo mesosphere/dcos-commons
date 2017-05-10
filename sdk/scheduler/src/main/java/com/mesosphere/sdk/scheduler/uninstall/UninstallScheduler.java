@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.PodsResource;
 import com.mesosphere.sdk.api.StateResource;
@@ -25,11 +23,9 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -56,8 +52,7 @@ public class UninstallScheduler implements Scheduler {
     private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    private JettyApiServer apiServer;
-    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
+    private SchedulerApiServer schedulerApiServer;
     private PlanManager uninstallPlanManager;
 
     /**
@@ -134,28 +129,8 @@ public class UninstallScheduler implements Scheduler {
     }
 
     private void initializeApiServer() {
-        if (apiServerReady()) {
-            return;
-        }
-
-        new Thread(() -> {
-            try {
-                LOGGER.info("Starting API server.");
-                apiServer = new JettyApiServer(serviceSpec.getApiPort(), resources);
-                apiServer.start();
-            } catch (Exception e) {
-                LOGGER.error("API Server failed with exception: ", e);
-            } finally {
-                LOGGER.info("API Server exiting.");
-                try {
-                    if (apiServer != null) {
-                        apiServer.stop();
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Failed to stop API server with exception: ", e);
-                }
-            }
-        }).start();
+        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources, schedulerFlags.getApiServerInitTimeout());
+        new Thread(schedulerApiServer).start();
     }
 
     @Override
@@ -197,7 +172,7 @@ public class UninstallScheduler implements Scheduler {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            if (!apiServerReady()) {
+            if (!schedulerApiServer.ready()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
                 declineOffers(driver, Collections.emptyList(), offersToProcess);
                 return;
@@ -243,21 +218,6 @@ public class UninstallScheduler implements Scheduler {
         });
     }
 
-    public boolean apiServerReady() {
-        boolean serverStarted = apiServer != null && apiServer.isStarted();
-
-        if (serverStarted) {
-            apiServerStopwatch.reset();
-        } else {
-            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
-            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
-                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
-                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
-            }
-        }
-
-        return serverStarted;
-    }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
@@ -282,7 +242,6 @@ public class UninstallScheduler implements Scheduler {
                     status.getState().toString(),
                     status.getMessage());
 
-            // Store status, then pass status to PlanManager => Plan => Steps
             try {
                 stateStore.storeStatus(status);
                 reconciler.update(status);

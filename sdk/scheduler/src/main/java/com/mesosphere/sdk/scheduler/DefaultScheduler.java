@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
@@ -63,9 +62,6 @@ import java.util.stream.Collectors;
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler, Observer {
-    protected static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
-    protected static final String UNINSTALL_INSTRUCTIONS_URI =
-            "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
     /**
      * Time to wait for the executor thread to terminate. Only used by unit tests.
@@ -73,14 +69,6 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Default: 10 seconds
      */
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
-
-    /**
-     * Time to wait during scheduler initialization for API resources to be initialized. This should be
-     * near-instantaneous, we just have an explicit deadline to avoid the potential for waiting indefinitely.
-     *
-     * Default: 60 seconds
-     */
-    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -98,8 +86,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
 
-    private JettyApiServer apiServer;
-    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
+    private SchedulerApiServer schedulerApiServer;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -545,10 +532,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
     }
 
-    public Collection<Object> getResources() throws InterruptedException {
-        return resources;
-    }
-
     @VisibleForTesting
     void awaitTermination() throws InterruptedException {
         executor.shutdown();
@@ -664,31 +647,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeApiServer() {
-        if (apiServerReady()) {
-            return;
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
+        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources, schedulerFlags.getApiServerInitTimeout());
+        new Thread(schedulerApiServer).start();
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
@@ -757,27 +717,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         postRegister();
     }
 
-    public boolean apiServerReady() {
-        boolean serverStarted = apiServer != null && apiServer.isStarted();
-
-        if (serverStarted) {
-            apiServerStopwatch.reset();
-        } else {
-            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
-            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
-                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
-                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
-            }
-        }
-
-        return serverStarted;
-    }
-
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            if (!apiServerReady()) {
+            if (!schedulerApiServer.ready()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
                 declineOffers(driver, Collections.emptyList(), offersToProcess);
                 return;
