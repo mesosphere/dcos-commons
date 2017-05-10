@@ -2,9 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.api.PodsResource;
-import com.mesosphere.sdk.api.StateResource;
-import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
@@ -48,7 +45,7 @@ public class UninstallScheduler implements Scheduler {
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
     protected SchedulerDriver driver;
-    protected Collection<Object> resources;
+    private Collection<Object> apiResources;
     private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
@@ -119,17 +116,13 @@ public class UninstallScheduler implements Scheduler {
     }
 
     private void initializeResources() throws InterruptedException {
-        LOGGER.info("Initializing resources...");
-        resources = new ArrayList<>();
-        List<PlanManager> planManagers = Collections.singletonList(uninstallPlanManager);
-        PlansResource plansResource = new PlansResource(planManagers);
-        resources.add(plansResource);
-        resources.add(new PodsResource(taskKiller, stateStore));
-        resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+        LOGGER.info("Initializing plans resource...");
+        apiResources = Collections.singletonList(new PlansResource(Collections.singletonList(uninstallPlanManager)));
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources, schedulerFlags.getApiServerInitTimeout());
+        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), apiResources,
+                schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }
 
