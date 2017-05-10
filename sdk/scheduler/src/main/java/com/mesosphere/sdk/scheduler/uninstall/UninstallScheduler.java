@@ -36,8 +36,8 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  */
 public class UninstallScheduler implements Scheduler {
 
-    static final String RESOURCE_PHASE = "resource-phase";
-    static final String MISC_PHASE = "misc-phase";
+    private static final String RESOURCE_PHASE = "resource-phase";
+    private static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
     protected final ServiceSpec serviceSpec;
@@ -174,7 +174,7 @@ public class UninstallScheduler implements Scheduler {
         executor.execute(() -> {
             if (!schedulerApiServer.ready()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                OfferUtils.declineOffers(driver, offersToProcess);
                 return;
             }
 
@@ -190,7 +190,7 @@ public class UninstallScheduler implements Scheduler {
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                declineOffers(driver, Collections.emptyList(), offers);
+                OfferUtils.declineOffers(driver, offers);
                 return;
             }
 
@@ -210,22 +210,9 @@ public class UninstallScheduler implements Scheduler {
                             .resourceOffers(driver, offers));
 
             List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
-            offers.clear();
-            offers.addAll(unusedOffers);
 
             // Decline remaining offers.
-            declineOffers(driver, offersWithReservedResources, offers);
-        });
-    }
-
-
-    private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
-        unusedOffers.forEach(offer -> {
-            final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
+            OfferUtils.declineOffers(driver, unusedOffers);
         });
     }
 
@@ -269,13 +256,11 @@ public class UninstallScheduler implements Scheduler {
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
-        // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
         LOGGER.warn("Agent lost: {}", agentId.getValue());
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
-        // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
         LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
     }
 

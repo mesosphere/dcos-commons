@@ -651,16 +651,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         new Thread(schedulerApiServer).start();
     }
 
-    private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
-        unusedOffers.stream().forEach(offer -> {
-            final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
-        });
-    }
-
     private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
         try {
             ResourceCleaner cleaner = new DefaultResourceCleaner(stateStore);
@@ -723,7 +713,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.execute(() -> {
             if (!apiServerReady()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                OfferUtils.declineOffers(driver, offersToProcess);
                 return;
             }
 
@@ -739,7 +729,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                declineOffers(driver, Collections.emptyList(), offers);
+                OfferUtils.declineOffers(driver, offers);
                 return;
             }
 
@@ -765,11 +755,9 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-            offers.clear();
-            offers.addAll(unusedOffers);
 
             // Decline remaining offers.
-            declineOffers(driver, acceptedOffers, offers);
+            OfferUtils.declineOffers(driver, unusedOffers);
         });
     }
 
