@@ -20,6 +20,12 @@ public interface ConfigurationUpdater<C extends Configuration> {
          * The resulting configuration ID which should be used by service tasks.
          */
         public final UUID targetId;
+        private final UpdateType updateType;
+
+        public enum UpdateType {
+            DEPLOY,
+            UPDATE
+        }
 
         /**
          * A list of zero or more validation errors with the current configuration. If there were
@@ -27,9 +33,17 @@ public interface ConfigurationUpdater<C extends Configuration> {
          */
         public final Collection<ConfigValidationError> errors;
 
-        public UpdateResult(UUID targetId, Collection<ConfigValidationError> errors) {
+        public UpdateResult(
+                UUID targetId,
+                UpdateType updateType,
+                Collection<ConfigValidationError> errors) {
             this.targetId = targetId;
             this.errors = errors;
+            this.updateType = updateType;
+        }
+
+        public UpdateType getUpdateType() {
+            return  updateType;
         }
     }
 

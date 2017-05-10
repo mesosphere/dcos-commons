@@ -101,6 +101,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         // Select the appropriate configuration ID as the target. If the config hasn't changed or if
         // there are validation errors against the new config, we continue using the prior target.
+        UpdateResult.UpdateType updateType = UpdateResult.UpdateType.UPDATE;
         if (!errors.isEmpty()) {
             StringJoiner sj = new StringJoiner("\n");
             int i = 1;
@@ -117,9 +118,14 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                                 "%d Errors: %s", errors.size(), sj.toString()));
             }
         } else if (targetConfig == null || !configComparator.equals(targetConfig, candidateConfig)) {
-            LOGGER.info("Changes detected between current target configuration '{}' and new " +
-                            "configuration. Setting target to new configuration.",
-                    targetConfigId);
+            if (targetConfig == null) {
+                LOGGER.info("Detected initiall deployment");
+                updateType.equals(UpdateResult.UpdateType.DEPLOY);
+            } else {
+                LOGGER.info("Changes detected between current target configuration '{}' and new " +
+                                "configuration. Setting target to new configuration.",
+                        targetConfigId);
+            }
             targetConfigId = configStore.store(candidateConfig);
             targetConfig = candidateConfig;
             configStore.setTargetConfig(targetConfigId);
@@ -133,7 +139,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // leftover configs which are not the target and which are not referenced by any tasks.
         cleanupDuplicateAndUnusedConfigs(targetConfig, targetConfigId);
 
-        return new ConfigurationUpdater.UpdateResult(targetConfigId, errors);
+        return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
 
     /**
