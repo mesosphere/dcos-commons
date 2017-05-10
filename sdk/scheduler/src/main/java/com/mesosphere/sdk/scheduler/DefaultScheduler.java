@@ -392,7 +392,10 @@ public class DefaultScheduler implements Scheduler, Observer {
          * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update
          * plan.
          */
-        public static Collection<Plan> overrideDeployPlan(Collection<Plan> plans, ConfigurationUpdater.UpdateResult updateResult) {
+        public static Collection<Plan> overrideDeployPlan(
+                Collection<Plan> plans,
+                ConfigurationUpdater.UpdateResult updateResult) {
+
             Optional<Plan> updatePlanOptional = plans.stream()
                     .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                     .findFirst();
