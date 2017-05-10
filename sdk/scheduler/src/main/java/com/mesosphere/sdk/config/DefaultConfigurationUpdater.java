@@ -119,8 +119,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             }
         } else if (targetConfig == null || !configComparator.equals(targetConfig, candidateConfig)) {
             if (targetConfig == null) {
-                LOGGER.info("Detected initiall deployment");
-                updateType.equals(UpdateResult.UpdateType.DEPLOY);
+                LOGGER.info("Detected initial deployment");
+                updateType = UpdateResult.UpdateType.DEPLOY;
             } else {
                 LOGGER.info("Changes detected between current target configuration '{}' and new " +
                                 "configuration. Setting target to new configuration.",

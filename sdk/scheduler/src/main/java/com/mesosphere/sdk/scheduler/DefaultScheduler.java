@@ -363,6 +363,34 @@ public class DefaultScheduler implements Scheduler, Observer {
                 }
             }
 
+            // Override deploy plan with update plan if specified
+            Optional<Plan> updatePlanOptional = plans.stream()
+                    .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                    .findFirst();
+
+            LOGGER.info("Update type: " + configUpdateResult.getUpdateType().name());
+            LOGGER.info("Found update plan: " + updatePlanOptional.isPresent());
+
+            if (configUpdateResult.getUpdateType().equals(ConfigurationUpdater.UpdateResult.UpdateType.UPDATE)
+                    && updatePlanOptional.isPresent()) {
+                LOGGER.info("Overriding deploy plan with update plan.");
+
+                Plan updatePlan = updatePlanOptional.get();
+                Plan deployPlan = new DefaultPlan(
+                        Constants.DEPLOY_PLAN_NAME,
+                        updatePlan.getChildren(),
+                        updatePlan.getStrategy(),
+                        Collections.emptyList());
+
+                plans = new ArrayList<>(
+                        plans.stream()
+                                .filter(plan -> !plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                                .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                                .collect(Collectors.toList()));
+
+                plans.add(deployPlan);
+            }
+
             Optional<Plan> deployOptional = getDeployPlan(plans);
             if (!deployOptional.isPresent()) {
                 throw new IllegalStateException("No deploy plan provided.");
