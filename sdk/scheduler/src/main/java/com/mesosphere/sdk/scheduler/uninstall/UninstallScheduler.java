@@ -10,7 +10,6 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.state.UninstallRecorder;
@@ -20,6 +19,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,30 +37,30 @@ public class UninstallScheduler implements Scheduler {
     private static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
-    protected final ServiceSpec serviceSpec;
-    protected final SchedulerFlags schedulerFlags;
+    protected final int port;
     protected final StateStore stateStore;
+    private final Duration apiServerInitTimeout;
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
     protected SchedulerDriver driver;
+    PlanManager uninstallPlanManager;
     private Collection<Object> apiResources;
     private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
     private SchedulerApiServer schedulerApiServer;
-    private PlanManager uninstallPlanManager;
 
     /**
-     * Creates a new UninstallScheduler based on the provided {@link ServiceSpec}, {@link SchedulerFlags},
+     * Creates a new UninstallScheduler based on the provided API port and initialization timeout,
      * and a {@link StateStore}. The UninstallScheduler builds an uninstall {@link Plan} with two {@link Phase}s:
      * a resource phase where all reserved resources get released back to Mesos, and a miscellaneous phase where
      * the framework deregisters itself and cleans up its state in Zookeeper.
      */
-    public UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
-        this.serviceSpec = serviceSpec;
-        this.schedulerFlags = schedulerFlags;
+    public UninstallScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore) {
+        this.port = port;
+        this.apiServerInitTimeout = apiServerInitTimeout;
         this.stateStore = stateStore;
         this.uninstallPlan = getPlan();
     }
@@ -121,8 +121,7 @@ public class UninstallScheduler implements Scheduler {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), apiResources,
-                schedulerFlags.getApiServerInitTimeout());
+        schedulerApiServer = new SchedulerApiServer(port, apiResources, apiServerInitTimeout);
         new Thread(schedulerApiServer).start();
     }
 
@@ -165,7 +164,7 @@ public class UninstallScheduler implements Scheduler {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            if (!schedulerApiServer.ready()) {
+            if (!isReady()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
                 OfferUtils.declineOffers(driver, offersToProcess);
                 return;
@@ -176,10 +175,6 @@ public class UninstallScheduler implements Scheduler {
                 LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
             }
 
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress, declining all offers.");
@@ -207,6 +202,10 @@ public class UninstallScheduler implements Scheduler {
             // Decline remaining offers.
             OfferUtils.declineOffers(driver, unusedOffers);
         });
+    }
+
+    public boolean isReady() {
+        return schedulerApiServer.ready();
     }
 
     @Override

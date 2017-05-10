@@ -87,7 +87,9 @@ public class DefaultService implements Service {
                 }
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
-                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags(), stateStore);
+                        schedulerBuilder.getServiceSpec().getApiPort(),
+                        schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                        stateStore);
             } else {
                 if (StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
