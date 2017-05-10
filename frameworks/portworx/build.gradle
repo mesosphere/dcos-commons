@@ -1,0 +1,35 @@
+group 'com.mesosphere.sdk'
+version '1.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://downloads.mesosphere.com/maven/"
+    }
+    maven {
+        url "http://downloads.mesosphere.com/maven-snapshot/"
+    }
+}
+
+ext {
+    junitVer = "4.12"
+    systemRulesVer = "1.16.0"
+    mockitoVer = "1.9.5"
+}
+
+dependencies {
+    compile project(":scheduler")
+    testCompile project(":testing")
+}
+
+distributions {
+    main {
+        baseName = 'portworx-scheduler'
+        version = ''
+    }
+}
+
+mainClassName = 'com.mesosphere.sdk.portworx.scheduler.Main'

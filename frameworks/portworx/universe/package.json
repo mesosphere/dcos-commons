@@ -1,0 +1,13 @@
+{
+  "packagingVersion": "2.0",
+  "minDcosReleaseVersion": "1.9",
+  "name": "portworx",
+  "version": "{{package-version}}",
+  "maintainer": "support@YOURNAMEHERE.COM",
+  "description": "YOURNAMEHERE on DC/OS",
+  "selected": false,
+  "framework": true,
+  "tags": ["portworx"],
+  "postInstallNotes": "DC/OS YOURNAMEHERE is being installed!\n\n\tDocumentation: http://YOURNAMEHERE.COM/DOCS\n\tIssues: http://YOURNAMEHERE.COM/SUPPORT",
+  "postUninstallNotes": "DC/OS YOURNAMEHERE has been uninstalled."
+}

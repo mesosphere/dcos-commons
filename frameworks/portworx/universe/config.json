@@ -1,0 +1,165 @@
+{
+  "type": "object",
+    "properties": {
+      "service": {
+        "type": "object",
+        "description": "DC/OS service configuration properties",
+        "properties": {
+          "name": {
+            "title": "Service name",
+            "description": "The name of the service instance",
+            "type": "string",
+            "default": "portworx"
+          },
+          "principal": {
+            "title": "Custom principal (optional)",
+            "description": "The principal for the service instance, or empty to use the default.",
+            "type": "string",
+            "default": ""
+          },
+          "secret_name": {
+            "title": "Credential secret name (optional)",
+            "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required":[
+          "name"
+        ]
+      },
+      "node": {
+        "description": "Portworx Node properties",
+        "type": "object",
+        "properties": {
+          "portworx_cluster": {
+            "title": "Portworx Cluster Name",
+            "type": "string",
+            "default":"portworx-dcos"
+          },
+          "count": {
+            "title": "Node count",
+            "description": "Number of Portworx nodes to run",
+            "type": "integer",
+            "default":3
+          },
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": "hostname:UNIQUE"
+          },
+          "cpus": {
+            "title": "CPU count",
+            "description": "CPU requirements",
+            "type": "number",
+            "default":1
+          },
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Mem requirements (in MB)",
+            "type": "integer",
+            "default":4096
+          }
+        },
+        "required":[
+          "count",
+          "cpus",
+          "mem",
+          "portworx_cluster"
+
+        ]
+      },
+      "etcd": {
+        "description": "etcd properties",
+        "type": "object",
+        "properties": {
+          "count": {
+            "title": "Node count",
+            "description": "Number of etcd nodes to run",
+            "type": "integer",
+            "default":3
+          },
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": "hostname:UNIQUE"
+          },
+          "cpus": {
+            "title": "CPU count",
+            "description": "CPU requirements",
+            "type": "number",
+            "default":0.3
+          },
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Mem requirements (in MB)",
+            "type": "integer",
+            "default":1024
+          }
+        },
+        "required":[
+          "count",
+          "cpus",
+          "mem"
+        ]
+      },
+      "influxdb": {
+        "description": "InfluxDB properties",
+        "type": "object",
+        "properties": {
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": "hostname:UNIQUE"
+          },
+          "cpus": {
+            "title": "CPU count",
+            "description": "CPU requirements",
+            "type": "number",
+            "default":1
+          },
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Mem requirements (in MB)",
+            "type": "integer",
+            "default": 1024
+          }
+        },
+        "required":[
+          "cpus",
+          "mem"
+        ]
+      },
+      "lighthouse": {
+        "description": "Lighthouse properties",
+        "type": "object",
+        "properties": {
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": "hostname:UNIQUE"
+          },
+          "cpus": {
+            "title": "CPU count",
+            "description": "CPU requirements",
+            "type": "number",
+            "default":1
+          },
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Mem requirements (in MB)",
+            "type": "integer",
+            "default": 1024
+          }
+        },
+        "required":[
+          "cpus",
+          "mem"
+        ]
+      }
+   }
+}
