@@ -22,6 +22,11 @@ public interface ConfigurationUpdater<C extends Configuration> {
         public final UUID targetId;
         private final UpdateType updateType;
 
+        /**
+         * Two types of deployments are differentiated by this type.  Either a services is
+         * being deployed for the first time "DEPLOY", or it is updating a previously deployed
+         * version of the service, "UPDATE"
+         */
         public enum UpdateType {
             DEPLOY,
             UPDATE

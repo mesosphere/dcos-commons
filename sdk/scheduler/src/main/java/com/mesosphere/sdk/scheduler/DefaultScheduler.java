@@ -363,34 +363,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 }
             }
 
-            // Override deploy plan with update plan if specified
-            Optional<Plan> updatePlanOptional = plans.stream()
-                    .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
-                    .findFirst();
-
-            LOGGER.info("Update type: " + configUpdateResult.getUpdateType().name());
-            LOGGER.info("Found update plan: " + updatePlanOptional.isPresent());
-
-            if (configUpdateResult.getUpdateType().equals(ConfigurationUpdater.UpdateResult.UpdateType.UPDATE)
-                    && updatePlanOptional.isPresent()) {
-                LOGGER.info("Overriding deploy plan with update plan.");
-
-                Plan updatePlan = updatePlanOptional.get();
-                Plan deployPlan = new DefaultPlan(
-                        Constants.DEPLOY_PLAN_NAME,
-                        updatePlan.getChildren(),
-                        updatePlan.getStrategy(),
-                        Collections.emptyList());
-
-                plans = new ArrayList<>(
-                        plans.stream()
-                                .filter(plan -> !plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
-                                .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
-                                .collect(Collectors.toList()));
-
-                plans.add(deployPlan);
-            }
-
+            plans = overrideDeployPlan(plans, configUpdateResult);
             Optional<Plan> deployOptional = getDeployPlan(plans);
             if (!deployOptional.isPresent()) {
                 throw new IllegalStateException("No deploy plan provided.");
@@ -414,7 +387,43 @@ public class DefaultScheduler implements Scheduler, Observer {
                     restartHookOptional,
                     Optional.ofNullable(recoveryPlanManagerFactory));
         }
+
+        /**
+         * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update
+         * plan.
+         */
+        public static Collection<Plan> overrideDeployPlan(Collection<Plan> plans, ConfigurationUpdater.UpdateResult updateResult) {
+            Optional<Plan> updatePlanOptional = plans.stream()
+                    .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                    .findFirst();
+
+            LOGGER.info("Update type: " + updateResult.getUpdateType().name());
+            LOGGER.info("Found update plan: " + updatePlanOptional.isPresent());
+
+            if (updateResult.getUpdateType().equals(ConfigurationUpdater.UpdateResult.UpdateType.UPDATE)
+                    && updatePlanOptional.isPresent()) {
+                LOGGER.info("Overriding deploy plan with update plan.");
+
+                Plan updatePlan = updatePlanOptional.get();
+                Plan deployPlan = new DefaultPlan(
+                        Constants.DEPLOY_PLAN_NAME,
+                        updatePlan.getChildren(),
+                        updatePlan.getStrategy(),
+                        Collections.emptyList());
+
+                plans = new ArrayList<>(
+                        plans.stream()
+                                .filter(plan -> !plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                                .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                                .collect(Collectors.toList()));
+
+                plans.add(deployPlan);
+            }
+
+            return plans;
+        }
     }
+
 
     /**
      * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
