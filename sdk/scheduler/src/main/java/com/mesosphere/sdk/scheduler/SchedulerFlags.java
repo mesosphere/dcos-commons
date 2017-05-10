@@ -142,9 +142,7 @@ public class SchedulerFlags {
         return !flagStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
-    public boolean isUninstallEnabled() {
-        return flagStore.isPresent(SDK_UNINSTALL);
-    }
+    public boolean isUninstallEnabled() { return flagStore.isPresent(SDK_UNINSTALL); }
 
     /**
      * Returns whether it appears that side channel auth should be used when creating the SchedulerDriver. Side channel
