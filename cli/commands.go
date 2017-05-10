@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/mesosphere/dcos-commons/cli/commands"
 	"github.com/mesosphere/dcos-commons/cli/config"
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -53,6 +54,14 @@ func GetPlanParameterPayload(parameters []string) (string, error) {
 	}
 
 	return string(jsonVal), nil
+}
+
+func HandleDefaultSections(app *kingpin.Application) {
+	commands.HandleConfigSection(app)
+	commands.HandleEndpointsSection(app)
+	commands.HandlePlanSection(app)
+	commands.HandlePodsSection(app)
+	commands.HandleStateSection(app)
 }
 
 func New() *kingpin.Application {
