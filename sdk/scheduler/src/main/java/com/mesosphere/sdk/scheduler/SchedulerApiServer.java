@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.base.Stopwatch;
 import com.mesosphere.sdk.api.JettyApiServer;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +10,9 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The SchedulerApiServer runs the {@link JettyApiServer} that exposes the Scheduler's API.
+ */
 public class SchedulerApiServer implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerApiServer.class);
     private Collection<Object> resources;
@@ -17,6 +21,13 @@ public class SchedulerApiServer implements Runnable {
     private Duration initTimeout;
     private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
 
+    /**
+     * Construct a SchedulerApiServer
+     *
+     * @param port The port to listen on
+     * @param resources The Collection of {@link Protos.Resource}s to expose as endpoints
+     * @param initTimeout The initialization timeout, after which the Scheduler exits
+     */
     public SchedulerApiServer(int port, Collection<Object> resources, Duration initTimeout) {
         this.port = port;
         this.resources = resources;

@@ -679,21 +679,6 @@ public class DefaultSchedulerTest {
         verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
     }
 
-    @Test
-    public void testApiServerTimeout() throws Exception {
-        int timeoutMillis = 100;
-        when(mockSchedulerFlags.getApiServerInitTimeout()).thenReturn(java.time.Duration.ofMillis(timeoutMillis));
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, mockSchedulerFlags)
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
-                .build();
-        Assert.assertFalse(defaultScheduler.apiServerReady());
-        Thread.sleep(timeoutMillis * 10);
-        exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
-        defaultScheduler.apiServerReady();
-    }
-
     private Callable<Boolean> taskMarkFailed(String taskName) {
         return new Callable<Boolean>() {
             @Override

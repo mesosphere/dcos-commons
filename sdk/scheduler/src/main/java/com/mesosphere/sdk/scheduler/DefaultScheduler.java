@@ -721,7 +721,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            if (!schedulerApiServer.ready()) {
+            if (!apiServerReady()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
                 declineOffers(driver, Collections.emptyList(), offersToProcess);
                 return;
@@ -771,6 +771,10 @@ public class DefaultScheduler implements Scheduler, Observer {
             // Decline remaining offers.
             declineOffers(driver, acceptedOffers, offers);
         });
+    }
+
+    public boolean apiServerReady() {
+        return schedulerApiServer.ready();
     }
 
     @Override
