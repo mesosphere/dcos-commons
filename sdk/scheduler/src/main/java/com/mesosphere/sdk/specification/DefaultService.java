@@ -11,7 +11,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -87,8 +86,8 @@ public class DefaultService implements Service {
                     StateStoreUtils.setUninstalling(stateStore, true);
                 }
                 LOGGER.info("Launching UninstallScheduler...");
-                this.scheduler = UninstallScheduler.newBuilder(
-                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags(), stateStore).build();
+                this.scheduler = new UninstallScheduler(
+                        schedulerBuilder.getServiceSpec(), schedulerBuilder.getSchedulerFlags(), stateStore);
             } else {
                 if (StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +

@@ -7,24 +7,11 @@ import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.PodsResource;
 import com.mesosphere.sdk.api.StateResource;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
-import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.*;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
@@ -57,46 +44,57 @@ public class UninstallScheduler implements Scheduler {
     static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
-
-    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
-    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
-    private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
-
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final StateStore stateStore;
+    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
+    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
+    private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
     protected SchedulerDriver driver;
+    protected Collection<Object> resources;
     private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    protected Collection<Object> resources;
     private JettyApiServer apiServer;
     private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
     private PlanManager uninstallPlanManager;
 
     /**
-     * Creates a new UninstallScheduler. See information about parameters in {@link Builder}.
+     * Creates a new UninstallScheduler based on the provided {@link ServiceSpec}, {@link SchedulerFlags},
+     * and a {@link StateStore}. The UninstallScheduler builds an uninstall {@link Plan} with two {@link Phase}s:
+     * a resource phase where all reserved resources get released back to Mesos, and a miscellaneous phase where
+     * the framework deregisters itself and cleans up its state in Zookeeper.
      */
-    private UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore,
-                       Plan uninstallPlan) {
+    public UninstallScheduler(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.stateStore = stateStore;
-        this.uninstallPlan = uninstallPlan;
+        this.uninstallPlan = getPlan();
     }
 
-    /**
-     * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
-     * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
-     * should be organized.
-     */
-    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
-        return new Builder(serviceSpec, schedulerFlags, stateStore);
-    }
+    private Plan getPlan() {
+        // create one UninstallStep per unique Resource
+        List<Step> taskSteps = stateStore.fetchTasks().stream()
+                .map(Protos.TaskInfo::getResourcesList)
+                .flatMap(Collection::stream)
+                .map(ResourceUtils::getResourceId)
+                .distinct()
+                .map(this::getStep)
+                .collect(Collectors.toList());
 
-    public Collection<Object> getResources() throws InterruptedException {
-        return resources;
+        Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
+                Collections.emptyList());
+
+        Step deleteServiceRootPathStep = new DeleteServiceRootPathStep(stateStore, Status.PENDING);
+        // We don't have access to the SchedulerDriver yet, so that gets set later
+        Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
+        List<Step> miscSteps = Arrays.asList(deleteServiceRootPathStep, deregisterStep);
+        Phase miscPhase = new DefaultPhase(MISC_PHASE, miscSteps, new SerialStrategy<>(),
+                Collections.emptyList());
+
+        List<Phase> phases = Arrays.asList(resourcePhase, miscPhase);
+        return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
     }
 
     private void initialize(SchedulerDriver driver) throws InterruptedException {
@@ -143,7 +141,7 @@ public class UninstallScheduler implements Scheduler {
         new Thread(() -> {
             try {
                 LOGGER.info("Starting API server.");
-                apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
+                apiServer = new JettyApiServer(serviceSpec.getApiPort(), resources);
                 apiServer.start();
             } catch (Exception e) {
                 LOGGER.error("API Server failed with exception: ", e);
@@ -158,16 +156,6 @@ public class UninstallScheduler implements Scheduler {
                 }
             }
         }).start();
-    }
-
-    private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
-        unusedOffers.forEach(offer -> {
-            final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
-        });
     }
 
     @Override
@@ -203,22 +191,6 @@ public class UninstallScheduler implements Scheduler {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         postRegister();
-    }
-
-    public boolean apiServerReady() {
-        boolean serverStarted = apiServer != null && apiServer.isStarted();
-
-        if (serverStarted) {
-            apiServerStopwatch.reset();
-        } else {
-            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
-            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
-                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
-                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
-            }
-        }
-
-        return serverStarted;
     }
 
     @Override
@@ -260,7 +232,7 @@ public class UninstallScheduler implements Scheduler {
 
             offersWithReservedResources.addAll(
                     new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                    .resourceOffers(driver, offers));
+                            .resourceOffers(driver, offers));
 
             List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
             offers.clear();
@@ -268,6 +240,32 @@ public class UninstallScheduler implements Scheduler {
 
             // Decline remaining offers.
             declineOffers(driver, offersWithReservedResources, offers);
+        });
+    }
+
+    public boolean apiServerReady() {
+        boolean serverStarted = apiServer != null && apiServer.isStarted();
+
+        if (serverStarted) {
+            apiServerStopwatch.reset();
+        } else {
+            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
+            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
+                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
+                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+            }
+        }
+
+        return serverStarted;
+    }
+
+    private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
+        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
+        unusedOffers.forEach(offer -> {
+            final Protos.OfferID offerId = offer.getId();
+            LOGGER.info("  {}", offerId.getValue());
+            driver.declineOffer(offerId);
         });
     }
 
@@ -339,7 +337,8 @@ public class UninstallScheduler implements Scheduler {
         reconciler.reconcile(driver);
         revive();
 
-        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep
+        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep.
+        // It's the second Step of the second Phase of the Plan.
         DeregisterStep deregisterStep = (DeregisterStep) uninstallPlan.getChildren().get(1).getChildren().get(1);
         deregisterStep.setSchedulerDriver(driver);
 
@@ -351,59 +350,8 @@ public class UninstallScheduler implements Scheduler {
         }
     }
 
-    /**
-     * Builder class for {@link UninstallScheduler}s. Uses provided custom values or reasonable defaults.
-     *
-     * Instances may be created via {@link UninstallScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
-     */
-    public static class Builder {
-        private final ServiceSpec serviceSpec;
-        private final SchedulerFlags schedulerFlags;
-        private final StateStore stateStore;
-
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
-            this.serviceSpec = serviceSpec;
-            this.schedulerFlags = schedulerFlags;
-            this.stateStore = stateStore;
-        }
-
-        /**
-         * Creates a new scheduler instance with the provided values or their defaults.
-         *
-         * @return a new scheduler instance
-         * @throws IllegalStateException if config validation failed when updating the target config for a default
-         *                               {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore}
-         *                               failed
-         */
-        public UninstallScheduler build() {
-            // create one UninstallStep per unique Resource
-            List<Step> taskSteps = stateStore.fetchTasks().stream()
-                    .map(Protos.TaskInfo::getResourcesList)
-                    .flatMap(Collection::stream)
-                    .map(ResourceUtils::getResourceId)
-                    .distinct()
-                    .map(this::getStep)
-                    .collect(Collectors.toList());
-
-            Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
-                    Collections.emptyList());
-
-            Step deleteServiceRootPathStep = new DeleteServiceRootPathStep(stateStore, Status.PENDING);
-            // We don't have access to the SchedulerDriver yet, so that gets set later
-            Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
-            List<Step> miscSteps = Arrays.asList(deleteServiceRootPathStep, deregisterStep);
-            Phase miscPhase = new DefaultPhase(MISC_PHASE, miscSteps, new SerialStrategy<>(),
-                    Collections.emptyList());
-
-            List<Phase> phases = Arrays.asList(resourcePhase, miscPhase);
-            Plan uninstallPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
-            return new UninstallScheduler(serviceSpec, schedulerFlags, stateStore, uninstallPlan);
-        }
-
-        private Step getStep(String resourceId) {
-            Status status = resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
-            return new UninstallStep(resourceId, status);
-        }
+    private Step getStep(String resourceId) {
+        Status status = resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
+        return new UninstallStep(resourceId, status);
     }
-
 }
