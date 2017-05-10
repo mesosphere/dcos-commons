@@ -120,6 +120,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.info("Changes detected between current target configuration '{}' and new " +
                             "configuration. Setting target to new configuration.",
                     targetConfigId);
+
             targetConfigId = configStore.store(candidateConfig);
             targetConfig = candidateConfig;
             configStore.setTargetConfig(targetConfigId);
