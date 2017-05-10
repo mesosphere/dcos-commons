@@ -171,15 +171,16 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             throws TaskException {
 
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
+        logger.info("Found tasks needing recovery: " + getTaskNames(failedTasks));
+
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
                 configStore,
                 failedTasks,
                 stateStore.fetchTasks());
-
-        List<String> podNames = failedPods.stream()
-                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
+        failedPods = failedPods.stream()
+                .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
                 .collect(Collectors.toList());
-        logger.info("Found pods needing recovery: " + podNames);
+        logger.info("Found pods needing recovery: " + getPodNames(failedPods));
 
         List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
@@ -188,20 +189,12 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .filter(requirement -> requirement.isPresent())
                 .map(requirement -> requirement.get())
                 .collect(Collectors.toList());
-
-        List<String> inProgressPodNames = inProgressRecoveries.stream()
-                .map(podInstanceRequirement -> podInstanceRequirement.toString())
-                .collect(Collectors.toList());
-        logger.info("Found recoveries already in progress: " + inProgressPodNames);
+        logger.info("Found recoveries already in progress: " + getPodNames(inProgressRecoveries));
 
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
                 .collect(Collectors.toList());
-
-        podNames = failedPods.stream()
-                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance().getName())
-                .collect(Collectors.toList());
-        logger.info("New pods needing recovery: " + podNames);
+        logger.info("New pods needing recovery: " + getPodNames(failedPods));
 
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
@@ -291,4 +284,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
         notifyObservers();
     }
+
+    private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
+        return taskInfos.stream()
+                .map(taskInfo -> taskInfo.getName())
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getPodNames(Collection<PodInstanceRequirement> podInstanceRequirements) {
+        return podInstanceRequirements.stream()
+                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance())
+                .map(podInstance -> podInstance.getName())
+                .collect(Collectors.toList());
+    }
+
 }
