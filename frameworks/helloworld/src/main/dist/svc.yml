@@ -13,6 +13,7 @@ pods:
         env-key : SECRET1_ENV
         file: {{SECRET1_FILE}}
       {{HELLO_SECRET2}}:
+        file: {{SECRET2_FILE}}
     tasks:
       server:
         goal: RUNNING
