@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/mesosphere/dcos-commons/cli/utils"
+	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
 )
@@ -23,13 +23,13 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
 	}
-	response := utils.HTTPGet(path)
+	response := client.HTTPGet(path)
 	if len(cmd.Name) == 0 {
 		// Root endpoint: Always produce JSON
-		utils.PrintJSON(response)
+		client.PrintJSON(response)
 	} else {
 		// Any specific endpoints: May be any format, so just print the raw text
-		utils.PrintText(response)
+		client.PrintText(response)
 	}
 	return nil
 }

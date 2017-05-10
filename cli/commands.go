@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mesosphere/dcos-commons/cli/config"
-	"github.com/mesosphere/dcos-commons/cli/utils"
+	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
 	"os"
@@ -86,7 +86,7 @@ func New() *kingpin.Application {
 	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").Envar("DCOS_CA_PATH").Envar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&config.TlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	serviceName := utils.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	serviceName := client.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
 	if len(serviceName) == 0 {
 		serviceName = modName
 	}

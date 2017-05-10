@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/utils"
+	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -13,27 +13,27 @@ type PodsHandler struct {
 }
 
 func (cmd *PodsHandler) RunList(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet("v1/pods"))
+	client.PrintJSON(client.HTTPGet("v1/pods"))
 	return nil
 }
 func (cmd *PodsHandler) RunStatus(c *kingpin.ParseContext) error {
 	if len(cmd.PodName) == 0 {
-		utils.PrintJSON(utils.HTTPGet("v1/pods/status"))
+		client.PrintJSON(client.HTTPGet("v1/pods/status"))
 	} else {
-		utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/pods/%s/status", cmd.PodName)))
+		client.PrintJSON(client.HTTPGet(fmt.Sprintf("v1/pods/%s/status", cmd.PodName)))
 	}
 	return nil
 }
 func (cmd *PodsHandler) RunInfo(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName)))
+	client.PrintJSON(client.HTTPGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName)))
 	return nil
 }
 func (cmd *PodsHandler) RunRestart(c *kingpin.ParseContext) error {
-	utils.PrintText(utils.HTTPPost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
+	client.PrintText(client.HTTPPost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
 	return nil
 }
 func (cmd *PodsHandler) RunReplace(c *kingpin.ParseContext) error {
-	utils.PrintText(utils.HTTPPost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
+	client.PrintText(client.HTTPPost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
 	return nil
 }
 
@@ -54,5 +54,5 @@ func HandlePodsSection(app *kingpin.Application) {
 	restart.Arg("pod", "Name of the pod instance to restart").Required().StringVar(&cmd.PodName)
 
 	replace := pods.Command("replace", "Destroys a given pod and moves it to a new agent").Action(cmd.RunReplace)
-	replace.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
+	replace.Arg("pod", "Name of the pod instance to replace"").Required().StringVar(&cmd.PodName)
 }

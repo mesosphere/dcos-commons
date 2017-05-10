@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/utils"
+	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -11,19 +11,19 @@ type ConfigHandler struct {
 }
 
 func (cmd *ConfigHandler) RunList(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet("v1/configurations"))
+	client.PrintJSON(client.HTTPGet("v1/configurations"))
 	return nil
 }
 func (cmd *ConfigHandler) RunShow(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowId)))
+	client.PrintJSON(client.HTTPGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowId)))
 	return nil
 }
 func (cmd *ConfigHandler) RunTarget(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet("v1/configurations/target"))
+	client.PrintJSON(client.HTTPGet("v1/configurations/target"))
 	return nil
 }
 func (cmd *ConfigHandler) RunTargetId(c *kingpin.ParseContext) error {
-	utils.PrintJSON(utils.HTTPGet("v1/configurations/targetId"))
+	client.PrintJSON(client.HTTPGet("v1/configurations/targetId"))
 	return nil
 }
 
