@@ -647,7 +647,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources, schedulerFlags.getApiServerInitTimeout());
+        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+                schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }
 

@@ -46,7 +46,8 @@ public class OfferUtils {
     }
 
     /**
-     * Decline unused {@link org.apache.mesos.Protos.Offer}s
+     * Decline unused {@link org.apache.mesos.Protos.Offer}s.
+     *
      * @param driver The {@link SchedulerDriver} that will receive the declineOffer() calls
      * @param unusedOffers The collection of Offers to decline
      */
