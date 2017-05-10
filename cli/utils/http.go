@@ -66,7 +66,7 @@ func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
-func HTTPQuery(request *http.Request) *http.Response {
+func httpQuery(request *http.Request) *http.Response {
 	if config.TlsForceInsecure { // user override via '--force-insecure'
 		config.TlsCliSetting = config.TlsUnverified
 	}
@@ -135,7 +135,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func CheckHTTPResponse(response *http.Response) *http.Response {
+func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
@@ -152,27 +152,27 @@ func CheckHTTPResponse(response *http.Response) *http.Response {
 	return response
 }
 
-func CreateHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+func createHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
 	return CreateHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
-func CreateHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
+func createHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
 	return CreateHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
 }
 
-func CreateHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
+func createHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
 	return CreateHTTPRawRequest(method, urlPath, urlQuery, "", "")
 }
 
-func CreateHTTPRequest(method, urlPath string) *http.Request {
+func createHTTPRequest(method, urlPath string) *http.Request {
 	return CreateHTTPRawRequest(method, urlPath, "", "", "")
 }
 
-func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
+func createHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
 	return CreateHTTPURLRequest(method, CreateURL(urlPath, urlQuery), payload, contentType)
 }
 
-func CreateURL(urlPath, urlQuery string) *url.URL {
+func createURL(urlPath, urlQuery string) *url.URL {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosUrl) == 0 {
 		config.DcosUrl = RequiredCLIConfigValue(
@@ -191,7 +191,7 @@ func CreateURL(urlPath, urlQuery string) *url.URL {
 	return parsedUrl
 }
 
-func CreateHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
+func createHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
 	if config.Verbose {
 		log.Printf("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
