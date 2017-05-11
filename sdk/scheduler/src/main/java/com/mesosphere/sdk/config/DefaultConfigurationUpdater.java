@@ -21,6 +21,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -309,6 +310,20 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         LOGGER.info("Cleaning up {} unused configs: {}", configsToClear.size(), configsToClear);
         for (UUID configToClear : configsToClear) {
             configStore.clear(configToClear);
+        }
+    }
+
+    private UpdateResult.DeploymentType getLastCompletedUpdateType() {
+        Optional<String> keyOptional = stateStore.fetchPropertyKeys().stream()
+                .filter(key -> key.equals(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY))
+                .findFirst();
+
+        if (keyOptional.isPresent()) {
+            byte [] bytes = stateStore.fetchProperty(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY);
+            String value = new String(bytes, StandardCharsets.UTF_8);
+            return UpdateResult.DeploymentType.valueOf(value);
+        } else {
+            return UpdateResult.DeploymentType.NONE;
         }
     }
 }
