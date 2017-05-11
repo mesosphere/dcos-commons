@@ -29,7 +29,7 @@ public interface PodInstance {
         return String.format("%s-%d", podType, index);
     }
 
-    default boolean conflicts(PodInstance podInstance) {
+    default boolean conflictsWith(PodInstance podInstance) {
         boolean sameType = podInstance.getPod().getType().equals(getPod().getType());
         boolean sameIndex = podInstance.getIndex() == getIndex();
         return sameType && sameIndex;

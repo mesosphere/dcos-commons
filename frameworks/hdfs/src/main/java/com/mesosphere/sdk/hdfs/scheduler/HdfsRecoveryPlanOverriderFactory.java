@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * The HdfsRecoveryPlanManagerFactory generates {@link HdfsRecoveryPlanOverrider}s.
+ * This class generates {@link HdfsRecoveryPlanOverrider}s.
  */
 public class HdfsRecoveryPlanOverriderFactory implements RecoveryPlanOverriderFactory {
     private static final String REPLACE_PLAN_NAME = "replace";

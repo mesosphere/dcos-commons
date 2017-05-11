@@ -6,7 +6,8 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import java.util.Optional;
 
 /**
- * Created by gabriel on 5/1/17.
+ * This interface allows for the specification of custom recovery logic when presented with a stopped pod encapsulated
+ * by the PodInstanceRequirement.
  */
 public interface RecoveryPlanOverrider {
     Optional<Phase> override(PodInstanceRequirement podInstanceRequirement);

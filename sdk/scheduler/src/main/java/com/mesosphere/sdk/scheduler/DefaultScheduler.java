@@ -48,7 +48,6 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -137,7 +136,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
         private Collection<Object> resources = new ArrayList<>();
-        private RecoveryPlanOverriderFactory recoveryPlanOverriderFactor;
+        private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
             this.serviceSpec = serviceSpec;
@@ -280,7 +279,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * @param recoveryPlanOverriderFactory the factory whcih generates the custom recovery plan manager
          */
         public Builder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
-            this.recoveryPlanOverriderFactor = recoveryPlanOverriderFactory;
+            this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
             return this;
         }
 
@@ -387,7 +386,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                             stateStore, serviceSpec.getName(), configUpdateResult.getTargetId(), getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
-                    Optional.ofNullable(recoveryPlanOverriderFactor),
+                    Optional.ofNullable(recoveryPlanOverriderFactory),
                     configUpdateResult);
         }
 
@@ -659,9 +658,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         if (failurePolicyOptional.isPresent()) {
             ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
             failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()),
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
                     stateStore,
                     configStore);
         } else {
@@ -678,7 +677,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                     plans));
         }
 
-        LOGGER.info("Using default recovery plan manager.");
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,

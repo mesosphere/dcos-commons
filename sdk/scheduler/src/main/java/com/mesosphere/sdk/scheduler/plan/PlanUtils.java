@@ -27,9 +27,14 @@ public class PlanUtils {
         return offers.stream().filter(offer -> !acceptedOfferIds.contains(offer.getId())).collect(Collectors.toList());
     }
 
+    /**
+     * Determines whether the specified asset refers to the same pod instance and tasks other assets.
+     * @param asset The asset of interest.
+     * @param dirtyAssets Other assets which may conflict with the {@code asset}
+     */
     public static boolean assetConflicts(PodInstanceRequirement asset, Collection<PodInstanceRequirement> dirtyAssets) {
         return dirtyAssets.stream()
-                .filter(dirtyAsset -> asset.conflicts(dirtyAsset))
+                .filter(dirtyAsset -> asset.conflictsWith(dirtyAsset))
                 .count() > 0;
     }
 

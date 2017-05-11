@@ -176,7 +176,6 @@ def test_permanently_replace_namenodes():
     replace_name_node(0)
 
 
-@pytest.mark.gabriel
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_0_1():
@@ -195,7 +194,6 @@ def test_permanent_and_transient_namenode_failures_0_1():
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
 
-@pytest.mark.gabriel
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_1_0():

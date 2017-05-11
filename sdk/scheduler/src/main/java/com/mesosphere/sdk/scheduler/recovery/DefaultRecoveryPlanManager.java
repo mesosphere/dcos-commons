@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import com.mesosphere.sdk.scheduler.Observable;
 
@@ -144,8 +143,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 }
             }
 
-            phases.addAll(createPhases(defaultRequirements));
-            Plan plan = updatePhases(phases);
+            Plan plan = createPlan(defaultRequirements, phases);
 
             // Subscribe to state changes in recovery steps
             List<Step> steps = plan.getChildren().stream()
@@ -158,6 +156,23 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
+    private Plan createPlan(List<PodInstanceRequirement> defaultRequirements, List<Phase> phases) {
+        phases.addAll(createPhases(defaultRequirements));
+        return updatePhases(phases);
+    }
+
+    List<Phase> createPhases(Collection<PodInstanceRequirement> podInstanceRequirements) {
+        return podInstanceRequirements.stream()
+                .map(podInstanceRequirement -> createStep(podInstanceRequirement))
+                .map(step -> new DefaultPhase(
+                        step.getName(),
+                        Arrays.asList(step),
+                        new ParallelStrategy<Step>(),
+                        Collections.emptyList()))
+                .collect(Collectors.toList());
+    }
+
+
     private Plan updatePhases(List<Phase> overridePhases) {
         Map<String, Phase> phaseMap = new HashMap<>();
         getPlan().getChildren().forEach(phase -> phaseMap.put(phase.getName(), phase));
@@ -165,6 +180,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         List<Phase> phases = new ArrayList<>(phaseMap.values());
 
         return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
+    }
+
+    private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {
+        return FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
@@ -196,9 +215,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .collect(Collectors.toList());
         logger.info("New pods needing recovery: " + getPodNames(failedPods));
 
-        Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
-                FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
-
         List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
         for (PodInstanceRequirement failedPod : failedPods) {
             List<Protos.TaskInfo> failedPodTaskInfos = failedPod.getTasksToLaunch().stream()
@@ -208,21 +224,25 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .map(taskInfo -> taskInfo.get())
                     .collect(Collectors.toList());
 
+            logFailedPod(failedPod.getPodInstance().getName(), failedPodTaskInfos);
+
             // Pods are atomic, even when considering their status as having either permanently or transiently failed.
             // In order for a Pod to be considered permanently failed, all its constituent tasks must have permanently
             // failed.  Otherwise, we will continue to recover from task failures, in place.
             PodInstanceRequirement podInstanceRequirement = null;
             RecoveryType recoveryType = null;
-            if (failedPodTaskInfos.stream().allMatch(isPodPermanentlyFailed)) {
+            if (failedPodTaskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering permanently failed pod: '{}'", failedPod);
                 recoveryType = RecoveryType.PERMANENT;
                 podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(failedPod);
-            } else if (failedPodTaskInfos.stream().noneMatch(isPodPermanentlyFailed)) {
+            } else if (failedPodTaskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering transiently failed pod: '{}'", failedPod);
                 recoveryType = RecoveryType.TRANSIENT;
                 podInstanceRequirement = PodInstanceRequirement.createTransientRecovery(failedPod);
             } else {
-                logger.error("Tasks have failed in transient and permanent states and cannot be processed");
+                logger.error(
+                        "Tasks within pod: {} have failed in transient and permanent states and cannot be processed.",
+                        failedPod.getName());
                 continue;
             }
 
@@ -236,21 +256,27 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return recoveryRequirements;
     }
 
-    List<Phase> createPhases(Collection<PodInstanceRequirement> podInstanceRequirements) {
-        return podInstanceRequirements.stream()
-                .map(podInstanceRequirement -> createStep(podInstanceRequirement))
-                .map(step -> new DefaultPhase(
-                        step.getName(),
-                        Arrays.asList(step),
-                        new ParallelStrategy<Step>(),
-                        Collections.emptyList()))
+    private void logFailedPod(String failedPodName, List<Protos.TaskInfo> failedTasks) {
+        List<String> permanentlyFailedTasks = failedTasks.stream()
+                .filter(taskInfo -> isTaskPermanentlyFailed(taskInfo))
+                .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
+
+        List<String> transientlyFailedTasks = failedTasks.stream()
+                .filter(taskInfo -> !isTaskPermanentlyFailed(taskInfo))
+                .map(taskInfo -> taskInfo.getName())
+                .collect(Collectors.toList());
+
+        logger.info("Failed tasks in pod: {}, permanent[{}], transient[{}]",
+                failedPodName,
+                permanentlyFailedTasks,
+                transientlyFailedTasks);
     }
 
     Step createStep(PodInstanceRequirement podInstanceRequirement) {
         logger.info("Creating step: {}", podInstanceRequirement);
         return new DefaultRecoveryStep(
-                podInstanceRequirement.toString(),
+                podInstanceRequirement.getName(),
                 Status.PENDING,
                 podInstanceRequirement,
                 launchConstrainer,
@@ -275,6 +301,14 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     @Override
     public void update(Observable obj) {
         if (obj instanceof DefaultRecoveryStep) {
+
+            /**
+             * Any step which has completed work on a pod is no longer permanently failed.  A pod may have been marked
+             * as permanently failed either by human intervention or by a FailureMonitor determining a pod has met its
+             * failure criteria.  See the {@link DefaultTaskFailureListener} as an example of tasks being marked
+             * permanently failed.  It should remain marked as permanently failed until its recovery is complete so that
+             * resources reserved in partial recovery are freed.
+             */
             DefaultRecoveryStep step = (DefaultRecoveryStep) obj;
             if (step.isComplete() && step.getPodInstanceRequirement().isPresent()) {
                 PodInstance podInstance = step.getPodInstanceRequirement().get().getPodInstance();

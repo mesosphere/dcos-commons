@@ -38,7 +38,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
         if (!stoppedPod.getPodInstance().getPod().getType().equals("name")
                 || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
-            logger.info("No overrides necessary.");
+            logger.info("No overrides necessary. Pod is not a name node or it isn't a permanent failure.");
             return Optional.empty();
         }
 
@@ -64,7 +64,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         // Bootstrap
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
-        PodInstanceRequirement bootstrapPpodInstanceRequirement =
+        PodInstanceRequirement bootstrapPodInstanceRequirement =
                 PodInstanceRequirement.createPermanentReplacement(
                         inputBootstrapStep.start().get().getPodInstance(),
                         inputBootstrapStep.start().get().getTasksToLaunch());
@@ -72,7 +72,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 new DefaultRecoveryStep(
                         inputBootstrapStep.getName(),
                         Status.PENDING,
-                        bootstrapPpodInstanceRequirement,
+                        bootstrapPodInstanceRequirement,
                         new UnconstrainedLaunchConstrainer(),
                         stateStore);
 

@@ -283,7 +283,10 @@ public class DefaultRecoveryPlanManagerTest {
         assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals("test-task-type-0:[test-task-name]",
-                recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
+                recoveryManager.getPlan()
+                        .getChildren().get(0)
+                        .getChildren().get(0)
+                        .getName());
         reset(mockDeployManager);
     }
 

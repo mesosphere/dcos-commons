@@ -131,13 +131,23 @@ public class PodInstanceRequirement {
         return recoveryType;
     }
 
-    @Override
-    public String toString() {
+    public String getName() {
         return TaskUtils.getStepName(getPodInstance(), getTasksToLaunch());
     }
 
-    public boolean conflicts(PodInstanceRequirement podInstanceRequirement) {
-        boolean podConflicts = podInstanceRequirement.getPodInstance().conflicts(getPodInstance());
+    /**
+     * A PodInstanceRequirement conflictsWith with another it if applies to the same pod instance and some
+     * tasks in that pod.
+     *
+     * pod-0:[task0, task1]          conflictsWith with pod-0:[task1]
+     * pod-0:[task1]        does NOT conflict  with pod-0:[task0]
+     * pod-0:[task0]        does NOT conflict  with pod-1:[task0]
+     *
+     * @param podInstanceRequirement
+     * @return
+     */
+    public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
+        boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
         boolean tasksConflict = CollectionUtils.isEqualCollection(
                 podInstanceRequirement.getTasksToLaunch(),
                 getTasksToLaunch());

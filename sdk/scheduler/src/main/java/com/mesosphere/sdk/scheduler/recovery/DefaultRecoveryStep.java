@@ -59,7 +59,7 @@ public class DefaultRecoveryStep extends DeploymentStep {
 
     @Override
     public String getMessage() {
-        return super.getMessage() + " RecoveryType: " + getRecoveryType().name();
+        return String.format("%s RecoveryType: %s", super.getMessage(), getRecoveryType().name());
     }
 
     @Override

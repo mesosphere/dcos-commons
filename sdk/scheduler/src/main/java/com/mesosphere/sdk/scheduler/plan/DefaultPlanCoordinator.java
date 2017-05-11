@@ -133,7 +133,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
                 .filter(step -> step.getPodInstanceRequirement().isPresent())
                 .filter(step -> step.isInProgress())
                 .map(step -> step.getPodInstanceRequirement().get())
-                .filter(podRequirement -> podRequirement.conflicts(podInstanceRequirement))
+                .filter(podRequirement -> podRequirement.conflictsWith(podInstanceRequirement))
                 .count() == 0;
     }
 }
