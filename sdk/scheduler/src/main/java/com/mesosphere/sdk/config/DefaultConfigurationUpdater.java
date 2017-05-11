@@ -4,9 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
-
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.TaskException;
@@ -17,12 +14,13 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import difflib.DiffUtils;
-
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -37,6 +35,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private final ConfigStore<ServiceSpec> configStore;
     private final ConfigurationComparator<ServiceSpec> configComparator;
     private final Collection<ConfigValidator<ServiceSpec>> validators;
+    private final UpdateResult.DeploymentType lastUpdateType;
 
     public DefaultConfigurationUpdater(
             StateStore stateStore,
@@ -47,6 +46,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         this.configStore = configStore;
         this.configComparator = configComparator;
         this.validators = validators;
+        this.lastUpdateType = getLastCompletedUpdateType();
     }
 
     @Override
@@ -101,7 +101,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         // Select the appropriate configuration ID as the target. If the config hasn't changed or if
         // there are validation errors against the new config, we continue using the prior target.
-        UpdateResult.UpdateType updateType = UpdateResult.UpdateType.UPDATE;
         if (!errors.isEmpty()) {
             StringJoiner sj = new StringJoiner("\n");
             int i = 1;
@@ -118,14 +117,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                                 "%d Errors: %s", errors.size(), sj.toString()));
             }
         } else if (targetConfig == null || !configComparator.equals(targetConfig, candidateConfig)) {
-            if (targetConfig == null) {
-                LOGGER.info("Detected initial deployment");
-                updateType = UpdateResult.UpdateType.DEPLOY;
-            } else {
-                LOGGER.info("Changes detected between current target configuration '{}' and new " +
-                                "configuration. Setting target to new configuration.",
-                        targetConfigId);
-            }
+            LOGGER.info("Changes detected between current target configuration '{}' and new " +
+                            "configuration. Setting target to new configuration.",
+                    targetConfigId);
             targetConfigId = configStore.store(candidateConfig);
             targetConfig = candidateConfig;
             configStore.setTargetConfig(targetConfigId);
@@ -138,6 +132,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // Update config IDs on tasks whose config contents match the current target, then clean up
         // leftover configs which are not the target and which are not referenced by any tasks.
         cleanupDuplicateAndUnusedConfigs(targetConfig, targetConfigId);
+
+        UpdateResult.DeploymentType updateType =
+                lastUpdateType.equals(UpdateResult.DeploymentType.NONE) ?
+                        UpdateResult.DeploymentType.DEPLOY :
+                        UpdateResult.DeploymentType.UPDATE;
 
         return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
@@ -309,6 +308,20 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         LOGGER.info("Cleaning up {} unused configs: {}", configsToClear.size(), configsToClear);
         for (UUID configToClear : configsToClear) {
             configStore.clear(configToClear);
+        }
+    }
+
+    private UpdateResult.DeploymentType getLastCompletedUpdateType() {
+        Optional<String> keyOptional = stateStore.fetchPropertyKeys().stream()
+                .filter(key -> key.equals(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY))
+                .findFirst();
+
+        if (keyOptional.isPresent()) {
+            byte [] bytes = stateStore.fetchProperty(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY);
+            String value = new String(bytes, StandardCharsets.UTF_8);
+            return UpdateResult.DeploymentType.valueOf(value);
+        } else {
+            return UpdateResult.DeploymentType.NONE;
         }
     }
 }

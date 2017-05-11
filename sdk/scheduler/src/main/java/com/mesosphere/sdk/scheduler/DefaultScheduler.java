@@ -48,6 +48,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -96,6 +97,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final ConfigStore<ServiceSpec> configStore;
     protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
+    private final ConfigurationUpdater.UpdateResult updateResult;
 
     private JettyApiServer apiServer;
     private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
@@ -333,9 +335,9 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore,
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
-            if (!configUpdateResult.errors.isEmpty()) {
+            if (!configUpdateResult.getErrors().isEmpty()) {
                 LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
-                        configUpdateResult.targetId, configUpdateResult.errors);
+                        configUpdateResult.getTargetId(), configUpdateResult.getErrors());
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:
@@ -369,7 +371,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 throw new IllegalStateException("No deploy plan provided.");
             }
 
-            List<String> errors = configUpdateResult.errors.stream()
+            List<String> errors = configUpdateResult.getErrors().stream()
                     .map(configValidationError -> configValidationError.toString())
                     .collect(Collectors.toList());
             plans = updateDeployPlan(plans, errors);
@@ -382,10 +384,11 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore,
                     configStore,
                     new DefaultOfferRequirementProvider(
-                            stateStore, serviceSpec.getName(), configUpdateResult.targetId, getSchedulerFlags()),
+                            stateStore, serviceSpec.getName(), configUpdateResult.getTargetId(), getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
-                    Optional.ofNullable(recoveryPlanManagerFactory));
+                    Optional.ofNullable(recoveryPlanManagerFactory),
+                    configUpdateResult);
         }
 
         /**
@@ -400,10 +403,11 @@ public class DefaultScheduler implements Scheduler, Observer {
                     .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                     .findFirst();
 
-            LOGGER.info("Update type: " + updateResult.getUpdateType().name());
-            LOGGER.info("Found update plan: " + updatePlanOptional.isPresent());
+            LOGGER.info(String.format("Update type: '%s', Found update plan: '%s'",
+                    updateResult.getDeploymentType().name(),
+                    updatePlanOptional.isPresent()));
 
-            if (updateResult.getUpdateType().equals(ConfigurationUpdater.UpdateResult.UpdateType.UPDATE)
+            if (updateResult.getDeploymentType().equals(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE)
                     && updatePlanOptional.isPresent()) {
                 LOGGER.info("Overriding deploy plan with update plan.");
 
@@ -572,7 +576,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RestartHook> restartHookOptional,
-            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
+            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional,
+            ConfigurationUpdater.UpdateResult updateResult) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.resources = resources;
@@ -584,6 +589,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.customRestartHook = restartHookOptional;
         this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
+        this.updateResult = updateResult;
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -760,6 +766,15 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void update(Observable observable) {
         if (observable == planCoordinator) {
             suppressOrRevive();
+            completeDeploy();
+        }
+    }
+
+    private void completeDeploy() {
+        if (!planCoordinator.hasOperations()) {
+            stateStore.storeProperty(
+                    ConfigurationUpdater.UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY,
+                    updateResult.getDeploymentType().name().getBytes(StandardCharsets.UTF_8));
         }
     }
 

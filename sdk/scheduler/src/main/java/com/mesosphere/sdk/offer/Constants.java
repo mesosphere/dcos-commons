@@ -5,8 +5,9 @@ package com.mesosphere.sdk.offer;
  */
 public class Constants {
 
-    /** The name used for the task deployment plan. */
+    /** The name used for the deployment plan. */
     public static final String DEPLOY_PLAN_NAME = "deploy";
+    /** The name used for the update plan. */
     public static final String UPDATE_PLAN_NAME = "update";
 
     /** The name used for reserved network port resources. */

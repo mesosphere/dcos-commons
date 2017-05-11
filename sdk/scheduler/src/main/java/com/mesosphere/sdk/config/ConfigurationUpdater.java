@@ -16,39 +16,51 @@ public interface ConfigurationUpdater<C extends Configuration> {
      * The result of an {@link ConfigurationUpdater#updateConfiguration(Configuration)} call.
      */
     class UpdateResult {
-        /**
-         * The resulting configuration ID which should be used by service tasks.
-         */
-        public final UUID targetId;
-        private final UpdateType updateType;
+        public static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
+        private final UUID targetId;
+        private final DeploymentType deploymentType;
+        private final Collection<ConfigValidationError> errors;
+
+        public UpdateResult(
+                UUID targetId,
+                DeploymentType deploymentType,
+                Collection<ConfigValidationError> errors) {
+            this.targetId = targetId;
+            this.errors = errors;
+            this.deploymentType = deploymentType;
+        }
 
         /**
          * Two types of deployments are differentiated by this type.  Either a services is
          * being deployed for the first time "DEPLOY", or it is updating a previously deployed
          * version of the service, "UPDATE"
          */
-        public enum UpdateType {
+        public enum DeploymentType {
+            NONE,
             DEPLOY,
             UPDATE
         }
 
         /**
-         * A list of zero or more validation errors with the current configuration. If there were
-         * errors, the {@link #targetId} will point to a previous valid configuration.
+         * Gets the {@link DeploymentType} detected during this update.
          */
-        public final Collection<ConfigValidationError> errors;
-
-        public UpdateResult(
-                UUID targetId,
-                UpdateType updateType,
-                Collection<ConfigValidationError> errors) {
-            this.targetId = targetId;
-            this.errors = errors;
-            this.updateType = updateType;
+        public DeploymentType getDeploymentType() {
+            return deploymentType;
         }
 
-        public UpdateType getUpdateType() {
-            return  updateType;
+        /**
+         * Gets a list of zero or more validation errors with the current configuration. If there were
+         * errors, the {@link #targetId} will point to a previous valid configuration.
+         */
+        public Collection<ConfigValidationError> getErrors() {
+            return errors;
+        }
+
+        /**
+         * Gets the resulting configuration ID which should be used by service tasks.
+         */
+        public UUID getTargetId() {
+            return targetId;
         }
     }
 

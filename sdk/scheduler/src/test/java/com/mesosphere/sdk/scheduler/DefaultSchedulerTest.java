@@ -701,7 +701,7 @@ public class DefaultSchedulerTest {
     public void testOverrideDeployWithUpdate() {
         Collection<Plan> plans = getDeployUpdatePlans();
         ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
-        when(updateResult.getUpdateType()).thenReturn(ConfigurationUpdater.UpdateResult.UpdateType.UPDATE);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE);
         plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
 
         Plan deployPlan = plans.stream()
@@ -715,7 +715,7 @@ public class DefaultSchedulerTest {
     public void testNoOverrideOfDeployPlanOnInstall() {
         Collection<Plan> plans = getDeployUpdatePlans();
         ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
-        when(updateResult.getUpdateType()).thenReturn(ConfigurationUpdater.UpdateResult.UpdateType.DEPLOY);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
         plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
 
         Plan deployPlan = plans.stream()
@@ -960,7 +960,11 @@ public class DefaultSchedulerTest {
                     defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
-                    defaultScheduler.recoveryPlanManagerFactoryOptional);
+                    defaultScheduler.recoveryPlanManagerFactoryOptional,
+                    new ConfigurationUpdater.UpdateResult(
+                            UUID.randomUUID(),
+                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,
+                            Collections.emptyList()));
             this.apiServerReady = apiServerReady;
         }
 
