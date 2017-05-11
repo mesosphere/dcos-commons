@@ -56,6 +56,7 @@ public class UninstallSchedulerTest {
             TestConstants.PRINCIPAL);
     private static final Protos.TaskInfo TASK_A = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
             RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
+    StateStore stateStore;
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
     @Mock
@@ -71,7 +72,7 @@ public class UninstallSchedulerTest {
         MockitoAnnotations.initMocks(this);
         StateStoreCache.resetInstanceForTests();
 
-        StateStore stateStore = StateStoreCache.getInstance(new CuratorStateStore("testing-uninstall",
+        stateStore = StateStoreCache.getInstance(new CuratorStateStore("testing-uninstall",
                 testingServer.getConnectString()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
@@ -146,6 +147,16 @@ public class UninstallSchedulerTest {
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
         plan = uninstallScheduler.uninstallPlanManager.getPlan();
         assert plan.isComplete();
+    }
+
+    @Test
+    public void testApiServerNotReadyDecline() {
+        UninstallScheduler uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, false);
+        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+
+        Protos.Offer offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        verify(mockSchedulerDriver, times(1)).declineOffer(any());
     }
 
     /**
