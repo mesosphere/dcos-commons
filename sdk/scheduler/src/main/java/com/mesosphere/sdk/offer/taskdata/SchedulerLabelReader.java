@@ -47,7 +47,7 @@ public class SchedulerLabelReader extends LabelReader {
      * @throws TaskException if the index data wasn't found
      * @throws NumberFormatException if parsing the index as an integer failed
      */
-    public int getIndex() throws TaskException {
+    public int getIndex() throws TaskException, NumberFormatException {
         return Integer.parseInt(getOrThrow(LabelConstants.TASK_INDEX_LABEL));
     }
 

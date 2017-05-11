@@ -27,7 +27,7 @@ DC/OS SDK is currently in alpha stage: it can run services, but APIs change regu
 ---
 ### Quick Start
 
-From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox 5.0.x](https://www.virtualbox.org/wiki/Download_Old_Builds_5_0), and [Vagrant 1.8.4](https://releases.hashicorp.com/vagrant/1.8.4/), run:
+From a workstation with 8GB Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox 5.0.x](https://www.virtualbox.org/wiki/Download_Old_Builds_5_0), and [Vagrant 1.8.4](https://releases.hashicorp.com/vagrant/1.8.4/):
 
 1. Download the DC/OS SDK.
   ```
@@ -81,10 +81,8 @@ pods:
           size: 64
 ```
 
-In above yaml file, we have:
+In the above YAML file, we have:
 * Defined a service with the name `helloworld`
-* Configured the service to use ZooKeeper at `master.mesos:2181` for storing framework state and configuration.
-* Configured the API port using `api-port: 8080`. By default, each service comes with a default set of useful APIs to enable operationalization.
 * Defined a pod specification for our `helloworld` pod using:
 
 ```yaml

@@ -5,8 +5,7 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "executor-zip": "{{artifact-dir}}/executor.zip",
-      "s3cli-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/s3cli-0.0.55-linux-amd64.zip"
+      "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
   "images": {

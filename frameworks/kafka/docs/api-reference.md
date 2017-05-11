@@ -34,40 +34,38 @@ The `dcos kafka` CLI commands have a `--name` argument, allowing the user to spe
 
 Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/connection` endpoint:
 
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/connection"
+    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
     GET /service/kafka/v1/connection HTTP/1.1
 
     {
-        "address": [
-            "10.0.0.211:9843",
-            "10.0.0.217:10056",
-            "10.0.0.214:9689"
-        ],
-        "dns": [
-            "broker-0.kafka.mesos:9843",
-            "broker-1.kafka.mesos:10056",
-            "broker-2.kafka.mesos:9689"
-        ],
-        "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-        "zookeeper": "master.mesos:2181/dcos-service-kafka"
+      "vips": [
+        "broker.kafka.l4lb.thisdcos.directory:9092"
+      ],
+      "address": [
+        "10.0.0.35:1028",
+        "10.0.1.249:1030"
+      ],
+      "dns": [
+        "kafka-0-broker.kafka.mesos:1028",
+        "kafka-1-broker.kafka.mesos:1030"
+      ],
     }
 
 The same information can be retrieved through the DC/OS CLI:
 
-    $ dcos kafka connection
+    $ dcos kafka endpoints broker
     {
-        "address": [
-            "10.0.0.211:9843",
-            "10.0.0.217:10056",
-            "10.0.0.214:9689"
-        ],
-        "dns": [
-            "broker-0.kafka.mesos:9843",
-            "broker-1.kafka.mesos:10056",
-            "broker-2.kafka.mesos:9689"
-        ],
-        "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-        "zookeeper": "master.mesos:2181/dcos-service-kafka"
+      "vips": [
+        "broker.kafka.l4lb.thisdcos.directory:9092"
+      ],
+      "address": [
+        "10.0.0.35:1028",
+        "10.0.1.249:1030"
+      ],
+      "dns": [
+        "kafka-0-broker.kafka.mesos:1028",
+        "kafka-1-broker.kafka.mesos:1030"
+      ],
     }
 
 

@@ -2,12 +2,13 @@ Refer to the [top-level tutorial document](../../docs/pages/tutorial.md).
 
 # Sample configuration files
 
-Four sample configuration files are given here (change the name of the input yml file at "universe/marathon.json.mustache"):
+The default example [svc.yml](src/main/dist/svc.yml) has two pods, with volumes and is used in the 'official' `hello-world` package.
 
- - [svc.yml](src/main/dist/svc.yml): Two pods, with volumes. Used in the 'official' `hello-world` package.
- - [svc_simple.yml](src/main/dist/svc_simple.yml): Bare minimum example. Just one pod, with no extra features.
- - [svc_plan.yml](src/main/dist/svc_plan.yml): Two pods, with healthcheck, volumes, ports, and with a plan structure.
- - [svc_uri.yml](src/main/dist/svc_uri.yml): Sample pod and task-specific URIs that are downloaded before task launch.
+[Multiple example configuration files](src/main/dist/examples/) are also provided (change the name of the default YAML file at ["universe/config.json"](universe/config.json)). In particular:
+
+ - [simple.yml](src/main/dist/examples/simple.yml): Bare minimum example. Just one pod, with no extra features.
+ - [plan.yml](src/main/dist/examples/plan.yml): Two pods, with healthcheck, volumes, ports, and with a plan structure.
+ - [uri.yml](src/main/dist/examples/uri.yml): Sample pod and task-specific URIs that are downloaded before task launch.
 
 # Framework API Port
 

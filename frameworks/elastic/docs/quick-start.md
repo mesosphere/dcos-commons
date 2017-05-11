@@ -1,6 +1,6 @@
 ---
-post_title: Kick the Tires
-menu_order: 0
+post_title: Usage Example 
+menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
 ---
@@ -24,8 +24,18 @@ enterprise: 'no'
         
         $ dcos elastic endpoints coordinator
         {
-            "direct": ["coordinator-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
-            "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200"
+            "vips": [
+                "coordinator.elastic.l4lb.thisdcos.directory:9200",
+                "coordinator.elastic.l4lb.thisdcos.directory:9300"
+            ],
+            "address": [
+                "10.0.2.88:1026",
+                "10.0.2.88:1027"
+            ],
+            "dns": [
+                "coordinator-0-node.elastic.mesos:1026",
+                "coordinator-0-node.elastic.mesos:1027"
+            ],
         }
 
 1. [SSH into a DC/OS node][1]:

@@ -24,7 +24,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("SERVICE_ROLE", "role");
         ENV_VARS.set("SERVICE_PRINCIPAL", "principal");
         ENV_VARS.set("CASSANDRA_CPUS", "0.1");
-        ENV_VARS.set("CASSANDRA_VERSION", "3.0.10");
+        ENV_VARS.set("CASSANDRA_VERSION", "3.0.13");
         ENV_VARS.set("CASSANDRA_MEMORY_MB", "512");
         ENV_VARS.set("TASKCFG_ALL_JMX_PORT", "9000");
         ENV_VARS.set("TASKCFG_ALL_CASSANDRA_STORAGE_PORT", "9001");

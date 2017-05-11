@@ -14,7 +14,7 @@ This developer guide explains how to create a stateful DC/OS service using the D
 
 # DC/OS Component Overview
 
-The four major components are Mesos, Marathon, Universe, and Zookeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
+The four major components are Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
 
 ## Mesos
 
@@ -36,24 +36,41 @@ A package specification provides a uniform way to define Marathon applications. 
 
 Every DC/OS service must provide a package definition in the format expected by the Universe. [Learn more about creating Universe packages](https://github.com/mesosphere/universe).
 
-## Zookeeper
+## ZooKeeper
 
-Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.
+Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. ZooKeeper provides persistent storage for this information.
 
-Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
+Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
-They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
+They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
+
+# Pre-requisites
+
+1. `dcos-commmons` checked out locally on your machine.
+
+  ```bash
+  $ git clone git@github.com:mesosphere/dcos-commons.git
+  $ cd dcos-commons
+  ```
+
+1. Access to a DC/OS 1.8 (or newer) cluster.
+
+1. The DC/OS CLI [installed](https://docs.mesosphere.com/latest/cli/install/) and [configured](https://docs.mesosphere.com/latest/cli/configure/) to point to your cluster.
+
+1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
 
 # Getting Started
+
 
 1. Create your framework.
 
    ```bash
-   $ ./new-service.sh frameworks/myframework
+   $ ./new-framework.sh frameworks/myframework
    $ cd frameworks/myframework
    ```
 
-   `new-service.sh` creates a skeleton framework.  You will extend this skeleton.
+   `new-framework.sh` creates a skeleton framework.  You will extend
+   this skeleton.
 
 1. View `svc.yml`.
 
@@ -63,17 +80,18 @@ They store the desired configuration of a service and all relevant information r
 
    Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
 
-1. Build a [package](#packaging).
+1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
 
    ```bash
    $ ./build.sh aws
    ```
 
-   You will deploy your framework to DC/OS as a [package](#packaging).  `build.sh` creates this package.
+   You will deploy your framework to DC/OS as a
+   [package](#packaging).  `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
 
 1. Install your package.
 
-   `build.sh` prints instructions for installing the package.  They will look something like this:
+   `build.sh` prints instructions for installing the package that look something like this:
 
    ```bash
    $ dcos package repo remove myframework-aws
@@ -81,7 +99,7 @@ They store the desired configuration of a service and all relevant information r
    $ dcos package install --yes myframework
    ```
 
-   Navigate to the DC/OS Services UI to view the deployment.
+   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
 
 1. Uninstall your package.
 
@@ -90,8 +108,11 @@ They store the desired configuration of a service and all relevant information r
    $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
    ```
 
-   The second command above runs the **janitor** script.  The janitor script runs inside the DC/OS cluster, cleaning up Zookeeper state and resource reservations made by a framework.  DC/OS will soon support uninstall hooks so this can happen automatically, but for now, you must manually run the janitor script as shown above.
-
+   The second command above runs the **janitor** script.  The janitor
+   script runs inside the DC/OS cluster, cleaning up ZooKeeper state
+   and resource reservations made by a framework.  DC/OS will soon
+   support uninstall hooks so this can happen automatically, but for
+   now, you must manually run the janitor script as shown above.
 
 # Introduction to DC/OS Service Definitions
 
@@ -132,7 +153,7 @@ pods:
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
-* **Pods**: A pod can be defined most simply as a set of tasks.
+* **Pods**: A pod is simply a set of tasks.
 
 * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
@@ -142,7 +163,7 @@ pods:
 
 * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a Task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
 * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
@@ -394,7 +415,7 @@ The following events occur to select a target configuration and move a service f
 
 1. Define a target configuration
 
-    a. Deploy a Marathon application definition for your service’s scheduler
+    a. Deploy a Marathon application definition for your service’s scheduler.
 
     b. The scheduler renders the `ServiceSpec` and Plan definitions in the service’s YAML definition.
 
@@ -402,11 +423,11 @@ The following events occur to select a target configuration and move a service f
 
     a. The scheduler compares previous and current `ServiceSpec`s:
 
-       i. Validate the `ServiceSpec`
+       i. Validate the `ServiceSpec`.
 
-       ii. Determine scenario (install, update or no change)
+       ii. Determine scenario (install, update or no change).
 
-    b. The plan is chosen and executed
+    b. The plan is chosen and executed.
 
 These steps are discussed in more detail below.
 
@@ -1070,7 +1091,7 @@ The plan defined above, the instance of the hello pod with index 0 should first 
 
 ### Sidecar Plans
 
-You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
+You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to perform, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
 
 ```yaml
 name: "hello-world"
@@ -1115,7 +1136,7 @@ $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: applic
 
 You can also use the DC/OS CLI:
 ```bash
-$ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
+$ dcos $FRAMEWORK_NAME plan start sidecar-example -p PLAN_PARAMETER1=sidecar -p PLAN_PARAMETER2=plan
 ```
 
 When no parameters are specified, the body of the POST request must be an empty JSON object (`{}`). Supply default values with standard Bash syntax. In the above case, you can declare the default value of `PLAN_PARAMETER1` to be `sidecar` by changing the task's command string to `echo ${PLAN_PARAMETER1:-sidecar} >> output`.
@@ -1421,7 +1442,7 @@ pods:
 ```
 
 
-1. Delete these 3 labels from your marathon application definition:
+1. Delete these 3 labels from your Marathon application definition:
     * `DCOS_FRAMEWORK_NAME`
     * `DCOS_SERVICE_PORT_INDEX`
     * `DCOS_SERVICE_SCHEME`

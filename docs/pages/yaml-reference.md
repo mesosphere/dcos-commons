@@ -237,7 +237,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         This may be used to customize the environment variable used to advertise this port within the task.
 
-        By default, ports are automatically advertised as `PORT_<NAME>`, where any punctuation in `NAME` is converted to underscores. For example, a port named `http-api` would be advertised as `PORT_HTTP_API` by default.
+        By default, environment variables for ports are automatically populated as `PORT_<NAME>` in the launched tasks, where any punctuation in `NAME` is converted to underscores. For example, a port named `http-api` would be advertised as `PORT_HTTP_API` by default in the task environment.
 
       * `vip`
 

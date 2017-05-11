@@ -34,12 +34,8 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
-def test_backup_and_restore_flow():
-    run_backup_and_restore()
-
-
-def run_backup_and_restore():
-    backup_parameters = {
+def test_backup_and_restore_to_s3():
+    plan_parameters = {
         'S3_BUCKET_NAME': os.getenv(
             'AWS_BUCKET_NAME', 'infinity-framework-test'
         ),
@@ -50,6 +46,26 @@ def run_backup_and_restore():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
+    run_backup_and_restore('backup-s3', 'restore-s3', plan_parameters)
+
+
+@pytest.mark.sanity
+def test_backup_and_restore_to_azure():
+    plan_parameters = {
+        'AZURE_CLIENT_ID': os.getenv('AZURE_CLIENT_ID'),
+        'AZURE_CLIENT_SECRET': os.getenv('AZURE_CLIENT_SECRET'),
+        'AZURE_TENANT_ID': os.getenv('AZURE_TENANT_ID'),
+        'AZURE_STORAGE_ACCOUNT': os.getenv('AZURE_STORAGE_ACCOUNT'),
+        'AZURE_STORAGE_KEY': os.getenv('AZURE_STORAGE_KEY'),
+        'CONTAINER_NAME': os.getenv('CONTAINER_NAME', 'cassandra-test'),
+        'SNAPSHOT_NAME': str(uuid.uuid1()),
+        'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
+    }
+
+    run_backup_and_restore('backup-azure', 'restore-azure', plan_parameters)
+
+
+def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
     # Write data to Cassandra with a metronome job
     launch_and_verify_job(WRITE_DATA_JOB)
 
@@ -57,10 +73,10 @@ def run_backup_and_restore():
     launch_and_verify_job(VERIFY_DATA_JOB)
 
     # Run backup plan, uploading snapshots and schema to S3 
-    plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=backup_parameters)
+    plan.start_plan(PACKAGE_NAME, backup_plan, parameters=plan_parameters)
     spin.time_wait_noisy(
         lambda: (
-            plan.get_plan(PACKAGE_NAME, 'backup-s3').json()['status'] ==
+            plan.get_plan(PACKAGE_NAME, backup_plan).json()['status'] ==
             'COMPLETE'
         )
     )
@@ -72,13 +88,16 @@ def run_backup_and_restore():
     launch_and_verify_job(VERIFY_DELETION_JOB)
 
     # Run restore plan, retrieving snapshots and schema from S3
-    plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=backup_parameters)
+    plan.start_plan(PACKAGE_NAME, restore_plan, parameters=plan_parameters)
     spin.time_wait_noisy(
         lambda: (
-            plan.get_plan(PACKAGE_NAME, 'restore-s3').json()['status'] ==
+            plan.get_plan(PACKAGE_NAME, restore_plan).json()['status'] ==
             'COMPLETE'
         )
     )
 
     # Verify that the data we wrote and then deleted has been restored
-    launch_and_verify_job(VERIFY_DATA_JOB, expected_successes=2)
+    launch_and_verify_job(VERIFY_DATA_JOB)
+
+    # Delete data in preparation for any other backup tests
+    launch_and_verify_job(DELETE_DATA_JOB)

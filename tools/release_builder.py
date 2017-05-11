@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import base64
+import collections
 import difflib
 import http.client
 import json
@@ -23,19 +24,19 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 class UniverseReleaseBuilder(object):
 
     def __init__(self, package_version, stub_universe_url,
-                 commit_desc = '',
-                 min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.8'),
-                 http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
-                 s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
-                 release_docker_image = os.environ.get('RELEASE_DOCKER_IMAGE'),
-                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', ''),
-                 beta_release = os.environ.get('BETA', 'False')):
+                 commit_desc='',
+                 min_dcos_release_version=os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.8'),
+                 http_release_server=os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
+                 s3_release_bucket=os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
+                 release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
+                 release_dir_path=os.environ.get('RELEASE_DIR_PATH', ''),
+                 beta_release=os.environ.get('BETA', 'False')):
         self._dry_run = os.environ.get('DRY_RUN', '')
-        self._force_upload = bool(os.environ.get('FORCE_ARTIFACT_UPLOAD', 'false'))
-        name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
+        self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
+        name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
-                            'Expected filename of form \'stub-universe-[pkgname].zip\'')
+                            'Expected filename of form \'stub-universe-[pkgname].zip\' or \'stub-universe-[pkgname].json\'')
         self._pkg_name = name_match.group(1)
         if not release_dir_path:
             release_dir_path = self._pkg_name + '/assets'
@@ -55,13 +56,13 @@ class UniverseReleaseBuilder(object):
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
-        if not 'GITHUB_TOKEN' in os.environ:
+        if 'GITHUB_TOKEN' not in os.environ:
             raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
         encoded_tok = base64.encodestring(os.environ['GITHUB_TOKEN'].encode('utf-8'))
         self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
 
 
-    def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return = 0):
+    def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
         if self._dry_run:
             logger.info('[DRY RUN] {}'.format(cmd))
             return dry_run_return
@@ -72,21 +73,14 @@ class UniverseReleaseBuilder(object):
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
 
-    def _download_unpack_stub_universe(self, scratchdir):
-        '''Returns the path to the directory in the stub universe.'''
-        local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
-        result = urllib.request.urlopen(self._stub_universe_url)
-        dlfile = open(local_zip_path, 'wb')
-        dlfile.write(result.read())
-        dlfile.flush()
-        dlfile.close()
-        zipin = zipfile.ZipFile(local_zip_path, 'r')
+    def _unpack_stub_universe_zip(self, scratchdir, stub_universe_file):
+        zipin = zipfile.ZipFile(stub_universe_file, 'r')
         badfile = zipin.testzip()
         if badfile:
-            raise Exception('Bad file {} in downloaded {} => {}'.format(
-                badfile, self._stub_universe_url, local_zip_path))
+            raise Exception('Failed to unpack {} in downloaded {}'.format(
+                badfile, self._stub_universe_url))
         zipin.extractall(scratchdir)
-        # check for stub-universe-pkgname/repo/packages/P/pkgname/0/:
+        # check for (and return) path to stub-universe-pkgname/repo/packages/P/pkgname/0/:
         pkgdir_path = os.path.join(
             scratchdir,
             'stub-universe-{}'.format(self._pkg_name),
@@ -97,9 +91,71 @@ class UniverseReleaseBuilder(object):
             '0')
         if not os.path.isdir(pkgdir_path):
             raise Exception('Didn\'t find expected path {} after unzipping {}'.format(
-                pkgdir_path, local_zip_path))
-        os.unlink(local_zip_path)
+                pkgdir_path, self._stub_universe_url))
         return pkgdir_path
+
+    def _unpack_stub_universe_json(self, scratchdir, stub_universe_file):
+        stub_universe_json = json.loads(stub_universe_file.read().decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+
+        # put package files into a subdir of scratchdir: avoids conflicts with reuse of scratchdir elsewhere
+        pkgdir = os.path.join(scratchdir, 'stub-universe-{}'.format(self._pkg_name))
+        os.makedirs(pkgdir)
+
+        if 'packages' not in stub_universe_json:
+            raise Exception('Expected "packages" key in root of stub universe JSON: {}'.format(
+                self._stub_universe_url))
+        if len(stub_universe_json['packages']) != 1:
+            raise Exception('Expected single "packages" entry in stub universe JSON: {}'.format(
+                self._stub_universe_url))
+
+        # note: we delete elements from package_json they're unpacked, as package_json is itself written to a file
+        package_json = stub_universe_json['packages'][0]
+
+        def extract_json_file(package_dict, name):
+            file_dict = package_dict.get(name)
+            if file_dict is not None:
+                del package_dict[name]
+                # ensure that the file has a trailing newline (json.dump() doesn't!)
+                fileref = open(os.path.join(pkgdir, name + '.json'), 'w')
+                content = json.dumps(file_dict, indent=2)
+                fileref.write(content)
+                if not content.endswith('\n'):
+                    fileref.write('\n')
+                fileref.flush()
+                fileref.close()
+        extract_json_file(package_json, 'command')
+        extract_json_file(package_json, 'config')
+        extract_json_file(package_json, 'resource')
+
+        marathon_json = package_json.get('marathon', {}).get('v2AppMustacheTemplate')
+        if marathon_json is not None:
+            del package_json['marathon']
+            marathon_file = open(os.path.join(pkgdir, 'marathon.json.mustache'), 'w')
+            marathon_file.write(base64.standard_b64decode(marathon_json).decode())
+            marathon_file.flush()
+            marathon_file.close()
+
+        if 'releaseVersion' in package_json:
+            del package_json['releaseVersion']
+
+        json.dump(package_json, open(os.path.join(pkgdir, 'package.json'), 'w'), indent=2)
+
+        return pkgdir
+
+    def _download_unpack_stub_universe(self, scratchdir):
+        '''Returns the path to the package directory in the stub universe.'''
+        stub_universe_file = urllib.request.urlopen(self._stub_universe_url)
+
+        _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
+        if stub_universe_extension == '.zip':
+            # stub universe zip package (universe 2.x only)
+            return self._unpack_stub_universe_zip(scratchdir, stub_universe_file)
+        elif stub_universe_extension == '.json':
+            # stub universe json file (universe 3.x+ only)
+            return self._unpack_stub_universe_json(scratchdir, stub_universe_file)
+        else:
+            raise Exception('Expected .zip or .json extension for stub universe: {}'.format(
+                self._stub_universe_url))
 
 
     def _update_file_content(self, path, orig_content, new_content, showdiff=True):
@@ -145,7 +201,7 @@ class UniverseReleaseBuilder(object):
         # don't bother showing diff, things get rearranged..
         self._update_file_content(path, orig_content, new_content, showdiff=False)
 
-        # we expect the artifacts to share the same directory prefix as the stub universe zip itself:
+        # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
         logger.info('[2/2] Replacing artifact prefix {} with {}'.format(
             original_artifact_prefix, self._release_artifact_http_dir))
@@ -166,13 +222,17 @@ class UniverseReleaseBuilder(object):
         # manually delete the destination directory first. (and redirect stdout to stderr)
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
         ret = self._run_cmd(cmd, False, 1)
-        if ret == 0 and not self._force_upload:
-            raise Exception('Release artifact destination already exists. ' +
-                            'Refusing to continue until destination has been manually removed:\n' +
-                            'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
+        if ret == 0:
+            if self._force_upload:
+                logger.info('Destination {} exists but force upload is configured, proceeding...'.format(self._release_artifact_s3_dir))
+            else:
+                raise Exception('Release artifact destination already exists. ' +
+                                'Refusing to continue until destination has been manually removed:\n' +
+                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
         elif ret > 256:
             raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
-        logger.info('Destination {} doesnt exist, proceeding...'.format(self._release_artifact_s3_dir))
+        else:
+            logger.info('Destination {} doesnt exist, proceeding...'.format(self._release_artifact_s3_dir))
 
         for i in range(len(original_artifact_urls)):
             progress = '[{}/{}]'.format(i + 1, len(original_artifact_urls))
@@ -181,9 +241,6 @@ class UniverseReleaseBuilder(object):
 
             local_path = os.path.join(scratchdir, filename)
             dest_s3_url = '{}/{}'.format(self._release_artifact_s3_dir, filename)
-
-            # TODO: this currently downloads the file via http, then uploads it via 'aws s3 cp'.
-            # copy directly from src bucket to dest bucket via 'aws s3 cp'? problem: different credentials
 
             # download the artifact (dev s3, via http)
             if self._dry_run:
@@ -204,7 +261,7 @@ class UniverseReleaseBuilder(object):
                 logger.info('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
                 ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
                     local_path, dest_s3_url))
-            if not ret == 0:
+            if ret != 0:
                 raise Exception(
                     'Failed to upload {} to {}. '.format(local_path, dest_s3_url) +
                     'Partial release directory may need to be cleared manually before retrying. Exiting early.')
@@ -223,7 +280,7 @@ class UniverseReleaseBuilder(object):
             'git config --local user.email jenkins@mesosphere.com',
             'git config --local user.name release_builder.py',
             'git checkout -b {}'.format(branch)]))
-        if not ret == 0:
+        if ret != 0:
             raise Exception(
                 'Failed to create local Universe git branch {}. '.format(branch) +
                 'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._release_artifact_s3_dir))
@@ -310,7 +367,7 @@ class UniverseReleaseBuilder(object):
         else:
             cmds.append('git push origin {}'.format(branch))
         ret = os.system(' && '.join(cmds))
-        if not ret == 0:
+        if ret != 0:
             raise Exception(
                 'Failed to push git branch {} to Universe. '.format(branch) +
                 'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._release_artifact_s3_dir))
@@ -335,15 +392,15 @@ class UniverseReleaseBuilder(object):
         conn.request(
             'POST',
             '/repos/mesosphere/universe/pulls',
-            body = json.dumps(payload).encode('utf-8'),
-            headers = headers)
+            body=json.dumps(payload).encode('utf-8'),
+            headers=headers)
         return conn.getresponse()
 
 
     def _original_docker_image(self, pkgdir):
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f, object_pairs_hook=OrderedDict)
+            resource_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             try:
                 docker_dict = resource_json['assets']['container']['docker']
                 assert len(docker_dict) == 1
@@ -364,7 +421,7 @@ class UniverseReleaseBuilder(object):
 
         resource_filename = os.path.join(pkgdir, 'resource.json')
         with open(resource_filename) as f:
-            resource_json = json.load(f, object_pairs_hook=OrderedDict)
+            resource_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             docker_dict = resource_json['assets']['container']['docker']
             key = list(docker_dict.keys())[0]
             docker_dict[key] = self._release_docker_image
@@ -380,7 +437,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta optin bool to config.json
         config_file_name = os.path.join(pkgdir, 'config.json')
         with open(config_file_name) as f:
-            config_json = json.load(f, object_pairs_hook=OrderedDict)
+            config_json = json.load(f, object_pairs_hook=collections.OrderedDict)
             service_dict = config_json['properties']['service']
             service_dict['properties']['beta-optin'] = {
                 "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
@@ -397,7 +454,7 @@ class UniverseReleaseBuilder(object):
         # Add the beta prefix to package.json
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
-            package_json = json.load(f, object_pairs_hook=OrderedDict)
+            package_json = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         package_json['selected'] = False
         package_json['name'] = 'beta-' + package_json['name']
@@ -416,7 +473,7 @@ class UniverseReleaseBuilder(object):
         return beta_pkg_dir
 
 
-    def release_zip(self):
+    def release_package(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
         if self._beta_release:
@@ -435,7 +492,7 @@ class UniverseReleaseBuilder(object):
 
 def print_help(argv):
     logger.info('Syntax: {} <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
-    logger.info('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
+    logger.info('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.json'.format(argv[0]))
     logger.info('Required credentials in env:')
     logger.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
     logger.info('- Github (Personal Access Token): GITHUB_TOKEN')
@@ -466,7 +523,7 @@ Universe URL:    {}{}
 ###'''.format(package_version, stub_universe_url, comment_info))
 
     builder = UniverseReleaseBuilder(package_version, stub_universe_url, commit_desc)
-    response = builder.release_zip()
+    response = builder.release_package()
     if not response:
         # print the PR location as stdout for use upstream (the rest is all stderr):
         print('[DRY RUN] The pull request URL would appear here.')
