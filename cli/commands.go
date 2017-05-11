@@ -28,34 +28,6 @@ func GetArguments() []string {
 	return os.Args[2:]
 }
 
-func GetVariablePair(pairString string) ([]string, error) {
-	elements := strings.Split(pairString, "=")
-	if len(elements) < 2 {
-		return nil, errors.New(fmt.Sprintf(
-			"Must have one variable name and one variable value per definition"))
-	}
-
-	return []string{elements[0], strings.Join(elements[1:], "=")}, nil
-}
-
-func GetPlanParameterPayload(parameters []string) (string, error) {
-	envPairs := make(map[string]string)
-	for _, pairString := range parameters {
-		pair, err := GetVariablePair(pairString)
-		if err != nil {
-			return "", err
-		}
-		envPairs[pair[0]] = pair[1]
-	}
-
-	jsonVal, err := json.Marshal(envPairs)
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonVal), nil
-}
-
 func HandleDefaultSections(app *kingpin.Application) {
 	commands.HandleConfigSection(app)
 	commands.HandleEndpointsSection(app)

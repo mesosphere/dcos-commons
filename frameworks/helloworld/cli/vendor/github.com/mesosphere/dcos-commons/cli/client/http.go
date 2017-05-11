@@ -18,55 +18,55 @@ func HTTPGet(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("GET", urlPath)))
 }
 func HTTPGetQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("GET", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 func HTTPGetData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("GET", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 func HTTPGetJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPJSONRequest("GET", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
 func HTTPDelete(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("DELETE", urlPath)))
 }
 func HTTPDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 func HTTPDeleteData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("DELETE", urlPath, payload, contentType)))
 }
 func HTTPDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
 }
 
 func HTTPPost(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("POST", urlPath)))
 }
 func HTTPPostQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("POST", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("POST", urlPath, urlQuery)))
 }
 func HTTPPostData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("POST", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
 func HTTPPostJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 func HTTPPut(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("PUT", urlPath)))
 }
 func HTTPPutQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("PUT", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 func HTTPPutData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("PUT", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("PUT", urlPath, payload, contentType)))
 }
 func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
-func httpQuery(request *http.Request) *http.Response {
+func HTTPQuery(request *http.Request) *http.Response {
 	if config.TlsForceInsecure { // user override via '--force-insecure'
 		config.TlsCliSetting = config.TlsUnverified
 	}
@@ -135,7 +135,7 @@ func httpQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func checkHTTPResponse(response *http.Response) *http.Response {
+func CheckHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
@@ -153,23 +153,23 @@ func checkHTTPResponse(response *http.Response) *http.Response {
 }
 
 func createHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
-	return CreateHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
+	return createHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
 func createHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
-	return CreateHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
+	return createHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
 }
 
 func createHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
-	return CreateHTTPRawRequest(method, urlPath, urlQuery, "", "")
+	return createHTTPRawRequest(method, urlPath, urlQuery, "", "")
 }
 
-func createHTTPRequest(method, urlPath string) *http.Request {
-	return CreateHTTPRawRequest(method, urlPath, "", "", "")
+func CreateHTTPRequest(method, urlPath string) *http.Request {
+	return createHTTPRawRequest(method, urlPath, "", "", "")
 }
 
 func createHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
-	return CreateHTTPURLRequest(method, CreateURL(urlPath, urlQuery), payload, contentType)
+	return createHTTPURLRequest(method, createURL(urlPath, urlQuery), payload, contentType)
 }
 
 func createURL(urlPath, urlQuery string) *url.URL {

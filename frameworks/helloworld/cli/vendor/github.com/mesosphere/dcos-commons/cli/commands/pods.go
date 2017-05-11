@@ -54,5 +54,5 @@ func HandlePodsSection(app *kingpin.Application) {
 	restart.Arg("pod", "Name of the pod instance to restart").Required().StringVar(&cmd.PodName)
 
 	replace := pods.Command("replace", "Destroys a given pod and moves it to a new agent").Action(cmd.RunReplace)
-	replace.Arg("pod", "Name of the pod instance to replace"").Required().StringVar(&cmd.PodName)
+	replace.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
 }

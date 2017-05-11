@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/mesosphere/dcos-commons/cli"
-	"github.com/mesosphere/dcos-commons/cli/commands"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
