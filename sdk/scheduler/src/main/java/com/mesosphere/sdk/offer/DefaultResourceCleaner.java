@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The Resource Cleaner provides recommended operations for cleaning up
@@ -79,23 +80,12 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      * Returns a list of all expected resources, which are extracted from all {@link Protos.TaskInfo}s
      * produced by the provided {@link StateStore}.
      */
-    private static Collection<Resource> getExpectedResources(StateStore stateStore)
-            throws StateStoreException {
-        Collection<Resource> resources = new ArrayList<>();
-
-        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
-            if (FailureUtils.isLabeledAsFailed(taskInfo)) {
-                continue;
-            }
-
-            // Get all resources from both the task level and the executor level
-            resources.addAll(taskInfo.getResourcesList());
-            if (taskInfo.hasExecutor()) {
-                resources.addAll(taskInfo.getExecutor().getResourcesList());
-            }
-        }
-
-        return resources;
+    private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
+        return stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !FailureUtils.isLabeledAsFailed(taskInfo))
+                .map(ResourceUtils::getAllResources)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     /**

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.ResourceSpec;
+import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -578,6 +579,21 @@ public class ResourceUtils {
                 String.format(
                         "Task has no resource with name '%s': %s",
                         resourceName, TextFormat.shortDebugString(executorBuilder)));
+    }
+
+    /**
+     * Returns a list of all the resources associated with a task, including {@link Executor} resources.
+     * @param taskInfo The {@link Protos.TaskInfo} containing the {@link Protos.Resource}.
+     * @return a list of {@link Protos.Resource}s.
+     */
+    public static List<Protos.Resource> getAllResources(Protos.TaskInfo taskInfo) {
+        List<Resource> resources = new ArrayList<>();
+        // Get all resources from both the task level and the executor level
+        resources.addAll(taskInfo.getResourcesList());
+        if (taskInfo.hasExecutor()) {
+            resources.addAll(taskInfo.getExecutor().getResourcesList());
+        }
+        return resources;
     }
 
     /**

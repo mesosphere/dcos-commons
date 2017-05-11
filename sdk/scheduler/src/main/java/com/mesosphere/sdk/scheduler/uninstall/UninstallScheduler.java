@@ -63,9 +63,9 @@ public class UninstallScheduler implements Scheduler {
     }
 
     private Plan getPlan() {
-        // create one UninstallStep per unique Resource
+        // create one UninstallStep per unique Resource, including Executor resources
         List<Step> taskSteps = stateStore.fetchTasks().stream()
-                .map(Protos.TaskInfo::getResourcesList)
+                .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .map(ResourceUtils::getResourceId)
                 .distinct()
