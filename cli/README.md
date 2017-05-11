@@ -48,6 +48,43 @@ See the [example CLI module](../frameworks/helloworld/cli/) for an example of ho
 
 Like the example CLI module, your own code may simply access the CLI libraries provided here by importing `github.com/mesosphere/dcos-commons/cli`. Your CLI module implementation may pick and choose which standard commands should be included, while also implementing its own custom commands.
 
+### Vendoring Dependencies
+
+It is highly recommended that CLIs depending on these library files use [`govendor`](https://github.com/kardianos/govendor). This will allow the projects to be built against a specific, snapshotted version of this library and insulate them from build failures caused by breaking changes in the `master` branch of this repository.
+
+To vendorise a CLI that depends on this project, (e.g. [`helloworld/cli`](/frameworks/helloworld/cli/)):
+
+1. Install [govendor](https://github.com/kardianos/govendor).
+
+1. Ensure the CLI folder is linked into your `$GOPATH`:
+
+    ```bash
+    cd frameworks/helloworld/cli
+    ln -s $(pwd) $GOPATH/src/github.com/mesosphere/dcos-commons/frameworks/helloworld/cli
+    ```
+
+1. Initialise `govendor` metadata:
+
+    ```bash
+    govendor init
+    ```
+
+1. Fetch the CLI dependency (and any subpackages):
+
+    ```bash
+    govendor fetch github.com/mesosphere/dcos-commons/cli/\^
+    ```
+
+When building this project with a go version greater than 1.5 (`go build` must be run from the project's directory within the `$GOPATH`), these dependencies will be picked up automatically.
+
+To later update the version of this dependency, simply run `fetch` again:
+
+    ```bash
+    govendor fetch github.com/mesosphere/dcos-commons/cli/\^
+    ```
+
+(See the [`govendor` README](https://github.com/kardianos/govendor) for further examples, including fetching a specific revision or tag of this code.)
+
 ### Direct execution
 
 You may manually test calls to your executable the same way that the DC/OS CLI would call it. See `Run` below.
