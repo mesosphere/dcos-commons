@@ -135,6 +135,14 @@ dcos==0.4.16
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
 virtualenv -p $(which python3) --always-copy {venv_path}
+echo ls -l {venv_path}
+ls -l {venv_path}
+echo ls -l {venv_path}/bin
+ls -l {venv_path}/bin
+echo head {venv_path}/bin/pip
+head {venv_path}/bin/pip
+echo file {venv_path}/bin/pip
+file {venv_path}/bin/pip
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
