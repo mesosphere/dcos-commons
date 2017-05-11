@@ -17,6 +17,6 @@ public interface SecretSpec {
     Optional<String> getEnvKey();
 
     @JsonProperty("file")
-    String getFilePath();
+    Optional<String> getFilePath();
 
 }

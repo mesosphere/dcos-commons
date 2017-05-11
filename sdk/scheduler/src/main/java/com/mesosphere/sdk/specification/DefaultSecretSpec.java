@@ -60,8 +60,8 @@ public class DefaultSecretSpec implements SecretSpec {
     }
 
     @Override
-    public String getFilePath() {
-        return filePath;
+    public Optional<String> getFilePath() {
+            return Optional.of(filePath);
     }
 
     /**
