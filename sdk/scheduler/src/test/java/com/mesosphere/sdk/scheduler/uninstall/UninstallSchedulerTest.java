@@ -112,7 +112,7 @@ public class UninstallSchedulerTest {
     }
 
     @Test
-    public void testUninstallStepCompleted() throws Exception {
+    public void testUninstallStepsComplete() throws Exception {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
@@ -127,6 +127,25 @@ public class UninstallSchedulerTest {
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
                 Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
+    }
+
+    @Test
+    public void testPlanCompletes() throws Exception {
+        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
+                RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+
+        // Turn the crank once to start the first Step (the DeleteServiceRootPathStep) in the serial misc-phase
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
+        Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
+                Status.COMPLETE, Status.PENDING);
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
+
+        // Turn the crank again to perform the second and final Step (the DeregisterStep)
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
+        plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        assert plan.isComplete();
     }
 
     /**
