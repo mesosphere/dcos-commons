@@ -23,8 +23,8 @@
 		{
 			"checksumSHA1": "Yw46gn7BiRdv/nWhA15XRz50bUY=",
 			"path": "github.com/mesosphere/dcos-commons/cli",
-			"revision": "c555da31d12f9c202dd09d76f1919cbe153f0a18",
-			"revisionTime": "2017-05-11T00:43:08Z",
+			"revision": "9a730ee823faa27453f42e6ea6edd54864f711e2",
+			"revisionTime": "2017-05-11T17:35:18Z",
 			"tree": true
 		},
 		{
