@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import org.apache.mesos.Protos;
@@ -83,7 +84,11 @@ public class DefaultResourceCleaner implements ResourceCleaner {
         Collection<Resource> resources = new ArrayList<>();
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
-            // get all resources from both the task level and the executor level
+            if (FailureUtils.isLabeledAsFailed(taskInfo)) {
+                continue;
+            }
+
+            // Get all resources from both the task level and the executor level
             resources.addAll(taskInfo.getResourcesList());
             if (taskInfo.hasExecutor()) {
                 resources.addAll(taskInfo.getExecutor().getResourcesList());
