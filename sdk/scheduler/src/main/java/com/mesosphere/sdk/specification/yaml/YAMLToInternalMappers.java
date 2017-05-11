@@ -407,7 +407,8 @@ public class YAMLToInternalMappers {
 
     //TODO(file-based-secrets)
     private static DefaultSecretSpec from(RawSecret rawSecret) {
-        String filePath =  (rawSecret.getFilePath() == null )? rawSecret.getSecretPath() : rawSecret.getFilePath();
+        String filePath =  (rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null)?
+                rawSecret.getSecretPath() : rawSecret.getFilePath();
         return new DefaultSecretSpec(
                 rawSecret.getSecretPath(),
                 rawSecret.getEnvKey(),

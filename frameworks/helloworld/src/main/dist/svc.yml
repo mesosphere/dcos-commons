@@ -9,15 +9,23 @@ pods:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
     secrets:
-      {{HELLO_SECRET1}}:
-        env-key : SECRET1_ENV
-        file: {{SECRET1_FILE}}
-      {{HELLO_SECRET2}}:
-        file: {{SECRET2_FILE}}
+      secret1:
+        secret: {{HELLO_SECRET1}}
+        env-key: SECRET1_ENV
+        file: SECRET1_FILE
+      secret2:
+        secret: {{HELLO_SECRET2}}
+        file: SECRET2_FILE
     tasks:
       server:
         goal: RUNNING
-        cmd: env && cat secretFile && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: >
+               env &&
+               ls -la &&
+               ls -la .secret &&
+               echo  "SECRET1_FILE : " && cat SECRET1_FILE &&
+               echo  "SECRET2_FILE : " && cat SECRET2_FILE &&
+               echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -37,16 +45,23 @@ pods:
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
     secrets:
-      {{WORLD_SECRET1}}:
-        env-key : SECRET1_ENV
-      {{WORLD_SECRET2}}:
+      secret1:
+        secret: {{WORLD_SECRET1}}:
+        env-key: WORLD_SECRET1_ENV
+      secret2:
+        secret: {{WORLD_SECRET2}}:
         file: {{SECRET2_FILE}}
+      secret3:
+        secret: {{WORLD_SECRET3}}
     tasks:
       server:
         goal: RUNNING
         cmd: >
                env &&
-               cat secretFile &&
+               ls -la &&
+               ls -la .secret &&
+               echo  "SECRET1_FILE : " && cat SECRET1_FILE &&
+               echo  "SECRET2_FILE : " && cat SECRET2_FILE &&
                echo world1 >> world-container-path1/output &&
                echo world2 >> world-container-path2/output &&
                sleep $SLEEP_DURATION

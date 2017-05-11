@@ -14,6 +14,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,6 +181,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (taskStatusOptional.isPresent()
                     && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
                 executorInfo = taskInfo.getExecutor();
+                // Here we are using an existing executor that is created for a previous task, within the same pod.
+                // You should not create a new executor, in fact, you should use the executor previous task started.
                 LOGGER.info(
                         "Reusing executor from task '{}': {}",
                         taskInfo.getName(),
@@ -192,6 +195,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
         }
 
+        // Create a Map of (container_path, VolumeSpec)
         Map<String, Protos.Resource> volumeMap = new HashMap<>();
         volumeMap.putAll(executorInfo.getResourcesList().stream()
                 .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
@@ -668,6 +672,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+
         // Populate ContainerInfo with the appropriate information from PodSpec
         Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
         if (containerInfo != null) {
@@ -691,19 +696,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
         executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
 
-
-        // MB  -> secret env variable
-        String envName = "SECRET1";
-        String secretName = "secret1";
-        executorCommandBuilder.getEnvironmentBuilder().addVariablesBuilder()
-                .setName(envName)
-                .setType(Protos.Environment.Variable.Type.SECRET)
-                .setSecret(Protos.Secret.newBuilder()
-                        .setType(Protos.Secret.Type.REFERENCE)
-                        .setReference(Protos.Secret.Reference.newBuilder().setName(secretName))
-                        .build());
-        // MB -> secret env variable
-
+        // Add SECRET type environment variables to command info
+        executorCommandBuilder.getEnvironmentBuilder()
+                    .addAllVariables(getExecutorInfoSecretVariables(podSpec.getSecrets()));
 
         // Any URIs defined in PodSpec itself.
         for (URI uri : podSpec.getUris()) {
@@ -715,30 +710,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             executorInfoBuilder.addResources(getVolumeResource(v));
         }
 
-        //MB
-        String secretName2 = "secret2";
-        String secretFile2 = "secretFile2";
-        Protos.Secret secret = Protos.Secret.newBuilder()
-                .setType(Protos.Secret.Type.REFERENCE)
-                .setReference(Protos.Secret.Reference.newBuilder().setName(secretName2).build()).build();
-
-        Protos.Volume secretVolume = Protos.Volume.newBuilder().setSource(
-                Protos.Volume.Source.newBuilder()
-                        .setType(Protos.Volume.Source.Type.SECRET)
-                        .setSecret(secret).build())
-                        .setContainerPath(secretFile2)
-                        .setMode(Protos.Volume.Mode.RO)
-                        .build();
-
-        if (!executorInfoBuilder.hasContainer()) {
-            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
-                    .setType(Protos.ContainerInfo.Type.MESOS)
-                    .addVolumes(secretVolume).build());
-        } else {
-            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(secretVolume).build());
+        // Add SECRET volumes to container info
+        for (Protos.Volume secretVolume: getExecutorInfoSecretVolumes(podSpec.getSecrets())) {
+            if (!executorInfoBuilder.hasContainer()) {
+                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
+                        .setType(Protos.ContainerInfo.Type.MESOS)
+                        .addVolumes(secretVolume).build());
+            } else {
+                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
+                        .addVolumes(secretVolume)
+                        .build());
+            }
         }
-        //MB
-
 
         // Finally any URIs for config templates defined in TaskSpecs.
         for (TaskSpec taskSpec : podSpec.getTasks()) {
@@ -756,6 +739,46 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return executorInfoBuilder.build();
+    }
+
+    private static Protos.Secret getReferenceSecret(String secretPath) {
+        return Protos.Secret.newBuilder()
+                .setType(Protos.Secret.Type.REFERENCE)
+                .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
+                .build();
+    }
+
+    private static Collection<Environment.Variable> getExecutorInfoSecretVariables(Collection<SecretSpec> secretSpecs) {
+        Collection<Environment.Variable> variables = new ArrayList<>();
+
+        for (SecretSpec secretSpec : secretSpecs) {
+            if (secretSpec.getEnvKey().isPresent()) {
+                variables.add(Environment.Variable.newBuilder()
+                        .setName(secretSpec.getEnvKey().toString())
+                        .setType(Protos.Environment.Variable.Type.SECRET)
+                        .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
+                        .build());
+            }
+        }
+        return variables;
+    }
+
+    private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
+        Collection<Protos.Volume> volumes = new ArrayList<>();
+
+        for (SecretSpec secretSpec: secretSpecs) {
+            if (secretSpec.getFilePath().isPresent()) {
+                volumes.add(Protos.Volume.newBuilder()
+                                    .setSource(Protos.Volume.Source.newBuilder()
+                                          .setType(Protos.Volume.Source.Type.SECRET)
+                                          .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
+                                          .build())
+                                    .setContainerPath(secretSpec.getFilePath().toString())
+                                    .setMode(Protos.Volume.Mode.RO)
+                                    .build());
+            }
+        }
+        return volumes;
     }
 
     private static void setHealthCheck(

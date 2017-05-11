@@ -81,10 +81,11 @@
             "type":"string",
             "default":"hello-world/secret1"
           },
-          "secret2":{
-            "description":"secret2",
-            "type":"string",
-            "default":"hello-world/secret2"
+          "secret2": {
+            "description": "secret2",
+            "type": "string",
+            "default": "hello-world/secret2"
+          }
         },
         "required":[
           "cpus",
@@ -132,6 +133,11 @@
             "description":"secret2",
             "type":"string",
             "default":"hello-world/secret2"
+          },
+          "secret3":{
+            "description":"secret3",
+            "type":"string",
+            "default":"hello-world/secret3"
           }
         },
         "required":[

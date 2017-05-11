@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * A SecretSpec defines the features of a Secret.
  */
-@JsonDeserialize(as = DefaultPodSpec.class)
+@JsonDeserialize(as = DefaultSecretSpec.class)
 public interface SecretSpec {
 
     @JsonProperty("secret")
