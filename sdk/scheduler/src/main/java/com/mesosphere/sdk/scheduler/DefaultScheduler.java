@@ -48,7 +48,6 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -772,9 +771,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void completeDeploy() {
         if (!planCoordinator.hasOperations()) {
-            stateStore.storeProperty(
-                    ConfigurationUpdater.UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY,
-                    updateResult.getDeploymentType().name().getBytes(StandardCharsets.UTF_8));
+            StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult);
         }
     }
 

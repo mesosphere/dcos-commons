@@ -13,6 +13,7 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import difflib.DiffUtils;
 import org.apache.mesos.Protos;
@@ -20,7 +21,6 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -46,7 +46,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         this.configStore = configStore;
         this.configComparator = configComparator;
         this.validators = validators;
-        this.lastUpdateType = getLastCompletedUpdateType();
+        this.lastUpdateType = StateStoreUtils.getLastCompletedUpdateType(stateStore);
     }
 
     @Override
@@ -308,20 +308,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         LOGGER.info("Cleaning up {} unused configs: {}", configsToClear.size(), configsToClear);
         for (UUID configToClear : configsToClear) {
             configStore.clear(configToClear);
-        }
-    }
-
-    private UpdateResult.DeploymentType getLastCompletedUpdateType() {
-        Optional<String> keyOptional = stateStore.fetchPropertyKeys().stream()
-                .filter(key -> key.equals(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY))
-                .findFirst();
-
-        if (keyOptional.isPresent()) {
-            byte [] bytes = stateStore.fetchProperty(UpdateResult.LAST_COMPLETED_UPDATE_TYPE_KEY);
-            String value = new String(bytes, StandardCharsets.UTF_8);
-            return UpdateResult.DeploymentType.valueOf(value);
-        } else {
-            return UpdateResult.DeploymentType.NONE;
         }
     }
 }

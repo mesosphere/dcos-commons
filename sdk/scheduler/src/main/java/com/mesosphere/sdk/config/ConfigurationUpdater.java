@@ -16,7 +16,6 @@ public interface ConfigurationUpdater<C extends Configuration> {
      * The result of an {@link ConfigurationUpdater#updateConfiguration(Configuration)} call.
      */
     class UpdateResult {
-        public static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
         private final UUID targetId;
         private final DeploymentType deploymentType;
         private final Collection<ConfigValidationError> errors;
