@@ -15,14 +15,16 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -152,14 +154,15 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
+    private static ServiceSpec getServiceSpec(PodSpec... pods) {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .apiPort(0)
-                .zookeeperConnection("foo.bar.com")
-                .pods(Arrays.asList(pods));
+                .zookeeperConnection("badhost-shouldbeignored:2181")
+                .pods(Arrays.asList(pods))
+                .build();
     }
 
     private static Capabilities getCapabilities(Boolean enableGpu) throws Exception {
@@ -172,35 +175,20 @@ public class DefaultSchedulerTest {
         return getCapabilities(DEFAULT_GPU_POLICY);
     }
 
-    private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB).build();
-    private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
-    private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
-    private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
-    private static final ServiceSpec INVALID_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, invalidPodB).build();
-
-    private static TestingServer testingServer;
-
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        CuratorTestUtils.clear(testingServer);
-
-        StateStoreCache.resetInstanceForTests();
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
-        stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION, mockSchedulerFlags, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
-        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION, flags)
+        ServiceSpec serviceSpec = getServiceSpec(podA, podB);
+        stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
+        configStore = new DefaultConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+        defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -219,10 +207,9 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(TestPlacementUtils.PASS)
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(serviceSpecification, testingServer.getConnectString());
+        DefaultScheduler.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -230,13 +217,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(new PlacementRuleMissingEquality())
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMissingEquality.class));
+                serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -244,13 +228,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMismatchedAnnotations.class));
+                serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
     }
 
     @Test
@@ -258,13 +239,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(TestPlacementUtils.PASS)
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(TestPlacementUtils.PASS.getClass()));
+                serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
     }
 
     @Test
@@ -311,7 +289,8 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -327,7 +306,8 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -344,7 +324,8 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(scaledPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -515,7 +496,8 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -570,7 +552,8 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
-        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(podA, invalidPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -683,7 +666,8 @@ public class DefaultSchedulerTest {
     public void testApiServerTimeout() throws Exception {
         int timeoutMillis = 100;
         when(mockSchedulerFlags.getApiServerInitTimeout()).thenReturn(java.time.Duration.ofMillis(timeoutMillis));
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, mockSchedulerFlags)
+        defaultScheduler = DefaultScheduler
+                .newBuilder(getServiceSpec(updatedPodA, podB), mockSchedulerFlags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())

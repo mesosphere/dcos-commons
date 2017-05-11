@@ -30,7 +30,6 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
     @BeforeClass
     public static void beforeAll() throws Exception {
-        OfferEvaluatorTestBase.beforeAll();
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
         File file = new File(classLoader.getResource("shared-resource-set.yml").getFile());
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);

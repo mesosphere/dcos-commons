@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
@@ -10,9 +10,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 
@@ -26,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -38,9 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
-    protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private DefaultScheduler.Builder schedulerBuilder;
@@ -87,64 +81,12 @@ public class DefaultService implements Service {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
-        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
-        curatorClient.start();
-
-        InterProcessMutex curatorMutex = lock(curatorClient, schedulerBuilder.getServiceSpec().getName());
+        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
+        locker.lock();
         try {
             register();
         } finally {
-            unlock(curatorMutex);
-            curatorClient.close();
-        }
-    }
-
-    /**
-     * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
-     * same service.
-     */
-    private static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName) {
-        return lock(curatorClient, serviceName, LOCK_PATH, LOCK_ATTEMPTS);
-    }
-
-    protected static InterProcessMutex lock(
-            CuratorFramework curatorClient,
-            String serviceName,
-            String lockPathString,
-            int lockAttempts) {
-        String rootPath = CuratorUtils.toServiceRootPath(serviceName);
-        String lockPath = CuratorUtils.join(rootPath, lockPathString);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
-
-        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
-        final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?",
-                lockPath, serviceName, serviceName);
-        try {
-            for (int i = 0; i < lockAttempts; ++i) {
-                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                    return curatorMutex;
-                }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, lockAttempts, failureLogMsg);
-            }
-            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        } catch (Exception ex) {
-            LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        }
-        return null; // not reachable, only here for a happy java
-    }
-
-    /**
-     * Releases the lock previously obtained by {@link #lock(CuratorFramework, String)}.
-     */
-    protected static void unlock(InterProcessMutex curatorMutex) {
-        try {
-            curatorMutex.release();
-        } catch (Exception ex) {
-            LOGGER.error("Error releasing ZK lock.", ex);
+            locker.unlock();
         }
     }
 
@@ -211,10 +153,10 @@ public class DefaultService implements Service {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                                                                     .setName(serviceName)
-                                                                     .setFailoverTimeout(failoverTimeoutSec)
-                                                                     .setUser(userString)
-                                                                     .setCheckpoint(true);
+                .setName(serviceName)
+                .setFailoverTimeout(failoverTimeoutSec)
+                .setUser(userString)
+                .setCheckpoint(true);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)

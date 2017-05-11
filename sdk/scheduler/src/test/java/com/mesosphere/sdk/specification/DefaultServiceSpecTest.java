@@ -19,7 +19,6 @@ import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
-import org.apache.curator.test.TestingServer;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -27,8 +26,11 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -665,7 +667,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
-        Assert.assertEquals(DefaultServiceSpec.DEFAULT_ZK_CONNECTION, serviceSpec.getZookeeperConnection());
+        Assert.assertEquals(DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING, serviceSpec.getZookeeperConnection());
     }
 
     @Test
@@ -696,19 +698,12 @@ public class DefaultServiceSpecTest {
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
         when(capabilities.supportCniPortMapping()).thenReturn(true);
 
-        TestingServer testingServer = new TestingServer();
-        StateStoreCache.resetInstanceForTests();
-        StateStore stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, testingServer.getConnectString());
-        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        Persister persister = new MemPersister();
         DefaultScheduler.newBuilder(serviceSpec, flags)
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
+                .setStateStore(new DefaultStateStore(persister))
+                .setConfigStore(
+                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setCapabilities(capabilities)
                 .build();
-        testingServer.close();
-
     }
 }

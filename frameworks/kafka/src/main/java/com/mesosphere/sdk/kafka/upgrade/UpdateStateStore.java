@@ -1,12 +1,10 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.curator.CuratorUtils;
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError;
-import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,39 +15,11 @@ import java.util.Optional;
 /**
  * CuratorStateStoreUpdate provides storeStatus(name,status) method.
  */
-public class CuratorStateStoreUpdate extends CuratorStateStore {
-    private static final Logger logger = LoggerFactory.getLogger(CuratorStateStoreUpdate.class);
+public class UpdateStateStore extends DefaultStateStore {
+    private static final Logger logger = LoggerFactory.getLogger(UpdateStateStore.class);
 
-    public CuratorStateStoreUpdate(String frameworkName) {
-        this(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-    }
-
-   public CuratorStateStoreUpdate(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
-    }
-
-    public CuratorStateStoreUpdate(
-            String frameworkName,
-            String connectionString,
-            RetryPolicy retryPolicy) {
-        this(frameworkName, connectionString, retryPolicy, "", "");
-    }
-
-    public CuratorStateStoreUpdate(
-            String frameworkName,
-            String connectionString,
-            String username,
-            String password) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
-    }
-
-    public CuratorStateStoreUpdate(
-            String frameworkName,
-            String connectionString,
-            RetryPolicy retryPolicy,
-            String username,
-            String password) {
-        super(frameworkName, connectionString, retryPolicy, username, password);
+    public UpdateStateStore(Persister persister) {
+        super(persister);
     }
 
     public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
@@ -86,14 +56,13 @@ public class CuratorStateStoreUpdate extends CuratorStateStore {
                             currentStatusOptional.get().getState(), taskName));
         }
 
-        String path = taskPathMapper.getTaskStatusPath(taskName);
+        String path = getTaskStatusPath(taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
-            curator.set(path, status.toByteArray());
+            persister.set(path, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(StorageError.Reason.STORAGE_ERROR, e);
         }
     }
-
 }
