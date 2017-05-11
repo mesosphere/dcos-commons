@@ -97,7 +97,7 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 1. Write some data to your cluster:
 ```
 dcos node ssh --master-proxy --leader
-core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.10 cqlsh node-0-server.cassandra.mesos
+core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
 > CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 > USE space1;
 > CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));
@@ -424,10 +424,10 @@ dcos node ssh --leader --master-proxy
 
 Then, use the `cassandra` Docker image to run `cqlsh`, passing as an argument the address of one of the Apache Cassandra nodes in the cluster:
 ```
-docker run cassandra:3.0.10 cqlsh node-0-server.cassandra.mesos
+docker run cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
 ```
 
-This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.10.
+This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.13.
 
 <a name="managing"></a>
 # Managing
@@ -556,8 +556,10 @@ Both schedulers will restart after the configuration update, and each cluster wi
 <a name="backup"></a>
 ## Backup
 
+### Backing Up to S3
+
 You can backup an entire cluster's data and schema to Amazon S3 using the `backup-s3` plan. This plan requires the following parameters to run:
-- `SNAPSHOT_NAME`: the name of this snapshot. Snapshots for individual nodes will be stored as gzipped tarballs with the name `$SNAPSHOT_NAME-<POD_INDEX>`.
+- `SNAPSHOT_NAME`: the name of this snapshot. Snapshots for individual nodes will be stored as S3 folders inside of a top level `snapshot` folder.
 - `CASSANDRA_KEYSPACES`: the Cassandra keyspaces to backup. The entire keyspace, as well as its schema, will be backed up for each keyspace specified.
 - `AWS_ACCESS_KEY_ID`: the access key ID for the AWS IAM user running this backup.
 - `AWS_SECRET_ACCESS_KEY`: the secret access key for the AWS IAM user running this backup.
@@ -573,20 +575,42 @@ You can configure whether snapshots are created and uploaded in serial, the defa
 You can initiate this plan from the command line:
 ```
 SNAPSHOT_NAME=<my_snapshot>
-CASSANDRA_KEYSPACES="\"space1 space2\""
+CASSANDRA_KEYSPACES="space1 space2"
 AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos beta-cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
+dcos cassandra plan start backup-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
 
-If you're backing up multiple keyspaces, you must wrap them in escaped quotation marks (`\"`) for the backup to run successfully. If the `CASSANDRA_KEYSPACES` parameter isn't supplied, then every keyspace in your cluster will be backed up.
+If you're backing up multiple keyspaces, they must be separated by spaces and wrapped in quotation marks when supplied to the `plan start` command, as in the example above. If the `CASSANDRA_KEYSPACES` parameter isn't supplied, then every keyspace in your cluster will be backed up.
 
 **IMPORTANT**: To ensure that sensitive information, such as your AWS secret access key, remains secure, make sure that you've set the `core.dcos_url` configuration property in the DC/OS CLI to an HTTPS URL.
 
+### Backing up to Azure
+
+You can also back up to Microsoft Azure using the `backup-azure` plan. This plan requires the following parameters to run:
+
+- `SNAPSHOT_NAME`: the name of this snapshot. Snapshots for individual nodes will be stored as gzipped tarballs with the name `node-<POD_INDEX>.tar.gz`.
+- `CASSANDRA_KEYSPACES`: the Cassandra keyspaces to backup. The entire keyspace, as well as its schema, will be backed up for each keyspace specified.
+- `CLIENT_ID`: the client ID for the Azure service principal running this backup.
+- `TENANT_ID`: the tenant ID for the tenant that the service principal belongs to.
+- `CLIENT_SECRET`: the service principal's secret key.
+- `AZURE_STORAGE_ACCOUNT`: the name of the storage account that this backup will be sent to.
+- `AZURE_STORAGE_KEY`: the secret key associated with the storage account.
+- `CONTAINER_NAME`: the name of the container to store this backup in.
+
+You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:
+```
+dcos cassandra plan start backup-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+```
+
 <a name="restore"></a>
 ## Restore
+
+All restore plans will restore the schema from every keyspace backed up with the backup plan and populate those keyspaces with the data they contained at the time the snapshot was taken. Downloading and restoration of backups will use the configured backup/restore strategy. This plan assumes that the keyspaces being restored do not already exist in the current cluster, and will fail if any keyspace with the same name is present.
+
+### Restoring From S3
 
 Restoring cluster data is similar to backing it up. The `restore-s3` plan assumes that your data is stored in an S3 bucket in the format that `backup-s3` uses. The restore plan has the following parameters:
 - `SNAPSHOT_NAME`: the snapshot name from the `backup-s3` plan.
@@ -605,7 +629,22 @@ S3_BUCKET_NAME=backups
 dcos beta-cassandra plan start backup-s3 "SNAPSHOT_NAME=$SNAPSHOT_NAME,AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY,AWS_REGION=$AWS_REGION,S3_BUCKET_NAME=$S3_BUCKET_NAME"
 ```
 
-This will restore the schema from every keyspace backed up with the `backup-s3` plan and populate those keyspaces with the data they contained at the time the snapshot was taken. Downloading and restoration of backups will use the configured backup/restore strategy. This plan assumes that the keyspaces being restored do not already exist in the current cluster, and will fail if any keyspace with the same name is present.
+### Restoring From Azure
+
+You can restore from Microsoft Azure using the `restore-azure` plan. This plan requires the following parameters to run:
+
+- `SNAPSHOT_NAME`: the name of this snapshot. Snapshots for individual nodes will be stored as gzipped tarballs with the name `node-<POD_INDEX>.tar.gz`.
+- `CLIENT_ID`: the client ID for the Azure service principal running this backup.
+- `TENANT_ID`: the tenant ID for the tenant that the service principal belongs to.
+- `CLIENT_SECRET`: the service principal's secret key.
+- `AZURE_STORAGE_ACCOUNT`: the name of the storage account that this backup will be sent to.
+- `AZURE_STORAGE_KEY`: the secret key associated with the storage account.
+- `CONTAINER_NAME`: the name of the container to store this backup in.
+
+You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:
+```
+dcos cassandra plan start restore-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+```
 
 <a name="troubleshooting"></a>
 # Troubleshooting
@@ -643,4 +682,4 @@ You can also access the logs via the Mesos UI:
 
 ## Supported Versions
 
-The DC/OS Apache Cassandra Service runs Cassandra v3.0.10. It supports DC/OS version 1.8 and later.
+The DC/OS Apache Cassandra Service runs Cassandra v3.0.13. It supports DC/OS version 1.8 and later.

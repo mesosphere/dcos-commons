@@ -45,6 +45,7 @@ func New() *kingpin.Application {
 	app := kingpin.New(fmt.Sprintf("dcos %s", modName), "")
 
 	app.HelpFlag.Short('h') // in addition to default '--help'
+  
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&config.Verbose)
 
 	// This fulfills an interface that's expected by the main DC/OS CLI:
@@ -58,7 +59,6 @@ func New() *kingpin.Application {
 	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&config.TlsForceInsecure)
 
 	// Overrides of data that we fetch from DC/OS CLI:
-
 	// Support using "DCOS_AUTH_TOKEN" or "AUTH_TOKEN" when available
 	app.Flag("custom-auth-token", "Custom auth token to use when querying service").Envar("DCOS_AUTH_TOKEN").PlaceHolder("DCOS_AUTH_TOKEN").StringVar(&config.DcosAuthToken)
 	// Support using "DCOS_URI" or "DCOS_URL" when available

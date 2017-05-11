@@ -103,6 +103,14 @@ pods:
         goal: FINISHED
         cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
+      upload-azure:
+        goal: FINISHED
+        cmd: >
+                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
+
+                (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
+                az storage blob upload -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz
+        resource-set: sidecar-resources
       cleanup-snapshot:
         goal: FINISHED
         cmd: >
@@ -114,6 +122,16 @@ pods:
         cmd: >
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
+        resource-set: sidecar-resources
+      fetch-azure:
+        goal: FINISHED
+        cmd: >
+                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
+
+                az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
+                (cd container-path && tar xvzf snapshot.tar.gz)
+
+                rm container-path/snapshot.tar.gz
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
@@ -186,6 +204,47 @@ plans:
         pod: node
         steps:
           - default: [[fetch-s3]]
+      restore-schema:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[restore-schema]]
+      restore-snapshots:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[restore-snapshot]]
+  backup-azure:
+    strategy: serial
+    phases:
+      backup-schema:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[backup-schema]]
+      create-snapshots:
+        strategy: parallel
+        pod: node
+        steps:
+          - default: [[snapshot]]
+      upload-backups:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[upload-azure]]
+      cleanup-snapshots:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[cleanup-snapshot]]
+  restore-azure:
+    strategy: serial
+    phases:
+      fetch-azure:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[fetch-azure]]
       restore-schema:
         strategy: serial
         pod: node

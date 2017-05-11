@@ -118,6 +118,8 @@ class CITester(object):
             requirements_file = open(requirements_txt, 'w')
             requirements_file.write('''
 requests==2.10.0
+dcoscli==0.4.16
+dcos==0.4.16
 
 -e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
 ''')
