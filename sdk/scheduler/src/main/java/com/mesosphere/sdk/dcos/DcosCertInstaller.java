@@ -39,7 +39,8 @@ public class DcosCertInstaller {
             final Path sandboxCertPath = Paths.get(CERT_PATH);
             if (!Files.exists(sandboxCertPath)) {
                 LOGGER.info("Cert file not found at the expected path, nothing to do. " + 
-                        "This is expected when the cluster is not in strict mode: {}", sandboxCertPath.toAbsolutePath());
+                        "This is expected when the cluster is not in strict mode: {}",
+                        sandboxCertPath.toAbsolutePath());
                 return false;
             }
 
