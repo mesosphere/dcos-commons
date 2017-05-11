@@ -16,7 +16,7 @@ from tests.config import (
     WRITE_DATA_JOB,
     get_jobs_folder,
     install_cassandra_jobs,
-    install_job, 
+    install_job,
     launch_and_verify_job,
     remove_cassandra_jobs,
     remove_job,
@@ -61,7 +61,6 @@ class JobContext(object):
 
     def __enter__(self):
         for j in self.job_names:
-            print("installing the motherfucking job %s" % j)
             install_job(j, get_jobs_folder())
 
     def __exit__(self, *args):
@@ -91,6 +90,30 @@ def get_dcos_cassandra_plan(service_name):
     def fn():
         return api.get(service_name, '/v1/plan')
     return spin.time_wait_return(fn)
+
+
+@pytest.mark.soak_backup
+def test_backup_and_restore():
+    # Since this is run on the soak cluster and state is retained, we have to
+    # also delete the test data in preparation for the next run.
+    data_context = DataContext(
+        cleanup_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]
+    )
+    with JobContext(TEST_JOBS), data_context:
+        run_backup_and_restore()
+
+
+@pytest.mark.soak_upgrade
+def test_soak_upgrade_downgrade():
+    """Install the Cassandra Universe package and attempt upgrade to master.
+
+    Assumes that the install options file is placed in the repo root."""
+    with open('cassandra.json') as options_file:
+        install_options = json.load(options_file)
+
+    sdk_test_upgrade.soak_upgrade_downgrade(
+        PACKAGE_NAME, DEFAULT_TASK_COUNT, install_options
+    )
 
 
 @pytest.mark.soak_migration
@@ -127,7 +150,7 @@ def test_cassandra_migration():
             'backup_name': plan_parameters['SNAPSHOT_NAME'],
             's3_access_key': plan_parameters['AWS_ACCESS_KEY_ID'],
             's3_secret_key': plan_parameters['AWS_SECRET_ACCESS_KEY'],
-            'external_location': 's3://{}' + plan_parameters['S3_BUCKET_NAME'],
+            'external_location': 's3://{}'.format(plan_parameters['S3_BUCKET_NAME']),
         }
         dcos.http.put(
             '{}v1/backup/start'.format(
@@ -136,7 +159,9 @@ def test_cassandra_migration():
             json=backup_parameters
         )
         spin.time_wait_noisy(
-            lambda: get_dcos_cassandra_plan().json()['status'] == 'COMPLETE'
+            lambda: get_dcos_cassandra_plan(
+                backup_service_name
+            ).json()['status'] == 'COMPLETE'
         )
 
     env = EnvironmentContext(
