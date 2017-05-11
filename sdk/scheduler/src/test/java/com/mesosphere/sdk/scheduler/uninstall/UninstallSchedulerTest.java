@@ -2,12 +2,12 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.PlanTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.curator.test.TestingServer;
@@ -24,7 +24,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
@@ -67,14 +66,6 @@ public class UninstallSchedulerTest {
         testingServer = new TestingServer();
     }
 
-    //    TODO: move to some test Utils class
-    private static List<Status> getStepStatuses(Plan plan) {
-        return plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .map(Element::getStatus)
-                .collect(Collectors.toList());
-    }
-
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -84,7 +75,7 @@ public class UninstallSchedulerTest {
                 testingServer.getConnectString()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
-        uninstallScheduler = new TestScheduler(0, java.time.Duration.ofSeconds(1), stateStore, true);
+        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
@@ -106,7 +97,7 @@ public class UninstallSchedulerTest {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
         List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING,
                 Status.PENDING, Status.PENDING);
-        Assert.assertEquals(expected, getStepStatuses(plan));
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -117,7 +108,7 @@ public class UninstallSchedulerTest {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
         List<Status> expected = Arrays.asList(Status.PREPARED, Status.PREPARED, Status.PREPARED,
                 Status.PENDING, Status.PENDING);
-        Assert.assertEquals(expected, getStepStatuses(plan));
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -128,14 +119,14 @@ public class UninstallSchedulerTest {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED,
                 Status.PENDING, Status.PENDING);
-        Assert.assertEquals(expected, getStepStatuses(plan));
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
 
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         plan = uninstallScheduler.uninstallPlanManager.getPlan();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
                 Status.PENDING, Status.PENDING);
-        Assert.assertEquals(expected, getStepStatuses(plan));
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     /**
