@@ -141,8 +141,6 @@ echo ls -l {venv_path}/bin
 ls -l {venv_path}/bin
 echo head {venv_path}/bin/pip
 head {venv_path}/bin/pip
-echo file {venv_path}/bin/pip
-file {venv_path}/bin/pip
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
