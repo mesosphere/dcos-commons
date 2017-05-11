@@ -7,6 +7,7 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.curator.test.TestingServer;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -82,7 +84,7 @@ public class UninstallSchedulerTest {
                 testingServer.getConnectString()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
-        uninstallScheduler = new UninstallScheduler(0, java.time.Duration.ofSeconds(1), stateStore);
+        uninstallScheduler = new TestScheduler(0, java.time.Duration.ofSeconds(1), stateStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
@@ -107,4 +109,49 @@ public class UninstallSchedulerTest {
         Assert.assertEquals(expected, getStepStatuses(plan));
     }
 
+    @Test
+    public void testUninstallStepsPrepared() throws Exception {
+        // Initial call to resourceOffers() will return all steps from resource phase as candidates
+        // regardless of the offers sent in, and will start the steps.
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
+        Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        List<Status> expected = Arrays.asList(Status.PREPARED, Status.PREPARED, Status.PREPARED,
+                Status.PENDING, Status.PENDING);
+        Assert.assertEquals(expected, getStepStatuses(plan));
+    }
+
+    @Test
+    public void testUninstallStepCompleted() throws Exception {
+        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
+                RESERVED_RESOURCE_2));
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED,
+                Status.PENDING, Status.PENDING);
+        Assert.assertEquals(expected, getStepStatuses(plan));
+
+        offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
+        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
+                Status.PENDING, Status.PENDING);
+        Assert.assertEquals(expected, getStepStatuses(plan));
+    }
+
+    /**
+     * This is an unfortunate workaround for not being able to use a Spy on the UninstallScheduler instance.
+     */
+    private static class TestScheduler extends UninstallScheduler {
+        private final boolean apiServerReady;
+
+        public TestScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore, boolean apiServerReady) {
+            super(port, apiServerInitTimeout, stateStore);
+            this.apiServerReady = apiServerReady;
+        }
+
+        @Override
+        public boolean isReady() {
+            return apiServerReady;
+        }
+    }
 }

@@ -21,8 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -36,7 +34,6 @@ public class UninstallScheduler implements Scheduler {
     private static final String RESOURCE_PHASE = "resource-phase";
     private static final String MISC_PHASE = "misc-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
-    protected final ExecutorService executor = Executors.newFixedThreadPool(1);
     protected final int port;
     protected final StateStore stateStore;
     private final Duration apiServerInitTimeout;
@@ -163,45 +160,44 @@ public class UninstallScheduler implements Scheduler {
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
-        executor.execute(() -> {
-            if (!isReady()) {
-                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                OfferUtils.declineOffers(driver, offersToProcess);
-                return;
-            }
+        if (!isReady()) {
+            LOGGER.info("Declining all offers. Waiting for API Server to start ...");
+            OfferUtils.declineOffers(driver, offersToProcess);
+            return;
+        }
 
-            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-            }
+        LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+        for (int i = 0; i < offers.size(); ++i) {
+            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+        }
 
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                OfferUtils.declineOffers(driver, offers);
-                return;
-            }
+        reconciler.reconcile(driver);
+        if (!reconciler.isReconciled()) {
+            LOGGER.info("Reconciliation is still in progress, declining all offers.");
+            OfferUtils.declineOffers(driver, offers);
+            return;
+        }
 
-            // Get candidate steps to be scheduled
-            Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
-            if (!candidateSteps.isEmpty()) {
-                LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
-                        candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
-                candidateSteps.forEach(Step::start);
-            }
+        // Get candidate steps to be scheduled
+        Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
+        if (!candidateSteps.isEmpty()) {
+            LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
+                    candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
+            candidateSteps.forEach(Step::start);
+        }
 
-            // Destroy/Unreserve any reserved resource or volume that is offered
-            final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
+        // Destroy/Unreserve any reserved resource or volume that is offered
+        final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-            offersWithReservedResources.addAll(
-                    new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                            .resourceOffers(driver, offers));
+        offersWithReservedResources.addAll(
+                new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
+                        .resourceOffers(driver, offers));
 
-            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
 
-            // Decline remaining offers.
-            OfferUtils.declineOffers(driver, unusedOffers);
-        });
+        // Decline remaining offers.
+        OfferUtils.declineOffers(driver, unusedOffers);
+
     }
 
     public boolean isReady() {
@@ -215,20 +211,18 @@ public class UninstallScheduler implements Scheduler {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        executor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}'",
-                    status.getTaskId().getValue(),
-                    status.getState().toString(),
-                    status.getMessage());
+        LOGGER.info("Received status update for taskId={} state={} message='{}'",
+                status.getTaskId().getValue(),
+                status.getState().toString(),
+                status.getMessage());
 
-            try {
-                stateStore.storeStatus(status);
-                reconciler.update(status);
-            } catch (Exception e) {
-                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                        + "This may be expected if Mesos sent stale status information: " + status, e);
-            }
-        });
+        try {
+            stateStore.storeStatus(status);
+            reconciler.update(status);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                    + "This may be expected if Mesos sent stale status information: " + status, e);
+        }
     }
 
     @Override
