@@ -33,6 +33,7 @@ func HandleDefaultSections(app *kingpin.Application) {
 	commands.HandleEndpointsSection(app)
 	commands.HandlePlanSection(app)
 	commands.HandlePodsSection(app)
+	commands.HandleServiceSection(app)
 	commands.HandleStateSection(app)
 }
 
