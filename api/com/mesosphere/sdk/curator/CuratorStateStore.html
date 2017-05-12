@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -174,10 +174,14 @@ implements <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title=
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#curator">curator</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore.TaskPathMapper</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#taskPathMapper">taskPathMapper</a></span></code>&nbsp;</td>
 </tr>
@@ -244,94 +248,100 @@ implements <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title=
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#clearAllData--">clearAllData</a></span>()</code>
+<div class="block">Clears the root service node, leaving just the root node behind.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#clearFrameworkId--">clearFrameworkId</a></span>()</code>
 <div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#clearProperty-java.lang.String-">clearProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Clears a given property from the StateStore, or does nothing if no such property exists.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#clearTask-java.lang.String-">clearTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#closeForTesting--">closeForTesting</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.FrameworkID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchFrameworkId--">fetchFrameworkId</a></span>()</code>
 <div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchProperty-java.lang.String-">fetchProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Fetches the value byte array, stored against the Property <code>key</code>, or throws an error if no matching <code>key</code> is found.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchPropertyKeys--">fetchPropertyKeys</a></span>()</code>
 <div class="block">Fetches the list of Property keys, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchStatus-java.lang.String-">fetchStatus</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchStatuses--">fetchStatuses</a></span>()</code>
 <div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchTask-java.lang.String-">fetchTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchTaskNames--">fetchTaskNames</a></span>()</code>
 <div class="block">Fetches all the Task names listed in the underlying storage.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#fetchTasks--">fetchTasks</a></span>()</code>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId</a></span>(Protos.FrameworkID&nbsp;fwkId)</code>
 <div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty</a></span>(java.lang.String&nbsp;key,
              byte[]&nbsp;value)</code>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#storeStatus-Protos.TaskStatus-">storeStatus</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html#storeTasks-java.util.Collection-">storeTasks</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</code>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
@@ -359,13 +369,26 @@ implements <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title=
 <!--   -->
 </a>
 <h3>Field Detail</h3>
+<a name="LOCK_PATH_NAME">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>LOCK_PATH_NAME</h4>
+<pre>public static final&nbsp;java.lang.String LOCK_PATH_NAME</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.curator.CuratorStateStore.LOCK_PATH_NAME">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
 <a name="curator">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>curator</h4>
-<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a> curator</pre>
+<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a> curator</pre>
 </li>
 </ul>
 <a name="taskPathMapper">
@@ -584,7 +607,25 @@ implements <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title=
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>taskName</code> - The name of the task to be cleared</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when clearing the indicated Task's informations fails</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when clearing the indicated Task's information fails</dd>
+</dl>
+</li>
+</ul>
+<a name="clearAllData--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>clearAllData</h4>
+<pre>public&nbsp;void&nbsp;clearAllData()
+                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearAllData--">StateStore</a></code></span></div>
+<div class="block">Clears the root service node, leaving just the root node behind.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearAllData--">clearAllData</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
 </dl>
 </li>
 </ul>

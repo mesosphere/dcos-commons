@@ -84,7 +84,8 @@
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Constants</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">CreateOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/DefaultOfferRequirementProvider.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DefaultOfferRequirementProvider</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer">OfferRequirementProvider</a>)</li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DestroyOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DefaultResourceCleaner</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer">ResourceCleaner</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DestroyOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer">UninstallRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ExecutorRequirement</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">LaunchOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/LogOperationRecorder.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">LogOperationRecorder</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>)</li>
@@ -97,7 +98,6 @@
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">RangeAlgorithms</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/RequirementUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">RequirementUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ReserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleaner</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleanerScheduler</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceRequirement</span></a>
 <ul>
@@ -122,16 +122,22 @@
 </li>
 </ul>
 </li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UnreserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UninstallResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UninstallResourceCleaner</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer">ResourceCleaner</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UnreserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer">UninstallRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ValueUtils</span></a></li>
 </ul>
 </li>
 </ul>
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRecommendation</span></a></li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRecommendation</span></a>
+<ul>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">UninstallRecommendation</span></a></li>
+</ul>
+</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRequirementProvider</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OperationRecorder</span></a></li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleaner</span></a></li>
 </ul>
 </div>
 <!-- ======= START OF BOTTOM NAVBAR ====== -->

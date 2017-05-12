@@ -89,6 +89,7 @@
 <li><a href="com/mesosphere/sdk/scheduler/recovery/package-tree.html">com.mesosphere.sdk.scheduler.recovery</a>, </li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-tree.html">com.mesosphere.sdk.scheduler.recovery.constrain</a>, </li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/monitor/package-tree.html">com.mesosphere.sdk.scheduler.recovery.monitor</a>, </li>
+<li><a href="com/mesosphere/sdk/scheduler/uninstall/package-tree.html">com.mesosphere.sdk.scheduler.uninstall</a>, </li>
 <li><a href="com/mesosphere/sdk/specification/package-tree.html">com.mesosphere.sdk.specification</a>, </li>
 <li><a href="com/mesosphere/sdk/specification/util/package-tree.html">com.mesosphere.sdk.specification.util</a>, </li>
 <li><a href="com/mesosphere/sdk/specification/validation/package-tree.html">com.mesosphere.sdk.specification.validation</a>, </li>
@@ -180,11 +181,14 @@
 <ul>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">AbstractStep</span></a> (implements com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>)
 <ul>
+<li type="circle">com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">DeleteServiceRootPathStep</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DeploymentStep</span></a>
 <ul>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">DefaultRecoveryStep</span></a></li>
 </ul>
 </li>
+<li type="circle">com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">DeregisterStep</span></a></li>
+<li type="circle">com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallStep</span></a></li>
 </ul>
 </li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">ChainedObserver</span></a> (implements com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Observer.html" title="interface in com.mesosphere.sdk.scheduler">Observer</a>)
@@ -209,6 +213,7 @@
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultReadinessCheckSpec</span></a> (implements com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>)</li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultReadinessCheckSpec.Builder</span></a></li>
 <li type="circle">com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation"><span class="typeNameLink">DefaultReconciler</span></a> (implements com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DefaultResourceCleaner</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer">ResourceCleaner</a>)</li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSet</span></a> (implements com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>)</li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSet.Builder</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSpec</span></a> (implements com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>)
@@ -239,7 +244,7 @@
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultVipSpec.Builder</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">DependencyStrategyHelper</span></a>&lt;C&gt;</li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DeployPlanFactory</span></a> (implements com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanFactory</a>)</li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DestroyOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DestroyOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer">UninstallRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ElementBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">ElementBuilder</span></a>&lt;P,C&gt;
 <ul>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhaseBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DefaultPhaseBuilder</span></a></li>
@@ -350,7 +355,6 @@
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RequirementUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">RequirementUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ReservationEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">ReservationEvaluationStage</span></a> (implements com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ReserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleaner</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleanerScheduler</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">ResourceEvaluationStage</span></a> (implements com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>)
 <ul>
@@ -376,6 +380,7 @@
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ResponseUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.util.<a href="com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util"><span class="typeNameLink">RLimit</span></a></li>
+<li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerApiServer.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerApiServer</span></a> (implements java.lang.Runnable)</li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerDriverFactory</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerErrorCode</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerFlags</span></a></li>
@@ -437,9 +442,12 @@
 </li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">TimedLaunchConstrainer</span></a> (implements com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>)</li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">UnconstrainedLaunchConstrainer</span></a> (implements com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>)</li>
+<li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/UninstallRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">UninstallRecorder</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UninstallResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UninstallResourceCleaner</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer">ResourceCleaner</a>)</li>
+<li type="circle">com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallScheduler</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniquePodTypeValidator</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniqueTaskNameValidator</span></a></li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UnreserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">UnreserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer">UninstallRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ValidationUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ValueUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</span></a></li>
@@ -523,7 +531,11 @@
 </ul>
 </li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">OfferEvaluationStage</span></a></li>
-<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRecommendation</span></a></li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRecommendation</span></a>
+<ul>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">UninstallRecommendation</span></a></li>
+</ul>
+</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRequirementProvider</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OperationRecorder</span></a></li>
 <li type="circle">com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><span class="typeNameLink">Persister</span></a></li>
@@ -543,6 +555,7 @@
 </li>
 <li type="circle">com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation"><span class="typeNameLink">Reconciler</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryPlanManagerFactory</span></a></li>
+<li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleaner</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">ResourceSet</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">ResourceSpec</span></a>
 <ul>

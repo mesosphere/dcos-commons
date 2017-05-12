@@ -143,18 +143,14 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#LOCK_ATTEMPTS">LOCK_ATTEMPTS</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#LOCK_PATH">LOCK_PATH</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
 <td class="colFirst"><code>protected static Logger</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#LOGGER">LOGGER</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected static int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#TWO_WEEK_SEC">TWO_WEEK_SEC</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#USER">USER</a></span></code>&nbsp;</td>
 </tr>
@@ -227,10 +223,12 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected static InterProcessMutex</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#lock-CuratorFramework-java.lang.String-java.lang.String-int-">lock</a></span>(CuratorFramework&nbsp;curatorClient,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#lock-CuratorFramework-java.lang.String-int-">lock</a></span>(CuratorFramework&nbsp;curatorClient,
     java.lang.String&nbsp;serviceName,
-    java.lang.String&nbsp;lockPathString,
-    int&nbsp;lockAttempts)</code>&nbsp;</td>
+    int&nbsp;lockAttempts)</code>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
+ same service.</div>
+</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
@@ -249,7 +247,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#unlock-InterProcessMutex-">unlock</a></span>(InterProcessMutex&nbsp;curatorMutex)</code>
-<div class="block">Releases the lock previously obtained by <a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#lock-CuratorFramework-java.lang.String-"><code>lock(CuratorFramework, String)</code></a>.</div>
+<div class="block">Releases the lock previously obtained by <code>#lock(CuratorFramework, String)</code>.</div>
 </td>
 </tr>
 </table>
@@ -310,19 +308,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#com.mesosphere.sdk.specification.DefaultService.USER">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="LOCK_PATH">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>LOCK_PATH</h4>
-<pre>protected static final&nbsp;java.lang.String LOCK_PATH</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.specification.DefaultService.LOCK_PATH">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -462,7 +447,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 </dl>
 </li>
 </ul>
-<a name="lock-CuratorFramework-java.lang.String-java.lang.String-int-">
+<a name="lock-CuratorFramework-java.lang.String-int-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -470,8 +455,9 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <h4>lock</h4>
 <pre>protected static&nbsp;InterProcessMutex&nbsp;lock(CuratorFramework&nbsp;curatorClient,
                                         java.lang.String&nbsp;serviceName,
-                                        java.lang.String&nbsp;lockPathString,
                                         int&nbsp;lockAttempts)</pre>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
+ same service.</div>
 </li>
 </ul>
 <a name="unlock-InterProcessMutex-">
@@ -481,7 +467,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <li class="blockList">
 <h4>unlock</h4>
 <pre>protected static&nbsp;void&nbsp;unlock(InterProcessMutex&nbsp;curatorMutex)</pre>
-<div class="block">Releases the lock previously obtained by <a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#lock-CuratorFramework-java.lang.String-"><code>lock(CuratorFramework, String)</code></a>.</div>
+<div class="block">Releases the lock previously obtained by <code>#lock(CuratorFramework, String)</code>.</div>
 </li>
 </ul>
 <a name="register--">

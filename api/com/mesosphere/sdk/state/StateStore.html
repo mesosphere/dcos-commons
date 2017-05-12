@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -132,90 +132,96 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearAllData--">clearAllData</a></span>()</code>
+<div class="block">Clears the root service node, leaving just the root node behind.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearFrameworkId--">clearFrameworkId</a></span>()</code>
 <div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearProperty-java.lang.String-">clearProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Clears a given property from the StateStore, or does nothing if no such property exists.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearTask-java.lang.String-">clearTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.FrameworkID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchFrameworkId--">fetchFrameworkId</a></span>()</code>
 <div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchProperty-java.lang.String-">fetchProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Fetches the value byte array, stored against the Property <code>key</code>, or throws an error if no matching <code>key</code> is found.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchPropertyKeys--">fetchPropertyKeys</a></span>()</code>
 <div class="block">Fetches the list of Property keys, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatus-java.lang.String-">fetchStatus</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses</a></span>()</code>
 <div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTask-java.lang.String-">fetchTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTaskNames--">fetchTaskNames</a></span>()</code>
 <div class="block">Fetches all the Task names listed in the underlying storage.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks</a></span>()</code>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId</a></span>(Protos.FrameworkID&nbsp;fwkId)</code>
 <div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty</a></span>(java.lang.String&nbsp;key,
              byte[]&nbsp;value)</code>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-TaskStatus-">storeStatus</a></span>(TaskStatus&nbsp;status)</code>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks</a></span>(java.util.Collection&lt;TaskInfo&gt;&nbsp;tasks)</code>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
@@ -335,7 +341,7 @@ var activeTableTab = "activeTableTab";
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>taskName</code> - The name of the task to be cleared</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when clearing the indicated Task's informations fails</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when clearing the indicated Task's information fails</dd>
 </dl>
 </li>
 </ul>
@@ -493,7 +499,7 @@ var activeTableTab = "activeTableTab";
 <a name="clearProperty-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>clearProperty</h4>
 <pre>void&nbsp;clearProperty(java.lang.String&nbsp;key)
@@ -504,6 +510,21 @@ var activeTableTab = "activeTableTab";
 <dd><code>key</code> - must be a non-blank String without any forward slashes ('/')</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if key validation fails or clearing the entry fails</dd>
+</dl>
+</li>
+</ul>
+<a name="clearAllData--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>clearAllData</h4>
+<pre>void&nbsp;clearAllData()
+           throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<div class="block">Clears the root service node, leaving just the root node behind.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
 </dl>
 </li>
 </ul>

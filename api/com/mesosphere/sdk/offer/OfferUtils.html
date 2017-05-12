@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -146,13 +146,20 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#declineOffers-SchedulerDriver-java.util.Collection-">declineOffers</a></span>(SchedulerDriver&nbsp;driver,
+             java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</code>
+<div class="block">Decline unused <code>org.apache.mesos.Protos.Offer</code>s.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;Protos.Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#filterOutAcceptedOffers-java.util.List-java.util.Collection-">filterOutAcceptedOffers</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
                        java.util.Collection&lt;Protos.OfferID&gt;&nbsp;acceptedOfferIds)</code>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#isOfferAccepted-Protos.Offer-java.util.Collection-">isOfferAccepted</a></span>(Protos.Offer&nbsp;offer,
                java.util.Collection&lt;Protos.OfferID&gt;&nbsp;acceptedOfferIds)</code>
@@ -220,7 +227,7 @@ extends java.lang.Object</pre>
 <a name="isOfferAccepted-Protos.Offer-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>isOfferAccepted</h4>
 <pre>public static&nbsp;boolean&nbsp;isOfferAccepted(Protos.Offer&nbsp;offer,
@@ -232,6 +239,22 @@ extends java.lang.Object</pre>
 <dd><code>acceptedOfferIds</code> - A <code>Collection</code> of accepted <code>org.apache.mesos.Protos.OfferID</code>.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>true</code> if <code>org.apache.mesos.Protos.Offer</code> is accepted; <code>false</code> otherwise.</dd>
+</dl>
+</li>
+</ul>
+<a name="declineOffers-SchedulerDriver-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>declineOffers</h4>
+<pre>public static&nbsp;void&nbsp;declineOffers(SchedulerDriver&nbsp;driver,
+                                 java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
+<div class="block">Decline unused <code>org.apache.mesos.Protos.Offer</code>s.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>driver</code> - The <code>SchedulerDriver</code> that will receive the declineOffer() calls</dd>
+<dd><code>unusedOffers</code> - The collection of Offers to decline</dd>
 </dl>
 </li>
 </ul>

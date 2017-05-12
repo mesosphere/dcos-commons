@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -168,26 +168,30 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;CuratorTransactionResult&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#commitTransaction-CuratorTransactionFinal-">commitTransaction</a></span>(CuratorTransactionFinal&nbsp;curatorTransactionFinal)</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#delete-java.lang.String-">delete</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Deletes the data at the specified path, or throws an exception if the data didn't already
  exist.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#get-java.lang.String-">get</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the
  data is missing.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#getChildren-java.lang.String-">getChildren</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Returns the names of child nodes at the provided path.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
    byte[]&nbsp;bytes)</code>
@@ -195,11 +199,15 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  if any.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
 </td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>CuratorTransaction</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#startTransaction--">startTransaction</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -352,6 +360,34 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">getChildren</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code></dd>
+</dl>
+</li>
+</ul>
+<a name="startTransaction--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>startTransaction</h4>
+<pre>public&nbsp;CuratorTransaction&nbsp;startTransaction()
+                                    throws java.lang.Exception</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code></dd>
+</dl>
+</li>
+</ul>
+<a name="commitTransaction-CuratorTransactionFinal-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>commitTransaction</h4>
+<pre>public&nbsp;java.util.Collection&lt;CuratorTransactionResult&gt;&nbsp;commitTransaction(CuratorTransactionFinal&nbsp;curatorTransactionFinal)
+                                                                 throws java.lang.Exception</pre>
+<dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code></dd>
 </dl>

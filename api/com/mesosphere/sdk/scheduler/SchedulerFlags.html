@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,7 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">SchedulerFlags</span>
 extends java.lang.Object</pre>
-<div class="block">This class encapuslates global Scheduler settings retrieved from the environment. Presented as a non-static object
+<div class="block">This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.</div>
 </li>
 </ul>
@@ -200,6 +200,10 @@ extends java.lang.Object</pre>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#isStateCacheEnabled--">isStateCacheEnabled</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#isUninstallEnabled--">isUninstallEnabled</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -307,6 +311,15 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>isStateCacheEnabled</h4>
 <pre>public&nbsp;boolean&nbsp;isStateCacheEnabled()</pre>
+</li>
+</ul>
+<a name="isUninstallEnabled--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isUninstallEnabled</h4>
+<pre>public&nbsp;boolean&nbsp;isUninstallEnabled()</pre>
 </li>
 </ul>
 <a name="isSideChannelActive--">

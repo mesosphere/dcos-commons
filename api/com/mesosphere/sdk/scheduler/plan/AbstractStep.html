@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -116,7 +116,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <dl>
 <dt>Direct Known Subclasses:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeleteServiceRootPathStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dd>
 </dl>
 <hr>
 <br>
@@ -199,48 +199,72 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" 
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#forceComplete--">forceComplete</a></span>()</code>
+<div class="block">Forcefully marks the element as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#COMPLETE"><code>Status.COMPLETE</code></a>, cancelling any work that hasn't started.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getId--">getId</a></span>()</code>
 <div class="block">Returns the unique identifier of this Element.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getName--">getName</a></span>()</code>
 <div class="block">Returns a user-visible name describing the purpose of this Element.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getStatus--">getStatus</a></span>()</code>
 <div class="block">Returns the Status of this Element.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#interrupt--">interrupt</a></span>()</code>
 <div class="block">A call to interrupt indicates to an <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Interruptible</code></a> that it should not continue work beyond the current
  point, until <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html#proceed--"><code>Interruptible.proceed()</code></a> is called.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted</a></span>()</code>
 <div class="block">Indicates whether the object is interrupted or not.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#proceed--">proceed</a></span>()</code>
 <div class="block">A call to proceed indicates to an <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Interruptible</code></a> that it should may cancel a previous <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html#interrupt--"><code>Interruptible.interrupt()</code></a>
  call and resume with any in-progress work.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#restart--">restart</a></span>()</code>
+<div class="block">Forcefully restarts the element by putting it into a <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a> state.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;newStatus)</code>
 <div class="block">Updates the status setting and logs the outcome.</div>
 </td>
+</tr>
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -255,7 +279,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" 
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
-<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
+<code>clone, finalize, getClass, notify, notifyAll, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Step">
@@ -269,7 +293,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" 
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#forceComplete--">forceComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#restart--">restart</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#update-TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#update-TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
@@ -373,6 +397,21 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" 
 </dl>
 </li>
 </ul>
+<a name="setStatus-com.mesosphere.sdk.scheduler.plan.Status-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setStatus</h4>
+<pre>protected&nbsp;void&nbsp;setStatus(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;newStatus)</pre>
+<div class="block">Updates the status setting and logs the outcome. Should only be called either by tests, by
+ <code>this</code>, or by subclasses.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>newStatus</code> - the new status to be set</dd>
+</dl>
+</li>
+</ul>
 <a name="interrupt--">
 <!--   -->
 </a>
@@ -422,18 +461,72 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" 
 </dl>
 </li>
 </ul>
-<a name="setStatus-com.mesosphere.sdk.scheduler.plan.Status-">
+<a name="restart--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>restart</h4>
+<pre>public&nbsp;void&nbsp;restart()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#restart--">Element</a></code></span></div>
+<div class="block">Forcefully restarts the element by putting it into a <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a> state.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#restart--">restart</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="forceComplete--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>forceComplete</h4>
+<pre>public&nbsp;void&nbsp;forceComplete()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#forceComplete--">Element</a></code></span></div>
+<div class="block">Forcefully marks the element as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#COMPLETE"><code>Status.COMPLETE</code></a>, cancelling any work that hasn't started.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#forceComplete--">forceComplete</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="toString--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toString</h4>
+<pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
+</li>
+</ul>
+<a name="equals-java.lang.Object-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>equals</h4>
+<pre>public&nbsp;boolean&nbsp;equals(java.lang.Object&nbsp;o)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>equals</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
+</li>
+</ul>
+<a name="hashCode--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>setStatus</h4>
-<pre>protected&nbsp;void&nbsp;setStatus(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;newStatus)</pre>
-<div class="block">Updates the status setting and logs the outcome. Should only be called either by tests, by
- <code>this</code>, or by subclasses.</div>
+<h4>hashCode</h4>
+<pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>newStatus</code> - the new status to be set</dd>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
 </li>
 </ul>

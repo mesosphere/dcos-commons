@@ -111,7 +111,7 @@ var activeTableTab = "activeTableTab";
 extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a>&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>&gt;</pre>
 <div class="block">Defines the interface for a collection of one or more <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s, along with any errors encountered while
  processing those <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s. The Plan is a representation of any work that is currently being
- performed, divided into steps represented by one or more <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s, and each step divided
+ performed. A Plan is divided into one or more <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s, each of which is divided
  into one or more <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s. This structure is a logical abstraction of a multi-phase process
  for performing upgrades or maintenance on a service.
  <p>
@@ -121,7 +121,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
  is upgrading the Data nodes and Phase-1 is upgrading the Index nodes. Each Phase would then
  contain a list of <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s which each reference an individual Data or Index node to be upgraded.
  If any errors occurred during the rollout, the process would pause and the Plan would contain a
- list of one or more error messages to be shown to the user,</div>
+ list of one or more error messages to be shown to the user.</div>
 </li>
 </ul>
 </div>

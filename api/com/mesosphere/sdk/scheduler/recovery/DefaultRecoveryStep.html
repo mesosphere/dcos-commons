@@ -242,14 +242,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#forceComplete--">forceComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getAsset--">getAsset</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#restart--">restart</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#start--">start</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getAsset--">getAsset</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#start--">start</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.AbstractStep">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getStatus--">getStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#interrupt--">interrupt</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#proceed--">proceed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#forceComplete--">forceComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getStatus--">getStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#interrupt--">interrupt</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#proceed--">proceed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#restart--">restart</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.DefaultObservable">
@@ -373,7 +373,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -386,7 +386,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <pre>public&nbsp;boolean&nbsp;equals(java.lang.Object&nbsp;o)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#equals-java.lang.Object-">equals</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#equals-java.lang.Object-">equals</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -399,7 +399,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#hashCode--">hashCode</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#hashCode--">hashCode</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></code></dd>
 </dl>
 </li>
 </ul>

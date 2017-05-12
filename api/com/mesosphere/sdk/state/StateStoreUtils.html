@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li>Next&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/state/UninstallRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/state/StateStoreUtils.html" target="_top">Frames</a></li>
@@ -170,27 +170,40 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isUninstalling-com.mesosphere.sdk.state.StateStore-">isUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a>&nbsp;updateResult)</code>
 <div class="block">Sets the last completed update type.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              boolean&nbsp;isSuppressed)</code>
 <div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-boolean-">setUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+               boolean&nbsp;isUninstalling)</code>
+<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-">validateKey</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Shared implementation for validating property key limits, for use by all StateStore
  implementations.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateValue-byte:A-">validateValue</a></span>(byte[]&nbsp;value)</code>
 <div class="block">Shared implementation for validating property value limits, for use by all StateStore
@@ -348,6 +361,32 @@ extends java.lang.Object</pre>
 <div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </li>
 </ul>
+<a name="isUninstalling-com.mesosphere.sdk.state.StateStore-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isUninstalling</h4>
+<pre>public static&nbsp;boolean&nbsp;isUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
+                              throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="setUninstalling-com.mesosphere.sdk.state.StateStore-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setUninstalling</h4>
+<pre>public static&nbsp;void&nbsp;setUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                   boolean&nbsp;isUninstalling)</pre>
+<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+</li>
+</ul>
 <a name="setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">
 <!--   -->
 </a>
@@ -397,7 +436,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li>Next&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/state/UninstallRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/state/StateStoreUtils.html" target="_top">Frames</a></li>

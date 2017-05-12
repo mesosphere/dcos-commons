@@ -131,8 +131,8 @@ extends java.lang.Enum&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/p
  result in a <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> with an ERROR state.
 
  The WAITING is a special state only used to show propagating effect of interrupted elements.  It indicates that
- either current <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is interrupted or at least one of its children is interrepted. It is only returned by
- PlanUtils.getStatus(). Status will never set to WAITING and should never be comparating whether it is WAITING or not.
+ either current <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is interrupted or at least one of its children is interrupted. It is only returned by
+ PlanUtils.getStatus(). Status will never set to WAITING and should never be comparing whether it is WAITING or not.
  Internally, interrupt is a separate state, and isInterrupted() call is used to check whether an <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is
  interrupted or not.</div>
 </li>
