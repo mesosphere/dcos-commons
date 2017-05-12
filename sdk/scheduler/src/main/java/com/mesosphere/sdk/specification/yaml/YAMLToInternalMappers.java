@@ -183,7 +183,6 @@ public class YAMLToInternalMappers {
                     .collect(Collectors.toList()));
         }
 
-        //TODO(file-based-secrets)
         if (!rawPod.getSecrets().isEmpty()) {
             Collection<SecretSpec> secretSpecs = new ArrayList<>();
             secretSpecs.addAll(rawPod.getSecrets().values().stream()
@@ -192,7 +191,6 @@ public class YAMLToInternalMappers {
 
             builder.secrets(secretSpecs);
         }
-        //TODO(file-based-secrets)
 
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
@@ -405,23 +403,15 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    //TODO(file-based-secrets)
     private static DefaultSecretSpec from(RawSecret rawSecret) {
         String filePath =  (rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null) ?
                 rawSecret.getSecretPath() : rawSecret.getFilePath();
+
         return new DefaultSecretSpec(
                 rawSecret.getSecretPath(),
                 rawSecret.getEnvKey(),
                 filePath);
-
-        /* TODO: switch to default if filing filepath creates problem
-        return new DefaultSecretSpec(
-                rawSecret.getSecretPath(),
-                rawSecret.getEnvKey(),
-                rawSecret.getFilePath());
-        */
     }
-    //TODO(file-based-secrets)
 
     private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String principal) {
         VolumeSpec.Type volumeTypeEnum;

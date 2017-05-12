@@ -350,7 +350,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             setBootstrapConfigFileEnv(commandBuilder, taskSpec);
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
-            //commandBuilder.setEnvironment(commandBuilder.getEnvironmentBuilder()
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
