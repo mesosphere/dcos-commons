@@ -111,7 +111,7 @@ class FrameworkTestInfo(object):
     def supports_version(self, available_version):
         """ Given an version number for a running DCOS cluster, does this
         framework think it can run on the passed-in dcos version?"""
-        if not self.min_dcos_version:
+        if not self.min_dcos_version or not available_version:
             return True
         # render versions as tuples
         avail_tuple = available_version.split('.')
