@@ -115,8 +115,10 @@ class FrameworkTestInfo(object):
             return True
         # render versions as tuples
         avail_tuple = available_version.split('.')
+        avail_tuple = tuple(map(int, avail_tuple))
         minversion_tuple = self.min_dcos_version.split('.')
-        return avail_tuple > minversion_tuple
+        minversion_tuple = tuple(map(int, minversion_tuple))
+        return avail_tuple >= minversion_tuple
 
     def start_action(self, name):
         self.actions[name] = {'start': time.time()}

@@ -188,11 +188,9 @@ def setup_frameworks(run_attrs):
     version = None
     if ccm_channel and ccm_channel.startswith("testing/1"):
         testing , version = ccm_channel.split("/", 1)
-        if string.ascii_letters in version:
-            version = None
-        elif "/" in version:
-            version = None
-        elif not "." in version:
+        version_chars = set(version)
+        valid_version_chars = set(string.digits + '.')
+        if not version_chars.issubset(valid_version_chars):
             version = None
 
     if not run_attrs.test:
