@@ -1,5 +1,8 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceCleaner;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.Offer;

@@ -1,5 +1,7 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.mesosphere.sdk.offer.ResourceCleaner;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
