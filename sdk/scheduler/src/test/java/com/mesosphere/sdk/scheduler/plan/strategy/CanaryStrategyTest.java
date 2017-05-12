@@ -37,7 +37,7 @@ public class CanaryStrategyTest {
 
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
             PodInstanceRequirement podInstanceRequirement =
-                    PodInstanceRequirement.create(podInstance, Arrays.asList("task0"));
+                    PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task0")).build();
             podInstanceRequirements.add(podInstanceRequirement);
         }
     }

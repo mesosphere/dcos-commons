@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -973,7 +974,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.create(podInstance, Arrays.asList("format"));
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
                 ResourceUtils.getUnreservedScalar("cpus", 3.0),
@@ -1005,13 +1006,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         recordOperations(recommendations);
 
         // Launch Task with RUNNING goal state, later.
-        podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
+        podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build();
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
         List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(
-                PodInstanceRequirement.create(podInstance, Arrays.asList("node")))
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build())
                 .getTaskRequirements().stream()
                 .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
                 .map(resourceRequirement -> resourceRequirement.getResourceId())
@@ -1038,7 +1039,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.create(podInstance, Arrays.asList("format"));
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
                 ResourceUtils.getUnreservedScalar("cpus", 3.0),
@@ -1070,13 +1071,15 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         recordOperations(recommendations);
 
         // Attempt to launch task again as non-failed.
-        podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
+        podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build();
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
         // The pod is running fine according to the state store, so no new deployment is issued.
         Assert.assertEquals(recommendations.toString(), 0, recommendations.size());
 
         // Now the same operation except with the task flagged as having permanently failed.
-        podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(podInstance, Arrays.asList("node"));
+        podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node"))
+                .recoveryType(RecoveryType.PERMANENT)
+                .build();
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
         // A new deployment replaces the prior one above.
         Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
@@ -1108,7 +1111,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.create(podInstance, Arrays.asList("task-name"));
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task-name")).build();
         DeploymentStep deploymentStep = new DeploymentStep(
                 "test-step",
                 Status.PENDING,

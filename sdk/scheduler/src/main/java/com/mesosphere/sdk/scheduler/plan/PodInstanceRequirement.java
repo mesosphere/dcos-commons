@@ -7,6 +7,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -18,90 +19,22 @@ public class PodInstanceRequirement {
     private final Map<String, String> environment;
     private final RecoveryType recoveryType;
 
-    /**
-     * Creates a new instance.
-     */
-    public static PodInstanceRequirement create(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch) {
-        return new PodInstanceRequirement(podInstance, tasksToLaunch, null, RecoveryType.NONE);
+    public static Builder newBuilder(PodInstance podInstance, Collection<String> tasksToLaunch) {
+        return new Builder(podInstance, tasksToLaunch);
     }
 
-    /**
-     * Creates a new instance with each task's environment extended by the provided envvar name-to-value map that is not
-     * a permanent replacement.
-     */
-    public static PodInstanceRequirement create(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch,
-            Map<String, String> environment) {
-        return new PodInstanceRequirement(podInstance, tasksToLaunch, environment, RecoveryType.NONE);
-    }
-
-    public static PodInstanceRequirement createTransientRecovery(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch) {
-        return createRecoveryRequirement(podInstance, tasksToLaunch, RecoveryType.TRANSIENT);
-    }
-
-    /**
-     * Creates a new instance which is marked as a permanent replacement.
-     */
-    public static PodInstanceRequirement createTransientRecovery(PodInstanceRequirement podInstanceRequirement) {
-        return createTransientRecovery(
-                podInstanceRequirement.getPodInstance(),
-                podInstanceRequirement.getTasksToLaunch());
-    }
-
-    /**
-     * Creates a new instance which is marked as a permanent replacement.
-     */
-    public static PodInstanceRequirement createPermanentReplacement(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch) {
-        return createRecoveryRequirement(podInstance, tasksToLaunch, RecoveryType.PERMANENT);
-    }
-
-    private static PodInstanceRequirement createRecoveryRequirement(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch,
-            RecoveryType recoveryType) {
-
-        return new PodInstanceRequirement(
-                podInstance,
-                tasksToLaunch,
-                null,
-                recoveryType);
-    }
-
-    /**
-     * Creates a new instance which is marked as a permanent replacement.
-     */
-    public static PodInstanceRequirement createPermanentReplacement(PodInstanceRequirement podInstanceRequirement) {
-        return createPermanentReplacement(
-                podInstanceRequirement.getPodInstance(),
-                podInstanceRequirement.getTasksToLaunch());
-    }
-
-    /**
-     * Returns this same instance, but with the supplied environment variable map applied to each task in this pod.
-     */
-    public PodInstanceRequirement withParameters(Map<String, String> environment) {
-        return new PodInstanceRequirement(getPodInstance(), getTasksToLaunch(), environment, getRecoveryType());
+    public static Builder newBuilder(PodInstanceRequirement podInstanceRequirement) {
+        return new Builder(podInstanceRequirement);
     }
 
     /**
      * Creates a new instance with the provided permanent replacement setting.
      */
-    private PodInstanceRequirement(
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch,
-            Map<String, String> environment,
-            RecoveryType recoveryType) {
-        this.podInstance = podInstance;
-        this.tasksToLaunch = tasksToLaunch;
-        this.environment = environment;
-        this.recoveryType = recoveryType;
+    private PodInstanceRequirement(Builder builder) {
+        this.podInstance = builder.podInstance;
+        this.tasksToLaunch = builder.tasksToLaunch;
+        this.environment = builder.environment;
+        this.recoveryType = builder.recoveryType;
     }
 
     /**
@@ -152,5 +85,47 @@ public class PodInstanceRequirement {
                 podInstanceRequirement.getTasksToLaunch(),
                 getTasksToLaunch());
         return podConflicts && tasksConflict;
+    }
+
+    public static final class Builder {
+        private PodInstance podInstance;
+        private Collection<String> tasksToLaunch;
+        private Map<String, String> environment = new HashMap<>();
+        private RecoveryType recoveryType = RecoveryType.NONE;
+
+        private Builder(PodInstanceRequirement podInstanceRequirement) {
+            this(podInstanceRequirement.getPodInstance(), podInstanceRequirement.getTasksToLaunch());
+            environment(podInstanceRequirement.getEnvironment());
+            recoveryType(podInstanceRequirement.getRecoveryType());
+        }
+
+        private Builder(PodInstance podInstance, Collection<String> tasksToLaunch) {
+            this.podInstance = podInstance;
+            this.tasksToLaunch = tasksToLaunch;
+        }
+
+        public Builder podInstance(PodInstance podInstance) {
+            this.podInstance = podInstance;
+            return this;
+        }
+
+        public Builder tasksToLaunch(Collection<String> tasksToLaunch) {
+            this.tasksToLaunch = tasksToLaunch;
+            return this;
+        }
+
+        public Builder environment(Map<String, String> environment) {
+            this.environment = environment;
+            return this;
+        }
+
+        public Builder recoveryType(RecoveryType recoveryType) {
+            this.recoveryType = recoveryType;
+            return this;
+        }
+
+        public PodInstanceRequirement build() {
+            return new PodInstanceRequirement(this);
+        }
     }
 }

@@ -82,7 +82,7 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
                 PodInstance podInstance = TaskUtils.getPodInstance(configStore, terminatedTask);
                 FailureUtils.markFailed(podInstance, stateStore);
             } catch (TaskException e) {
-                log.error("Failed to get pod instance", e);
+                log.error("Failed to get pod instance to mark as failed.", e);
             }
         }
 

@@ -329,7 +329,7 @@ public class TaskUtils {
                 }
             }
 
-            podInstanceRequirements.add(PodInstanceRequirement.create(podInstance, tasksToLaunch));
+            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         }
 
         return podInstanceRequirements;

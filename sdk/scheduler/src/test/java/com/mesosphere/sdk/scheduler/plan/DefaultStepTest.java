@@ -47,7 +47,7 @@ public class DefaultStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());
@@ -98,7 +98,7 @@ public class DefaultStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));

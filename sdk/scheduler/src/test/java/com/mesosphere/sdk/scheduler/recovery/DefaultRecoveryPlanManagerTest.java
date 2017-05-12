@@ -463,7 +463,9 @@ public class DefaultRecoveryPlanManagerTest {
         // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
         // of its permanent failure mark
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.createPermanentReplacement(podInstance, Arrays.asList(taskName0));
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(taskName0))
+                        .recoveryType(RecoveryType.PERMANENT)
+                        .build();
         Step step = new DefaultRecoveryStep(
                 podInstance.getName(),
                 Status.COMPLETE,

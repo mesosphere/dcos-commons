@@ -65,9 +65,11 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         // Bootstrap
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
         PodInstanceRequirement bootstrapPodInstanceRequirement =
-                PodInstanceRequirement.createPermanentReplacement(
+                PodInstanceRequirement.newBuilder(
                         inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch());
+                        inputBootstrapStep.start().get().getTasksToLaunch())
+                .recoveryType(RecoveryType.PERMANENT)
+                .build();
         Step bootstrapStep =
                 new DefaultRecoveryStep(
                         inputBootstrapStep.getName(),
@@ -79,9 +81,11 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         // NameNode
         Step inputNodeStep = inputPhase.getChildren().get(offset + 1);
         PodInstanceRequirement nameNodePpodInstanceRequirement =
-                PodInstanceRequirement.createTransientRecovery(
+                PodInstanceRequirement.newBuilder(
                         inputNodeStep.start().get().getPodInstance(),
-                        inputNodeStep.start().get().getTasksToLaunch());
+                        inputNodeStep.start().get().getTasksToLaunch())
+                .recoveryType(RecoveryType.TRANSIENT)
+                .build();
         Step nodeStep =
                 new DefaultRecoveryStep(
                         inputNodeStep.getName(),

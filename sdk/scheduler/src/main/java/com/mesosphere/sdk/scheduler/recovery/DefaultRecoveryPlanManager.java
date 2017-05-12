@@ -230,15 +230,16 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             // In order for a Pod to be considered permanently failed, all its constituent tasks must have permanently
             // failed.  Otherwise, we will continue to recover from task failures, in place.
             PodInstanceRequirement podInstanceRequirement = null;
-            RecoveryType recoveryType = null;
             if (failedPodTaskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering permanently failed pod: '{}'", failedPod);
-                recoveryType = RecoveryType.PERMANENT;
-                podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(failedPod);
+                podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
+                        .recoveryType(RecoveryType.PERMANENT)
+                        .build();
             } else if (failedPodTaskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering transiently failed pod: '{}'", failedPod);
-                recoveryType = RecoveryType.TRANSIENT;
-                podInstanceRequirement = PodInstanceRequirement.createTransientRecovery(failedPod);
+                podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
             } else {
                 logger.error(
                         "Tasks within pod: {} have failed in transient and permanent states and cannot be processed.",
