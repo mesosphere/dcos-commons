@@ -283,7 +283,8 @@ public class DefaultSchedulerTest {
         installStep(0, 0, getSufficientOfferForTaskA());
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -292,7 +293,8 @@ public class DefaultSchedulerTest {
         testLaunchA();
         installStep(1, 0, getSufficientOfferForTaskB());
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -306,7 +308,8 @@ public class DefaultSchedulerTest {
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitTermination();
-        Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -322,7 +325,8 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -338,7 +342,8 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -357,7 +362,7 @@ public class DefaultSchedulerTest {
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING),
-                getStepStatuses(plan));
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -383,7 +388,8 @@ public class DefaultSchedulerTest {
 
         // Wait for the Step to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
 
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
@@ -471,7 +477,8 @@ public class DefaultSchedulerTest {
                                 ++launchOp;
                                 break;
                             default:
-                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
+                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(),
+                                        false);
                         }
                     }
                     if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
@@ -511,7 +518,8 @@ public class DefaultSchedulerTest {
 
         // Wait for the Step to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
 
         Assert.assertTrue(stepTaskA0.isComplete());
         Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
@@ -683,21 +691,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testApiServerTimeout() throws Exception {
-        int timeoutMillis = 100;
-        when(mockSchedulerFlags.getApiServerInitTimeout()).thenReturn(java.time.Duration.ofMillis(timeoutMillis));
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, mockSchedulerFlags)
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
-                .build();
-        Assert.assertFalse(defaultScheduler.apiServerReady());
-        Thread.sleep(timeoutMillis * 10);
-        exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
-        defaultScheduler.apiServerReady();
-    }
-
-    @Test
     public void testOverrideDeployWithUpdate() {
         Collection<Plan> plans = getDeployUpdatePlans();
         ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
@@ -745,12 +738,7 @@ public class DefaultSchedulerTest {
     }
 
     private Callable<Boolean> taskMarkFailed(String taskName) {
-        return new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
-            }
-        };
+        return () -> FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
     }
 
     private int countOperationType(
@@ -830,14 +818,7 @@ public class DefaultSchedulerTest {
                                 ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
                 .build();
     }
-
-    private static List<Status> getStepStatuses(Plan plan) {
-        return plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .map(step -> step.getStatus())
-                .collect(Collectors.toList());
-    }
-
+    
     private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
         return Matchers.argThat(new BaseMatcher<Collection<T>>() {
             @Override
@@ -901,7 +882,8 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
+                PlanTestUtils.getStepStatuses(plan));
         Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
 
         return taskIds;

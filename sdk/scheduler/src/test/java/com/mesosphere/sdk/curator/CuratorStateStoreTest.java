@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.curator;
 
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -143,6 +145,22 @@ public class CuratorStateStoreTest {
         store.storeTasks(createTasks(TASK_NAME));
         store.clearTask(TASK_NAME);
         assertFalse(store.fetchTask(TASK_NAME).isPresent());
+    }
+
+    @Test
+    public void testStoreClearAllData() throws Exception {
+        store.storeTasks(createTasks(TASK_NAME));
+        store.storeFrameworkId(FRAMEWORK_ID);
+        store.clearAllData();
+
+        CuratorFramework client = CuratorFrameworkFactory.newClient(testZk.getConnectString(),
+                CuratorUtils.getDefaultRetry());
+        client.start();
+
+        // Verify nothing is left under the root.
+        assertEquals(0,
+                client.getChildren().forPath("/dcos-service-test-root-path").size());
+        client.close();
     }
 
     @Test

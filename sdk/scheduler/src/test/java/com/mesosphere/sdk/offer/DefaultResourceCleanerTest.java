@@ -1,15 +1,15 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ResourceCleanerTest {
+public class DefaultResourceCleanerTest {
 
     private static final String EXPECTED_RESOURCE_1_ID = "expected-resource-id";
     private static final String EXPECTED_RESOURCE_2_ID = "expected-volume-id";
@@ -80,19 +80,19 @@ public class ResourceCleanerTest {
     private final List<ResourceCleaner> allCleaners = new ArrayList<>();
     private final StateStore mockStateStore;
 
-    public ResourceCleanerTest() {
+    public DefaultResourceCleanerTest() {
         // Validate ResourceCleaner statelessness by only initializing them once
 
         mockStateStore = mock(StateStore.class);
 
         // cleaners without any expected resources
         when(mockStateStore.fetchTasks()).thenReturn(new ArrayList<>());
-        emptyCleaners.add(new ResourceCleaner(mockStateStore));
+        emptyCleaners.add(new DefaultResourceCleaner(mockStateStore));
 
         // cleaners with expected resources
         when(mockStateStore.fetchTasks())
                 .thenReturn(Arrays.asList(TASK_INFO_1, TASK_INFO_2));
-        populatedCleaners.add(new ResourceCleaner(mockStateStore));
+        populatedCleaners.add(new DefaultResourceCleaner(mockStateStore));
 
         allCleaners.addAll(emptyCleaners);
         allCleaners.addAll(populatedCleaners);
@@ -294,12 +294,12 @@ public class ResourceCleanerTest {
         }
     }
 
+
     @Test
     public void testExpectedPermanentlyFailedResource() {
         TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_1);
-        when(mockStateStore.fetchTasks())
-                .thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
-        ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
+        when(mockStateStore.fetchTasks()).thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
+        ResourceCleaner cleaner = new DefaultResourceCleaner(mockStateStore);
 
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
@@ -310,9 +310,8 @@ public class ResourceCleanerTest {
     @Test
     public void testExpectedPermanentlyFailedVolume() {
         TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_2);
-        when(mockStateStore.fetchTasks())
-                .thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
-        ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
+        when(mockStateStore.fetchTasks()).thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
+        ResourceCleaner cleaner = new DefaultResourceCleaner(mockStateStore);
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 

@@ -4,15 +4,19 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.state.*;
-import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.api.transaction.CuratorTransaction;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,11 +61,13 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
+    public static final String LOCK_PATH_NAME = "lock";
 
-    protected final Persister curator;
+    protected final CuratorPersister curator;
     protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
+    private final String rootPath;
 
     /**
      * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy} and
@@ -123,7 +129,7 @@ public class CuratorStateStore implements StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
-        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
+        this.rootPath = CuratorUtils.toServiceRootPath(frameworkName);
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
@@ -245,10 +251,60 @@ public class CuratorStateStore implements StateStore {
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Task should not result in an exception from us.
             logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
-            return;
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
+    }
+
+    @Override
+    public void clearAllData() throws StateStoreException {
+        logger.info("Clearing service at '{}'", rootPath);
+        try {
+             /* Effective 5/8/2017:
+              * We cannot delete the root node of a service directly.
+              * This is due to the ACLs on the global DC/OS ZK.
+              *
+              * The root has:
+              * [zk: localhost:2181(CONNECTED) 1] getAcl /
+              * 'world,'anyone
+              * : cr
+              * 'ip,'127.0.0.1
+              * : cdrwa
+              *
+              * Our service nodes have:
+              * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-hello-world
+              * 'world,'anyone
+              * : cdrwa
+              *
+              * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
+              * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
+              */
+            CuratorTransaction transaction = curator.startTransaction();
+            curator.commitTransaction(deleteChildren(rootPath, transaction.check()
+                    .forPath(rootPath).and()));
+            logger.info("Cleared service at '{}'", rootPath);
+        } catch (Exception e) {
+            logger.error(String.format("Encountered exception while attempting to clear %s", rootPath), e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        }
+    }
+
+    private CuratorTransactionFinal deleteChildren(String root, CuratorTransactionFinal curatorTransactionFinal)
+            throws Exception {
+        ArrayList<String> children = curator.getChildren(root).stream()
+                .filter(child -> !child.equals(LOCK_PATH_NAME))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        for (String child : children) {
+            curatorTransactionFinal = deleteChildren(CuratorUtils.join(root, child), curatorTransactionFinal);
+        }
+
+        // Never try to delete the rootPath. It will fail due to the ACLs.
+        if (root.equals(rootPath)) {
+            return curatorTransactionFinal;
+        }
+
+        return curatorTransactionFinal.delete().forPath(root).and();
     }
 
     // Read Tasks

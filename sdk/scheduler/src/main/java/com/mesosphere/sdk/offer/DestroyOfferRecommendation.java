@@ -10,9 +10,10 @@ import java.util.Arrays;
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code DESTROY} Operation.
  */
-public class DestroyOfferRecommendation implements OfferRecommendation {
+public class DestroyOfferRecommendation implements UninstallRecommendation {
     private final Offer offer;
     private final Operation operation;
+    private final Resource resource;
 
     public DestroyOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
@@ -23,6 +24,7 @@ public class DestroyOfferRecommendation implements OfferRecommendation {
                                 .clearRevocable()
                                 .build())))
                 .build();
+        this.resource = resource;
     }
 
     @Override
@@ -39,4 +41,10 @@ public class DestroyOfferRecommendation implements OfferRecommendation {
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
+
+    @Override
+    public Resource getResource() {
+        return resource;
+    }
+
 }
