@@ -87,6 +87,9 @@ public class PodInstanceRequirement {
         return podConflicts && tasksConflict;
     }
 
+    /**
+     * {@link PodInstanceRequirement} builder static inner class.
+     */
     public static final class Builder {
         private PodInstance podInstance;
         private Collection<String> tasksToLaunch;

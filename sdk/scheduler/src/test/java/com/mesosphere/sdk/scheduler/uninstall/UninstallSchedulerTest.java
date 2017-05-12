@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -56,11 +57,12 @@ public class UninstallSchedulerTest {
             TestConstants.PRINCIPAL);
     private static final Protos.TaskInfo TASK_A = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
             RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
+
     StateStore stateStore;
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
-    @Mock
-    private SchedulerDriver mockSchedulerDriver;
+    @Mock private ConfigStore configStore;
+    @Mock private SchedulerDriver mockSchedulerDriver;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -76,7 +78,7 @@ public class UninstallSchedulerTest {
                 testingServer.getConnectString()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
-        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, true);
+        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
@@ -151,7 +153,7 @@ public class UninstallSchedulerTest {
 
     @Test
     public void testApiServerNotReadyDecline() {
-        UninstallScheduler uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, false);
+        UninstallScheduler uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, false);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 
         Protos.Offer offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
@@ -165,8 +167,13 @@ public class UninstallSchedulerTest {
     private static class TestScheduler extends UninstallScheduler {
         private final boolean apiServerReady;
 
-        public TestScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore, boolean apiServerReady) {
-            super(port, apiServerInitTimeout, stateStore);
+        public TestScheduler(
+                int port,
+                Duration apiServerInitTimeout,
+                StateStore stateStore,
+                ConfigStore configStore,
+                boolean apiServerReady) {
+            super(port, apiServerInitTimeout, stateStore, configStore);
             this.apiServerReady = apiServerReady;
         }
 

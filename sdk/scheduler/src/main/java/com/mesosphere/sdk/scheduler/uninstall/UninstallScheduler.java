@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
@@ -41,6 +42,7 @@ public class UninstallScheduler implements Scheduler {
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
+    private final ConfigStore configStore;
     protected SchedulerDriver driver;
     PlanManager uninstallPlanManager;
     private Collection<Object> apiResources;
@@ -55,10 +57,11 @@ public class UninstallScheduler implements Scheduler {
      * a resource phase where all reserved resources get released back to Mesos, and a miscellaneous phase where
      * the framework deregisters itself and cleans up its state in Zookeeper.
      */
-    public UninstallScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore) {
+    public UninstallScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore, ConfigStore configStore) {
         this.port = port;
         this.apiServerInitTimeout = apiServerInitTimeout;
         this.stateStore = stateStore;
+        this.configStore = configStore;
         this.uninstallPlan = getPlan();
     }
 
@@ -99,7 +102,7 @@ public class UninstallScheduler implements Scheduler {
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
-        taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore), driver);
+        taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore), driver);
         reconciler = new DefaultReconciler(stateStore);
         Phase resourcePhase = uninstallPlan.getChildren().get(0);
         UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
