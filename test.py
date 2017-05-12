@@ -5,6 +5,7 @@ import sys
 import argparse
 import logging
 import shutil
+import string
 import subprocess
 import tempfile
 import time
@@ -175,11 +176,30 @@ def get_cluster():
     pass
 
 def setup_frameworks(run_attrs):
+    # We should get the cluster version from the running cluster, when it
+    # exists.  However there are two problems:
+    # 1 - the busted certs we use give some python installs indigestion (this
+    # could be worked around)
+    # 2 - during dev cycles, the version is often wrong :-(
+
+    # As a result, just use the env var supplied to most continuous
+    # integration jobs, CCM_CHANNEL
+    ccm_channel = os.environ.get("CCM_CHANNEL")
+    version = None
+    if ccm_channel and ccm_channel.startswith("testing/1"):
+        testing , version = ccm_channel.split("/", 1)
+        if string.ascii_letters in version:
+            version = None
+        elif "/" in version:
+            version = None
+        elif not "." in version:
+            version = None
+
     if not run_attrs.test:
-        fwinfo.autodiscover_frameworks()
+        fwinfo.autodiscover_frameworks(dcos_version=version)
     else:
         for framework in run_attrs.test:
-            fwinfo.add_framework(framework)
+            fwinfo.add_framework(framework, dcos_version=version)
 
     if run_attrs.order == "random":
         fwinfo.shuffle_order()
