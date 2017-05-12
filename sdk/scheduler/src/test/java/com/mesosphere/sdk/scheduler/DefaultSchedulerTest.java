@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
+import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -694,6 +697,53 @@ public class DefaultSchedulerTest {
         defaultScheduler.apiServerReady();
     }
 
+    @Test
+    public void testOverrideDeployWithUpdate() {
+        Collection<Plan> plans = getDeployUpdatePlans();
+        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE);
+        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .findFirst().get();
+
+        Assert.assertEquals(1, deployPlan.getChildren().size());
+    }
+
+    @Test
+    public void testNoOverrideOfDeployPlanOnInstall() {
+        Collection<Plan> plans = getDeployUpdatePlans();
+        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
+        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .findFirst().get();
+
+        Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    /**
+     * Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
+     */
+    private Collection<Plan> getDeployUpdatePlans() {
+        Phase phase = mock(Phase.class);
+        Plan deployPlan = mock(Plan.class);
+        when(deployPlan.getName()).thenReturn(Constants.DEPLOY_PLAN_NAME);
+        when(deployPlan.getChildren()).thenReturn(Arrays.asList(phase, phase));
+
+        Plan updatePlan = mock(Plan.class);
+        when(updatePlan.getName()).thenReturn(Constants.UPDATE_PLAN_NAME);
+        when(updatePlan.getChildren()).thenReturn(Arrays.asList(phase));
+
+        Assert.assertEquals(2, deployPlan.getChildren().size());
+        Assert.assertEquals(1, updatePlan.getChildren().size());
+
+        return Arrays.asList(deployPlan, updatePlan);
+    }
+
     private Callable<Boolean> taskMarkFailed(String taskName) {
         return new Callable<Boolean>() {
             @Override
@@ -910,7 +960,11 @@ public class DefaultSchedulerTest {
                     defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
-                    defaultScheduler.recoveryPlanManagerFactoryOptional);
+                    defaultScheduler.recoveryPlanManagerFactoryOptional,
+                    new ConfigurationUpdater.UpdateResult(
+                            UUID.randomUUID(),
+                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,
+                            Collections.emptyList()));
             this.apiServerReady = apiServerReady;
         }
 

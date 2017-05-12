@@ -2,6 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -10,7 +11,6 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class StateStoreUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
     private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
+    private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -240,5 +242,31 @@ public class StateStoreUtils {
         }
 
         stateStore.storeProperty(SUPPRESSED_PROPERTY_KEY, bytes);
+    }
+
+    /**
+     * Sets the last completed update type.
+     */
+    public static void setLastCompletedUpdateType(
+            StateStore stateStore,
+            ConfigurationUpdater.UpdateResult updateResult) {
+        stateStore.storeProperty(
+                LAST_COMPLETED_UPDATE_TYPE_KEY,
+                updateResult.getDeploymentType().name().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Gets the last completed update type.
+     */
+    public static ConfigurationUpdater.UpdateResult.DeploymentType getLastCompletedUpdateType(StateStore stateStore) {
+        byte[] bytes = fetchPropertyOrEmptyArray(
+                stateStore,
+                LAST_COMPLETED_UPDATE_TYPE_KEY);
+        if (bytes.length == 0) {
+            return ConfigurationUpdater.UpdateResult.DeploymentType.NONE;
+        } else {
+            String value = new String(bytes, StandardCharsets.UTF_8);
+            return ConfigurationUpdater.UpdateResult.DeploymentType.valueOf(value);
+        }
     }
 }
