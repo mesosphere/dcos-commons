@@ -754,7 +754,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         for (SecretSpec secretSpec : secretSpecs) {
             if (secretSpec.getEnvKey().isPresent()) {
                 variables.add(Environment.Variable.newBuilder()
-                        .setName(secretSpec.getEnvKey().toString())
+                        .setName(secretSpec.getEnvKey().get())
                         .setType(Protos.Environment.Variable.Type.SECRET)
                         .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
                         .build());
@@ -773,7 +773,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                           .setType(Protos.Volume.Source.Type.SECRET)
                                           .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
                                           .build())
-                                    .setContainerPath(secretSpec.getFilePath().toString())
+                                    .setContainerPath(secretSpec.getFilePath().get())
                                     .setMode(Protos.Volume.Mode.RO)
                                     .build());
             }

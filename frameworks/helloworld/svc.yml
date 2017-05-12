@@ -23,7 +23,8 @@ pods:
                env &&
                ls -la &&
                ls -la .secret &&
-               cat SECRET*_FILE &&
+               echo  "SECRET1_FILE : " && cat SECRET1_FILE &&
+               echo  "SECRET2_FILE : " && cat SECRET2_FILE &&
                echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
@@ -58,11 +59,9 @@ pods:
         cmd: >
                env &&
                ls -la &&
-               ls -la hello-world &&
                ls -la .secret &&
-               ls -la .secret/* &&
-               cat SECRET*_FILE &&
-               cat hello-world/* &&
+               echo  "SECRET1_FILE : " && cat SECRET1_FILE &&
+               echo  "SECRET2_FILE : " && cat SECRET2_FILE &&
                echo world1 >> world-container-path1/output &&
                echo world2 >> world-container-path2/output &&
                sleep $SLEEP_DURATION

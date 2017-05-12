@@ -9,6 +9,7 @@ import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -24,10 +25,7 @@ public class DefaultSecretSpec implements SecretSpec {
     @NotNull
     @Size(min = 1)
     private final String secretPath;
-    @Valid
     private final String envKey;
-    @NotNull
-    @Size(min = 1)
     private final String filePath;
 
     @JsonCreator
@@ -49,19 +47,37 @@ public class DefaultSecretSpec implements SecretSpec {
         return new Builder();
     }
 
+    @JsonProperty("secret")
     @Override
     public String getSecretPath() {
         return secretPath;
     }
 
+    @JsonProperty("env-key")
     @Override
     public Optional<String> getEnvKey() {
         return Optional.ofNullable(envKey);
     }
 
+    @JsonProperty("file")
     @Override
     public Optional<String> getFilePath() {
-            return Optional.of(filePath);
+            return Optional.ofNullable(filePath);
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     /**

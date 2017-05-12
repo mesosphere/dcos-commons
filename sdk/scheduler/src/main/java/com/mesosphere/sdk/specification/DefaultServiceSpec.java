@@ -242,7 +242,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,
                 TaskTypeLabelConverter.class,
-                TaskTypeRule.class);
+                TaskTypeRule.class,
+                DefaultSecretSpec.class);
 
         private final ObjectMapper objectMapper;
 

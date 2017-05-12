@@ -413,6 +413,13 @@ public class YAMLToInternalMappers {
                 rawSecret.getSecretPath(),
                 rawSecret.getEnvKey(),
                 filePath);
+
+        /* TODO: switch to default if filing filepath creates problem
+        return new DefaultSecretSpec(
+                rawSecret.getSecretPath(),
+                rawSecret.getEnvKey(),
+                rawSecret.getFilePath());
+        */
     }
     //TODO(file-based-secrets)
 
