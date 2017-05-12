@@ -5,68 +5,101 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
+func HTTPServiceGet(urlPath string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(CreateHTTPRequest("GET", servicePath)))
+}
+
 func HTTPGet(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("GET", urlPath)))
-}
-func HTTPGetQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("GET", urlPath, urlQuery)))
-}
-func HTTPGetData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("GET", urlPath, payload, contentType)))
-}
-func HTTPGetJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("GET", urlPath, jsonPayload)))
+	return checkHTTPResponse(httpQuery(CreateHTTPRequest("GET", urlPath)))
 }
 
-func HTTPDelete(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("DELETE", urlPath)))
-}
-func HTTPDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("DELETE", urlPath, urlQuery)))
-}
-func HTTPDeleteData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("DELETE", urlPath, payload, contentType)))
-}
-func HTTPDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPQueryRequest("GET", servicePath, urlQuery)))
 }
 
-func HTTPPost(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("POST", urlPath)))
-}
-func HTTPPostQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("POST", urlPath, urlQuery)))
-}
-func HTTPPostData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("POST", urlPath, payload, contentType)))
-}
-func HTTPPostJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("POST", urlPath, jsonPayload)))
+func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPDataRequest("GET", servicePath, payload, contentType)))
 }
 
-func HTTPPut(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("PUT", urlPath)))
-}
-func HTTPPutQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("PUT", urlPath, urlQuery)))
-}
-func HTTPPutData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("PUT", urlPath, payload, contentType)))
-}
-func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPJSONRequest("GET", servicePath, jsonPayload)))
 }
 
-func HTTPQuery(request *http.Request) *http.Response {
+func HTTPServiceDelete(urlPath string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(CreateHTTPRequest("DELETE", servicePath)))
+}
+
+func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPQueryRequest("DELETE", servicePath, urlQuery)))
+}
+
+func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPDataRequest("DELETE", servicePath, payload, contentType)))
+}
+
+func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPJSONRequest("DELETE", servicePath, jsonPayload)))
+}
+
+func HTTPServicePost(urlPath string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(CreateHTTPRequest("POST", servicePath)))
+}
+
+func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPQueryRequest("POST", servicePath, urlQuery)))
+}
+
+func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPDataRequest("POST", servicePath, payload, contentType)))
+}
+
+func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPJSONRequest("POST", servicePath, jsonPayload)))
+}
+
+func HTTPServicePut(urlPath string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(CreateHTTPRequest("PUT", servicePath)))
+}
+
+func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPQueryRequest("PUT", servicePath, urlQuery)))
+}
+
+func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPDataRequest("PUT", servicePath, payload, contentType)))
+}
+
+func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
+	servicePath := getServicePath(urlPath)
+	return checkHTTPResponse(httpQuery(createHTTPJSONRequest("PUT", servicePath, jsonPayload)))
+}
+
+func httpQuery(request *http.Request) *http.Response {
 	if config.TlsForceInsecure { // user override via '--force-insecure'
 		config.TlsCliSetting = config.TlsUnverified
 	}
@@ -135,7 +168,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func CheckHTTPResponse(response *http.Response) *http.Response {
+func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
@@ -172,6 +205,11 @@ func createHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 	return createHTTPURLRequest(method, createURL(urlPath, urlQuery), payload, contentType)
 }
 
+func getServicePath(urlPath string) string {
+	servicePath := path.Join("service", config.ServiceName, urlPath)
+	return servicePath
+}
+
 func createURL(urlPath, urlQuery string) *url.URL {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosUrl) == 0 {
@@ -186,7 +224,7 @@ func createURL(urlPath, urlQuery string) *url.URL {
 	if err != nil {
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
 	}
-	parsedUrl.Path = path.Join("service", config.ServiceName, urlPath)
+	parsedUrl.Path = urlPath
 	parsedUrl.RawQuery = urlQuery
 	return parsedUrl
 }
