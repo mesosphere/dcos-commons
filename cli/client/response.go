@@ -20,8 +20,13 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 	if err != nil {
 		// Be permissive of malformed json, such as character codes in strings that are unknown to
 		// Go's json: Warn in stderr, then print original to stdout.
-		log.Printf("Failed to prettify JSON response data from %s %s query: %s",
-			request.Method, request.URL, err)
+		if request != nil {
+			log.Printf("Failed to prettify JSON response data from %s %s query: %s",
+				request.Method, request.URL, err)
+		} else {
+			log.Printf("Failed to prettify JSON response data: %s", err)
+		}
+
 		log.Printf("Original data follows:")
 		outBuf = *bytes.NewBuffer(responseBytes)
 	}
