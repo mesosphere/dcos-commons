@@ -3,7 +3,7 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "scheduler-zip": "{{artifact-dir}}/template-scheduler.zip",
+      "scheduler-zip": "{{artifact-dir}}/{{template}}-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
@@ -16,23 +16,23 @@
     "binaries":{
       "darwin":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-template-darwin}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-{{template}}-darwin}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-template-darwin"
+          "url":"{{artifact-dir}}/dcos-{{template}}-darwin"
         }
       },
       "linux":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-template-linux}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-{{template}}-linux}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-template-linux"
+          "url":"{{artifact-dir}}/dcos-{{template}}-linux"
         }
       },
       "windows":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-template.exe}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-{{template}}.exe}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-template.exe"
+          "url":"{{artifact-dir}}/dcos-{{template}}.exe"
         }
       }
     }

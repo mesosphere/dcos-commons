@@ -9,7 +9,7 @@
             "title": "Service name",
             "description": "The name of the service instance",
             "type": "string",
-            "default": "template"
+            "default": "{{template}}"
           },
           "sleep": {
             "description": "The sleep duration in seconds before tasks exit.",

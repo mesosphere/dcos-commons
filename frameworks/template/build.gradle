@@ -31,9 +31,9 @@ distZip.finalizedBy copyExecutor
 
 distributions {
     main {
-        baseName = 'template-scheduler'
+        baseName = '{{template}}-scheduler'
         version = ''
     }
 }
 
-mainClassName = 'com.mesosphere.sdk.template.scheduler.Main'
+mainClassName = 'com.mesosphere.sdk.{{template}}.scheduler.Main'

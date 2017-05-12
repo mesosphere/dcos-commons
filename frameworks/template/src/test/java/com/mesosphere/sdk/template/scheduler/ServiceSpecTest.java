@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.template.scheduler;
+package com.mesosphere.sdk.{{template}}.scheduler;
 
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.BeforeClass;
@@ -11,7 +11,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("EXECUTOR_URI", "");
         ENV_VARS.set("LIBMESOS_URI", "");
         ENV_VARS.set("PORT_API", "8080");
-        ENV_VARS.set("FRAMEWORK_NAME", "template");
+        ENV_VARS.set("FRAMEWORK_NAME", "{{template}}");
 
         ENV_VARS.set("NODE_COUNT", "2");
         ENV_VARS.set("NODE_CPUS", "0.1");

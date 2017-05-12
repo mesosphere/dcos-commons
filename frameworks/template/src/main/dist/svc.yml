@@ -3,17 +3,17 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
-  template:
+  {{template}}:
     count: {{NODE_COUNT}}
     placement: {{NODE_PLACEMENT}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "echo template >> template-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo {{template}} >> {{template}}-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         volume:
-          path: "template-container-path"
+          path: "{{template}}-container-path"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
         env:
