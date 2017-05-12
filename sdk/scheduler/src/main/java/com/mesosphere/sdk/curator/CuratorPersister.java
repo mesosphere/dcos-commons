@@ -6,6 +6,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+import org.apache.curator.framework.api.transaction.CuratorTransactionResult;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,15 @@ public class CuratorPersister implements Persister {
     @Override
     public Collection<String> getChildren(String path) throws Exception {
         return client.getChildren().forPath(path);
+    }
+
+    public CuratorTransaction startTransaction() throws Exception {
+        return client.inTransaction();
+    }
+
+    public Collection<CuratorTransactionResult> commitTransaction(CuratorTransactionFinal curatorTransactionFinal)
+            throws Exception {
+        return curatorTransactionFinal.commit();
     }
 
     @Override

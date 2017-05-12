@@ -5,7 +5,6 @@ import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -17,9 +16,7 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
-import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.*;
 
 /**
  * API for management of Plan(s).
@@ -31,10 +28,14 @@ public class PlansResource extends PrettyJsonResource {
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final PlanCoordinator planCoordinator;
+    private final Collection<PlanManager> planManagers;
 
     public PlansResource(final PlanCoordinator planCoordinator) {
-        this.planCoordinator = planCoordinator;
+        this.planManagers = planCoordinator.getPlanManagers();
+    }
+
+    public PlansResource(Collection<PlanManager> planManagers) {
+        this.planManagers = planManagers;
     }
 
     /**
@@ -126,7 +127,7 @@ public class PlansResource extends PrettyJsonResource {
                 return ELEMENT_NOT_FOUND_RESPONSE;
             }
 
-            phases.forEach(p -> p.proceed());
+            phases.forEach(ParentElement::proceed);
         } else {
             planManagerOptional.get().getPlan().proceed();
         }
@@ -264,13 +265,13 @@ public class PlansResource extends PrettyJsonResource {
         List<Step> steps;
         try {
             UUID stepId = UUID.fromString(stepIdOrName);
-            steps = phases.stream().map(phase -> phase.getChildren())
+            steps = phases.stream().map(ParentElement::getChildren)
                     .flatMap(List::stream)
                     .filter(step -> step.getId().equals(stepId))
                     .collect(Collectors.toList());
         } catch (IllegalArgumentException e) {
             // couldn't parse as UUID: fall back to treating step identifier as a name
-            steps = phases.stream().map(phase -> phase.getChildren())
+            steps = phases.stream().map(ParentElement::getChildren)
                     .flatMap(List::stream)
                     .filter(step -> step.getName().equals(stepIdOrName))
                     .collect(Collectors.toList());
@@ -284,13 +285,13 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     private List<String> getPlanNames() {
-        return planCoordinator.getPlanManagers().stream()
+        return planManagers.stream()
                 .map(planManager -> planManager.getPlan().getName())
                 .collect(Collectors.toList());
     }
 
     private Optional<PlanManager> getPlanManager(String planName) {
-        return planCoordinator.getPlanManagers().stream()
+        return planManagers.stream()
                 .filter(planManager -> planManager.getPlan().getName().equals(planName))
                 .findFirst();
     }

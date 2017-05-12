@@ -1,16 +1,18 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
-
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ResourceUtilsTest {
 
@@ -150,10 +152,51 @@ public class ResourceUtilsTest {
         Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
     }
 
+    @Test
+    public void testGetAllResources() {
+        final String RESERVED_RESOURCE_1_ID = "reserved-resource-id";
+        final String RESERVED_RESOURCE_2_ID = "reserved-volume-id";
+        final String RESERVED_RESOURCE_3_ID = "reserved-cpu-id";
+        final String RESERVED_RESOURCE_4_ID = "reserved-volume-id2";
+        final Protos.Resource RESERVED_RESOURCE_1 = ResourceUtils.getExpectedRanges(
+                "ports",
+                Collections.singletonList(Protos.Value.Range.newBuilder().setBegin(123).setEnd(234).build()),
+                RESERVED_RESOURCE_1_ID,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+        final Protos.Resource RESERVED_RESOURCE_2 = ResourceUtils.getExpectedRootVolume(
+                999.0,
+                RESERVED_RESOURCE_2_ID,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                RESERVED_RESOURCE_2_ID);
+        final Protos.Resource RESERVED_RESOURCE_3 = ResourceUtils.getExpectedScalar(
+                "cpus",
+                1.0,
+                RESERVED_RESOURCE_3_ID,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+        final Protos.Resource RESERVED_RESOURCE_4 = ResourceUtils.getExpectedRootVolume(
+                999.0,
+                RESERVED_RESOURCE_4_ID,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                RESERVED_RESOURCE_4_ID);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
+                RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
+        Protos.ExecutorInfo executorInfo = TaskTestUtils.getExecutorInfo(RESERVED_RESOURCE_4);
+        final Protos.TaskInfo task = Protos.TaskInfo.newBuilder(taskInfo).setExecutor(executorInfo).build();
+        List<String> expectedIds = Arrays.asList(RESERVED_RESOURCE_1_ID, RESERVED_RESOURCE_2_ID, RESERVED_RESOURCE_3_ID, RESERVED_RESOURCE_4_ID);
+        List<String> actualIds = ResourceUtils.getAllResources(task).stream().map(ResourceUtils::getResourceId).collect(Collectors.toList());
+        Assert.assertArrayEquals(expectedIds.toArray(), actualIds.toArray());
+    }
+
     private void validateRanges(List<Protos.Value.Range> expectedRanges, List<Protos.Value.Range> actualRanges) {
         Assert.assertEquals(expectedRanges.size(), actualRanges.size());
 
-        for (int i=0; i<expectedRanges.size(); i++) {
+        for (int i = 0; i < expectedRanges.size(); i++) {
             Assert.assertEquals(expectedRanges.get(i), actualRanges.get(i));
         }
     }

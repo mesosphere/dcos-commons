@@ -1,16 +1,11 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+
 import java.util.*;
 
 /**
@@ -18,11 +13,10 @@ import java.util.*;
  */
 public class DeploymentStep extends AbstractStep {
 
+    protected final PodInstanceRequirement podInstanceRequirement;
     private final List<String> errors;
     private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
-
-    protected final PodInstanceRequirement podInstanceRequirement;
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -98,18 +92,6 @@ public class DeploymentStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> getAsset() {
         return Optional.of(podInstanceRequirement);
-    }
-
-    @Override
-    public void restart() {
-        logger.warn("Restarting step: '{} [{}]'", getName(), getId());
-        setStatus(Status.PENDING);
-    }
-
-    @Override
-    public void forceComplete() {
-        logger.warn("Forcing completion of step: '{} [{}]'", getName(), getId());
-        setStatus(Status.COMPLETE);
     }
 
     @Override
@@ -209,21 +191,6 @@ public class DeploymentStep extends AbstractStep {
         }
 
         return Status.COMPLETE;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
     }
 
     private static class TaskStatusPair {

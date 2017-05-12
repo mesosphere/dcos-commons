@@ -3,7 +3,6 @@ package com.mesosphere.sdk.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -29,6 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Implementation note: All write operations always invoke the underlying storage before updating
  * the local cache. This avoids creating an inconsistent cache state if writing to the underlying
  * persistent store fails.
+ * <p>
+ * TODO(nickbp): Replace this with a much simpler version that instead implements/wraps {@link Persister}.
  */
 public class StateStoreCache implements StateStore {
 
@@ -172,6 +173,24 @@ public class StateStoreCache implements StateStore {
                         taskName, nameToTask.keySet());
             }
             nameToStatus.remove(taskName);
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    /**
+     * Wipes the entire content of the state store.
+     */
+    @Override
+    public void clearAllData() throws StateStoreException {
+        RWLOCK.lock();
+        try {
+            store.clearAllData();
+            // Wipe all local state as well:
+            frameworkId = Optional.empty();
+            nameToTask.clear();
+            nameToStatus.clear();
+            properties.clear();
         } finally {
             RWLOCK.unlock();
         }

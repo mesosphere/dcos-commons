@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.state.StateStoreCache;
+import org.apache.mesos.Protos.Credential;
+
 import java.time.Duration;
 import java.util.Map;
 
-import org.apache.mesos.Protos.Credential;
-
 /**
- * This class encapuslates global Scheduler settings retrieved from the environment. Presented as a non-static object
+ * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
 public class SchedulerFlags {
@@ -63,6 +64,8 @@ public class SchedulerFlags {
     private static final String JAVA_URI_ENV = "JAVA_URI";
     /** Standard Java envvar pointing to the JRE location on disk. */
     private static final String JAVA_HOME_ENV = "JAVA_HOME";
+    /** When set, specifies that uninstall should be performed. */
+    private static final String SDK_UNINSTALL = "SDK_UNINSTALL";
 
     /**
      * Controls whether the {@link StateStoreCache} is disabled (enabled by default).
@@ -139,6 +142,10 @@ public class SchedulerFlags {
         return !flagStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
+    public boolean isUninstallEnabled() {
+        return flagStore.isPresent(SDK_UNINSTALL);
+    }
+
     /**
      * Returns whether it appears that side channel auth should be used when creating the SchedulerDriver. Side channel
      * auth may take the form of Bouncer-based framework authentication or potentially other methods in the future (e.g.
@@ -159,17 +166,17 @@ public class SchedulerFlags {
             this.flagMap = flagMap;
         }
 
-        private int getOptionalInt(String envKey, int dflt) {
-            return toInt(envKey, getOptional(envKey, String.valueOf(dflt)));
+        private int getOptionalInt(String envKey, int defaultValue) {
+            return toInt(envKey, getOptional(envKey, String.valueOf(defaultValue)));
         }
 
         private int getRequiredInt(String envKey) {
             return toInt(envKey, getRequired(envKey));
         }
 
-        private String getOptional(String envKey, String dflt) {
+        private String getOptional(String envKey, String defaultValue) {
             String value = flagMap.get(envKey);
-            return (value == null) ? dflt : value;
+            return (value == null) ? defaultValue : value;
         }
 
         private String getRequired(String envKey) {

@@ -4,7 +4,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * A {@code StateStore} stores the state of the frameworks, including tasks' TaskInfo and TaskStatus objects. Each
@@ -81,7 +82,7 @@ public interface StateStore {
      * Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.
      *
      * @param taskName The name of the task to be cleared
-     * @throws StateStoreException when clearing the indicated Task's informations fails
+     * @throws StateStoreException when clearing the indicated Task's information fails
      */
     void clearTask(String taskName) throws StateStoreException;
 
@@ -180,4 +181,13 @@ public interface StateStore {
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
+
+
+    // Uninstall Related Methods
+
+
+    /**
+     * Clears the root service node, leaving just the root node behind.
+     */
+    void clearAllData() throws StateStoreException;
 }

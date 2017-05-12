@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Stopwatch;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
@@ -11,6 +10,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
+import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -62,9 +62,6 @@ import java.util.stream.Collectors;
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler, Observer {
-    protected static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
-    protected static final String UNINSTALL_INSTRUCTIONS_URI =
-            "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
     /**
      * Time to wait for the executor thread to terminate. Only used by unit tests.
@@ -72,14 +69,6 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Default: 10 seconds
      */
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
-
-    /**
-     * Time to wait during scheduler initialization for API resources to be initialized. This should be
-     * near-instantaneous, we just have an explicit deadline to avoid the potential for waiting indefinitely.
-     *
-     * Default: 60 seconds
-     */
-    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -98,8 +87,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
 
-    private JettyApiServer apiServer;
-    private Stopwatch apiServerStopwatch = Stopwatch.createStarted();
+    private SchedulerApiServer schedulerApiServer;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -118,7 +106,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     /**
      * Builder class for {@link DefaultScheduler}s. Uses provided custom values or reasonable defaults.
      *
-     * Instances may be created via {@link DefaultScheduler#newBuilder(ServiceSpec)}.
+     * Instances may be created via {@link DefaultScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
      */
     public static class Builder {
         private final ServiceSpec serviceSpec;
@@ -152,12 +140,12 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec)} will be used.
+         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
          *
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
          * @throws IllegalStateException if the state store is already set, via a previous call to either
-         *     {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+         * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
          */
         public Builder setStateStore(StateStore stateStore) {
             if (stateStoreOptional.isPresent()) {
@@ -179,7 +167,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link DefaultScheduler#createStateStore(ServiceSpec)}.
+         * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
          *
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
@@ -213,9 +201,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         /**
          * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
          * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
-         *
-         * These validators are only used if {@link #withOfferRequirementProvider(OfferRequirementProvider)} was NOT
-         * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
             this.configValidatorsOptional = Optional.ofNullable(configValidators);
@@ -251,7 +236,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          *
          * @throws ConfigStoreException if creating a default config store fails
          * @throws IllegalStateException if the plans were already set either via this call or via
-         *     {@link #setPlans(Collection)}
+         * {@link #setPlans(Collection)}
          */
         public Builder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
             if (rawServiceSpec.getPlans() != null) {
@@ -266,7 +251,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
          *
          * @throws IllegalStateException if the plans were already set either via this call or via
-         *     {@link #setPlans(RawServiceSpec)}
+         * {@link #setPlansFrom(RawServiceSpec)}
          */
         public Builder setPlans(Collection<Plan> plans) {
             this.manualPlans.clear();
@@ -286,6 +271,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         /**
          * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
          * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
+         *
          * @param capabilities the capabilities used to validate the ServiceSpec
          */
         @VisibleForTesting
@@ -299,7 +285,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          *
          * @return a new scheduler instance
          * @throws IllegalStateException if config validation failed when updating the target config for a default
-         *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
+         * {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
         public DefaultScheduler build() {
             if (capabilities == null) {
@@ -371,7 +357,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             List<String> errors = configUpdateResult.getErrors().stream()
-                    .map(configValidationError -> configValidationError.toString())
+                    .map(ConfigValidationError::toString)
                     .collect(Collectors.toList());
             plans = updateDeployPlan(plans, errors);
 
@@ -442,11 +428,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Creates and returns a new default {@link StateStore} suitable for passing to
-     * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
+     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to {@link DefaultScheduler#registered
-     * (SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
+     * signified by a call to
+     * {@link DefaultScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
@@ -461,7 +446,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createStateStore(ServiceSpec, String)} with the specification name as the
+     * Calls {@link #createStateStore(ServiceSpec, SchedulerFlags, String)} with the specification name as the
      * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
@@ -472,7 +457,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
-     * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
+     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
      * signified by a call to {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
      *
@@ -507,7 +492,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createConfigStore(ServiceSpec, Collection)} with an empty list of
+     * Calls {@link #createConfigStore(ServiceSpec, String)} with an empty list of
      * custom deserialization types.
      *
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
@@ -589,10 +574,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
-    }
-
-    public Collection<Object> getResources() throws InterruptedException {
-        return resources;
     }
 
     @VisibleForTesting
@@ -713,46 +694,14 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeApiServer() {
-        if (apiServerReady()) {
-            return;
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(serviceSpec.getApiPort(), getResources());
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
-        unusedOffers.stream().forEach(offer -> {
-            final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
-        });
+        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+                schedulerFlags.getApiServerInitTimeout());
+        new Thread(schedulerApiServer).start();
     }
 
     private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
         try {
-            ResourceCleaner cleaner = new ResourceCleaner(stateStore);
+            ResourceCleaner cleaner = new DefaultResourceCleaner(stateStore);
             return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
         } catch (Exception ex) {
             LOGGER.error("Failed to construct ResourceCleaner", ex);
@@ -813,29 +762,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         postRegister();
     }
 
-    public boolean apiServerReady() {
-        boolean serverStarted = apiServer != null && apiServer.isStarted();
-
-        if (serverStarted) {
-            apiServerStopwatch.reset();
-        } else {
-            Duration initTimeout = schedulerFlags.getApiServerInitTimeout();
-            if (apiServerStopwatch.elapsed(TimeUnit.MILLISECONDS) > initTimeout.toMillis()) {
-                LOGGER.error("API Server failed to start within {} seconds.", initTimeout.getSeconds());
-                SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
-            }
-        }
-
-        return serverStarted;
-    }
-
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
             if (!apiServerReady()) {
                 LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                declineOffers(driver, Collections.emptyList(), offersToProcess);
+                OfferUtils.declineOffers(driver, offersToProcess);
                 return;
             }
 
@@ -851,7 +784,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                declineOffers(driver, Collections.emptyList(), offers);
+                OfferUtils.declineOffers(driver, offers);
                 return;
             }
 
@@ -877,12 +810,14 @@ public class DefaultScheduler implements Scheduler, Observer {
             }
 
             unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-            offers.clear();
-            offers.addAll(unusedOffers);
 
             // Decline remaining offers.
-            declineOffers(driver, acceptedOffers, offers);
+            OfferUtils.declineOffers(driver, unusedOffers);
         });
+    }
+
+    public boolean apiServerReady() {
+        return schedulerApiServer.ready();
     }
 
     @Override
@@ -950,22 +885,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void error(SchedulerDriver driver, String message) {
         LOGGER.error("SchedulerDriver failed with message: " + message);
 
-        // Update or remove this when uninstall is solved:
-        if (message.contains(UNINSTALL_INCOMPLETE_ERROR_MESSAGE)) {
-            // Scenario:
-            // - User installs service X
-            // - X registers against a new framework ID, then stores that ID in ZK
-            // - User uninstalls service X without wiping ZK and/or resources
-            // - User reinstalls service X
-            // - X sees previous framework ID in ZK and attempts to register against it
-            // - Mesos returns this error because that framework ID is no longer available for use
-            LOGGER.error("This error is usually the result of an incomplete cleanup of Zookeeper "
-                    + "and/or reserved resources following a previous uninstall of the service.");
-            LOGGER.error("Please uninstall this service, read and perform the steps described at "
-                    + UNINSTALL_INSTRUCTIONS_URI + " to delete the reserved resources, and then "
-                    + "install this service once more.");
-        }
-
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
@@ -1008,7 +927,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
-        List<Plan> deployPlans =  plans.stream()
+        List<Plan> deployPlans = plans.stream()
                 .filter(plan -> plan.isDeployPlan())
                 .collect(Collectors.toList());
 
