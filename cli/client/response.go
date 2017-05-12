@@ -10,8 +10,8 @@ import (
 	"os"
 )
 
-func PrintText(response *http.Response) {
-	fmt.Fprintf(os.Stdout, "%s\n", GetResponseText(response))
+func PrintText(text string) {
+	fmt.Fprintf(os.Stdout, "%s\n", text)
 }
 
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {
@@ -31,6 +31,10 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 
 func PrintJSON(response *http.Response) {
 	PrintJSONBytes(GetResponseBytes(response), response.Request)
+}
+
+func PrintResponseText(response *http.Response) {
+	PrintText(GetResponseText(response))
 }
 
 func GetResponseText(response *http.Response) string {

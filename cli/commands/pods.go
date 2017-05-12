@@ -30,11 +30,11 @@ func (cmd *PodsHandler) RunInfo(c *kingpin.ParseContext) error {
 	return nil
 }
 func (cmd *PodsHandler) RunRestart(c *kingpin.ParseContext) error {
-	client.PrintText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
+	client.PrintResponseText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
 	return nil
 }
 func (cmd *PodsHandler) RunReplace(c *kingpin.ParseContext) error {
-	client.PrintText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
+	client.PrintResponseText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
 	return nil
 }
 

@@ -30,7 +30,7 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 		client.PrintJSON(response)
 	} else {
 		// Any specific endpoints: May be any format, so just print the raw text
-		client.PrintText(response)
+		client.PrintResponseText(response)
 	}
 	return nil
 }
