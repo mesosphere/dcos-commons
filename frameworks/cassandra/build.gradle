@@ -22,7 +22,7 @@ ext {
 dependencies {
     compile "mesosphere:scheduler:0.16.0"
     compile "mesosphere:executor:0.16.0"
-    testCompile project(":testing")
+    testCompile "mesosphere:testing:0.16.0"
 }
 
 distZip.dependsOn ":executor:distZip"
