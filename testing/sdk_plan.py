@@ -32,16 +32,22 @@ def get_plan(service_name, plan):
     return sdk_spin.time_wait_return(fn)
 
 
-def wait_for_completed_deployment(service_name):
+def wait_for_completed_deployment(service_name, timeout_seconds=None):
     def fn():
         return deployment_plan_is_finished(service_name)
-    return sdk_spin.time_wait_return(fn)
+    if timeout_seconds:
+        return sdk_spin.time_wait_return(fn, timeout_seconds=timeout_seconds)
+    else:
+        return sdk_spin.time_wait_return(fn)
 
 
-def wait_for_completed_recovery(service_name):
+def wait_for_completed_recovery(service_name, timeout_seconds=None):
     def fn():
         return recovery_plan_is_finished(service_name)
-    return sdk_spin.time_wait_return(fn)
+    if timeout_seconds:
+        return sdk_spin.time_wait_return(fn, timeout_seconds=timeout_seconds)
+    else:
+        return sdk_spin.time_wait_return(fn)
 
 
 def deployment_plan_is_finished(service_name):
