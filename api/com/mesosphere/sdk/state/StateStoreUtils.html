@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -148,36 +148,49 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">getLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Gets the last completed update type.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;Protos.Resource&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getReservedResources-java.util.Collection-">getReservedResources</a></span>(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;Protos.Resource&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getResources-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getResources</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
             <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
             <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isSuppressed-com.mesosphere.sdk.state.StateStore-">isSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Returns the current value of the 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a>&nbsp;updateResult)</code>
+<div class="block">Sets the last completed update type.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              boolean&nbsp;isSuppressed)</code>
 <div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-">validateKey</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Shared implementation for validating property key limits, for use by all StateStore
  implementations.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateValue-byte:A-">validateValue</a></span>(byte[]&nbsp;value)</code>
 <div class="block">Shared implementation for validating property value limits, for use by all StateStore
@@ -327,12 +340,33 @@ extends java.lang.Object</pre>
 <a name="setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>setSuppressed</h4>
 <pre>public static&nbsp;void&nbsp;setSuppressed(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                  boolean&nbsp;isSuppressed)</pre>
 <div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+</li>
+</ul>
+<a name="setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setLastCompletedUpdateType</h4>
+<pre>public static&nbsp;void&nbsp;setLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                              <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a>&nbsp;updateResult)</pre>
+<div class="block">Sets the last completed update type.</div>
+</li>
+</ul>
+<a name="getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getLastCompletedUpdateType</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;getLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">Gets the last completed update type.</div>
 </li>
 </ul>
 </li>

@@ -17,6 +17,12 @@
     catch(err) {
     }
 //-->
+var methods = {"i0":10,"i1":10,"i2":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var altColor = "altColor";
+var rowColor = "rowColor";
+var tableTab = "tableTab";
+var activeTableTab = "activeTableTab";
 </script>
 <noscript>
 <div>JavaScript is disabled on your browser.</div>
@@ -42,7 +48,7 @@
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/config/ConfigValue.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" target="_top">Frames</a></li>
@@ -66,16 +72,16 @@
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
-<li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
+<li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
-<li>Method</li>
+<li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
 <a name="skip.navbar.top">
@@ -114,28 +120,22 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
+<!-- ======== NESTED CLASS SUMMARY ======== -->
 <ul class="blockList">
-<li class="blockList"><a name="field.summary">
+<li class="blockList"><a name="nested.class.summary">
 <!--   -->
 </a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
+<th class="colLast" scope="col">Class and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#errors">errors</a></span></code>
-<div class="block">A list of zero or more validation errors with the current configuration.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>java.util.UUID</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#targetId">targetId</a></span></code>
-<div class="block">The resulting configuration ID which should be used by service tasks.</div>
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a></span></code>
+<div class="block">Two types of deployments are differentiated by this type.</div>
 </td>
 </tr>
 </table>
@@ -153,7 +153,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#UpdateResult-java.util.UUID-java.util.Collection-">UpdateResult</a></span>(java.util.UUID&nbsp;targetId,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#UpdateResult-java.util.UUID-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-java.util.Collection-">UpdateResult</a></span>(java.util.UUID&nbsp;targetId,
+            <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;deploymentType,
             java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;errors)</code>&nbsp;</td>
 </tr>
 </table>
@@ -165,6 +166,31 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr id="i0" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#getDeploymentType--">getDeploymentType</a></span>()</code>
+<div class="block">Gets the <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config"><code>ConfigurationUpdater.UpdateResult.DeploymentType</code></a> detected during this update.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#getErrors--">getErrors</a></span>()</code>
+<div class="block">Gets a list of zero or more validation errors with the current configuration.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>java.util.UUID</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#getTargetId--">getTargetId</a></span>()</code>
+<div class="block">Gets the resulting configuration ID which should be used by service tasks.</div>
+</td>
+</tr>
+</table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
@@ -180,49 +206,60 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="targetId">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>targetId</h4>
-<pre>public final&nbsp;java.util.UUID targetId</pre>
-<div class="block">The resulting configuration ID which should be used by service tasks.</div>
-</li>
-</ul>
-<a name="errors">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>errors</h4>
-<pre>public final&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt; errors</pre>
-<div class="block">A list of zero or more validation errors with the current configuration. If there were
- errors, the <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#targetId"><code>targetId</code></a> will point to a previous valid configuration.</div>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="UpdateResult-java.util.UUID-java.util.Collection-">
+<a name="UpdateResult-java.util.UUID-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>UpdateResult</h4>
 <pre>public&nbsp;UpdateResult(java.util.UUID&nbsp;targetId,
+                    <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;deploymentType,
                     java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;errors)</pre>
+</li>
+</ul>
+</li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!--   -->
+</a>
+<h3>Method Detail</h3>
+<a name="getDeploymentType--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDeploymentType</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;getDeploymentType()</pre>
+<div class="block">Gets the <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config"><code>ConfigurationUpdater.UpdateResult.DeploymentType</code></a> detected during this update.</div>
+</li>
+</ul>
+<a name="getErrors--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getErrors</h4>
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;getErrors()</pre>
+<div class="block">Gets a list of zero or more validation errors with the current configuration. If there were
+ errors, the <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#targetId"><code>targetId</code></a> will point to a previous valid configuration.</div>
+</li>
+</ul>
+<a name="getTargetId--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getTargetId</h4>
+<pre>public&nbsp;java.util.UUID&nbsp;getTargetId()</pre>
+<div class="block">Gets the resulting configuration ID which should be used by service tasks.</div>
 </li>
 </ul>
 </li>
@@ -253,7 +290,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/config/ConfigValue.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" target="_top">Frames</a></li>
@@ -277,16 +314,16 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
-<li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
+<li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
-<li>Method</li>
+<li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
 <a name="skip.navbar.bottom">
