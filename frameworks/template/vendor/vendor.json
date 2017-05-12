@@ -51,5 +51,5 @@
 			"revisionTime": "2017-03-28T23:38:35Z"
 		}
 	],
-	"rootPath": "github.com/mesosphere/dcos-edge-lb/framework/_build/dcos-commons/frameworks/template"
+	"rootPath": "github.com/mesosphere/dcos-commons/frameworks/template"
 }
