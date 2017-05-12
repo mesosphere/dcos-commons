@@ -2,7 +2,7 @@
   "assets": {
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
-      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-file-based-secrets.tar.gz",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle}},
       "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }

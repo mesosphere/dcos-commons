@@ -21,7 +21,6 @@ pods:
           test:
             port: 9999
 
-
   world:
     count: {{WORLD_COUNT}}
     resource-sets:

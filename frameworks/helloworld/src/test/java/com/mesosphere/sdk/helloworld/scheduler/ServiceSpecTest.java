@@ -73,8 +73,8 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         testYaml("examples/gpu_resource.yml");
     }
 
-   /* @Test
+    @Test
     public void testSecrets() throws Exception {
         testYaml("examples/secrets.yml");
-    }*/
+    }
 }
