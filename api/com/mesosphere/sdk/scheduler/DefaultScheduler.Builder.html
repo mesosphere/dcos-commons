@@ -216,7 +216,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory-">setRecoveryManagerFactory</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&nbsp;recoveryManagerFactory)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">setRecoveryManagerFactory</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&nbsp;recoveryPlanOverriderFactory)</code>
 <div class="block">Sets the provided <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> to be the plan manager used for recovery.</div>
 </td>
 </tr>
@@ -407,17 +407,17 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory-">
+<a name="setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setRecoveryManagerFactory</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setRecoveryManagerFactory(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&nbsp;recoveryManagerFactory)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setRecoveryManagerFactory(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&nbsp;recoveryPlanOverriderFactory)</pre>
 <div class="block">Sets the provided <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> to be the plan manager used for recovery.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>recoveryManagerFactory</code> - the factory whcih generates the custom recovery plan manager</dd>
+<dd><code>recoveryPlanOverriderFactory</code> - the factory whcih generates the custom recovery plan manager</dd>
 </dl>
 </li>
 </ul>

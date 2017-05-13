@@ -175,7 +175,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>default boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
 <div class="block">Indicates whether this Element is capable of being started.</div>
 </td>
 </tr>
@@ -217,7 +217,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
@@ -331,7 +331,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 <ul class="blockList">
 <li class="blockList">
 <h4>isEligible</h4>
-<pre>default&nbsp;boolean&nbsp;isEligible(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</pre>
+<pre>default&nbsp;boolean&nbsp;isEligible(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">Element</a></code></span></div>
 <div class="block">Indicates whether this Element is capable of being started.</div>
 <dl>

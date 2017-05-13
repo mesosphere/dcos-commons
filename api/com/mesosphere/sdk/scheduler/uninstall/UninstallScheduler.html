@@ -159,9 +159,10 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-">UninstallScheduler</a></span>(int&nbsp;port,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">UninstallScheduler</a></span>(int&nbsp;port,
                   java.time.Duration&nbsp;apiServerInitTimeout,
-                  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+                  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                  <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
 <div class="block">Creates a new UninstallScheduler based on the provided API port and initialization timeout,
  and a <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
@@ -305,7 +306,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-">
+<a name="UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -313,7 +314,8 @@ extends java.lang.Object</pre>
 <h4>UninstallScheduler</h4>
 <pre>public&nbsp;UninstallScheduler(int&nbsp;port,
                           java.time.Duration&nbsp;apiServerInitTimeout,
-                          <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+                          <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</pre>
 <div class="block">Creates a new UninstallScheduler based on the provided API port and initialization timeout,
  and a <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>. The UninstallScheduler builds an uninstall <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> with two <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s:
  a resource phase where all reserved resources get released back to Mesos, and a miscellaneous phase where

@@ -81,13 +81,20 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a></td>
 <td class="colLast">
-<div class="block">Implementations of this interface allow the replacement of the <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a> with a custom
- implementation that addresses applicaiton specific failure recovery mechanisms.</div>
+<div class="block">This interface allows for the specification of custom recovery logic when presented with a stopped pod encapsulated
+ by the PodInstanceRequirement.</div>
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a></td>
+<td class="colLast">
+<div class="block">Implementations of this interface allow the overriding of behavior in the <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a>
+ with a custom implementation that addresses applicaiton specific failure recovery mechanisms.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a></td>
 <td class="colLast">
 <div class="block">Exposes simple task-oriented API for components that need to interact with the framework as a whole.</div>

@@ -133,12 +133,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html#getCandidates-java.util.Collection-">getCandidates</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html#getCandidates-java.util.Collection-">getCandidates</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
 <div class="block">Determines the next <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s that should be considered for scheduling.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.Set&lt;java.lang.String&gt;</code></td>
+<td class="colFirst"><code>java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html#getDirtyAssets--">getDirtyAssets</a></span>()</code>
 <div class="block">Returns a <code>Set</code> of assets that are dirty, i.e.</div>
 </td>
@@ -194,7 +194,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <ul class="blockList">
 <li class="blockList">
 <h4>getCandidates</h4>
-<pre>java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</pre>
+<pre>java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
 <div class="block">Determines the next <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s that should be considered for scheduling. <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s that are being selected
  by other <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s are provided as <code>dirtyAssets</code> as a hint to this <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> to assist
  with scheduling.</div>
@@ -230,7 +230,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getDirtyAssets</h4>
-<pre>java.util.Set&lt;java.lang.String&gt;&nbsp;getDirtyAssets()</pre>
+<pre>java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getDirtyAssets()</pre>
 <div class="block">Returns a <code>Set</code> of assets that are dirty, i.e. being worked upon by the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> that this
  <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> is working on.</div>
 <dl>

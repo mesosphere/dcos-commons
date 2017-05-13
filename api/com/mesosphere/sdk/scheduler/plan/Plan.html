@@ -142,7 +142,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>default java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html#getCandidates-java.util.Collection-">getCandidates</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html#getCandidates-java.util.Collection-">getCandidates</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>default boolean</code></td>
@@ -161,7 +161,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
@@ -190,7 +190,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
 <ul class="blockList">
 <li class="blockList">
 <h4>getCandidates</h4>
-<pre>default&nbsp;java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates(java.util.Collection&lt;java.lang.String&gt;&nbsp;dirtyAssets)</pre>
+<pre>default&nbsp;java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
 </li>
 </ul>
 <a name="isDeployPlan--">

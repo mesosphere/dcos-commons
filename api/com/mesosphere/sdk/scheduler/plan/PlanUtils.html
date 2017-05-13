@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -139,9 +139,20 @@ extends java.lang.Object</pre>
              java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;elements)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">assetConflicts</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;asset,
+              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
+<div class="block">Determines whether the specified asset refers to the same pod instance and tasks other assets.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#filterAcceptedOffers-java.util.List-java.util.Collection-">filterAcceptedOffers</a></span>(java.util.List&lt;Offer&gt;&nbsp;offers,
                     java.util.Collection&lt;OfferID&gt;&nbsp;acceptedOfferIds)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>static java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getActivePlanManagers-java.util.List-">getActivePlanManagers</a></span>(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -188,11 +199,36 @@ extends java.lang.Object</pre>
 <a name="filterAcceptedOffers-java.util.List-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>filterAcceptedOffers</h4>
 <pre>public static&nbsp;java.util.List&lt;Offer&gt;&nbsp;filterAcceptedOffers(java.util.List&lt;Offer&gt;&nbsp;offers,
                                                          java.util.Collection&lt;OfferID&gt;&nbsp;acceptedOfferIds)</pre>
+</li>
+</ul>
+<a name="assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>assetConflicts</h4>
+<pre>public static&nbsp;boolean&nbsp;assetConflicts(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;asset,
+                                     java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
+<div class="block">Determines whether the specified asset refers to the same pod instance and tasks other assets.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>asset</code> - The asset of interest.</dd>
+<dd><code>dirtyAssets</code> - Other assets which may conflict with the <code>asset</code></dd>
+</dl>
+</li>
+</ul>
+<a name="getActivePlanManagers-java.util.List-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getActivePlanManagers</h4>
+<pre>public static&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getActivePlanManagers(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</pre>
 </li>
 </ul>
 </li>

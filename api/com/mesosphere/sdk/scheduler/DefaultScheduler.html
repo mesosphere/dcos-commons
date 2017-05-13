@@ -219,8 +219,8 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManager">recoveryPlanManager</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>protected java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManagerFactoryOptional">recoveryPlanManagerFactoryOptional</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>protected java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanOverriderFactory">recoveryPlanOverriderFactory</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected java.util.Collection&lt;java.lang.Object&gt;</code></td>
@@ -272,7 +272,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
                 <a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer">OfferRequirementProvider</a>&nbsp;offerRequirementProvider,
                 java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types">EndpointProducer</a>&gt;&nbsp;customEndpointProducers,
                 java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a>&gt;&nbsp;restartHookOptional,
-                java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt;&nbsp;recoveryPlanManagerFactoryOptional,
+                java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&gt;&nbsp;recoveryPlanOverriderFactory,
                 <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a>&nbsp;updateResult)</code>
 <div class="block">Creates a new DefaultScheduler.</div>
 </td>
@@ -541,13 +541,13 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt; configStore</pre>
 </li>
 </ul>
-<a name="recoveryPlanManagerFactoryOptional">
+<a name="recoveryPlanOverriderFactory">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>recoveryPlanManagerFactoryOptional</h4>
-<pre>protected final&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt; recoveryPlanManagerFactoryOptional</pre>
+<h4>recoveryPlanOverriderFactory</h4>
+<pre>protected final&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&gt; recoveryPlanOverriderFactory</pre>
 </li>
 </ul>
 <a name="driver">
@@ -690,7 +690,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
                            <a href="../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer">OfferRequirementProvider</a>&nbsp;offerRequirementProvider,
                            java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types">EndpointProducer</a>&gt;&nbsp;customEndpointProducers,
                            java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a>&gt;&nbsp;restartHookOptional,
-                           java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a>&gt;&nbsp;recoveryPlanManagerFactoryOptional,
+                           java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&gt;&nbsp;recoveryPlanOverriderFactory,
                            <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a>&nbsp;updateResult)</pre>
 <div class="block">Creates a new DefaultScheduler. See information about parameters in <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a>.</div>
 </li>

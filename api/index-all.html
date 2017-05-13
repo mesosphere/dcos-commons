@@ -206,6 +206,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.config.ConfigStore-">ArtifactResource(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">assetConflicts(PodInstanceRequirement, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
+<dd>
+<div class="block">Determines whether the specified asset refers to the same pod instance and tasks other assets.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AttributeRule</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">Requires that the Offer contain an attribute whose string representation matches the provided string.</div>
@@ -304,6 +308,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanBuilder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ElementBuilder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ElementBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan">ElementBuilder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec.Builder</a></dt>
 <dd>
@@ -478,6 +484,8 @@
 <dd>
 <div class="block">Remove the permanently failed label from the TaskInfo.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#clearFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">clearFailed(PodInstance, StateStore)</a></span> - Static method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorStateStore.html#clearFrameworkId--">clearFrameworkId()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorStateStore.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearFrameworkId--">clearFrameworkId()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
@@ -721,6 +729,13 @@
 <dd>
 <div class="block">Creates a new configuration value.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#conflictsWith-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">conflictsWith(PodInstanceRequirement)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>
+<div class="block">A PodInstanceRequirement conflictsWith with another it if applies to the same pod instance and some
+ tasks in that pod.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodInstance.html#conflictsWith-com.mesosphere.sdk.specification.PodInstance-">conflictsWith(PodInstance)</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/EndpointProducer.html#constant-java.lang.String-">constant(String)</a></span> - Static method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types">EndpointProducer</a></dt>
 <dd>
 <div class="block">Creates and returns an <a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><code>EndpointProducer</code></a> which only produces the provided constant value.</div>
@@ -800,16 +815,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRequirement.html#create-java.lang.String-int-java.util.Collection-java.util.Optional-">create(String, int, Collection&lt;TaskRequirement&gt;, Optional&lt;ExecutorRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#create-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">create(PodInstance, Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
-<dd>
-<div class="block">Creates a new instance which isn't marked as a permanent replacement.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#create-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-java.util.Map-">create(PodInstance, Collection&lt;String&gt;, Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
-<dd>
-<div class="block">Creates a new instance with each task's environment extended by the provided envvar name-to-value map that is not
- a permanent replacement.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html#create-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.Collection-">create(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor, Collection&lt;Plan&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanManagerFactory</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html#create-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-">create(StateStore, ConfigStore&lt;ServiceSpec&gt;, Collection&lt;Plan&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#create-Scheduler-FrameworkInfo-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-">create(Scheduler, FrameworkInfo, String, SchedulerFlags)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.scheduler">SchedulerDriverFactory</a></dt>
 <dd>
@@ -850,10 +856,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#CreateOfferRecommendation-Offer-Resource-">CreateOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#createPermanentReplacement-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">createPermanentReplacement(PodInstance, Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
-<dd>
-<div class="block">Creates a new instance which is marked as a permanent replacement.</div>
-</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#createPhases-java.util.Collection-">createPhases(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.lang.String-">createStateStore(ServiceSpec, SchedulerFlags, String)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates and returns a new default <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> suitable for passing to
@@ -864,6 +868,8 @@
 <div class="block">Calls <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.lang.String-"><code>DefaultScheduler.createStateStore(ServiceSpec, SchedulerFlags, String)</code></a> with the specification name as the
  <code>frameworkName</code> and with a reasonable default for <code>zkConnectionString</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#createStep-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">createStep(PodInstanceRequirement)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceRequirement.html#createsVolume--">createsVolume()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></dt>
 <dd>
 <div class="block">Returns whether this instance expects that a volume does not already exist on the destination and needs to be
@@ -1019,6 +1025,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_GPU_POLICY">DEFAULT_GPU_POLICY</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosCertInstaller.html#DEFAULT_JRE_KEYSTORE_PASS">DEFAULT_JRE_KEYSTORE_PASS</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosCertInstaller.html" title="class in com.mesosphere.sdk.dcos">DcosCertInstaller</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DEFAULT_RECOVERY_PHASE_NAME">DEFAULT_RECOVERY_PHASE_NAME</a></span> - Static variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DEFAULT_RECOVERY_PLAN_NAME">DEFAULT_RECOVERY_PLAN_NAME</a></span> - Static variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorUtils.html#DEFAULT_SESSION_TIMEOUT_MS">DEFAULT_SESSION_TIMEOUT_MS</a></span> - Static variable in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator">CuratorUtils</a></dt>
 <dd>
@@ -1206,11 +1216,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor, List&lt;RecoveryPlanOverrider&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">DefaultRecoveryStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
 <div class="block">An extension of <a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>DeploymentStep</code></a> meant for use with <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#DefaultRecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-com.mesosphere.sdk.scheduler.recovery.RecoveryType-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-">DefaultRecoveryStep(String, Status, PodInstance, Collection&lt;String&gt;, RecoveryType, LaunchConstrainer, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#DefaultRecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-">DefaultRecoveryStep(String, Status, PodInstanceRequirement, LaunchConstrainer, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DefaultResourceCleaner</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
@@ -1247,7 +1259,7 @@
 <div class="block">This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
  when possible.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, OfferRequirementProvider, Map&lt;String, EndpointProducer&gt;, Optional&lt;RestartHook&gt;, Optional&lt;RecoveryPlanManagerFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.offer.OfferRequirementProvider-java.util.Map-java.util.Optional-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, OfferRequirementProvider, Map&lt;String, EndpointProducer&gt;, Optional&lt;RestartHook&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
@@ -1314,7 +1326,7 @@
 <dd>
 <div class="block">This class provides a default implementation of the TaskFailureListener interface.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html#DefaultTaskFailureListener-com.mesosphere.sdk.state.StateStore-">DefaultTaskFailureListener(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultTaskFailureListener</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html#DefaultTaskFailureListener-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">DefaultTaskFailureListener(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultTaskFailureListener</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">DefaultTaskKiller</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
@@ -1358,7 +1370,7 @@
 <dd>
 <div class="block">Sets the <code>delay</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS">DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN">DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>
 <div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).</div>
 </dd>
@@ -1532,6 +1544,8 @@
 <div class="block">Environment variables to be set inside launched tasks themselves
  These are accessible to the tasks themselves via the container environment.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#environment-java.util.Map-">environment(Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html#environment-java.util.Map-">environment(Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>environment</code> and returns a reference to this Builder so that the methods can be chained
@@ -2080,6 +2094,8 @@
 <div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the
  data is missing.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getActivePlanManagers-java.util.List-">getActivePlanManagers(List&lt;PlanManager&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getAgentPlacementRule-java.util.List-java.util.List-">getAgentPlacementRule(List&lt;String&gt;, List&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>
 <div class="block">Returns the appropriate placement rule, given a set of agents to avoid or colocate with.</div>
@@ -2136,31 +2152,31 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#getBytes--">getBytes()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Plan.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Plan.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></dt>
 <dd>
 <div class="block">Determines the next <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s that should be considered for scheduling.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;Step&gt;, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">CanaryStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;Step&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">CanaryStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#getCandidates-boolean-java.util.Collection-">getCandidates(boolean, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#getCandidates-boolean-java.util.Collection-">getCandidates(boolean, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">ParallelStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">ParallelStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/RandomStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/RandomStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">RandomStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/RandomStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/RandomStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">RandomStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">SerialStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">SerialStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy">Strategy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html#getCandidates-java.util.Collection-java.util.Collection-">getCandidates(Collection&lt;C&gt;, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy">Strategy</a></dt>
 <dd>
 <div class="block">Returns the candidate element(s), if any, which may have work performed against them.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#getChildren-java.lang.String-">getChildren(String)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
@@ -2586,6 +2602,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getInstanceName-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getInstanceName(PodInstance, TaskSpec)</a></span> - Static method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getInstanceName-com.mesosphere.sdk.specification.PodInstance-java.lang.String-">getInstanceName(PodInstance, String)</a></span> - Static method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getInterval--">getInterval()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#getInterval--">getInterval()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
@@ -2650,7 +2668,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getMessageTemplate--">getMessageTemplate()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMins--">getMinReplaceDelayMins()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMin--">getMinReplaceDelayMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
@@ -2672,6 +2690,8 @@
 <dd>
 <div class="block">Returns a user-visible name describing the purpose of this Element.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ConfigFileSpec.html#getName--">getName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a></dt>
 <dd>
 <div class="block">Name for this config.</div>
@@ -2788,7 +2808,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawVolume.html#getPath--">getPath()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml">RawVolume</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimoutMins--">getPermanentFailureTimoutMins()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimoutMin--">getPermanentFailureTimoutMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceRequirement.html#getPersistenceId--">getPersistenceId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></dt>
 <dd>
@@ -2881,7 +2901,17 @@
 <dd>
 <div class="block">Returns the definition of the pod instance to be created.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodMap-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-">getPodMap(ConfigStore&lt;ServiceSpec&gt;, Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeleteServiceRootPathStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-java.util.Collection-">getPodRequirements(ConfigStore&lt;ServiceSpec&gt;, Collection&lt;TaskInfo&gt;, Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
 <dd>
@@ -3015,6 +3045,8 @@
 <div class="block">Get all recommendations made for this offer.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#getRecoveryDelaySecs--">getRecoveryDelaySecs()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getRecoveryType--">getRecoveryType()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#getRecoveryType--">getRecoveryType()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
@@ -3843,14 +3875,18 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Plan.html#isDeployPlan--">isDeployPlan()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">isEligible(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
 <dd>
 <div class="block">Indicates whether this Element is capable of being started.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
+<dd>
+<div class="block">Indicates whether this Element is in progress.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Interruptible.html#isInterrupted--">isInterrupted()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a></dt>
@@ -3867,6 +3903,8 @@
 <dd>
 <div class="block">Check if a Task has been marked as permanently failed.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#isLabeledAsFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">isLabeledAsFailed(PodInstance, StateStore)</a></span> - Static method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html#isMustacheFullyRendered-java.lang.String-">isMustacheFullyRendered(String)</a></span> - Static method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided content still contains any "{{ }}" mustache templating.</div>
@@ -3882,10 +3920,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
 <dd>
 <div class="block">Indicates whether this Element has been started.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#isPermanentReplacement--">isPermanentReplacement()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
-<dd>
-<div class="block">Returns whether this pod is replacing a previous instance that failed permanently.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
 <dd>
@@ -4192,6 +4226,8 @@
 <dd>
 <div class="block">Mark a task as permanently failed.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#markFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">markFailed(PodInstance, StateStore)</a></span> - Static method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#MASTER_INFO">MASTER_INFO</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html#matches-java.lang.String-">matches(String)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AnyMatcher</a></dt>
@@ -4279,7 +4315,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#minReplaceDelayMs-java.lang.Integer-">minReplaceDelayMs(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></dt>
 <dd>
-<div class="block">Sets the <code>minReplaceDelayMins</code> and returns a reference to this Builder so that the methods can be
+<div class="block">Sets the <code>minReplaceDelayMin</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#MOUNT_ROOT">MOUNT_ROOT</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
@@ -4381,6 +4417,10 @@
  details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
  should be organized.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#newBuilder-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">newBuilder(PodInstance, Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#newBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">newBuilder(PodInstanceRequirement)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#newBuilder-java.lang.String-">newBuilder(String)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
 <dd>
 <div class="block">Creates a new builder instance which will automatically include any routable environment variables targeted to
@@ -4577,6 +4617,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#OVERLAY_NETWORK_NAME">OVERLAY_NETWORK_NAME</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html#override-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">override(PodInstanceRequirement)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#overrideDeployPlan-java.util.Collection-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">overrideDeployPlan(Collection&lt;Plan&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update
@@ -4639,13 +4681,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html#PassthroughRule--">PassthroughRule()</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PassthroughRule</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#PERMANENT_FAILURE_DELAY_MS">PERMANENT_FAILURE_DELAY_MS</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#PERMANENT_FAILURE_DELAY_MIN">PERMANENT_FAILURE_DELAY_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>
 <div class="block">Default time to wait before declaring a task as permanently failed.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#permanentFailureTimoutMs-java.lang.Integer-">permanentFailureTimoutMs(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></dt>
 <dd>
-<div class="block">Sets the <code>permanentFailureTimoutMins</code> and returns a reference to this Builder so that the methods can
+<div class="block">Sets the <code>permanentFailureTimoutMin</code> and returns a reference to this Builder so that the methods can
  be chained together.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#PERSISTENCE_ID">PERSISTENCE_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
@@ -4771,6 +4813,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.offer.OfferRequirement-">PodInfoBuilder(OfferRequirement)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#podInstance-com.mesosphere.sdk.specification.PodInstance-">podInstance(PodInstance)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">PodInstance</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">A PodInstance defines a particular instance of a <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>.</div>
@@ -4780,6 +4824,10 @@
 <dt><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PodInstanceRequirement</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
 <div class="block">A PodInstanceRequirement encapsulates a <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> and the names of tasks that should be launched in it.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PodInstanceRequirement.Builder</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
+<dd>
+<div class="block"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> builder static inner class.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#pods-java.util.List-">pods(List&lt;PodSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
@@ -5090,8 +5138,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/UninstallRecorder.html#record-com.mesosphere.sdk.offer.OfferRecommendation-">record(OfferRecommendation)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/UninstallRecorder.html" title="class in com.mesosphere.sdk.state">UninstallRecorder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#RECOVERY_ELEMENT_NAME">RECOVERY_ELEMENT_NAME</a></span> - Static variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">RecoveryConfiguration</span></a> - Class in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
 <dd>
 <div class="block">Represents the recovery configuration in JSON.</div>
@@ -5102,12 +5148,19 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManager">recoveryPlanManager</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanManagerFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryPlanManagerFactory</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
+<dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryPlanOverrider</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
-<div class="block">Implementations of this interface allow the replacement of the <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a> with a custom
- implementation that addresses applicaiton specific failure recovery mechanisms.</div>
+<div class="block">This interface allows for the specification of custom recovery logic when presented with a stopped pod encapsulated
+ by the PodInstanceRequirement.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanManagerFactoryOptional">recoveryPlanManagerFactoryOptional</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#recoveryPlanOverriderFactory">recoveryPlanOverriderFactory</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryPlanOverriderFactory</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
+<dd>
+<div class="block">Implementations of this interface allow the overriding of behavior in the <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a>
+ with a custom implementation that addresses applicaiton specific failure recovery mechanisms.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#recoveryType-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">recoveryType(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryType</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
@@ -5647,13 +5700,13 @@
 <dd>
 <div class="block">Atomically writes many values to storage at once.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setMinReplaceDelayMins-java.lang.Integer-">setMinReplaceDelayMins(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setMinReplaceDelayMin-java.lang.Integer-">setMinReplaceDelayMin(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/SchedulerLabelWriter.html#setOfferAttributes-Offer-">setOfferAttributes(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/SchedulerLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">SchedulerLabelWriter</a></dt>
 <dd>
 <div class="block">Stores the <code>Attribute</code>s from the provided <code>Offer</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setPermanentFailureTimoutMins-java.lang.Integer-">setPermanentFailureTimoutMins(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setPermanentFailureTimoutMin-java.lang.Integer-">setPermanentFailureTimoutMin(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/StageBuilder.html#setPhases-java.util.List-">setPhases(List&lt;Phase&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/StageBuilder.html" title="interface in com.mesosphere.sdk.scheduler.plan">StageBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -5688,7 +5741,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setRecoveryDelaySecs-int-">setRecoveryDelaySecs(int)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory-">setRecoveryManagerFactory(RecoveryPlanManagerFactory)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">setRecoveryManagerFactory(RecoveryPlanOverriderFactory)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Sets the provided <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> to be the plan manager used for recovery.</div>
 </dd>
@@ -5787,6 +5840,8 @@
 <dd>
 <div class="block">Starts the Step, whose <a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeleteServiceRootPathStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeleteServiceRootPathStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
@@ -6113,6 +6168,8 @@
 <dd>
 <div class="block">Utility methods relating to sending <code>TaskStatus</code> messages from the Executor back to the Scheduler.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#tasksToLaunch-java.util.Collection-">tasksToLaunch(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/testutils/TaskTestUtils.html" title="class in com.mesosphere.sdk.testutils"><span class="typeNameLink">TaskTestUtils</span></a> - Class in <a href="com/mesosphere/sdk/testutils/package-summary.html">com.mesosphere.sdk.testutils</a></dt>
 <dd>
 <div class="block">This class provides utility method for Tests concerned with Tasks.</div>
@@ -6175,7 +6232,7 @@
 <dd>
 <div class="block">Implements a <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> with a time-based policy.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html#TimedFailureMonitor-java.time.Duration-">TimedFailureMonitor(Duration)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">TimedFailureMonitor</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html#TimedFailureMonitor-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">TimedFailureMonitor(Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">TimedFailureMonitor</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> that waits for at least a specified duration before deciding that the task
  has failed.</div>
@@ -6441,7 +6498,7 @@
 <dd>
 <div class="block">This scheduler uninstalls the framework and releases all of its resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-">UninstallScheduler(int, Duration, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">UninstallScheduler(int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>
 <div class="block">Creates a new UninstallScheduler based on the provided API port and initialization timeout,
  and a <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
@@ -6577,7 +6634,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#updateParameters-java.util.Map-">updateParameters(Map&lt;String, String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#updatePlan-java.util.Collection-">updatePlan(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#updatePlan-java.util.Collection-">updatePlan(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#updateResource-Protos.Resource-com.mesosphere.sdk.specification.ResourceSpec-">updateResource(Protos.Resource, ResourceSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>&nbsp;</dd>
@@ -6813,10 +6870,6 @@ the order they are declared.</div>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRequirement.html#withoutPlacementRules--">withoutPlacementRules()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></dt>
 <dd>
 <div class="block">Creates and returns a new <a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> with any placement rules removed.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#withParameters-java.util.Map-">withParameters(Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
-<dd>
-<div class="block">Returns this same instance, but with the supplied environment variable map applied to each task in this pod.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#withValue-Resource-Value-">withValue(Resource, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>&nbsp;</dd>
