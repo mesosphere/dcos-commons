@@ -4,6 +4,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +33,7 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
     private final HashMap<TaskID, Date> firstFailureDetected;
     private final Duration durationUntilFailed;
     private final StateStore stateStore;
-    private final ConfigStore configStore;
+    private final ConfigStore<ServiceSpec> configStore;
 
     /**
      * Creates a new {@link FailureMonitor} that waits for at least a specified duration before deciding that the task
@@ -41,7 +42,10 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
      * @param durationUntilFailed The minimum amount of time which must pass before a stopped Task can be considered
      *                            failed.
      */
-    public TimedFailureMonitor(Duration durationUntilFailed, StateStore stateStore, ConfigStore configStore) {
+    public TimedFailureMonitor(
+            Duration durationUntilFailed,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore) {
         this.firstFailureDetected = new HashMap<>();
         this.durationUntilFailed = durationUntilFailed;
         this.stateStore = stateStore;

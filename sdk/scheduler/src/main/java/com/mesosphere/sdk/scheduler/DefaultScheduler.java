@@ -198,10 +198,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             return this;
         }
 
-        public ConfigStore getConfigStore() {
-            return configStoreOptional.get();
-        }
-
         /**
          * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
          * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.

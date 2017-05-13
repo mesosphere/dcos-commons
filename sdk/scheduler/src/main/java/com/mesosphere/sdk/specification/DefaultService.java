@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
@@ -75,6 +76,9 @@ public class DefaultService implements Service {
     }
 
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
+        this.serviceSpec = schedulerBuilder.getServiceSpec();
+        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
+
         try {
             // Use a single stateStore for either scheduler as the StateStoreCache
             // requires a single instance of StateStore.
@@ -85,12 +89,14 @@ public class DefaultService implements Service {
                             "Uninstall cannot be canceled once enabled.");
                     StateStoreUtils.setUninstalling(stateStore, true);
                 }
+
+                ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(serviceSpec);
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
                         schedulerBuilder.getServiceSpec().getApiPort(),
                         schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
                         stateStore,
-                        schedulerBuilder.getConfigStore());
+                        configStore);
             } else {
                 if (StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -103,9 +109,6 @@ public class DefaultService implements Service {
             LOGGER.error("Failed to build scheduler.", e);
             SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
         }
-
-        this.serviceSpec = schedulerBuilder.getServiceSpec();
-        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
     }
 
     @Override

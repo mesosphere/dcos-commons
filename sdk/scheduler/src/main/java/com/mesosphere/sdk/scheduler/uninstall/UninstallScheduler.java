@@ -11,6 +11,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.state.UninstallRecorder;
@@ -42,7 +43,7 @@ public class UninstallScheduler implements Scheduler {
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
-    private final ConfigStore configStore;
+    private final ConfigStore<ServiceSpec> configStore;
     protected SchedulerDriver driver;
     PlanManager uninstallPlanManager;
     private Collection<Object> apiResources;
@@ -57,7 +58,11 @@ public class UninstallScheduler implements Scheduler {
      * a resource phase where all reserved resources get released back to Mesos, and a miscellaneous phase where
      * the framework deregisters itself and cleans up its state in Zookeeper.
      */
-    public UninstallScheduler(int port, Duration apiServerInitTimeout, StateStore stateStore, ConfigStore configStore) {
+    public UninstallScheduler(
+            int port,
+            Duration apiServerInitTimeout,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore) {
         this.port = port;
         this.apiServerInitTimeout = apiServerInitTimeout;
         this.stateStore = stateStore;
