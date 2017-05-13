@@ -62,7 +62,15 @@ public class DeploymentStep extends AbstractStep {
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        return Optional.of(podInstanceRequirement.withParameters(parameters));
+        return getPodInstanceRequirement();
+    }
+
+    @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+        return Optional.of(
+                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                        .environment(parameters)
+                        .build());
     }
 
     @Override
@@ -82,8 +90,8 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<String> getAsset() {
-        return Optional.of(podInstanceRequirement.getPodInstance().getName());
+    public Optional<PodInstanceRequirement> getAsset() {
+        return Optional.of(podInstanceRequirement);
     }
 
     @Override

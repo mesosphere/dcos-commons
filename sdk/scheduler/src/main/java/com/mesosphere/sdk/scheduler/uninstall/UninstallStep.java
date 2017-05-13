@@ -33,6 +33,12 @@ public class UninstallStep extends AbstractStep {
             logger.info("Setting state to Prepared for resource {}", getName());
             setStatus(Status.PREPARED);
         }
+
+        return getPodInstanceRequirement();
+    }
+
+    @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
         return Optional.empty();
     }
 
@@ -53,8 +59,8 @@ public class UninstallStep extends AbstractStep {
     }
 
     @Override
-    public Optional<String> getAsset() {
-        return Optional.empty();
+    public Optional<PodInstanceRequirement> getAsset() {
+        return getPodInstanceRequirement();
     }
 
     @Override

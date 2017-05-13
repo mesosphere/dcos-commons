@@ -37,12 +37,17 @@ public class DeleteServiceRootPathStep extends AbstractStep {
     }
 
     @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+        return Optional.empty();
+    }
+
+    @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
     }
 
     @Override
-    public Optional<String> getAsset() {
-        return Optional.empty();
+    public Optional<PodInstanceRequirement> getAsset() {
+        return getPodInstanceRequirement();
     }
 
     @Override

@@ -60,7 +60,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
                 steps.add(new DeploymentStep(
                         PodInstance.getName(podSpec, i),
                         Status.ERROR,
-                        PodInstanceRequirement.create(podInstance, Collections.emptyList()),
+                        PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
                         Arrays.asList(ExceptionUtils.getStackTrace(e))));
             }
         }

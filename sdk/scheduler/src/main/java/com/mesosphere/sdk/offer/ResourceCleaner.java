@@ -3,9 +3,7 @@ package com.mesosphere.sdk.offer;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * The Resource Cleaner provides recommended operations for cleaning up

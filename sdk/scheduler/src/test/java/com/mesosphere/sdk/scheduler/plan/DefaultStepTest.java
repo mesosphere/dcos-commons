@@ -4,10 +4,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.specification.GoalState;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
@@ -50,7 +47,7 @@ public class DefaultStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());
@@ -85,15 +82,28 @@ public class DefaultStepTest {
 
     @Test
     public void testIsEligible() {
+        TaskSpec taskSpec0 =
+                TestPodFactory.getTaskSpec(
+                        TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+        TaskSpec taskSpec1 =
+                TestPodFactory.getTaskSpec(
+                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+        PodSpec podSpec = DefaultPodSpec.newBuilder("")
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec0, taskSpec1))
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));
 
-        Collection<String> dirtyAssets = Arrays.asList(step.getAsset().get());
+        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getAsset().get());
         Assert.assertFalse(step.isEligible(dirtyAssets));
     }
 }

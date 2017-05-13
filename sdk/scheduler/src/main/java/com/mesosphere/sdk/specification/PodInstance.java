@@ -28,4 +28,10 @@ public interface PodInstance {
     public static String getName(String podType, int index) {
         return String.format("%s-%d", podType, index);
     }
+
+    default boolean conflictsWith(PodInstance podInstance) {
+        boolean sameType = podInstance.getPod().getType().equals(getPod().getType());
+        boolean sameIndex = podInstance.getIndex() == getIndex();
+        return sameType && sameIndex;
+    }
 }

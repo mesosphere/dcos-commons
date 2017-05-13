@@ -12,18 +12,26 @@ import java.util.*;
  */
 public class TestStep extends AbstractStep {
 
+    private PodInstanceRequirement podInstanceRequirement;
+
     public TestStep() {
-        this("test-step");
+        super("test-step", Status.PENDING);
     }
 
-    public TestStep(String name) {
+    public TestStep(String name, PodInstanceRequirement podInstanceRequirement) {
         super(name, Status.PENDING);
+        this.podInstanceRequirement = podInstanceRequirement;
     }
 
     @Override
     public Optional<PodInstanceRequirement> start() {
         setStatus(Status.PREPARED);
-        return Optional.empty();
+        return getPodInstanceRequirement();
+    }
+
+    @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+        return Optional.ofNullable(podInstanceRequirement);
     }
 
     @Override
@@ -36,8 +44,8 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<String> getAsset() {
-        return Optional.of(getName());
+    public Optional<PodInstanceRequirement> getAsset() {
+        return Optional.ofNullable(podInstanceRequirement);
     }
 
     @Override

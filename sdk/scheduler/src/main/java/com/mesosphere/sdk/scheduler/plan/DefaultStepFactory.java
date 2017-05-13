@@ -48,11 +48,13 @@ public class DefaultStepFactory implements StepFactory {
         try {
             Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
             String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
+            PodInstanceRequirement podInstanceRequirement =
+                    PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build();
 
             return new DeploymentStep(
                     stepName,
                     status,
-                    PodInstanceRequirement.create(podInstance, tasksToLaunch),
+                    podInstanceRequirement,
                     Collections.emptyList());
         } catch (ConfigStoreException | TaskException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);

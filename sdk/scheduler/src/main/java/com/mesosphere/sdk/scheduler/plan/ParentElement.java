@@ -53,7 +53,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
     }
 
     @Override
-    default boolean isEligible(Collection<String> dirtyAssets) {
+    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return Element.super.isEligible(dirtyAssets) && !isInterrupted();
     }
 

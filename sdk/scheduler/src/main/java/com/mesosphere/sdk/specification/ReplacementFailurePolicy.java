@@ -12,34 +12,34 @@ import javax.validation.constraints.Min;
  */
 public class ReplacementFailurePolicy {
     @Min(0)
-    private Integer permanentFailureTimoutMins;
+    private Integer permanentFailureTimoutMin;
     @Min(0)
-    private Integer minReplaceDelayMins;
+    private Integer minReplaceDelayMin;
 
     /**
      * Default time to wait between destructive task recoveries (avoid quickly making things worse).
      *
      * Default: 10 minutes
      */
-    public static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
+    public static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN = 10;
 
     /**
      * Default time to wait before declaring a task as permanently failed.
      *
      * Default: 20 minutes
      */
-    public static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
+    public static final Integer PERMANENT_FAILURE_DELAY_MIN = 20;
 
     public ReplacementFailurePolicy(
-            @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimoutMins,
-            @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMins) {
-        this.permanentFailureTimoutMins = permanentFailureTimoutMins;
-        this.minReplaceDelayMins = minReplaceDelayMins;
+            @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimoutMin,
+            @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMin) {
+        this.permanentFailureTimoutMin = permanentFailureTimoutMin;
+        this.minReplaceDelayMin = minReplaceDelayMin;
     }
 
     private ReplacementFailurePolicy(Builder builder) {
-        setPermanentFailureTimoutMins(builder.permanentFailureTimoutMs);
-        setMinReplaceDelayMins(builder.minReplaceDelayMs);
+        setPermanentFailureTimoutMin(builder.permanentFailureTimoutMin);
+        setMinReplaceDelayMin(builder.minReplaceDelayMin);
     }
 
     public static Builder newBuilder() {
@@ -48,25 +48,25 @@ public class ReplacementFailurePolicy {
 
     public static Builder newBuilder(ReplacementFailurePolicy copy) {
         Builder builder = new Builder();
-        builder.permanentFailureTimoutMs = copy.permanentFailureTimoutMins;
-        builder.minReplaceDelayMs = copy.minReplaceDelayMins;
+        builder.permanentFailureTimoutMin = copy.permanentFailureTimoutMin;
+        builder.minReplaceDelayMin = copy.minReplaceDelayMin;
         return builder;
     }
 
-    public Integer getPermanentFailureTimoutMins() {
-        return permanentFailureTimoutMins;
+    public Integer getPermanentFailureTimoutMin() {
+        return permanentFailureTimoutMin;
     }
 
-    public void setPermanentFailureTimoutMins(Integer permanentFailureTimoutMins) {
-        this.permanentFailureTimoutMins = permanentFailureTimoutMins;
+    public void setPermanentFailureTimoutMin(Integer permanentFailureTimoutMins) {
+        this.permanentFailureTimoutMin = permanentFailureTimoutMins;
     }
 
-    public Integer getMinReplaceDelayMins() {
-        return minReplaceDelayMins;
+    public Integer getMinReplaceDelayMin() {
+        return minReplaceDelayMin;
     }
 
-    public void setMinReplaceDelayMins(Integer minReplaceDelayMins) {
-        this.minReplaceDelayMins = minReplaceDelayMins;
+    public void setMinReplaceDelayMin(Integer minReplaceDelayMin) {
+        this.minReplaceDelayMin = minReplaceDelayMin;
     }
 
     @Override
@@ -83,35 +83,35 @@ public class ReplacementFailurePolicy {
      * {@code ReplacementFailurePolicy} builder static inner class.
      */
     public static final class Builder {
-        private Integer permanentFailureTimoutMs;
-        private Integer minReplaceDelayMs;
+        private Integer permanentFailureTimoutMin;
+        private Integer minReplaceDelayMin;
 
         private Builder() {
-            this.permanentFailureTimoutMs = PERMANENT_FAILURE_DELAY_MS;
-            this.minReplaceDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
+            this.permanentFailureTimoutMin = PERMANENT_FAILURE_DELAY_MIN;
+            this.minReplaceDelayMin = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN;
         }
 
         /**
-         * Sets the {@code permanentFailureTimoutMins} and returns a reference to this Builder so that the methods can
+         * Sets the {@code permanentFailureTimoutMin} and returns a reference to this Builder so that the methods can
          * be chained together.
          *
-         * @param permanentFailureTimoutMs the {@code permanentFailureTimoutMins} to set
+         * @param permanentFailureTimoutMin the {@code permanentFailureTimoutMin} to set
          * @return a reference to this Builder
          */
-        public Builder permanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
-            this.permanentFailureTimoutMs = permanentFailureTimoutMs;
+        public Builder permanentFailureTimoutMs(Integer permanentFailureTimoutMin) {
+            this.permanentFailureTimoutMin = permanentFailureTimoutMin;
             return this;
         }
 
         /**
-         * Sets the {@code minReplaceDelayMins} and returns a reference to this Builder so that the methods can be
+         * Sets the {@code minReplaceDelayMin} and returns a reference to this Builder so that the methods can be
          * chained together.
          *
-         * @param minReplaceDelayMs the {@code minReplaceDelayMins} to set
+         * @param minReplaceDelayMin the {@code minReplaceDelayMin} to set
          * @return a reference to this Builder
          */
-        public Builder minReplaceDelayMs(Integer minReplaceDelayMs) {
-            this.minReplaceDelayMs = minReplaceDelayMs;
+        public Builder minReplaceDelayMs(Integer minReplaceDelayMin) {
+            this.minReplaceDelayMin = minReplaceDelayMin;
             return this;
         }
 
