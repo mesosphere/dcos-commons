@@ -28,6 +28,12 @@
     "NODE_CPUS": "{{node.cpus}}",
     "NODE_MEM": "{{node.mem}}",
     "PORTWORX_CLUSTER_NAME": "{{node.portworx_cluster}}",
+    {{#etcd.enabled}}
+    "PORTWORX_KVDB": "etcd://etcd-proxy-0-start.{{service.name}}.mesos:2379",
+    {{/etcd.enabled}}
+    {{^etcd.enabled}}
+    "PORTWORX_KVDB": "{{node.kvdb_servers}}",
+    {{/etcd.enabled}}
 
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -38,6 +44,7 @@
     {{/service.secret_name}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
 
+    "ETCD_ENABLED": "{{etcd.enabled}}",
     "ETCD_COUNT": "{{etcd.count}}",
     "ETCD_PLACEMENT": "{{etcd.placement_constraint}}",
     "ETCD_CPUS": "{{etcd.cpus}}",
@@ -47,6 +54,7 @@
     "INFLUXDB_CPUS": "{{influxdb.cpus}}",
     "INFLUXDB_MEM": "{{influxdb.mem}}",
 
+    "LIGHTHOUSE_ENABLED": "{{lighthouse.enabled}}",
     "LIGHTHOUSE_PLACEMENT": "{{lighthouse.placement_constraint}}",
     "LIGHTHOUSE_CPUS": "{{lighthouse.cpus}}",
     "LIGHTHOUSE_MEM": "{{lighthouse.mem}}"

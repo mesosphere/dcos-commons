@@ -35,7 +35,7 @@ pods:
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
                           --name=%n \
-                          portworx/px-enterprise:1.2.4-rc1 -c {{PORTWORX_CLUSTER_NAME}} -k etcd://etcd-proxy-0-start.${FRAMEWORK_NAME}.mesos:2379 -a
+                          portworx/px-enterprise:1.2.4-rc1 -c {{PORTWORX_CLUSTER_NAME}} -k {{PORTWORX_KVDB}} -a
                     KillMode=control-group
                     ExecStop=/usr/bin/docker stop -t 10 %n
                     [Install]
@@ -134,11 +134,12 @@ pods:
         cpus: {{LIGHTHOUSE_CPUS}}
         cmd: >
             LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k etcd://etcd-proxy-0-start.${FRAMEWORK_NAME}.mesos:2379
+            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k {{PORTWORX_KVDB}}
 plans:
   deploy:
     strategy: serial
     phases:
+      {{#ETCD_ENABLED}}
       etcd-cluster:
         strategy: serial
         pod: etcd-cluster
@@ -149,11 +150,13 @@ plans:
         pod: etcd-proxy
         steps:
           - default : [[start]]
+      {{/ETCD_ENABLED}}
       portworx-deploy:
         strategy: serial
         pod: portworx
         steps:
           - default : [[install]]
+      {{#LIGHTHOUSE_ENABLED}}
       influxdb-deploy:
         strategy: serial
         pod: influxdb 
@@ -164,3 +167,4 @@ plans:
         pod: lighthouse 
         steps:
           - default : [[start]]
+      {{/LIGHTHOUSE_ENABLED}}
