@@ -35,7 +35,7 @@ pods:
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
                           --name=%n \
-                          portworx/px-enterprise -c {{PORTWORX_CLUSTER_NAME}} -k etcd://etcd-1-proxy.${FRAMEWORK_NAME}.mesos:2379 -a
+                          portworx/px-enterprise:1.2.4-rc1 -c {{PORTWORX_CLUSTER_NAME}} -k etcd://etcd-proxy-0-start.${FRAMEWORK_NAME}.mesos:2379 -a
                     KillMode=control-group
                     ExecStop=/usr/bin/docker stop -t 10 %n
                     [Install]
@@ -50,11 +50,11 @@ pods:
           delay: 0
           timeout: 60
 
-  etcd:
-    count: 2
+  etcd-cluster:
+    count: 1
     image: mesosphere/etcd-mesos:latest
     tasks:
-      cluster:
+      start:
         goal: RUNNING
         memory: 1024
         cpus: 1
@@ -79,9 +79,9 @@ pods:
                 -framework-weburi=${WEBURI}
         env:
           FRAMEWORK_NAME: portworx.etcd
-          FRAMEWORK_FAILOVER_TIMEOUT_SECONDS: 300
+          FRAMEWORK_FAILOVER_TIMEOUT_SECONDS: 30
           MESOS_MASTER: zk://master.mesos:2181/mesos
-          ZK_PERSIST: zk://master.mesos:2181/etcd-mesos
+          ZK_PERSIST: zk://master.mesos:2181/dcos-service-{{FRAMEWORK_NAME}}
           VERBOSITY: 1
           SINGLE_INSTANCE_PER_SLAVE: true
           AUTO_RESEED: true
@@ -91,7 +91,11 @@ pods:
           PORT1: 1
           PORT2: 2
     
-      proxy:
+  etcd-proxy:
+    count: 1
+    image: mesosphere/etcd-mesos:latest
+    tasks:
+      start:
         goal: RUNNING
         memory: 1024
         cpus: 0.3
@@ -130,17 +134,21 @@ pods:
         cpus: {{LIGHTHOUSE_CPUS}}
         cmd: >
             LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k etcd://etcd-1-proxy.${FRAMEWORK_NAME}.mesos:2379
+            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k etcd://etcd-proxy-0-start.${FRAMEWORK_NAME}.mesos:2379
 plans:
   deploy:
     strategy: serial
     phases:
-      etcd-deploy:
+      etcd-cluster:
         strategy: serial
-        pod: etcd
+        pod: etcd-cluster
         steps:
-          - 0 : [[cluster]]
-          - 1 : [[proxy]]
+          - default : [[start]]
+      etcd-proxy:
+        strategy: serial
+        pod: etcd-proxy
+        steps:
+          - default : [[start]]
       portworx-deploy:
         strategy: serial
         pod: portworx

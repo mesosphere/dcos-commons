@@ -64,20 +64,20 @@
     {
       "protocol": "HTTP",
       "path": "/v1/plans/deploy",
-      "gracePeriodSeconds": 900,
+      "gracePeriodSeconds": 30,
       "intervalSeconds": 30,
       "portIndex": 0,
       "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 0
+      "maxConsecutiveFailures": 3
     },
     {
       "protocol": "HTTP",
       "path": "/v1/plans/recovery",
-      "gracePeriodSeconds": 900,
+      "gracePeriodSeconds": 30,
       "intervalSeconds": 30,
       "portIndex": 0,
       "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 0
+      "maxConsecutiveFailures": 3
     }
   ],
   "portDefinitions": [

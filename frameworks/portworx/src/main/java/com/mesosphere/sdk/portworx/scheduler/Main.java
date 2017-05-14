@@ -10,9 +10,10 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
+import java.util.*;
 
 /**
- * Template service.
+ * Portworx service.
  */
 public class Main {
 
@@ -33,6 +34,14 @@ public class Main {
                 schedulerConfig)
                 .setPlansFrom(rawServiceSpec);
 
+        schedulerBuilder.setCustomResources(getResources(schedulerBuilder.getServiceSpec()));
         return schedulerBuilder;
+    }
+
+    private static Collection<Object> getResources(ServiceSpec serviceSpec) {
+        final Collection<Object> apiResources = new ArrayList<>();
+        apiResources.add(new PortworxResource(serviceSpec));
+
+        return apiResources;
     }
 }
