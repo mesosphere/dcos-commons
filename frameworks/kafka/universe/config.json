@@ -250,15 +250,20 @@
           "type": "integer",
           "default": 5000
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing broker data. See documentation. [ROOT, MOUNT]",
-          "default": "ROOT"
-        },
         "disk_path": {
           "type": "string",
           "description": "Relative path of consistent disk",
           "default": "kafka-broker-data"
+        },
+        "portworx_volume_name": {
+          "description": "Portworx volume name",
+          "type": "string",
+          "default": "KafkaVolume"
+        },
+        "portworx_volume_options": {
+          "description": "Portworx volume options. Comma separated key=value pairs",
+          "type": "string",
+          "default": ""
         },
         "count": {
           "description": "Number of brokers to run",
@@ -285,7 +290,8 @@
         "cpus",
         "mem",
         "disk",
-        "count"
+        "count",
+        "portworx_volume_name"
       ]
     },
     "kafka": {
