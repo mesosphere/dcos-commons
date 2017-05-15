@@ -80,7 +80,7 @@
         "description": "etcd properties",
         "type": "object",
         "properties": {
-          "Start": {
+          "enabled": {
             "title": "Start etcd",
             "description": "Start the etcd service. Required for Portworx if you don't have one already running. If disabled, please enter the external etcd server IP on the service tab.",
             "type": "boolean",
@@ -149,7 +149,7 @@
         "description": "Lighthouse exposes the web UI for Portworx. Start this if you don't want to connect to the central Portworx Lighthouse",
         "type": "object",
         "properties": {
-          "Start": {
+          "enabled": {
             "title": "Start Lighthouse",
             "description": "Start the Lighthouse service. If this is disabled the influxdb service will also be disabled.",
             "type": "boolean",
