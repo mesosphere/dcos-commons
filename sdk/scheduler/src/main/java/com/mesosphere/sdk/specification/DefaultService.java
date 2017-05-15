@@ -83,7 +83,7 @@ public class DefaultService implements Service {
                 if (!StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                             "Uninstall cannot be canceled once enabled.");
-                    StateStoreUtils.setUninstalling(stateStore, true);
+                    StateStoreUtils.setUninstalling(stateStore);
                 }
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
@@ -170,6 +170,10 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
+        if (!stateStore.fetchFrameworkId().isPresent()) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return;
+        }
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());

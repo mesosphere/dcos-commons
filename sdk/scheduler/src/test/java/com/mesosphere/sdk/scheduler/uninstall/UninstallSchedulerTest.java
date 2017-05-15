@@ -56,7 +56,7 @@ public class UninstallSchedulerTest {
             TestConstants.PRINCIPAL);
     private static final Protos.TaskInfo TASK_A = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
             RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
-    StateStore stateStore;
+    private StateStore stateStore;
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
     @Mock
@@ -76,6 +76,7 @@ public class UninstallSchedulerTest {
                 testingServer.getConnectString()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
@@ -96,8 +97,7 @@ public class UninstallSchedulerTest {
     @Test
     public void testInitialPlan() throws Exception {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING,
-                Status.PENDING, Status.PENDING);
+        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
@@ -107,8 +107,7 @@ public class UninstallSchedulerTest {
         // regardless of the offers sent in, and will start the steps.
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.PREPARED, Status.PREPARED, Status.PREPARED,
-                Status.PENDING, Status.PENDING);
+        List<Status> expected = Arrays.asList(Status.PREPARED, Status.PREPARED, Status.PREPARED, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
@@ -118,15 +117,13 @@ public class UninstallSchedulerTest {
                 RESERVED_RESOURCE_2));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED,
-                Status.PENDING, Status.PENDING);
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
 
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
-                Status.PENDING, Status.PENDING);
+        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
@@ -139,13 +136,8 @@ public class UninstallSchedulerTest {
         // Turn the crank once to start the first Step (the DeleteServiceRootPathStep) in the serial misc-phase
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE,
-                Status.COMPLETE, Status.PENDING);
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
-
-        // Turn the crank again to perform the second and final Step (the DeregisterStep)
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
-        plan = uninstallScheduler.uninstallPlanManager.getPlan();
         assert plan.isComplete();
     }
 
@@ -171,7 +163,7 @@ public class UninstallSchedulerTest {
         }
 
         @Override
-        public boolean isReady() {
+        public boolean apiServerReady() {
             return apiServerReady;
         }
     }
