@@ -48,27 +48,55 @@ public class MemPersisterTest {
         persister = new MemPersister();
     }
 
-    @Test(expected = PersisterException.class)
-    public void testGetMissing() throws PersisterException {
-        persister.get(KEY);
+    @Test
+    public void testGetMissing() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetMissingForPersister(persister);
+    }
+
+    private static void testGetMissingForPersister(Persister persister) {
+        try {
+            persister.get(KEY);
+            fail("expected exception");
+        } catch (PersisterException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testGetMissingRoot() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        testGetMissingRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetMissingRootForPersister(persister);
+    }
+
+    private static void testGetMissingRootForPersister(Persister persister) throws PersisterException {
+        assertArrayEquals(null, persister.get(""));
     }
 
     @Test(expected = PersisterException.class)
     public void testDeleteMissing() throws PersisterException {
-        persister.delete(KEY);
+        persister.deleteAll(KEY);
     }
 
     @Test
     public void testGetChildren() throws Exception {
-        // Run against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
         CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        testGetChildren(CuratorPersister.newBuilder(mockServiceSpec).build());
-        testGetChildren(persister);
+        testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetChildrenForPersister(persister);
     }
 
-    private static void testGetChildren(Persister persister) throws PersisterException {
+    private static void testGetChildrenForPersister(Persister persister) throws PersisterException {
         persister.set("/a", VAL);
         persister.set("/a/1", VAL);
         persister.set("/a/2/a", VAL);
@@ -102,53 +130,32 @@ public class MemPersisterTest {
         checkChildren(Collections.emptyList(), persister, "d/1/a/1");
     }
 
-    private static void checkChildren(Collection<String> expected, Persister persister, String path)
-            throws PersisterException {
-        expected = new TreeSet<>(expected); // ensure types match for assert calls
-        assertEquals(path, expected, persister.getChildren(path));
-        assertEquals("/" + path, expected, persister.getChildren("/" + path));
-        assertEquals(path + "/", expected, persister.getChildren(path + "/"));
-        assertEquals("/" + path + "/", expected, persister.getChildren("/" + path + "/"));
+    @Test
+    public void testGetChildrenMissingRoot() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        testGetChildrenEmptyRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetChildrenEmptyRootForPersister(persister);
     }
 
-    private static void checkNotFound(Persister persister, String path) {
-        try {
-            persister.getChildren(path);
-            fail("expected exception");
-        } catch (PersisterException e) {
-            assertEquals(Reason.NOT_FOUND, e.getReason());
-        }
-        try {
-            persister.getChildren("/" + path);
-            fail("expected exception");
-        } catch (PersisterException e) {
-            assertEquals(Reason.NOT_FOUND, e.getReason());
-        }
-        try {
-            persister.getChildren(path + "/");
-            fail("expected exception");
-        } catch (PersisterException e) {
-            assertEquals(Reason.NOT_FOUND, e.getReason());
-        }
-        try {
-            persister.getChildren("/" + path + "/");
-            fail("expected exception");
-        } catch (PersisterException e) {
-            assertEquals(Reason.NOT_FOUND, e.getReason());
-        }
+    private static void testGetChildrenEmptyRootForPersister(Persister persister) throws PersisterException {
+        assertTrue(persister.getChildren("").isEmpty());
+        assertTrue(persister.getChildren("/").isEmpty());
     }
 
     @Test
     public void testDeleteChildren() throws Exception {
-        // Run against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
         CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        testDeleteChildren(CuratorPersister.newBuilder(mockServiceSpec).build());
-        testDeleteChildren(persister);
+        testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testDeleteChildrenForPersister(persister);
     }
 
-    private static void testDeleteChildren(Persister persister) throws Exception {
+    private static void testDeleteChildrenForPersister(Persister persister) throws Exception {
         persister.set("/a", VAL);
         persister.set("/a/1", VAL);
         persister.set("/a/2/a", VAL);
@@ -158,20 +165,53 @@ public class MemPersisterTest {
         persister.set("/c", VAL);
         persister.set("/d/1/a/1", VAL);
 
-        persister.delete("/a/1");
+        persister.deleteAll("/a/1");
         checkChildren(Arrays.asList("2", "3"), persister, "a");
-        persister.delete("/a/3/a");
+        persister.deleteAll("/a/3/a");
         checkChildren(Arrays.asList("2", "3"), persister, "a");
-        persister.delete("/b");
+        persister.deleteAll("/b");
         checkChildren(Arrays.asList("a", "c", "d"), persister, "");
-        persister.delete("/c");
+        persister.deleteAll("/c");
         checkChildren(Arrays.asList("a", "d"), persister, "");
-        persister.delete("/d/1");
+        persister.deleteAll("/d/1");
         checkChildren(Arrays.asList("a", "d"), persister, "");
-        persister.delete("/a");
+        persister.deleteAll("/a");
         checkChildren(Arrays.asList("d"), persister, "");
-        persister.delete("/d");
+        persister.deleteAll("/d");
         checkChildren(Collections.emptyList(), persister, "");
+    }
+
+    @Test
+    public void testDeleteRoot() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        testDeleteRootForPersister(persister, "");
+        testDeleteRootForPersister(persister, "/");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "/");
+    }
+
+    private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {
+        assertEquals(null, persister.get(""));
+        assertTrue(persister.getChildren("").isEmpty());
+
+        persister.set("/a", VAL);
+        persister.set("/a/1", VAL);
+        persister.set("/a/2/a", VAL);
+        persister.set("/a/3", VAL);
+        persister.set("/a/3/a/1", VAL);
+        persister.set("/b", VAL);
+        persister.set("/c", VAL);
+        persister.set("/d/1/a/1", VAL);
+
+        persister.deleteAll(rootPathToDelete);
+
+        byte[] dat = persister.get("");
+        String desc = dat == null ? "NULL" : String.format("%d bytes", dat.length);
+        assertEquals(desc, null, dat);
+        assertTrue(persister.getChildren("").isEmpty());
     }
 
     @Test
@@ -190,7 +230,7 @@ public class MemPersisterTest {
                             assertArrayEquals(VAL2, persister.get(key));
                             persister.setMany(Collections.singletonMap(key, VAL));
                             assertArrayEquals(VAL, persister.get(key));
-                            persister.delete(key);
+                            persister.deleteAll(key);
                             try {
                                 persister.get(key);
                                 fail("Expected exception");
@@ -228,5 +268,41 @@ public class MemPersisterTest {
             t.join();
         }
         assertTrue(errors.toString(), errors.isEmpty());
+    }
+
+    private static void checkChildren(Collection<String> expected, Persister persister, String path)
+            throws PersisterException {
+        expected = new TreeSet<>(expected); // ensure types match for assert calls
+        assertEquals(path, expected, persister.getChildren(path));
+        assertEquals("/" + path, expected, persister.getChildren("/" + path));
+        assertEquals(path + "/", expected, persister.getChildren(path + "/"));
+        assertEquals("/" + path + "/", expected, persister.getChildren("/" + path + "/"));
+    }
+
+    private static void checkNotFound(Persister persister, String path) {
+        try {
+            persister.getChildren(path);
+            fail("expected exception");
+        } catch (PersisterException e) {
+            assertEquals(Reason.NOT_FOUND, e.getReason());
+        }
+        try {
+            persister.getChildren("/" + path);
+            fail("expected exception");
+        } catch (PersisterException e) {
+            assertEquals(Reason.NOT_FOUND, e.getReason());
+        }
+        try {
+            persister.getChildren(path + "/");
+            fail("expected exception");
+        } catch (PersisterException e) {
+            assertEquals(Reason.NOT_FOUND, e.getReason());
+        }
+        try {
+            persister.getChildren("/" + path + "/");
+            fail("expected exception");
+        } catch (PersisterException e) {
+            assertEquals(Reason.NOT_FOUND, e.getReason());
+        }
     }
 }

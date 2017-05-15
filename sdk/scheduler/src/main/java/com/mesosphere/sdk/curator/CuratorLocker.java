@@ -12,7 +12,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.PathUtils;
+import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
@@ -46,7 +46,7 @@ public class CuratorLocker {
         curatorClient = CuratorFrameworkFactory.newClient(zookeeperConnection, CuratorUtils.getDefaultRetry());
         curatorClient.start();
 
-        final String lockPath = PathUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH);
+        final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH);
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);

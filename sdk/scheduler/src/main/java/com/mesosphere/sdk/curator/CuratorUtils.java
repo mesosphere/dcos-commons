@@ -4,7 +4,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.state.PathUtils;
+import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
@@ -28,7 +28,7 @@ class CuratorUtils {
      * Returns the root node to store all scheduler ZK data inside.
      */
     static String getServiceRootPath(String serviceName) {
-        if (serviceName.startsWith(PathUtils.PATH_DELIM)) {
+        if (serviceName.startsWith(PersisterUtils.PATH_DELIM)) {
             // "/dcos-service-" + "/foo"
             return DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName.substring(1);
         } else {

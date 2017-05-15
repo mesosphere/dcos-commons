@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
@@ -92,7 +93,7 @@ public class DefaultStateStore implements StateStore {
     @Override
     public void clearFrameworkId() throws StateStoreException {
         try {
-            persister.delete(FWK_ID_PATH_NAME);
+            persister.deleteAll(FWK_ID_PATH_NAME);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent FrameworkID should not result in an exception from us.
@@ -185,7 +186,7 @@ public class DefaultStateStore implements StateStore {
     @Override
     public void clearTask(String taskName) throws StateStoreException {
         try {
-            persister.delete(getTaskPath(taskName));
+            persister.deleteAll(getTaskPath(taskName));
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Task should not result in an exception from us.
@@ -307,7 +308,7 @@ public class DefaultStateStore implements StateStore {
         StateStoreUtils.validateKey(key);
         StateStoreUtils.validateValue(value);
         try {
-            final String path = PathUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
             persister.set(path, value);
         } catch (PersisterException e) {
@@ -319,7 +320,7 @@ public class DefaultStateStore implements StateStore {
     public byte[] fetchProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = PathUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
             return persister.get(path);
         } catch (PersisterException e) {
@@ -346,9 +347,9 @@ public class DefaultStateStore implements StateStore {
     public void clearProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = PathUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
-            persister.delete(path);
+            persister.deleteAll(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Property should not result in an exception from us.
@@ -370,15 +371,15 @@ public class DefaultStateStore implements StateStore {
     // Internals
 
     protected static String getTaskInfoPath(String taskName) {
-        return PathUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
+        return PersisterUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
     }
 
     protected static String getTaskStatusPath(String taskName) {
-        return PathUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+        return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
     }
 
     protected static String getTaskPath(String taskName) {
-        return PathUtils.join(TASKS_ROOT_NAME, taskName);
+        return PersisterUtils.join(TASKS_ROOT_NAME, taskName);
     }
 
     /**

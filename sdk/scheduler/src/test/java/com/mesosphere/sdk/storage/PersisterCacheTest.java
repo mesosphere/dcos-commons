@@ -6,7 +6,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.state.PathUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.StandardCharsets;
@@ -45,48 +44,93 @@ public class PersisterCacheTest {
     @Test
     public void testInitEmpty() throws PersisterException {
         cache = new PersisterCache(persister);
-        assertTrue(getAllKeys(cache).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
     }
 
     @Test
-    public void testInitNonEmpty() throws PersisterException {
+    public void testInitBasic() throws PersisterException {
         persister.set(KEY, VAL);
         persister.set(KEY2, VAL2);
         cache = new PersisterCache(persister); // recreate with non-empty persister
-        assertEquals(BOTH_KEYS_SET, getAllKeys(cache));
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
+    }
+
+    @Test
+    public void testInitComplicated() throws PersisterException {
+        Map<String, byte[]> dataToAdd = new TreeMap<>();
+        dataToAdd.put("ConfigTarget", VAL);
+        dataToAdd.put("Configurations/abad-coffee", VAL2);
+        dataToAdd.put("FrameworkID", VAL);
+        dataToAdd.put("Properties/suppressed", VAL2);
+        dataToAdd.put("SchemaVersion", VAL);
+        dataToAdd.put("Tasks/node-0/TaskInfo", VAL2);
+        dataToAdd.put("Tasks/node-0/TaskStatus", VAL);
+        dataToAdd.put("Tasks/node-1/TaskInfo", VAL2);
+        dataToAdd.put("Tasks/node-1/TaskStatus", VAL);
+        dataToAdd.put("Tasks/node-2/TaskInfo", VAL2);
+        dataToAdd.put("Tasks/node-2/TaskStatus", VAL);
+
+        Map<String, byte[]> expectedData = new TreeMap<>(); // keys get a slash added to the front
+        for (Map.Entry<String, byte[]> entry : dataToAdd.entrySet()) {
+            persister.set(entry.getKey(), entry.getValue());
+            expectedData.put("/" + entry.getKey(), entry.getValue());
+        }
+        cache = new PersisterCache(persister); // recreate with non-empty persister
+
+        assertEquals(expectedData, PersisterUtils.getAllData(cache));
+
+        Set<String> expectedKeys = new TreeSet<>(); // parent keys are included in keys list
+        expectedKeys.add("/ConfigTarget");
+        expectedKeys.add("/Configurations");
+        expectedKeys.add("/Configurations/abad-coffee");
+        expectedKeys.add("/FrameworkID");
+        expectedKeys.add("/Properties");
+        expectedKeys.add("/Properties/suppressed");
+        expectedKeys.add("/SchemaVersion");
+        expectedKeys.add("/Tasks");
+        expectedKeys.add("/Tasks/node-0");
+        expectedKeys.add("/Tasks/node-0/TaskInfo");
+        expectedKeys.add("/Tasks/node-0/TaskStatus");
+        expectedKeys.add("/Tasks/node-1");
+        expectedKeys.add("/Tasks/node-1/TaskInfo");
+        expectedKeys.add("/Tasks/node-1/TaskStatus");
+        expectedKeys.add("/Tasks/node-2");
+        expectedKeys.add("/Tasks/node-2/TaskInfo");
+        expectedKeys.add("/Tasks/node-2/TaskStatus");
+        assertEquals(expectedKeys, PersisterUtils.getAllKeys(cache));
     }
 
     @Test
     public void testSetGetDelete() throws PersisterException {
         cache.set(KEY, VAL);
         assertArrayEquals(VAL, cache.get(KEY));
-        assertEquals(KEY_SET, getAllKeys(persister));
-        assertEquals(KEY_SET, getAllKeys(cache));
+        assertEquals(KEY_SET, PersisterUtils.getAllKeys(persister));
+        assertEquals(KEY_SET, PersisterUtils.getAllKeys(cache));
 
         cache.set(KEY2, VAL2);
         assertArrayEquals(VAL2, cache.get(KEY2));
-        assertEquals(BOTH_KEYS_SET, getAllKeys(persister));
-        assertEquals(BOTH_KEYS_SET, getAllKeys(cache));
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.delete(KEY);
+        cache.deleteAll(KEY);
         try {
             cache.get(KEY);
             fail("Expected exception");
         } catch (Exception e) {
             // expected, continue testing
         }
-        assertEquals(KEY2_SET, getAllKeys(persister));
-        assertEquals(KEY2_SET, getAllKeys(cache));
+        assertEquals(KEY2_SET, PersisterUtils.getAllKeys(persister));
+        assertEquals(KEY2_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.delete(KEY2);
+        cache.deleteAll(KEY2);
         try {
             cache.get(KEY2);
             fail("Expected exception");
         } catch (Exception e) {
             // expected, continue testing
         }
-        assertTrue(getAllKeys(persister).isEmpty());
-        assertTrue(getAllKeys(cache).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
     }
 
     @Test
@@ -96,8 +140,8 @@ public class PersisterCacheTest {
         cache.setMany(map);
 
         assertArrayEquals(VAL, cache.get(KEY));
-        assertEquals(KEY_SET, getAllKeys(persister));
-        assertEquals(KEY_SET, getAllKeys(cache));
+        assertEquals(KEY_SET, PersisterUtils.getAllKeys(persister));
+        assertEquals(KEY_SET, PersisterUtils.getAllKeys(cache));
 
         map.put(KEY, VAL2); // overwrite prior value
         map.put(KEY2, VAL2);
@@ -105,14 +149,26 @@ public class PersisterCacheTest {
 
         assertArrayEquals(VAL2, cache.get(KEY));
         assertArrayEquals(VAL2, cache.get(KEY2));
-        assertEquals(BOTH_KEYS_SET, getAllKeys(persister));
-        assertEquals(BOTH_KEYS_SET, getAllKeys(cache));
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.delete(KEY);
-        cache.delete(KEY2);
+        cache.deleteAll(KEY);
+        cache.deleteAll(KEY2);
 
-        assertTrue(getAllKeys(persister).isEmpty());
-        assertTrue(getAllKeys(cache).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
+    }
+
+    @Test(expected = PersisterException.class)
+    public void testCloseEmptiesCache() throws PersisterException {
+        cache.set(KEY, VAL);
+        assertArrayEquals(VAL, cache.get(KEY));
+
+        cache.close();
+
+        assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
+        cache.get(KEY);
     }
 
     @Test
@@ -129,7 +185,7 @@ public class PersisterCacheTest {
         } catch (PersisterException e) {
             // expected
         }
-        assertEquals(KEY_SET, getAllKeys(cache));
+        assertEquals(KEY_SET, PersisterUtils.getAllKeys(cache));
         assertArrayEquals(VAL, cache.get(KEY));
         try {
             cache.get(KEY2);
@@ -156,7 +212,7 @@ public class PersisterCacheTest {
         } catch (PersisterException e) {
             // expected
         }
-        assertTrue(getAllKeys(cache).isEmpty());
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
         try {
             cache.get(KEY);
             fail("Expected exception");
@@ -175,19 +231,20 @@ public class PersisterCacheTest {
     public void testDeleteFailsCacheUnchanged() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
-                .when(mockPersister).delete(KEY2);
+                .when(mockPersister).deleteAll(KEY2);
         cache = new PersisterCache(mockPersister);
         cache.set(KEY, VAL);
         cache.set(KEY2, VAL2);
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.delete(KEY);
+        cache.deleteAll(KEY);
         try {
-            cache.delete(KEY2);
+            cache.deleteAll(KEY2);
             fail("Expected exception");
         } catch (PersisterException e) {
             // expected
         }
-        assertEquals(KEY2_SET, getAllKeys(cache));
+        assertEquals(KEY2_SET, PersisterUtils.getAllKeys(cache));
         assertArrayEquals(VAL2, cache.get(KEY2));
         try {
             cache.get(KEY);
@@ -195,6 +252,23 @@ public class PersisterCacheTest {
         } catch (Exception e) {
             // expected, continue testing
         }
+    }
+
+    @Test
+    public void testDeleteDidntFailAsExpectedCacheDoesntThrow() throws PersisterException {
+        when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
+        cache = new PersisterCache(mockPersister);
+        cache.set(KEY, VAL);
+        cache.set(KEY2, VAL2);
+        assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
+
+        cache.deleteAll(KEY);
+        cache.deleteAll(KEY2);
+        assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
+
+        // mockPersister doesn't throw despite missing keys. cache then logs error but doesn't throw (noop):
+        cache.deleteAll(KEY);
+        cache.deleteAll(KEY2);
     }
 
     @Test
@@ -213,7 +287,7 @@ public class PersisterCacheTest {
                             assertArrayEquals(VAL2, cache.get(key));
                             cache.setMany(Collections.singletonMap(key, VAL));
                             assertArrayEquals(VAL, cache.get(key));
-                            cache.delete(key);
+                            cache.deleteAll(key);
                             try {
                                 cache.get(key);
                                 fail("Expected exception");
@@ -228,38 +302,6 @@ public class PersisterCacheTest {
             });
         }
         runThreads(threads);
-    }
-
-    @Test
-    public void testGetAllKeys() throws PersisterException {
-        Persister persister = new MemPersister();
-        Map<String, byte[]> map = new HashMap<>();
-        byte[] data = new byte[0];
-        map.put("/a", data);
-        map.put("/a/1", data);
-        map.put("/a/2/a", data);
-        map.put("/a/3", data);
-        map.put("/a/3/a/1", data);
-        map.put("/b", data);
-        map.put("/c", data);
-        map.put("/d/1/a/1", data);
-        persister.setMany(map);
-
-        Set<String> expected = new TreeSet<>();
-        expected.add("/a");
-        expected.add("/a/1");
-        expected.add("/a/2");
-        expected.add("/a/2/a");
-        expected.add("/a/3");
-        expected.add("/a/3/a");
-        expected.add("/a/3/a/1");
-        expected.add("/b");
-        expected.add("/c");
-        expected.add("/d");
-        expected.add("/d/1");
-        expected.add("/d/1/a");
-        expected.add("/d/1/a/1");
-        assertEquals(expected, getAllKeys(persister));
     }
 
     private static void runThreads(Collection<Runnable> runnables) throws InterruptedException {
@@ -283,22 +325,5 @@ public class PersisterCacheTest {
             t.join();
         }
         assertTrue(errors.toString(), errors.isEmpty());
-    }
-
-    /**
-     * Returns a list of all keys within the provided {@link Persister}.
-     */
-    private static Collection<String> getAllKeys(Persister persister) throws PersisterException {
-        return getAllKeysUnder(persister, PathUtils.PATH_DELIM);
-    }
-
-    private static Collection<String> getAllKeysUnder(Persister persister, String path) throws PersisterException {
-        Collection<String> allKeys = new TreeSet<>(); // consistent ordering (mainly for tests)
-        for (String child : persister.getChildren(path)) {
-            String childPath = PathUtils.join(path, child);
-            allKeys.add(childPath);
-            allKeys.addAll(getAllKeysUnder(persister, childPath)); // RECURSE
-        }
-        return allKeys;
     }
 }

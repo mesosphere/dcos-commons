@@ -325,7 +325,7 @@ public class CuratorPersisterTest {
         }
 
         // Delete ACL'ed data so that other tests don't have ACL problems trying to clear it:
-        aclPersister.delete(PATH_PARENT);
+        aclPersister.deleteAll(PATH_PARENT);
     }
 
     /**

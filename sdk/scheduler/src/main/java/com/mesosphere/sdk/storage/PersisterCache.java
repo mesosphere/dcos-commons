@@ -9,8 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.state.PathUtils;
-
 /**
  * A transparent write-through cache for an underlying {@link Persister} instance. Each cache instance is thread-safe,
  * but there is no guarantee of consistent behavior across multiple cache instances.
@@ -74,12 +72,12 @@ public class PersisterCache implements Persister {
     }
 
     @Override
-    public void delete(String path) throws PersisterException {
+    public void deleteAll(String path) throws PersisterException {
         rwlock.lock();
         try {
-            persister.delete(path);
+            persister.deleteAll(path);
             try {
-                cache.delete(path);
+                cache.deleteAll(path);
             } catch (PersisterException e) {
                 // We don't throw an exception here if our 'data' cache lacks the value. In theory 'persister' should've
                 // thrown in that case anyway -- so we're effectively replicating what the underlying persister does.
@@ -108,11 +106,14 @@ public class PersisterCache implements Persister {
     public void refresh() throws PersisterException {
         rwlock.lock();
         try {
-            // We already have our own locking, so we don't need it in the underlying cache:
-            cache = new MemPersister(MemPersister.LockMode.DISABLED);
-            for (String key : persister.getChildren(PathUtils.PATH_DELIM)) {
-                cache.set(key, persister.get(key));
+            if (cache != null) {
+                logger.info("Cache content before refresh:\n{}", cache.getDebugString());
             }
+
+            // We already have our own locking, so we can disable locking in the underlying cache:
+            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
+
+            logger.info("Cache content after refresh:\n{}", cache.getDebugString());
         } finally {
             rwlock.unlock();
         }

@@ -6,6 +6,7 @@ import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
     public void clear(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
-            persister.delete(path);
+            persister.deleteAll(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
@@ -177,6 +178,6 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
     }
 
     private static String getConfigPath(UUID id) {
-        return PathUtils.join(CONFIGURATIONS_PATH_NAME, id.toString());
+        return PersisterUtils.join(CONFIGURATIONS_PATH_NAME, id.toString());
     }
 }

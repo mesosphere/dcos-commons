@@ -2,9 +2,9 @@ package com.mesosphere.sdk.curator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.PathUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.curator.RetryPolicy;
@@ -148,6 +148,10 @@ public class CuratorPersister implements Persister {
         try {
             return client.getData().forPath(path);
         } catch (KeeperException.NoNodeException e) {
+            if (path.equals(serviceRootPath)) {
+                // Special case: Root is always present. Missing root should be treated as a root with no data.
+                return null;
+            }
             throw new PersisterException(Reason.NOT_FOUND, String.format("Path to get does not exist: %s", path), e);
         } catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR,
@@ -161,6 +165,10 @@ public class CuratorPersister implements Persister {
         try {
             return new TreeSet<>(client.getChildren().forPath(path));
         } catch (KeeperException.NoNodeException e) {
+            if (path.equals(serviceRootPath)) {
+                // Special case: Root is always present. Missing root should be treated as a root with no data.
+                return Collections.emptySet();
+            }
             throw new PersisterException(Reason.NOT_FOUND, String.format("Path to list does not exist: %s", path), e);
         } catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to get children of %s", path), e);
@@ -168,20 +176,34 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void delete(String unprefixedPath) throws PersisterException {
+    public void deleteAll(String unprefixedPath) throws PersisterException {
         final String path = withFrameworkPrefix(unprefixedPath);
-        try {
-            client.delete().deletingChildrenIfNeeded().forPath(path);
-        } catch (KeeperException.NoNodeException e) {
-            throw new PersisterException(Reason.NOT_FOUND, String.format("Path to delete does not exist: %s", path), e);
-        } catch (Exception e) {
-            throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to delete %s", path), e);
+        if (path.equals(serviceRootPath)) {
+            // Special case: If we're being told to delete root, we should instead delete the contents OF root. We don't
+            // have access to delete the root-level '/dcos-service-<svcname>' node itself, despite having created it.
+            for (String child : getChildren(unprefixedPath)) {
+                deleteAll(child);
+            }
+            // Need to explicitly set null or else curator will return a zero-bytes value later!:
+            set(unprefixedPath, null);
+        } else {
+            // Normal case: Delete node itself and any/all children.
+            logger.debug("Deleting {} (and any children)", path);
+            try {
+                client.delete().deletingChildrenIfNeeded().forPath(path);
+            } catch (KeeperException.NoNodeException e) {
+                throw new PersisterException(
+                        Reason.NOT_FOUND, String.format("Path to delete does not exist: %s", path), e);
+            } catch (Exception e) {
+                throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to delete %s", path), e);
+            }
         }
     }
 
     @Override
     public void set(String unprefixedPath, byte[] bytes) throws PersisterException {
         final String path = withFrameworkPrefix(unprefixedPath);
+        logger.debug("Setting {} => {}", path, getInfo(bytes));
         try {
             try {
                 client.create().creatingParentsIfNeeded().forPath(path, bytes);
@@ -199,10 +221,12 @@ public class CuratorPersister implements Persister {
         if (unprefixedPathBytesMap.isEmpty()) {
             return;
         }
+        // Convert map to translated prefixed paths:
         Map<String, byte[]> pathBytesMap = new TreeMap<>(); // use consistent ordering
         for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
             pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
         }
+        logger.debug("Setting many entries: {}", pathBytesMap.keySet());
         try {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
                 // Phase 1: Determine which nodes already exist. This determination can be rendered
@@ -242,6 +266,9 @@ public class CuratorPersister implements Persister {
         client.close();
     }
 
+    /**
+     * Returns the subset of the provided (prefixed) paths which exist in ZK.
+     */
     private Set<String> selectPathsWhichExist(Set<String> paths) throws Exception {
         Set<String> pathsWhichExist = new HashSet<>();
         for (String path : paths) {
@@ -252,6 +279,9 @@ public class CuratorPersister implements Persister {
         return pathsWhichExist;
     }
 
+    /**
+     * Returns the list of parent paths which need to be created, given a list of paths which already exist.
+     */
     private List<String> getParentPathsToCreate(Set<String> paths, Set<String> pathsWhichExist) throws Exception {
         List<String> parentPathsToCreate = new ArrayList<>();
         for (String path : paths) {
@@ -259,7 +289,7 @@ public class CuratorPersister implements Persister {
                 continue;
             }
             // Transaction interface doesn't support creatingParentsIfNeeded(), so go manual.
-            for (String parentPath : PathUtils.getParentPaths(path)) {
+            for (String parentPath : PersisterUtils.getParentPaths(path)) {
                 if (client.checkExists().forPath(parentPath) == null
                         && !parentPathsToCreate.contains(parentPath)) {
                     parentPathsToCreate.add(parentPath);
@@ -290,14 +320,24 @@ public class CuratorPersister implements Persister {
     }
 
     /**
-     * Maps the provided external path into a framework-namespaced path.
+     * Maps the provided external path into a framework-namespaced path. This translation MUST be performed against all
+     * externally-provided paths, or else unintended data loss in ZK may result!!
+     *
+     * <p>Examples:
+     * <ul><li>"/foo" => "/dcos-service-svcname/foo"</li>
+     * <li>"/" => "/dcos-service-svcname"</li>
+     * <li>"" => "/dcos-service-svcname"</li></ul>
      */
     private String withFrameworkPrefix(String path) {
-        path = PathUtils.join(serviceRootPath, path);
+        path = PersisterUtils.join(serviceRootPath, path);
         // Avoid any trailing slashes, which lead to STORAGE_ERRORs:
-        while (path.endsWith(PathUtils.PATH_DELIM)) {
+        while (path.endsWith(PersisterUtils.PATH_DELIM)) {
             path = path.substring(0, path.length() - 1);
         }
         return path;
+    }
+
+    private static String getInfo(byte[] bytes) {
+        return bytes == null ? "NULL" : String.format("%d bytes", bytes.length);
     }
 }
