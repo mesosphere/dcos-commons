@@ -6,7 +6,6 @@ import os.path
 import subprocess
 import sys
 import tempfile
-import venv
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
@@ -24,29 +23,11 @@ def venv_exists(path):
 def create_venv(path, with_pip=True, symlinks=True):
     "Create, but do not activate, a virtual env"
     path = os.path.abspath(path)
-    logger.info("using venv module at path %s", venv.__file__)
-    builder = venv.EnvBuilder(with_pip=with_pip, symlinks=symlinks)
 
-
-    logger.info("Creating venv at %s", path)
+    logger.info("Creating virtualenv at %s", path)
     logger.info("current environment is: %s", os.environ)
-    #builder.create(path)
-    context = builder.ensure_directories(path)
-    logger.info("venv context: %s", context)
-    logger.info("venv listing: %s", ", ".join(os.listdir(path)))
-    builder.create_configuration(context)
-    cfg_file = os.path.join(path, 'pyvenv.cfg')
-    with open(cfg_file) as f:
-        logger.info("venv pyvenv.cfg: %s", f.read())
 
-    builder.setup_python(context)
-    bin_dir = os.path.join(path, 'bin')
-    dirents1 =  os.listdir(bin_dir)
-    logger.info("After setup_python, files in %s: %s", bin_dir, ", ".join(dirents1))
-
-    builder._setup_pip(context)
-    dirents2 =  os.listdir(bin_dir)
-    logger.info("After _setup_pip, files in %s: %s", bin_dir, ", ".join(dirents2))
+    subprocess.check_call(["virtualenv", "-p", sys.executable, "--always-copy", path])
 
 
 
@@ -57,32 +38,21 @@ def activate_venv(path):
 
     path = os.path.abspath(path)
     venv_bin = os.path.join(path, 'bin')
+    logger.info("system path before activation: %s", sys.path)
+    activate_script = os.path.join(venv_bin, "activate_this.py")
 
-    base = path
-    if sys.platform == 'win32':
-        site_packages = os.path.join(base, 'Lib', 'site-packages')
-    else:
-        site_packages = os.path.join(base, 'lib', 'python%s' % sys.version[:3], 'site-packages')
+    with open(activate_script) as f:
+        activate_text = f.read()
 
-    # if already activated, do nothing
-    if site_packages == sys.path[0]:
-        return
+    exec(activate_text, dict(__file__=activate_script))
+    logger.info("system path after activation: %s", sys.path)
 
-    old_os_path = os.environ.get('PATH', '')
-    os.environ['PATH'] = venv_bin + os.pathsep + old_os_path
 
-    prev_sys_path = list(sys.path)
-    import site
-    site.addsitedir(site_packages)
-    sys.real_prefix = sys.prefix
-    sys.prefix = base
-    # Move the added items to the front of the path:
-    new_sys_path = []
-    for item in list(sys.path):
-        if item not in prev_sys_path:
-            new_sys_path.append(item)
-            sys.path.remove(item)
-    sys.path[:0] = new_sys_path
+def pip_install_module(path, modulename):
+    """Populate a venv with specific module"""
+    pip_bin = os.path.join(path, 'bin', 'pip')
+    run_cmd(path, [pip_bin, 'install', modulename])
+
 
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"
