@@ -136,13 +136,13 @@ def test_kibana_proxylite_adminrouter_integration():
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
-    # Remove this once Universe package version defaults to user `nobody`
     options = {
         "service": {
-            "user": "nobody"
+            "beta-optin": True
         }
     }
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=options)
+    sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                                       additional_options=options)
 
 
 @pytest.mark.recovery
