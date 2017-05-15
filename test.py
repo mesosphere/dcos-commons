@@ -59,6 +59,9 @@ def parse_args(args=sys.argv):
             default='success-only',
             help="On test completion, shut down any cluster(s) automatically created.  "
             'For "success-only", test failures will leave the cluster running.')
+    parser.add_argument("--continue-on-error", action='store_true',
+            help="If a framework test fails, uninstall and keep going.  "
+            "Default: stop all testing on a framework error.")
     parser.add_argument("test", nargs="*", help="Test or tests to run.  "
             "If no args provided, run all.")
     run_attrs = parser.parse_args()
@@ -337,7 +340,8 @@ def teardown_clusters():
     logger.info("Shutting down all clusters.")
     clustinfo.shutdown_clusters()
 
-def _one_cluster_linear_tests(run_attrs, repo_root):
+def _one_cluster_linear_tests(run_attrs, repo_root, continue_on_error):
+    fail_fast = not continue_on_error
     if run_attrs.cluster_url and run_attrs.cluster_token:
         clustinfo.add_running_cluster(run_attrs.cluster_url,
                                       run_attrs.cluster_token)
@@ -399,10 +403,11 @@ def _handle_test_completions():
     return all_tests_ok
 
 
-def _multicluster_linear_per_cluster(run_attrs, repo_root):
+def _multicluster_linear_per_cluster(run_attrs, repo_root, continue_on_error):
+    fail_fast = not continue_on_error
     test_list = list(fwinfo.get_framework_names())
     next_test = None
-    all_ok = False # only one completion state out of the loop
+    all_ok = True
     try:
         while True:
             # acquire the next test, if there is one
@@ -435,10 +440,12 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                     # TODO: report .out sizes for running tests
                     time.sleep(30) # waiting for an available cluster
                     # meanwhile, a test might finish
-                    all_ok = _handle_test_completions()
-                    if not all_ok:
-                        logger.info("Some tests failed; aborting early") # TODO paramaterize
-                        break
+                    run_ok = _handle_test_completions()
+                    if not run_ok:
+                        all_ok = False
+                        if fail_fast:
+                            logger.info("Some tests failed; aborting early") # TODO paramaterize
+                            break
                     continue
 
                 # At this point, we have a cluster and a test, so start it.
@@ -455,23 +462,29 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root):
                 # No tests left, handle completion and waiting for completion.
                 if not fwinfo.running_frameworks():
                     logger.info("No framework tests running.  All done.")
-                    all_ok = True
                     break # all tests done
                 logger.info("No framework tests to launch, waiting for completions.")
                 # echo status
                 time.sleep(30) # waiting for tests to complete
 
             # after launching a test, or waiting, check for test completion.
+            run_ok = _handle_test_completions()
+            if not run_ok:
+                all_ok = False
+                if fail_fast:
+                    logger.info("Some tests failed; aborting early") # TODO paramaterize
+                    break
             all_ok = _handle_test_completions()
-            if not all_ok:
+            if fail_fast and not all_ok:
                 logger.info("Some tests failed; aborting early") # TODO paramaterize
                 break
     finally:
         # TODO probably should also make this teardown optional
         for framework_name in fwinfo.get_framework_names():
-            logger.info("Terminating subprocess for framework=%s", framework_name)
             framework = fwinfo.get_framework(framework_name)
             if framework.popen:
+                logger.info("Sending SIGTERM to subprocess for framework=%s, if still running",
+                             framework_name)
                 framework.popen.terminate() # does nothing if already completed
     return all_ok
 
@@ -481,9 +494,11 @@ def run_tests(run_attrs, repo_root):
         all_passed = False
         if run_attrs.parallel:
             logger.debug("Running multicluster test run")
-            all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
+            all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root,
+                                                          run_attrs.continue_on_error)
         else:
-            all_passed = _one_cluster_linear_tests(run_attrs, repo_root)
+            all_passed = _one_cluster_linear_tests(run_attrs, repo_root,
+                                                   run_attrs.continue_on_error)
         if not all_passed:
             raise Exception("Some tests failed.")
     finally:
