@@ -41,7 +41,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         final Set<OfferID> dirtiedOffers = new HashSet<>();
 
         // Assets that are being actively worked on
-        final Set<String> dirtiedAssets = new HashSet<>();
+        final Set<PodInstanceRequirement> dirtiedAssets = new HashSet<>();
 
         // Offers that are available for scheduling (copy original list to allow modification below)
         final List<Offer> offers = new ArrayList<>(offersToProcess);
@@ -63,7 +63,8 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             }
 
             try {
-                Set<String> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
+                Collection<PodInstanceRequirement> relevantDirtyAssets =
+                        getRelevantDirtyAssets(planManager, dirtiedAssets);
                 LOGGER.info("Processing offers for plan: '{}' with relevant dirtied assets: {}.",
                         planManager.getPlan().getName(), relevantDirtyAssets);
 
@@ -114,9 +115,25 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         return planManagers;
     }
 
-    private Set<String> getRelevantDirtyAssets(PlanManager planManager, Set<String> dirtiedAssets) {
-        Set<String> relevantDirtyAssets = new HashSet<>(dirtiedAssets);
-        relevantDirtyAssets.removeAll(planManager.getDirtyAssets());
-        return relevantDirtyAssets;
+    private Collection<PodInstanceRequirement> getRelevantDirtyAssets(
+            PlanManager planManager,
+            Set<PodInstanceRequirement> dirtyAssets) {
+        LOGGER.info("Input dirty assets: {}", dirtyAssets);
+        LOGGER.info("Plan's dirty assets: {}", planManager.getDirtyAssets());
+
+        Plan plan = planManager.getPlan();
+        return dirtyAssets.stream()
+                .filter(podInstanceRequirement -> assetIsRelevant(podInstanceRequirement, plan))
+                .collect(Collectors.toList());
+    }
+
+    private boolean assetIsRelevant(PodInstanceRequirement podInstanceRequirement, Plan plan) {
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .filter(step -> step.isInProgress())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .filter(podRequirement -> podRequirement.conflictsWith(podInstanceRequirement))
+                .count() == 0;
     }
 }

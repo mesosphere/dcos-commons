@@ -87,9 +87,16 @@ public interface Element extends Observable {
     }
 
     /**
+     * Indicates whether this Element is in progress.
+     */
+    default boolean isInProgress() {
+        return isPrepared() || isStarting() || getStatus().equals(Status.IN_PROGRESS);
+    }
+
+    /**
      * Indicates whether this Element is capable of being started.
      */
-    default boolean isEligible(Collection<String> dirtyAssets) {
+    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return !isComplete() && !hasErrors();
     }
 

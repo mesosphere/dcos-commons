@@ -1,12 +1,15 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.time.Duration;
 
@@ -14,6 +17,8 @@ public class UninstallSchedulerDeregisterTest {
 
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
+    @Mock
+    private ConfigStore<ServiceSpec> configStore;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -28,7 +33,7 @@ public class UninstallSchedulerDeregisterTest {
                 testingServer.getConnectString()));
 
         // No framework ID is set yet, and there are no tasks, and no ScheduleDriver
-        uninstallScheduler = new UninstallScheduler(0, Duration.ofSeconds(1), stateStore);
+        uninstallScheduler = new UninstallScheduler(0, Duration.ofSeconds(1), stateStore, configStore);
     }
 
     @Test

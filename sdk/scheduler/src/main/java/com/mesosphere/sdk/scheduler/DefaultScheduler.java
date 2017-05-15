@@ -83,7 +83,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    protected final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    protected final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
 
@@ -123,8 +123,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
-        private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
         private Collection<Object> resources = new ArrayList<>();
+        private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
             this.serviceSpec = serviceSpec;
@@ -261,11 +261,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         /**
          * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
-         *
-         * @param recoveryManagerFactory the factory whcih generates the custom recovery plan manager
+         * @param recoveryPlanOverriderFactory the factory whcih generates the custom recovery plan manager
          */
-        public Builder setRecoveryManagerFactory(RecoveryPlanManagerFactory recoveryManagerFactory) {
-            this.recoveryPlanManagerFactory = recoveryManagerFactory;
+        public Builder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
+            this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
             return this;
         }
 
@@ -373,7 +372,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                             stateStore, serviceSpec.getName(), configUpdateResult.getTargetId(), getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
-                    Optional.ofNullable(recoveryPlanManagerFactory),
+                    Optional.ofNullable(recoveryPlanOverriderFactory),
                     configUpdateResult);
         }
 
@@ -561,7 +560,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RestartHook> restartHookOptional,
-            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional,
+            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
@@ -572,7 +571,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
-        this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
+        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
     }
@@ -606,7 +605,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
-        taskFailureListener = new DefaultTaskFailureListener(stateStore);
+        taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
@@ -636,32 +635,35 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         LaunchConstrainer launchConstrainer;
         FailureMonitor failureMonitor;
+
         if (failurePolicyOptional.isPresent()) {
             ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
-            failureMonitor = new TimedFailureMonitor(Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+            failureMonitor = new TimedFailureMonitor(
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    stateStore,
+                    configStore);
         } else {
             launchConstrainer = new UnconstrainedLaunchConstrainer();
             failureMonitor = new NeverFailureMonitor();
         }
 
-        if (recoveryPlanManagerFactoryOptional.isPresent()) {
-            LOGGER.info("Using custom recovery plan manager.");
-            this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
+        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
+        if (recoveryPlanOverriderFactory.isPresent()) {
+            LOGGER.info("Adding overriding recovery plan manager.");
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(
                     stateStore,
                     configStore,
-                    launchConstrainer,
-                    failureMonitor,
-                    plans);
-        } else {
-            LOGGER.info("Using default recovery plan manager.");
-            this.recoveryPlanManager = new DefaultRecoveryPlanManager(
-                    stateStore,
-                    configStore,
-                    launchConstrainer,
-                    failureMonitor);
+                    plans));
         }
+
+        this.recoveryPlanManager = new DefaultRecoveryPlanManager(
+                stateStore,
+                configStore,
+                launchConstrainer,
+                failureMonitor,
+                overrideRecoveryPlanManagers);
     }
 
     protected void initializePlanCoordinator() {
@@ -839,15 +841,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                     planCoordinator.getPlanManagers().stream()
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
-
-                    if (status.getState().equals(Protos.TaskState.TASK_RUNNING)
-                            || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
-                        String taskName = CommonIdUtils.toTaskName(status.getTaskId());
-                        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-                        if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
-                            stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));
-                        }
-                    }
 
                     if (StateStoreUtils.isSuppressed(stateStore)
                             && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {

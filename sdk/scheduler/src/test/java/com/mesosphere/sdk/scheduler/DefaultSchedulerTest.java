@@ -31,7 +31,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.awaitility.Awaitility;
-import org.awaitility.Duration;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -522,8 +521,7 @@ public class DefaultSchedulerTest {
                 PlanTestUtils.getStepStatuses(plan));
 
         Assert.assertTrue(stepTaskA0.isComplete());
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         // Perform Configuration Update
         defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
@@ -552,8 +550,7 @@ public class DefaultSchedulerTest {
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         Protos.Offer expectedOffer = OfferTestUtils.getOffer(expectedResources);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(expectedOffer));
@@ -562,8 +559,7 @@ public class DefaultSchedulerTest {
                 operationsCaptor.capture(),
                 any());
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isStarting(), equalTo(true));
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         operations = operationsCaptor.getValue();
         launchedTaskId = getTaskId(operations);
@@ -625,62 +621,6 @@ public class DefaultSchedulerTest {
                     return !StateStoreUtils.isSuppressed(stateStore);
                 }
             });
-    }
-
-    @Test
-    public void testClearFailureMarkOnRunning() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testClearFailureMarkOnFinished() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnFailure() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnError() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
     }
 
     @Test
@@ -942,7 +882,7 @@ public class DefaultSchedulerTest {
                     defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
-                    defaultScheduler.recoveryPlanManagerFactoryOptional,
+                    defaultScheduler.recoveryPlanOverriderFactory,
                     new ConfigurationUpdater.UpdateResult(
                             UUID.randomUUID(),
                             ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,

@@ -63,7 +63,9 @@ public class DefaultPlanSchedulerTest {
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        podInstanceRequirement = PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance));
+        podInstanceRequirement = PodInstanceRequirement.newBuilder(
+                podInstance,
+                TaskUtils.getTaskNames(podInstance)).build();
     }
 
     @Test

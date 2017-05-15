@@ -21,20 +21,22 @@ import static org.mockito.Mockito.when;
 public class RandomRecoveryStrategyTest {
     @Mock private Step pendingStep;
     @Mock private Step completeStep;
+    @Mock private PodInstanceRequirement podInstancePending;
+    @Mock private PodInstanceRequirement podInstanceComplete;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         when(pendingStep.getName()).thenReturn("mock-step");
-        when(pendingStep.getAsset()).thenReturn(Optional.of("pending-step"));
+        when(pendingStep.getAsset()).thenReturn(Optional.of(podInstancePending));
         when(pendingStep.isPending()).thenReturn(true);
-        when(pendingStep.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(pendingStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         when(completeStep.getName()).thenReturn("mock-step");
-        when(completeStep.getAsset()).thenReturn(Optional.of("complete-step"));
+        when(completeStep.getAsset()).thenReturn(Optional.of(podInstanceComplete));
         when(completeStep.isPending()).thenReturn(false);
         when(completeStep.isComplete()).thenReturn(true);
-        when(completeStep.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(completeStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
     }
 
 

@@ -84,7 +84,7 @@ public class DefaultOfferRequirementProviderTest {
     public void testPlacementPassthru() throws InvalidRequirementException {
         List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
@@ -186,7 +186,7 @@ public class DefaultOfferRequirementProviderTest {
         List<String> tasksToLaunch = getTasksToLaunch(podInstance);
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
@@ -198,7 +198,7 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance networkPodInstance = getPodInstance("valid-networks-port-mapping.yml");
         List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(networkPodInstance, tasksToLaunch).build());
 
         Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
@@ -212,7 +212,7 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance networkPodInstance = getPodInstance("valid-minimal-networks.yml");
         List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(networkPodInstance, tasksToLaunch).build());
 
         Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
@@ -226,7 +226,7 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance dockerNetworkPodInstance = getPodInstance("valid-minimal-networks-docker.yml");
         List<String> tasksToLaunch = getTasksToLaunch(dockerNetworkPodInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(dockerNetworkPodInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(dockerNetworkPodInstance, tasksToLaunch).build());
 
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
@@ -244,7 +244,9 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
+                PodInstanceRequirement.newBuilder(
+                        dockerPodInstance,
+                        TaskUtils.getTaskNames(dockerPodInstance)).build());
 
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals("server", offerRequirement.getType());
@@ -279,8 +281,10 @@ public class DefaultOfferRequirementProviderTest {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
 
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
-                    dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        dockerPodInstance,
+                        TaskUtils.getTaskNames(dockerPodInstance)).build();
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement);
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
@@ -290,7 +294,10 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
-        offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement.withParameters(parameters));
+        offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                        .environment(parameters)
+                        .build());
 
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
@@ -312,7 +319,8 @@ public class DefaultOfferRequirementProviderTest {
         String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
         when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
-                provider.getExistingOfferRequirement(PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                provider.getExistingOfferRequirement(
+                        PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
     }
 
@@ -330,7 +338,8 @@ public class DefaultOfferRequirementProviderTest {
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(podInstance, tasksToLaunch);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build();
         OfferRequirement offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement);
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
@@ -339,7 +348,10 @@ public class DefaultOfferRequirementProviderTest {
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
-        offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement.withParameters(parameters));
+        offerRequirement = provider.getExistingOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                        .environment(parameters)
+                        .build());
 
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();

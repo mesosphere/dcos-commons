@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -129,9 +131,12 @@ public class OfferEvaluator {
                 .map(taskInfoOptional -> taskInfoOptional.get())
                 .count() == 0;
 
+        boolean podHasFailed = podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)
+                || FailureUtils.isLabeledAsFailed(podInstance, stateStore);
+
         final String description;
         final boolean shouldGetNewRequirement;
-        if (podInstanceRequirement.isPermanentReplacement()) {
+        if (podHasFailed) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noTasksExist) {
