@@ -40,6 +40,8 @@ def get_work_dir():
 
 def parse_args(args=sys.argv):
     parser = argparse.ArgumentParser(description="Optionally build and test dcos-commons frameworks")
+    parser.add_argument("--docker", action='store_true', dest='docker',
+            help="run the tests inside a docker container")
     parser.add_argument("--test-only", action='store_false', dest='run_build',
             help="requires a prior build")
     parser.add_argument("--build-only", action='store_false', dest='run_tests')
@@ -611,8 +613,55 @@ def report_failed_actions():
     # We actually have no functionality to report them right now.
     pass
 
+def run_in_docker():
+    non_docker_args = [arg for arg in sys.argv if arg != '--docker'][1:]
+
+    auth_sock = os.environ['SSH_AUTH_SOCK']
+    docker_confdir = os.path.join(os.environ['HOME'], '.docker')
+    go_path = os.environ['GOPATH']
+    aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+    aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+
+    cur_user_uid = os.getuid()
+    cur_user_gid = os.getgid()
+    docker_sock_gid = os.stat('/var/run/docker.sock').st_gid
+
+    absolute_repo_root = os.path.abspath(get_repo_root())
+    docker_cmd = ['docker', 'run', '-ti',
+            '-v', '%s:/source/dcos-commons' % absolute_repo_root,
+            '-v', '/var/run/docker.sock:/var/run/docker.sock',
+            '-v', '%s:/var/run/ssh_auth_sock' % auth_sock,
+            '-e', 'SSH_AUTH_SOCK=/var/run/ssh_auth_sock',
+            '-v', '%s:/.docker' % docker_confdir,
+            '-e', 'GOPATH=/tmp/gopath',
+            '-e', 'AWS_ACCESS_KEY_ID=%s' % aws_access_key_id,
+            '-e', 'AWS_SECRET_ACCESS_KEY=%s' % aws_secret_access_key,
+            '-u', '%s:%s' % (cur_user_uid, cur_user_gid),
+            '--group-add', str(docker_sock_gid)]
+    if 'CLUSTER_URL' in os.environ:
+        docker_cmd.extend(['-e', 'CLUSTER_URL=%s' %
+                                 os.environ['CLUSTER_URL']])
+    if 'CCM_AUTH_TOKEN' in os.environ:
+        docker_cmd.extend(['-e', 'CCM_AUTH_TOKEN=%s' %
+                                 os.environ['CCM_AUTH_TOKEN']])
+
+    docker_cmd.extend(['mesosphere/ci-image:infinity', 'bash', '-c'])
+
+    bash_cmd_fmt = "cd /source/dcos-commons && ./test.py %s"
+    bash_cmd = bash_cmd_fmt % " ".join(non_docker_args)
+
+    docker_cmd = docker_cmd + [bash_cmd]
+    try:
+        completed_cmd = subprocess.run(docker_cmd)
+        return completed_cmd.returncode == 0
+    except:
+        return False
+
 def main():
     run_attrs = parse_args()
+    if run_attrs.docker:
+        return run_in_docker()
+
     try:
         detect_requirements(run_attrs)
     except TestRequirementsNotMet:
