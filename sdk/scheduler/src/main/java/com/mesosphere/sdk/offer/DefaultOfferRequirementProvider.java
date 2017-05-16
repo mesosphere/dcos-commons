@@ -291,6 +291,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
+        taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
+
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
@@ -598,6 +600,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
                     podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+        } else {
+            LOGGER.info("No NetworkInfo provided");
         }
 
         if (!podSpec.getRLimits().isEmpty()) {
@@ -611,18 +615,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
-
+        /*
         if (!networkSpec.getPortMappings().isEmpty()) {
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
                 Integer hostPort = e.getKey();
                 Integer containerPort = e.getValue();
+                LOGGER.info("Mapping container port {} to host port {}", containerPort, hostPort);
                 netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
+                        .setProtocol("tcp")
                         .build());
             }
         }
-
+        */
         if (!networkSpec.getNetgroups().isEmpty()) {
             netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
         }
@@ -636,6 +642,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                 .build());
             }
         }
+        //else {
+        //    LOGGER.info("Adding NONEs to NetworkInfo");
+        //    netInfoBuilder.addIpAddresses(
+        //            Protos.NetworkInfo.IPAddress.newBuilder()
+        //                .setIpAddress("None")
+        //                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
+        //                .build());
+        //}
 
         return netInfoBuilder.build();
     }
