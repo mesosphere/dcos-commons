@@ -23,12 +23,8 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 public class VolumeEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
 
-    public VolumeEvaluationStage(Resource resource, String taskName) {
-        super(resource, taskName);
-    }
-
-    public VolumeEvaluationStage(Resource resource) {
-        super(resource);
+    public VolumeEvaluationStage(ResourceRequirement resourceRequirement, String taskName) {
+        super(resourceRequirement, taskName);
     }
 
     @Override

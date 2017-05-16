@@ -4,8 +4,9 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
+
+import java.util.Optional;
 
 /**
  * A {@link ResourceRequirement} encapsulates a needed Mesos Resource.
@@ -44,8 +45,8 @@ public class ResourceRequirement {
         return value;
     }
 
-    public String getResourceId() {
-        return resourceId;
+    public Optional<String> getResourceId() {
+        return Optional.ofNullable(resourceId);
     }
 
     public boolean reservesResource() {
@@ -56,12 +57,16 @@ public class ResourceRequirement {
         return !reservesResource();
     }
 
+    public OfferEvaluationStage getEvaluationStage(String taskName) {
+        return new ResourceEvaluationStage(this, taskName);
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
     }
 
-    public static final class Builder {
+    public static class Builder {
         private String role;
         private String name;
         private Value value;
@@ -88,21 +93,6 @@ public class ResourceRequirement {
             }
 
             reservesResource = resourceIdIsPresent ? false : true;
-        }
-
-        public Builder role(String role) {
-           this.role  = role;
-            return this;
-        }
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder value(Value value) {
-            this.value = value;
-            return this;
         }
 
         public Builder resourceId(String resourceId) {

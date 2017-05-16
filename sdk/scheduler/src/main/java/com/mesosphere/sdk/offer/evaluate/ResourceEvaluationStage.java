@@ -32,23 +32,12 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
      * supplied task name indicates which task in the {@link OfferRequirement} to update with any subsequent metadata.
      * If it is null, this stage will modify the {@link org.apache.mesos.Protos.ExecutorInfo} instead.
      *
-     * @param resource the resource to evaluate incoming offers against
+     * @param resourceRequirement the resource to evaluate incoming offers against
      * @param taskName the name of the task to modify with resource metadata
      */
-    public ResourceEvaluationStage(Resource resource, String taskName) {
-        this.resourceRequirement = new ResourceRequirement(resource);
+    public ResourceEvaluationStage(ResourceRequirement resourceRequirement, String taskName) {
+        this.resourceRequirement = resourceRequirement;
         this.taskName = taskName;
-    }
-
-    /**
-     * Instantiate this class to check incoming offers for sufficient presence of the supplied {@link Resource}. The
-     * {@link org.apache.mesos.Protos.ExecutorInfo} on the {@link OfferRequirement} will be modified with any subsequent
-     * metadata.
-     *
-     * @param resource the resource to evaluate incoming offers against
-     */
-    public ResourceEvaluationStage(Resource resource) {
-        this(resource, null);
     }
 
     protected void setResourceRequirement(ResourceRequirement resourceRequirement) {
@@ -75,16 +64,15 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
             Optional<MesosResource> existingResourceOptional = mesosResourcePool.getReservedResourceById(resourceId);
             if (!existingResourceOptional.isPresent()) {
-                return fail(this, "Expected existing resource is not present in the offer '%s': %s",
-                        resourceRequirement.getName(),
-                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+                return fail(
+                        this,
+                        "Expected existing resource is not present in the offer for requirement '%s'",
+                        resourceRequirement);
             }
 
             Optional<MesosResource> consumedResourceOptional = mesosResourcePool.consume(resourceRequirement);
             if (!consumedResourceOptional.isPresent()) {
-                return fail(this, "Failed to satisfy required resource '%s': %s",
-                        resourceRequirement.getName(),
-                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+                return fail(this, "Failed to satisfy required resource '%s'", resourceRequirement);
             }
 
             MesosResource existingResource = existingResourceOptional.get();

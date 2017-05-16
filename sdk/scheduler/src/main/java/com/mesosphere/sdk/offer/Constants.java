@@ -16,4 +16,7 @@ public class Constants {
     public static final String DISK_RESOURCE_TYPE = "disk";
     /** The string prepended to reserved resources to indicate that they are uninstalled. */
     public static final String TOMBSTONE_MARKER = "uninstalled_";
+
+    public static final String ROOT_DISK_TYPE = "ROOT";
+    public static final String MOUNT_DISK_TYPE = "MOUNT";
 }
