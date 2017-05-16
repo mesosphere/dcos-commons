@@ -11,8 +11,8 @@ network.publish_host:
   - _local_
 cluster.name: {{CLUSTER_NAME}}
 node.name: {{TASK_NAME}}
-path.data: "container-path/data"
-path.logs: "container-path/logs"
+path.data: "${MESOS_SANDBOX}/container-path/data"
+path.logs: "${MESOS_SANDBOX}/container-path/logs"
 http.port: {{PORT_HTTP}}
 transport.tcp.port: {{PORT_TRANSPORT}}
 bootstrap.memory_lock: false

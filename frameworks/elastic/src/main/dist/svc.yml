@@ -47,9 +47,12 @@ pods:
               port: 9300
         volume:
           path: "container-path"
-          type: {{MASTER_NODE_DISK_TYPE}}
+          type: DOCKER
           size: {{MASTER_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh &&  ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+          docker_volume_driver: pxd
+          docker_volume_name: {{{MASTER_NODE_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{MASTER_NODE_DOCKER_DRIVER_OPTIONS}}}
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && sudo chown {{FRAMEWORK_USER}} $MESOS_SANDBOX/container-path -R && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
@@ -116,9 +119,12 @@ pods:
               port: 9300
         volume:
           path: "container-path"
-          type: {{DATA_NODE_DISK_TYPE}}
+          type: DOCKER
           size: {{DATA_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+          docker_volume_driver: pxd
+          docker_volume_name: {{{DATA_NODE_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{DATA_NODE_DOCKER_DRIVER_OPTIONS}}}
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && sudo chown {{FRAMEWORK_USER}} $MESOS_SANDBOX/container-path -R && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: true
@@ -183,9 +189,12 @@ pods:
               port: 9300
         volume:
           path: "container-path"
-          type: {{INGEST_NODE_DISK_TYPE}}
+          type: DOCKER
           size: {{INGEST_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+          docker_volume_driver: pxd
+          docker_volume_name: {{{INGEST_NODE_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{INGEST_NODE_DOCKER_DRIVER_OPTIONS}}}
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && sudo chown {{FRAMEWORK_USER}} $MESOS_SANDBOX/container-path -R && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
@@ -250,9 +259,12 @@ pods:
               port: 9300
         volume:
           path: "container-path"
-          type: {{COORDINATOR_NODE_DISK_TYPE}}
+          type: DOCKER
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+          docker_volume_driver: pxd
+          docker_volume_name: {{{COORDINATOR_NODE_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{COORDINATOR_NODE_DOCKER_DRIVER_OPTIONS}}}
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && sudo chown {{FRAMEWORK_USER}} $MESOS_SANDBOX/container-path -R && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false

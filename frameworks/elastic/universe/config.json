@@ -13,7 +13,7 @@
         "user": {
           "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string",
-          "default": "nobody"
+          "default": "core"
         },
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
@@ -141,10 +141,15 @@
           "type": "integer",
           "default": 2000
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
-          "default": "ROOT"
+        "portworx_volume_name":{
+          "description":"Portworx volume name",
+          "type":"string",
+          "default": "MasterNodeVolume"
+        },
+        "portworx_volume_options":{
+          "description":"Portworx volume options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "transport_port": {
           "description": "Transport port for master nodes to listen on.",
@@ -207,10 +212,15 @@
           "type": "integer",
           "default": 10000
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
-          "default": "ROOT"
+        "portworx_volume_name":{
+          "description":"Portworx volume name",
+          "type":"string",
+          "default": "DataNodeVolume"
+        },
+        "portworx_volume_options":{
+          "description":"Portworx volume options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "placement": {
           "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
@@ -268,10 +278,15 @@
           "type": "integer",
           "default": 2000
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
-          "default": "ROOT"
+        "portworx_volume_name":{
+          "description":"Portworx volume name",
+          "type":"string",
+          "default": "IngestNodeVolume"
+        },
+        "portworx_volume_options":{
+          "description":"Portworx volume options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "placement": {
           "description": "Placement constraints for ingest nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
@@ -329,10 +344,15 @@
           "type": "integer",
           "default": 1000
         },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
-          "default": "ROOT"
+        "portworx_volume_name":{
+          "description":"Portworx volume name",
+          "type":"string",
+          "default": "CoordinatorNodeVolume"
+        },
+        "portworx_volume_options":{
+          "description":"Portworx volume options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         },
         "placement": {
           "description": "Placement constraints for coordinator nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
