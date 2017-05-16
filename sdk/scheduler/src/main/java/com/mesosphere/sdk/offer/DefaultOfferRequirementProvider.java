@@ -67,6 +67,58 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getPod().getPlacementRule());
     }
 
+    @Override
+    public OfferRequirement getExistingOfferRequirement(PodInstanceRequirement podInstanceRequirement)
+            throws InvalidRequirementException {
+        PodInstance podInstance = podInstanceRequirement.getPodInstance();
+        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
+                .collect(Collectors.toList());
+        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
+
+        for (TaskSpec taskSpec : taskSpecs) {
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(
+                    TaskSpec.getInstanceName(podInstance, taskSpec));
+            if (taskInfoOptional.isPresent()) {
+                Protos.TaskInfo.Builder builder = taskInfoOptional.get().toBuilder();
+                extendEnv(builder.getCommandBuilder(), podInstanceRequirement.getEnvironment());
+                taskMap.put(builder.build(), taskSpec);
+            } else {
+                Protos.TaskInfo taskInfo = getNewTaskInfo(
+                        podInstance,
+                        taskSpec,
+                        podInstanceRequirement.getEnvironment(),
+                        serviceName,
+                        targetConfigurationId,
+                        StateStoreUtils.getResources(stateStore, podInstance, taskSpec));
+                LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
+                taskMap.put(taskInfo, taskSpec);
+            }
+        }
+
+        if (taskMap.size() == 0) {
+            LOGGER.warn("Attempting to get existing OfferRequirement generated 0 tasks.");
+        }
+
+        List<TaskRequirement> taskRequirements = new ArrayList<>();
+        for (Map.Entry<Protos.TaskInfo, TaskSpec> e : taskMap.entrySet()) {
+            taskRequirements.add(getExistingTaskRequirement(
+                    podInstance, e.getKey(), e.getValue(), serviceName, targetConfigurationId));
+        }
+        validateTaskRequirements(taskRequirements);
+
+        ExecutorRequirement executorRequirement = getExecutor(podInstance, serviceName, targetConfigurationId);
+
+        return OfferRequirement.create(
+                podInstance.getPod().getType(),
+                podInstance.getIndex(),
+                taskRequirements,
+                executorRequirement,
+                // Do not add placement rules to getExistingOfferRequirement
+                Optional.empty()
+        );
+    }
+
     private Collection<TaskRequirement> getNewTaskRequirements(
             PodInstance podInstance,
             Collection<String> tasksToLaunch,
@@ -129,7 +181,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         Collection<ResourceRequirement> resourceRequirements = getResourceRequirements(taskSpec);
 
-        return new TaskRequirement(taskInfo, resourceRequirements);
+        return new TaskRequirement(
+                taskSpec,
+                podInstance,
+                resourceRequirements);
     }
 
     private static Collection<ResourceRequirement> getResourceRequirements(TaskSpec taskSpec) {
@@ -203,58 +258,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-
-        return ExecutorRequirement.create(executorInfo, resourceRequirements);
-    }
-
-    @Override
-    public OfferRequirement getExistingOfferRequirement(PodInstanceRequirement podInstanceRequirement)
-            throws InvalidRequirementException {
-        PodInstance podInstance = podInstanceRequirement.getPodInstance();
-        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                .collect(Collectors.toList());
-        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
-
-        for (TaskSpec taskSpec : taskSpecs) {
-            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(
-                    TaskSpec.getInstanceName(podInstance, taskSpec));
-            if (taskInfoOptional.isPresent()) {
-                Protos.TaskInfo.Builder builder = taskInfoOptional.get().toBuilder();
-                extendEnv(builder.getCommandBuilder(), podInstanceRequirement.getEnvironment());
-                taskMap.put(builder.build(), taskSpec);
-            } else {
-                Protos.TaskInfo taskInfo = getNewTaskInfo(
-                        podInstance,
-                        taskSpec,
-                        podInstanceRequirement.getEnvironment(),
-                        serviceName,
-                        targetConfigurationId,
-                        StateStoreUtils.getResources(stateStore, podInstance, taskSpec));
-                LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
-                taskMap.put(taskInfo, taskSpec);
-            }
-        }
-
-        if (taskMap.size() == 0) {
-            LOGGER.warn("Attempting to get existing OfferRequirement generated 0 tasks.");
-        }
-
-        List<TaskRequirement> taskRequirements = new ArrayList<>();
-        for (Map.Entry<Protos.TaskInfo, TaskSpec> e : taskMap.entrySet()) {
-            taskRequirements.add(getExistingTaskRequirement(
-                    podInstance, e.getKey(), e.getValue(), serviceName, targetConfigurationId));
-        }
-        validateTaskRequirements(taskRequirements);
-
-        return OfferRequirement.create(
-                podInstance.getPod().getType(),
-                podInstance.getIndex(),
-                taskRequirements,
-                ExecutorRequirement.create(getExecutor(podInstance, serviceName, targetConfigurationId)),
-                // Do not add placement rules to getExistingOfferRequirement
-                Optional.empty()
-                );
+        return ExecutorRequirement.createNewExecutorRequirement(executorInfo.getName(), resourceRequirements);
     }
 
     private static Protos.TaskInfo getNewTaskInfo(
@@ -352,7 +356,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(
-                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
+                taskSpec,
+                podInstance,
+                getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
     }
 
     private static void setBootstrapConfigFileEnv(
@@ -437,21 +443,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             throw new InvalidRequirementException("Failed to generate any TaskRequirements.");
         }
 
-        String taskType = "";
-        try {
-            taskType = new SchedulerLabelReader(taskRequirements.get(0).getTaskInfo()).getType();
-        } catch (TaskException e) {
-            throw new InvalidRequirementException(e);
-        }
+        String taskType = taskRequirements.get(0).getType();
 
         for (TaskRequirement taskRequirement : taskRequirements) {
-            try {
-                String localTaskType = new SchedulerLabelReader(taskRequirement.getTaskInfo()).getType();
-                if (!localTaskType.equals(taskType)) {
-                    throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
-                }
-            } catch (TaskException e) {
-                throw new InvalidRequirementException(e);
+            String localTaskType = taskRequirement.getType();
+            if (!localTaskType.equals(taskType)) {
+                throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
             }
         }
     }
@@ -559,24 +556,53 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
      * @param podInstance A PodInstance
      * @return The appropriate ExecutorInfo.
      */
-    private Protos.ExecutorInfo getExecutor(
+    private ExecutorRequirement getExecutor(
             PodInstance podInstance, String serviceName, UUID targetConfigurationId) {
-        List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
 
+        Optional<Protos.TaskInfo> taskInfoOptional = getRunningTaskInfo(
+                podInstance,
+                serviceName,
+                targetConfigurationId);
+
+        // TODO: Put resource requirements back on the executor (in particular volumes)
+        if (taskInfoOptional.isPresent()) {
+            LOGGER.info(
+                    "Reusing executor from task '{}': {}",
+                    taskInfoOptional.get().getName(),
+                    TextFormat.shortDebugString(taskInfoOptional.get().getExecutor()));
+
+            Protos.ExecutorInfo executorInfo = taskInfoOptional.get().getExecutor();
+
+            return ExecutorRequirement.createExistingExecutorRequirement(
+                    executorInfo.getName(),
+                    executorInfo.getExecutorId(),
+                    Collections.emptyList());
+        } else {
+            LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
+            Protos.ExecutorInfo executorInfo =
+                    getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+
+            return ExecutorRequirement.createNewExecutorRequirement(
+                    executorInfo.getName(),
+                    Collections.emptyList());
+        }
+    }
+
+    private Optional<Protos.TaskInfo> getRunningTaskInfo(
+            PodInstance podInstance,
+            String serviceName,
+            UUID targetConfigurationId) {
+
+        List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
         for (Protos.TaskInfo taskInfo : podTasks) {
             Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
             if (taskStatusOptional.isPresent()
                     && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
-                LOGGER.info(
-                        "Reusing executor from task '{}': {}",
-                        taskInfo.getName(),
-                        TextFormat.shortDebugString(taskInfo.getExecutor()));
-                return taskInfo.getExecutor();
+                return Optional.of(taskInfo);
             }
         }
 
-        LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+        return Optional.empty();
     }
 
     private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {

@@ -31,32 +31,6 @@ public class OfferRequirement {
     private final Optional<PlacementRule> placementRuleOptional;
     private final int index;
 
-    /**
-     * Creates a new {@link OfferRequirement}.
-     *
-     * @param taskType the task type name from the TaskSet, used for placement filtering
-     * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
-     * @param executorInfoOptional the executor from which an executor requirement should be
-     *     generated, if any
-     * @param placementRuleOptional the placement constraints which should be applied to the tasks, if any
-     * @throws InvalidRequirementException if task or executor requirements could not be generated
-     *     from the provided information
-     */
-    public static OfferRequirement create(
-            String taskType,
-            int index,
-            Collection<TaskInfo> taskInfos,
-            Optional<ExecutorInfo> executorInfoOptional,
-            Optional<PlacementRule> placementRuleOptional) throws InvalidRequirementException {
-        return new OfferRequirement(
-                taskType,
-                index,
-                getTaskRequirementsInternal(taskInfos, taskType, index),
-                executorInfoOptional.isPresent() ?
-                        Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
-                        Optional.empty(),
-                placementRuleOptional);
-    }
 
     public static OfferRequirement create(
             String taskType,
@@ -66,24 +40,6 @@ public class OfferRequirement {
             Optional<PlacementRule> placementRuleOptional) {
         return new OfferRequirement(
                 taskType, index, taskRequirements, Optional.ofNullable(executorRequirement), placementRuleOptional);
-    }
-
-    /**
-     * Creates a new {@link OfferRequirement} with empty executor requirement and empty placement constraints.
-     *
-     * @see #OfferRequirement(String, int, Collection, Optional, Optional)
-     */
-    public static OfferRequirement create(String taskType, int index, Collection<TaskInfo> taskInfos)
-            throws InvalidRequirementException {
-        return create(taskType, index, taskInfos, Optional.empty(), Optional.empty());
-    }
-
-    public static OfferRequirement create(
-            String taskType,
-            int index,
-            Collection<TaskRequirement> taskRequirements,
-            Optional<ExecutorRequirement> executorRequirement) throws InvalidRequirementException {
-        return new OfferRequirement(taskType, index, taskRequirements, executorRequirement, Optional.empty());
     }
 
     /**
@@ -103,7 +59,7 @@ public class OfferRequirement {
         this.type = type;
         this.index = index;
         this.taskRequirements = taskRequirements.stream()
-                .collect(Collectors.toMap(t -> t.getTaskInfo().getName(), Function.identity()));
+                .collect(Collectors.toMap(t -> t.getName(), Function.identity()));
         this.executorRequirementOptional = executorRequirementOptional;
         this.placementRuleOptional = placementRuleOptional;
     }
@@ -129,17 +85,7 @@ public class OfferRequirement {
     }
 
     public Collection<Protos.Resource> getResources() {
-        Collection<Protos.Resource> resources = new ArrayList<>();
-
-        for (TaskRequirement taskReq : taskRequirements.values()) {
-            resources.addAll(taskReq.getTaskInfo().getResourcesList());
-        }
-
-        if (executorRequirementOptional.isPresent()) {
-            resources.addAll(executorRequirementOptional.get().getExecutorInfo().getResourcesList());
-        }
-
-        return resources;
+        throw new UnsupportedOperationException("THIS METHOD SHOULD NOT EXIST");
     }
 
     public Collection<String> getResourceIds() {
@@ -147,10 +93,6 @@ public class OfferRequirement {
 
         for (TaskRequirement taskReq : taskRequirements.values()) {
             resourceIds.addAll(taskReq.getResourceIds());
-        }
-
-        if (executorRequirementOptional.isPresent()) {
-            resourceIds.addAll(executorRequirementOptional.get().getResourceIds());
         }
 
         return resourceIds;
@@ -163,25 +105,7 @@ public class OfferRequirement {
             persistenceIds.addAll(taskReq.getPersistenceIds());
         }
 
-        if (executorRequirementOptional.isPresent()) {
-            persistenceIds.addAll(executorRequirementOptional.get().getPersistenceIds());
-        }
-
         return persistenceIds;
-    }
-
-    private static Collection<TaskRequirement> getTaskRequirementsInternal(
-            Collection<TaskInfo> taskInfos, String type, int index) throws InvalidRequirementException {
-        Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
-        for (TaskInfo taskInfo : taskInfos) {
-            TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
-            taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
-                    .setType(type)
-                    .setIndex(index)
-                    .toProto());
-            taskRequirements.add(new TaskRequirement(taskBuilder.build()));
-        }
-        return taskRequirements;
     }
 
     @Override

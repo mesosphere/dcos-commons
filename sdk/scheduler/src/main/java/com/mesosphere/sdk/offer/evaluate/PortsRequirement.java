@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
@@ -14,19 +15,17 @@ import java.util.stream.Collectors;
  * A {@link PortsRequirement} encapsulates a needed {@link com.mesosphere.sdk.offer.MesosResource} representing multiple
  * ports.
  */
-public class PortsRequirement extends ResourceRequirement {
-    private final Collection<ResourceRequirement> portRequirements;
+public class PortsRequirement {
+    private final Collection<PortRequirement> portRequirements;
 
-    public PortsRequirement(Collection<ResourceRequirement> portRequirements) {
-        super(coalescePorts(portRequirements.stream().map(r -> r.getResource()).collect(Collectors.toList())));
+    public PortsRequirement(Collection<PortRequirement> portRequirements) {
         this.portRequirements = portRequirements;
     }
 
-    public Collection<ResourceRequirement> getPortRequirements() {
+    public Collection<PortRequirement> getPortRequirements() {
         return portRequirements;
     }
 
-    @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
         return new MultiEvaluationStage(
                 portRequirements.stream().map(r -> r.getEvaluationStage(taskName)).collect(Collectors.toList()));

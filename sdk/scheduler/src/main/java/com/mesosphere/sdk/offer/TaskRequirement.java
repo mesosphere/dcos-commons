@@ -4,6 +4,8 @@ import com.mesosphere.sdk.offer.evaluate.LaunchEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.TaskSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -17,16 +19,25 @@ import java.util.stream.Collectors;
  * A TaskRequirement encapsulates the needed resources a Task must have.
  */
 public class TaskRequirement {
-    private final String name;
+    private final TaskSpec taskSpec;
+    private final PodInstance podInstance;
     private Collection<ResourceRequirement> resourceRequirements;
 
-    public TaskRequirement(String name, Collection<ResourceRequirement> resourceRequirements) {
-        this.name = name;
+    public TaskRequirement(
+            TaskSpec taskSpec,
+            PodInstance podInstance,
+            Collection<ResourceRequirement> resourceRequirements) {
+        this.taskSpec = taskSpec;
+        this.podInstance = podInstance;
         this.resourceRequirements = resourceRequirements;
     }
 
     public String getName() {
-        return name;
+        return taskSpec.getName();
+    }
+
+    public String getType() {
+        return podInstance.getPod().getType();
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {

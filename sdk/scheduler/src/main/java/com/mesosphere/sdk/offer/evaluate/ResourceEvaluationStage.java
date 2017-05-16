@@ -55,14 +55,19 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         final ResourceRequirement resourceRequirement = getResourceRequirement();
-        final String resourceId = resourceRequirement.getResourceId();
 
-        Resource fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
+        Resource fulfilledResource = getFulfilledResource(resourceRequirement);
         OfferRecommendation offerRecommendation = null;
         if (resourceRequirement.expectsResource()) {
             logger.info("Expects Resource");
+            if (!resourceRequirement.getResourceId().isPresent()) {
+                return fail(
+                        this,
+                        "OfferRequirement expects a resource, but has no resource ID.",
+                        resourceRequirement);
+            }
 
-            Optional<MesosResource> existingResourceOptional = mesosResourcePool.getReservedResourceById(resourceId);
+            Optional<MesosResource> existingResourceOptional = mesosResourcePool.getReservedResourceById(resourceRequirement.getResourceId().get());
             if (!existingResourceOptional.isPresent()) {
                 return fail(
                         this,
@@ -158,8 +163,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return null;
     }
 
-    protected Resource getFulfilledResource(Resource resource) {
-        Resource.Builder builder = resource.toBuilder().setRole(getResourceRequirement().getRole());
+    protected Resource getFulfilledResource(ResourceRequirement resourceRequirement) {
+        // TODO: Correctly generate fulfilled resource
+        Resource.Builder builder = Resource.newBuilder().setRole(getResourceRequirement().getRole());
         Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
         if (reservationInfo.isPresent()) {
             builder.setReservation(reservationInfo.get());
