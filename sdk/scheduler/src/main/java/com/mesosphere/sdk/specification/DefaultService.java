@@ -5,6 +5,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -174,7 +175,7 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        if (!stateStore.fetchFrameworkId().isPresent()) {
+        if (allButStateStoreUninstalled()) {
             LOGGER.info("Not registering framework because it is uninstalling.");
             return;
         }
@@ -185,6 +186,13 @@ public class DefaultService implements Service {
                 run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
+    }
+
+    private boolean allButStateStoreUninstalled() {
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return StateStoreUtils.isUninstalling(stateStore) &&
+                ResourceUtils.allResourcesUninstalled(stateStore.fetchTasks()) &&
+                !stateStore.fetchFrameworkId().isPresent();
     }
 
     protected ServiceSpec getServiceSpec() {

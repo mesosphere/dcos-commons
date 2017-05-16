@@ -79,13 +79,8 @@ public class UninstallScheduler implements Scheduler {
         }
 
         // create one UninstallStep per unique Resource, including Executor resources
-        List<Step> taskSteps = stateStore.fetchTasks().stream()
-                .map(ResourceUtils::getAllResources)
-                .flatMap(Collection::stream)
-                .map(ResourceUtils::getResourceId)
-                .distinct()
-                .map(this::getStep)
-                .collect(Collectors.toList());
+        List<Step> taskSteps = ResourceUtils.getResourceIds(stateStore.fetchTasks()).stream()
+                .map(this::getStep).collect(Collectors.toList());
 
         Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                 Collections.emptyList());

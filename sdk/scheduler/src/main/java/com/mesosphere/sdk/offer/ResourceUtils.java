@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -488,7 +489,7 @@ public class ResourceUtils {
 
     private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
         if (!resource.hasDisk() || !resource.getDisk().hasVolume()) {
-            throw new IllegalArgumentException(String.format("Resource should have a disk with a volume."));
+            throw new IllegalArgumentException("Resource should have a disk with a volume.");
         }
 
         String resourceContainerPath = resource.getDisk().getVolume().getContainerPath();
@@ -594,6 +595,24 @@ public class ResourceUtils {
             resources.addAll(taskInfo.getExecutor().getResourcesList());
         }
         return resources;
+    }
+
+    /**
+     * Returns a list of unique resource IDs associated with {@link Protos.TaskInfo}'s.
+     * @param taskInfos Collection of taskInfos from which to extract the unique resource IDs
+     * @return List of unique resource IDs
+     */
+    public static List<String> getResourceIds(Collection<TaskInfo> taskInfos) {
+        return taskInfos.stream()
+                .map(ResourceUtils::getAllResources)
+                .flatMap(Collection::stream)
+                .map(ResourceUtils::getResourceId)
+                .distinct().collect(Collectors.toList());
+    }
+
+    public static boolean allResourcesUninstalled(Collection<TaskInfo> taskInfos) {
+        return ResourceUtils.getResourceIds(taskInfos).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     /**

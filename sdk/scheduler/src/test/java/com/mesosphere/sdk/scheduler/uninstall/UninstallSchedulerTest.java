@@ -163,7 +163,7 @@ public class UninstallSchedulerTest {
                 int port,
                 Duration apiServerInitTimeout,
                 StateStore stateStore,
-                ConfigStore configStore,
+                ConfigStore<ServiceSpec> configStore,
                 boolean apiServerReady) {
             super(port, apiServerInitTimeout, stateStore, configStore);
             this.apiServerReady = apiServerReady;

@@ -231,7 +231,7 @@ public class StateStoreUtils {
     }
 
     /**
-     * Sets an 'uninstall' property in the provided {@link StateStore} to true
+     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
      */
     public static void setUninstalling(StateStore stateStore) {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
