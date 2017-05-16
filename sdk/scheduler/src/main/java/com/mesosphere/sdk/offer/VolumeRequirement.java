@@ -10,9 +10,17 @@ import org.apache.mesos.Protos;
 public class VolumeRequirement extends ResourceRequirement {
     private final String diskType;
 
-    public VolumeRequirement(Builder builder) {
+    protected VolumeRequirement(Builder builder) {
         super(builder);
         this.diskType = builder.diskType;
+    }
+
+    public static Builder newBuilder(String role, Protos.Value value) {
+        return new Builder(role, value);
+    }
+
+    public static Builder newBuilder(Protos.Resource resource) {
+        return new Builder(resource);
     }
 
     public String getDiskType() {
@@ -27,12 +35,12 @@ public class VolumeRequirement extends ResourceRequirement {
     public static class Builder extends ResourceRequirement.Builder {
         private String diskType;
 
-        public Builder(String role, Protos.Value value) {
+        protected Builder(String role, Protos.Value value) {
             super(role, Constants.DISK_RESOURCE_TYPE, value);
             diskType(Constants.ROOT_DISK_TYPE);
         }
 
-        public Builder(Protos.Resource resource) {
+        protected Builder(Protos.Resource resource) {
             this(resource.getRole(), ValueUtils.getValue(resource));
             diskType(getDiskType(resource));
         }

@@ -26,7 +26,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
     private final String portName;
-    private final int port;
+    private final long port;
     private final Optional<String> customEnvKey;
 
     private String resourceId;
@@ -35,7 +35,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             ResourceRequirement resourceRequirement,
             String taskName,
             String portName,
-            int port,
+            long port,
             Optional<String> customEnvKey) {
         super(resourceRequirement, taskName);
         this.portName = portName;
@@ -50,7 +50,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
         Optional<String> taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable());
-        int assignedPort = port;
+        long assignedPort = port;
 
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
@@ -180,7 +180,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         return TaskUtils.toEnvName(draftEnvName);
     }
 
-    private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {
+    private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, long port) {
         Protos.Resource.Builder builder = resourceRequirement.getResource().toBuilder();
         builder.clearRanges().getRangesBuilder().addRange(Protos.Value.Range.newBuilder().setBegin(port).setEnd(port));
 

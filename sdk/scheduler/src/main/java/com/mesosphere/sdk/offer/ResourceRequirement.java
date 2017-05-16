@@ -25,12 +25,20 @@ public class ResourceRequirement {
     private final String resourceId;
     private final boolean reservesResource;
 
-    public ResourceRequirement(Builder builder) {
+    protected ResourceRequirement(Builder builder) {
         this.role = builder.role;
         this.name = builder.name;
         this.value = builder.value;
         this.resourceId = builder.resourceId;
         this.reservesResource = builder.reservesResource;
+    }
+
+    public static Builder newBuilder(String role, String name, Value value) {
+        return new Builder(role, name, value);
+    }
+
+    public static Builder newBuilder(Resource resource) {
+        return new Builder(resource);
     }
 
     public String getRole() {
@@ -73,22 +81,20 @@ public class ResourceRequirement {
         private String resourceId;
         private boolean reservesResource;
 
-        public Builder(String role, String name, Value value) {
+        protected Builder(String role, String name, Value value) {
             this.role = role;
             this.name = name;
             this.value = value;
             this.reservesResource = true;
         }
 
-        public Builder(Resource resource) {
-            this.role = resource.getRole();
-            this.name = resource.getName();
-            this.value = ValueUtils.getValue(resource);
-            this.resourceId = new MesosResource(resource).getResourceId();
+        protected Builder(Resource resource) {
+            this(resource.getRole(), resource.getName(), ValueUtils.getValue(resource));
 
+            String resourceId = new MesosResource(resource).getResourceId();
             boolean resourceIdIsPresent = true;
-            if (resourceId.isEmpty()) {
-                resourceId = null;
+            if (resourceId == null || resourceId.isEmpty()) {
+                this.resourceId = null;
                 resourceIdIsPresent = false;
             }
 
