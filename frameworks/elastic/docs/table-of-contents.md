@@ -8,6 +8,7 @@
 - [Upgrade](upgrade.md)
 - [Uninstall](uninstall.md)
 - [Configure](configure.md)
+- [X-Pack](x-pack.md)
 - [Connecting Clients](connecting.md)
 - [Backup and Restore](backup_restore.md)
 - [Managing](managing.md)
@@ -15,3 +16,4 @@
 - [Troubleshooting](troubleshooting.md)
 - [Version Policy](version_policy.md)
 - [Limitations](limitations.md)
+- [Changelog](changelog.md)
