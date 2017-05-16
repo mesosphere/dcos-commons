@@ -9,6 +9,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -16,64 +17,36 @@ import java.util.stream.Collectors;
  * have.
  */
 public class ExecutorRequirement {
-    private ExecutorInfo executorInfo;
-    private Collection<ResourceRequirement> resourceRequirements;
+    private final String name;
+    private final Collection<ResourceRequirement> resourceRequirements;
+    private final Protos.ExecutorID executorId;
+    private final boolean existingExecutor;
 
-    /**
-     * This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
-     * presented in the ExecutorInfo an ExecutorRequirement representing a need for a new Executor is returned.  In the
-     * second case, if an ExecutorInfo with a valid name is presented a requirement indicating use of an already running
-     * Executor is generated.
-     * @param executorInfo is the ExecutorInfo indicate what requirement should be generated.
-     * @param resourceRequirements the requirements for resources attached to this executor
-     * @return an ExecutorRequirement to be used to evaluate Offers by the OfferEvaluator
-     * @throws InvalidRequirementException when a malformed ExecutorInfo is presented indicating an invalid
-     * ExecutorRequirement.
-     */
-    public static ExecutorRequirement create(
-            ExecutorInfo executorInfo,
-            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
-        if (executorInfo.getExecutorId().getValue().isEmpty()) {
-            return createExecutorRequirement(executorInfo, resourceRequirements);
-        } else {
-            return getExistingExecutorRequirement(executorInfo);
-        }
+    public static ExecutorRequirement createNewExecutorRequirement(
+            String name,
+            Collection<ResourceRequirement> resourceRequirements) {
+        Protos.ExecutorID executorId = Protos.ExecutorID.newBuilder()
+                .setValue(name + "__" + UUID.randomUUID().toString())
+                .build();
+        return new ExecutorRequirement(name, executorId, false, resourceRequirements);
     }
 
-    public static ExecutorRequirement create(ExecutorInfo executorInfo) throws InvalidRequirementException {
-        return create(executorInfo, null);
-    }
-
-    private static ExecutorRequirement createExecutorRequirement(
-            ExecutorInfo executorInfo,
-            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
-        return new ExecutorRequirement(executorInfo, resourceRequirements);
-    }
-
-    private static ExecutorRequirement getExistingExecutorRequirement(ExecutorInfo executorInfo)
-        throws InvalidRequirementException {
-        ExecutorRequirement executorRequirement = new ExecutorRequirement(executorInfo, null);
-
-        if (executorRequirement.desiresResources()) {
-            throw new InvalidRequirementException("When using an existing Executor, no new resources may be required.");
-        } else {
-            return executorRequirement;
-        }
+    public static ExecutorRequirement createExistingExecutorRequirement(
+            String name,
+            Protos.ExecutorID executorId,
+            Collection<ResourceRequirement> resourceRequirements) {
+        return new ExecutorRequirement(name, executorId, true, resourceRequirements);
     }
 
     private ExecutorRequirement(
-            ExecutorInfo executorInfo,
-            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
-        validateExecutorInfo(executorInfo);
-        this.executorInfo = executorInfo;
-        this.resourceRequirements = resourceRequirements != null ? resourceRequirements :
-                executorInfo.getResourcesList().stream()
-                        .map(r -> new ResourceRequirement(r))
-                        .collect(Collectors.toList());
-    }
-
-    public ExecutorInfo getExecutorInfo() {
-        return executorInfo;
+            String name,
+            Protos.ExecutorID executorId,
+            boolean existingExecutor,
+            Collection<ResourceRequirement> resourceRequirements) {
+        this.name = name;
+        this.executorId = executorId;
+        this.existingExecutor = existingExecutor;
+        this.resourceRequirements = resourceRequirements;
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
@@ -88,63 +61,12 @@ public class ExecutorRequirement {
         return RequirementUtils.getPersistenceIds(getResourceRequirements());
     }
 
-    public boolean desiresResources() {
-        for (ResourceRequirement resReq : getResourceRequirements()) {
-            if (resReq.reservesResource()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks that the ExecutorInfo is valid at the point of requirement construction, making it
-     * easier for the framework developer to trace problems in their implementation. These checks
-     * reflect requirements enforced elsewhere, eg in {@link StateStore}.
-     *
-     * @throws InvalidRequirementException if the ExecutorInfo is malformed
-     */
-    private static void validateExecutorInfo(ExecutorInfo executorInfo)
-            throws InvalidRequirementException {
-        if (!executorInfo.hasName() || StringUtils.isEmpty(executorInfo.getName())) {
-            throw new InvalidRequirementException(String.format(
-                    "ExecutorInfo must have a name: %s", executorInfo));
-        }
-        if (executorInfo.hasExecutorId()
-                && !StringUtils.isEmpty(executorInfo.getExecutorId().getValue())) {
-            // Executor ID may be included if this is replacing an existing task. In that case, we
-            // still perform a sanity check to ensure that the original Executor ID was formatted
-            // correctly. We must allow Executor ID to be present but empty because it is a required
-            // proto field.
-            String executorName;
-            try {
-                executorName = CommonIdUtils.toExecutorName(executorInfo.getExecutorId());
-            } catch (TaskException e) {
-                throw new InvalidRequirementException(String.format(
-                        "When non-empty, ExecutorInfo.id must be a valid ID. "
-                        + "Set to an empty string or leave existing valid value. %s %s",
-                        executorInfo, e));
-            }
-            if (!executorName.equals(executorInfo.getName())) {
-                throw new InvalidRequirementException(String.format(
-                        "When non-empty, ExecutorInfo.id must align with ExecutorInfo.name. Use "
-                        + "CommonIdUtils.toExecutorId(): %s", executorInfo));
-            }
-        }
-    }
-
     public boolean isRunningExecutor() {
-        return executorInfo.hasExecutorId() && !StringUtils.isEmpty(executorInfo.getExecutorId().getValue());
+        return existingExecutor;
     }
 
     public OfferEvaluationStage getEvaluationStage() {
-        Protos.ExecutorID executorID = null;
-        if (isRunningExecutor()) {
-            executorID = getExecutorInfo().getExecutorId();
-        }
-
-        return new ExecutorEvaluationStage(executorID);
+        return new ExecutorEvaluationStage(executorId);
     }
 
     @Override
