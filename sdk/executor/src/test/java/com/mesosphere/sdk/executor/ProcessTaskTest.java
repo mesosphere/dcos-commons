@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.executor;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -75,7 +77,7 @@ public class ProcessTaskTest {
         final FailingProcessTask failingProcessTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                ProcessTask.getProcess(taskInfo),
+                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()),
                 false);
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(failingProcessTask);
@@ -137,7 +139,7 @@ public class ProcessTaskTest {
         final FailingProcessTask processTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                ProcessTask.getProcess(taskInfo),
+                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()),
                 true);
 
 

@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 /**
  * Facilitates installation of DC/OS cert inside framework's JRE.
@@ -38,7 +41,7 @@ public class DcosCertInstaller {
 
             final Path sandboxCertPath = Paths.get(CERT_PATH);
             if (!Files.exists(sandboxCertPath)) {
-                LOGGER.info("Cert file not found at the expected path, nothing to do. " + 
+                LOGGER.info("Cert file not found at the expected path, nothing to do. " +
                         "This is expected when the cluster is not in strict mode: {}",
                         sandboxCertPath.toAbsolutePath());
                 return false;
@@ -60,8 +63,7 @@ public class DcosCertInstaller {
 
             LOGGER.info("Installing DC/OS cert using command: {}", cmd);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", cmd).inheritIO();
-            final int exitCode = processRunner.run(processBuilder, 10);
+            final int exitCode = processRunner.run(ProcessBuilderUtils.buildProcess(cmd, Collections.emptyMap()), 10);
             LOGGER.info("Certificate install process completed with exit code: {}", exitCode);
             return exitCode == 0;
         } catch (Throwable t) {
