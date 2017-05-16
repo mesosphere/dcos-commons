@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.api;
 
+import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
+
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -13,6 +15,7 @@ import java.util.Collection;
  */
 public class JettyApiServer {
     private final Server server;
+    private int port;
 
     public JettyApiServer(int port, Collection<Object> resources) {
         ResourceConfig resourceConfig = new ResourceConfig();
@@ -25,6 +28,9 @@ public class JettyApiServer {
                 .port(port).build();
 
         this.server = JettyHttpContainerFactory.createServer(baseUri, resourceConfig);
+        if (port != 0) {
+            this.port = port;
+        }
     }
 
     public void start() throws Exception {
@@ -43,5 +49,14 @@ public class JettyApiServer {
 
     public boolean isStarted() {
         return server.isStarted();
+    }
+
+    public int getLocalPort() {
+        if (this.port != 0) {
+            return this.port;
+        }
+        NetworkConnector networkConnector = (NetworkConnector) server.getConnectors()[0];
+        this.port = networkConnector.getLocalPort();
+        return this.port;
     }
 }
