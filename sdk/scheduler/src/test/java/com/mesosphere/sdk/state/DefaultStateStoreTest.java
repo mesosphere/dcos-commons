@@ -8,6 +8,8 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.junit.*;
 
 import java.nio.charset.StandardCharsets;
@@ -127,6 +129,19 @@ public class DefaultStateStoreTest {
         store.storeTasks(createTasks(TASK_NAME));
         store.clearTask(TASK_NAME);
         assertFalse(store.fetchTask(TASK_NAME).isPresent());
+    }
+
+    @Test
+    public void testStoreClearAllData() throws Exception {
+        store.storeTasks(createTasks(TASK_NAME));
+        store.storeFrameworkId(FRAMEWORK_ID);
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+        assertEquals(7, PersisterUtils.getAllKeys(persister).size());
+
+        store.clearAllData();
+
+        // Verify nothing is left under the root.
+        assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
     }
 
     @Test

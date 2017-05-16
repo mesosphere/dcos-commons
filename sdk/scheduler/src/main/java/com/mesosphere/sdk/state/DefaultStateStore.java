@@ -7,11 +7,13 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +57,7 @@ public class DefaultStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
+    public static final String LOCK_PATH_NAME = "lock";
 
     protected final Persister persister;
 
@@ -191,6 +194,19 @@ public class DefaultStateStore implements StateStore {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Task should not result in an exception from us.
                 logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
+            } else {
+                throw new StateStoreException(e);
+            }
+        }
+    }
+
+    @Override
+    public void clearAllData() throws StateStoreException {
+        try {
+            persister.deleteAll(PersisterUtils.PATH_DELIM);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Nothing to delete, apparently. Treat as a no-op
             } else {
                 throw new StateStoreException(e);
             }
@@ -383,7 +399,7 @@ public class DefaultStateStore implements StateStore {
     }
 
     /**
-     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomicly.
+     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomically.
      * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
      * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
      * state.

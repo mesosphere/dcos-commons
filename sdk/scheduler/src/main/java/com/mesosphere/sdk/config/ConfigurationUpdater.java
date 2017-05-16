@@ -16,20 +16,50 @@ public interface ConfigurationUpdater<C extends Configuration> {
      * The result of an {@link ConfigurationUpdater#updateConfiguration(Configuration)} call.
      */
     class UpdateResult {
-        /**
-         * The resulting configuration ID which should be used by service tasks.
-         */
-        public final UUID targetId;
+        private final UUID targetId;
+        private final DeploymentType deploymentType;
+        private final Collection<ConfigValidationError> errors;
 
-        /**
-         * A list of zero or more validation errors with the current configuration. If there were
-         * errors, the {@link #targetId} will point to a previous valid configuration.
-         */
-        public final Collection<ConfigValidationError> errors;
-
-        public UpdateResult(UUID targetId, Collection<ConfigValidationError> errors) {
+        public UpdateResult(
+                UUID targetId,
+                DeploymentType deploymentType,
+                Collection<ConfigValidationError> errors) {
             this.targetId = targetId;
             this.errors = errors;
+            this.deploymentType = deploymentType;
+        }
+
+        /**
+         * Two types of deployments are differentiated by this type.  Either a services is
+         * being deployed for the first time "DEPLOY", or it is updating a previously deployed
+         * version of the service, "UPDATE"
+         */
+        public enum DeploymentType {
+            NONE,
+            DEPLOY,
+            UPDATE
+        }
+
+        /**
+         * Gets the {@link DeploymentType} detected during this update.
+         */
+        public DeploymentType getDeploymentType() {
+            return deploymentType;
+        }
+
+        /**
+         * Gets a list of zero or more validation errors with the current configuration. If there were
+         * errors, the {@link #targetId} will point to a previous valid configuration.
+         */
+        public Collection<ConfigValidationError> getErrors() {
+            return errors;
+        }
+
+        /**
+         * Gets the resulting configuration ID which should be used by service tasks.
+         */
+        public UUID getTargetId() {
+            return targetId;
         }
     }
 

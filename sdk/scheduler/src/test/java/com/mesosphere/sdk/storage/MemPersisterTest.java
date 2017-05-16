@@ -51,9 +51,9 @@ public class MemPersisterTest {
     @Test
     public void testGetMissing() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorTestUtils.clear(testZk);
         testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
         testGetMissingForPersister(persister);
     }
@@ -70,9 +70,9 @@ public class MemPersisterTest {
     @Test
     public void testGetMissingRoot() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorTestUtils.clear(testZk);
         testGetMissingRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
         testGetMissingRootForPersister(persister);
     }
@@ -89,9 +89,9 @@ public class MemPersisterTest {
     @Test
     public void testGetChildren() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorTestUtils.clear(testZk);
         testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
         testGetChildrenForPersister(persister);
     }
@@ -133,9 +133,9 @@ public class MemPersisterTest {
     @Test
     public void testGetChildrenMissingRoot() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorTestUtils.clear(testZk);
         testGetChildrenEmptyRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
         testGetChildrenEmptyRootForPersister(persister);
     }
@@ -148,9 +148,9 @@ public class MemPersisterTest {
     @Test
     public void testDeleteChildren() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorTestUtils.clear(testZk);
         testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
         testDeleteChildrenForPersister(persister);
     }
@@ -184,12 +184,13 @@ public class MemPersisterTest {
     @Test
     public void testDeleteRoot() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         testDeleteRootForPersister(persister, "");
         testDeleteRootForPersister(persister, "/");
+        CuratorTestUtils.clear(testZk);
         testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "");
+        CuratorTestUtils.clear(testZk);
         testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "/");
     }
 

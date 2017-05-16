@@ -4,9 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
-
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.TaskException;
@@ -16,10 +13,11 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import difflib.DiffUtils;
-
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private final ConfigStore<ServiceSpec> configStore;
     private final ConfigurationComparator<ServiceSpec> configComparator;
     private final Collection<ConfigValidator<ServiceSpec>> validators;
+    private final UpdateResult.DeploymentType lastUpdateType;
 
     public DefaultConfigurationUpdater(
             StateStore stateStore,
@@ -47,6 +46,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         this.configStore = configStore;
         this.configComparator = configComparator;
         this.validators = validators;
+        this.lastUpdateType = StateStoreUtils.getLastCompletedUpdateType(stateStore);
     }
 
     @Override
@@ -120,6 +120,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.info("Changes detected between current target configuration '{}' and new " +
                             "configuration. Setting target to new configuration.",
                     targetConfigId);
+
             targetConfigId = configStore.store(candidateConfig);
             targetConfig = candidateConfig;
             configStore.setTargetConfig(targetConfigId);
@@ -133,7 +134,12 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // leftover configs which are not the target and which are not referenced by any tasks.
         cleanupDuplicateAndUnusedConfigs(targetConfig, targetConfigId);
 
-        return new ConfigurationUpdater.UpdateResult(targetConfigId, errors);
+        UpdateResult.DeploymentType updateType =
+                lastUpdateType.equals(UpdateResult.DeploymentType.NONE) ?
+                        UpdateResult.DeploymentType.DEPLOY :
+                        UpdateResult.DeploymentType.UPDATE;
+
+        return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
 
     /**

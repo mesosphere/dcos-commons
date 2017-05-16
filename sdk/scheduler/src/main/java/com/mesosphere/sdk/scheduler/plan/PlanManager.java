@@ -30,7 +30,7 @@ public interface PlanManager extends Observer, Observable {
      *         schedule, which may happen if for example all incomplete {@link Step}s are already being worked on by
      *         other {@link PlanManager}s
      */
-    Collection<? extends Step> getCandidates(Collection<String> dirtyAssets);
+    Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets);
 
     /**
      * Notifies constituent elements of TaskStatus updates.
@@ -45,5 +45,5 @@ public interface PlanManager extends Observer, Observable {
      *
      * @return A {@link Set} containing assets that are dirty
      */
-    Set<String> getDirtyAssets();
+    Set<PodInstanceRequirement> getDirtyAssets();
 }

@@ -181,10 +181,43 @@ public class CuratorPersister implements Persister {
         if (path.equals(serviceRootPath)) {
             // Special case: If we're being told to delete root, we should instead delete the contents OF root. We don't
             // have access to delete the root-level '/dcos-service-<svcname>' node itself, despite having created it.
-            for (String child : getChildren(unprefixedPath)) {
-                deleteAll(child);
+            /* Effective 5/8/2017:
+             * We cannot delete the root node of a service directly.
+             * This is due to the ACLs on the global DC/OS ZK.
+             *
+             * The root has:
+             * [zk: localhost:2181(CONNECTED) 1] getAcl /
+             * 'world,'anyone
+             * : cr
+             * 'ip,'127.0.0.1
+             * : cdrwa
+             *
+             * Our service nodes have:
+             * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-hello-world
+             * 'world,'anyone
+             * : cdrwa
+             *
+             * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
+             * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
+             */
+            logger.debug("Deleting children of root {}", path);
+            try {
+                CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+                for (String child : client.getChildren().forPath(serviceRootPath)) {
+                    // Custom logic for root-level children: don't delete the lock node
+                    if (child.equals(CuratorLocker.LOCK_PATH_NAME)) {
+                        continue;
+                    }
+                    String childPath = PersisterUtils.join(serviceRootPath, child);
+                    transaction = deleteChildrenOf(client, childPath, transaction)
+                            .delete().forPath(childPath).and();
+                }
+                transaction.commit();
+            } catch (Exception e) {
+                throw new PersisterException(
+                        Reason.STORAGE_ERROR, String.format("Unable to delete children of root %s: %s", path, e.getMessage()), e);
             }
-            // Need to explicitly set null or else curator will return a zero-bytes value later!:
+            // Need to explicitly set null or else curator will return a zero-bytes value later:
             set(unprefixedPath, null);
         } else {
             // Normal case: Delete node itself and any/all children.
@@ -198,6 +231,18 @@ public class CuratorPersister implements Persister {
                 throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to delete %s", path), e);
             }
         }
+    }
+
+    private static CuratorTransactionFinal deleteChildrenOf(
+            CuratorFramework client, String path, CuratorTransactionFinal curatorTransactionFinal) throws Exception {
+        // For each child: recurse into child (to delete any grandchildren, etc..), THEN delete child itself
+        for (String child : client.getChildren().forPath(path)) {
+            String childPath = PersisterUtils.join(path, child);
+            curatorTransactionFinal =
+                    deleteChildrenOf(client, childPath, curatorTransactionFinal) // RECURSE
+                    .delete().forPath(childPath).and();
+        }
+        return curatorTransactionFinal;
     }
 
     @Override
@@ -240,7 +285,9 @@ public class CuratorPersister implements Persister {
                 // Phase 2: Compose a single transaction that updates and/or creates nodes according to
                 //          the above determinations (retry if there's an out-of-band modification)
                 final CuratorTransactionFinal transaction =
-                        getTransaction(pathBytesMap, pathsWhichExist, parentPathsToCreate);
+                        getWriteTransaction(pathBytesMap, pathsWhichExist, parentPathsToCreate);
+
+                // Attempt to run the transaction, retrying if applicable:
                 if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
                     try {
                         transaction.commit();
@@ -299,7 +346,7 @@ public class CuratorPersister implements Persister {
         return parentPathsToCreate;
     }
 
-    private CuratorTransactionFinal getTransaction(
+    private CuratorTransactionFinal getWriteTransaction(
             Map<String, byte[]> pathBytesMap, Set<String> pathsWhichExist, List<String> parentPathsToCreate)
                     throws Exception {
         CuratorTransactionFinal transactionFinal = null;

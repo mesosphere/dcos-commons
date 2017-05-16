@@ -29,15 +29,15 @@ public class DefaultPhaseTest {
 
         when(step1.getStatus()).thenReturn(Status.PENDING);
         when(step2.getStatus()).thenReturn(Status.WAITING);
-        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
-        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(step1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
+        when(step2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         Assert.assertEquals(Status.PENDING, serialPhase.getStatus());
 
         when(step1.getStatus()).thenReturn(Status.WAITING);
         when(step2.getStatus()).thenReturn(Status.WAITING);
-        when(step1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
-        when(step2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(step1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
+        when(step2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         final DefaultPhase canaryPhase = new DefaultPhase(
                 "canary-phase",

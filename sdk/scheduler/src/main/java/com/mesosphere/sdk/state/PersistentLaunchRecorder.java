@@ -52,7 +52,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 TextFormat.shortDebugString(taskInfo));
 
         updateResources(taskInfo);
-        stateStore.storeTasks(Arrays.asList(taskInfo));
+        stateStore.storeTasks(Collections.singletonList(taskInfo));
         if (taskStatus != null) {
             stateStore.storeStatus(taskStatus);
         }
@@ -70,8 +70,8 @@ public class PersistentLaunchRecorder implements OperationRecorder {
             // Find the TaskSpec for the TaskInfo
             int index = new SchedulerLabelReader(taskInfo).getIndex();
             PodInstance podInstance = new DefaultPodInstance(podSpecOptional.get(), index);
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
 
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
             if (taskSpecOptional.isPresent()) {
                 ResourceSet resourceSet = taskSpecOptional.get().getResourceSet();
 

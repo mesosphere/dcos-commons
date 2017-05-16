@@ -317,7 +317,10 @@ def setup_clusters(run_attrs):
 
 def teardown_clusters():
     logger.info("Shutting down all clusters.")
-    clustinfo.shutdown_clusters()
+    try:
+        clustinfo.shutdown_clusters()
+    except Exception as e:
+        logger.exception("Cluster teardown did not run correctly, ignoring.")
 
 def _one_cluster_linear_tests(run_attrs, repo_root):
     if run_attrs.cluster_url and run_attrs.cluster_token:
@@ -462,7 +465,7 @@ def run_tests(run_attrs, repo_root):
     try: # all clusters are set up inside this try
         all_passed = False
         if run_attrs.parallel:
-            logger.debug("Running m ulticluster test run")
+            logger.debug("Running multicluster test run")
             all_passed = _multicluster_linear_per_cluster(run_attrs, repo_root)
         else:
             all_passed = _one_cluster_linear_tests(run_attrs, repo_root)

@@ -27,7 +27,7 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
     }
 
     @Override
-    public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
         return plan.getCandidates(dirtyAssets);
     }
 
@@ -37,14 +37,14 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
     }
 
     @Override
-    public Set<String> getDirtyAssets() {
-        Set<String> dirtyAssets = new HashSet<>();
+    public Set<PodInstanceRequirement> getDirtyAssets() {
+        Set<PodInstanceRequirement> dirtyAssets = new HashSet<>();
         final List<? extends Phase> phases = plan.getChildren();
         for (Phase phase : phases) {
             final List<? extends Step> steps = phase.getChildren();
             for (Step step : steps) {
                 if (step.isAssetDirty()) {
-                    Optional<String> dirtyAsset = step.getAsset();
+                    Optional<PodInstanceRequirement> dirtyAsset = step.getAsset();
                     if (dirtyAsset.isPresent()) {
                         dirtyAssets.add(dirtyAsset.get());
                     }

@@ -22,7 +22,7 @@ public class CuratorLocker {
     private static final Logger LOGGER = LoggerFactory.getLogger(CuratorUtils.class);
 
     private static final int LOCK_ATTEMPTS = 3;
-    private static final String LOCK_PATH = "lock";
+    static final String LOCK_PATH_NAME = "lock";
 
     private final String serviceName;
     private final String zookeeperConnection;
@@ -46,7 +46,7 @@ public class CuratorLocker {
         curatorClient = CuratorFrameworkFactory.newClient(zookeeperConnection, CuratorUtils.getDefaultRetry());
         curatorClient.start();
 
-        final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH);
+        final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);

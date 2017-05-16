@@ -24,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.TestConstants;
 
@@ -288,6 +289,7 @@ public class CuratorPersisterTest {
         mockedPersister.setMany(MANY_MAP);
     }
 
+    // Uses a real ZK instance to ensure that our integration works as expected:
     @Test
     public void testAclBehavior() throws Exception {
         CuratorTestUtils.clear(testZk);
@@ -326,6 +328,32 @@ public class CuratorPersisterTest {
 
         // Delete ACL'ed data so that other tests don't have ACL problems trying to clear it:
         aclPersister.deleteAll(PATH_PARENT);
+    }
+
+    // Uses a real ZK instance to ensure that our integration works as expected:
+    @Test
+    public void testDeleteRoot() throws Exception {
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).build();
+
+        persister.set("lock", DATA_1);
+        persister.set("a", DATA_2);
+        persister.set("a/1", DATA_1);
+        persister.set("a/lock", DATA_2);
+        persister.set("a/2/a", DATA_1);
+        persister.set("a/3", DATA_2);
+        persister.set("a/3/a/1", DATA_1);
+        persister.set("b", DATA_2);
+        persister.set("c", DATA_1);
+        persister.set("d/1/a/1", DATA_2);
+
+        persister.deleteAll("");
+
+        // The root-level "lock" is preserved:
+        assertEquals(Collections.singleton("lock"), persister.getChildren(""));
+        assertArrayEquals(DATA_1, persister.get("lock"));
+        assertEquals(Collections.singleton("/lock"), PersisterUtils.getAllKeys(persister));
     }
 
     /**

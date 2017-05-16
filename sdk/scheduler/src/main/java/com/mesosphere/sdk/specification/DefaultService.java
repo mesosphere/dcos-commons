@@ -1,28 +1,24 @@
 package com.mesosphere.sdk.specification;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-
-import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
-
+import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -37,9 +33,10 @@ public class DefaultService implements Service {
     protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
-    private DefaultScheduler.Builder schedulerBuilder;
-
+    private Scheduler scheduler;
     private ServiceSpec serviceSpec;
+    private StateStore stateStore;
+    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
@@ -72,16 +69,46 @@ public class DefaultService implements Service {
     }
 
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
+
+        try {
+            // Use a single stateStore for either scheduler as the StateStoreCache
+            // requires a single instance of StateStore.
+            this.stateStore = schedulerBuilder.getStateStore();
+            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+                if (!StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                            "Uninstall cannot be canceled once enabled.");
+                    StateStoreUtils.setUninstalling(stateStore, true);
+                }
+
+                LOGGER.info("Launching UninstallScheduler...");
+                this.scheduler = new UninstallScheduler(
+                        schedulerBuilder.getServiceSpec().getApiPort(),
+                        schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                        stateStore,
+                        schedulerBuilder.getConfigStore());
+            } else {
+                if (StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                            "Reenable the uninstall flag to complete the process.");
+                    SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+                }
+                this.scheduler = schedulerBuilder.build();
+            }
+        } catch (Throwable e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
     }
 
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
 
-        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
+        CuratorLocker locker = new CuratorLocker(serviceSpec);
         locker.lock();
         try {
             register();
@@ -95,20 +122,14 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = null;
-        try {
-            defaultScheduler = schedulerBuilder.build();
-        } catch (Throwable e) {
-            LOGGER.error("Failed to build scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
-        }
-
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-        registerAndRunFramework(
-                defaultScheduler,
-                getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
-                serviceSpec.getZookeeperConnection(),
-                schedulerBuilder.getSchedulerFlags());
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
+        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        Protos.Status status = new SchedulerDriverFactory()
+                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .run();
+        // TODO(nickbp): Exit scheduler process here?
+        LOGGER.error("Scheduler driver exited with status: {}", status);
     }
 
     protected ServiceSpec getServiceSpec() {
@@ -127,18 +148,6 @@ public class DefaultService implements Service {
             }
         }
         return false;
-    }
-
-    private static void registerAndRunFramework(
-            Scheduler sched,
-            Protos.FrameworkInfo frameworkInfo,
-            String zookeeperHost,
-            SchedulerFlags schedulerFlags) {
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        Protos.Status status = new SchedulerDriverFactory().create(
-                sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost), schedulerFlags).run();
-        // TODO(nickbp): Exit scheduler process here?
-        LOGGER.error("Scheduler driver exited with status: {}", status);
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
@@ -179,9 +188,7 @@ public class DefaultService implements Service {
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
-        if (optionalFrameworkId.isPresent()) {
-            fwkInfoBuilder.setId(optionalFrameworkId.get());
-        }
+        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
