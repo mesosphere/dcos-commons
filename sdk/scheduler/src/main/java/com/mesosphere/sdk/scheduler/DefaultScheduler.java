@@ -599,7 +599,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private Collection<PlanManager> getOtherPlanManagers() {
         return plans.stream()
                 .filter(plan -> !plan.isDeployPlan())
-                .map(plan -> new DefaultPlanManager(plan))
+                .map(DefaultPlanManager::new)
                 .collect(Collectors.toList());
     }
 

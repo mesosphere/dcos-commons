@@ -5,6 +5,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -87,7 +88,7 @@ public class DefaultService implements Service {
                 if (!StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                             "Uninstall cannot be canceled once enabled.");
-                    StateStoreUtils.setUninstalling(stateStore, true);
+                    StateStoreUtils.setUninstalling(stateStore);
                 }
 
                 ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(serviceSpec);
@@ -174,6 +175,10 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
+        if (allButStateStoreUninstalled()) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return;
+        }
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
@@ -181,6 +186,13 @@ public class DefaultService implements Service {
                 run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
+    }
+
+    private boolean allButStateStoreUninstalled() {
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return StateStoreUtils.isUninstalling(stateStore) &&
+                ResourceUtils.allResourcesUninstalled(stateStore.fetchTasks()) &&
+                !stateStore.fetchFrameworkId().isPresent();
     }
 
     protected ServiceSpec getServiceSpec() {

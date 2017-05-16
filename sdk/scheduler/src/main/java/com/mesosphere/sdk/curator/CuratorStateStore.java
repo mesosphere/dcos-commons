@@ -157,7 +157,6 @@ public class CuratorStateStore implements StateStore {
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent FrameworkID should not result in an exception from us.
             logger.warn("Cleared unset FrameworkID, continuing silently", e);
-            return;
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
@@ -314,11 +313,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTasksRootPath();
         logger.debug("Fetching task names from '{}'", path);
         try {
-            Collection<String> taskNames = new ArrayList<>();
-            for (String childNode : curator.getChildren(path)) {
-                taskNames.add(childNode);
-            }
-            return taskNames;
+            return curator.getChildren(path);
         } catch (KeeperException.NoNodeException e) {
             // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
             // expected to commonly occur when the Framework is being run for the first time.
@@ -378,7 +373,6 @@ public class CuratorStateStore implements StateStore {
             } catch (KeeperException.NoNodeException e) {
                 // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
                 // the only contents are a TaskInfo.
-                continue;
             } catch (Exception e) {
                 throw new StateStoreException(Reason.STORAGE_ERROR, e);
             }
@@ -456,7 +450,6 @@ public class CuratorStateStore implements StateStore {
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Property should not result in an exception from us.
             logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
-            return;
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
@@ -534,6 +527,6 @@ public class CuratorStateStore implements StateStore {
         repairedStatuses = repairedStatuses.stream()
                 .filter(status -> !status.getTaskId().getValue().equals(""))
                 .collect(Collectors.toList());
-        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
+        repairedStatuses.forEach(this::storeStatus);
     }
 }

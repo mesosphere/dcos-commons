@@ -1,10 +1,11 @@
-package com.mesosphere.sdk.state;
+package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class UninstallRecorder implements OperationRecorder {
     private final StateStore stateStore;
     private final Phase resourcePhase;
 
-    public UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
+    UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
         this.stateStore = stateStore;
         this.resourcePhase = resourcePhase;
     }
