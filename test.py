@@ -236,7 +236,8 @@ def build_and_upload(run_attrs=parse_args([])):
 # TODO: consider moving this to Nexus
 def _upload_proxylite(framework):
     logger.info("trying to push proxylite to docker [1/2]")
-    cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
+    proxylite_script = os.path.join(get_repo_root(), 'frameworks/proxylite/scripts/ci.sh')
+    cmd_args = ['bash', proxylite_script , 'pre-test']
     completed_cmd = subprocess.run(cmd_args)
     if completed_cmd.returncode == 0:
         logger.info("docker push succeeded.")
