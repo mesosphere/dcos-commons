@@ -38,6 +38,7 @@ public class UninstallSchedulerDeregisterTest {
 
     @Test
     public void testAllButDeregisteredPlanCompletes() throws Exception {
+        // Returns a simple placeholder plan with status COMPLETE
         assert uninstallScheduler.uninstallPlanManager.getPlan().isComplete();
     }
 

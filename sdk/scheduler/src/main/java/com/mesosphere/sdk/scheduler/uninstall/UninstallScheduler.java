@@ -37,7 +37,6 @@ public class UninstallScheduler implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final int port;
     protected final StateStore stateStore;
-    private final Duration apiServerInitTimeout;
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
@@ -45,7 +44,6 @@ public class UninstallScheduler implements Scheduler {
     private final ConfigStore<ServiceSpec> configStore;
     protected SchedulerDriver driver;
     PlanManager uninstallPlanManager;
-    private Collection<Object> apiResources;
     private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
@@ -63,11 +61,15 @@ public class UninstallScheduler implements Scheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore) {
         this.port = port;
-        this.apiServerInitTimeout = apiServerInitTimeout;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.uninstallPlan = getPlan();
         this.uninstallPlanManager = new DefaultPlanManager(uninstallPlan);
+        LOGGER.info("Initializing plans resource...");
+        PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
+        Collection<Object> apiResources = Collections.singletonList(plansResource);
+        schedulerApiServer = new SchedulerApiServer(port, apiResources, apiServerInitTimeout);
+        new Thread(schedulerApiServer).start();
     }
 
     private Plan getPlan() {
@@ -100,9 +102,8 @@ public class UninstallScheduler implements Scheduler {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
         initializeGlobals(driver);
-        proceedDeploymentPlanManager();
-        initializeResources();
-        initializeApiServer();
+        LOGGER.info("Proceeding with uninstall plan...");
+        uninstallPlanManager.getPlan().proceed();
         LOGGER.info("Done initializing.");
     }
 
@@ -113,21 +114,6 @@ public class UninstallScheduler implements Scheduler {
         Phase resourcePhase = uninstallPlan.getChildren().get(0);
         UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
         offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
-    }
-
-    private void proceedDeploymentPlanManager() {
-        LOGGER.info("Proceeding with uninstall plan...");
-        uninstallPlanManager.getPlan().proceed();
-    }
-
-    private void initializeResources() throws InterruptedException {
-        LOGGER.info("Initializing plans resource...");
-        apiResources = Collections.singletonList(new PlansResource(Collections.singletonList(uninstallPlanManager)));
-    }
-
-    private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(port, apiResources, apiServerInitTimeout);
-        new Thread(schedulerApiServer).start();
     }
 
     @Override
