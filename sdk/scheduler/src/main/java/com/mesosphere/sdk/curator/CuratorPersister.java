@@ -214,8 +214,8 @@ public class CuratorPersister implements Persister {
                 }
                 transaction.commit();
             } catch (Exception e) {
-                throw new PersisterException(
-                        Reason.STORAGE_ERROR, String.format("Unable to delete children of root %s: %s", path, e.getMessage()), e);
+                throw new PersisterException(Reason.STORAGE_ERROR,
+                        String.format("Unable to delete children of root %s: %s", path, e.getMessage()), e);
             }
             // Need to explicitly set null or else curator will return a zero-bytes value later:
             set(unprefixedPath, null);
