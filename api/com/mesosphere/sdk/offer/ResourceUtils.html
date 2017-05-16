@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9,"i34":9,"i35":9,"i36":9,"i37":9,"i38":9,"i39":9,"i40":9,"i41":9,"i42":9,"i43":9,"i44":9,"i45":9,"i46":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9,"i34":9,"i35":9,"i36":9,"i37":9,"i38":9,"i39":9,"i40":9,"i41":9,"i42":9,"i43":9,"i44":9,"i45":9,"i46":9,"i47":9,"i48":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -188,71 +188,75 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#allResourcesUninstalled-java.util.Collection-">allResourcesUninstalled</a></span>(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#areDifferent-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-">areDifferent</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;oldResourceSpec,
             <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;newResourceSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static TaskInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#clearPersistence-TaskInfo-">clearPersistence</a></span>(TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#clearResourceId-Resource-">clearResourceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static ExecutorInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#clearResourceIds-ExecutorInfo-">clearResourceIds</a></span>(ExecutorInfo&nbsp;executorInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static TaskInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#clearResourceIds-TaskInfo-">clearResourceIds</a></span>(TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;Protos.Resource&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getAllResources-Protos.TaskInfo-">getAllResources</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">Returns a list of all the resources associated with a task, including <code>Executor</code> resources.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredMountVolume-java.lang.String-java.lang.String-double-java.lang.String-">getDesiredMountVolume</a></span>(java.lang.String&nbsp;role,
                      java.lang.String&nbsp;principal,
                      double&nbsp;diskSize,
                      java.lang.String&nbsp;containerPath)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredRanges-java.lang.String-java.lang.String-java.lang.String-java.util.List-">getDesiredRanges</a></span>(java.lang.String&nbsp;role,
                 java.lang.String&nbsp;principal,
                 java.lang.String&nbsp;name,
                 java.util.List&lt;Range&gt;&nbsp;ranges)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredResource-com.mesosphere.sdk.specification.ResourceSpec-">getDesiredResource</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredResource-java.lang.String-java.lang.String-java.lang.String-Value-">getDesiredResource</a></span>(java.lang.String&nbsp;role,
                   java.lang.String&nbsp;principal,
                   java.lang.String&nbsp;name,
                   Value&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredRootVolume-java.lang.String-java.lang.String-double-java.lang.String-">getDesiredRootVolume</a></span>(java.lang.String&nbsp;role,
                     java.lang.String&nbsp;principal,
                     double&nbsp;diskSize,
                     java.lang.String&nbsp;containerPath)</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDesiredScalar-java.lang.String-java.lang.String-java.lang.String-double-">getDesiredScalar</a></span>(java.lang.String&nbsp;role,
                 java.lang.String&nbsp;principal,
                 java.lang.String&nbsp;name,
                 double&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedMountVolume-double-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getExpectedMountVolume</a></span>(double&nbsp;diskSize,
                       java.lang.String&nbsp;resourceId,
@@ -262,7 +266,7 @@ extends java.lang.Object</pre>
                       java.lang.String&nbsp;containerPath,
                       java.lang.String&nbsp;persistenceId)</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedRanges-java.lang.String-java.util.List-java.lang.String-java.lang.String-java.lang.String-">getExpectedRanges</a></span>(java.lang.String&nbsp;name,
                  java.util.List&lt;Range&gt;&nbsp;ranges,
@@ -270,18 +274,18 @@ extends java.lang.Object</pre>
                  java.lang.String&nbsp;role,
                  java.lang.String&nbsp;principal)</code>&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedResource-com.mesosphere.sdk.specification.ResourceSpec-">getExpectedResource</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedResource-java.lang.String-java.lang.String-java.lang.String-Value-">getExpectedResource</a></span>(java.lang.String&nbsp;role,
                    java.lang.String&nbsp;principal,
                    java.lang.String&nbsp;name,
                    Value&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedResource-java.lang.String-java.lang.String-java.lang.String-Value-java.lang.String-">getExpectedResource</a></span>(java.lang.String&nbsp;role,
                    java.lang.String&nbsp;principal,
@@ -289,7 +293,7 @@ extends java.lang.Object</pre>
                    Value&nbsp;value,
                    java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedRootVolume-double-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getExpectedRootVolume</a></span>(double&nbsp;diskSize,
                      java.lang.String&nbsp;resourceId,
@@ -298,7 +302,7 @@ extends java.lang.Object</pre>
                      java.lang.String&nbsp;principal,
                      java.lang.String&nbsp;persistenceId)</code>&nbsp;</td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getExpectedScalar-java.lang.String-double-java.lang.String-java.lang.String-java.lang.String-">getExpectedScalar</a></span>(java.lang.String&nbsp;name,
                  double&nbsp;value,
@@ -306,16 +310,16 @@ extends java.lang.Object</pre>
                  java.lang.String&nbsp;role,
                  java.lang.String&nbsp;principal)</code>&nbsp;</td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getLabel-Resource-java.lang.String-">getLabel</a></span>(Resource&nbsp;resource,
         java.lang.String&nbsp;key)</code>&nbsp;</td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Resource-">getPersistenceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResource-ExecutorInfo.Builder-java.lang.String-">getResource</a></span>(ExecutorInfo.Builder&nbsp;executorBuilder,
            java.lang.String&nbsp;resourceName)</code>
@@ -323,12 +327,12 @@ extends java.lang.Object</pre>
  <code>ExecutorInfo.Builder</code>, throwing an <code>IllegalArgumentException</code> if not found.</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResource-ExecutorInfo-java.lang.String-">getResource</a></span>(ExecutorInfo&nbsp;executorInfo,
            java.lang.String&nbsp;name)</code>&nbsp;</td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResource-TaskInfo.Builder-java.lang.String-">getResource</a></span>(TaskInfo.Builder&nbsp;taskBuilder,
            java.lang.String&nbsp;resourceName)</code>
@@ -336,7 +340,7 @@ extends java.lang.Object</pre>
  throwing an <code>IllegalArgumentException</code> if not found.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResource-TaskInfo-java.lang.String-">getResource</a></span>(TaskInfo&nbsp;taskInfo,
            java.lang.String&nbsp;resourceName)</code>
@@ -344,7 +348,7 @@ extends java.lang.Object</pre>
  an <code>IllegalArgumentException</code> if not found.</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>static Resource.Builder</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceBuilder-ExecutorInfo.Builder-Resource-">getResourceBuilder</a></span>(ExecutorInfo.Builder&nbsp;executorBuilder,
                   Resource&nbsp;resource)</code>
@@ -352,7 +356,7 @@ extends java.lang.Object</pre>
  as the supplied resource.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>static Resource.Builder</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceBuilder-TaskInfo.Builder-Resource-">getResourceBuilder</a></span>(TaskInfo.Builder&nbsp;taskBuilder,
                   Resource&nbsp;resource)</code>
@@ -360,35 +364,41 @@ extends java.lang.Object</pre>
  the supplied resource.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceId-Resource-">getResourceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
+<td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds</a></span>(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</code>
+<div class="block">Returns a list of unique resource IDs associated with <code>Protos.TaskInfo</code>'s.</div>
+</td>
+</tr>
+<tr id="i32" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getUnreservedMountVolume-double-java.lang.String-">getUnreservedMountVolume</a></span>(double&nbsp;diskSize,
                         java.lang.String&nbsp;mountRoot)</code>&nbsp;</td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getUnreservedRanges-java.lang.String-java.util.List-">getUnreservedRanges</a></span>(java.lang.String&nbsp;name,
                    java.util.List&lt;Range&gt;&nbsp;ranges)</code>&nbsp;</td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i34" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getUnreservedResource-java.lang.String-Value-">getUnreservedResource</a></span>(java.lang.String&nbsp;name,
                      Value&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i35" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getUnreservedRootVolume-double-">getUnreservedRootVolume</a></span>(double&nbsp;diskSize)</code>&nbsp;</td>
 </tr>
-<tr id="i34" class="altColor">
+<tr id="i36" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getUnreservedScalar-java.lang.String-double-">getUnreservedScalar</a></span>(java.lang.String&nbsp;name,
                    double&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i35" class="rowColor">
+<tr id="i37" class="rowColor">
 <td class="colFirst"><code>static DiscoveryInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getVIPDiscoveryInfo-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-DiscoveryInfo.Visibility-Resource-">getVIPDiscoveryInfo</a></span>(java.lang.String&nbsp;taskName,
                    java.lang.String&nbsp;vipName,
@@ -397,33 +407,33 @@ extends java.lang.Object</pre>
                    DiscoveryInfo.Visibility&nbsp;visibility,
                    Resource&nbsp;r)</code>&nbsp;</td>
 </tr>
-<tr id="i36" class="altColor">
+<tr id="i38" class="altColor">
 <td class="colFirst"><code>static Label</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getVIPLabel-java.lang.String-java.lang.Integer-">getVIPLabel</a></span>(java.lang.String&nbsp;vipName,
            java.lang.Integer&nbsp;vipPort)</code>&nbsp;</td>
 </tr>
-<tr id="i37" class="rowColor">
+<tr id="i39" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#mergeRanges-Resource.Builder-Resource-">mergeRanges</a></span>(Resource.Builder&nbsp;builder,
            Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i38" class="altColor">
+<tr id="i40" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#mergeRanges-Resource-Resource-">mergeRanges</a></span>(Resource&nbsp;lhs,
            Resource&nbsp;rhs)</code>&nbsp;</td>
 </tr>
-<tr id="i39" class="rowColor">
+<tr id="i41" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#removeLabel-Resource-java.lang.String-">removeLabel</a></span>(Resource&nbsp;resource,
            java.lang.String&nbsp;key)</code>&nbsp;</td>
 </tr>
-<tr id="i40" class="altColor">
+<tr id="i42" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#setLabel-Resource-java.lang.String-java.lang.String-">setLabel</a></span>(Resource&nbsp;resource,
         java.lang.String&nbsp;key,
         java.lang.String&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i41" class="rowColor">
+<tr id="i43" class="rowColor">
 <td class="colFirst"><code>static TaskInfo.Builder</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#setResource-TaskInfo.Builder-Resource-">setResource</a></span>(TaskInfo.Builder&nbsp;builder,
            Resource&nbsp;resource)</code>
@@ -431,27 +441,27 @@ extends java.lang.Object</pre>
  resource with that name already exists on that task.</div>
 </td>
 </tr>
-<tr id="i42" class="altColor">
+<tr id="i44" class="altColor">
 <td class="colFirst"><code>static Labels</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#setResourceId-Labels-java.lang.String-">setResourceId</a></span>(Labels&nbsp;labels,
              java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
-<tr id="i43" class="rowColor">
+<tr id="i45" class="rowColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#setResourceId-Resource-java.lang.String-">setResourceId</a></span>(Resource&nbsp;resource,
              java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
-<tr id="i44" class="altColor">
+<tr id="i46" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#setValue-Resource-Value-">setValue</a></span>(Resource&nbsp;resource,
         Value&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i45" class="rowColor">
+<tr id="i47" class="rowColor">
 <td class="colFirst"><code>static Protos.Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#updateResource-Protos.Resource-com.mesosphere.sdk.specification.ResourceSpec-">updateResource</a></span>(Protos.Resource&nbsp;resource,
               <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i46" class="altColor">
+<tr id="i48" class="altColor">
 <td class="colFirst"><code>static Resource</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#withValue-Resource-Value-">withValue</a></span>(Resource&nbsp;resource,
          Value&nbsp;value)</code>&nbsp;</td>
@@ -991,6 +1001,31 @@ extends java.lang.Object</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a list of <code>Protos.Resource</code>s.</dd>
 </dl>
+</li>
+</ul>
+<a name="getResourceIds-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getResourceIds</h4>
+<pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getResourceIds(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</pre>
+<div class="block">Returns a list of unique resource IDs associated with <code>Protos.TaskInfo</code>'s.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>taskInfos</code> - Collection of taskInfos from which to extract the unique resource IDs</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>List of unique resource IDs</dd>
+</dl>
+</li>
+</ul>
+<a name="allResourcesUninstalled-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>allResourcesUninstalled</h4>
+<pre>public static&nbsp;boolean&nbsp;allResourcesUninstalled(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</pre>
 </li>
 </ul>
 <a name="getResourceBuilder-TaskInfo.Builder-Resource-">
