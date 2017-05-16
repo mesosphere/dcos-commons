@@ -25,8 +25,8 @@ public class PortRequirement extends ResourceRequirement {
         return new Builder(role, port, portname);
     }
 
-    public static Builder newBuilder(Protos.Resource resource) {
-        return new Builder(resource);
+    public static Builder newBuilder(Protos.Resource resource, String portName) {
+        return new Builder(resource, portName);
     }
 
     public String getPortName() {
@@ -66,8 +66,8 @@ public class PortRequirement extends ResourceRequirement {
             this.portName = portName;
         }
 
-        protected Builder(Protos.Resource resource) {
-            this(resource.getRole(), getPort(resource), getPortName(resource));
+        protected Builder(Protos.Resource resource, String portName) {
+            this(resource.getRole(), getPort(resource), portName);
         }
 
         public Builder portName(String portName) {
@@ -84,7 +84,7 @@ public class PortRequirement extends ResourceRequirement {
             return new PortRequirement(this);
         }
 
-        private static long getPort(Protos.Resource resource) {
+        protected static long getPort(Protos.Resource resource) {
             if (!resource.getType().equals(Protos.Value.Type.RANGES)) {
                 throw new IllegalStateException("A port resource must be of type RANGES");
             }
@@ -100,11 +100,6 @@ public class PortRequirement extends ResourceRequirement {
             }
 
             return begin;
-        }
-
-        private static String getPortName(Protos.Resource resource) {
-            // TODO: Implement this
-            throw new UnsupportedOperationException("NOT YET IMPLEMENTED EXTRACTION OF PORT NAME FROM RESOURCE.");
         }
     }
 }

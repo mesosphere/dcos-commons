@@ -12,25 +12,27 @@ import org.apache.mesos.Protos;
  * attached.
  */
 public class NamedVIPRequirement extends PortRequirement {
+    private final String vipName;
     private final String protocol;
     private final Protos.DiscoveryInfo.Visibility visibility;
-    private final String vipName;
-    private final int vipPort;
+    private final long vipPort;
 
-    public NamedVIPRequirement(
-            Protos.Resource resource,
+    protected NamedVIPRequirement(Builder builder) {
+        super(builder);
+        this.vipName = builder.vipName;
+        this.vipPort = builder.vipPort;
+        this.protocol = builder.protocol;
+        this.visibility = builder.visibility;
+    }
+
+    public static Builder newBuilder(
+            String role,
             String portName,
-            int port,
-            Optional<String> customEnvKey,
-            String protocol,
-            Protos.DiscoveryInfo.Visibility visibility,
             String vipName,
-            int vipPort) {
-        super(resource, portName, port, customEnvKey);
-        this.protocol = protocol;
-        this.visibility = visibility;
-        this.vipName = vipName;
-        this.vipPort = vipPort;
+            long port,
+            long vipPort,
+            String protocol) {
+        return new Builder(role, portName, vipName, port, vipPort, protocol);
     }
 
     public String getProtocol() {
@@ -45,14 +47,14 @@ public class NamedVIPRequirement extends PortRequirement {
         return vipName;
     }
 
-    public int getVipPort() {
+    public long getVipPort() {
         return vipPort;
     }
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
         return new NamedVIPEvaluationStage(
-                getResource(),
+                this,
                 taskName,
                 getPortName(),
                 getPort(),
@@ -61,5 +63,29 @@ public class NamedVIPRequirement extends PortRequirement {
                 getVisibility(),
                 getVipName(),
                 getVipPort());
+    }
+
+    public static class Builder extends PortRequirement.Builder {
+        private String vipName;
+        private final long vipPort;
+        private final String protocol;
+        private Protos.DiscoveryInfo.Visibility visibility;
+
+        protected Builder(String role, String portName, String vipName, long port, long vipPort, String protocol) {
+            super(role, port, portName);
+            this.vipName = vipName;
+            this.vipPort = vipPort;
+            this.protocol = protocol;
+            this.visibility = Protos.DiscoveryInfo.Visibility.EXTERNAL;
+        }
+
+        public Builder visibility(Protos.DiscoveryInfo.Visibility visibility) {
+            this.visibility = visibility;
+            return this;
+        }
+
+        public NamedVIPRequirement build() {
+            return new NamedVIPRequirement(this);
+        }
     }
 }
