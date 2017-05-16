@@ -166,8 +166,9 @@ def test_state_properties_get():
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
-    assert jsonobj[0] == "suppressed"
-    assert jsonobj[1] == "last-completed-update-type"
+    # alphabetical ordering:
+    assert jsonobj[0] == "last-completed-update-type"
+    assert jsonobj[1] == "suppressed"
 
     stdout = cmd.run_cli('hello-world state property suppressed')
     assert stdout == "true\n"
