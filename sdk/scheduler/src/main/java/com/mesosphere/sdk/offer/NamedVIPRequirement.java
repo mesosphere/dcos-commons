@@ -56,7 +56,7 @@ public class NamedVIPRequirement extends PortRequirement {
                 taskName,
                 getPortName(),
                 getPort(),
-                getCustomEnvKey(),
+                getEnvKey(),
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

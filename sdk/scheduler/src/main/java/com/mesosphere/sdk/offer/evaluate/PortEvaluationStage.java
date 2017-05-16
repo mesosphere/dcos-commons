@@ -32,8 +32,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private String resourceId;
 
     public PortEvaluationStage(
-            Protos.Resource resource, String taskName, String portName, int port, Optional<String> customEnvKey) {
-        super(resource, taskName);
+            ResourceRequirement resourceRequirement,
+            String taskName,
+            String portName,
+            int port,
+            Optional<String> customEnvKey) {
+        super(resourceRequirement, taskName);
         this.portName = portName;
         this.port = port;
         this.customEnvKey = customEnvKey;

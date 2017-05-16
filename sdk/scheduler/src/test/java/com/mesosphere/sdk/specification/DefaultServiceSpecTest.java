@@ -135,9 +135,9 @@ public class DefaultServiceSpecTest {
 
        Assert.assertEquals(3, portReqList.size());
 
-       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getCustomEnvKey().get());
-       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getCustomEnvKey().isPresent());
-       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getCustomEnvKey().isPresent());
+       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey().get());
+       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getEnvKey().isPresent());
+       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getEnvKey().isPresent());
 
     }
 

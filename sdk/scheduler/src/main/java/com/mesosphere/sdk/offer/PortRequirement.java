@@ -13,13 +13,13 @@ import org.apache.mesos.Protos;
 public class PortRequirement extends ResourceRequirement {
     private final String portName;
     private final int port;
-    private final Optional<String> customEnvKey;
+    private final Optional<String> envKey;
 
-    public PortRequirement(Protos.Resource resource, String portName, int port, Optional<String> customEnvKey) {
-        super(resource);
-        this.portName = portName;
-        this.port = port;
-        this.customEnvKey = customEnvKey;
+    public PortRequirement(Builder builder) {
+        super(builder);
+        this.portName = builder.portName;
+        this.port = builder.port;
+        this.envKey = Optional.ofNullable(builder.envKey);
     }
 
     public String getPortName() {
@@ -30,12 +30,47 @@ public class PortRequirement extends ResourceRequirement {
         return port;
     }
 
-    public Optional<String> getCustomEnvKey() {
-        return customEnvKey;
+    public Optional<String> getEnvKey() {
+        return envKey;
     }
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new PortEvaluationStage(getResource(), taskName, getPortName(), getPort(), getCustomEnvKey());
+        return new PortEvaluationStage(this, taskName, getPortName(), getPort(), getEnvKey());
+    }
+
+    public static class Builder extends ResourceRequirement.Builder {
+        private final int port;
+        private String portName;
+        private String envKey;
+
+        public Builder(String role, int port, String portName) {
+            super(
+                    role,
+                    Constants.PORTS_RESOURCE_TYPE,
+                    Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.RANGES)
+                            .setRanges(Protos.Value.Ranges.newBuilder()
+                                    .addRange(Protos.Value.Range.newBuilder()
+                                            .setBegin(port)
+                                            .setEnd(port)))
+                            .build());
+            this.port = port;
+            this.portName = portName;
+        }
+
+        public Builder portName(String portName) {
+            this.portName = portName;
+            return this;
+        }
+
+        public Builder envKey(String envKey) {
+            this.envKey = envKey;
+            return this;
+        }
+
+        public PortRequirement build() {
+            return new PortRequirement(this);
+        }
     }
 }
