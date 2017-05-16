@@ -8,7 +8,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
 
 /**
- * A {@link ResourceRequirement} encapsulates a needed {@link MesosResource}.
+ * A {@link ResourceRequirement} encapsulates a needed Mesos Resource.
  *
  * A {@link MesosResource} object indicates whether it is expected to exist already or
  * to be created by the presence or absence of IDs respectively.  A {@link MesosResource}
@@ -18,118 +18,105 @@ import org.apache.mesos.Protos.Value;
  * or an already determined value.
  */
 public class ResourceRequirement {
+    private final String role;
+    private final String name;
+    private final Value value;
+    private final String resourceId;
+    private final boolean reservesResource;
 
-    private final MesosResource mesosResource;
-
-    public ResourceRequirement(Resource resource) {
-        this.mesosResource = new MesosResource(resource);
-    }
-
-    public Resource getResource() {
-        return mesosResource.getResource();
+    public ResourceRequirement(Builder builder) {
+        this.role = builder.role;
+        this.name = builder.name;
+        this.value = builder.value;
+        this.resourceId = builder.resourceId;
+        this.reservesResource = builder.reservesResource;
     }
 
     public String getRole() {
-        return mesosResource.getRole();
-    }
-
-    public String getPrincipal() {
-        return mesosResource.getPrincipal();
+        return role;
     }
 
     public String getName() {
-        return mesosResource.getName();
+        return name;
+    }
+
+    public Value getValue() {
+        return value;
     }
 
     public String getResourceId() {
-        return mesosResource.getResourceId();
+        return resourceId;
     }
 
-    /**
-     * Returns the volume persistence ID, or {@code null} if none is available.
-     */
-    public String getPersistenceId() {
-        return hasPersistenceId() ? getDiskInfo().getPersistence().getId() : null;
-    }
-
-    /**
-     * Returns whether this requirement is able to be fulfilled without requiring a resource reservation.
-     */
-    public boolean consumesUnreservedResource() {
-        return !expectsResource() && !reservesResource();
-    }
-
-    /**
-     * Returns whether this instance expects that a resource does not already exist on the destination and needs to be
-     * reserved.
-     */
     public boolean reservesResource() {
-        return hasReservation() && !expectsResource();
+        return reservesResource;
     }
 
-    /**
-     * Returns whether this instance expects that a resource (with some associated resource ID) already exists on the
-     * destination.
-     */
     public boolean expectsResource() {
-        return hasResourceId() && !getResourceId().isEmpty();
-    }
-
-    /**
-     * Returns whether this instance expects that a volume (with some associated persistence ID) already exists on the
-     * destination.
-     */
-    public boolean expectsVolume() {
-        return hasPersistenceId() && !getPersistenceId().isEmpty();
-    }
-
-    /**
-     * Returns whether this instance expects that a volume does not already exist on the destination and needs to be
-     * created.
-     */
-    public boolean createsVolume() {
-        return hasPersistenceId() && getPersistenceId().isEmpty();
-    }
-
-    /**
-     * Returns whether this resource is atomic, i.e. cannot be split into smaller reservations. This typically applies
-     * to mount volumes which cannot be shared across containers. It does not apply to e.g. CPU or Memory which can be
-     * subdivided and shared.
-     */
-    public boolean isAtomic() {
-        return mesosResource.isAtomic();
-    }
-
-    /**
-     * Returns the amount of the resource to be reserved, e.g. the amount of CPU to reserve.
-     */
-    public Value getValue() {
-        return mesosResource.getValue();
-    }
-
-    public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new ResourceEvaluationStage(getResource(), taskName);
-    }
-
-    private boolean hasResourceId() {
-        return mesosResource.hasResourceId();
-    }
-
-    private boolean hasPersistenceId() {
-        DiskInfo diskInfo = getDiskInfo();
-        return diskInfo != null && diskInfo.hasPersistence();
-    }
-
-    private boolean hasReservation() {
-        return mesosResource.hasReservation();
-    }
-
-    private DiskInfo getDiskInfo() {
-        return mesosResource.getResource().hasDisk() ? mesosResource.getResource().getDisk() : null;
+        return !reservesResource();
     }
 
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    public static final class Builder {
+        private String role;
+        private String name;
+        private Value value;
+        private String resourceId;
+        private boolean reservesResource;
+
+        public Builder(String role, String name, Value value) {
+            this.role = role;
+            this.name = name;
+            this.value = value;
+            this.reservesResource = true;
+        }
+
+        public Builder(Resource resource) {
+            this.role = resource.getRole();
+            this.name = resource.getName();
+            this.value = ValueUtils.getValue(resource);
+            this.resourceId = new MesosResource(resource).getResourceId();
+
+            boolean resourceIdIsPresent = true;
+            if (resourceId.isEmpty()) {
+                resourceId = null;
+                resourceIdIsPresent = false;
+            }
+
+            reservesResource = resourceIdIsPresent ? false : true;
+        }
+
+        public Builder role(String role) {
+           this.role  = role;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder value(Value value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder resourceId(String resourceId) {
+            this.resourceId = resourceId;
+            return this;
+        }
+
+        public Builder reservesResource(boolean reservesResource) {
+            this.reservesResource = reservesResource;
+            return this;
+        }
+
+        public ResourceRequirement build() {
+            return new ResourceRequirement(this);
+        }
     }
 }
