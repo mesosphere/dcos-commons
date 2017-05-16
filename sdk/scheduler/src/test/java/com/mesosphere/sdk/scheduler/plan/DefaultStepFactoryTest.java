@@ -2,10 +2,11 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -15,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -84,11 +86,13 @@ public class DefaultStepFactoryTest {
 
         CuratorTestUtils.clear(testingServer);
 
-        stateStore = new CuratorStateStore(
-                "test-framework-name",
-                testingServer.getConnectString());
+        stateStore = new DefaultStateStore(
+                "test-framework-name", CuratorPersister.newBuilder(testingServer.getConnectString()).build());
 
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(
+                serviceSpec,
+                Collections.emptyList(),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
@@ -123,11 +127,13 @@ public class DefaultStepFactoryTest {
 
         CuratorTestUtils.clear(testingServer);
 
-        stateStore = new CuratorStateStore(
-                "test-framework-name",
-                testingServer.getConnectString());
+        stateStore = new DefaultStateStore(
+                "test-framework-name", CuratorPersister.newBuilder(testingServer.getConnectString()).build());
 
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(
+                serviceSpec,
+                Collections.emptyList(),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);

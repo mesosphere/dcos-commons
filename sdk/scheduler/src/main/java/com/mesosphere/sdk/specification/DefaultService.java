@@ -2,8 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -13,9 +12,6 @@ import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
@@ -23,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -90,7 +86,8 @@ public class DefaultService implements Service {
                     StateStoreUtils.setUninstalling(stateStore, true);
                 }
 
-                ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(serviceSpec);
+                ConfigStore<ServiceSpec> configStore =
+                        DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList());
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
                         schedulerBuilder.getServiceSpec().getApiPort(),
@@ -116,56 +113,12 @@ public class DefaultService implements Service {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
 
-        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                serviceSpec.getZookeeperConnection(), CuratorUtils.getDefaultRetry());
-        curatorClient.start();
-
-        InterProcessMutex curatorMutex = lock(curatorClient, serviceSpec.getName(), LOCK_ATTEMPTS);
+        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        locker.lock();
         try {
             register();
         } finally {
-            unlock(curatorMutex);
-            curatorClient.close();
-        }
-    }
-
-    /**
-     * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
-     * same service.
-     */
-    protected static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName, int lockAttempts) {
-        String lockPath = CuratorUtils.join(
-                CuratorUtils.toServiceRootPath(serviceName), CuratorStateStore.LOCK_PATH_NAME);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
-
-        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
-        String format = "Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?";
-        final String failureLogMsg = String.format(format, lockPath, serviceName, serviceName);
-        try {
-            for (int i = 0; i < lockAttempts; ++i) {
-                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                    return curatorMutex;
-                }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, lockAttempts, failureLogMsg);
-            }
-            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        } catch (Exception ex) {
-            LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        }
-        return null; // not reachable, only here for a happy java
-    }
-
-    /**
-     * Releases the lock previously obtained by {@link #lock(CuratorFramework, String)}.
-     */
-    protected static void unlock(InterProcessMutex curatorMutex) {
-        try {
-            curatorMutex.release();
-        } catch (Exception ex) {
-            LOGGER.error("Error releasing ZK lock.", ex);
+            locker.unlock();
         }
     }
 

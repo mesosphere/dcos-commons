@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -61,7 +63,7 @@ public class UninstallSchedulerTest {
     StateStore stateStore;
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
-    @Mock private ConfigStore configStore;
+    @Mock private ConfigStore<ServiceSpec> configStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     @BeforeClass
@@ -74,8 +76,8 @@ public class UninstallSchedulerTest {
         MockitoAnnotations.initMocks(this);
         StateStoreCache.resetInstanceForTests();
 
-        stateStore = StateStoreCache.getInstance(new CuratorStateStore("testing-uninstall",
-                testingServer.getConnectString()));
+        stateStore = StateStoreCache.getInstance(new DefaultStateStore(
+                "testing-uninstall", CuratorPersister.newBuilder(testingServer.getConnectString()).build()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
@@ -171,7 +173,7 @@ public class UninstallSchedulerTest {
                 int port,
                 Duration apiServerInitTimeout,
                 StateStore stateStore,
-                ConfigStore configStore,
+                ConfigStore<ServiceSpec> configStore,
                 boolean apiServerReady) {
             super(port, apiServerInitTimeout, stateStore, configStore);
             this.apiServerReady = apiServerReady;

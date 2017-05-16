@@ -14,11 +14,9 @@ import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
-import com.mesosphere.sdk.curator.CuratorConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCluster;
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -38,10 +36,14 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.storage.Persister;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -139,6 +141,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Returns the {@link SchedulerFlags} object which was provided via the constructor.
+         */
+        public SchedulerFlags getSchedulerFlags() {
+            return schedulerFlags;
+        }
+
+        /**
          * Specifies a custom {@link StateStore}, otherwise the return value of
          * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
          *
@@ -157,15 +166,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
-         * to the defaults.
-         */
-        public Builder setCustomResources(Collection<Object> resources) {
-            this.resources = resources;
-            return this;
-        }
-
-        /**
          * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
          * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
          *
@@ -180,13 +180,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
-         */
-        public SchedulerFlags getSchedulerFlags() {
-            return schedulerFlags;
-        }
-
-        /**
          * Specifies a custom {@link ConfigStore}, otherwise the return value of
          * {@link DefaultScheduler#createConfigStore(ServiceSpec)} will be used.
          *
@@ -194,7 +187,39 @@ public class DefaultScheduler implements Scheduler, Observer {
          * while also storing historical configurations.
          */
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
+            if (configStoreOptional.isPresent()) {
+                // Any customization of the state store must be applied BEFORE getConfigStore() is ever called.
+                throw new IllegalStateException(
+                        "Config store is already set. Was getConfigStore() invoked before this?");
+            }
             this.configStoreOptional = Optional.ofNullable(configStore);
+            return this;
+        }
+
+        /**
+         * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default
+         * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection)}.
+         *
+         * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
+         * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
+         */
+        public ConfigStore<ServiceSpec> getConfigStore() {
+            if (!configStoreOptional.isPresent()) {
+                try {
+                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList()));
+                } catch (ConfigStoreException e) {
+                    throw new IllegalStateException("Failed to create default config store", e);
+                }
+            }
+            return configStoreOptional.get();
+        }
+
+        /**
+         * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
+         * to the defaults.
+         */
+        public Builder setCustomResources(Collection<Object> resources) {
+            this.resources = resources;
             return this;
         }
 
@@ -298,20 +323,9 @@ public class DefaultScheduler implements Scheduler, Observer {
                 throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
             }
 
-            // Get custom or default state store (defaults handled by getStateStore())::
+            // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
             final StateStore stateStore = getStateStore();
-
-            // Get custom or default config store:
-            final ConfigStore<ServiceSpec> configStore;
-            if (configStoreOptional.isPresent()) {
-                configStore = configStoreOptional.get();
-            } else {
-                try {
-                    configStore = createConfigStore(serviceSpec);
-                } catch (ConfigStoreException e) {
-                    throw new IllegalStateException("Failed to create default config store", e);
-                }
-            }
+            final ConfigStore<ServiceSpec> configStore = getConfigStore();
 
             // Update/validate config as needed to reflect the new service spec:
             final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
@@ -427,17 +441,22 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Creates and returns a new default {@link StateStore} suitable for passing to
-     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
-     * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to
-     * {@link DefaultScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
-     *
-     * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
+     * Creates and returns a new default {@link StateStore} suitable for passing to {@link DefaultScheduler.Builder}.
+     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
+     * Scheduler has registered with Mesos, as signified by a call to
+     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
+     */
+    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        return createStateStore(serviceSpec, schedulerFlags, CuratorPersister.newBuilder(serviceSpec).build());
+    }
+
+    /**
+     * Version of {@link #createStateStore(ServiceSpec, SchedulerFlags)} which allows passing a custom {@link Persister}
+     * object. Exposed for unit tests.
      */
     public static StateStore createStateStore(
-            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, String zkConnectionString) {
-        StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
+            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, CuratorPersister persister) {
+        StateStore stateStore = new DefaultStateStore(serviceSpec.getName(), persister);
         if (schedulerFlags.isStateCacheEnabled()) {
             return StateStoreCache.getInstance(stateStore);
         } else {
@@ -446,61 +465,35 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createStateStore(ServiceSpec, SchedulerFlags, String)} with the specification name as the
-     * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
+     * Creates and returns a new default {@link ConfigStore} suitable for passing to {@link DefaultScheduler.Builder}.
+     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
+     * Scheduler has registered with Mesos, as signified by a call to
+     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
      *
-     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
-     */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return createStateStore(serviceSpec, schedulerFlags, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-    }
-
-    /**
-     * Creates and returns a new default {@link ConfigStore} suitable for passing to
-     * {@link Builder#setStateStore(StateStore)}. To avoid the risk of zookeeper consistency issues, the
-     * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
-     *
-     * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
      *     {@link DefaultServiceSpec}, mainly useful for deserializing custom implementations of
-     *     {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}s.
+     *     {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}s
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *                              unrecognized deserialization type
      */
     public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec,
-            String zkConnectionString,
-            Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
-        return new CuratorConfigStore<>(
-                DefaultServiceSpec.getFactory(serviceSpec, customDeserializationSubtypes),
+            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
+        // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
+        return createConfigStore(
+                serviceSpec, customDeserializationSubtypes, CuratorPersister.newBuilder(serviceSpec).build());
+    }
+
+    /**
+     * Version of {@link #createConfigStore(ServiceSpec, Collection)} which allows passing a custom {@link Persister}
+     * object. Exposed for unit tests.
+     */
+    public static ConfigStore<ServiceSpec> createConfigStore(
+            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
+                    throws ConfigStoreException {
+        return new DefaultConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
                 serviceSpec.getName(),
-                zkConnectionString);
-    }
-
-    /**
-     * Calls {@link #createConfigStore(ServiceSpec, String, Collection))} with the specification name as
-     * the {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
-     *
-     * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
-     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
-     *                              unrecognized deserialization type
-     */
-    public static ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec, String zkConnectionString)
-            throws ConfigStoreException {
-        return createConfigStore(serviceSpec, zkConnectionString, Collections.emptyList());
-    }
-
-    /**
-     * Calls {@link #createConfigStore(ServiceSpec, String)} with an empty list of
-     * custom deserialization types.
-     *
-     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
-     *                              unrecognized deserialization type
-     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
-     */
-    public static ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec) throws ConfigStoreException {
-        return createConfigStore(serviceSpec, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+                persister);
     }
 
     /**

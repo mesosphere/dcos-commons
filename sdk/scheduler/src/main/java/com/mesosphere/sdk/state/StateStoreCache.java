@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
@@ -33,7 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class StateStoreCache implements StateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultStateStore.class);
 
     private static final ReadWriteLock _lock = new ReentrantReadWriteLock();
     protected static final Lock RLOCK = _lock.readLock();

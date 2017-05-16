@@ -22,9 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
-
 /**
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
  * being used.
@@ -71,7 +68,7 @@ public class StateResource {
             Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
-                return jsonOkResponse(idArray);
+                return ResponseUtils.jsonOkResponse(idArray);
             } else {
                 logger.warn("No framework ID exists");
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -88,7 +85,7 @@ public class StateResource {
     public Response getPropertyKeys() {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
-            return jsonOkResponse(keyArray);
+            return ResponseUtils.jsonOkResponse(keyArray);
         } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
             return Response.serverError().build();
@@ -109,8 +106,8 @@ public class StateResource {
                 return Response.status(Response.Status.CONFLICT).build();
             } else {
                 logger.info("Attempting to fetch property '{}'", key);
-                return jsonResponseBean(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
-                        Response.Status.OK);
+                return ResponseUtils.jsonResponseBean(
+                        propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)), Response.Status.OK);
             }
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
@@ -143,7 +140,7 @@ public class StateResource {
             logger.info("After:\n- tasks: {}\n- properties: {}",
                     stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
 
-            return jsonOkResponse(getCommandResult("refresh"));
+            return ResponseUtils.jsonOkResponse(getCommandResult("refresh"));
         } catch (StateStoreException ex) {
             logger.error("Failed to refresh state cache", ex);
             return Response.serverError().build();

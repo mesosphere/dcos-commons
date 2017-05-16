@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -73,7 +73,7 @@ public class StateStoreCacheTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
         cache = new TestStateStoreCache(store);
 
         MockitoAnnotations.initMocks(this);
@@ -87,7 +87,7 @@ public class StateStoreCacheTest {
 
     @After
     public void afterEach() {
-        ((CuratorStateStore) store).closeForTesting();
+        ((DefaultStateStore) store).closeForTesting();
     }
 
     @Test(expected=IllegalStateException.class)

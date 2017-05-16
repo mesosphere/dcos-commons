@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -16,7 +17,6 @@ import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -199,9 +199,9 @@ public class DefaultSchedulerTest {
 
         StateStoreCache.resetInstanceForTests();
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
-        stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION, mockSchedulerFlags, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
+        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, mockSchedulerFlags, persister);
+        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, Collections.emptyList(), persister);
         defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
@@ -224,7 +224,10 @@ public class DefaultSchedulerTest {
                         .build())
                 .build();
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(serviceSpecification, testingServer.getConnectString());
+        DefaultScheduler.createConfigStore(
+                serviceSpecification,
+                Collections.emptyList(),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -237,8 +240,8 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMissingEquality.class));
+                Arrays.asList(PlacementRuleMissingEquality.class),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -251,8 +254,8 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMismatchedAnnotations.class));
+                Arrays.asList(PlacementRuleMismatchedAnnotations.class),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
     }
 
     @Test
@@ -265,8 +268,8 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(TestPlacementUtils.PASS.getClass()));
+                Arrays.asList(TestPlacementUtils.PASS.getClass()),
+                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
     }
 
     @Test
@@ -677,10 +680,6 @@ public class DefaultSchedulerTest {
         return Arrays.asList(deployPlan, updatePlan);
     }
 
-    private Callable<Boolean> taskMarkFailed(String taskName) {
-        return () -> FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
-    }
-
     private int countOperationType(
             Protos.Offer.Operation.Type operationType,
             Collection<Protos.Offer.Operation> operations) {
@@ -758,7 +757,7 @@ public class DefaultSchedulerTest {
                                 ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
                 .build();
     }
-    
+
     private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
         return Matchers.argThat(new BaseMatcher<Collection<T>>() {
             @Override

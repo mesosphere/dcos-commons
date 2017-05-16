@@ -1,10 +1,11 @@
-package com.mesosphere.sdk.curator;
+package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
+import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.Before;
@@ -18,9 +19,9 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 /**
- * Tests to validate the operation of the CuratorConfigStore
+ * Tests for {@link DefaultConfigStore}.
  */
-public class CuratorConfigStoreTest {
+public class DefaultConfigStoreTest {
     private static final String ROOT_ZK_PATH = "/test-root-path";
 
     private static TestingServer testZk;
@@ -35,20 +36,19 @@ public class CuratorConfigStoreTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        store = new CuratorConfigStore<StringConfiguration>(
-                new StringConfiguration.Factory(), ROOT_ZK_PATH, testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(testZk.getConnectString()).build();
+        store = new DefaultConfigStore<StringConfiguration>(
+                new StringConfiguration.Factory(), ROOT_ZK_PATH, persister);
 
         // Check that schema version was created in the correct location:
-        CuratorPersister curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, persister.get("/dcos-service-test-root-path/SchemaVersion").length);
 
         testConfig = new StringConfiguration("test-config");
     }
 
     @After
     public void afterEach() {
-        ((CuratorConfigStore<StringConfiguration>) store).close();
+        ((DefaultConfigStore<StringConfiguration>) store).close();
     }
 
     @Test
@@ -61,8 +61,7 @@ public class CuratorConfigStoreTest {
     public void testRootPathMapping() throws Exception {
         UUID id = store.store(testConfig);
         store.setTargetConfig(id);
-        CuratorPersister curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        CuratorPersister curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
         assertNotEquals(0, curator.get("/dcos-service-test-root-path/ConfigTarget").length);
         assertNotEquals(0, curator.get(
                 "/dcos-service-test-root-path/Configurations/" + id.toString()).length);
