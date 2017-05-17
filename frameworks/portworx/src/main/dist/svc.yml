@@ -35,7 +35,7 @@ pods:
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
                           --name=%n \
-                          portworx/px-enterprise:1.2.4-rc1 -c {{PORTWORX_CLUSTER_NAME}} -k {{PORTWORX_KVDB}} -a
+                          portworx/{{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} -k {{PORTWORX_KVDB}} {{{PORTWORX_OPTIONS}}}
                     KillMode=control-group
                     ExecStop=/usr/bin/docker stop -t 10 %n
                     [Install]

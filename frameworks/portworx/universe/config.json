@@ -37,6 +37,16 @@
             "type": "string",
             "default":"portworx-dcos"
           },
+          "portworx_image": {
+            "title": "Portworx Image name",
+            "type": "string",
+            "default":"px-dev:latest"
+          },
+          "portworx_options": {
+            "title": "Portworx Options",
+            "type": "string",
+            "default":"-a"
+          },
           "kvdb_servers": {
             "title":"KVDB servers",
             "description": "Comma seperated IP:PORT entries for the key value database (etcd or consul). If the etcd server is started using the pacakge this will be ignored",
@@ -72,8 +82,9 @@
           "count",
           "cpus",
           "mem",
-          "portworx_cluster"
-
+          "portworx_cluster",
+          "portworx_image",
+          "portworx_options"
         ]
       },
       "etcd": {
@@ -96,7 +107,7 @@
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": ""
           },
           "cpus": {
             "title": "CPU count",
@@ -125,7 +136,7 @@
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": ""
           },
           "cpus": {
             "title": "CPU count",
@@ -159,7 +170,7 @@
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": ""
           },
           "cpus": {
             "title": "CPU count",
