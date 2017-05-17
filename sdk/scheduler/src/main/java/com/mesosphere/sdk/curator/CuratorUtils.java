@@ -4,12 +4,12 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
 class CuratorUtils {
+
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
 
@@ -20,20 +20,22 @@ class CuratorUtils {
     /**
      * Returns a reasonable default retry policy for querying ZK.
      */
-    static RetryPolicy getDefaultRetry() {
-        return new ExponentialBackoffRetry(DEFAULT_CURATOR_POLL_DELAY_MS, DEFAULT_CURATOR_MAX_RETRIES);
+    public static RetryPolicy getDefaultRetry() {
+        return new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
+                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
     }
 
     /**
      * Returns the root node to store all scheduler ZK data inside.
      */
-    static String getServiceRootPath(String serviceName) {
-        if (serviceName.startsWith(PersisterUtils.PATH_DELIM)) {
+    public static String getServiceRootPath(String frameworkName) {
+        if (frameworkName.startsWith("/")) {
             // "/dcos-service-" + "/foo"
-            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName.substring(1);
+            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName.substring(1);
         } else {
             // "/dcos-service-" + "foo"
-            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName;
+            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName;
         }
     }
 }

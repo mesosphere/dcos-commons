@@ -4,12 +4,11 @@ import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
-
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * CuratorStateStoreFilter enables to ignore task names that match the filter.
+ * Adds support for ignoring task names which match a filter.
  */
 public class FilterStateStore extends DefaultStateStore {
     private StringMatcher ignoreFilter = null;

@@ -257,4 +257,4 @@ def test_lock():
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)

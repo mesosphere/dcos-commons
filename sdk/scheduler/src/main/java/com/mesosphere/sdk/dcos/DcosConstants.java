@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.dcos;
 
-import com.mesosphere.sdk.state.DefaultSchemaVersionStore;
-
 /**
  * This class encapsulates constants common to DC/OS and its services.
  */
@@ -17,7 +15,7 @@ public class DcosConstants {
      * This must never change, as it affects the path to the SchemaVersion object for a given
      * framework name.
      *
-     * @see DefaultSchemaVersionStore
+     * @see com.mesosphere.sdk.state.DefaultSchemaVersionStore
      */
     public static final String SERVICE_ROOT_PATH_PREFIX = "/dcos-service-";
 }

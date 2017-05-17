@@ -204,8 +204,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * @throws ConfigStoreException        if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
-            ServiceSpec serviceSpec,
-            Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
+            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
         ConfigurationFactory<ServiceSpec> factory = new Factory(additionalSubtypesToRegister);
         // Serialize and then deserialize:
         ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());

@@ -4,8 +4,8 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
  * An implementation of {@link SchemaVersionStore} which relies on the provided {@link Persister} for data persistence.
  */
 public class DefaultSchemaVersionStore implements SchemaVersionStore {
+
+    /**
+     * This must never change, as it affects the serialization of the SchemaVersion node.
+     */
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSchemaVersionStore.class);
 
@@ -58,7 +63,7 @@ public class DefaultSchemaVersionStore implements SchemaVersionStore {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Invalid data when fetching schema version in '%s'", schemaVersionPath));
             }
-            String rawString = new String(bytes, StandardCharsets.UTF_8);
+            String rawString = new String(bytes, CHARSET);
             logger.debug("Schema version retrieved from '{}': {}", schemaVersionPath, rawString);
             try {
                 return Integer.parseInt(rawString);
@@ -86,7 +91,7 @@ public class DefaultSchemaVersionStore implements SchemaVersionStore {
             String versionStr = String.valueOf(version);
             logger.debug("Storing schema version: '{}' into path: {}",
                     versionStr, schemaVersionPath);
-            persister.set(schemaVersionPath, versionStr.getBytes(StandardCharsets.UTF_8));
+            persister.set(schemaVersionPath, versionStr.getBytes(CHARSET));
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
                     "Storage error when storing schema version %d", version), e);

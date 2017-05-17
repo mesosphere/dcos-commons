@@ -135,10 +135,15 @@ dcos==0.4.16
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
 virtualenv -p $(which python3) --always-copy {venv_path}
+echo ls -l {venv_path}/bin/pip
+ls -l {venv_path}/bin/pip
+echo head {venv_path}/bin/pip
+head {venv_path}/bin/pip
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
-pip install -r {reqs_file}
+echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
+{venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,

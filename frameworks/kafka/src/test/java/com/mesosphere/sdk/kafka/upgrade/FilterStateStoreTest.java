@@ -81,7 +81,7 @@ public class FilterStateStoreTest {
         createTaskStatuses(testTaskName0, testTaskName1).stream().forEach(status -> store.storeStatus(status));
         Collection<Protos.TaskStatus> taskStatuses = store.fetchStatuses();
         Collection<Protos.TaskInfo> taskInfos = store.fetchTasks();
-        assertEquals(2, taskInfos.size());
+        assertEquals(taskInfos.toString(), 2, taskInfos.size());
         assertEquals(2, taskStatuses.size());
 
         store.setIgnoreFilter(RegexMatcher.create("test-executor-[0-9]*"));

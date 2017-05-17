@@ -143,20 +143,15 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-<<<<<<< HEAD
-         * Returns the {@link SchedulerFlags} object to be used for the scheduler instance.
+         * Returns the {@link SchedulerFlags} object which was provided via the constructor.
          */
         public SchedulerFlags getSchedulerFlags() {
             return schedulerFlags;
         }
 
         /**
-         * Specifies a custom {@link Persister}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags, Persister)} will be used.
-=======
          * Specifies a custom {@link StateStore}, otherwise the return value of
          * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
->>>>>>> master
          *
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
@@ -480,7 +475,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
-        // Note: We don't bother using a PersisterCache here as we don't expect configs to be accessed frequently
+        // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
         return createConfigStore(
                 serviceSpec, customDeserializationSubtypes, CuratorPersister.newBuilder(serviceSpec).build());
     }
@@ -593,7 +588,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private Collection<PlanManager> getOtherPlanManagers() {
         return plans.stream()
                 .filter(plan -> !plan.isDeployPlan())
-                .map(plan -> new DefaultPlanManager(plan))
+                .map(DefaultPlanManager::new)
                 .collect(Collectors.toList());
     }
 

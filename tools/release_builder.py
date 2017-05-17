@@ -462,12 +462,13 @@ class UniverseReleaseBuilder(object):
         with open(package_file_name, 'w') as f:
             json.dump(package_json, f, indent=4)
 
+        self._pkg_name = package_json['name']
+
         # Rename the directory structure
         parts = pkgdir.split('/')
         parts[-2] = 'beta-' + parts[-2]
         parts[-3] = 'B'
         beta_pkg_dir = '/'.join(parts)
-        self._pkg_name = parts[-2]
         shutil.copytree(pkgdir, beta_pkg_dir)
         shutil.rmtree(pkgdir)
         return beta_pkg_dir

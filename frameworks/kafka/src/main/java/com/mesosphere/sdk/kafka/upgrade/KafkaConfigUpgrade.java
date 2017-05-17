@@ -378,7 +378,4 @@ public class KafkaConfigUpgrade {
         }
         return false;
     }
-
-
-
 }
