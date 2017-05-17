@@ -81,7 +81,7 @@
 <ul class="blockList">
 <li class="blockList">
 <table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
-<caption><span>com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html" title="class in com.mesosphere.sdk.curator">CuratorSchemaVersionStore</a></span><span class="tabEnd">&nbsp;</span></caption>
+<caption><span>com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th scope="col">Constant Field</th>
@@ -89,63 +89,11 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorSchemaVersionStore.CURRENT_SCHEMA_VERSION">
-<!--   -->
-</a><code>static&nbsp;final&nbsp;int</code></td>
-<td><code><a href="com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html#CURRENT_SCHEMA_VERSION">CURRENT_SCHEMA_VERSION</a></code></td>
-<td class="colLast"><code>1</code></td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorSchemaVersionStore.SCHEMA_VERSION_NAME">
+<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorLocker.LOCK_PATH_NAME">
 <!--   -->
 </a><code>static&nbsp;final&nbsp;java.lang.String</code></td>
-<td><code><a href="com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html#SCHEMA_VERSION_NAME">SCHEMA_VERSION_NAME</a></code></td>
-<td class="colLast"><code>"SchemaVersion"</code></td>
-</tr>
-</tbody>
-</table>
-</li>
-<li class="blockList">
-<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
-<caption><span>com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorStateStore.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore</a></span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th scope="col">Constant Field</th>
-<th class="colLast" scope="col">Value</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorStateStore.LOCK_PATH_NAME">
-<!--   -->
-</a><code>public&nbsp;static&nbsp;final&nbsp;java.lang.String</code></td>
-<td><code><a href="com/mesosphere/sdk/curator/CuratorStateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></code></td>
+<td><code><a href="com/mesosphere/sdk/curator/CuratorLocker.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></code></td>
 <td class="colLast"><code>"lock"</code></td>
-</tr>
-</tbody>
-</table>
-</li>
-<li class="blockList">
-<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
-<caption><span>com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator">CuratorUtils</a></span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th scope="col">Constant Field</th>
-<th class="colLast" scope="col">Value</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorUtils.DEFAULT_CONNECTION_TIMEOUT_MS">
-<!--   -->
-</a><code>public&nbsp;static&nbsp;final&nbsp;int</code></td>
-<td><code><a href="com/mesosphere/sdk/curator/CuratorUtils.html#DEFAULT_CONNECTION_TIMEOUT_MS">DEFAULT_CONNECTION_TIMEOUT_MS</a></code></td>
-<td class="colLast"><code>15000</code></td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.curator.CuratorUtils.DEFAULT_SESSION_TIMEOUT_MS">
-<!--   -->
-</a><code>public&nbsp;static&nbsp;final&nbsp;int</code></td>
-<td><code><a href="com/mesosphere/sdk/curator/CuratorUtils.html#DEFAULT_SESSION_TIMEOUT_MS">DEFAULT_SESSION_TIMEOUT_MS</a></code></td>
-<td class="colLast"><code>60000</code></td>
 </tr>
 </tbody>
 </table>
@@ -534,25 +482,6 @@
 </li>
 <li class="blockList">
 <table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
-<caption><span>com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th scope="col">Constant Field</th>
-<th class="colLast" scope="col">Value</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<td class="colFirst"><a name="com.mesosphere.sdk.specification.DefaultServiceSpec.DEFAULT_ZK_CONNECTION">
-<!--   -->
-</a><code>public&nbsp;static&nbsp;final&nbsp;java.lang.String</code></td>
-<td><code><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html#DEFAULT_ZK_CONNECTION">DEFAULT_ZK_CONNECTION</a></code></td>
-<td class="colLast"><code>"master.mesos:2181"</code></td>
-</tr>
-</tbody>
-</table>
-</li>
-<li class="blockList">
-<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
 <caption><span>com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
@@ -566,6 +495,74 @@
 </a><code>public&nbsp;static&nbsp;final&nbsp;java.lang.String</code></td>
 <td><code><a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html#RESOURCE_NAME">RESOURCE_NAME</a></code></td>
 <td class="colLast"><code>"disk"</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<ul class="blockList">
+<li class="blockList">
+<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
+<caption><span>com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th scope="col">Constant Field</th>
+<th class="colLast" scope="col">Value</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a name="com.mesosphere.sdk.state.DefaultSchemaVersionStore.CURRENT_SCHEMA_VERSION">
+<!--   -->
+</a><code>static&nbsp;final&nbsp;int</code></td>
+<td><code><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#CURRENT_SCHEMA_VERSION">CURRENT_SCHEMA_VERSION</a></code></td>
+<td class="colLast"><code>1</code></td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a name="com.mesosphere.sdk.state.DefaultSchemaVersionStore.SCHEMA_VERSION_NAME">
+<!--   -->
+</a><code>static&nbsp;final&nbsp;java.lang.String</code></td>
+<td><code><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#SCHEMA_VERSION_NAME">SCHEMA_VERSION_NAME</a></code></td>
+<td class="colLast"><code>"SchemaVersion"</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList">
+<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
+<caption><span>com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th scope="col">Constant Field</th>
+<th class="colLast" scope="col">Value</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a name="com.mesosphere.sdk.state.DefaultStateStore.LOCK_PATH_NAME">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;java.lang.String</code></td>
+<td><code><a href="com/mesosphere/sdk/state/DefaultStateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></code></td>
+<td class="colLast"><code>"lock"</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<ul class="blockList">
+<li class="blockList">
+<table class="constantsSummary" border="0" cellpadding="3" cellspacing="0" summary="Constant Field Values table, listing constant fields, and values">
+<caption><span>com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th scope="col">Constant Field</th>
+<th class="colLast" scope="col">Value</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a name="com.mesosphere.sdk.storage.PersisterUtils.PATH_DELIM">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;java.lang.String</code></td>
+<td><code><a href="com/mesosphere/sdk/storage/PersisterUtils.html#PATH_DELIM">PATH_DELIM</a></code></td>
+<td class="colLast"><code>"/"</code></td>
 </tr>
 </tbody>
 </table>

@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/storage/StorageError.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/storage/Persister.html" target="_top">Frames</a></li>
@@ -104,7 +104,13 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public interface <span class="typeNameLabel">Persister</span></pre>
-<div class="block">This interface should be implemented in order to store and fetch data.</div>
+<div class="block">A low-level interface for key/value storage in a tree structure.
+
+ <p>Individual nodes may be the parent of other nodes. Some of these parent nodes may lack any data of their own. The
+ root-level node (with path "", or "/") is considered to always be present.
+
+ <p>This interface should be implemented in order to store and fetch data, with paths delimited by
+ <a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#PATH_DELIM"><code>PersisterUtils.PATH_DELIM</code></a>.</div>
 </li>
 </ul>
 </div>
@@ -126,21 +132,19 @@ var activeTableTab = "activeTableTab";
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#close--">close</a></span>()</code>
-<div class="block">Closes this storage and cleans up any resources.</div>
+<div class="block">Closes this storage and cleans up any local client resources.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#delete-java.lang.String-">delete</a></span>(java.lang.String&nbsp;path)</code>
-<div class="block">Deletes the data at the specified path, or throws an exception if the data didn't already
- exist.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">deleteAll</a></span>(java.lang.String&nbsp;path)</code>
+<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-">get</a></span>(java.lang.String&nbsp;path)</code>
-<div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the
- data is missing.</div>
+<div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -153,8 +157,8 @@ var activeTableTab = "activeTableTab";
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
    byte[]&nbsp;bytes)</code>
-<div class="block">Writes a single value to storage at the specified path, replacing existing data at the path
- if any.</div>
+<div class="block">Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
+ path if it doesn't exist yet.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -178,18 +182,40 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setMany-java.util.Map-">
+<a name="get-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setMany</h4>
-<pre>void&nbsp;setMany(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)
-      throws java.lang.Exception</pre>
-<div class="block">Atomically writes many values to storage at once.</div>
+<h4>get</h4>
+<pre>byte[]&nbsp;get(java.lang.String&nbsp;path)
+    throws java.lang.Exception</pre>
+<div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.
+ If the path is valid but has no data (i.e. is a parent of another path), this returns <code>null</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code>java.lang.Exception</code> - if the requested path doesn't exist, or for other access errors</dd>
+</dl>
+</li>
+</ul>
+<a name="getChildren-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getChildren</h4>
+<pre>java.util.Collection&lt;java.lang.String&gt;&nbsp;getChildren(java.lang.String&nbsp;path)
+                                            throws java.lang.Exception</pre>
+<div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
+ retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>get(String)</code></a>, indicating that these are stub parent entries to other nodes.
+
+ <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
+ input using <a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#join-java.lang.String-java.lang.String-"><code>PersisterUtils.join(String, String)</code></a>.
+
+ <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code> - if the requested path doesn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
@@ -202,59 +228,45 @@ var activeTableTab = "activeTableTab";
 <pre>void&nbsp;set(java.lang.String&nbsp;path,
          byte[]&nbsp;bytes)
   throws java.lang.Exception</pre>
-<div class="block">Writes a single value to storage at the specified path, replacing existing data at the path
- if any.</div>
+<div class="block">Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
+ path if it doesn't exist yet.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code>java.lang.Exception</code> - in the event of an access error</dd>
 </dl>
 </li>
 </ul>
-<a name="get-java.lang.String-">
+<a name="setMany-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>get</h4>
-<pre>byte[]&nbsp;get(java.lang.String&nbsp;path)
-    throws java.lang.Exception</pre>
-<div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the
- data is missing.</div>
+<h4>setMany</h4>
+<pre>void&nbsp;setMany(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)
+      throws java.lang.Exception</pre>
+<div class="block">Atomically writes many values to storage at once.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code>java.lang.Exception</code> - in the event of an access error, in which case no changes should have been made</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-"><code>set(String, byte[])</code></a></dd>
 </dl>
 </li>
 </ul>
-<a name="delete-java.lang.String-">
+<a name="deleteAll-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>delete</h4>
-<pre>void&nbsp;delete(java.lang.String&nbsp;path)
-     throws java.lang.Exception</pre>
-<div class="block">Deletes the data at the specified path, or throws an exception if the data didn't already
- exist.</div>
+<h4>deleteAll</h4>
+<pre>void&nbsp;deleteAll(java.lang.String&nbsp;path)
+        throws java.lang.Exception</pre>
+<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
+
+ <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
-</dl>
-</li>
-</ul>
-<a name="getChildren-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getChildren</h4>
-<pre>java.util.Collection&lt;java.lang.String&gt;&nbsp;getChildren(java.lang.String&nbsp;path)
-                                            throws java.lang.Exception</pre>
-<div class="block">Returns the names of child nodes at the provided path. The returned values may be joined with
- the provided <code>path</code> to get their full paths.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code>java.lang.Exception</code> - if the data at the requested path didn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
@@ -265,8 +277,8 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <h4>close</h4>
 <pre>void&nbsp;close()</pre>
-<div class="block">Closes this storage and cleans up any resources. No other operations should be performed
- against this instance after calling close().</div>
+<div class="block">Closes this storage and cleans up any local client resources. No other operations should be performed against the
+ instance after calling this.</div>
 </li>
 </ul>
 </li>
@@ -297,7 +309,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/storage/StorageError.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/storage/Persister.html" target="_top">Frames</a></li>

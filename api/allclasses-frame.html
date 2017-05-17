@@ -54,11 +54,9 @@
 <li><a href="com/mesosphere/sdk/config/ConfigValue.html" title="class in com.mesosphere.sdk.config" target="classFrame">ConfigValue</a></li>
 <li><a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer" target="classFrame">Constants</a></li>
 <li><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer" target="classFrame">CreateOfferRecommendation</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorConfigStore.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorConfigStore</a></li>
+<li><a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorLocker</a></li>
 <li><a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorPersister</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorSchemaVersionStore</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorStateStore.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorStateStore</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorStateStore.TaskPathMapper</a></li>
+<li><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorPersister.Builder</a></li>
 <li><a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator" target="classFrame">CuratorUtils</a></li>
 <li><a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor" target="classFrame">CustomExecutor</a></li>
 <li><a href="com/mesosphere/sdk/dcos/DcosCertInstaller.html" title="class in com.mesosphere.sdk.dcos" target="classFrame">DcosCertInstaller</a></li>
@@ -70,6 +68,7 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultCommandSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultCommandSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultConfigFileSpec</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state" target="classFrame">DefaultConfigStore</a></li>
 <li><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config" target="classFrame">DefaultConfigurationUpdater</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultDiscoverySpec</a></li>
 <li><a href="com/mesosphere/sdk/executor/DefaultExecutorTaskFactory.html" title="class in com.mesosphere.sdk.executor" target="classFrame">DefaultExecutorTaskFactory</a></li>
@@ -104,11 +103,14 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultResourceSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler" target="classFrame">DefaultScheduler</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler" target="classFrame">DefaultScheduler.Builder</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state" target="classFrame">DefaultSchemaVersionStore</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultService</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultServiceSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultServiceSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Comparator.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultServiceSpec.Comparator</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Factory.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultServiceSpec.Factory</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state" target="classFrame">DefaultStateStore</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.state" target="classFrame">DefaultStateStore.TaskPathMapper</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan" target="classFrame">DefaultStepFactory</a></li>
 <li><a href="com/mesosphere/sdk/config/DefaultTaskConfigRouter.html" title="class in com.mesosphere.sdk.config" target="classFrame">DefaultTaskConfigRouter</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery" target="classFrame">DefaultTaskFailureListener</a></li>
@@ -194,6 +196,7 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement" target="classFrame">PassthroughRule</a></li>
 <li><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state" target="classFrame">PersistentLaunchRecorder</a></li>
 <li><a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage" target="classFrame"><span class="interfaceName">Persister</span></a></li>
+<li><a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage" target="classFrame">PersisterUtils</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan" target="classFrame"><span class="interfaceName">Phase</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/PhaseFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan" target="classFrame"><span class="interfaceName">PhaseFactory</span></a></li>
 <li><a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types" target="classFrame">PhaseInfo</a></li>

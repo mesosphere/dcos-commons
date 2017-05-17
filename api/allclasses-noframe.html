@@ -54,11 +54,9 @@
 <li><a href="com/mesosphere/sdk/config/ConfigValue.html" title="class in com.mesosphere.sdk.config">ConfigValue</a></li>
 <li><a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></li>
 <li><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorConfigStore.html" title="class in com.mesosphere.sdk.curator">CuratorConfigStore</a></li>
+<li><a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></li>
 <li><a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html" title="class in com.mesosphere.sdk.curator">CuratorSchemaVersionStore</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorStateStore.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore</a></li>
-<li><a href="com/mesosphere/sdk/curator/CuratorStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore.TaskPathMapper</a></li>
+<li><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></li>
 <li><a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator">CuratorUtils</a></li>
 <li><a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></li>
 <li><a href="com/mesosphere/sdk/dcos/DcosCertInstaller.html" title="class in com.mesosphere.sdk.dcos">DcosCertInstaller</a></li>
@@ -70,6 +68,7 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></li>
 <li><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config">DefaultConfigurationUpdater</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec</a></li>
 <li><a href="com/mesosphere/sdk/executor/DefaultExecutorTaskFactory.html" title="class in com.mesosphere.sdk.executor">DefaultExecutorTaskFactory</a></li>
@@ -104,11 +103,14 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Comparator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Comparator</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Factory.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Factory</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></li>
+<li><a href="com/mesosphere/sdk/state/DefaultStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.state">DefaultStateStore.TaskPathMapper</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultStepFactory</a></li>
 <li><a href="com/mesosphere/sdk/config/DefaultTaskConfigRouter.html" title="class in com.mesosphere.sdk.config">DefaultTaskConfigRouter</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultTaskFailureListener</a></li>
@@ -194,6 +196,7 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PassthroughRule</a></li>
 <li><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></li>
 <li><a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><span class="interfaceName">Persister</span></a></li>
+<li><a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="interfaceName">Phase</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/PhaseFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="interfaceName">PhaseFactory</span></a></li>
 <li><a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></li>

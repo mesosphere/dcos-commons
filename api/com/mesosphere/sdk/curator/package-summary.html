@@ -81,9 +81,10 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorConfigStore.html" title="class in com.mesosphere.sdk.curator">CuratorConfigStore</a>&lt;T extends <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt;</td>
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></td>
 <td class="colLast">
-<div class="block">A CuratorConfigStore stores String Configurations in Zookeeper.</div>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
+ same service.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -94,21 +95,9 @@
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorSchemaVersionStore.html" title="class in com.mesosphere.sdk.curator">CuratorSchemaVersionStore</a></td>
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></td>
 <td class="colLast">
-<div class="block">Implementation of <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which persists data in Zookeeper.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore</a></td>
-<td class="colLast">
-<div class="block">CuratorStateStore is an implementation of <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which persists data in Zookeeper.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/curator/CuratorStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.curator">CuratorStateStore.TaskPathMapper</a></td>
-<td class="colLast">
-<div class="block">TaskPathMapper.</div>
+<div class="block">Builder for constructing <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instances.</div>
 </td>
 </tr>
 <tr class="rowColor">
