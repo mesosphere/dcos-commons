@@ -94,7 +94,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
 
-        Assert.assertFalse(taskInfo.hasContainer());
+        Assert.assertTrue(taskInfo.hasContainer());
         Assert.assertTrue(taskInfo.hasCommand());
 
         Assert.assertEquals(taskInfo.getDiscovery().getVisibility(), Protos.DiscoveryInfo.Visibility.CLUSTER);

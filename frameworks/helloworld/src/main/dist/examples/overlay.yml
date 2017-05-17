@@ -1,0 +1,78 @@
+name: "hello-world"
+pods:
+  hello-overlay:
+    count: {{HELLO_COUNT}}
+    uris:
+      # this python script starts a basic HTTP server, it responds on a specific port with a given message
+      # USAGE: python3 http_py3responder.py <port> <message>
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
+    # join the 'dcos' overlay network
+    networks:
+      dcos:
+    image: ubuntu:14.04
+    resource-sets:
+      hello-resource:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "python3 http_py3responder.py 4044 hello from the overlay network!"
+        resource-set: hello-resource
+  hello-host:
+    count: {{HELLO_COUNT}}
+    uris:
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
+    image: ubuntu:14.04
+    resource-sets:
+      hello-resource:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        ports:
+          test:
+            port: 4044
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "python3 http_py3responder.py 4044 hello from the host network!"
+        resource-set: hello-resource
+  getter:
+    count: {{HELLO_COUNT}}
+    networks:
+      dcos:
+    tasks:
+      get-overlay:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      get-host:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-overlay-deploy:
+        strategy: serial
+        pod: hello-overlay
+        steps:
+          - default: [[server]]
+      hello-host-deploy:
+        strategy: serial
+        pod: hello-host
+        steps:
+          - default: [[server]]
+      getter-deploy:
+        strategy: serial
+        pod: getter
+        steps:
+          - default: [[get-overlay], [get-host]]
+
