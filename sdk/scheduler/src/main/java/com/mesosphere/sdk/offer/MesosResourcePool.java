@@ -76,25 +76,6 @@ public class MesosResourcePool {
     }
 
     /**
-     * Consumes and returns a {@link MesosResource} which meets the provided
-     * {@link ResourceRequirement}, or does nothing and returns an empty {@link Optional} if no
-     * available resources meet the requirement.
-     */
-    public Optional<MesosResource> consume(ResourceRequirement resourceRequirement) {
-        if (resourceRequirement.expectsResource()) {
-            return consumeReserved(resourceRequirement);
-        } else if (resourceRequirement.isAtomic()) {
-            return consumeAtomic(resourceRequirement);
-        } else if (resourceRequirement.reservesResource()) {
-            return consumeUnreservedMerged(resourceRequirement);
-        }
-
-        logger.error("The following resource requirement did not meet any consumption criteria: {}",
-                TextFormat.shortDebugString(resourceRequirement.getResource()));
-        return Optional.empty();
-    }
-
-    /**
      * Update the offer this pool represents, re-calculating available unreserved, reserved and atomic resources.
      * @param offer the offer to encapsulate
      */
@@ -195,14 +176,17 @@ public class MesosResourcePool {
     }
 
     private Optional<MesosResource> consumeAtomic(ResourceRequirement resourceRequirement) {
-        Value desiredValue = resourceRequirement.getValue();
-        List<MesosResource> atomicResources = unreservedAtomicPool.get(resourceRequirement.getName());
+        return consumeAtomic(resourceRequirement.getName(), resourceRequirement.getValue());
+    }
+
+    public Optional<MesosResource> consumeAtomic(String resourceName, Value value) {
+        List<MesosResource> atomicResources = unreservedAtomicPool.get(resourceName);
         List<MesosResource> filteredResources = new ArrayList<>();
         Optional<MesosResource> sufficientResource = Optional.empty();
 
         if (atomicResources != null) {
             for (MesosResource atomicResource : atomicResources) {
-                if (!sufficientResource.isPresent() && sufficientValue(desiredValue, atomicResource.getValue())) {
+                if (!sufficientResource.isPresent() && sufficientValue(value, atomicResource.getValue())) {
                     sufficientResource = Optional.of(atomicResource);
                     // do NOT break: ensure filteredResources is fully populated
                 } else {
@@ -212,19 +196,19 @@ public class MesosResourcePool {
         }
 
         if (filteredResources.isEmpty()) {
-            unreservedAtomicPool.remove(resourceRequirement.getName());
+            unreservedAtomicPool.remove(resourceName);
         } else {
-            unreservedAtomicPool.put(resourceRequirement.getName(), filteredResources);
+            unreservedAtomicPool.put(resourceName, filteredResources);
         }
 
         if (!sufficientResource.isPresent()) {
             if (atomicResources == null) {
-                logger.info("Offer lacks any atomic resources named {}", resourceRequirement.getName());
+                logger.info("Offer lacks any atomic resources named {}", resourceName);
             } else {
                 logger.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
                         atomicResources.size(),
-                        resourceRequirement.getName(),
-                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+                        resourceName,
+                        value);
             }
         }
 

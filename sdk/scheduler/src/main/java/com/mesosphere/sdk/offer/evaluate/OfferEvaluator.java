@@ -36,17 +36,14 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-        return evaluate(getOfferRequirement(podInstanceRequirement), offers);
-    }
 
-    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
-            throws StateStoreException, InvalidRequirementException {
+        OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
         for (int i = 0; i < offers.size(); ++i) {
             List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(offerRequirement);
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
-            PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+            PodInfoBuilder podInfoBuilder = new PodInfoBuilder(podInstanceRequirement);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -103,12 +100,12 @@ public class OfferEvaluator {
         }
 
         for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-            String taskName = taskRequirement.getTaskInfo().getName();
+            String taskName = taskRequirement.getName();
             for (ResourceRequirement r : taskRequirement.getResourceRequirements()) {
                 evaluationPipeline.add(r.getEvaluationStage(taskName));
             }
 
-            evaluationPipeline.add(taskRequirement.getEvaluationStage());
+            evaluationPipeline.add(taskRequirement.getEvaluationStage(taskName));
         }
         evaluationPipeline.add(new ReservationEvaluationStage(offerRequirement.getResourceIds()));
 

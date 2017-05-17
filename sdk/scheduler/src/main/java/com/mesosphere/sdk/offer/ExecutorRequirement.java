@@ -39,6 +39,10 @@ public class ExecutorRequirement {
         this.resourceRequirements = resourceRequirements;
     }
 
+    public Collection<ResourceRequirement> getResourceRequirements() {
+        return resourceRequirements;
+    }
+
     public boolean isRunningExecutor() {
         return getExecutorId().isPresent();
     }

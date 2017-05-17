@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
@@ -16,12 +17,10 @@ import java.util.stream.Collectors;
  * to which they are attached.
  */
 public class PodInfoBuilder {
-    private final OfferRequirement offerRequirement;
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders;
     private final Protos.ExecutorInfo.Builder executorBuilder;
 
-    public PodInfoBuilder(OfferRequirement offerRequirement) {
-        this.offerRequirement = offerRequirement;
+    public PodInfoBuilder(PodInstanceRequirement podInstanceRequirement) {
         taskBuilders = offerRequirement.getTaskRequirements().stream()
                 .map(r -> r.getTaskInfo())
                 .collect(Collectors.toMap(t -> t.getName(), t -> clearResources(t.toBuilder())));
@@ -36,10 +35,6 @@ public class PodInfoBuilder {
         if (executorBuilder != null && !executorRequirement.get().isRunningExecutor()) {
             clearResources(executorBuilder);
         }
-    }
-
-    public OfferRequirement getOfferRequirement() {
-        return offerRequirement;
     }
 
     public Protos.TaskInfo.Builder getTaskBuilder(String taskName) {
