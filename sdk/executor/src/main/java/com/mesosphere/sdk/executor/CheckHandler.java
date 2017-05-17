@@ -2,7 +2,7 @@ package com.mesosphere.sdk.executor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 import com.mesosphere.sdk.offer.taskdata.ExecutorLabelWriter;
 
 import org.apache.mesos.ExecutorDriver;
@@ -11,9 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -160,18 +157,9 @@ public class CheckHandler {
         public void run() {
             Protos.CommandInfo commandInfo = healthCheck.getCommand();
             try {
-                final Map<String, String> envMap = EnvUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
-                List<String> command = new ArrayList<>();
-                command.add("/bin/bash");
-                command.add("-c");
-                command.add(commandInfo.getValue());
-
-                ProcessBuilder processBuilder = new ProcessBuilder(command);
-                processBuilder.inheritIO();
-                processBuilder.environment().putAll(envMap);
-
-                LOGGER.info("Running {} check process: {}", checkType, command);
-                int exitValue = processRunner.run(processBuilder, healthCheck.getTimeoutSeconds());
+                LOGGER.info("Running {} check process: {}", checkType, commandInfo.getValue());
+                int exitValue = processRunner.run(
+                        ProcessBuilderUtils.buildProcess(commandInfo), healthCheck.getTimeoutSeconds());
 
                 if (exitValue != 0) {
                     healthCheckStats.failed();
