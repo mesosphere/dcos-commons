@@ -85,7 +85,7 @@ public class MesosResourcePool {
             return consumeReserved(resourceRequirement);
         } else if (resourceRequirement.isAtomic()) {
             return consumeAtomic(resourceRequirement);
-        } else if (resourceRequirement.reservesResource() || resourceRequirement.consumesUnreservedResource()) {
+        } else if (resourceRequirement.reservesResource()) {
             return consumeUnreservedMerged(resourceRequirement);
         }
 
@@ -150,38 +150,45 @@ public class MesosResourcePool {
     }
 
     private Optional<MesosResource> consumeReserved(ResourceRequirement resourceRequirement) {
-        MesosResource mesosResource = reservedPool.get(resourceRequirement.getResourceId());
+        return consumeReserved(
+                resourceRequirement.getName(),
+                resourceRequirement.getValue(),
+                resourceRequirement.getResourceId().get());
+    }
+
+    public Optional<MesosResource> consumeReserved(String name, Value value, String resourceId) {
+        MesosResource mesosResource = reservedPool.get(resourceId);
 
         if (mesosResource != null) {
             if (mesosResource.isAtomic()) {
-                if (sufficientValue(resourceRequirement.getValue(), mesosResource.getValue())) {
-                    reservedPool.remove(resourceRequirement.getResourceId());
+                if (sufficientValue(value, mesosResource.getValue())) {
+                    reservedPool.remove(resourceId);
                 } else {
                     logger.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
-                            resourceRequirement.getName(),
-                            TextFormat.shortDebugString(resourceRequirement.getValue()),
+                            name,
+                            TextFormat.shortDebugString(value),
                             TextFormat.shortDebugString(mesosResource.getValue()));
                     return Optional.empty();
                 }
             } else {
-                Value desiredValue = resourceRequirement.getValue();
-                Value availableValue = reservedPool.get(resourceRequirement.getResourceId()).getValue();
-                if (ValueUtils.compare(availableValue, desiredValue) > 0) {
+                Value availableValue = mesosResource.getValue();
+                if (ValueUtils.compare(availableValue, value) > 0) {
                     // update the value in pool with the remaining unclaimed resource amount
                     Resource remaining = ResourceUtils.setValue(
-                            mesosResource.getResource(), ValueUtils.subtract(availableValue, desiredValue));
-                    reservedPool.put(resourceRequirement.getResourceId(), new MesosResource(remaining));
+                            mesosResource.getResource(), ValueUtils.subtract(availableValue, value));
+                    reservedPool.put(resourceId, new MesosResource(remaining));
                     // return only the claimed resource amount from this reservation
-                    mesosResource = new MesosResource(resourceRequirement.getResource());
+                    mesosResource = new MesosResource(
+                            ResourceUtils.setValue(mesosResource.getResource(), value));
                 } else {
-                    reservedPool.remove(resourceRequirement.getResourceId());
+                    reservedPool.remove(resourceId);
                 }
             }
         } else {
-           logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
-                   resourceRequirement.getName(),
-                   resourceRequirement.getResourceId(),
-                   reservedPool.keySet());
+            logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
+                    name,
+                    resourceId,
+                    reservedPool.keySet());
         }
 
         return Optional.ofNullable(mesosResource);
@@ -225,19 +232,22 @@ public class MesosResourcePool {
     }
 
     private Optional<MesosResource> consumeUnreservedMerged(ResourceRequirement resourceRequirement) {
-        Value desiredValue = resourceRequirement.getValue();
-        Value availableValue = unreservedMergedPool.get(resourceRequirement.getName());
+        return consumeUnreservedMerged(resourceRequirement.getName(), resourceRequirement.getValue());
+    }
+
+    public Optional<MesosResource> consumeUnreservedMerged(String name, Value desiredValue) {
+        Value availableValue = unreservedMergedPool.get(name);
 
         if (sufficientValue(desiredValue, availableValue)) {
-            unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
-            Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
+            unreservedMergedPool.put(name, ValueUtils.subtract(availableValue, desiredValue));
+            Resource resource = ResourceUtils.getUnreservedResource(name, desiredValue);
             return Optional.of(new MesosResource(resource));
         } else {
             if (availableValue == null) {
-                logger.info("Offer lacks any resources named {}", resourceRequirement.getName());
+                logger.info("Offer lacks any resources named {}", name);
             } else {
                 logger.info("Offered quantity of {} is insufficient: desired {}, offered {}",
-                        resourceRequirement.getName(),
+                        name,
                         TextFormat.shortDebugString(desiredValue),
                         TextFormat.shortDebugString(availableValue));
             }

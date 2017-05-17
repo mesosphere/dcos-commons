@@ -5,6 +5,8 @@ import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -18,7 +20,8 @@ import java.util.Optional;
  * for creation or expected existence by having a persistence ID of an empty string
  * or an already determined value.
  */
-public class ResourceRequirement {
+public class ResourceRequirement implements MesosRequirement {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String role;
     private final String name;
     private final Value value;
@@ -31,6 +34,22 @@ public class ResourceRequirement {
         this.value = builder.value;
         this.resourceId = builder.resourceId;
         this.reservesResource = builder.reservesResource;
+    }
+
+    @Override
+    public OfferEvaluationStage getEvaluationStage(String taskName) {
+        return new ResourceEvaluationStage(this, taskName);
+    }
+
+    @Override
+    public Optional<MesosResource> satisfy(MesosResourcePool pool) {
+        if (reservesResource()) {
+            logger.info("    Resource '{}' requires a RESERVE operation", name);
+            return pool.consumeUnreservedMerged(name, value);
+        } else {
+            logger.info("    Resource '{}' expects resource '{}'", name, resourceId);
+            return pool.consumeReserved(name, value, resourceId);
+        }
     }
 
     public static Builder newBuilder(String role, String name, Value value) {
@@ -63,10 +82,6 @@ public class ResourceRequirement {
 
     public boolean expectsResource() {
         return !reservesResource();
-    }
-
-    public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new ResourceEvaluationStage(this, taskName);
     }
 
     @Override

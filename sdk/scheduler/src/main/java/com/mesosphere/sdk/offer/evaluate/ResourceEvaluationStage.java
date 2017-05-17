@@ -22,7 +22,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link UnreserveOfferRecommendation} where necessary.
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
-    private static final Logger logger = LoggerFactory.getLogger(ResourceEvaluationStage.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceEvaluationStage.class);
 
     private ResourceRequirement resourceRequirement;
     private final String taskName;
@@ -58,8 +58,11 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         Resource fulfilledResource = getFulfilledResource(resourceRequirement);
         OfferRecommendation offerRecommendation = null;
+
+
+
         if (resourceRequirement.expectsResource()) {
-            logger.info("Expects Resource");
+            LOGGER.info("Expects Resource");
             if (!resourceRequirement.getResourceId().isPresent()) {
                 return fail(
                         this,
@@ -88,19 +91,19 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
             // Does existing resource satisfy the resource requirement?
             if (ValueUtils.equal(existingResource.getValue(), resourceRequirement.getValue())) {
-                logger.info("    Current reservation for resource '{}' matches required value: {}",
+                LOGGER.info("    Current reservation for resource '{}' matches required value: {}",
                         resourceRequirement.getName(),
                         TextFormat.shortDebugString(existingResource.getValue()),
                         TextFormat.shortDebugString(resourceRequirement.getValue()));
             } else if (resourceRequirement.isAtomic()) {
-                logger.info("    Resource '{}' is atomic and cannot be resized from current {} to required {}",
+                LOGGER.info("    Resource '{}' is atomic and cannot be resized from current {} to required {}",
                         resourceRequirement.getName(),
                         TextFormat.shortDebugString(existingResource.getValue()),
                         TextFormat.shortDebugString(resourceRequirement.getValue()));
             } else {
                 Value reserveValue = ValueUtils.subtract(resourceRequirement.getValue(), existingResource.getValue());
                 if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
-                    logger.info("    Reservation for resource '{}' needs increasing from current {} to required {}",
+                    LOGGER.info("    Reservation for resource '{}' needs increasing from current {} to required {}",
                             resourceRequirement.getName(),
                             TextFormat.shortDebugString(existingResource.getValue()),
                             TextFormat.shortDebugString(resourceRequirement.getValue()));
@@ -122,7 +125,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 }
             }
         } else if (resourceRequirement.reservesResource()) {
-            logger.info("    Resource '{}' requires a RESERVE operation", resourceRequirement.getName());
+            LOGGER.info("    Resource '{}' requires a RESERVE operation", resourceRequirement.getName());
             Optional<MesosResource> consumedResourceOptional = mesosResourcePool.consume(resourceRequirement);
             if (!consumedResourceOptional.isPresent()) {
                 return fail(this, "Failed to satisfy required resource '%s': %s",
@@ -132,7 +135,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource);
         }
 
-        logger.info("  Generated '{}' resource for task: [{}]",
+        LOGGER.info("  Generated '{}' resource for task: [{}]",
                 resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
         EvaluationOutcome failure = validateRequirements(podInfoBuilder.getOfferRequirement());
