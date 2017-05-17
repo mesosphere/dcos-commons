@@ -357,6 +357,15 @@
 <dd>
 <div class="block">Returns a <code>ReplacementFailurePolicy</code> built from the parameters previously set.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html#buildProcess-Protos.CommandInfo-">buildProcess(Protos.CommandInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer">ProcessBuilderUtils</a></dt>
+<dd>
+<div class="block">Returns a <code>ProcessBuilder</code> instance which has been initialized with the provided
+ <code>Protos.CommandInfo</code>'s command and environment.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html#buildProcess-java.lang.String-java.util.Map-">buildProcess(String, Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer">ProcessBuilderUtils</a></dt>
+<dd>
+<div class="block">Returns a <code>ProcessBuilder</code> instance which has been initialized with the provided command and environment.</div>
+</dd>
 </dl>
 <a name="I:C">
 <!--   -->
@@ -2985,8 +2994,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html#getPrincipal--">getPrincipal()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml">RawScheduler</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#getProcess-TaskInfo-">getProcess(TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#getProcessBuilder--">getProcessBuilder()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getProperty-java.lang.String-">getProperty(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
@@ -4948,6 +4955,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html#proceed--">proceed()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">InterruptibleStrategy</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ProcessBuilderUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
+<dd>
+<div class="block">Utilities relating to construction of <code>ProcessBuilder</code>s.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers(SchedulerDriver, List&lt;Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers(SchedulerDriver, List&lt;Protos.Offer&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
