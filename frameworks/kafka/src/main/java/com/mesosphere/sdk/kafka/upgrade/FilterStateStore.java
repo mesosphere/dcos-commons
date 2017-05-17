@@ -8,16 +8,16 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * CuratorStateStoreFilter enables to ignore task names that match the filter.
+ * Adds support for ignoring task names which match a filter.
  */
 public class FilterStateStore extends DefaultStateStore {
-    private  StringMatcher ignoreFilter = null;
+    private StringMatcher ignoreFilter = null;
 
     public FilterStateStore(String frameworkName, CuratorPersister persister) {
         super(frameworkName, persister);
     }
 
-    public void setIgnoreFilter(StringMatcher ignoreFilter){
+    public void setIgnoreFilter(StringMatcher ignoreFilter) {
         this.ignoreFilter = ignoreFilter;
     }
 
@@ -29,7 +29,7 @@ public class FilterStateStore extends DefaultStateStore {
         return super.fetchTaskNames()
                 .stream()
                 .filter(name -> !(ignoreFilter.matches(name)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
 }

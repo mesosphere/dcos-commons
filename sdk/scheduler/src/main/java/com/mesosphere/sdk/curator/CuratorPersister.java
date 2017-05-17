@@ -131,8 +131,6 @@ public class CuratorPersister implements Persister {
 
     /**
      * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
-     *
-     * @param serviceSpec the service for which data will be stored
      */
     public static Builder newBuilder(String zkConnectionString) {
         return new Builder(zkConnectionString);

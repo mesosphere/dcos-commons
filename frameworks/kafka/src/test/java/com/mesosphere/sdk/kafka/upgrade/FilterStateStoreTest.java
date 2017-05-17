@@ -53,7 +53,7 @@ public class FilterStateStoreTest {
         String testTaskName1 = testTaskNamePrefix + "-1";
 
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
+        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1)), store.fetchTaskNames());
         Collection<Protos.TaskInfo> taskInfos = store.fetchTasks();
         assertEquals(2, taskInfos.size());
         Iterator<Protos.TaskInfo> iter2 = taskInfos.iterator();
@@ -70,17 +70,19 @@ public class FilterStateStoreTest {
         String testTaskName11 = testTaskNamePrefix + "-1";
 
         store.storeTasks(createTasks(testTaskName00, testTaskName11));
-        assertEquals(Arrays.asList(testTaskName00, testTaskName11), store.fetchTaskNames());
+        assertEquals(new TreeSet<>(Arrays.asList(testTaskName00, testTaskName11)), store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(2, taskInfos.size());
 
         store.setIgnoreFilter(RegexMatcher.create("z*"));
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11), store.fetchTaskNames());
+        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11)),
+                store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());
 
         store.setIgnoreFilter(null);
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11), store.fetchTaskNames());
+        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11)),
+                store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());
     }

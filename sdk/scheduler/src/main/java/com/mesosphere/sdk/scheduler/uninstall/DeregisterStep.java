@@ -5,8 +5,6 @@ import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
@@ -27,7 +25,7 @@ public class DeregisterStep extends AbstractStep {
      * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
      * set separately.
      */
-    public DeregisterStep(Status status, StateStore stateStore) {
+    DeregisterStep(Status status, StateStore stateStore) {
         super("deregister", status);
         this.stateStore = stateStore;
     }
@@ -36,16 +34,20 @@ public class DeregisterStep extends AbstractStep {
      *
      * @param schedulerDriver Must be set before call to {@link #start()}
      */
-    public void setSchedulerDriver(SchedulerDriver schedulerDriver) {
+    void setSchedulerDriver(SchedulerDriver schedulerDriver) {
         this.schedulerDriver = schedulerDriver;
     }
 
     @Override
     public Optional<PodInstanceRequirement> start() {
         logger.info("Stopping SchedulerDriver...");
+        // Remove the framework ID before unregistering
+        stateStore.clearFrameworkId();
         // Unregisters the framework in addition to stopping the SchedulerDriver thread:
         schedulerDriver.stop(true);
-        StateStoreUtils.setUninstalling(stateStore, false);
+        logger.info("Deleting service root path for framework...");
+        stateStore.clearAllData();
+        logger.info("Finished deleting service root path for framework");
         setStatus(Status.COMPLETE);
         return Optional.empty();
     }

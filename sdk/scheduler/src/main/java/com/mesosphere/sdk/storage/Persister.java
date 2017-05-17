@@ -18,7 +18,7 @@ public interface Persister {
      * Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.
      * If the path is valid but has no data (i.e. is a parent of another path), this returns {@code null}.
      *
-     * @throws PersisterException if the requested path doesn't exist, or for other access errors
+     * @throws Exception if the requested path doesn't exist, or for other access errors
      */
     byte[] get(String path) throws Exception;
 
@@ -31,7 +31,7 @@ public interface Persister {
      *
      * <p>To get the list of nodes at the root, use "" or "/" as the input path.
      *
-     * @throws PersisterException if the requested path doesn't exist, or for other access errors
+     * @throws Exception if the requested path doesn't exist, or for other access errors
      */
     Collection<String> getChildren(String path) throws Exception;
 
@@ -39,7 +39,7 @@ public interface Persister {
      * Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
      * path if it doesn't exist yet.
      *
-     * @throws PersisterException in the event of an access error
+     * @throws Exception in the event of an access error
      */
     void set(String path, byte[] bytes) throws Exception;
 
@@ -47,7 +47,7 @@ public interface Persister {
      * Atomically writes many values to storage at once.
      *
      * @see #set(String, byte[])
-     * @throws PersisterException in the event of an access error, in which case no changes should have been made
+     * @throws Exception in the event of an access error, in which case no changes should have been made
      */
     void setMany(Map<String, byte[]> pathBytesMap) throws Exception;
 
@@ -56,7 +56,7 @@ public interface Persister {
      *
      * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
      *
-     * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
+     * @throws Exception if the data at the requested path didn't exist, or for other access errors
      */
     void deleteAll(String path) throws Exception;
 
