@@ -35,7 +35,7 @@ func HandleStateSection(app *kingpin.Application) {
 	cmd := &StateHandler{}
 	state := app.Command("state", "View persisted state")
 
-	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.RunFrameworkId)
+	state.Command("framework_id", "Display the Mesos framework ID").Action(cmd.RunFrameworkId)
 
 	state.Command("properties", "List names of all custom properties").Action(cmd.RunProperties)
 
