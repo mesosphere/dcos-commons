@@ -10,7 +10,6 @@ import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,12 +37,7 @@ public class FilterStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         clear();
-        store = new FilterStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
-    }
-
-    @After
-    public void afterEach() {
-        store.closeForTesting();
+        store = new FilterStateStore(CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build());
     }
 
     @Test
@@ -53,7 +47,7 @@ public class FilterStateStoreTest {
         String testTaskName1 = testTaskNamePrefix + "-1";
 
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1)), store.fetchTaskNames());
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
         Collection<Protos.TaskInfo> taskInfos = store.fetchTasks();
         assertEquals(2, taskInfos.size());
         Iterator<Protos.TaskInfo> iter2 = taskInfos.iterator();
@@ -70,18 +64,18 @@ public class FilterStateStoreTest {
         String testTaskName11 = testTaskNamePrefix + "-1";
 
         store.storeTasks(createTasks(testTaskName00, testTaskName11));
-        assertEquals(new TreeSet<>(Arrays.asList(testTaskName00, testTaskName11)), store.fetchTaskNames());
+        assertEquals(Arrays.asList(testTaskName00, testTaskName11), store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(2, taskInfos.size());
 
         store.setIgnoreFilter(RegexMatcher.create("z*"));
-        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11)),
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11),
                 store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());
 
         store.setIgnoreFilter(null);
-        assertEquals(new TreeSet<>(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11)),
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11),
                 store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());

@@ -1,21 +1,19 @@
 package com.mesosphere.sdk.state;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.curator.framework.api.transaction.CuratorTransaction;
-import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
+ * An implementation of {@link StateStore} which relies on the provided {@link Persister} for data persistence.
  *
  * <p>The ZNode structure in Zookeeper is as follows:
  * <br>rootPath/
@@ -38,9 +36,6 @@ import java.util.stream.Collectors;
  * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
  * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
  * <br>&nbsp;&nbsp;-> ...
- *
- * <p>Note that for frameworks which don't use custom executors, the same structure is used, except
- * where ExecutorName values are equal to TaskName values.
  */
 public class DefaultStateStore implements StateStore {
 
@@ -59,22 +54,18 @@ public class DefaultStateStore implements StateStore {
     private static final String TASKS_ROOT_NAME = "Tasks";
     public static final String LOCK_PATH_NAME = "lock";
 
-    protected final CuratorPersister persister;
-    protected final TaskPathMapper taskPathMapper;
-    private final String fwkIdPath;
-    private final String propertiesPath;
-    private final String rootPath;
+    protected final Persister persister;
 
     /**
      * Creates a new {@link StateStore} which uses the provided {@link Persister} to access state data.
      *
      * @param persister The persister which holds the state data
      */
-    public DefaultStateStore(String frameworkName, CuratorPersister persister) {
+    public DefaultStateStore(Persister persister) {
         this.persister = persister;
 
         // Check version up-front:
-        int currentVersion = new DefaultSchemaVersionStore(persister, frameworkName).fetch();
+        int currentVersion = new DefaultSchemaVersionStore(persister).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -83,10 +74,6 @@ public class DefaultStateStore implements StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
-        this.rootPath = CuratorUtils.getServiceRootPath(frameworkName);
-        this.taskPathMapper = new TaskPathMapper(rootPath);
-        this.fwkIdPath = PersisterUtils.join(rootPath, FWK_ID_PATH_NAME);
-        this.propertiesPath = PersisterUtils.join(rootPath, PROPERTIES_PATH_NAME);
         repairStateStore();
     }
 
@@ -95,43 +82,45 @@ public class DefaultStateStore implements StateStore {
     @Override
     public void storeFrameworkId(Protos.FrameworkID fwkId) throws StateStoreException {
         try {
-            logger.debug("Storing FrameworkID in '{}'", fwkIdPath);
-            persister.set(fwkIdPath, fwkId.toByteArray());
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to store FrameworkID in '%s'", fwkIdPath), e);
+            persister.set(FWK_ID_PATH_NAME, fwkId.toByteArray());
+        } catch (PersisterException e) {
+            throw new StateStoreException(e, "Failed to store FrameworkID");
         }
     }
 
     @Override
     public void clearFrameworkId() throws StateStoreException {
         try {
-            logger.debug("Clearing FrameworkID at '{}'", fwkIdPath);
-            persister.deleteAll(fwkIdPath);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent FrameworkID should not result in an exception from us.
-            logger.warn("Cleared unset FrameworkID, continuing silently", e);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            persister.deleteAll(FWK_ID_PATH_NAME);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Clearing a non-existent FrameworkID should not result in an exception from us.
+                logger.warn("Cleared unset FrameworkID, continuing silently", e);
+            } else {
+                throw new StateStoreException(e);
+            }
         }
     }
 
     @Override
     public Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException {
         try {
-            logger.debug("Fetching FrameworkID from '{}'", fwkIdPath);
-            byte[] bytes = persister.get(fwkIdPath);
+            byte[] bytes = persister.get(FWK_ID_PATH_NAME);
             if (bytes.length > 0) {
                 return Optional.of(Protos.FrameworkID.parseFrom(bytes));
             } else {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
-                        "Empty FrameworkID in '%s'", fwkIdPath));
+                        "Empty FrameworkID in '%s'", FWK_ID_PATH_NAME));
             }
-        } catch (KeeperException.NoNodeException e) {
-            logger.warn("No FrameworkId found at: {}", fwkIdPath);
-            return Optional.empty();
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                logger.warn("No FrameworkId found at: {}", FWK_ID_PATH_NAME);
+                return Optional.empty();
+            } else {
+                throw new StateStoreException(e);
+            }
+        } catch (InvalidProtocolBufferException e) {
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
     }
 
@@ -141,15 +130,12 @@ public class DefaultStateStore implements StateStore {
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
         Map<String, byte[]> taskBytesMap = new HashMap<>();
         for (Protos.TaskInfo taskInfo : tasks) {
-            String path = taskPathMapper.getTaskInfoPath(taskInfo.getName());
-            logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
-            taskBytesMap.put(path, taskInfo.toByteArray());
+            taskBytesMap.put(getTaskInfoPath(taskInfo.getName()), taskInfo.toByteArray());
         }
         try {
             persister.setMany(taskBytesMap);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to store %d TaskInfos", tasks.size()), e);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e, String.format("Failed to store %d TaskInfos", tasks.size()));
         }
     }
 
@@ -185,95 +171,59 @@ public class DefaultStateStore implements StateStore {
                             currentStatusOptional.get().getState(), taskName));
         }
 
-        String path = taskPathMapper.getTaskStatusPath(taskName);
+        String path = getTaskStatusPath(taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
             persister.set(path, status.toByteArray());
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
         }
     }
 
     @Override
     public void clearTask(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskPath(taskName);
-        logger.debug("Clearing Task at '{}'", path);
         try {
-            persister.deleteAll(path);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent Task should not result in an exception from us.
-            logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            persister.deleteAll(getTaskPath(taskName));
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Clearing a non-existent Task should not result in an exception from us.
+                logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
+            } else {
+                throw new StateStoreException(e);
+            }
         }
     }
 
     @Override
     public void clearAllData() throws StateStoreException {
-        logger.info("Clearing service at '{}'", rootPath);
         try {
-             /* Effective 5/8/2017:
-              * We cannot delete the root node of a service directly.
-              * This is due to the ACLs on the global DC/OS ZK.
-              *
-              * The root has:
-              * [zk: localhost:2181(CONNECTED) 1] getAcl /
-              * 'world,'anyone
-              * : cr
-              * 'ip,'127.0.0.1
-              * : cdrwa
-              *
-              * Our service nodes have:
-              * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-hello-world
-              * 'world,'anyone
-              * : cdrwa
-              *
-              * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
-              * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
-              */
-            CuratorTransaction transaction = persister.startTransaction();
-            persister.commitTransaction(deleteChildren(rootPath, transaction.check()
-                    .forPath(rootPath).and()));
-            logger.info("Cleared service at '{}'", rootPath);
-        } catch (Exception e) {
-            logger.error(String.format("Encountered exception while attempting to clear %s", rootPath), e);
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            persister.deleteAll(PersisterUtils.PATH_DELIM);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Nothing to delete, apparently. Treat as a no-op
+            } else {
+                throw new StateStoreException(e);
+            }
         }
-    }
-
-    private CuratorTransactionFinal deleteChildren(String root, CuratorTransactionFinal curatorTransactionFinal)
-            throws Exception {
-        ArrayList<String> children = persister.getChildren(root).stream()
-                .filter(child -> !child.equals(LOCK_PATH_NAME))
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        for (String child : children) {
-            curatorTransactionFinal = deleteChildren(PersisterUtils.join(root, child), curatorTransactionFinal);
-        }
-
-        // Never try to delete the rootPath. It will fail due to the ACLs.
-        if (root.equals(rootPath)) {
-            return curatorTransactionFinal;
-        }
-
-        return curatorTransactionFinal.delete().forPath(root).and();
     }
 
     // Read Tasks
 
     @Override
     public Collection<String> fetchTaskNames() throws StateStoreException {
-        String path = taskPathMapper.getTasksRootPath();
-        logger.debug("Fetching task names from '{}'", path);
         try {
-            return persister.getChildren(path);
-        } catch (KeeperException.NoNodeException e) {
-            // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
-            // expected to commonly occur when the Framework is being run for the first time.
-            return Collections.emptyList();
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            Collection<String> taskNames = new ArrayList<>();
+            taskNames.addAll(persister.getChildren(TASKS_ROOT_NAME));
+            return taskNames;
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
+                // expected to commonly occur when the Framework is being run for the first time.
+                return Collections.emptyList();
+            } else {
+                throw new StateStoreException(e);
+            }
         }
     }
 
@@ -295,8 +245,7 @@ public class DefaultStateStore implements StateStore {
 
     @Override
     public Optional<Protos.TaskInfo> fetchTask(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskInfoPath(taskName);
-        logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
+        String path = getTaskInfoPath(taskName);
         try {
             byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
@@ -308,12 +257,15 @@ public class DefaultStateStore implements StateStore {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Empty TaskInfo for TaskName: %s", taskName));
             }
-        } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
-            return Optional.empty();
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR,
-                    String.format("Failed to retrieve task named %s", taskName), e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
+                return Optional.empty();
+            } else {
+                throw new StateStoreException(e, String.format("Failed to retrieve task named %s", taskName));
+            }
+        } catch (InvalidProtocolBufferException e) {
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
     }
 
@@ -322,13 +274,18 @@ public class DefaultStateStore implements StateStore {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
             try {
-                byte[] bytes = persister.get(taskPathMapper.getTaskStatusPath(taskName));
+                byte[] bytes = persister.get(getTaskStatusPath(taskName));
                 taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
-            } catch (KeeperException.NoNodeException e) {
-                // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
-                // the only contents are a TaskInfo.
-            } catch (Exception e) {
-                throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            } catch (PersisterException e) {
+                if (e.getReason() == Reason.NOT_FOUND) {
+                    // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
+                    // the only contents are a TaskInfo.
+                    continue;
+                } else {
+                    throw new StateStoreException(e);
+                }
+            } catch (InvalidProtocolBufferException e) {
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
             }
         }
         return taskStatuses;
@@ -336,8 +293,7 @@ public class DefaultStateStore implements StateStore {
 
     @Override
     public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskStatusPath(taskName);
-        logger.debug("Fetching status for '{}' in '{}'", taskName, path);
+        String path = getTaskStatusPath(taskName);
         try {
             byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
@@ -346,11 +302,15 @@ public class DefaultStateStore implements StateStore {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Empty TaskStatus for TaskName: %s", taskName));
             }
-        } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
-            return Optional.empty();
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
+                return Optional.empty();
+            } else {
+                throw new StateStoreException(e);
+            }
+        } catch (InvalidProtocolBufferException e) {
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
     }
 
@@ -359,11 +319,11 @@ public class DefaultStateStore implements StateStore {
         StateStoreUtils.validateKey(key);
         StateStoreUtils.validateValue(value);
         try {
-            final String path = PersisterUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
             persister.set(path, value);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
         }
     }
 
@@ -371,26 +331,26 @@ public class DefaultStateStore implements StateStore {
     public byte[] fetchProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = PersisterUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
             return persister.get(path);
-        } catch (KeeperException.NoNodeException e) {
-            throw new StateStoreException(Reason.NOT_FOUND, e);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
         }
     }
 
     @Override
     public Collection<String> fetchPropertyKeys() throws StateStoreException {
         try {
-            return persister.getChildren(this.propertiesPath);
-        } catch (KeeperException.NoNodeException e) {
-            // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
-            // expected to commonly occur when the Framework is being run for the first time.
-            return Collections.emptyList();
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            return persister.getChildren(PROPERTIES_PATH_NAME);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
+                // expected to commonly occur when the Framework is being run for the first time.
+                return Collections.emptyList();
+            } else {
+                throw new StateStoreException(e);
+            }
         }
     }
 
@@ -398,53 +358,43 @@ public class DefaultStateStore implements StateStore {
     public void clearProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = PersisterUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
             persister.deleteAll(path);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent Property should not result in an exception from us.
-            logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Clearing a non-existent Property should not result in an exception from us.
+                logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
+            } else {
+                throw new StateStoreException(e);
+            }
         }
     }
 
-    @VisibleForTesting
-    public void closeForTesting() {
-        persister.close();
+    /**
+     * Returns the underlying {@link Persister} object for direct access.
+     * @return
+     */
+    public Persister getPersister() {
+        return persister;
     }
 
     // Internals
 
-    /**
-     * TaskPathMapper.
-     */
-    protected static class TaskPathMapper {
-        private final String tasksRootPath;
+    protected static String getTaskInfoPath(String taskName) {
+        return PersisterUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
+    }
 
-        private TaskPathMapper(String rootPath) {
-            this.tasksRootPath = PersisterUtils.join(rootPath, TASKS_ROOT_NAME);
-        }
+    protected static String getTaskStatusPath(String taskName) {
+        return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+    }
 
-        private String getTaskInfoPath(String taskName) {
-            return PersisterUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
-        }
-
-        public String getTaskStatusPath(String taskName) {
-            return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
-        }
-
-        private String getTaskPath(String taskName) {
-            return PersisterUtils.join(getTasksRootPath(), taskName);
-        }
-
-        private String getTasksRootPath() {
-            return tasksRootPath;
-        }
+    protected static String getTaskPath(String taskName) {
+        return PersisterUtils.join(TASKS_ROOT_NAME, taskName);
     }
 
     /**
-     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomicly.
+     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomically.
      * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
      * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
      * state.
@@ -481,6 +431,6 @@ public class DefaultStateStore implements StateStore {
         repairedStatuses = repairedStatuses.stream()
                 .filter(status -> !status.getTaskId().getValue().equals(""))
                 .collect(Collectors.toList());
-        repairedStatuses.forEach(this::storeStatus);
+        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 }

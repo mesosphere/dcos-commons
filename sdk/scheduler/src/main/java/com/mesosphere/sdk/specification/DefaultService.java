@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -33,7 +31,6 @@ import java.util.Optional;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
@@ -87,14 +84,12 @@ public class DefaultService implements Service {
                     StateStoreUtils.setUninstalling(stateStore);
                 }
 
-                ConfigStore<ServiceSpec> configStore =
-                        DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList());
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
                         schedulerBuilder.getServiceSpec().getApiPort(),
                         schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
                         stateStore,
-                        configStore);
+                        schedulerBuilder.getConfigStore());
             } else {
                 if (StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -135,8 +130,9 @@ public class DefaultService implements Service {
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
-        Protos.Status status = new SchedulerDriverFactory().create(scheduler, frameworkInfo, zkUri, schedulerFlags).
-                run();
+        Protos.Status status = new SchedulerDriverFactory()
+                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
     }

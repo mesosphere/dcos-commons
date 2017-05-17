@@ -1,38 +1,29 @@
-package com.mesosphere.sdk.state;
+package com.mesosphere.sdk.storage;
 
-import com.mesosphere.sdk.storage.PersisterException;
+import java.io.IOException;
+
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
- * Exception that indicates that there was an issue with storing or accessing values in the state store.
+ * Exception that indicates that there was an issue with storing or accessing values in the persister.
  * The underlying exception from the storage implementation, if any, is intended to nested inside this exception for
  * developer understanding.
  */
-public class StateStoreException extends RuntimeException {
+public class PersisterException extends IOException {
 
     private final Reason reason;
 
-    public StateStoreException(PersisterException e) {
-        super(e);
-        this.reason = Reason.STORAGE_ERROR;
-    }
-
-    public StateStoreException(PersisterException e, String message) {
-        super(message, e);
-        this.reason = Reason.STORAGE_ERROR;
-    }
-
-    public StateStoreException(Reason reason, Throwable e) {
+    public PersisterException(Reason reason, Throwable e) {
         super(e);
         this.reason = reason;
     }
 
-    public StateStoreException(Reason reason, String message) {
+    public PersisterException(Reason reason, String message) {
         super(message);
         this.reason = reason;
     }
 
-    public StateStoreException(Reason reason, String message, Throwable cause) {
+    public PersisterException(Reason reason, String message, Throwable cause) {
         super(message, cause);
         this.reason = reason;
     }

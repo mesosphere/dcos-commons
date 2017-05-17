@@ -456,8 +456,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static StateStore createStateStore(
             ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, CuratorPersister persister) {
-        StateStore stateStore = new DefaultStateStore(serviceSpec.getName(), persister);
+        StateStore stateStore = new DefaultStateStore(persister);
         if (schedulerFlags.isStateCacheEnabled()) {
+            // Wrap persister with a cache, so that we aren't constantly hitting ZK for state queries:
             return StateStoreCache.getInstance(stateStore);
         } else {
             return stateStore;
@@ -491,9 +492,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
                     throws ConfigStoreException {
         return new DefaultConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
-                serviceSpec.getName(),
-                persister);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes), persister);
     }
 
     /**
