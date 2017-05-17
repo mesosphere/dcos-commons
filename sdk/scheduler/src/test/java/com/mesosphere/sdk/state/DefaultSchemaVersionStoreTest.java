@@ -1,9 +1,7 @@
-package com.mesosphere.sdk.curator;
+package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.state.SchemaVersionStore;
-import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -19,7 +17,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-public class CuratorSchemaVersionStoreTest {
+/**
+ * Tests for {@link DefaultSchemaVersionStore}.
+ */
+public class DefaultSchemaVersionStoreTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final String PREFIXED_ROOT_ZK_PATH = "/dcos-service-test-root-path";
@@ -44,24 +45,20 @@ public class CuratorSchemaVersionStoreTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testZk);
-        curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        curatorWithAcl = new CuratorPersister(
-                testZk.getConnectString(),
-                new ExponentialBackoffRetry(1000, 3),
-                CuratorTestUtils.USERNAME,
-                CuratorTestUtils.PASSWORD);
-        store = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
-        storeWithAcl = new CuratorSchemaVersionStore(curatorWithAcl, ROOT_ZK_PATH);
-        store2 = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
-        storeWithMock = new CuratorSchemaVersionStore(mockCurator, ROOT_ZK_PATH);
+        curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
+        curatorWithAcl = CuratorPersister.newBuilder(testZk.getConnectString())
+                .setCredentials(CuratorTestUtils.USERNAME, CuratorTestUtils.PASSWORD)
+                .build();
+        store = new DefaultSchemaVersionStore(curator, ROOT_ZK_PATH);
+        storeWithAcl = new DefaultSchemaVersionStore(curatorWithAcl, ROOT_ZK_PATH);
+        store2 = new DefaultSchemaVersionStore(curator, ROOT_ZK_PATH);
+        storeWithMock = new DefaultSchemaVersionStore(mockCurator, ROOT_ZK_PATH);
     }
 
     @Test
     public void testRootPathMapping() throws Exception {
         store.fetch();
-        CuratorPersister curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        CuratorPersister curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
         assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
@@ -148,9 +145,9 @@ public class CuratorSchemaVersionStoreTest {
         // Not writeable with incorrect Auth
         try
         {
-            CuratorPersister curatorAclSomeone = new CuratorPersister(
-                    testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3), "someone", "else");
-
+            CuratorPersister curatorAclSomeone = CuratorPersister.newBuilder(testZk.getConnectString())
+                    .setCredentials("someone", "else")
+                    .build();
             curatorAclSomeone.set(NODE_PATH, "someoneelse".getBytes(CHARSET));
             fail("Should have failed with auth exception");
         }
@@ -159,7 +156,7 @@ public class CuratorSchemaVersionStoreTest {
             // expected
         }
 
-        curatorWithAcl.delete(NODE_PATH);
+        curatorWithAcl.deleteAll(NODE_PATH);
     }
 
     @Test
@@ -234,9 +231,5 @@ public class CuratorSchemaVersionStoreTest {
 
     private void storeDirectVersion(String data) throws Exception {
         curator.set(NODE_PATH, data.getBytes(CHARSET));
-    }
-
-    private void storeWithAclDirectVersion(String data) throws Exception {
-        curatorWithAcl.set(NODE_PATH, data.getBytes(CHARSET));
     }
 }

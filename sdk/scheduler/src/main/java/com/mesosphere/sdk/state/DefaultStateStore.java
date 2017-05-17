@@ -1,16 +1,14 @@
-package com.mesosphere.sdk.curator;
+package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.state.SchemaVersionStore;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
-import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.mesos.Protos;
@@ -27,31 +25,29 @@ import java.util.stream.Collectors;
 /**
  * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
  *
- * The ZNode structure in Zookeeper is as follows:
- * <code>
- * rootPath/
- *     -> FrameworkID
- *     -> Tasks/
- *         -> [TaskName-0]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> [TaskName-1]/
- *             -> TaskInfo
- *         -> [TaskName-2]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> ...
- * </code>
+ * <p>The ZNode structure in Zookeeper is as follows:
+ * <br>rootPath/
+ * <br>&nbsp;-> FrameworkID
+ * <br>&nbsp;-> Tasks/
+ * <br>&nbsp;&nbsp;-> [TaskName-0]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ * <br>&nbsp;&nbsp;-> [TaskName-1]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;-> [TaskName-2]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ * <br>&nbsp;&nbsp;-> ...
  *
- * Note that for frameworks which don't use custom executors, the same structure is used, except
+ * <p>Note that for frameworks which don't use custom executors, the same structure is used, except
  * where ExecutorName values are equal to TaskName values.
  */
-public class CuratorStateStore implements StateStore {
+public class DefaultStateStore implements StateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultStateStore.class);
 
     /**
-     * @see CuratorSchemaVersionStore#CURRENT_SCHEMA_VERSION
+     * @see DefaultSchemaVersionStore#CURRENT_SCHEMA_VERSION
      */
     private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
     private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
@@ -63,64 +59,22 @@ public class CuratorStateStore implements StateStore {
     private static final String TASKS_ROOT_NAME = "Tasks";
     public static final String LOCK_PATH_NAME = "lock";
 
-    protected final CuratorPersister curator;
+    protected final CuratorPersister persister;
     protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
     private final String rootPath;
 
     /**
-     * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy} and
-     * connection string.
+     * Creates a new {@link StateStore} which uses the provided {@link Persister} to access state data.
      *
-     * @param frameworkName    The name of the framework
+     * @param persister The persister which holds the state data
      */
-    public CuratorStateStore(String frameworkName) {
-        this(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-    }
-
-    /**
-     * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy}.
-     *
-     * @param frameworkName    The name of the framework
-     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
-     */
-    public CuratorStateStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
-    }
-
-    public CuratorStateStore(
-            String frameworkName,
-            String connectionString,
-            RetryPolicy retryPolicy) {
-        this(frameworkName, connectionString, retryPolicy, "", "");
-    }
-
-    public CuratorStateStore(
-            String frameworkName,
-            String connectionString,
-            String username,
-            String password) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
-    }
-
-    /**
-     * Creates a new {@link StateStore} which uses Curator with a custom {@link RetryPolicy}.
-     *
-     * @param frameworkName    The name of the framework
-     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
-     * @param retryPolicy      The custom {@link RetryPolicy}
-     */
-    public CuratorStateStore(
-            String frameworkName,
-            String connectionString,
-            RetryPolicy retryPolicy,
-            String username,
-            String password) {
-        this.curator = new CuratorPersister(connectionString, retryPolicy, username, password);
+    public DefaultStateStore(String frameworkName, CuratorPersister persister) {
+        this.persister = persister;
 
         // Check version up-front:
-        int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
+        int currentVersion = new DefaultSchemaVersionStore(persister, frameworkName).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -129,10 +83,10 @@ public class CuratorStateStore implements StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
-        this.rootPath = CuratorUtils.toServiceRootPath(frameworkName);
+        this.rootPath = CuratorUtils.getServiceRootPath(frameworkName);
         this.taskPathMapper = new TaskPathMapper(rootPath);
-        this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
-        this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
+        this.fwkIdPath = PersisterUtils.join(rootPath, FWK_ID_PATH_NAME);
+        this.propertiesPath = PersisterUtils.join(rootPath, PROPERTIES_PATH_NAME);
         repairStateStore();
     }
 
@@ -142,7 +96,7 @@ public class CuratorStateStore implements StateStore {
     public void storeFrameworkId(Protos.FrameworkID fwkId) throws StateStoreException {
         try {
             logger.debug("Storing FrameworkID in '{}'", fwkIdPath);
-            curator.set(fwkIdPath, fwkId.toByteArray());
+            persister.set(fwkIdPath, fwkId.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to store FrameworkID in '%s'", fwkIdPath), e);
@@ -153,7 +107,7 @@ public class CuratorStateStore implements StateStore {
     public void clearFrameworkId() throws StateStoreException {
         try {
             logger.debug("Clearing FrameworkID at '{}'", fwkIdPath);
-            curator.delete(fwkIdPath);
+            persister.deleteAll(fwkIdPath);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent FrameworkID should not result in an exception from us.
             logger.warn("Cleared unset FrameworkID, continuing silently", e);
@@ -166,7 +120,7 @@ public class CuratorStateStore implements StateStore {
     public Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException {
         try {
             logger.debug("Fetching FrameworkID from '{}'", fwkIdPath);
-            byte[] bytes = curator.get(fwkIdPath);
+            byte[] bytes = persister.get(fwkIdPath);
             if (bytes.length > 0) {
                 return Optional.of(Protos.FrameworkID.parseFrom(bytes));
             } else {
@@ -192,7 +146,7 @@ public class CuratorStateStore implements StateStore {
             taskBytesMap.put(path, taskInfo.toByteArray());
         }
         try {
-            curator.setMany(taskBytesMap);
+            persister.setMany(taskBytesMap);
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to store %d TaskInfos", tasks.size()), e);
@@ -235,7 +189,7 @@ public class CuratorStateStore implements StateStore {
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
-            curator.set(path, status.toByteArray());
+            persister.set(path, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
@@ -246,7 +200,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskPath(taskName);
         logger.debug("Clearing Task at '{}'", path);
         try {
-            curator.delete(path);
+            persister.deleteAll(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Task should not result in an exception from us.
             logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
@@ -278,8 +232,8 @@ public class CuratorStateStore implements StateStore {
               * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
               * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
               */
-            CuratorTransaction transaction = curator.startTransaction();
-            curator.commitTransaction(deleteChildren(rootPath, transaction.check()
+            CuratorTransaction transaction = persister.startTransaction();
+            persister.commitTransaction(deleteChildren(rootPath, transaction.check()
                     .forPath(rootPath).and()));
             logger.info("Cleared service at '{}'", rootPath);
         } catch (Exception e) {
@@ -290,12 +244,12 @@ public class CuratorStateStore implements StateStore {
 
     private CuratorTransactionFinal deleteChildren(String root, CuratorTransactionFinal curatorTransactionFinal)
             throws Exception {
-        ArrayList<String> children = curator.getChildren(root).stream()
+        ArrayList<String> children = persister.getChildren(root).stream()
                 .filter(child -> !child.equals(LOCK_PATH_NAME))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         for (String child : children) {
-            curatorTransactionFinal = deleteChildren(CuratorUtils.join(root, child), curatorTransactionFinal);
+            curatorTransactionFinal = deleteChildren(PersisterUtils.join(root, child), curatorTransactionFinal);
         }
 
         // Never try to delete the rootPath. It will fail due to the ACLs.
@@ -313,7 +267,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTasksRootPath();
         logger.debug("Fetching task names from '{}'", path);
         try {
-            return curator.getChildren(path);
+            return persister.getChildren(path);
         } catch (KeeperException.NoNodeException e) {
             // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
             // expected to commonly occur when the Framework is being run for the first time.
@@ -344,7 +298,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskInfoPath(taskName);
         logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
         try {
-            byte[] bytes = curator.get(path);
+            byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
                 // TODO(nick): This unpack operation is no longer needed, but it doesn't hurt anything to leave it in
                 // place to support reading older data. Remove this unpack call after services have had time to stop
@@ -368,7 +322,7 @@ public class CuratorStateStore implements StateStore {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
             try {
-                byte[] bytes = curator.get(taskPathMapper.getTaskStatusPath(taskName));
+                byte[] bytes = persister.get(taskPathMapper.getTaskStatusPath(taskName));
                 taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
             } catch (KeeperException.NoNodeException e) {
                 // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
@@ -385,7 +339,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
         try {
-            byte[] bytes = curator.get(path);
+            byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
@@ -405,9 +359,9 @@ public class CuratorStateStore implements StateStore {
         StateStoreUtils.validateKey(key);
         StateStoreUtils.validateValue(value);
         try {
-            final String path = CuratorUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(this.propertiesPath, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
-            curator.set(path, value);
+            persister.set(path, value);
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
@@ -417,9 +371,9 @@ public class CuratorStateStore implements StateStore {
     public byte[] fetchProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = CuratorUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(this.propertiesPath, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
-            return curator.get(path);
+            return persister.get(path);
         } catch (KeeperException.NoNodeException e) {
             throw new StateStoreException(Reason.NOT_FOUND, e);
         } catch (Exception e) {
@@ -430,7 +384,7 @@ public class CuratorStateStore implements StateStore {
     @Override
     public Collection<String> fetchPropertyKeys() throws StateStoreException {
         try {
-            return curator.getChildren(this.propertiesPath);
+            return persister.getChildren(this.propertiesPath);
         } catch (KeeperException.NoNodeException e) {
             // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
             // expected to commonly occur when the Framework is being run for the first time.
@@ -444,9 +398,9 @@ public class CuratorStateStore implements StateStore {
     public void clearProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = CuratorUtils.join(this.propertiesPath, key);
+            final String path = PersisterUtils.join(this.propertiesPath, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
-            curator.delete(path);
+            persister.deleteAll(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Property should not result in an exception from us.
             logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
@@ -457,7 +411,7 @@ public class CuratorStateStore implements StateStore {
 
     @VisibleForTesting
     public void closeForTesting() {
-        curator.close();
+        persister.close();
     }
 
     // Internals
@@ -469,19 +423,19 @@ public class CuratorStateStore implements StateStore {
         private final String tasksRootPath;
 
         private TaskPathMapper(String rootPath) {
-            this.tasksRootPath = CuratorUtils.join(rootPath, TASKS_ROOT_NAME);
+            this.tasksRootPath = PersisterUtils.join(rootPath, TASKS_ROOT_NAME);
         }
 
         private String getTaskInfoPath(String taskName) {
-            return CuratorUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
+            return PersisterUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
         }
 
         public String getTaskStatusPath(String taskName) {
-            return CuratorUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+            return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
         }
 
         private String getTaskPath(String taskName) {
-            return CuratorUtils.join(getTasksRootPath(), taskName);
+            return PersisterUtils.join(getTasksRootPath(), taskName);
         }
 
         private String getTasksRootPath() {

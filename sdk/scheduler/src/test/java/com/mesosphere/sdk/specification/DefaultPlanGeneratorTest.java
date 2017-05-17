@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -20,6 +21,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -55,8 +57,9 @@ public class DefaultPlanGeneratorTest {
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
 
-        stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, persister);
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
 
         Assert.assertNotNull(serviceSpec);
 

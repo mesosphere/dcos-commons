@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
@@ -14,6 +14,7 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstr
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -108,13 +109,14 @@ public class DefaultRecoveryPlanManagerTest {
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
-        stateStore = new CuratorStateStore(TestConstants.SERVICE_NAME, testingServer.getConnectString());
+        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        stateStore = new DefaultStateStore(TestConstants.SERVICE_NAME, persister);
 
         serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
                 YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
                         .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
 
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         taskInfo = TaskInfo.newBuilder(taskInfo)

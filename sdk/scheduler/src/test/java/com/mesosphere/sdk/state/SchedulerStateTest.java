@@ -2,11 +2,13 @@ package com.mesosphere.sdk.state;
 
 
 import org.apache.curator.test.TestingServer;
-import com.mesosphere.sdk.curator.CuratorStateStore;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.mesosphere.sdk.curator.CuratorPersister;
+
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SchedulerStateTest {
@@ -22,15 +24,16 @@ public class SchedulerStateTest {
 
     @Before
     public void beforeEach() {
-        schedulerState = new SchedulerState(new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString()));
+        schedulerState = new SchedulerState(
+                new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build()));
     }
 
     @Test
     public void testIsSuppressed() {
-        assertTrue(!schedulerState.isSuppressed());
+        assertFalse(schedulerState.isSuppressed());
         schedulerState.setSuppressed(true);
         assertTrue(schedulerState.isSuppressed());
         schedulerState.setSuppressed(false);
-        assertTrue(!schedulerState.isSuppressed());
+        assertFalse(schedulerState.isSuppressed());
     }
 }

@@ -19,6 +19,8 @@ import org.junit.*;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.state.DefaultStateStore;
+
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -26,7 +28,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests to validate the operation of the {@link CuratorStateStore}.
+ * Tests to validate the operation of the {@link DefaultStateStore}.
  */
 public class CuratorPersisterTest {
     @Mock private CuratorFramework mockClient;

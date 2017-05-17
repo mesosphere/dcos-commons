@@ -1,10 +1,13 @@
 package com.mesosphere.sdk.testing;
 
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
 import org.junit.Assert;
@@ -15,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
-import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.mock;
@@ -55,7 +57,7 @@ public class BaseServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFlags);
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
-        DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec);
     }
 
     protected void validateServiceSpec(String fileName) throws Exception {
@@ -72,10 +74,12 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
+        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
-                .setStateStore(DefaultScheduler.createStateStore(
-                        serviceSpec, mockFlags, testingServer.getConnectString()))
-                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .setStateStore(new DefaultStateStore(serviceSpec.getName(), persister))
+                .setConfigStore(new DefaultConfigStore<>(
+                        DefaultServiceSpec.getConfigurationFactory(serviceSpec), serviceSpec.getName(), persister))
                 .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)
                 .build();

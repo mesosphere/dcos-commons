@@ -1,16 +1,16 @@
-package com.mesosphere.sdk.curator;
+package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
+
+import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import org.junit.*;
 
@@ -20,9 +20,9 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
- * Tests to validate the operation of the {@link CuratorStateStore}.
+ * Tests to validate the operation of the {@link DefaultStateStore}.
  */
-public class CuratorStateStoreTest {
+public class DefaultStateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =
             Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String TASK_NAME = "test-task-name";
@@ -48,16 +48,16 @@ public class CuratorStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        CuratorPersister persister = CuratorPersister.newBuilder(testZk.getConnectString()).build();
+        store = new DefaultStateStore(ROOT_ZK_PATH, persister);
+
         // Check that schema version was created in the correct location:
-        CuratorPersister curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, persister.get("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
     @After
     public void afterEach() {
-        ((CuratorStateStore) store).closeForTesting();
+        ((DefaultStateStore) store).closeForTesting();
     }
 
     @Test
@@ -69,8 +69,7 @@ public class CuratorStateStoreTest {
     @Test
     public void testRootPathMapping() throws Exception {
         store.storeFrameworkId(FRAMEWORK_ID);
-        CuratorPersister curator = new CuratorPersister(
-                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        CuratorPersister curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
         assertNotEquals(0, curator.get("/dcos-service-test-root-path/FrameworkID").length);
     }
 
@@ -184,8 +183,8 @@ public class CuratorStateStoreTest {
         assertEquals(2, taskNames.size());
 
         Iterator<String> iter =  taskNames.iterator();
-        assertEquals(testTaskName1, iter.next());
         assertEquals(testTaskName0, iter.next());
+        assertEquals(testTaskName1, iter.next());
     }
 
     @Test
@@ -200,8 +199,8 @@ public class CuratorStateStoreTest {
         assertEquals(2, taskNames.size()); // framework id set above mustn't be included
 
         Iterator<String> iter =  taskNames.iterator();
-        assertEquals(testTaskName1, iter.next());
         assertEquals(testTaskName0, iter.next());
+        assertEquals(testTaskName1, iter.next());
     }
 
     @Test
@@ -533,7 +532,7 @@ public class CuratorStateStoreTest {
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_INFO, store.fetchTasks().stream().findAny().get());
 
-        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
@@ -559,7 +558,7 @@ public class CuratorStateStoreTest {
         assertNotEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
         assertEquals(TestConstants.TASK_ID, store.fetchStatuses().stream().findAny().get().getTaskId());
 
-        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());

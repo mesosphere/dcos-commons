@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
 
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.PortRequirement;
@@ -665,7 +666,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
-        Assert.assertEquals(DefaultServiceSpec.DEFAULT_ZK_CONNECTION, serviceSpec.getZookeeperConnection());
+        Assert.assertEquals(DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING, serviceSpec.getZookeeperConnection());
     }
 
     @Test
@@ -696,13 +697,13 @@ public class DefaultServiceSpecTest {
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
         when(capabilities.supportCniPortMapping()).thenReturn(true);
 
+
         TestingServer testingServer = new TestingServer();
+        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
         StateStoreCache.resetInstanceForTests();
-        StateStore stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, testingServer.getConnectString());
-        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        StateStore stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, persister);
+        ConfigStore<ServiceSpec> configStore =
+                DefaultScheduler.createConfigStore(serviceSpec,Collections.emptyList(), persister);
         DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)

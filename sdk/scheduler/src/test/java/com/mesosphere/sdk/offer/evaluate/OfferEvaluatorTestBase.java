@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -39,7 +40,8 @@ public class OfferEvaluatorTestBase {
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
         MockitoAnnotations.initMocks(this);
-        stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        stateStore =
+                new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
         offerRequirementProvider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);

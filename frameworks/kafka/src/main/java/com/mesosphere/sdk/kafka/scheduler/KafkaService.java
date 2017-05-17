@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.api.*;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
-import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
+import com.mesosphere.sdk.kafka.upgrade.FilterStateStore;
 import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -33,8 +34,9 @@ public class KafkaService extends DefaultService {
 
         /* Upgrade */
         new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec(), schedulerFlags);
-        CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
-                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        FilterStateStore stateStore = new FilterStateStore(
+                schedulerBuilder.getServiceSpec().getName(),
+                CuratorPersister.newBuilder(schedulerBuilder.getServiceSpec()).build());
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
         schedulerBuilder.setStateStore(stateStore);
         /* Upgrade */

@@ -1,15 +1,24 @@
 package com.mesosphere.sdk.curator;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.curator.framework.api.transaction.CuratorTransactionResult;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -27,17 +36,110 @@ public class CuratorPersister implements Persister {
     private static final int ATOMIC_WRITE_ATTEMPTS = 3;
 
     private final CuratorFramework client;
+    /**
+     * Builder for constructing {@link CuratorPersister} instances.
+     */
+    public static class Builder {
+        private final String connectionString;
+        private RetryPolicy retryPolicy;
+        private String username;
+        private String password;
 
-    public CuratorPersister(String connectionString, RetryPolicy retryPolicy) {
-        this(createClient(connectionString, retryPolicy));
+        /**
+         * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+         *
+         * @param zkConnectionString the zookeeper host:port
+         */
+        private Builder(String zkConnectionString) {
+            // Set defaults for customizable options:
+            this.connectionString = zkConnectionString;
+            this.retryPolicy = CuratorUtils.getDefaultRetry();
+            this.username = "";
+            this.password = "";
+        }
+
+        /**
+         * Assigns a custom retry policy for the ZK server.
+         *
+         * @param retryPolicy The custom {@link RetryPolicy}
+         */
+        public Builder setRetryPolicy(RetryPolicy retryPolicy) {
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
+        /**
+         * Assigns credentials to be used when contacting ZK.
+         *
+         * @param username The ZK username
+         * @param password The ZK password
+         */
+        public Builder setCredentials(String username, String password) {
+            this.username = username;
+            this.password = password;
+            return this;
+        }
+
+        /**
+         * Returns a new {@link CuratorPersister} instance using the provided settings, using reasonable defaults where
+         * custom values were not specified.
+         */
+        public CuratorPersister build() {
+            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
+                    .connectString(connectionString)
+                    .retryPolicy(retryPolicy);
+            final CuratorFramework client;
+
+            if (username.isEmpty() && password.isEmpty()) {
+                client = builder.build();
+            } else if (!username.isEmpty() && !password.isEmpty()) {
+                List<ACL> acls = new ArrayList<ACL>();
+                acls.addAll(ZooDefs.Ids.CREATOR_ALL_ACL);
+                acls.addAll(ZooDefs.Ids.READ_ACL_UNSAFE);
+
+                String authenticationString = username + ":" + password;
+                builder.authorization("digest", authenticationString.getBytes(StandardCharsets.UTF_8))
+                        .aclProvider(new ACLProvider() {
+                            @Override
+                            public List<ACL> getDefaultAcl() {
+                                return acls;
+                            }
+
+                            @Override
+                            public List<ACL> getAclForPath(String path) {
+                                return acls;
+                            }
+                        });
+                client = builder.build();
+            } else {
+                throw new IllegalArgumentException(
+                        "username and password must both be provided, or both must be empty.");
+            }
+
+            return new CuratorPersister(client);
+        }
     }
 
-    public CuratorPersister(String connectionString, RetryPolicy retryPolicy, String username, String password) {
-        this(createClient(connectionString, retryPolicy, username, password));
+    /**
+     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     *
+     * @param serviceSpec the service for which data will be stored
+     */
+    public static Builder newBuilder(ServiceSpec serviceSpec) {
+        return newBuilder(serviceSpec.getZookeeperConnection());
     }
 
-    public CuratorPersister(CuratorFramework client) {
+    /**
+     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     */
+    public static Builder newBuilder(String zkConnectionString) {
+        return new Builder(zkConnectionString);
+    }
+
+    @VisibleForTesting
+    CuratorPersister(CuratorFramework client) {
         this.client = client;
+        this.client.start();
     }
 
     @Override
@@ -90,13 +192,13 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void delete(String path) throws Exception {
+    public void deleteAll(String path) throws Exception {
         client.delete().deletingChildrenIfNeeded().forPath(path);
     }
 
     @Override
     public Collection<String> getChildren(String path) throws Exception {
-        return client.getChildren().forPath(path);
+        return new TreeSet<>(client.getChildren().forPath(path));
     }
 
     public CuratorTransaction startTransaction() throws Exception {
@@ -111,38 +213,6 @@ public class CuratorPersister implements Persister {
     @Override
     public void close() {
         client.close();
-    }
-
-    private static CuratorFramework createClient(String connectionString, RetryPolicy retryPolicy) {
-        CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
-        client.start();
-        return client;
-    }
-
-    /**
-     * Create new CuratorFramework client using the Builder to add Auth & ACL.
-     * @param connectionString
-     * @param retryPolicy
-     * @param username
-     * @param password
-     * @return
-     */
-    private static CuratorFramework createClient(String connectionString,
-                                                 RetryPolicy retryPolicy,
-                                                 String username,
-                                                 String password) {
-        if (username.isEmpty() && password.isEmpty()) {
-            return createClient(connectionString, retryPolicy);
-        } else if (username.isEmpty() || password.isEmpty()) {
-            throw new IllegalArgumentException("Zookeeper authorization credentials are inappropriate");
-        }
-
-        CuratorFramework client = CuratorUtils.getClientWithAcl(connectionString,
-                retryPolicy,
-                username,
-                password);
-        client.start();
-        return client;
     }
 
     private Set<String> selectPathsWhichExist(Set<String> paths) throws Exception {
@@ -163,7 +233,7 @@ public class CuratorPersister implements Persister {
                 continue;
             }
             // Transaction interface doesn't support creatingParentsIfNeeded(), so go manual.
-            for (String parentPath : CuratorUtils.getParentPaths(path)) {
+            for (String parentPath : PersisterUtils.getParentPaths(path)) {
                 if (client.checkExists().forPath(parentPath) == null
                         && !parentPathsToCreate.contains(parentPath)) {
                     parentPathsToCreate.add(parentPath);
