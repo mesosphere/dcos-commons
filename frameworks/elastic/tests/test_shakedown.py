@@ -1,6 +1,8 @@
-import pytest
 import time
 
+import pytest
+
+import sdk_cmd as cmd
 import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
@@ -91,6 +93,15 @@ def test_master_reelection():
     time.sleep(3)
     new_master = get_elasticsearch_master()
     assert new_master.startswith("master") and new_master != initial_master
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_master_node_replace():
+    # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
+    # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
+    cmd.run_cli('elastic pods replace master-0')
+    # setup_function will verify that the cluster becomes healthy again.
 
 
 @pytest.mark.recovery
