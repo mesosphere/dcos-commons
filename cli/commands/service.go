@@ -2,13 +2,11 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-
-	"encoding/json"
-
-	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
@@ -23,7 +21,7 @@ type DescribeRequest struct {
 	AppID string `json:"appId"`
 }
 
-func unmarshallJSON(jsonBytes []byte) (map[string]interface{}, error) {
+func unmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
 	var responseJSON map[string]interface{}
 	err := json.Unmarshal([]byte(jsonBytes), &responseJSON)
 	if err != nil {
@@ -32,12 +30,20 @@ func unmarshallJSON(jsonBytes []byte) (map[string]interface{}, error) {
 	return responseJSON, nil
 }
 
+func reportErrorAndExit(err error, responseBytes []byte) {
+	log.Printf("Failed to unmarshal response. Error: %s", err)
+	log.Printf("Original data follows:")
+	outBuf := *bytes.NewBuffer(responseBytes)
+	outBuf.WriteTo(os.Stdout)
+	os.Exit(1)
+}
+
 func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
 	// TODO: what is the intended output here?
 	// Do we want to show upgradesTo/downgradesTo components? resolvedOptions or userProvidedOptions?
 	// TODO: is there a better way to do this instead of unmarshalling and remarshalling?
 	// TODO: add some error handling here in case the format changes
-	responseJSONBytes, err := unmarshallJSON(responseBytes)
+	responseJSONBytes, err := unmarshalJSON(responseBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +61,7 @@ func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error
 	responseBytes := client.GetResponseBytes(response)
 	resolvedOptions, err := parseDescribeResponse(responseBytes)
 	if err != nil {
-		log.Printf("Failed to unmarshall response.")
-		log.Printf("Original data follows:")
-		outBuf := *bytes.NewBuffer(responseBytes)
-		outBuf.WriteTo(os.Stdout)
-		os.Exit(1)
+		reportErrorAndExit(err, responseBytes)
 	}
 	client.PrintJSONBytes(resolvedOptions, nil)
 	return nil
@@ -83,13 +85,13 @@ func checkAndReadJSONFile(filename string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return unmarshallJSON(fileBytes)
+	return unmarshalJSON(fileBytes)
 }
 
 func parseUpdateResponse(responseBytes []byte) (string, error) {
 	// TODO: do something interesting with this output
 	// Output should be in the same format as the `dcos marathon app update` command
-	responseJSON, err := unmarshallJSON(responseBytes)
+	responseJSON, err := unmarshalJSON(responseBytes)
 	if err != nil {
 		return "", err
 	}
@@ -115,11 +117,7 @@ func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
 	responseBytes := client.GetResponseBytes(response)
 	deploymentID, err := parseUpdateResponse(responseBytes)
 	if err != nil {
-		log.Printf("Failed to unmarshall response.")
-		log.Printf("Original data follows:")
-		outBuf := *bytes.NewBuffer(responseBytes)
-		outBuf.WriteTo(os.Stdout)
-		os.Exit(1)
+		reportErrorAndExit(err, responseBytes)
 	}
 	client.PrintText(fmt.Sprintf("Created deployment %s", deploymentID))
 	return nil

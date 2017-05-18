@@ -217,7 +217,6 @@ func createServiceURL(urlPath, urlQuery string) *url.URL {
 }
 
 func createCosmosURL(urlPath string) *url.URL {
-	joinedURLPath := ""
 	// Try to fetch the Cosmos URL from the system configuration
 	if len(config.CosmosUrl) == 0 {
 		config.CosmosUrl = OptionalCLIConfigValue("package.cosmos_url")
@@ -225,11 +224,11 @@ func createCosmosURL(urlPath string) *url.URL {
 
 	// Use Cosmos URL if we have it specified
 	if len(config.CosmosUrl) > 0 {
-		joinedURLPath = path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
+		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
 		return createURL(config.CosmosUrl, joinedURLPath, "")
 	}
 	getDCOSURL()
-	joinedURLPath = path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
+	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
 	return createURL(config.DcosUrl, joinedURLPath, "")
 }
 
