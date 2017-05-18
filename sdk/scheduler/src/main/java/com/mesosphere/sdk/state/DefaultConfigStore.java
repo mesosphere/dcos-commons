@@ -19,13 +19,13 @@ import java.util.UUID;
 /**
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
  *
- * The path structure is as follows:
- * rootPath
- *     -> ConfigTarget (contains UUID)
- *     -> Configurations/
- *         -> [Config-ID-0] (contains serialized config)
- *         -> [Config-ID-1] (contains serialized config)
- *         -> ...
+ * <p>The ZNode structure in Zookeeper is as follows:
+ * <br>rootPath/
+ * <br>&nbsp;-> ConfigTarget (contains UUID)
+ * <br>&nbsp;-> Configurations/
+ * <br>&nbsp;&nbsp;-> [Config-ID-0] (contains serialized config)
+ * <br>&nbsp;&nbsp;-> [Config-ID-1] (contains serialized config)
+ * <br>&nbsp;&nbsp;-> ...
  *
  * @param <T> The {@code Configuration} object to be serialized and deserialized in the
  *            implementation of this interface
