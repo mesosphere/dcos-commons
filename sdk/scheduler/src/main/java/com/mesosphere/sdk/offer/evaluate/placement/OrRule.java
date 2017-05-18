@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
@@ -31,11 +32,11 @@ public class OrRule implements PlacementRule {
     }
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         int passingCount = 0;
         Collection<EvaluationOutcome> children = new ArrayList<>();
         for (PlacementRule rule : rules) {
-            EvaluationOutcome child = rule.filter(offer, offerRequirement, tasks);
+            EvaluationOutcome child = rule.filter(offer, podInstance, tasks);
             if (child.isPassing()) {
                 passingCount++;
             }

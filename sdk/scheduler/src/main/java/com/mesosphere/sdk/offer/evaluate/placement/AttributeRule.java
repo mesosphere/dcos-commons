@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
@@ -96,7 +97,7 @@ public class AttributeRule implements PlacementRule {
     }
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
             if (matcher.matches(attributeString)) {

@@ -12,8 +12,8 @@ public class RequirementUtils {
         Collection<String> resourceIds = new ArrayList<>();
 
         for (ResourceRequirement resReq : resourceRequirements) {
-            if (resReq.expectsResource()) {
-                resourceIds.add(resReq.getResourceId());
+            if (resReq.expectsResource() && resReq.getResourceId().isPresent()) {
+                resourceIds.add(resReq.getResourceId().get());
             }
         }
 
@@ -24,8 +24,8 @@ public class RequirementUtils {
         Collection<String> persistenceIds = new ArrayList<>();
 
         for (ResourceRequirement resReq : resourceRequirements) {
-            String persistenceId = resReq.getPersistenceId();
-            if (persistenceId != null) {
+            if (resReq instanceof VolumeRequirement) {
+                String persistenceId = ((VolumeRequirement) resReq).getPersistenceId();
                 persistenceIds.add(persistenceId);
             }
         }

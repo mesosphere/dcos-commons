@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * This class represents a ports resource with multiple ports.
  */
-public class PortsSpec implements ResourceSpec {
+public class PortsSpec {
     @NotNull
     @Size(min = 1)
     private final String name;
@@ -54,40 +55,9 @@ public class PortsSpec implements ResourceSpec {
         ValidationUtils.validate(this);
     }
 
-    @Override
-    public Protos.Value getValue() {
-        return value;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getRole() {
-        return role;
-    }
-
-    @Override
-    public String getPrincipal() {
-        return principal;
-    }
-
     @JsonProperty("port-specs")
     public Collection<PortSpec> getPortSpecs() {
         return portSpecs;
-    }
-
-    @Override
-    public Optional<String> getEnvKey() {
-        return Optional.ofNullable(envKey);
-    }
-
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new PortsRequirement(
-                portSpecs.stream().map(spec -> spec.getResourceRequirement(resource)).collect(Collectors.toList()));
     }
 
     @Override

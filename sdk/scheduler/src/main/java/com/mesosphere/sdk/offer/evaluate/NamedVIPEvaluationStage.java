@@ -84,8 +84,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             for (Protos.Label l : portBuilder.getLabels().getLabelsList()) {
                 if (l.getKey().startsWith(ResourceUtils.VIP_PREFIX) &&
                         l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
-                    portBuilder.setNumber(
-                            (int) getResourceRequirement().getResource().getRanges().getRange(0).getBegin());
+                    portBuilder.setNumber((int) port);
                     portBuilder.setVisibility(visibility);
                     portBuilder.setProtocol(protocol);
                     return true;

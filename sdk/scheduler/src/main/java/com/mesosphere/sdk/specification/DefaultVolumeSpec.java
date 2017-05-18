@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -86,20 +87,20 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @Override
     public VolumeRequirement getResourceRequirement(Protos.Resource resource) {
         if (resource != null) {
-            return new VolumeRequirement(resource);
+            return VolumeRequirement.newBuilder(resource).build();
         }
 
         switch (getType()) {
             case ROOT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredRootVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+                return VolumeRequirement.newBuilder(getRole(), getValue(), getContainerPath())
+                        .diskType(Constants.ROOT_DISK_TYPE)
+                        .build();
             case MOUNT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredMountVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+                return VolumeRequirement.newBuilder(getRole(), getValue(), getContainerPath())
+                        .diskType(Constants.MOUNT_DISK_TYPE)
+                        .build();
             default:
-                throw new IllegalArgumentException("FIX: can't handle");
+                throw new IllegalArgumentException(String.format("Can't handle unknown disk type, %s", getType()));
         }
     }
 }

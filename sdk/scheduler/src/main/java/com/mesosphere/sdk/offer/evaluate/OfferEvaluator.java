@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -27,11 +28,22 @@ public class OfferEvaluator {
 
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
+    private final String serviceName;
+    private final UUID targetConfigId;
+    private final SchedulerFlags schedulerFlags;
 
     @Inject
-    public OfferEvaluator(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
+    public OfferEvaluator(
+            StateStore stateStore,
+            OfferRequirementProvider offerRequirementProvider,
+            String serviceName,
+            UUID targetConfigId,
+            SchedulerFlags schedulerFlags) {
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
+        this.serviceName = serviceName;
+        this.targetConfigId = targetConfigId;
+        this.schedulerFlags = schedulerFlags;
     }
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
@@ -39,11 +51,15 @@ public class OfferEvaluator {
 
         OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
         for (int i = 0; i < offers.size(); ++i) {
-            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(offerRequirement);
+            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
-            PodInfoBuilder podInfoBuilder = new PodInfoBuilder(podInstanceRequirement);
+            PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+                    podInstanceRequirement,
+                    serviceName,
+                    targetConfigId,
+                    schedulerFlags);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -81,10 +97,17 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
-    public List<OfferEvaluationStage> getEvaluationPipeline(OfferRequirement offerRequirement) {
-        List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
+    public List<OfferEvaluationStage> getEvaluationPipeline(
+            PodInstanceRequirement podInstanceRequirement,
+            OfferRequirement offerRequirement) {
 
-        evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));
+        List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
+        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
+            evaluationPipeline.add(new PlacementRuleEvaluationStage(
+                    stateStore.fetchTasks(),
+                    podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+        }
+
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
             ExecutorRequirement executorRequirement = offerRequirement.getExecutorRequirementOptional().get();
 

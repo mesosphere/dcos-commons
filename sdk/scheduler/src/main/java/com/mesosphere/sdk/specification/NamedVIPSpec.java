@@ -73,18 +73,14 @@ public class NamedVIPSpec extends PortSpec {
 
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        Protos.Resource portResource = resource == null ?
-                ResourceUtils.getDesiredResource(this) :
-                ResourceUtils.withValue(resource, getValue());
-        return new NamedVIPRequirement(
-                portResource,
-                getPortName(),
-                (int) getValue().getRanges().getRange(0).getBegin(),
-                getEnvKey(),
-                getProtocol(),
-                getVisibility(),
+        return NamedVIPRequirement.newBuilder(
+                getRole(),
+                getName(),
                 getVipName(),
-                getVipPort());
+                (long) getValue().getScalar().getValue(),
+                (long) getVipPort(),
+                getProtocol())
+                .build();
     }
 
     @Override

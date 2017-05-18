@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -45,7 +46,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
     protected abstract String getValue(TaskInfo task);
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         final String offerValue = getValue(offer);
         if (offerValue == null) {
             // offer doesn't have the required attribute at all. denied.
@@ -60,7 +61,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             if (!taskFilter.matches(task.getName())) {
                 continue;
             }
-            if (PlacementUtils.areEquivalent(task, offerRequirement)) {
+            if (PlacementUtils.areEquivalent(task, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about counting its usage. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).

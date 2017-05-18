@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import java.util.Collection;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -34,7 +35,7 @@ public interface PlacementRule {
      *              duplicates
      * @return an {@link EvaluationOutcome} object describing whether the placement succeeded or failed and why
      */
-    EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks);
+    EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks);
 
     /**
      * Must be explicitly implemented by all PlacementRules.

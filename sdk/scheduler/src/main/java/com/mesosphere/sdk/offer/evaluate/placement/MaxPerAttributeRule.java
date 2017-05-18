@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
@@ -97,7 +98,7 @@ public class MaxPerAttributeRule implements PlacementRule {
     }
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         // collect all the attribute values present in this offer:
         Set<String> offerAttributeStrings = new HashSet<>();
         for (Attribute attributeProto : offer.getAttributesList()) {
@@ -115,7 +116,7 @@ public class MaxPerAttributeRule implements PlacementRule {
             if (!taskFilter.matches(task.getName())) {
                 continue;
             }
-            if (PlacementUtils.areEquivalent(task, offerRequirement)) {
+            if (PlacementUtils.areEquivalent(task, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about counting its attribute usage. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).

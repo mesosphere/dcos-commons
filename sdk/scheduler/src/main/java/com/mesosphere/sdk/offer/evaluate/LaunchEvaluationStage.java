@@ -30,8 +30,8 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
             .setOfferAttributes(offer)
-            .setType(podInfoBuilder.getOfferRequirement().getType())
-            .setIndex(podInfoBuilder.getOfferRequirement().getIndex())
+            .setType(podInfoBuilder.getType())
+            .setIndex(podInfoBuilder.getIndex())
             .setHostname(offer)
             .toProto());
         if (executorBuilder.isPresent()) {

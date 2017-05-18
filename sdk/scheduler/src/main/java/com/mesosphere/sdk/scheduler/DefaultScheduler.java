@@ -586,7 +586,12 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
-        initializeGlobals(driver);
+        try {
+            initializeGlobals(driver);
+        } catch (ConfigStoreException e) {
+            LOGGER.error("Failed to initialize globals.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_INITIALIZATION_FAILURE);
+        }
         initializeDeploymentPlanManager();
         initializeRecoveryPlanManager();
         initializePlanCoordinator();
@@ -603,7 +608,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 .collect(Collectors.toList());
     }
 
-    private void initializeGlobals(SchedulerDriver driver) {
+    private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
@@ -611,7 +616,14 @@ public class DefaultScheduler implements Scheduler, Observer {
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
-                new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);
+                new OfferEvaluator(
+                        stateStore,
+                        offerRequirementProvider,
+                        serviceSpec.getName(),
+                        configStore.getTargetConfig(),
+                        schedulerFlags),
+                stateStore,
+                taskKiller);
     }
 
     /**

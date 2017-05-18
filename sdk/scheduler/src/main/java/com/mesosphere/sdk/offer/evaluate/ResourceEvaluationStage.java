@@ -40,10 +40,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         this.taskName = taskName;
     }
 
-    protected void setResourceRequirement(ResourceRequirement resourceRequirement) {
-        this.resourceRequirement = resourceRequirement;
-    }
-
     protected ResourceRequirement getResourceRequirement() {
         return resourceRequirement;
     }
@@ -55,7 +51,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         final ResourceRequirement resourceRequirement = getResourceRequirement();
-
 
         Optional<MesosResource> mesosResourceOptional = resourceRequirement.satisfy(mesosResourcePool);
         if (!mesosResourceOptional.isPresent()) {

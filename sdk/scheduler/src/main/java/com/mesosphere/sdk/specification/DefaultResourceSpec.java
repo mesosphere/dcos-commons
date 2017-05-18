@@ -87,7 +87,11 @@ public class DefaultResourceSpec implements ResourceSpec {
 
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new ResourceRequirement(resource == null ? ResourceUtils.getDesiredResource(this) : resource);
+        if (resource != null) {
+            return ResourceRequirement.newBuilder(resource).build();
+        }
+
+        return ResourceRequirement.newBuilder(role, name, value).build();
     }
 
     @Override

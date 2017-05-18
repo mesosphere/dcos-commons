@@ -253,7 +253,7 @@ public class ResourceUtils {
     public static TaskInfo.Builder addVIP(
             TaskInfo.Builder builder,
             String vipName,
-            Integer vipPort,
+            long vipPort,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             Resource resource) {
@@ -269,7 +269,7 @@ public class ResourceUtils {
             builder.setDiscovery(getVIPDiscoveryInfo(
                     builder.getName(),
                     vipName,
-                    vipPort,
+                    (int) vipPort,
                     protocol,
                     visibility,
                     resource));
@@ -281,7 +281,7 @@ public class ResourceUtils {
     public static ExecutorInfo.Builder addVIP(
             ExecutorInfo.Builder builder,
             String vipName,
-            Integer vipPort,
+            long vipPort,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             Resource resource) {
@@ -297,7 +297,7 @@ public class ResourceUtils {
             builder.setDiscovery(getVIPDiscoveryInfo(
                     builder.getName(),
                     vipName,
-                    vipPort,
+                    (int) vipPort,
                     protocol,
                     visibility,
                     resource));
@@ -311,7 +311,7 @@ public class ResourceUtils {
             String vipName,
             String protocol,
             DiscoveryInfo.Visibility visibility,
-            Integer vipPort,
+            long vipPort,
             int destPort) {
         builder.getPortsBuilder()
                 .addPortsBuilder()
@@ -319,7 +319,7 @@ public class ResourceUtils {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addLabels(getVIPLabel(vipName, (int) vipPort));
 
         // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info 
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.

@@ -26,18 +26,20 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
     private final String portName;
-    private final long port;
     private final Optional<String> customEnvKey;
-
+    private final PortRequirement portRequirement;
     private String resourceId;
 
+    protected final long port;
+
     public PortEvaluationStage(
-            ResourceRequirement resourceRequirement,
+            PortRequirement portRequirement,
             String taskName,
             String portName,
             long port,
             Optional<String> customEnvKey) {
-        super(resourceRequirement, taskName);
+        super(portRequirement, taskName);
+        this.portRequirement = portRequirement;
         this.portName = portName;
         this.port = port;
         this.customEnvKey = customEnvKey;
@@ -50,8 +52,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
         Optional<String> taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable());
-        long assignedPort = port;
 
+        long assignedPort = port;
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
         } else if (assignedPort == 0) {
@@ -78,7 +80,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             // to get the resource id from.
             resourceId = "";
         }
-        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
 
         return super.evaluate(mesosResourcePool, podInfoBuilder);
     }
@@ -119,8 +120,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     }
 
     @Override
-    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
-        Protos.Resource reservedResource = super.getFulfilledResource(resource);
+    protected Protos.Resource getFulfilledResource(ResourceRequirement resourceRequirement) {
+        Protos.Resource reservedResource = super.getFulfilledResource(resourceRequirement);
         if (!StringUtils.isBlank(resourceId)) {
             reservedResource = ResourceUtils.setResourceId(ResourceUtils.clearResourceId(reservedResource), resourceId);
         }
@@ -129,6 +130,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     private static Optional<Integer> selectDynamicPort(
             MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+        throw new UnsupportedOperationException("selectDynamicPort");
+        /*
         // We don't want to dynamically consume a port that's explicitly claimed by this pod accidentally, so
         // compile a list of those to check against the offered ports.
         OfferRequirement offerRequirement = podInfoBuilder.getOfferRequirement();
@@ -162,6 +165,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         }
 
         return dynamicPort;
+        */
     }
 
     private void setPortEnvironmentVariable(Protos.CommandInfo.Builder commandInfoBuilder, long port) {
@@ -178,12 +182,5 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return TaskUtils.toEnvName(draftEnvName);
-    }
-
-    private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, long port) {
-        Protos.Resource.Builder builder = resourceRequirement.getResource().toBuilder();
-        builder.clearRanges().getRangesBuilder().addRange(Protos.Value.Range.newBuilder().setBegin(port).setEnd(port));
-
-        return new ResourceRequirement(builder.build());
     }
 }

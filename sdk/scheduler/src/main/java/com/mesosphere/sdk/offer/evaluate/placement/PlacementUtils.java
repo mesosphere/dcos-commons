@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.mesosphere.sdk.offer.*;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,9 +60,9 @@ public class PlacementUtils {
      * has a matching the task name and task type within the provided {@link OfferRequirement},
      * representing a new task about to be launched.
      */
-    public static boolean areEquivalent(TaskInfo taskInfo, OfferRequirement offerRequirement) {
+    public static boolean areEquivalent(TaskInfo taskInfo, PodInstance podInstance) {
         try {
-            return TaskUtils.isSamePodInstance(taskInfo, offerRequirement.getType(), offerRequirement.getIndex());
+            return TaskUtils.isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
         } catch (TaskException e) {
             LOGGER.warn("Unable to extract pod type or index from TaskInfo", e);
             return false;
