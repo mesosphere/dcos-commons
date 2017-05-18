@@ -2,12 +2,10 @@ package com.mesosphere.sdk.kafka.upgrade;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
-import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.*;
@@ -25,11 +23,6 @@ public class FilterStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         store = new FilterStateStore(new MemPersister());
-    }
-
-    @After
-    public void afterEach() {
-        ((DefaultStateStore) store).getPersister().close();
     }
 
     @Test
@@ -61,12 +54,14 @@ public class FilterStateStoreTest {
         assertEquals(2, taskInfos.size());
 
         store.setIgnoreFilter(RegexMatcher.create("z*"));
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11), store.fetchTaskNames());
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11),
+                store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());
 
         store.setIgnoreFilter(null);
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11), store.fetchTaskNames());
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1, testTaskName00, testTaskName11),
+                store.fetchTaskNames());
         taskInfos = store.fetchTasks();
         assertEquals(4, taskInfos.size());
     }

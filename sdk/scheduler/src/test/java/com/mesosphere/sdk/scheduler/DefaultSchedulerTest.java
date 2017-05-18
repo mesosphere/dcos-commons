@@ -293,8 +293,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler
-                .newBuilder(getServiceSpec(updatedPodA, podB), flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -311,8 +310,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler
-                .newBuilder(getServiceSpec(podA, updatedPodB), flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -330,8 +328,7 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler
-                .newBuilder(getServiceSpec(scaledPodA, podB), flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -504,8 +501,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler
-                .newBuilder(getServiceSpec(updatedPodA, podB), flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -558,8 +554,7 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
-        defaultScheduler = DefaultScheduler
-                .newBuilder(getServiceSpec(podA, invalidPodB), flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, invalidPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())

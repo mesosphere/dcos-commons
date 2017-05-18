@@ -22,8 +22,7 @@ class CuratorUtils {
      */
     public static RetryPolicy getDefaultRetry() {
         return new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS, CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
     }
 
     /**

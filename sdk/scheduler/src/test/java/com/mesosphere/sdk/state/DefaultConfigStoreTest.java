@@ -5,7 +5,6 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,11 +32,6 @@ public class DefaultConfigStoreTest {
         assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
 
         testConfig = new StringConfiguration("test-config");
-    }
-
-    @After
-    public void afterEach() {
-        ((DefaultConfigStore<StringConfiguration>) store).close();
     }
 
     @Test

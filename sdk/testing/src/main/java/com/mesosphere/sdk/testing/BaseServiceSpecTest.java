@@ -72,7 +72,6 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsRLimits()).thenReturn(true);
 
         Persister persister = new MemPersister();
-
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(

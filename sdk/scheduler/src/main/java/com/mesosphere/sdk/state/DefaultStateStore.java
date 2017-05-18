@@ -23,24 +23,19 @@ import java.util.stream.Collectors;
 /**
  * An implementation of {@link StateStore} which relies on the provided {@link Persister} for data persistence.
  *
- * The path structure in the underlying {@link Persister} is as follows:
- * <code>
- * rootPath/
- *     -> FrameworkID
- *     -> Tasks/
- *         -> [TaskName-0]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> [TaskName-1]/
- *             -> TaskInfo
- *         -> [TaskName-2]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> ...
- * </code>
- *
- * Note that for frameworks which don't use custom executors, the same structure is used, except
- * where ExecutorName values are equal to TaskName values.
+ * <p>The ZNode structure in Zookeeper is as follows:
+ * <br>rootPath/
+ * <br>&nbsp;-> FrameworkID
+ * <br>&nbsp;-> Tasks/
+ * <br>&nbsp;&nbsp;-> [TaskName-0]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ * <br>&nbsp;&nbsp;-> [TaskName-1]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;-> [TaskName-2]/
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ * <br>&nbsp;&nbsp;-> ...
  */
 public class DefaultStateStore implements StateStore {
 

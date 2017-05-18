@@ -52,13 +52,11 @@ public class CuratorPersister implements Persister {
 
         /**
          * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
-         *
-         * @param serviceName the framework/service name under which data will be stored
          */
-        private Builder(ServiceSpec serviceSpec) {
-            this.serviceName = serviceSpec.getName();
+        private Builder(String serviceName, String zookeeperConnection) {
+            this.serviceName = serviceName;
             // Set defaults for customizable options:
-            this.connectionString = serviceSpec.getZookeeperConnection();
+            this.connectionString = zookeeperConnection;
             this.retryPolicy = CuratorUtils.getDefaultRetry();
             this.username = "";
             this.password = "";
@@ -132,7 +130,18 @@ public class CuratorPersister implements Persister {
      * @param serviceSpec the service for which data will be stored
      */
     public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return new Builder(serviceSpec);
+        return newBuilder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+    }
+
+    /**
+     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     *
+     * @param serviceName the service/framework name for namespacing data on the ZK server
+     * @param zookeeperConnection the zookeeper connection information to use (format: {@code host:port})
+     */
+    @VisibleForTesting
+    public static Builder newBuilder(String serviceName, String zookeeperConnection) {
+        return new Builder(serviceName, zookeeperConnection);
     }
 
     @VisibleForTesting
