@@ -173,7 +173,7 @@ public class RoundRobinByHostnameRuleTest {
     }
 
     private static Offer offerWithHost(String host) {
-        return OfferTestUtils.getOffer(ResourceTestUtils.getDesiredCpu(1.0)).toBuilder()
+        return OfferTestUtils.getOffer(ResourceTestUtils.getCpuRequirement(1.0)).toBuilder()
                 .setHostname(host)
                 .build();
     }

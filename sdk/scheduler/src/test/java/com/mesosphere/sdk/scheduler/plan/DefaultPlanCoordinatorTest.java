@@ -122,7 +122,15 @@ public class DefaultPlanCoordinatorTest {
         provider = new DefaultOfferRequirementProvider(
                 stateStore, serviceSpecification.getName(), UUID.randomUUID(), flags);
         planScheduler = new DefaultPlanScheduler(
-                offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
+                offerAccepter,
+                new OfferEvaluator(
+                        stateStore,
+                        provider,
+                        TestConstants.SERVICE_NAME,
+                        UUID.randomUUID(),
+                        SchedulerFlags.fromEnv()),
+                stateStore,
+                taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)

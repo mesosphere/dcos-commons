@@ -240,9 +240,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         Map<String, Protos.Resource> volumeMap = new HashMap<>();
-        volumeMap.putAll(executorInfo.getResourcesList().stream()
-                .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
-                .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
+        if (executorInfo != null) {
+            volumeMap.putAll(executorInfo.getResourcesList().stream()
+                    .filter(r -> r.hasDisk() && r.getDisk().hasVolume())
+                    .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
+        }
 
         List<ResourceRequirement> resourceRequirements = new ArrayList<>();
         for (VolumeSpec v : podInstance.getPod().getVolumes()) {
@@ -250,7 +252,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.createNewExecutorRequirement(executorInfo.getName(), resourceRequirements);
+        return ExecutorRequirement.createNewExecutorRequirement(podInstance.getName(), resourceRequirements);
     }
 
     private static Protos.TaskInfo getNewTaskInfo(

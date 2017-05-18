@@ -109,7 +109,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 // Unreservation of no longer needed resources
                 offerRecommendation = new UnreserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
-                        ResourceUtils.setValue(mesosResource.getResource(), unreserve));
+                        ResourceUtils.setValue(mesosResource.getResource().toBuilder(), unreserve));
             }
         }
 
@@ -125,7 +125,11 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     protected Resource getFulfilledResource(ResourceRequirement resourceRequirement) {
         // TODO: Correctly generate fulfilled resource
-        Resource.Builder builder = Resource.newBuilder().setRole(getResourceRequirement().getRole());
+        Resource.Builder builder = Resource.newBuilder()
+                .setRole(getResourceRequirement().getRole())
+                .setName(resourceRequirement.getName());
+        builder = ResourceUtils.setValue(builder, resourceRequirement.getValue()).toBuilder();
+
         Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
         if (reservationInfo.isPresent()) {
             builder.setReservation(reservationInfo.get());

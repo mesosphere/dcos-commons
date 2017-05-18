@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -42,7 +44,12 @@ public class OfferEvaluatorTestBase {
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
         offerRequirementProvider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
-        evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
+        evaluator = new OfferEvaluator(
+                stateStore,
+                offerRequirementProvider,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                flags);
     }
 
     protected static Label getFirstLabel(Resource resource) {

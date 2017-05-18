@@ -355,8 +355,8 @@ public class ResourceUtils {
                 .build();
     }
 
-    public static Resource setValue(Resource resource, Value value) {
-        return setResource(Resource.newBuilder(resource), resource.getName(), value);
+    public static Resource setValue(Resource.Builder resourceBuilder, Value value) {
+        return setResource(resourceBuilder, resourceBuilder.getName(), value);
     }
 
     public static Resource setResourceId(Resource resource, String resourceId) {

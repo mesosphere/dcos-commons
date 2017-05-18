@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class PortEvaluationStageTest {
+    /*
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     @Test
@@ -259,4 +260,5 @@ public class PortEvaluationStageTest {
 
         return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
+    */
 }

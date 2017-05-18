@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
  */
 public class PlacementUtilsTest {
 
+    /*
     @Test
     public void testGetAgentPlacementRule() {
         Optional<PlacementRule> rule = PlacementUtils.getAgentPlacementRule(
@@ -84,4 +85,5 @@ public class PlacementUtilsTest {
         offerReq = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
         assertFalse(PlacementUtils.areEquivalent(task, offerReq));
     }
+    */
 }

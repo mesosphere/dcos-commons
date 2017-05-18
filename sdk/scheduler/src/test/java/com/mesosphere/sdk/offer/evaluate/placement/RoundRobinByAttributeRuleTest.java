@@ -204,7 +204,7 @@ public class RoundRobinByAttributeRuleTest {
     }
 
     private static Offer offerWithAttribute(String name, String value) {
-        Offer.Builder offerBuilder = OfferTestUtils.getOffer(ResourceTestUtils.getDesiredCpu(1.0)).toBuilder();
+        Offer.Builder offerBuilder = OfferTestUtils.getOffer(ResourceTestUtils.getCpuRequirement(1.0)).toBuilder();
         offerBuilder.addAttributesBuilder()
                 .setName(name)
                 .setType(Value.Type.TEXT)

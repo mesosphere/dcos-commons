@@ -1,25 +1,32 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import org.apache.mesos.Protos.Offer;
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import org.apache.mesos.Protos.Offer;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link HostnameRule}.
  */
 public class HostnameRuleTest {
 
-    private static final OfferRequirement REQ = OfferRequirementTestUtils.getOfferRequirement();
+    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
+            .type("type")
+            .count(1)
+            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
+            .build();
+    private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
     private static final String HOST_1 = "host-1-uuid";
     private static final String HOST_2 = "host-2-uuid";
     private static final String HOST_3 = "host-3-uuid";
@@ -30,53 +37,53 @@ public class HostnameRuleTest {
     @Test
     public void testRequireHostname() {
         PlacementRule rule = HostnameRule.require(HOST_MATCHER_1);
-        assertTrue(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         rule = HostnameRule.require(HOST_MATCHER_2);
-        assertFalse(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test
     public void testAvoidHostname() {
         PlacementRule rule = HostnameRule.avoid(HOST_MATCHER_1);
-        assertFalse(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         rule = HostnameRule.avoid(HOST_MATCHER_2);
-        assertTrue(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test
     public void testRequireHostnames() {
         PlacementRule rule = HostnameRule.require(HOST_MATCHER_1, HOST_MATCHER_3);
-        assertTrue(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         rule = HostnameRule.require(HOST_MATCHER_2, HOST_MATCHER_3);
-        assertFalse(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test
     public void testAvoidHostnames() {
         PlacementRule rule = HostnameRule.avoid(HOST_MATCHER_1, HOST_MATCHER_3);
-        assertFalse(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         rule = HostnameRule.avoid(HOST_MATCHER_2, HOST_MATCHER_3);
-        assertTrue(rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList()).isPassing());
-        assertFalse(rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList()).isPassing());
+        assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
+        assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test

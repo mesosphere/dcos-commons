@@ -48,7 +48,7 @@ public class PodInfoBuilder {
                             serviceName,
                             targetConfigId).toBuilder();
 
-           this.taskBuilders.put(taskInfoBuilder.getName(), taskInfoBuilder);
+           this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
         }
 
         this.executorBuilder = getExecutorInfo(

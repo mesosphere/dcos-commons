@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class ExecutorRequirementTest {
 
+    /*
     private static final ExecutorInfo VALID_EXECINFO = ExecutorInfo.newBuilder()
             .setExecutorId(TestConstants.EXECUTOR_ID)
             .setName(TestConstants.EXECUTOR_NAME)
@@ -85,4 +86,5 @@ public class ExecutorRequirementTest {
     public void testEmptyNameFails() throws Exception {
         ExecutorRequirement.create(VALID_EXECINFO.toBuilder().setName("").build());
     }
+    */
 }

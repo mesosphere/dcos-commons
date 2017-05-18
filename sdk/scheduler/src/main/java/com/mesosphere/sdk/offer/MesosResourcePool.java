@@ -102,11 +102,11 @@ public class MesosResourcePool {
                 if (ValueUtils.compare(availableValue, value) > 0) {
                     // update the value in pool with the remaining unclaimed resource amount
                     Resource remaining = ResourceUtils.setValue(
-                            mesosResource.getResource(), ValueUtils.subtract(availableValue, value));
+                            mesosResource.getResource().toBuilder(), ValueUtils.subtract(availableValue, value));
                     reservedPool.put(resourceId, new MesosResource(remaining));
                     // return only the claimed resource amount from this reservation
                     mesosResource = new MesosResource(
-                            ResourceUtils.setValue(mesosResource.getResource(), value));
+                            ResourceUtils.setValue(mesosResource.getResource().toBuilder(), value));
                 } else {
                     reservedPool.remove(resourceId);
                 }

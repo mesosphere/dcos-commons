@@ -16,6 +16,7 @@ import java.util.UUID;
 
 public class OfferRequirementTest {
 
+    /*
     @Test
     public void testConstructor() throws InvalidRequirementException {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
@@ -105,4 +106,5 @@ public class OfferRequirementTest {
 
         Assert.assertEquals(cpu, executorResource);
     }
+    */
 }

@@ -60,6 +60,7 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
+    /*
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
@@ -658,9 +659,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(2, deployPlan.getChildren().size());
     }
 
-    /**
-     * Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
-     */
+    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
     private Collection<Plan> getDeployUpdatePlans() {
         Phase phase = mock(Phase.class);
         Plan deployPlan = mock(Plan.class);
@@ -811,9 +810,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
     }
 
-    /**
-     * Installs the service.
-     */
+    //Installs the service.
     private List<Protos.TaskID> install() {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
@@ -895,4 +892,5 @@ public class DefaultSchedulerTest {
             return apiServerReady;
         }
     }
+    */
 }

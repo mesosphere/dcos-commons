@@ -18,6 +18,7 @@ import java.util.List;
  * Offer evaluation tests concerning volumes.
  */
 public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
+    /*
     @Test
     public void testCreateMultipleVolumes() throws Exception {
         Resource offeredResources = ResourceTestUtils.getUnreservedDisk(3);
@@ -58,4 +59,5 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
             }
         }
     }
+    */
 }
