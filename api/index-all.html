@@ -552,8 +552,6 @@
 <dd>
 <div class="block">Closes this storage and cleans up any local client resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#closeForTesting--">closeForTesting()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#colocateWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-">colocateWith(String, TaskTypeConverter)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeRule</a></dt>
 <dd>
 <div class="block">Returns a <a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> which enforces colocation with tasks which have the provided
@@ -643,8 +641,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommandUtils.html#CommandUtils--">CommandUtils()</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommandUtils.html" title="class in com.mesosphere.sdk.offer">CommandUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#commitTransaction-CuratorTransactionFinal-">commitTransaction(CuratorTransactionFinal)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">CommonIdUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
 <div class="block">Various utility methods for manipulating data in <code>TaskInfo</code>s.</div>
@@ -692,6 +688,10 @@
 <div class="block">Exception that indicates that there was an issue with storing values
  in the config store.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-">ConfigStoreException(PersisterException)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-java.lang.String-">ConfigStoreException(PersisterException, String)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.Throwable-">ConfigStoreException(StorageError.Reason, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-">ConfigStoreException(StorageError.Reason, String)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
@@ -901,10 +901,10 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><span class="typeNameLink">CuratorPersister</span></a> - Class in <a href="com/mesosphere/sdk/curator/package-summary.html">com.mesosphere.sdk.curator</a></dt>
 <dd>
-<div class="block">The CuratorPersistor implementation of the <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> interface
- provides for persistence and retrieval of data from Zookeeper.</div>
+<div class="block">The Curator implementation of the <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> interface provides for persistence and retrieval of data from
+ Zookeeper.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#CuratorPersister-CuratorFramework-">CuratorPersister(CuratorFramework)</a></span> - Constructor for class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#CuratorPersister-java.lang.String-CuratorFramework-">CuratorPersister(String, CuratorFramework)</a></span> - Constructor for class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><span class="typeNameLink">CuratorPersister.Builder</span></a> - Class in <a href="com/mesosphere/sdk/curator/package-summary.html">com.mesosphere.sdk.curator</a></dt>
 <dd>
@@ -1007,9 +1007,9 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultConfigStore</span></a>&lt;<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="type parameter in DefaultConfigStore">T</a> extends <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt; - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">Stores String Configurations in Zookeeper.</div>
+<div class="block">An implementation of <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-java.lang.String-com.mesosphere.sdk.storage.Persister-">DefaultConfigStore(ConfigurationFactory&lt;T&gt;, String, Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">DefaultConfigStore(ConfigurationFactory&lt;T&gt;, Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
 </dd>
@@ -1230,9 +1230,9 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultSchemaVersionStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">Implementation of <a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which persists data in Zookeeper.</div>
+<div class="block">An implementation of <a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-java.lang.String-">DefaultSchemaVersionStore(Persister, String)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-">DefaultSchemaVersionStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></dt>
 <dd>
 <div class="block">Creates a new version store against the provided Framework Name, as would be provided to
  <a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultConfigStore</code></a> or <a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultStateStore</code></a>.</div>
@@ -1273,15 +1273,11 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultStateStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">CuratorStateStore is an implementation of <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which persists data in Zookeeper.</div>
+<div class="block">An implementation of <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#DefaultStateStore-java.lang.String-com.mesosphere.sdk.curator.CuratorPersister-">DefaultStateStore(String, CuratorPersister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#DefaultStateStore-com.mesosphere.sdk.storage.Persister-">DefaultStateStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
-</dd>
-<dt><a href="com/mesosphere/sdk/state/DefaultStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultStateStore.TaskPathMapper</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
-<dd>
-<div class="block">TaskPathMapper.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DefaultStepFactory</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
@@ -2079,9 +2075,19 @@
 <div class="block">Returns an immutable copy of the full configuration within this namespace, with any prefixes
  omitted from keys.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterUtils.html#getAllData-com.mesosphere.sdk.storage.Persister-">getAllData(Persister)</a></span> - Static method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></dt>
+<dd>
+<div class="block">Returns all data present within the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any stub parent entries
+ with <code>null</code> data.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigNamespace.html#getAllEnv--">getAllEnv()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigNamespace.html" title="class in com.mesosphere.sdk.config">ConfigNamespace</a></dt>
 <dd>
 <div class="block">Returns an immutable copy of the full configuration within this namespace, as string values.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterUtils.html#getAllKeys-com.mesosphere.sdk.storage.Persister-">getAllKeys(Persister)</a></span> - Static method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></dt>
+<dd>
+<div class="block">Returns a complete list of all keys present within the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat list, including stub
+ parent entries which may lack data.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getAllResources-Protos.TaskInfo-">getAllResources(Protos.TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>
@@ -2644,6 +2650,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getMessageTemplate--">getMessageTemplate()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMin--">getMinReplaceDelayMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
@@ -2816,6 +2824,10 @@
 <dd>
 <div class="block">Examines the <code>Offer</code> to determine which volume <code>Resource</code>s have resource ID's and therefore
  should be destroyed.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getPersister--">getPersister()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dd>
+<div class="block">Returns the underlying <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhaseFactory.html#getPhase-java.lang.String-java.util.List-com.mesosphere.sdk.scheduler.plan.strategy.Strategy-">getPhase(String, List&lt;Step&gt;, Strategy&lt;Step&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhaseFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhaseFactory</a></dt>
 <dd>&nbsp;</dd>
@@ -3013,6 +3025,10 @@
 <div class="block">Returns the reason that this response is passing or failing.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#getReason--">getReason()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
+<dd>
+<div class="block">Returns the machine-parseable reason for this exception.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterException.html#getReason--">getReason()</a></span> - Method in exception com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></dt>
 <dd>
 <div class="block">Returns the machine-parseable reason for this exception.</div>
 </dd>
@@ -3310,6 +3326,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TaskTestUtils.html#getTaskInfo-java.util.List-">getTaskInfo(List&lt;Protos.Resource&gt;)</a></span> - Static method in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TaskTestUtils.html" title="class in com.mesosphere.sdk.testutils">TaskTestUtils</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getTaskName--">getTaskName()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/TaskResource.html#getTaskNames--">getTaskNames()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/TaskResource.html" title="class in com.mesosphere.sdk.api">TaskResource</a></dt>
@@ -3325,6 +3343,8 @@
 <dd>
 <div class="block">Returns all the task names for a pod, after filtering based on the passed in list of tasks to launch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskPath-java.lang.String-">getTaskPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRequirement.html#getTaskRequirements--">getTaskRequirements()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getTasks--">getTasks()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
@@ -3341,7 +3361,7 @@
 <div class="block">Produces the TaskStatus for the provided task name, or returns an error if that data doesn't
  exist or the data couldn't be read.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.TaskPathMapper.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.TaskPathMapper.html" title="class in com.mesosphere.sdk.state">DefaultStateStore.TaskPathMapper</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--">getTasksToLaunch()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>
@@ -4168,8 +4188,6 @@
 <div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
  same service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultService.html#LOCK_ATTEMPTS">LOCK_ATTEMPTS</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span> - Static variable in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span> - Static variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
@@ -4405,7 +4423,7 @@
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-">newBuilder(String)</a></span> - Static method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-java.lang.String-">newBuilder(String, String)</a></span> - Static method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 </dd>
@@ -4706,6 +4724,16 @@
 <dd>
 <div class="block">A low-level interface for key/value storage in a tree structure.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">PersisterException</span></a> - Exception in <a href="com/mesosphere/sdk/storage/package-summary.html">com.mesosphere.sdk.storage</a></dt>
+<dd>
+<div class="block">Exception that indicates that there was an issue with storing or accessing values in the persister.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterException.html#PersisterException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.Throwable-">PersisterException(StorageError.Reason, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterException.html#PersisterException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-">PersisterException(StorageError.Reason, String)</a></span> - Constructor for exception com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterException.html#PersisterException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-java.lang.Throwable-">PersisterException(StorageError.Reason, String, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">PersisterUtils</span></a> - Class in <a href="com/mesosphere/sdk/storage/package-summary.html">com.mesosphere.sdk.storage</a></dt>
 <dd>
 <div class="block">Utilities relating to usage of <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>s.</div>
@@ -5868,8 +5896,6 @@
 <dd>
 <div class="block">Idempotently starts a plan.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#startTransaction--">startTransaction()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">StateResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
 <dd>
 <div class="block">An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
@@ -5903,6 +5929,10 @@
 <dd>
 <div class="block">Exception that indicates that there was an issue with storing or accessing values in the state store.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#StateStoreException-com.mesosphere.sdk.storage.PersisterException-">StateStoreException(PersisterException)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#StateStoreException-com.mesosphere.sdk.storage.PersisterException-java.lang.String-">StateStoreException(PersisterException, String)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#StateStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.Throwable-">StateStoreException(StorageError.Reason, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#StateStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-">StateStoreException(StorageError.Reason, String)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
@@ -6151,8 +6181,6 @@
 <dd>
 <div class="block">Mesos requirements do not allow a TaskInfo to simultaneously have a Command and Executor.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#taskPathMapper">taskPathMapper</a></span> - Variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/TaskRequirement.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">TaskRequirement</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
 <div class="block">A TaskRequirement encapsulates the needed resources a Task must have.</div>

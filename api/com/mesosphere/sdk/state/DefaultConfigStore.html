@@ -119,7 +119,7 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">DefaultConfigStore&lt;T extends <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt;</span>
 extends java.lang.Object
 implements <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;T&gt;</pre>
-<div class="block">Stores String Configurations in Zookeeper.
+<div class="block">An implementation of <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which relies on the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.
 
  <p>The ZNode structure in Zookeeper is as follows:
  <br>rootPath/
@@ -146,8 +146,7 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" titl
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html#DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-java.lang.String-com.mesosphere.sdk.storage.Persister-">DefaultConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="type parameter in DefaultConfigStore">T</a>&gt;&nbsp;factory,
-                  java.lang.String&nbsp;frameworkName,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html#DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">DefaultConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="type parameter in DefaultConfigStore">T</a>&gt;&nbsp;factory,
                   <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
 </td>
@@ -233,14 +232,13 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" titl
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-java.lang.String-com.mesosphere.sdk.storage.Persister-">
+<a name="DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultConfigStore</h4>
 <pre>public&nbsp;DefaultConfigStore(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="type parameter in DefaultConfigStore">T</a>&gt;&nbsp;factory,
-                          java.lang.String&nbsp;frameworkName,
                           <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
 </li>

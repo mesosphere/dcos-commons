@@ -114,7 +114,7 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">DefaultSchemaVersionStore</span>
 extends java.lang.Object
 implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state">SchemaVersionStore</a></pre>
-<div class="block">Implementation of <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which persists data in Zookeeper.</div>
+<div class="block">An implementation of <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which relies on the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
 </li>
 </ul>
 </div>
@@ -161,8 +161,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-java.lang.String-">DefaultSchemaVersionStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                         java.lang.String&nbsp;frameworkName)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-">DefaultSchemaVersionStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
 <div class="block">Creates a new version store against the provided Framework Name, as would be provided to
  <a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultConfigStore</code></a> or <a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultStateStore</code></a>.</div>
 </td>
@@ -270,14 +269,13 @@ implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-java.lang.String-">
+<a name="DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultSchemaVersionStore</h4>
-<pre>DefaultSchemaVersionStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                          java.lang.String&nbsp;frameworkName)</pre>
+<pre>DefaultSchemaVersionStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
 <div class="block">Creates a new version store against the provided Framework Name, as would be provided to
  <a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultConfigStore</code></a> or <a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultStateStore</code></a>.</div>
 </li>

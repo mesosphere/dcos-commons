@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9,"i6":9,"i7":10,"i8":10,"i9":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":9,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -114,8 +114,9 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">CuratorPersister</span>
 extends java.lang.Object
 implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></pre>
-<div class="block">The CuratorPersistor implementation of the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> interface
- provides for persistence and retrieval of data from Zookeeper.</div>
+<div class="block">The Curator implementation of the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> interface provides for persistence and retrieval of data from
+ Zookeeper. All paths passed to this instance are automatically namespaced within a framework-specific znode to avoid
+ conflicts with other users of the same ZK instance.</div>
 </li>
 </ul>
 </div>
@@ -155,7 +156,8 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#CuratorPersister-CuratorFramework-">CuratorPersister</a></span>(CuratorFramework&nbsp;client)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#CuratorPersister-java.lang.String-CuratorFramework-">CuratorPersister</a></span>(java.lang.String&nbsp;serviceName,
+                CuratorFramework&nbsp;client)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -179,56 +181,49 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.Collection&lt;CuratorTransactionResult&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#commitTransaction-CuratorTransactionFinal-">commitTransaction</a></span>(CuratorTransactionFinal&nbsp;curatorTransactionFinal)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#deleteAll-java.lang.String-">deleteAll</a></span>(java.lang.String&nbsp;path)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#deleteAll-java.lang.String-">deleteAll</a></span>(java.lang.String&nbsp;unprefixedPath)</code>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#get-java.lang.String-">get</a></span>(java.lang.String&nbsp;path)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#get-java.lang.String-">get</a></span>(java.lang.String&nbsp;unprefixedPath)</code>
 <div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#getChildren-java.lang.String-">getChildren</a></span>(java.lang.String&nbsp;path)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#getChildren-java.lang.String-">getChildren</a></span>(java.lang.String&nbsp;unprefixedPath)</code>
 <div class="block">Returns the names of child nodes at the provided path.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-">newBuilder</a></span>(java.lang.String&nbsp;zkConnectionString)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-java.lang.String-">newBuilder</a></span>(java.lang.String&nbsp;serviceName,
+          java.lang.String&nbsp;zookeeperConnection)</code>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;unprefixedPath,
    byte[]&nbsp;bytes)</code>
 <div class="block">Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;unprefixedPathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
 </td>
-</tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>CuratorTransaction</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#startTransaction--">startTransaction</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -252,13 +247,14 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="CuratorPersister-CuratorFramework-">
+<a name="CuratorPersister-java.lang.String-CuratorFramework-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>CuratorPersister</h4>
-<pre>CuratorPersister(CuratorFramework&nbsp;client)</pre>
+<pre>CuratorPersister(java.lang.String&nbsp;serviceName,
+                 CuratorFramework&nbsp;client)</pre>
 </li>
 </ul>
 </li>
@@ -283,54 +279,15 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </dl>
 </li>
 </ul>
-<a name="newBuilder-java.lang.String-">
+<a name="newBuilder-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>newBuilder</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;newBuilder(java.lang.String&nbsp;zkConnectionString)</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;newBuilder(java.lang.String&nbsp;serviceName,
+                                                  java.lang.String&nbsp;zookeeperConnection)</pre>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
-</li>
-</ul>
-<a name="setMany-java.util.Map-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setMany</h4>
-<pre>public&nbsp;void&nbsp;setMany(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)
-             throws java.lang.Exception</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#setMany-java.util.Map-">Persister</a></code></span></div>
-<div class="block">Atomically writes many values to storage at once.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#setMany-java.util.Map-">setMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code> - in the event of an access error, in which case no changes should have been made</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-"><code>Persister.set(String, byte[])</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="set-java.lang.String-byte:A-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>set</h4>
-<pre>public&nbsp;void&nbsp;set(java.lang.String&nbsp;path,
-                byte[]&nbsp;bytes)
-         throws java.lang.Exception</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">Persister</a></code></span></div>
-<div class="block">Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
- path if it doesn't exist yet.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">set</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code> - in the event of an access error</dd>
-</dl>
 </li>
 </ul>
 <a name="get-java.lang.String-">
@@ -339,8 +296,8 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <ul class="blockList">
 <li class="blockList">
 <h4>get</h4>
-<pre>public&nbsp;byte[]&nbsp;get(java.lang.String&nbsp;path)
-           throws java.lang.Exception</pre>
+<pre>public&nbsp;byte[]&nbsp;get(java.lang.String&nbsp;unprefixedPath)
+           throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.
  If the path is valid but has no data (i.e. is a parent of another path), this returns <code>null</code>.</div>
@@ -348,27 +305,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-">get</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code> - if the requested path doesn't exist, or for other access errors</dd>
-</dl>
-</li>
-</ul>
-<a name="deleteAll-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>deleteAll</h4>
-<pre>public&nbsp;void&nbsp;deleteAll(java.lang.String&nbsp;path)
-               throws java.lang.Exception</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">Persister</a></code></span></div>
-<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
-
- <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">deleteAll</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code> - if the data at the requested path didn't exist, or for other access errors</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the requested path doesn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
@@ -378,8 +315,8 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <ul class="blockList">
 <li class="blockList">
 <h4>getChildren</h4>
-<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getChildren(java.lang.String&nbsp;path)
-                                                   throws java.lang.Exception</pre>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getChildren(java.lang.String&nbsp;unprefixedPath)
+                                                   throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a>, indicating that these are stub parent entries to other nodes.
@@ -392,35 +329,67 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">getChildren</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code> - if the requested path doesn't exist, or for other access errors</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the requested path doesn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
-<a name="startTransaction--">
+<a name="deleteAll-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>startTransaction</h4>
-<pre>public&nbsp;CuratorTransaction&nbsp;startTransaction()
-                                    throws java.lang.Exception</pre>
+<h4>deleteAll</h4>
+<pre>public&nbsp;void&nbsp;deleteAll(java.lang.String&nbsp;unprefixedPath)
+               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">Persister</a></code></span></div>
+<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
+
+ <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">deleteAll</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the data at the requested path didn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
-<a name="commitTransaction-CuratorTransactionFinal-">
+<a name="set-java.lang.String-byte:A-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>commitTransaction</h4>
-<pre>public&nbsp;java.util.Collection&lt;CuratorTransactionResult&gt;&nbsp;commitTransaction(CuratorTransactionFinal&nbsp;curatorTransactionFinal)
-                                                                 throws java.lang.Exception</pre>
+<h4>set</h4>
+<pre>public&nbsp;void&nbsp;set(java.lang.String&nbsp;unprefixedPath,
+                byte[]&nbsp;bytes)
+         throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">Persister</a></code></span></div>
+<div class="block">Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
+ path if it doesn't exist yet.</div>
 <dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">set</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error</dd>
+</dl>
+</li>
+</ul>
+<a name="setMany-java.util.Map-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setMany</h4>
+<pre>public&nbsp;void&nbsp;setMany(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;unprefixedPathBytesMap)
+             throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#setMany-java.util.Map-">Persister</a></code></span></div>
+<div class="block">Atomically writes many values to storage at once.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#setMany-java.util.Map-">setMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error, in which case no changes should have been made</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-"><code>Persister.set(String, byte[])</code></a></dd>
 </dl>
 </li>
 </ul>
