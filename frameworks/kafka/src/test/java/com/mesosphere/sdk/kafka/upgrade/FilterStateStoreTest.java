@@ -19,7 +19,6 @@ public class FilterStateStoreTest {
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private FilterStateStore store;
 
-
     @Before
     public void beforeEach() throws Exception {
         store = new FilterStateStore(new MemPersister());
@@ -129,7 +128,7 @@ public class FilterStateStoreTest {
         return taskStatuses;
     }
 
-    private Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
+    private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setState(TASK_STATE)

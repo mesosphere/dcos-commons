@@ -16,7 +16,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.UUID;
 
 /**
- * A BaseTest for use in writing offer evaluation tests.
+ * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();

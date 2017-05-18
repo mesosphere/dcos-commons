@@ -5,6 +5,7 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+
 import org.junit.Before;
 import org.junit.Test;
 

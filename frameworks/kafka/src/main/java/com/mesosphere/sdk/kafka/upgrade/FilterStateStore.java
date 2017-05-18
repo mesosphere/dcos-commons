@@ -4,6 +4,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 
