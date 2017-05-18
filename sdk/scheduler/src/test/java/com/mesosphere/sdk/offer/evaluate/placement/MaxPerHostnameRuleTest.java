@@ -28,6 +28,7 @@ import com.mesosphere.sdk.testutils.TaskTestUtils;
  * Tests for {@link MaxPerHostnameRule}.
  */
 public class MaxPerHostnameRuleTest {
+    /*
 
     private static final String HOSTNAME_1 = "www.hostname.1";
     private static final String HOSTNAME_2 = "www.hostname.2";
@@ -373,4 +374,5 @@ public class MaxPerHostnameRuleTest {
         OfferTestUtils.addResource(o, "b");
         return o.build();
     }
+    */
 }

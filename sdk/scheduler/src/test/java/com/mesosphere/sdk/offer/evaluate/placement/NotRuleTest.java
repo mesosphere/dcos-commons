@@ -1,39 +1,44 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.OfferRequirement;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link NotRule}.
  */
 public class NotRuleTest {
-
-    private static final OfferRequirement REQ = OfferRequirementTestUtils.getOfferRequirement();
+    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
+            .type("type")
+            .count(1)
+            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
+            .build();
+    private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
     @Test
     public void testNotAll() {
         assertFalse(new NotRule(TestPlacementUtils.PASS)
-                .filter(offerWith(TestPlacementUtils.RESOURCES), REQ, Collections.emptyList()).isPassing());
+                .filter(offerWith(TestPlacementUtils.RESOURCES), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test
     public void testNotNone() {
         assertTrue(new NotRule(TestPlacementUtils.FAIL)
-                .filter(offerWith(TestPlacementUtils.RESOURCES), REQ, Collections.emptyList()).isPassing());
+                .filter(offerWith(TestPlacementUtils.RESOURCES), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test

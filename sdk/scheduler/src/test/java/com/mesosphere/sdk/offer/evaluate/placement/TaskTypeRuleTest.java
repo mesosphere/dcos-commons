@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link TaskTypeRule}.
  */
 public class TaskTypeRuleTest {
-
+/*
     private static final String MATCH_TYPE = "match";
     private static final String MISMATCH_TYPE = "mismatch";
     private static final String AGENT1 = "agent1";
@@ -211,4 +211,5 @@ public class TaskTypeRuleTest {
         OfferTestUtils.addResource(o, "b");
         return o.build();
     }
+    */
 }

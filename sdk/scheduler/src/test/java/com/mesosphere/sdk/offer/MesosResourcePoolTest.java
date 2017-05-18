@@ -55,12 +55,12 @@ public class MesosResourcePoolTest {
     public void testConsumeUnreservedAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Resource resource = ResourceTestUtils.getDesiredMountVolume(1000);
-        ResourceRequirement resReq = new ResourceRequirement(resource);
+        Protos.Value resourceValue = ValueUtils.getValue(resource);
         Offer offer = OfferTestUtils.getOffer(offerResource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
-        MesosResource resourceToConsume = pool.consume(resReq).get();
+        MesosResource resourceToConsume = pool.consumeAtomic(resource.getName(), resourceValue).get();
         Assert.assertEquals(offerResource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
     }
@@ -68,12 +68,13 @@ public class MesosResourcePoolTest {
     @Test
     public void testConsumeReservedMergedResource() {
         Resource resource = ResourceTestUtils.getExpectedCpu(1.0);
-        ResourceRequirement resReq = new ResourceRequirement(resource);
+        Protos.Value resourceValue = ValueUtils.getValue(resource);
+        String resourceId = ResourceUtils.getResourceId(resource);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertEquals(1, pool.getReservedPool().size());
-        MesosResource resourceToConsume = pool.consume(resReq).get();
+        MesosResource resourceToConsume = pool.consumeReserved(resource.getName(), resourceValue, resourceId).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getReservedPool().size());
     }
@@ -81,14 +82,14 @@ public class MesosResourcePoolTest {
     @Test
     public void testConsumeUnreservedMergedResource() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-        ResourceRequirement resReq = new ResourceRequirement(resource);
+        Protos.Value resourceValue = ValueUtils.getValue(resource);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertEquals(1, pool.getUnreservedMergedPool().size());
         Assert.assertEquals(resource.getScalar().getValue(),
                 pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
-        MesosResource resourceToConsume = pool.consume(resReq).get();
+        MesosResource resourceToConsume = pool.consumeUnreservedMerged(resource.getName(), resourceValue).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
         Assert.assertEquals(ValueUtils.getZero(Protos.Value.Type.SCALAR),
                 pool.getUnreservedMergedPool().get("cpus"));
@@ -97,34 +98,15 @@ public class MesosResourcePoolTest {
     @Test
     public void testConsumeInsufficientUnreservedMergedResource() {
         Resource desiredUnreservedResource = ResourceTestUtils.getUnreservedCpu(2.0);
-        ResourceRequirement resReq = new ResourceRequirement(desiredUnreservedResource);
+        Protos.Value resourceValue = ValueUtils.getValue(desiredUnreservedResource);
         Resource offeredUnreservedResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
         Offer offer = OfferTestUtils.getOffer(offeredUnreservedResource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
-        Assert.assertFalse(pool.consume(resReq).isPresent());
-    }
-
-    @Test
-    public void testReleaseAtomicResource() {
-        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
-        Resource releaseResource = ResourceTestUtils.getExpectedMountVolume(1000);
-        Offer offer = OfferTestUtils.getOffer(offerResource);
-        MesosResourcePool pool = new MesosResourcePool(offer);
-
-        Assert.assertEquals(1, pool.getUnreservedAtomicPool().get("disk").size());
-        pool.release(new MesosResource(releaseResource));
-        Assert.assertEquals(2, pool.getUnreservedAtomicPool().get("disk").size());
-    }
-
-    @Test
-    public void testReleaseMergedResource() {
-        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-        Offer offer = OfferTestUtils.getOffer(resource);
-        MesosResourcePool pool = new MesosResourcePool(offer);
-
-        Assert.assertEquals(1, pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
-        pool.release(new MesosResource(resource));
-        Assert.assertEquals(2, pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
+        Assert.assertFalse(
+                pool.consumeUnreservedMerged(
+                        desiredUnreservedResource.getName(),
+                        resourceValue)
+                        .isPresent());
     }
 }

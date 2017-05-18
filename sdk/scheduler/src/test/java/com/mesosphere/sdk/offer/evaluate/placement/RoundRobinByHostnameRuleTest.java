@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link RoundRobinByHostnameRule}.
  */
 public class RoundRobinByHostnameRuleTest {
+    /*
 
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static OfferRequirement REQ;
@@ -176,4 +177,5 @@ public class RoundRobinByHostnameRuleTest {
                 .setHostname(host)
                 .build();
     }
+    */
 }
