@@ -1,0 +1,33 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 0.5,
+  "mem": 2048,
+  "instances": 1,
+  "cmd": "$MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
+  "env": {
+    "ELASTIC_VERSION": "{{elastic-version}}",
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "FRAMEWORK_USER": "{{service.user}}",
+    "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
+    "XPACK_ENABLED": "{{kibana.xpack_enabled}}",
+    "KIBANA_HEALTH_USER": "{{kibana.user}}",
+    "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
+    "KIBANA_HEALTH_USER_PASSWORD": "{{kibana.user_password}}"
+  },
+  "uris": [
+    "{{resource.assets.uris.kibana-tar-gz}}",
+    "{{resource.assets.uris.xpack-zip}}"
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "kibana",
+      "labels": { "VIP_0": "/kibana.{{service.name}}:80" }
+    }
+  ]
+}
