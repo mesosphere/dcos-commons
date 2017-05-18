@@ -161,7 +161,7 @@ func checkHTTPResponse(response *http.Response) *http.Response {
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
 		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-		log.Fatalf("- Was the service recently installed? It may still be initializing, Wait a bit and try again.")
+		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		log.Fatalf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
