@@ -49,7 +49,7 @@ public class KafkaConfigUpgrade {
      *  KafkaConfigUpgrade.
      */
     public KafkaConfigUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception {
-        this.stateStore = new UpdateStateStore(serviceSpec.getName(), CuratorPersister.newBuilder(serviceSpec).build());
+        this.stateStore = new UpdateStateStore(CuratorPersister.newBuilder(serviceSpec).build());
 
         // if framework_id exist and not disabled
         if (!KafkaConfigUpgrade.disabled() && !runningFirstTime(stateStore)) {
@@ -172,9 +172,7 @@ public class KafkaConfigUpgrade {
 
         /* We assume that old and new configurations both have same name. */
         ConfigStore<KafkaSchedulerConfiguration> oldConfigStore = new DefaultConfigStore<>(
-                KafkaSchedulerConfiguration.getFactoryInstance(),
-                serviceSpec.getName(),
-                CuratorPersister.newBuilder(serviceSpec).build());
+                KafkaSchedulerConfiguration.getFactoryInstance(), CuratorPersister.newBuilder(serviceSpec).build());
 
         try {
             this.oldTargetId = oldConfigStore.getTargetConfig();
@@ -380,7 +378,4 @@ public class KafkaConfigUpgrade {
         }
         return false;
     }
-
-
-
 }

@@ -1,17 +1,18 @@
 package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
+
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.junit.*;
 
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,6 @@ public class DefaultStateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =
             Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String TASK_NAME = "test-task-name";
-    private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
             .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
@@ -38,6 +38,8 @@ public class DefaultStateStoreTest {
     public static final String SLASH_PROPERTY_KEY = "hey/hi";
 
     private static TestingServer testZk;
+
+    private Persister persister;
     private StateStore store;
 
     @BeforeClass
@@ -48,16 +50,11 @@ public class DefaultStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        CuratorPersister persister = CuratorPersister.newBuilder(testZk.getConnectString()).build();
-        store = new DefaultStateStore(ROOT_ZK_PATH, persister);
+        persister = CuratorPersister.newBuilder("test-svc", testZk.getConnectString()).build();
+        store = new DefaultStateStore(persister);
 
         // Check that schema version was created in the correct location:
-        assertNotEquals(0, persister.get("/dcos-service-test-root-path/SchemaVersion").length);
-    }
-
-    @After
-    public void afterEach() {
-        ((DefaultStateStore) store).closeForTesting();
+        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -69,8 +66,7 @@ public class DefaultStateStoreTest {
     @Test
     public void testRootPathMapping() throws Exception {
         store.storeFrameworkId(FRAMEWORK_ID);
-        CuratorPersister curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
-        assertNotEquals(0, curator.get("/dcos-service-test-root-path/FrameworkID").length);
+        assertArrayEquals(FRAMEWORK_ID.toByteArray(), persister.get("FrameworkID"));
     }
 
     @Test
@@ -150,16 +146,13 @@ public class DefaultStateStoreTest {
     public void testStoreClearAllData() throws Exception {
         store.storeTasks(createTasks(TASK_NAME));
         store.storeFrameworkId(FRAMEWORK_ID);
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+        assertEquals(7, PersisterUtils.getAllKeys(persister).size());
+
         store.clearAllData();
 
-        CuratorFramework client = CuratorFrameworkFactory.newClient(testZk.getConnectString(),
-                CuratorUtils.getDefaultRetry());
-        client.start();
-
         // Verify nothing is left under the root.
-        assertEquals(0,
-                client.getChildren().forPath("/dcos-service-test-root-path").size());
-        client.close();
+        assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
     }
 
     @Test
@@ -179,12 +172,7 @@ public class DefaultStateStoreTest {
         String testTaskName1 = testTaskNamePrefix + "-1";
 
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        Collection<String> taskNames = store.fetchTaskNames();
-        assertEquals(2, taskNames.size());
-
-        Iterator<String> iter =  taskNames.iterator();
-        assertEquals(testTaskName0, iter.next());
-        assertEquals(testTaskName1, iter.next());
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
     }
 
     @Test
@@ -195,12 +183,7 @@ public class DefaultStateStoreTest {
 
         store.storeFrameworkId(FRAMEWORK_ID);
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        Collection<String> taskNames = store.fetchTaskNames();
-        assertEquals(2, taskNames.size()); // framework id set above mustn't be included
-
-        Iterator<String> iter =  taskNames.iterator();
-        assertEquals(testTaskName0, iter.next());
-        assertEquals(testTaskName1, iter.next());
+        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
     }
 
     @Test
@@ -213,8 +196,7 @@ public class DefaultStateStoreTest {
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
-        assertEquals(1, store.fetchTaskNames().size());
-        assertEquals("a", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("a"), store.fetchTaskNames());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(taskInfoA, store.fetchTasks().iterator().next());
         assertTrue(store.fetchStatuses().isEmpty());
@@ -223,15 +205,14 @@ public class DefaultStateStoreTest {
         store.storeTasks(Arrays.asList(taskInfoB));
 
         assertEquals(taskInfoB, store.fetchTask("b").get());
-        assertEquals(2, store.fetchTaskNames().size());
+        assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
         assertEquals(2, store.fetchTasks().size());
         assertTrue(store.fetchStatuses().isEmpty());
 
         store.clearTask("a");
 
         assertEquals(taskInfoB, store.fetchTask("b").get());
-        assertEquals(1, store.fetchTaskNames().size());
-        assertEquals("b", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("b"), store.fetchTaskNames());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(taskInfoB, store.fetchTasks().iterator().next());
         assertTrue(store.fetchStatuses().isEmpty());
@@ -312,8 +293,7 @@ public class DefaultStateStoreTest {
         store.storeStatus(status);
         assertEquals(status, store.fetchStatus(TASK_NAME).get());
 
-        Collection<String> taskNames = store.fetchTaskNames();
-        assertEquals(1, taskNames.size());
+        assertEquals(Arrays.asList(TASK_NAME), store.fetchTaskNames());
         Collection<Protos.TaskStatus> statuses = store.fetchStatuses();
         assertEquals(1, statuses.size());
         assertEquals(status, statuses.iterator().next());
@@ -330,7 +310,7 @@ public class DefaultStateStoreTest {
         Protos.TaskInfo taskB = createTask("b");
         store.storeTasks(Arrays.asList(taskA, taskB));
 
-        assertEquals(2, store.fetchTaskNames().size());
+        assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
         assertTrue(store.fetchStatuses().isEmpty());
         assertEquals(2, store.fetchTasks().size());
 
@@ -338,8 +318,7 @@ public class DefaultStateStoreTest {
         store.storeStatus(taskStatusA);
 
         assertEquals(taskStatusA, store.fetchStatus("a").get());
-        assertEquals(2, store.fetchTaskNames().size());
-        assertEquals("a", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(taskStatusA, store.fetchStatuses().iterator().next());
         assertEquals(2, store.fetchTasks().size());
@@ -348,15 +327,14 @@ public class DefaultStateStoreTest {
         store.storeStatus(taskStatusB);
 
         assertEquals(taskStatusB, store.fetchStatus("b").get());
-        assertEquals(2, store.fetchTaskNames().size());
+        assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
         assertEquals(2, store.fetchStatuses().size());
         assertEquals(2, store.fetchTasks().size());
 
         store.clearTask("a");
 
         assertEquals(taskStatusB, store.fetchStatus("b").get());
-        assertEquals(1, store.fetchTaskNames().size());
-        assertEquals("b", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("b"), store.fetchTaskNames());
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(taskStatusB, store.fetchStatuses().iterator().next());
         assertEquals(1, store.fetchTasks().size());
@@ -439,8 +417,7 @@ public class DefaultStateStoreTest {
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
-        assertEquals(1, store.fetchTaskNames().size());
-        assertEquals("a", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("a"), store.fetchTaskNames());
         assertTrue(store.fetchStatuses().isEmpty());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(taskInfoA, store.fetchTasks().iterator().next());
@@ -450,8 +427,7 @@ public class DefaultStateStoreTest {
         store.storeStatus(taskStatusA);
 
         assertEquals(taskStatusA, store.fetchStatus("a").get());
-        assertEquals(1, store.fetchTaskNames().size());
-        assertEquals("a", store.fetchTaskNames().iterator().next());
+        assertEquals(Arrays.asList("a"), store.fetchTaskNames());
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(taskStatusA, store.fetchStatuses().iterator().next());
         assertEquals(1, store.fetchTasks().size());
@@ -532,7 +508,7 @@ public class DefaultStateStoreTest {
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_INFO, store.fetchTasks().stream().findAny().get());
 
-        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
+        store = new DefaultStateStore(persister);
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
@@ -558,7 +534,7 @@ public class DefaultStateStoreTest {
         assertNotEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
         assertEquals(TestConstants.TASK_ID, store.fetchStatuses().stream().findAny().get().getTaskId());
 
-        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
+        store = new DefaultStateStore(persister);
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());

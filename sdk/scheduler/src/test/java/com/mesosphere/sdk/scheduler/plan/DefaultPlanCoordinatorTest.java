@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -15,7 +16,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -116,7 +116,7 @@ public class DefaultPlanCoordinatorTest {
                 .pods(Arrays.asList(podA))
                 .build();
         stateStore = new DefaultStateStore(
-                serviceSpecification.getName(), CuratorPersister.newBuilder(testingServer.getConnectString()).build());
+                CuratorPersister.newBuilder(serviceSpecification.getName(), testingServer.getConnectString()).build());
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);

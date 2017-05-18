@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -11,7 +11,6 @@ import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -73,7 +72,7 @@ public class StateStoreCacheTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        store = new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build());
+        store = new DefaultStateStore(CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build());
         cache = new TestStateStoreCache(store);
 
         MockitoAnnotations.initMocks(this);
@@ -83,11 +82,6 @@ public class StateStoreCacheTest {
         when(mockStore.fetchPropertyKeys()).thenReturn(Arrays.asList(PROP_KEY));
         when(mockStore.fetchProperty(PROP_KEY)).thenReturn(PROP_VAL);
         mockedCache = new StateStoreCache(mockStore);
-    }
-
-    @After
-    public void afterEach() {
-        ((DefaultStateStore) store).closeForTesting();
     }
 
     @Test(expected=IllegalStateException.class)

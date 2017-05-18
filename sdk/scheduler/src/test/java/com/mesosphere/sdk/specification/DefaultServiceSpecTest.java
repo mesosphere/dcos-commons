@@ -699,7 +699,8 @@ public class DefaultServiceSpecTest {
 
 
         TestingServer testingServer = new TestingServer();
-        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        CuratorPersister persister =
+                CuratorPersister.newBuilder(serviceSpec.getName(), testingServer.getConnectString()).build();
         StateStoreCache.resetInstanceForTests();
         StateStore stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, persister);
         ConfigStore<ServiceSpec> configStore =

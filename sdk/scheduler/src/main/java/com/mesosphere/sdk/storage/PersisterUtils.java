@@ -1,7 +1,11 @@
 package com.mesosphere.sdk.storage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Utilities relating to usage of {@link Persister}s.
@@ -53,5 +57,55 @@ public class PersisterUtils {
             paths.add(builder.toString());
         }
         return paths;
+    }
+
+    /**
+     * Returns all data present within the provided {@link Persister} in a flat map, omitting any stub parent entries
+     * with {@code null} data.
+     *
+     * @throws PersisterException if the underlying {@link Persister} couldn't be accessed
+     */
+    public static Map<String, byte[]> getAllData(Persister persister) throws PersisterException {
+        return getAllDataUnder(persister, PATH_DELIM);
+    }
+
+    /**
+     * Returns all data present within the provided {@link Persister}, under the provided path.
+     */
+    private static Map<String, byte[]> getAllDataUnder(Persister persister, String path) throws PersisterException {
+        Map<String, byte[]> allData = new TreeMap<>(); // consistent ordering (mainly for tests)
+        for (String child : persister.getChildren(path)) {
+            String childPath = join(path, child);
+            byte[] data = persister.get(childPath);
+            // omit empty parents which lack data of their own:
+            if (data != null) {
+                allData.put(childPath, data);
+            }
+            allData.putAll(getAllDataUnder(persister, childPath)); // RECURSE
+        }
+        return allData;
+    }
+
+    /**
+     * Returns a complete list of all keys present within the provided {@link Persister} in a flat list, including stub
+     * parent entries which may lack data.
+     *
+     * @throws PersisterException if the underlying {@link Persister} couldn't be accessed
+     */
+    public static Collection<String> getAllKeys(Persister persister) throws PersisterException {
+        return getAllKeysUnder(persister, PATH_DELIM);
+    }
+
+    /**
+     * Returns a complete list of all keys present within the provided {@link Persister}, under the provided path.
+     */
+    private static Collection<String> getAllKeysUnder(Persister persister, String path) throws PersisterException {
+        Collection<String> allKeys = new TreeSet<>(); // consistent ordering (mainly for tests)
+        for (String child : persister.getChildren(path)) {
+            String childPath = join(path, child);
+            allKeys.add(childPath);
+            allKeys.addAll(getAllKeysUnder(persister, childPath)); // RECURSE
+        }
+        return allKeys;
     }
 }

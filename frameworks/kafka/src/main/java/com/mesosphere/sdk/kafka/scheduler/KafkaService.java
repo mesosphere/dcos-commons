@@ -35,7 +35,6 @@ public class KafkaService extends DefaultService {
         /* Upgrade */
         new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec(), schedulerFlags);
         FilterStateStore stateStore = new FilterStateStore(
-                schedulerBuilder.getServiceSpec().getName(),
                 CuratorPersister.newBuilder(schedulerBuilder.getServiceSpec()).build());
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
         schedulerBuilder.setStateStore(stateStore);

@@ -76,7 +76,7 @@ public class UninstallSchedulerTest {
         StateStoreCache.resetInstanceForTests();
 
         stateStore = StateStoreCache.getInstance(new DefaultStateStore(
-                "testing-uninstall", CuratorPersister.newBuilder(testingServer.getConnectString()).build()));
+                CuratorPersister.newBuilder("testing-uninstall", testingServer.getConnectString()).build()));
 
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);

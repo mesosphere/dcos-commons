@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.Persister;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -13,8 +14,8 @@ import java.util.stream.Collectors;
 public class FilterStateStore extends DefaultStateStore {
     private StringMatcher ignoreFilter = null;
 
-    public FilterStateStore(String frameworkName, CuratorPersister persister) {
-        super(frameworkName, persister);
+    public FilterStateStore(Persister persister) {
+        super(persister);
     }
 
     public void setIgnoreFilter(StringMatcher ignoreFilter) {
@@ -29,7 +30,6 @@ public class FilterStateStore extends DefaultStateStore {
         return super.fetchTaskNames()
                 .stream()
                 .filter(name -> !(ignoreFilter.matches(name)))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
-
 }

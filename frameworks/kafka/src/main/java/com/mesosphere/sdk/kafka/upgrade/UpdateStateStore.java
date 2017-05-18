@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -18,8 +18,8 @@ import java.util.Optional;
 public class UpdateStateStore extends DefaultStateStore {
     private static final Logger logger = LoggerFactory.getLogger(UpdateStateStore.class);
 
-    public UpdateStateStore(String frameworkName, CuratorPersister persister) {
-        super(frameworkName, persister);
+    public UpdateStateStore(Persister persister) {
+        super(persister);
     }
 
     public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
@@ -56,7 +56,7 @@ public class UpdateStateStore extends DefaultStateStore {
                             currentStatusOptional.get().getState(), taskName));
         }
 
-        String path = taskPathMapper.getTaskStatusPath(taskName);
+        String path = getTaskStatusPath(taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
@@ -65,5 +65,4 @@ public class UpdateStateStore extends DefaultStateStore {
             throw new StateStoreException(StorageError.Reason.STORAGE_ERROR, e);
         }
     }
-
 }

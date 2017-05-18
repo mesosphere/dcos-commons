@@ -25,7 +25,7 @@ public class SchedulerStateTest {
     @Before
     public void beforeEach() {
         schedulerState = new SchedulerState(
-                new DefaultStateStore(ROOT_ZK_PATH, CuratorPersister.newBuilder(testZk.getConnectString()).build()));
+                new DefaultStateStore(CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build()));
     }
 
     @Test

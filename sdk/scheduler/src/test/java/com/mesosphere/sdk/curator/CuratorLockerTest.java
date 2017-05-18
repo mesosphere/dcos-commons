@@ -5,7 +5,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.junit.Assert.*;
