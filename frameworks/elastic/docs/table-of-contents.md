@@ -4,7 +4,7 @@
 
 - [Overview](index.md)
 - [Install and Customize](install.md)
-- [Kick the Tires](quick-start.md)
+- [Quick Start](quick-start.md)
 - [Upgrade](upgrade.md)
 - [Uninstall](uninstall.md)
 - [Configure](configure.md)
