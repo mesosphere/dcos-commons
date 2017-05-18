@@ -11,15 +11,15 @@ enterprise: 'no'
 
 ![x-pack](img/x-pack.png)
 
-You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can simply disable it. You will not lose access to your data.
+You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can disable it without losing access to your data.
   
 ## License Expiration
 
 If you uninstall the X-Pack plugin via the service configuration or you let your license expire, remember these two important points:
  
 1. Your data is still there.
-2. All data operations (read and write) continue to work.
+1. All data operations (read and write) continue to work.
 
-Graph, Machine Learning, Alerting and Notification, Monitoring, and Security all operate with reduced functionality when X-Pack becomes unavailable. Regarding security/authentication, any Elastic users you have created will no longer be relevant, as any credentials passed in will be ignored.
+[Graph](https://www.elastic.co/guide/en/x-pack/current/graph-getting-started.html), [Machine Learning](https://www.elastic.co/guide/en/x-pack/current/ml-getting-started.html), [Alerting and Notification](https://www.elastic.co/guide/en/x-pack/current/watcher-getting-started.html), [Monitoring](https://www.elastic.co/guide/en/x-pack/current/monitoring-getting-started.html), and [Security](https://www.elastic.co/guide/en/x-pack/current/security-getting-started.html) all operate with reduced functionality when X-Pack becomes unavailable.
 
 Click [here](https://www.elastic.co/guide/en/x-pack/current/license-expiration.html) to learn more about how X-Pack license expiration is handled.

@@ -15,12 +15,12 @@ enterprise: 'no'
 
 ### Improvements/Features
 
-- Add option to toggle installation of commercial X-Pack plugin (disabled by default)
-- Increased ingest node default RAM to 2GB [(issue: #908)](https://github.com/mesosphere/dcos-commons/issues/908)
-- Added a configurable health check user/password to use as Elastic credentials during readiness/health checks
+- Added an option to toggle installation of commercial X-Pack plugin (disabled by default).
+- Increased ingest node default RAM to 2GB [(issue: #908)](https://github.com/mesosphere/dcos-commons/issues/908).
+- Added a configurable health check user/password to use as Elastic credentials during readiness/health checks.
 
 ### Upgrades
 
-- Upgrade to Elastic 5.4.0
-- Upgrade to Support Diagnostics Version 5.12
-- Upgrade to dcos-commons-0.16.0
+- Upgraded to Elastic 5.4.0.
+- Upgraded to Support Diagnostics Version 5.12.
+- Upgraded to dcos-commons-0.16.0.

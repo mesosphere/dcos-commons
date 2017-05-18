@@ -18,7 +18,7 @@ You can customize your cluster in-place when it is up and running. These are the
 # Configuration Guidelines
 
 - Service name: This needs to be unique for each instance of the service that is running. It is also used as your cluster name.
-- Service user: This must be a non-root user that already exists on each agent. The default user for CoreOS-based clusters is core.
+- Service user: This must be a non-root user that already exists on each agent. The default user is `nobody`.
 - X-Pack is not installed by default, but you can enable it. X-Pack comes with a 30-day trial license.
 - Health check credentials: If you have X-Pack enabled, the health check will use these credentials for authorization. We recommend you create a specific Elastic user/password for this with minimal capabilities rather than using the default superuser `elastic`.  
 - Plugins: You can specify other plugins via a comma-separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.
@@ -57,7 +57,7 @@ You can view the deploy plan for the DC/OS Elastic Service via the service URL: 
 
 Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator.
 
-The default placement strategy has no restrictions other than distributing all the master nodes to different agents. You can specify the Marathon placement constraints for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers. 
+The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers. 
 
 ![agent](img/private-nodes-by-agent.png)
 ![vip](img/private-node-by-vip.png)
