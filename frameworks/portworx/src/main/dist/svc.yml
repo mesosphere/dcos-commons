@@ -15,6 +15,17 @@ pods:
         goal: FINISHED
         resource-set: px-resources
         cmd: >
+                {{#LIGHTHOUSE_ENABLED}}
+                if [ $POD_INSTANCE_INDEX -eq "0" ]; then
+                    authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
+                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST \
+                        -H "Accept:application/json" -H "Authorization:Basic $authkey" \
+                        http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
+                fi
+                {{/LIGHTHOUSE_ENABLED}}
+
+                PWX_TOKEN=$(etcdctl --endpoints http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379 get /pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} | jq -r ".token")
+
                 echo "[Unit]
                     Description=Portworx Container
                     Wants=docker.service
@@ -34,8 +45,17 @@ pods:
                           -v /var/run/docker.sock:/var/run/docker.sock   \
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
+                          {{#LIGHTHOUSE_ENABLED}}
+                          -e API_SERVER=http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}} \
+                          {{/LIGHTHOUSE_ENABLED}}
                           --name=%n \
-                          portworx/{{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} -k {{PORTWORX_KVDB}} {{{PORTWORX_OPTIONS}}}
+                          portworx/{{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
+                          {{#LIGHTHOUSE_ENABLED}}
+                          -t $PWX_TOKEN
+                          {{/LIGHTHOUSE_ENABLED}}
+                          {{^LIGHTHOUSE_ENABLED}}
+                          -k {{PORTWORX_KVDB}}
+                          {{/LIGHTHOUSE_ENABLED}}
                     KillMode=control-group
                     ExecStop=/usr/bin/docker stop -t 10 %n
                     [Install]
@@ -125,7 +145,7 @@ pods:
           size: 25
   lighthouse:
     count: 1
-    image: shailvishah/lh-test:latest
+    image: disrani/lh:latest
     placement: {{LIGHTHOUSE_PLACEMENT}}
     tasks:
       start:
@@ -135,6 +155,16 @@ pods:
         cmd: >
             LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
             /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k {{PORTWORX_KVDB}}
+        env:
+          PWX_LH_PORT: {{LIGHTHOUSE_WEBUI_PORT}}
+          PWX_PX_PRECREATE_ADMIN: true
+          PWX_PX_COMPANY_NAME: {{LIGHTHOUSE_COMPANY_NAME}}
+          PWX_PX_ADMIN_EMAIL: {{{LIGHTHOUSE_ADMIN_EMAIL}}}
+        readiness-check:
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X GET http://lighthouse-0-start.${FRAMEWORK_NAME}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/system | grep Lighthouse | grep 2
+          interval: 5
+          delay: 0
+          timeout: 60
 plans:
   deploy:
     strategy: serial
@@ -151,11 +181,6 @@ plans:
         steps:
           - default : [[start]]
       {{/ETCD_ENABLED}}
-      portworx-deploy:
-        strategy: serial
-        pod: portworx
-        steps:
-          - default : [[install]]
       {{#LIGHTHOUSE_ENABLED}}
       influxdb-deploy:
         strategy: serial
@@ -168,3 +193,8 @@ plans:
         steps:
           - default : [[start]]
       {{/LIGHTHOUSE_ENABLED}}
+      portworx-deploy:
+        strategy: serial
+        pod: portworx
+        steps:
+          - default : [[install]]

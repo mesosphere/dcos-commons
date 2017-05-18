@@ -183,11 +183,32 @@
             "description": "Mem requirements (in MB)",
             "type": "integer",
             "default": 1024
+          },
+          "webui_port": {
+            "title": "WebUI Port",
+            "description": "",
+            "type": "integer",
+            "default": 8085
+          },
+          "company_name": {
+            "title": "Company Name",
+            "description": "Company Name to use for creating Lighthouse account",
+            "type": "string",
+            "default": "Portworx"
+          },
+          "admin_email": {
+            "title": "Administrator Email/Login",
+            "description": "Email to use for the Lighthouse account. Default password is admin and can be changed after first login. Only used for resetting password",
+            "type": "string",
+            "default": ""
           }
         },
         "required":[
           "cpus",
-          "mem"
+          "mem",
+          "webui_port",
+          "company_name",
+          "admin_email"
         ]
       }
    }
