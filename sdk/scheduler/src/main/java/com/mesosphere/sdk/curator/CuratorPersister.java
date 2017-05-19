@@ -135,6 +135,9 @@ public class CuratorPersister implements Persister {
 
     /**
      * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     *
+     * @param serviceName the service/framework name for namespacing data on the ZK server
+     * @param zookeeperConnection the zookeeper connection information to use (format: {@code host:port})
      */
     @VisibleForTesting
     public static Builder newBuilder(String serviceName, String zookeeperConnection) {
@@ -282,6 +285,10 @@ public class CuratorPersister implements Persister {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
                 // Phase 1: Determine which nodes already exist. This determination can be rendered
                 //          invalid by an out-of-band change to the data.
+                //TODO(nickbp): This currently doesn't correctly detect when our own transaction is creating a node.
+                //              For example, a transaction which writes both "/a" and "/a/b" entries will not detect
+                //              that "/a" will already exist by the time "/a/b" is being written. However in practice
+                //              this hasn't come up (yet...)
                 final Set<String> pathsWhichExist = selectPathsWhichExist(pathBytesMap.keySet());
                 List<String> parentPathsToCreate = getParentPathsToCreate(pathBytesMap.keySet(), pathsWhichExist);
 

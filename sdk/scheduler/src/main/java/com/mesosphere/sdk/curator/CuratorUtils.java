@@ -1,14 +1,14 @@
 package com.mesosphere.sdk.curator;
 
-import com.mesosphere.sdk.dcos.DcosConstants;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+
+import com.mesosphere.sdk.dcos.DcosConstants;
 
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
-public class CuratorUtils {
+class CuratorUtils {
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;

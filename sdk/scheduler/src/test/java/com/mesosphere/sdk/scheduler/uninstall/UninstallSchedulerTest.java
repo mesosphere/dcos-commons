@@ -1,24 +1,21 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PlanTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -60,24 +57,14 @@ public class UninstallSchedulerTest {
     private static final Protos.TaskInfo TASK_A = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
             RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
     private StateStore stateStore;
-    private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
     @Mock private ConfigStore<ServiceSpec> configStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        StateStoreCache.resetInstanceForTests();
-
-        stateStore = StateStoreCache.getInstance(new DefaultStateStore(
-                CuratorPersister.newBuilder("testing-uninstall", testingServer.getConnectString()).build()));
-
+        stateStore = new DefaultStateStore(new MemPersister());
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);

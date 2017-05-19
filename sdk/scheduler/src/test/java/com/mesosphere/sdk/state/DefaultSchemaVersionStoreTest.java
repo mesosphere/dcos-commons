@@ -1,14 +1,11 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorTestUtils;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -26,23 +23,16 @@ public class DefaultSchemaVersionStoreTest {
     // This value must never change. If you're changing it, you're wrong:
     private static final String NODE_PATH = "SchemaVersion";
 
-    private static TestingServer testZk;
     private Persister persister;
     @Mock Persister mockPersister;
     private SchemaVersionStore store;
     private SchemaVersionStore store2;
     private SchemaVersionStore storeWithMock;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testZk = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        CuratorTestUtils.clear(testZk);
-        persister = CuratorPersister.newBuilder("test-svc", testZk.getConnectString()).build();
+        persister = new MemPersister();
         store = new DefaultSchemaVersionStore(persister);
         store2 = new DefaultSchemaVersionStore(persister);
         storeWithMock = new DefaultSchemaVersionStore(mockPersister);

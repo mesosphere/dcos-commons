@@ -40,9 +40,11 @@ import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
+import com.mesosphere.sdk.storage.PersisterException;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -447,22 +449,16 @@ public class DefaultScheduler implements Scheduler, Observer {
      * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return createStateStore(serviceSpec, schedulerFlags, CuratorPersister.newBuilder(serviceSpec).build());
-    }
-
-    /**
-     * Version of {@link #createStateStore(ServiceSpec, SchedulerFlags)} which allows passing a custom {@link Persister}
-     * object. Exposed for unit tests.
-     */
-    public static StateStore createStateStore(
-            ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, CuratorPersister persister) {
-        StateStore stateStore = new DefaultStateStore(persister);
+        Persister persister = CuratorPersister.newBuilder(serviceSpec).build();
         if (schedulerFlags.isStateCacheEnabled()) {
             // Wrap persister with a cache, so that we aren't constantly hitting ZK for state queries:
-            return StateStoreCache.getInstance(stateStore);
-        } else {
-            return stateStore;
+            try {
+                persister = new PersisterCache(persister);
+            } catch (PersisterException e) {
+                throw new StateStoreException(e);
+            }
         }
+        return new DefaultStateStore(persister);
     }
 
     /**
@@ -488,7 +484,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Version of {@link #createConfigStore(ServiceSpec, Collection)} which allows passing a custom {@link Persister}
      * object. Exposed for unit tests.
      */
-    public static ConfigStore<ServiceSpec> createConfigStore(
+    @VisibleForTesting
+    static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
                     throws ConfigStoreException {
         return new DefaultConfigStore<>(

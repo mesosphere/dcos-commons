@@ -13,6 +13,9 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +37,11 @@ public class KafkaService extends DefaultService {
 
         /* Upgrade */
         new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec(), schedulerFlags);
-        FilterStateStore stateStore = new FilterStateStore(
-                CuratorPersister.newBuilder(schedulerBuilder.getServiceSpec()).build());
+        Persister stateStorePersister = CuratorPersister.newBuilder(schedulerBuilder.getServiceSpec()).build();
+        if (schedulerFlags.isStateCacheEnabled()) {
+            stateStorePersister = new PersisterCache(stateStorePersister);
+        }
+        FilterStateStore stateStore = new FilterStateStore(stateStorePersister);
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
         schedulerBuilder.setStateStore(stateStore);
         /* Upgrade */
