@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import logging
 import os
 import os.path
@@ -28,9 +29,8 @@ def _run_script(scriptname, args = [], **kwargs):
 
 
 class ClusterInitializer(object):
-    def __init__(self, ccm_cluster_id, aws_stack_id, auth_token, dns_address,
+    def __init__(self, aws_stack_id, auth_token, dns_address,
             is_enterprise=False, security=None):
-        self.ccm_cluster_id = ccm_cluster_id
         self.aws_stack_id = aws_stack_id
         self.auth_token = auth_token
         self.dns_address = dns_address
@@ -45,7 +45,7 @@ class ClusterInitializer(object):
 
     def create_mount_volumes(self):
         fmt = 'Enabling mount volumes for cluster {} (stack id {})'
-        logger.info(fmt.format(self.ccm_cluster_id, self.aws_stack_id))
+        logger.info(fmt.format(self.dns_address, self.aws_stack_id))
         import enable_mount_volumes
         # fabric spams to stdout, which causes problems with launch_ccm_cluster.
         # force total redirect to stderr:
@@ -74,7 +74,7 @@ class ClusterInitializer(object):
             return
 
         fmt = 'Setting up permissions for cluster {} (stack id {})'
-        logger.info(fmt.format(self.ccm_cluster_id, self.aws_stack_id))
+        logger.info(fmt.format(self.dns_address, self.aws_stack_id))
 
         self._run_shellscript_with_cli('create_service_account.sh', [self.dcos_url, self.auth_token, '--strict'])
 
@@ -145,3 +145,38 @@ class ClusterInitializer(object):
 
 # TODO: figure out how to determine all the necessary values from
 # CLUSTER_URL etc
+
+def handle_args():
+    parser = argparse.ArgumentParser(description="Configure a cluster for running our tests")
+    parser.add_argument("aws_stack_id",
+        help="amazon stack id (only used when creating mount volumes")
+    parser.add_argument("auth_token",
+        help="dcos auth token")
+    parser.add_argument("cluster_address",
+        help="hostname or ip address of cluster")
+    parser.add_argument("--security-mode",
+            choices=('strict', 'permissive', 'disabled'),
+            default=os.environ.get("SECURITY") or 'permissive',
+            help="Security mode of cluster, defaults to permissive")
+    parser.add_argument("--config-master", action='store_true',
+            default=False,
+            help="configure the mesos master for some tests")
+    parser.add_argument("--config-mount-volumes", action='store_true',
+            default=False,
+            help="configure mount volumes on agents")
+    args = parser.parse_args()
+    if args.security_mode == "disabled":
+        args.security_mode = None
+    return args
+
+if __name__ == "__main__":
+    args = handle_args()
+
+    # assume enterprise for now
+    is_enterprise = True
+    clustinit = ClusterInitializer(args.aws_stack_id, args.auth_token,
+            args.cluster_address, is_enterprise, args.security_mode)
+    clustinit.apply_default_config(initmaster=args.config_master)
+
+    if args.config_mount_volumes:
+        clustinit.create_mount_volumes
