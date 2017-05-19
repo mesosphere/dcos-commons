@@ -1,22 +1,18 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorTestUtils;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,16 +24,9 @@ public class DefaultStepFactoryTest {
 
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
-    private static TestingServer testingServer;
-
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;
     private StateStore stateStore;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
 
     @Test(expected = Step.InvalidStepException.class)
     public void testGetStepFailsOnMultipleResourceSetReferences() throws Exception {
@@ -80,12 +69,9 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        CuratorTestUtils.clear(testingServer);
-
-        Persister persister =
-                CuratorPersister.newBuilder(TestConstants.SERVICE_NAME, testingServer.getConnectString()).build();
+        Persister persister = new MemPersister();
         stateStore = new DefaultStateStore(persister);
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
+        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
@@ -118,12 +104,9 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        CuratorTestUtils.clear(testingServer);
-
-        Persister persister =
-                CuratorPersister.newBuilder(TestConstants.SERVICE_NAME, testingServer.getConnectString()).build();
+        Persister persister = new MemPersister();
         stateStore = new DefaultStateStore(persister);
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
+        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);

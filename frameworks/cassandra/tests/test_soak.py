@@ -94,13 +94,19 @@ def get_dcos_cassandra_plan(service_name):
 
 @pytest.mark.soak_backup
 def test_backup_and_restore():
-    # Since this is run on the soak cluster and state is retained, we have to
-    # also delete the test data in preparation for the next run.
-    data_context = DataContext(
-        cleanup_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]
-    )
-    with JobContext(TEST_JOBS), data_context:
-        run_backup_and_restore()
+    plan_parameters = {
+        'S3_BUCKET_NAME': os.getenv(
+            'AWS_BUCKET_NAME', 'infinity-framework-test'
+        ),
+        'AWS_ACCESS_KEY_ID': os.getenv('AWS_ACCESS_KEY_ID'),
+        'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
+        'AWS_REGION': os.getenv('AWS_REGION', 'us-west-2'),
+        'SNAPSHOT_NAME': str(uuid.uuid1()),
+        'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
+    }
+
+    with JobContext(TEST_JOBS):
+        run_backup_and_restore('backup-s3', 'restore-s3', plan_parameters)
 
 
 @pytest.mark.soak_upgrade

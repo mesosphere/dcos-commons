@@ -35,7 +35,7 @@ public class MesosResourcePoolTest {
         Resource resource = ResourceTestUtils.getExpectedMountVolume(1000);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer);
-        String resourceId = new MesosResource(resource).getResourceId();
+        String resourceId = new MesosResource(resource).getResourceId().get();
 
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
         Assert.assertEquals(1, pool.getReservedPool().size());

@@ -66,7 +66,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         final ResourceRequirement resourceRequirement = getResourceRequirement();
-        final String resourceId = resourceRequirement.getResourceId();
+        final String resourceId = resourceRequirement.getResourceId().get();
 
         Resource fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
         OfferRecommendation offerRecommendation = null;
@@ -111,16 +111,16 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             resourceRequirement.getName(),
                             TextFormat.shortDebugString(existingResource.getValue()),
                             TextFormat.shortDebugString(resourceRequirement.getValue()));
-                    Resource reserveResource = ResourceBuilder.fromExistingResource(resourceRequirement.getResource())
+                    // Test with missing resource ID, then build recommendation with resource ID present if it passes:
+                    ResourceBuilder reserveResourceBuilder =
+                            ResourceBuilder.fromExistingResource(resourceRequirement.getResource())
                             .setValue(reserveValue)
-                            .build();
-
-                    if (mesosResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
-                        reserveResource = ResourceBuilder.fromExistingResource(reserveResource)
-                                .setResourceId(resourceId)
-                                .build();
+                            .clearResourceId();
+                    if (mesosResourcePool.consume(
+                            new ResourceRequirement(reserveResourceBuilder.build())).isPresent()) {
                         offerRecommendation = new ReserveOfferRecommendation(
-                                mesosResourcePool.getOffer(), reserveResource);
+                                mesosResourcePool.getOffer(),
+                                reserveResourceBuilder.setResourceId(resourceId).build());
                         fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
                     } else {
                         return fail(this, "Insufficient resources to increase reservation of resource '%s'.",

@@ -3,15 +3,13 @@ package com.mesosphere.sdk.state;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorTestUtils;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -22,25 +20,17 @@ import static org.junit.Assert.*;
  * Tests for {@link DefaultConfigStore}.
  */
 public class DefaultConfigStoreTest {
-    private static final String ROOT_ZK_PATH = "/test-root-path";
-
-    private static TestingServer testZk;
+    private Persister persister;
     private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testZk = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
-        CuratorTestUtils.clear(testZk);
-        Persister persister = CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build();
+        persister = new MemPersister();
         store = new DefaultConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
 
         // Check that schema version was created in the correct location:
-        assertNotEquals(0, persister.get("SchemaVersion").length);
+        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
 
         testConfig = new StringConfiguration("test-config");
     }
@@ -55,9 +45,8 @@ public class DefaultConfigStoreTest {
     public void testRootPathMapping() throws Exception {
         UUID id = store.store(testConfig);
         store.setTargetConfig(id);
-        CuratorPersister curator = CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build();
-        assertNotEquals(0, curator.get("ConfigTarget").length);
-        assertNotEquals(0, curator.get("Configurations/" + id.toString()).length);
+        assertEquals(id.toString(), new String(persister.get("ConfigTarget"), StandardCharsets.UTF_8));
+        assertNotEquals(0, persister.get("Configurations/" + id.toString()).length);
     }
 
     @Test

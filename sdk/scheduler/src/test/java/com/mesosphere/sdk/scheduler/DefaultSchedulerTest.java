@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -18,14 +16,16 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -175,30 +175,19 @@ public class DefaultSchedulerTest {
         return getCapabilities(DEFAULT_GPU_POLICY);
     }
 
-    private static TestingServer testingServer;
-
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        CuratorTestUtils.clear(testingServer);
-
-        StateStoreCache.resetInstanceForTests();
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
-        CuratorPersister persister =
-                CuratorPersister.newBuilder(SERVICE_NAME, testingServer.getConnectString()).build();
-        stateStore = DefaultScheduler.createStateStore(serviceSpec, mockSchedulerFlags, persister);
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
+        stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
+        configStore = new DefaultConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
         defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
@@ -220,10 +209,7 @@ public class DefaultSchedulerTest {
                         .placementRule(TestPlacementUtils.PASS)
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                Collections.emptyList(),
-                CuratorPersister.newBuilder(SERVICE_NAME, testingServer.getConnectString()).build());
+        DefaultScheduler.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -234,9 +220,7 @@ public class DefaultSchedulerTest {
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                Arrays.asList(PlacementRuleMissingEquality.class),
-                CuratorPersister.newBuilder(SERVICE_NAME, testingServer.getConnectString()).build());
+                serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -247,9 +231,7 @@ public class DefaultSchedulerTest {
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                Arrays.asList(PlacementRuleMismatchedAnnotations.class),
-                CuratorPersister.newBuilder(SERVICE_NAME, testingServer.getConnectString()).build());
+                serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
     }
 
     @Test
@@ -260,9 +242,7 @@ public class DefaultSchedulerTest {
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                Arrays.asList(TestPlacementUtils.PASS.getClass()),
-                CuratorPersister.newBuilder(SERVICE_NAME, testingServer.getConnectString()).build());
+                serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
     }
 
     @Test
@@ -669,7 +649,6 @@ public class DefaultSchedulerTest {
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
         Assert.assertEquals(1, updatePlan.getChildren().size());
-
         return Arrays.asList(deployPlan, updatePlan);
     }
 

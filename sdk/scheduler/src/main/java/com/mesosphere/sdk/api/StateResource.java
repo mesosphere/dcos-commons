@@ -2,9 +2,12 @@ package com.mesosphere.sdk.api;
 
 import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.mesos.Protos;
@@ -38,7 +41,7 @@ public class StateResource {
      * Creates a new StateResource which cannot deserialize Properties. Callers will receive a
      * "204 NO_CONTENT" HTTP response when attempting to view the content of a property.
      *
-     * @param stateStore the source of data to be returned to callers
+     * @param stateStore     the source of data to be returned to callers
      */
     public StateResource(StateStore stateStore) {
         this(stateStore, null);
@@ -48,7 +51,7 @@ public class StateResource {
      * Creates a new StateResource which can deserialize Properties. Callers will be able to view
      * the content of individual Properties.
      *
-     * @param stateStore the source of data to be returned to callers
+     * @param stateStore           the source of data to be returned to callers
      * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
@@ -126,7 +129,8 @@ public class StateResource {
     @Path("/refresh")
     @PUT
     public Response refreshCache() {
-        if (!(stateStore instanceof StateStoreCache)) {
+        PersisterCache cache = getPersisterCache(stateStore);
+        if (cache == null) {
             logger.warn("State store is not cached: Refresh is not applicable");
             return Response.status(Response.Status.CONFLICT).build();
         }
@@ -135,16 +139,28 @@ public class StateResource {
             logger.info("Before:\n- tasks: {}\n- properties: {}",
                     stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
 
-            ((StateStoreCache) stateStore).refresh();
+            cache.refresh();
 
             logger.info("After:\n- tasks: {}\n- properties: {}",
                     stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
 
             return ResponseUtils.jsonOkResponse(getCommandResult("refresh"));
-        } catch (StateStoreException ex) {
+        } catch (PersisterException ex) {
             logger.error("Failed to refresh state cache", ex);
             return Response.serverError().build();
         }
+    }
+
+    private static PersisterCache getPersisterCache(StateStore stateStore) {
+        if (!(stateStore instanceof DefaultStateStore)) {
+            return null;
+        }
+        DefaultStateStore defaultStateStore = (DefaultStateStore) stateStore;
+        Persister persister = defaultStateStore.getPersister();
+        if (!(persister instanceof PersisterCache)) {
+            return null;
+        }
+        return (PersisterCache) persister;
     }
 
     private static JSONObject getCommandResult(String command) {

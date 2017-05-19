@@ -1,17 +1,12 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
+import com.mesosphere.sdk.storage.MemPersister;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryOneTime;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import java.util.*;
 import static org.junit.Assert.*;
@@ -21,23 +16,12 @@ import static org.junit.Assert.*;
  */
 public class FilterStateStoreTest {
 
-    private static final int RETRY_DELAY_MS = 1000;
-    private static final String ZOOKEEPER_ROOT_NODE_NAME = "zookeeper";
-
-    private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
-    private static TestingServer testZk;
     private FilterStateStore store;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testZk = new TestingServer();
-    }
 
     @Before
     public void beforeEach() throws Exception {
-        clear();
-        store = new FilterStateStore(CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build());
+        store = new FilterStateStore(new MemPersister());
     }
 
     @Test
@@ -144,24 +128,10 @@ public class FilterStateStoreTest {
         return taskStatuses;
     }
 
-    private Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
+    private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId, String taskName) {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(CommonIdUtils.toTaskId(taskName))
                 .setState(TASK_STATE)
                 .setTaskId(taskId).build();
-    }
-
-    private static void clear() throws Exception {
-        CuratorFramework client =
-                CuratorFrameworkFactory.newClient(testZk.getConnectString(), new RetryOneTime(RETRY_DELAY_MS));
-        client.start();
-
-        for (String rootNode : client.getChildren().forPath("/")) {
-            if (!rootNode.equals(ZOOKEEPER_ROOT_NODE_NAME)) {
-                client.delete().deletingChildrenIfNeeded().forPath("/" + rootNode);
-            }
-        }
-
-        client.close();
     }
 }

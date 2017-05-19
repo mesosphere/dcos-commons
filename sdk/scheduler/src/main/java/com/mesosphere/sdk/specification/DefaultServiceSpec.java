@@ -178,6 +178,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             return EqualsBuilder.reflectionEquals(first, second);
         }
     }
+
     /**
      * Returns a {@link ConfigurationFactory} which may be used to deserialize
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and

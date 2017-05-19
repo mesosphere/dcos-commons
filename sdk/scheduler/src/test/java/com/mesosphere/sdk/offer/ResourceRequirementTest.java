@@ -41,7 +41,7 @@ public class ResourceRequirementTest {
         Assert.assertFalse(resReq.consumesUnreservedResource());
         Assert.assertTrue(resReq.reservesResource());
         Assert.assertFalse(resReq.expectsResource());
-        Assert.assertTrue(resReq.getResourceId().isEmpty());
+        Assert.assertTrue(resReq.getResourceId().get().isEmpty());
     }
 
     @Test

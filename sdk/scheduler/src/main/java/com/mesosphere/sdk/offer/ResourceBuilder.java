@@ -87,8 +87,12 @@ public class ResourceBuilder {
         return this;
     }
 
-    public ResourceBuilder clearReservationIds() {
+    public ResourceBuilder clearResourceId() {
         this.resourceId = Optional.empty();
+        return this;
+    }
+
+    public ResourceBuilder clearPersistenceId() {
         this.diskPersistenceId = Optional.empty();
         return this;
     }

@@ -486,7 +486,10 @@ public class TaskUtils {
     private static List<Resource> clearReservationIds(List<Resource> resources) {
         List<Resource> clearedResources = new ArrayList<>();
         for (Resource resource : resources) {
-            clearedResources.add(ResourceBuilder.fromExistingResource(resource).clearReservationIds().build());
+            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
+                    .clearResourceId()
+                    .clearPersistenceId()
+                    .build());
         }
         return clearedResources;
     }

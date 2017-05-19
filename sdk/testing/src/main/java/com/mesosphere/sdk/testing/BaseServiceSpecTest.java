@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.testing;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -8,8 +7,9 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
-import org.apache.curator.test.TestingServer;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -65,18 +65,13 @@ public class BaseServiceSpecTest {
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, mockFlags);
 
-        TestingServer testingServer = new TestingServer();
-        StateStoreCache.resetInstanceForTests();
-
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
         when(capabilities.supportCniPortMapping()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
-        CuratorPersister persister =
-                CuratorPersister.newBuilder(serviceSpec.getName(), testingServer.getConnectString()).build();
-
+        Persister persister = new MemPersister();
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
@@ -84,6 +79,5 @@ public class BaseServiceSpecTest {
                 .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)
                 .build();
-        testingServer.close();
     }
 }

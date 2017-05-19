@@ -1,15 +1,12 @@
 package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.testutils.TestConstants;
-
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 
-import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
@@ -37,20 +34,12 @@ public class DefaultStateStoreTest {
     public static final String WHITESPACE_PROPERTY_KEY = "            ";
     public static final String SLASH_PROPERTY_KEY = "hey/hi";
 
-    private static TestingServer testZk;
-
     private Persister persister;
     private StateStore store;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testZk = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
-        CuratorTestUtils.clear(testZk);
-        persister = CuratorPersister.newBuilder("test-svc", testZk.getConnectString()).build();
+        persister = new MemPersister();
         store = new DefaultStateStore(persister);
 
         // Check that schema version was created in the correct location:

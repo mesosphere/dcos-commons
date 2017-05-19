@@ -55,7 +55,7 @@ public class ResourceEvaluationStageTest {
                 new ResourceEvaluationStage(expectedResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
                 resourceEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
-        Assert.assertTrue(outcome.isPassing());
+        Assert.assertTrue(outcome.toString(), outcome.isPassing());
 
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());

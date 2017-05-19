@@ -1011,17 +1011,17 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
-        List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(
+        List<ResourceRequirement> resourceRequirements = offerRequirementProvider.getExistingOfferRequirement(
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build())
                 .getTaskRequirements().stream()
                 .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
-                .map(resourceRequirement -> resourceRequirement.getResourceId())
                 .collect(Collectors.toList());
-        Assert.assertEquals(resourceIds.toString(), 2, resourceIds.size());
+        Assert.assertEquals(resourceRequirements.toString(), 2, resourceRequirements.size());
+        Assert.assertTrue(resourceRequirements.toString(), resourceRequirements.get(1).getResourceId() != null);
 
         Offer expectedOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceIds.get(0)),
-                ResourceTestUtils.getExpectedScalar("disk", 50.0, resourceIds.get(1))));
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceRequirements.get(0).getResourceId().get()),
+                ResourceTestUtils.getExpectedScalar("disk", 50.0, resourceRequirements.get(1).getResourceId().get())));
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(expectedOffer));
         // Providing the expected reserved resources should result in a LAUNCH operation.
         Assert.assertEquals(1, recommendations.size());
