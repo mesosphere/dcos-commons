@@ -26,7 +26,7 @@ public class ResourceRequirementTest {
         logger.info("Resource: {}", res);
         ResourceRequirement resReq = new ResourceRequirement(res);
 
-        Assert.assertNull(resReq.getResourceId());
+        Assert.assertFalse(resReq.getResourceId().isPresent());
         Assert.assertTrue(resReq.consumesUnreservedResource());
         Assert.assertFalse(resReq.expectsResource());
         Assert.assertFalse(resReq.reservesResource());

@@ -66,12 +66,13 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         final ResourceRequirement resourceRequirement = getResourceRequirement();
-        final String resourceId = resourceRequirement.getResourceId().get();
+        final Optional<String> resourceIdOptional = resourceRequirement.getResourceId();
 
-        Resource fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
+        Resource fulfilledResource = toFulfilledResource(resourceRequirement.getResource());
         OfferRecommendation offerRecommendation = null;
         if (resourceRequirement.expectsResource()) {
-            logger.info("Expects Resource");
+            final String resourceId = resourceIdOptional.get();
+            logger.info("Expects Resource with id: {}", resourceId);
 
             Optional<MesosResource> existingResourceOptional = mesosResourcePool.getReservedResourceById(resourceId);
             if (!existingResourceOptional.isPresent()) {
@@ -121,7 +122,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                         offerRecommendation = new ReserveOfferRecommendation(
                                 mesosResourcePool.getOffer(),
                                 reserveResourceBuilder.setResourceId(resourceId).build());
-                        fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
+                        fulfilledResource = toFulfilledResource(resourceRequirement.getResource());
                     } else {
                         return fail(this, "Insufficient resources to increase reservation of resource '%s'.",
                                 resourceRequirement.getName());
@@ -170,8 +171,17 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return null;
     }
 
-    protected Resource getFulfilledResource(Resource resource) {
-        ResourceBuilder builder = ResourceBuilder.fromExistingResource(resource);
+    /**
+     * Populates an offered Mesos Resource with additional metadata from the original Resource Requirement.
+     * This additional metadata is often required before e.g. sending back a reservation request to Mesos.
+     */
+    protected Resource toFulfilledResource(Resource resource) {
+        ResourceBuilder builder = ResourceBuilder.fromExistingResource(resource)
+                .setRole(getResourceRequirement().getRole());
+        Optional<String> principal = getResourceRequirement().getPrincipal();
+        if (principal.isPresent()) {
+            builder.setPrincipal(principal.get());
+        }
         if (getResourceRequirement().reservesResource()) {
             builder.setResourceId(UUID.randomUUID().toString());
         }

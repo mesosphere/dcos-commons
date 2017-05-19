@@ -86,10 +86,9 @@ public class OfferRecommendationSlate {
             if (ports == null && resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 ports = resource;
             } else if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
-                Value.Builder mergedValue = Value.newBuilder();
-                mergedValue
-                        .setType(Value.Type.RANGES)
-                        .getRangesBuilder().addAllRange(RangeAlgorithms.mergeRanges(
+                Value.Builder mergedValue = Value.newBuilder().setType(Value.Type.RANGES);
+                mergedValue.getRangesBuilder().addAllRange(
+                        RangeAlgorithms.mergeRanges(
                                 ports.getRanges().getRangeList(),
                                 resource.getRanges().getRangeList()));
                 ports = ResourceBuilder.fromExistingResource(ports)

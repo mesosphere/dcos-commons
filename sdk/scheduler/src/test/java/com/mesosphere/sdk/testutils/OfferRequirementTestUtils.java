@@ -45,9 +45,9 @@ public class OfferRequirementTestUtils {
         TaskRequirement taskRequirement = new TaskRequirement(
                 TaskTestUtils.getTaskInfo(Arrays.asList(resource)), getResourceRequirements(Arrays.asList(resource)));
         ExecutorRequirement executorRequirement = ExecutorRequirement.create(
-                ResourceCollectUtils.getResourceId(executorResource).isPresent() ?
-                        TaskTestUtils.getExistingExecutorInfo(executorResource) :
-                        TaskTestUtils.getExecutorInfo(executorResource),
+                ResourceCollectUtils.getResourceId(executorResource).orElse("").isEmpty()
+                        ? TaskTestUtils.getExecutorInfo(executorResource)
+                        : TaskTestUtils.getExistingExecutorInfo(executorResource),
                 getResourceRequirements(Arrays.asList(executorResource)));
 
         return new OfferRequirement(

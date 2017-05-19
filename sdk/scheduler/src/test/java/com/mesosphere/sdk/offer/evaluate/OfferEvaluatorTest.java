@@ -606,14 +606,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveExecutorVolume() throws Exception {
-        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        List<Resource> offeredResources = Arrays.asList(
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedMountVolume(2000),
-                ResourceTestUtils.getUnreservedCpu(1.0));
-
-        Offer offer = OfferTestUtils.getOffer(offeredResources);
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
+                ResourceTestUtils.getUnreservedCpu(1.0)));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                ResourceTestUtils.getDesiredCpu(1.0),
+                ResourceTestUtils.getDesiredMountVolume(1000));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
         Assert.assertEquals(4, recommendations.size());
@@ -621,11 +619,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Validate just the operations pertaining to the executor
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
+        Resource reserveResource = reserveOperation.getReserve().getResourcesList().get(0);
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
@@ -638,11 +632,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Validate CREATE Operation
         String resourceId = getFirstLabel(reserveResource).getValue();
         Operation createOperation = recommendations.get(1).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
+        Resource createResource = createOperation.getCreate().getVolumesList().get(0);
 
         Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());

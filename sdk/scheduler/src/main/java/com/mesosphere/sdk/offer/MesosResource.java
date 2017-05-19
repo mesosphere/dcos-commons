@@ -43,10 +43,7 @@ public class MesosResource {
     }
 
     public Optional<String> getResourceId() {
-        return resource.getReservation().getLabels().getLabelsList().stream()
-                .filter(label -> label.getKey().equals(RESOURCE_ID_KEY))
-                .map(label -> label.getValue())
-                .findFirst();
+        return ResourceCollectUtils.getResourceId(resource);
     }
 
     public boolean hasReservation() {

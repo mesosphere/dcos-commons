@@ -42,12 +42,12 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
     private static Resource getReservedResource(Resource resource) {
         Resource.Builder resBuilder = Resource.newBuilder(resource);
         if (resBuilder.hasDisk() && resBuilder.getDisk().hasSource()) {
-            // Copy disk, but without 'persistence' nor 'volume' fields
+            // Mount volume: Copy disk, but without 'persistence' nor 'volume' fields
             resBuilder.setDisk(DiskInfo.newBuilder(resBuilder.getDisk())
                     .clearPersistence()
                     .clearVolume());
         } else {
-            // If disk lacks 'source', clear it.
+            // Root volume: Clear the disk.
             resBuilder.clearDisk();
         }
         resBuilder.clearRevocable();

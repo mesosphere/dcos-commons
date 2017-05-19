@@ -152,36 +152,36 @@ public class MesosResourcePool {
     private Optional<MesosResource> consumeReserved(ResourceRequirement resourceRequirement) {
         String resourceId = resourceRequirement.getResourceId().get();
         MesosResource mesosResource = reservedPool.get(resourceId);
+        if (mesosResource == null) {
+            logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
+                    resourceRequirement.getName(), resourceId, reservedPool.keySet());
+            return Optional.empty();
+        }
 
-        if (mesosResource != null) {
-            if (mesosResource.isAtomic()) {
-                if (sufficientValue(resourceRequirement.getValue(), mesosResource.getValue())) {
-                    reservedPool.remove(resourceId);
-                } else {
-                    logger.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
-                            resourceRequirement.getName(),
-                            TextFormat.shortDebugString(resourceRequirement.getValue()),
-                            TextFormat.shortDebugString(mesosResource.getValue()));
-                    return Optional.empty();
-                }
+        if (mesosResource.isAtomic()) {
+            if (sufficientValue(resourceRequirement.getValue(), mesosResource.getValue())) {
+                reservedPool.remove(resourceId);
             } else {
-                Value desiredValue = resourceRequirement.getValue();
-                Value availableValue = reservedPool.get(resourceId).getValue();
-                if (ValueUtils.compare(availableValue, desiredValue) > 0) {
-                    // update the value in pool with the remaining unclaimed resource amount
-                    Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
-                            .setValue(ValueUtils.subtract(availableValue, desiredValue))
-                            .build();
-                    reservedPool.put(resourceId, new MesosResource(remaining));
-                    // return only the claimed resource amount from this reservation
-                    mesosResource = new MesosResource(resourceRequirement.getResource());
-                } else {
-                    reservedPool.remove(resourceId);
-                }
+                logger.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(resourceRequirement.getValue()),
+                        TextFormat.shortDebugString(mesosResource.getValue()));
+                return Optional.empty();
             }
         } else {
-           logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
-                   resourceRequirement.getName(), resourceId, reservedPool.keySet());
+            Value desiredValue = resourceRequirement.getValue();
+            Value availableValue = reservedPool.get(resourceId).getValue();
+            if (ValueUtils.compare(availableValue, desiredValue) > 0) {
+                // update the value in pool with the remaining unclaimed resource amount
+                Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
+                        .setValue(ValueUtils.subtract(availableValue, desiredValue))
+                        .build();
+                reservedPool.put(resourceId, new MesosResource(remaining));
+                // return only the claimed resource amount from this reservation
+                mesosResource = new MesosResource(resourceRequirement.getResource());
+            } else {
+                reservedPool.remove(resourceId);
+            }
         }
 
         return Optional.ofNullable(mesosResource);
