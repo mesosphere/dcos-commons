@@ -2,15 +2,13 @@ package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.specification.DefaultNetworkSpec;
-import com.mesosphere.sdk.specification.NetworkSpec;
-import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import sun.nio.ch.Net;
 
 import java.util.*;
 
@@ -20,13 +18,29 @@ import static org.mockito.Mockito.when;
  * Created by Rand on 5/18/17.
  */
 public class PodSpecsCannorChangeNetworkRegimeTest {
+    private static final ConfigValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotChangeNetworkRegime();
 
     @Mock
-    private PodSpec mockPodSpecDcosOverlay;
+    private PodSpec overlaypod1;
     @Mock
-    private PodSpec mockPodSpecBridgeOverlay;
+    private PodSpec overlaypod2;
+
     @Mock
-    private PodSpec mockPodSpecHostNetwork;
+    private PodSpec bridgepod1;
+    @Mock
+    private PodSpec bridgepod2;
+
+    @Mock
+    private PodSpec hostpod1;
+    @Mock
+    private PodSpec hostpod2;
+
+    //private List<PodSpec> overlayPods = new ArrayList<>(Arrays.asList(overlaypod1, overlaypod2));
+    //private List<PodSpec> hostPods = new ArrayList<>(Arrays.asList(hostpod1, hostpod2));
+    //private List<PodSpec> bridgePods = new ArrayList<>(Arrays.asList(bridgepod1, bridgepod2));
+    private List<PodSpec> overlayPods = new ArrayList<>();
+    private List<PodSpec> hostPods = new ArrayList<>();
+    private List<PodSpec> bridgePods = new ArrayList<>();
 
     @Before
     public void beforeEach() {
@@ -42,14 +56,79 @@ public class PodSpecsCannorChangeNetworkRegimeTest {
         List<NetworkSpec> bridgeNetworkSpecs = new ArrayList<>(Collections.singletonList(bridgeOverlayNetworkSpec));
         List<NetworkSpec> onHostNetwork = new ArrayList<>();
 
-        when(mockPodSpecDcosOverlay.getNetworks()).thenReturn(overlayNetworkSpecs);
-        when(mockPodSpecBridgeOverlay.getNetworks()).thenReturn(bridgeNetworkSpecs);
-        when(mockPodSpecHostNetwork.getNetworks()).thenReturn(onHostNetwork);
+
+        when(overlaypod1.getType()).thenReturn(TestConstants.POD_TYPE + "-1");
+        when(overlaypod2.getType()).thenReturn(TestConstants.POD_TYPE + "-2");
+        when(overlaypod1.getNetworks()).thenReturn(overlayNetworkSpecs);
+        when(overlaypod2.getNetworks()).thenReturn(overlayNetworkSpecs);
+        overlayPods.addAll(Arrays.asList(overlaypod1, overlaypod2));
+
+        when(bridgepod1.getType()).thenReturn(TestConstants.POD_TYPE + "-1");
+        when(bridgepod2.getType()).thenReturn(TestConstants.POD_TYPE + "-2");
+        when(bridgepod1.getNetworks()).thenReturn(bridgeNetworkSpecs);
+        when(bridgepod2.getNetworks()).thenReturn(bridgeNetworkSpecs);
+        bridgePods.addAll(Arrays.asList(bridgepod1, bridgepod2));
+
+        when(hostpod1.getType()).thenReturn(TestConstants.POD_TYPE + "-1");
+        when(hostpod2.getType()).thenReturn(TestConstants.POD_TYPE + "-2");
+        when(hostpod1.getNetworks()).thenReturn(onHostNetwork);
+        when(hostpod2.getNetworks()).thenReturn(onHostNetwork);
+        hostPods.addAll(Arrays.asList(hostpod1, hostpod2));
+
+
+    }
+
+    private void testConfigTransition(List<PodSpec> oldPodSpecs, List<PodSpec> newPodSpecs,
+                                 int expectedHomoTransitionErrors, int expectedHeteroTransitionErrors)
+            throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
+                .name("svc1")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(oldPodSpecs)
+                .apiPort(8080)
+                .build();
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
+                .name("svc2")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(newPodSpecs)
+                .apiPort(8080)
+                .build();
+
+        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
+        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
+        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
+        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
 
     @Test
     public void testStaysOnOverlay() throws InvalidRequirementException {
-
+        testConfigTransition(overlayPods, overlayPods, 0, 0);
     }
 
+    @Test
+    public void testStaysOnHost() throws InvalidRequirementException {
+        testConfigTransition(hostPods, hostPods, 0, 0);
+    }
+
+    @Test
+    public void testStaysOnBridge() throws InvalidRequirementException {
+        testConfigTransition(bridgePods, bridgePods, 0, 0);
+    }
+
+    @Test
+    public void testIllegalSwitchOverlayToHost() throws InvalidRequirementException {
+        testConfigTransition(hostPods, overlayPods, 0, 2);
+    }
+
+    @Test
+    public void illegalSwitchOverlayToBridge() throws InvalidRequirementException {
+        testConfigTransition(bridgePods, overlayPods, 0, 2);
+    }
+
+    @Test
+    public void testSwitchFromBridgeToHost() throws InvalidRequirementException {
+        testConfigTransition(bridgePods, hostPods, 0, 0);
+    }
 }
