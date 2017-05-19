@@ -33,5 +33,16 @@
       "name": "kibana",
       "labels": { "VIP_0": "/web.{{service.name}}:80" }
     }
+  ],
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "path": "/",
+      "gracePeriodSeconds": 900,
+      "intervalSeconds": 30,
+      "portIndex": 0,
+      "timeoutSeconds": 30,
+      "maxConsecutiveFailures": 0
+    }
   ]
 }
