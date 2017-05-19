@@ -129,7 +129,7 @@ public class MesosResourcePool {
     private void releaseAtomicResource(MesosResource mesosResource) {
         Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
         resBuilder.clearReservation();
-        resBuilder.setRole("*");
+        resBuilder.setRole(Constants.ANY_ROLE);
 
         if (resBuilder.hasDisk()) {
             DiskInfo.Builder diskBuilder = DiskInfo.newBuilder(resBuilder.getDisk());
@@ -168,8 +168,9 @@ public class MesosResourcePool {
                 Value availableValue = reservedPool.get(resourceRequirement.getResourceId()).getValue();
                 if (ValueUtils.compare(availableValue, desiredValue) > 0) {
                     // update the value in pool with the remaining unclaimed resource amount
-                    Resource remaining = ResourceUtils.setValue(
-                            mesosResource.getResource(), ValueUtils.subtract(availableValue, desiredValue));
+                    Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
+                            .setValue(ValueUtils.subtract(availableValue, desiredValue))
+                            .build();
                     reservedPool.put(resourceRequirement.getResourceId(), new MesosResource(remaining));
                     // return only the claimed resource amount from this reservation
                     mesosResource = new MesosResource(resourceRequirement.getResource());
@@ -230,8 +231,8 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
-            Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
-            return Optional.of(new MesosResource(resource));
+            return Optional.of(new MesosResource(
+                    ResourceBuilder.fromUnreservedValue(resourceRequirement.getName(), desiredValue).build()));
         } else {
             if (availableValue == null) {
                 logger.info("Offer lacks any resources named {}", resourceRequirement.getName());

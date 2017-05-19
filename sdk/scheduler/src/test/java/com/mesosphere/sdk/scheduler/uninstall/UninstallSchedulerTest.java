@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -11,6 +10,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PlanTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.curator.test.TestingServer;
@@ -38,20 +38,20 @@ public class UninstallSchedulerTest {
     private static final String RESERVED_RESOURCE_1_ID = "reserved-resource-id";
     private static final String RESERVED_RESOURCE_2_ID = "reserved-volume-id";
     private static final String RESERVED_RESOURCE_3_ID = "reserved-cpu-id";
-    private static final Protos.Resource RESERVED_RESOURCE_1 = ResourceUtils.getExpectedRanges(
+    private static final Protos.Resource RESERVED_RESOURCE_1 = ResourceTestUtils.getExpectedRanges(
             "ports",
             Collections.singletonList(Protos.Value.Range.newBuilder().setBegin(123).setEnd(234).build()),
             RESERVED_RESOURCE_1_ID,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL);
-    private static final Protos.Resource RESERVED_RESOURCE_2 = ResourceUtils.getExpectedRootVolume(
+    private static final Protos.Resource RESERVED_RESOURCE_2 = ResourceTestUtils.getExpectedRootVolume(
             999.0,
             RESERVED_RESOURCE_2_ID,
             TestConstants.CONTAINER_PATH,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL,
             RESERVED_RESOURCE_2_ID);
-    private static final Protos.Resource RESERVED_RESOURCE_3 = ResourceUtils.getExpectedScalar(
+    private static final Protos.Resource RESERVED_RESOURCE_3 = ResourceTestUtils.getExpectedScalar(
             "cpus",
             1.0,
             RESERVED_RESOURCE_3_ID,

@@ -55,7 +55,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -85,7 +85,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -93,7 +93,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testUpdateDynamicToStaticPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Resource updatedResource = ResourceUtils.setLabel(
+        Resource updatedResource = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId),
                 TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL,
                 Integer.toString(666));
@@ -118,7 +118,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -141,7 +141,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
     }
@@ -173,7 +173,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchExpectedDynamicPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Resource desiredResource = ResourceUtils.setLabel(
+        Resource desiredResource = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId),
                 TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL,
                 Integer.toString(10000));
@@ -252,7 +252,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 resourceIdLabel.getValue(), fulfilledPortResource.getReservation().getLabels().getLabels(0).getValue());
 
         CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 2, envvars.size());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
         Assert.assertEquals(String.valueOf(10001), envvars.get(TestConstants.PORT_ENV_NAME + "1"));
@@ -265,7 +265,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveTaskNamedVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredPorts = ResourceUtils.setLabel(
+        Resource desiredPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 10000, 10000),
                 TestConstants.HAS_VIP_LABEL,
                 "true");
@@ -301,7 +301,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveTaskDynamicVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredPorts = ResourceUtils.setLabel(
+        Resource desiredPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 0, 0),
                 TestConstants.HAS_VIP_LABEL,
                 "true");
@@ -481,7 +481,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveCreateLaunchRootVolume() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredRootVolume(1500);
-        Resource offeredResource = ResourceUtils.getUnreservedRootVolume(2000);
+        Resource offeredResource = ResourceTestUtils.getUnreservedRootVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(desiredResource),
@@ -537,7 +537,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testFailCreateRootVolume() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredRootVolume(1000 * 2);
-        Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
+        Resource offeredResource = ResourceTestUtils.getUnreservedRootVolume(1000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                         OfferRequirementTestUtils.getOfferRequirement(desiredResource),
@@ -686,7 +686,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveLaunchScalar() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(desiredResource),
@@ -874,7 +874,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testAvoidAgents() throws Exception {
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(
@@ -898,7 +898,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testColocateAgents() throws Exception {
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(
@@ -921,7 +921,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchMultipleTasksPerExecutor() throws Exception {
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 3.0);
         List<Resource> desiredResources = Arrays.asList(
                 ResourceTestUtils.getDesiredCpu(1.0),
                 ResourceTestUtils.getDesiredCpu(2.0));
@@ -945,8 +945,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchNotOnFirstOffer() throws Exception {
         Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource insufficientOffer = ResourceUtils.getUnreservedScalar("mem", 2.0);
-        Resource sufficientOffer = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource insufficientOffer = ResourceTestUtils.getUnreservedScalar("mem", 2.0);
+        Resource sufficientOffer = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(desiredResource),
@@ -977,8 +977,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         // Launch Task with FINISHED goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -1042,8 +1042,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         // Launch Task with FINISHED goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -1119,9 +1119,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Collections.emptyList());
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("mem", 1024),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("mem", 1024),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 deploymentStep.start().get(),

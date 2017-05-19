@@ -14,6 +14,7 @@ import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -81,8 +82,15 @@ public class UninstallScheduler implements Scheduler {
         }
 
         // create one UninstallStep per unique Resource, including Executor resources
-        List<Step> taskSteps = ResourceUtils.getResourceIds(stateStore.fetchTasks()).stream()
-                .map(this::getStep).collect(Collectors.toList());
+        List<Step> taskSteps = new ArrayList<>();
+        for (Protos.Resource resource : ResourceCollectUtils.getAllResources(stateStore.fetchTasks())) {
+            Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+            if (!resourceId.isPresent()) {
+                continue;
+            }
+            Status status = resourceId.get().startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
+            taskSteps.add(new UninstallStep(resourceId.get(), status));
+        }
 
         Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                 Collections.emptyList());
@@ -272,10 +280,5 @@ public class UninstallScheduler implements Scheduler {
             Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
             taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
         }
-    }
-
-    private Step getStep(String resourceId) {
-        Status status = resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
-        return new UninstallStep(resourceId, status);
     }
 }

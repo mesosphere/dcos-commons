@@ -2,13 +2,16 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.VolumeRequirement;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+
+import java.util.Optional;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -16,8 +19,6 @@ import javax.validation.constraints.Pattern;
  * This class provides a default implementation of the VolumeSpec interface.
  */
 public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
-
-    public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
 
@@ -33,7 +34,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             String role,
             String principal,
             String envKey) {
-        this(type, containerPath, RESOURCE_NAME, scalarValue(diskSize), role, principal, envKey);
+        this(type, containerPath, ResourceBuilder.DISK_RESOURCE_TYPE, scalarValue(diskSize), role, principal, envKey);
     }
 
     @JsonCreator
@@ -89,17 +90,17 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             return new VolumeRequirement(resource);
         }
 
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(this);
         switch (getType()) {
             case ROOT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredRootVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+                resourceBuilder.setRootVolume(getContainerPath(), Optional.empty());
+                break;
             case MOUNT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredMountVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+                resourceBuilder.setMountVolume(getContainerPath(), Optional.empty(), Optional.empty());
+                break;
             default:
-                throw new IllegalArgumentException("FIX: can't handle");
+                throw new IllegalArgumentException("Unsupported volume type: " + getType());
         }
+        return new VolumeRequirement(resourceBuilder.build());
     }
 }

@@ -2,10 +2,12 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.ResourceCollectUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
@@ -37,7 +40,8 @@ public class UninstallRecorder implements OperationRecorder {
     }
 
     private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
-        return ResourceUtils.getResourceId(resource).equals(ResourceUtils.getResourceId(taskInfoResource));
+        return ResourceCollectUtils.getResourceId(resource)
+                .equals(ResourceCollectUtils.getResourceId(taskInfoResource));
     }
 
     @Override
@@ -65,29 +69,37 @@ public class UninstallRecorder implements OperationRecorder {
         }
     }
 
-    private Collection<Protos.TaskInfo> updateResources(Protos.Resource resource,
-                                                        List<Protos.TaskInfo> tasksToUpdate) {
+    private Collection<Protos.TaskInfo> updateResources(
+            Protos.Resource resource, List<Protos.TaskInfo> tasksToUpdate) {
         // create new copies of taskinfos with updated resources
-        String initialResourceId = ResourceUtils.getResourceId(resource);
+        Optional<String> initialResourceId = ResourceCollectUtils.getResourceId(resource);
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
+        if (!initialResourceId.isPresent()) {
+            return updatedTaskInfos;
+        }
         for (Protos.TaskInfo taskInfoToUpdate : tasksToUpdate) {
-            Collection<Protos.Resource> updatedResources = updatedResources(initialResourceId,
-                    taskInfoToUpdate.getResourcesList());
-            Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate).clearResources()
-                    .addAllResources(updatedResources).build();
+            Collection<Protos.Resource> updatedResources =
+                    updatedResources(initialResourceId.get(), taskInfoToUpdate.getResourcesList());
+            Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate)
+                    .clearResources()
+                    .addAllResources(updatedResources)
+                    .build();
             updatedTaskInfos.add(taskInfo);
         }
         return updatedTaskInfos;
     }
 
-    private Collection<Protos.Resource> updatedResources(String initialResourceId,
-                                                         List<Protos.Resource> resourcesList) {
+    private Collection<Protos.Resource> updatedResources(
+            String initialResourceId, List<Protos.Resource> resourcesList) {
         // find the matching resource in each task and update its resource_id
         String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
         List<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource resource : resourcesList) {
-            if (initialResourceId.equals(ResourceUtils.getResourceId(resource))) {
-                updatedResources.add(ResourceUtils.setResourceId(resource, uninstalledResourceId));
+            Optional<String> thisResourceId = ResourceCollectUtils.getResourceId(resource);
+            if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
+                updatedResources.add(ResourceBuilder.fromExistingResource(resource)
+                        .setResourceId(uninstalledResourceId)
+                        .build());
             } else {
                 updatedResources.add(resource);
             }

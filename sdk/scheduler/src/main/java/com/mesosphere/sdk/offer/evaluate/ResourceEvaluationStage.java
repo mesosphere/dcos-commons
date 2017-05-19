@@ -111,14 +111,14 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             resourceRequirement.getName(),
                             TextFormat.shortDebugString(existingResource.getValue()),
                             TextFormat.shortDebugString(resourceRequirement.getValue()));
-                    Resource reserveResource = ResourceUtils.getExpectedResource(
-                            resourceRequirement.getRole(),
-                            resourceRequirement.getPrincipal(),
-                            resourceRequirement.getName(),
-                            reserveValue);
+                    Resource reserveResource = ResourceBuilder.fromExistingResource(resourceRequirement.getResource())
+                            .setValue(reserveValue)
+                            .build();
 
                     if (mesosResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
-                        reserveResource = ResourceUtils.setResourceId(reserveResource, resourceId);
+                        reserveResource = ResourceBuilder.fromExistingResource(reserveResource)
+                                .setResourceId(resourceId)
+                                .build();
                         offerRecommendation = new ReserveOfferRecommendation(
                                 mesosResourcePool.getOffer(), reserveResource);
                         fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
@@ -171,12 +171,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     protected Resource getFulfilledResource(Resource resource) {
-        Resource.Builder builder = resource.toBuilder().setRole(getResourceRequirement().getRole());
-        Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
-        if (reservationInfo.isPresent()) {
-            builder.setReservation(reservationInfo.get());
+        ResourceBuilder builder = ResourceBuilder.fromExistingResource(resource);
+        if (getResourceRequirement().reservesResource()) {
+            builder.setResourceId(UUID.randomUUID().toString());
         }
-
         return builder.build();
     }
 
@@ -187,21 +185,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.addResources(resource);
-        }
-    }
-
-    protected Optional<Resource.ReservationInfo> getFulfilledReservationInfo() {
-        ResourceRequirement resourceRequirement = getResourceRequirement();
-
-        if (!resourceRequirement.reservesResource()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(Resource.ReservationInfo
-                    .newBuilder(resourceRequirement.getResource().getReservation())
-                    .setLabels(ResourceUtils.setResourceId(
-                            resourceRequirement.getResource().getReservation().getLabels(),
-                            UUID.randomUUID().toString()))
-                    .build());
         }
     }
 }

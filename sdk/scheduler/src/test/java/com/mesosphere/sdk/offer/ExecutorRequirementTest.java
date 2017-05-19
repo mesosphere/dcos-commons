@@ -30,7 +30,7 @@ public class ExecutorRequirementTest {
 
     @Test(expected=InvalidRequirementException.class)
     public void testRejectDesiredResourcesForExistingExecutor() throws Exception {
-        Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-role", "test-prinicipal", "cpus", 1.0);
+        Protos.Resource desiredCpu = ResourceTestUtils.getDesiredScalar("test-role", "test-prinicipal", "cpus", 1.0);
         ExecutorInfo invalidExecInfo = ExecutorInfo.newBuilder()
                 .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setName(TestConstants.EXECUTOR_NAME)
@@ -57,8 +57,8 @@ public class ExecutorRequirementTest {
     @Test
     public void testTwoResourcesValid() throws Exception {
         assertEquals(2, ExecutorRequirement.create(VALID_EXECINFO.toBuilder()
-                .addResources(ResourceUtils.getUnreservedScalar("cpus", 1.0))
-                .addResources(ResourceUtils.getUnreservedScalar("disk", 1234.0))
+                .addResources(ResourceTestUtils.getUnreservedScalar("cpus", 1.0))
+                .addResources(ResourceTestUtils.getUnreservedScalar("disk", 1234.0))
                 .build()).getResourceRequirements().size());
     }
 

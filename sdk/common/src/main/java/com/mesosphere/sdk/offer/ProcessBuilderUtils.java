@@ -19,7 +19,7 @@ public class ProcessBuilderUtils {
      * {@link Protos.CommandInfo}'s command and environment.
      */
     public static ProcessBuilder buildProcess(Protos.CommandInfo cmd) {
-        return buildProcess(cmd.getValue(), EnvUtils.fromEnvironmentToMap(cmd.getEnvironment()));
+        return buildProcess(cmd.getValue(), EnvUtils.toMap(cmd.getEnvironment()));
     }
 
     /**

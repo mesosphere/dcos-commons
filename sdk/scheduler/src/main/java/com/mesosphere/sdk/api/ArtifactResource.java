@@ -2,7 +2,7 @@ package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -29,7 +29,7 @@ import static com.mesosphere.sdk.api.ResponseUtils.plainOkResponse;
 @Path("/v1/artifacts")
 public class ArtifactResource {
     private static final String ARTIFACT_URI_FORMAT =
-            "http://api.%s.marathon." + ResourceUtils.VIP_HOST_TLD + "/v1/artifacts/template/%s/%s/%s/%s";
+            "http://api.%s.marathon." + Constants.VIP_HOST_TLD + "/v1/artifacts/template/%s/%s/%s/%s";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

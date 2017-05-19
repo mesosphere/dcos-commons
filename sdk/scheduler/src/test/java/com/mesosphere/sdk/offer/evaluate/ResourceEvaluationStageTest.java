@@ -15,7 +15,7 @@ public class ResourceEvaluationStageTest {
     @Test
     public void testReserveResource() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
@@ -73,7 +73,7 @@ public class ResourceEvaluationStageTest {
     @Test
     public void testCannotReserveResource() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 0.5);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 0.5);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);

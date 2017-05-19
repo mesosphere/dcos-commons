@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
         return stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !FailureUtils.isLabeledAsFailed(taskInfo))
-                .map(ResourceUtils::getAllResources)
+                .map(ResourceCollectUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -93,14 +94,11 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Set<String> getPersistentVolumeIds(Collection<Resource> resources) {
         Set<String> persistenceIds = new HashSet<>();
-
         for (Resource resource : resources) {
-            String persistenceId = ResourceUtils.getPersistenceId(resource);
-            if (persistenceId != null) {
-                persistenceIds.add(persistenceId);
+            if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+                persistenceIds.add(resource.getDisk().getPersistence().getId());
             }
         }
-
         return persistenceIds;
     }
 
@@ -110,14 +108,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Set<String> getReservedResourceIds(Collection<Resource> resources) {
         Set<String> resourceIds = new HashSet<>();
-
-        for (Resource resource : resources) {
-            String resourceId = ResourceUtils.getResourceId(resource);
-            if (resourceId != null) {
-                resourceIds.add(resourceId);
-            }
-        }
-
+        resourceIds.addAll(ResourceCollectUtils.getResourceIds(resources));
         return resourceIds;
     }
 
@@ -129,14 +120,11 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Map<String, Resource> getPersistentVolumesById(Offer offer) {
         Map<String, Resource> volumes = new HashMap<>();
-
         for (Resource resource : offer.getResourcesList()) {
-            String persistenceId = ResourceUtils.getPersistenceId(resource);
-            if (persistenceId != null) {
-                volumes.put(persistenceId, resource);
+            if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+                volumes.put(resource.getDisk().getPersistence().getId(), resource);
             }
         }
-
         return volumes;
     }
 
@@ -146,14 +134,12 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Map<String, Resource> getReservedResourcesById(Offer offer) {
         Map<String, Resource> reservedResources = new HashMap<>();
-
         for (Resource resource : offer.getResourcesList()) {
-            String resourceId = ResourceUtils.getResourceId(resource);
-            if (resourceId != null) {
-                reservedResources.put(resourceId, resource);
+            Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+            if (resourceId.isPresent()) {
+                reservedResources.put(resourceId.get(), resource);
             }
         }
-
         return reservedResources;
     }
 }
