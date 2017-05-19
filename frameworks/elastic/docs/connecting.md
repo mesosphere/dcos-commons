@@ -64,11 +64,16 @@ This command launches a new Kibana application with the default name `kibana` an
   {"type":"log","@timestamp":"2016-12-08T22:37:46Z","tags":["listening","info"],"pid":12263,"message":"Server running at http://0.0.0.0:5601"}
   ```
 
-1. Then, go to this URL:
+1. If you installed X-Pack, go to
+  ```
+  http://<dcos_url>/service/kibana/login
+  ```
+  and log in with `elastic`/`changeme`.
+  
+  Otherwise go to
   ```
   http://<dcos_url>/service/kibana
   ```
-  If you installed X-Pack, log in with `elastic`/`changeme`.
 
 ### Configuration Guidelines
 
