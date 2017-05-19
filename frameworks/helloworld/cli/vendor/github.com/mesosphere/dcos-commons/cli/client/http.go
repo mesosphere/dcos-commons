@@ -5,68 +5,85 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-func HTTPGet(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("GET", urlPath)))
-}
-func HTTPGetQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("GET", urlPath, urlQuery)))
-}
-func HTTPGetData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("GET", urlPath, payload, contentType)))
-}
-func HTTPGetJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("GET", urlPath, jsonPayload)))
+func HTTPServiceGet(urlPath string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
 }
 
-func HTTPDelete(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("DELETE", urlPath)))
-}
-func HTTPDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("DELETE", urlPath, urlQuery)))
-}
-func HTTPDeleteData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("DELETE", urlPath, payload, contentType)))
-}
-func HTTPDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
-func HTTPPost(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("POST", urlPath)))
-}
-func HTTPPostQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("POST", urlPath, urlQuery)))
-}
-func HTTPPostData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("POST", urlPath, payload, contentType)))
-}
-func HTTPPostJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("POST", urlPath, jsonPayload)))
+func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
-func HTTPPut(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("PUT", urlPath)))
-}
-func HTTPPutQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("PUT", urlPath, urlQuery)))
-}
-func HTTPPutData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("PUT", urlPath, payload, contentType)))
-}
-func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
-func HTTPQuery(request *http.Request) *http.Response {
+func HTTPServiceDelete(urlPath string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
+}
+
+func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+}
+
+func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+}
+
+func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+}
+
+func HTTPServicePost(urlPath string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
+}
+
+func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
+}
+
+func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
+}
+
+func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
+}
+
+func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
+	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
+}
+
+func HTTPServicePut(urlPath string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
+}
+
+func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
+}
+
+func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
+}
+
+func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+}
+
+func httpQuery(request *http.Request) *http.Response {
 	if config.TlsForceInsecure { // user override via '--force-insecure'
 		config.TlsCliSetting = config.TlsUnverified
 	}
@@ -135,7 +152,27 @@ func HTTPQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func CheckHTTPResponse(response *http.Response) *http.Response {
+func checkCosmosHTTPResponse(response *http.Response) *http.Response {
+	switch {
+	case response.StatusCode == 401:
+		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
+		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
+	case response.StatusCode == 404:
+		log.Printf("HTTP %s Query for %s failed: %s", response.Request.Method, response.Request.URL, response.Status)
+		log.Fatalf("Package management commands require Enterprise DC/OS 1.10 or later.")
+	case response.StatusCode == 500:
+		log.Printf("HTTP %s Query for %s failed: %s",
+			response.Request.Method, response.Request.URL, response.Status)
+		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+	case response.StatusCode < 200 || response.StatusCode >= 300:
+		log.Fatalf("HTTP %s Query for %s failed: %s",
+			response.Request.Method, response.Request.URL, response.Status)
+	}
+	return response
+}
+
+func checkServiceHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
@@ -144,7 +181,7 @@ func CheckHTTPResponse(response *http.Response) *http.Response {
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
 		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-		log.Fatalf("- Was the service recently installed? It may still be initializing, Wait a bit and try again.")
+		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		log.Fatalf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
@@ -152,27 +189,36 @@ func CheckHTTPResponse(response *http.Response) *http.Response {
 	return response
 }
 
-func createHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
-	return createHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
+func createServiceHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+	return createServiceHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
-func createHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
+func createServiceHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), jsonPayload, "", contentType)
 }
 
-func createHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, urlQuery, "", "")
+func createServiceHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, urlQuery), "", "", "")
 }
 
-func CreateHTTPRequest(method, urlPath string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, "", "", "")
+func createServiceHTTPRequest(method, urlPath string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), "", "", "")
 }
 
-func createHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
-	return createHTTPURLRequest(method, createURL(urlPath, urlQuery), payload, contentType)
+func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+	// NOTE: this explicitly only allows use of /service/ endpoints within Cosmos. See DCOS-15772
+	// for the "correct" solution to allow cleaner use of /package/ endpoints.
+	endpoint := strings.Replace(urlPath, "/", ".", -1)
+	acceptHeader := fmt.Sprintf("application/vnd.dcos.service.%s-response+json;charset=utf-8;version=v1", endpoint)
+	contentTypeHeader := fmt.Sprintf("application/vnd.dcos.service.%s-request+json;charset=utf-8;version=v1", endpoint)
+	return createHTTPRawRequest(method, createCosmosURL(urlPath), jsonPayload, acceptHeader, contentTypeHeader)
 }
 
-func createURL(urlPath, urlQuery string) *url.URL {
+func createHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
+	return createHTTPURLRequest(method, url, payload, accept, contentType)
+}
+
+func getDCOSURL() {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosUrl) == 0 {
 		config.DcosUrl = RequiredCLIConfigValue(
@@ -182,16 +228,41 @@ func createURL(urlPath, urlQuery string) *url.URL {
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
 	config.DcosUrl = strings.TrimRight(config.DcosUrl, "#/")
-	parsedUrl, err := url.Parse(config.DcosUrl)
+}
+
+func createServiceURL(urlPath, urlQuery string) *url.URL {
+	getDCOSURL()
+	joinedURLPath := path.Join("service", config.ServiceName, urlPath)
+	return createURL(config.DcosUrl, joinedURLPath, urlQuery)
+}
+
+func createCosmosURL(urlPath string) *url.URL {
+	// Try to fetch the Cosmos URL from the system configuration
+	if len(config.CosmosUrl) == 0 {
+		config.CosmosUrl = OptionalCLIConfigValue("package.cosmos_url")
+	}
+
+	// Use Cosmos URL if we have it specified
+	if len(config.CosmosUrl) > 0 {
+		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
+		return createURL(config.CosmosUrl, joinedURLPath, "")
+	}
+	getDCOSURL()
+	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
+	return createURL(config.DcosUrl, joinedURLPath, "")
+}
+
+func createURL(baseURL, urlPath, urlQuery string) *url.URL {
+	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
 	}
-	parsedUrl.Path = path.Join("service", config.ServiceName, urlPath)
-	parsedUrl.RawQuery = urlQuery
-	return parsedUrl
+	parsedURL.Path = urlPath
+	parsedURL.RawQuery = urlQuery
+	return parsedURL
 }
 
-func createHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
+func createHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	if config.Verbose {
 		log.Printf("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
@@ -209,6 +280,9 @@ func createHTTPURLRequest(method string, url *url.URL, payload, contentType stri
 	}
 	if len(config.DcosAuthToken) != 0 {
 		request.Header.Set("Authorization", fmt.Sprintf("token=%s", config.DcosAuthToken))
+	}
+	if len(accept) != 0 {
+		request.Header.Set("Accept", accept)
 	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -13,19 +14,19 @@ type StateHandler struct {
 }
 
 func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPGet("v1/state/frameworkId"))
+	client.PrintJSON(client.HTTPServiceGet("v1/state/frameworkId"))
 	return nil
 }
 func (cmd *StateHandler) RunProperties(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPGet("v1/state/properties"))
+	client.PrintJSON(client.HTTPServiceGet("v1/state/properties"))
 	return nil
 }
 func (cmd *StateHandler) RunProperty(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
+	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
 	return nil
 }
 func (cmd *StateHandler) RunRefreshCache(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPPut("v1/state/refresh"))
+	client.PrintJSON(client.HTTPServicePut("v1/state/refresh"))
 	return nil
 }
 
@@ -34,7 +35,7 @@ func HandleStateSection(app *kingpin.Application) {
 	cmd := &StateHandler{}
 	state := app.Command("state", "View persisted state")
 
-	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.RunFrameworkId)
+	state.Command("framework_id", "Display the Mesos framework ID").Action(cmd.RunFrameworkId)
 
 	state.Command("properties", "List names of all custom properties").Action(cmd.RunProperties)
 

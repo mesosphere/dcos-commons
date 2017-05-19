@@ -10,8 +10,8 @@ import (
 	"os"
 )
 
-func PrintText(response *http.Response) {
-	fmt.Fprintf(os.Stdout, "%s\n", GetResponseText(response))
+func PrintText(text string) {
+	fmt.Fprintf(os.Stdout, "%s\n", text)
 }
 
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {
@@ -20,8 +20,13 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 	if err != nil {
 		// Be permissive of malformed json, such as character codes in strings that are unknown to
 		// Go's json: Warn in stderr, then print original to stdout.
-		log.Printf("Failed to prettify JSON response data from %s %s query: %s",
-			request.Method, request.URL, err)
+		if request != nil {
+			log.Printf("Failed to prettify JSON response data from %s %s query: %s",
+				request.Method, request.URL, err)
+		} else {
+			log.Printf("Failed to prettify JSON response data: %s", err)
+		}
+
 		log.Printf("Original data follows:")
 		outBuf = *bytes.NewBuffer(responseBytes)
 	}
@@ -31,6 +36,10 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 
 func PrintJSON(response *http.Response) {
 	PrintJSONBytes(GetResponseBytes(response), response.Request)
+}
+
+func PrintResponseText(response *http.Response) {
+	PrintText(GetResponseText(response))
 }
 
 func GetResponseText(response *http.Response) string {
