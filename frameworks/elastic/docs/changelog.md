@@ -11,7 +11,7 @@ enterprise: 'no'
 
 ### Breaking Changes
 
-- Kibana has been removed, along with the proxylite helper service. 
+- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](connecting.md)' section for instructions on how to provision and connect Kibana on DC/OS. 
 
 ### Improvements/Features
 

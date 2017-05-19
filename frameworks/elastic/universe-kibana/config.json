@@ -10,20 +10,10 @@
           "type": "string",
           "default": "kibana"
         },
-        "secret_name": {
-          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type": "string",
-          "default": ""
-        },
         "user": {
           "description": "The user that runs the Kibana services and owns the Mesos sandbox.",
           "type": "string",
           "default": "nobody"
-        },
-        "principal": {
-          "description": "The principal for the Kibana service instance.",
-          "type": "string",
-          "default": ""
         }
       },
       "required": [
