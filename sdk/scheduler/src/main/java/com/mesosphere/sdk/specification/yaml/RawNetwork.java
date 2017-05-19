@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Raw YAML network. Null class for now, since only network name is supported, but will gain fields in the future.
@@ -12,23 +13,20 @@ import java.util.List;
 public class RawNetwork {
     private final List<Integer> hostPorts;
     private final List<Integer> containerPorts;
-    private final List<String> netgroups;
-    private final List<String> ipAddresses;
+    private final Map<String, String> labels;
 
     @JsonCreator
     private RawNetwork(
-            @JsonProperty("groups") List<String> netgroups,
             @JsonProperty("host-ports") List<Integer> hostPorts,
             @JsonProperty("container-ports") List<Integer> containerPorts,
-            @JsonProperty("ip-addresses") List<String> ipAddresses) {
-        this.hostPorts      = hostPorts;
+            @JsonProperty("labels") Map<String, String> labels) {
+        this.hostPorts = hostPorts;
         this.containerPorts = containerPorts;
-        this.netgroups      = netgroups;
-        this.ipAddresses    = ipAddresses;
+        this.labels = labels;
     }
 
     private RawNetwork(String name) {
-        this(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        this(Collections.emptyList(), Collections.emptyList(), Collections.emptyMap());
     }
 
     public List<Integer> getHostPorts() {
@@ -50,12 +48,9 @@ public class RawNetwork {
         return hostPorts.size();
     }
 
-    public List<String> getNetgroups() {
-        return netgroups;
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
-    public List<String> getIpAddresses() {
-        return ipAddresses;
-    }
 }
 

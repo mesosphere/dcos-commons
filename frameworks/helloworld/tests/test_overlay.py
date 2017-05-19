@@ -40,13 +40,13 @@ def test_overlay_network():
                     if on_overlay:
                         assert "name" in network_info, \
                             "Didn't find network name in NetworkInfo for task {task} with "\
-                            "status {status}".format(task=task_name, status=status)
+                            "status:{status}".format(task=task_name, status=status)
                         assert network_info["name"] == expected_network_name, \
-                            "Expected network name {expected} found {observed}"\
+                            "Expected network name:{expected} found:{observed}"\
                             .format(expected=expected_network_name, observed=network_info["name"])
                     else:
                         assert "name" not in network_info, \
-                            "Task {task} has network name when it shouldn't has status {status}"\
+                            "Task {task} has network name when it shouldn't has status:{status}"\
                             .format(task=task_name, status=status)
 
     plan.wait_for_completed_deployment(PACKAGE_NAME)

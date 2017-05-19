@@ -32,7 +32,7 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 9);
     }
 
-    public boolean supportCniPortMapping() throws IOException {
+    public boolean supportsCNINetworking() throws IOException {
         // CNI port-mapping is supported by DC/OS 1.10 upwards
         return hasOrExceedsVersion(1, 9);
     }

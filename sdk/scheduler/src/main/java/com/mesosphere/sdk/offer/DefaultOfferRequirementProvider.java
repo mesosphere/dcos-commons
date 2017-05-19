@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -12,6 +13,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.sun.nio.sctp.IllegalReceiveException;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.slf4j.Logger;
@@ -615,8 +617,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
-        /*
-        if (!networkSpec.getPortMappings().isEmpty()) {
+
+        if (!networkSpec.getPortMappings().isEmpty() &&
+                DcosConstants.networkSupportsPortMapping(networkSpec.getName())) {
+            // we double check the availability of port mapping here in case the service spec was made in
+            // pure java instead of YAML
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
                 Integer hostPort = e.getKey();
                 Integer containerPort = e.getValue();
@@ -624,32 +629,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
-                        .setProtocol("tcp")
+                        .setProtocol("tcp")  // TODO(arand) check that this is necessary
                         .build());
             }
         }
-        */
-        if (!networkSpec.getNetgroups().isEmpty()) {
-            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
-        }
 
-        if (!networkSpec.getIpAddresses().isEmpty()) {
-            for (String ipAddressString : networkSpec.getIpAddresses()) {
-                netInfoBuilder.addIpAddresses(
-                        Protos.NetworkInfo.IPAddress.newBuilder()
-                                .setIpAddress(ipAddressString)
-                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-                                .build());
-            }
+        if (!networkSpec.getLabels().isEmpty()) {
+            throw new IllegalReceiveException("Network-labels is not implemented, yet");
         }
-        //else {
-        //    LOGGER.info("Adding NONEs to NetworkInfo");
-        //    netInfoBuilder.addIpAddresses(
-        //            Protos.NetworkInfo.IPAddress.newBuilder()
-        //                .setIpAddress("None")
-        //                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-        //                .build());
-        //}
 
         return netInfoBuilder.build();
     }

@@ -5,7 +5,7 @@ pods:
     # Define network under container the "legacy" way.
     container:
       networks:
-        test:
+        dcos:
     tasks:
       server:
         goal: RUNNING

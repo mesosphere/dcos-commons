@@ -14,6 +14,9 @@ pods:
       hello-resource:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
+        ports:
+          test:
+            port: 4045
     tasks:
       server:
         goal: RUNNING

@@ -9,7 +9,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Default implementation of {@link NetworkSpec}. This class encapsulates the Container Network Interface
@@ -17,31 +16,26 @@ import java.util.Set;
  */
 public class DefaultNetworkSpec implements NetworkSpec {
     @Valid
-    private String networkName;
-
-    @Valid
-    private Set<String> netgroups;
+    private String networkName;  // name of the network to join, checked against supported networks
 
     @Valid
     private Map<Integer, Integer> portMappings;  // key: host port, value: container port
 
     @Valid
-    private Set<String> ipAddresses;  // container requests for specific IP addresses
+    private Map<String, String> labels;  // user-defined K/V pairs passed to CNI plugin
 
     @JsonCreator
     public DefaultNetworkSpec(
             @JsonProperty("network-name") String networkName,
-            @JsonProperty("netgroups") Set<String> netgroups,
             @JsonProperty("port-mappings") Map<Integer, Integer> portMappings,
-            @JsonProperty("ip-addresses") Set<String> ipAddresses) {
+            @JsonProperty("network-labels") Map<String, String> labels) {
         this.networkName = networkName;
-        this.netgroups = netgroups == null ? Collections.emptySet() : netgroups;
         this.portMappings = portMappings == null ? Collections.emptyMap() : portMappings;
-        this.ipAddresses = ipAddresses == null ? Collections.emptySet() : ipAddresses;
+        this.labels = labels == null ? Collections.emptyMap() : labels;
     }
 
     private DefaultNetworkSpec(Builder builder) {
-        this(builder.networkName, builder.netgroups, builder.portMap, builder.ipAddresses);
+        this(builder.networkName,  builder.portMap, builder.labels);
         ValidationUtils.validate(this);
     }
 
@@ -52,9 +46,8 @@ public class DefaultNetworkSpec implements NetworkSpec {
     public static Builder newBuilder(NetworkSpec copy) {
         Builder builder = new Builder();
         builder.networkName = copy.getName();
-        builder.netgroups = copy.getNetgroups();
         builder.portMap = copy.getPortMappings();
-        builder.ipAddresses = copy.getIpAddresses();
+        builder.labels = copy.getLabels();
 
         return builder;
     }
@@ -65,18 +58,13 @@ public class DefaultNetworkSpec implements NetworkSpec {
     }
 
     @Override
-    public Set<String> getNetgroups() {
-        return netgroups;
-    }
-
-    @Override
-    public Set<String> getIpAddresses() {
-        return ipAddresses;
-    }
-
-    @Override
     public Map<Integer, Integer> getPortMappings() {
         return portMappings;
+    }
+
+    @Override
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
     @Override
@@ -89,14 +77,18 @@ public class DefaultNetworkSpec implements NetworkSpec {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
+    @Override
+    public String toString() {
+        return String.format("Network %s", getName());
+    }
+
     /**
      * {@code DefaultNetworkSpec} builder static inner class.
      */
     public static final class Builder {
-        private Map<Integer, Integer> portMap;
         private String networkName;
-        private Set<String> netgroups;
-        private Set<String> ipAddresses;
+        private Map<Integer, Integer> portMap;
+        private Map<String, String> labels;
 
         private Builder() { }
 
@@ -107,18 +99,6 @@ public class DefaultNetworkSpec implements NetworkSpec {
          */
         public Builder networkName(String networkName) {
             this.networkName = networkName;
-            return this;
-        }
-
-        /**
-         * Sets the netgroups mappings.
-         *
-         * @param netgroups a set of netgroups (identifiers), only containers sharing netgroups will be allowed to
-         *                  communicate with each other.
-         * @return a reference to this builder
-         */
-        public Builder netgroups(Set<String> netgroups) {
-            this.netgroups = netgroups;
             return this;
         }
 
@@ -134,13 +114,13 @@ public class DefaultNetworkSpec implements NetworkSpec {
         }
 
         /**
-         * Sets the IP/Container addresses that this network is going to request.
+         * Sets the network-labels, which are K/V pairs passed to the CNI plugin.
          *
-         * @param ipAddresses list of IP addresses for the container to request
-         * @return a reference to this builder
+         * @param labels Key/Value mappings to pass to CNI plugin
+         * @return A reference to this builder
          */
-        public Builder ipAddresses(Set<String> ipAddresses) {
-            this.ipAddresses = ipAddresses;
+        public Builder networkLabels(Map<String, String> labels) {
+            this.labels = labels;
             return this;
         }
 

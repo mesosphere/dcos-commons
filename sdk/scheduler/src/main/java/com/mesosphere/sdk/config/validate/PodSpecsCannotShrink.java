@@ -2,6 +2,7 @@ package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import javafx.util.Pair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,20 +15,12 @@ public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
 
     @Override
     public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
-        List<ConfigValidationError> errors = new ArrayList<>();
-        if (nullableOldConfig == null) {
-            // No sizes to compare.
-            return errors;
-        }
+        Pair<List<ConfigValidationError>, Map<String, PodSpec>> pair = validateInitialConfigs(nullableOldConfig,
+                newConfig);
+        List<ConfigValidationError> errors = pair.getKey();
+        Map<String, PodSpec> newPods = pair.getValue();
 
-        Map<String, PodSpec> newPods;
-        try {
-            newPods = newConfig.getPods().stream()
-                    .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
-        } catch (IllegalStateException e) {
-            errors.add(ConfigValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
-            return errors;
-        }
+        if (newPods.isEmpty()) return errors;
 
         // Check for PodSpecs in the old config which are missing or smaller in the new config.
         // Adding new PodSpecs or increasing the size of tasksets are allowed.

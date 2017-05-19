@@ -1,8 +1,13 @@
 package com.mesosphere.sdk.config.validate;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.config.Configuration;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.Service;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import javafx.util.Pair;
 
 /**
  * The {@code ConfigurationValidation} interface should be implemented by any class which intends to
@@ -26,4 +31,24 @@ public interface ConfigValidator<C extends Configuration> {
      * @return List of errors, or an empty list if validation passed
      */
     Collection<ConfigValidationError> validate(C nullableOldConfig, C newConfig);
+
+    default Pair<List<ConfigValidationError>, Map<String, PodSpec>> validateInitialConfigs(
+            ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
+        List<ConfigValidationError> errors = new ArrayList<>();
+        if (nullableOldConfig == null) {
+            // No sizes to compare.
+            return new Pair<>(errors, Collections.emptyMap());
+        }
+
+        Map<String, PodSpec> newPods;
+        try {
+            newPods = newConfig.getPods().stream()
+                    .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+        } catch (IllegalStateException e) {
+            errors.add(ConfigValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
+            return new Pair<>(errors, Collections.emptyMap());
+        }
+
+        return new Pair<>(errors, newPods);
+    }
 }
