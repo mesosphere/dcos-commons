@@ -527,8 +527,8 @@ def _setup_strict(framework, cluster, repo_root):
         custom_env['CLUSTER_URL'] = cluster.url
         custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
-        for script_num in (1, 2):
-            role_arg = '%s%s-role' % (framework.name, script_num)
+        for role_base in (framework.name, framework.name + "2"):
+            role_arg = '%s-role' % role_base
             cmd_args = [perm_setup_script, 'root', role_arg]
 
             completed_cmd = subprocess.run(cmd_args, env=custom_env)
