@@ -44,7 +44,7 @@
         "elasticsearch_url": {
           "description": "The URL of the Elasticsearch cluster to use for all your queries.",
           "type": "string",
-          "default": "coordinator.elastic.l4lb.thisdcos.directory:9200"
+          "default": "http://coordinator.elastic.l4lb.thisdcos.directory:9200"
         },
         "user": {
           "description": "kibana username to use for X-Pack authentication, if enabled",

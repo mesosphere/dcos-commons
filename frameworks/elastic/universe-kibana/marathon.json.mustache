@@ -3,16 +3,15 @@
   "cpus": 0.5,
   "mem": 2048,
   "instances": 1,
-  "cmd": "$MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
+  "cmd": "if [ \"$XPACK_ENABLED\" = true ]; then echo 'Installing X-Pack plugin...'; $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-$ELASTIC_VERSION.zip; fi; echo -e \"elasticsearch.url: $ELASTICSEARCH_URL\nelasticsearch.username: $KIBANA_USER\nelasticsearch.password: $KIBANA_PASSWORD\nserver.host: 0.0.0.0\nserver.port: $PORT_KIBANA\nxpack.security.encryptionKey: $MESOS_FRAMEWORK_ID\nxpack.reporting.encryptionKey: $MESOS_FRAMEWORK_ID\" > $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml; env && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
   "env": {
     "ELASTIC_VERSION": "{{elastic-version}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
-    "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
     "XPACK_ENABLED": "{{kibana.xpack_enabled}}",
-    "KIBANA_HEALTH_USER": "{{kibana.user}}",
     "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
-    "KIBANA_HEALTH_USER_PASSWORD": "{{kibana.user_password}}"
+    "KIBANA_USER": "{{kibana.user}}",
+    "KIBANA_PASSWORD": "{{kibana.password}}"
   },
   "uris": [
     "{{resource.assets.uris.kibana-tar-gz}}",
@@ -27,7 +26,7 @@
       "port": 0,
       "protocol": "tcp",
       "name": "kibana",
-      "labels": { "VIP_0": "/kibana.{{service.name}}:80" }
+      "labels": { "VIP_0": "/web.{{service.name}}:80" }
     }
   ]
 }
