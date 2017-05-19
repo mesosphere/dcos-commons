@@ -20,7 +20,9 @@ public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
         List<ConfigValidationError> errors = pair.getKey();
         Map<String, PodSpec> newPods = pair.getValue();
 
-        if (newPods.isEmpty()) return errors;
+        if (newPods.isEmpty()) {
+            return errors;
+        }
 
         // Check for PodSpecs in the old config which are missing or smaller in the new config.
         // Adding new PodSpecs or increasing the size of tasksets are allowed.
