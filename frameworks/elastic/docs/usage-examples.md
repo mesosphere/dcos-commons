@@ -1,5 +1,5 @@
 ---
-post_title: Usage Example 
+post_title: Usage Example
 menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
@@ -9,7 +9,7 @@ enterprise: 'no'
 	**Note:** Your DC/OS cluster must have at least 3 private agent nodes.
 
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
-	
+
 	```bash
 	$ dcos elastic plan show deploy
 	```
@@ -19,9 +19,9 @@ enterprise: 'no'
     ```bash
     dcos node ssh --master-proxy --leader
     ```
-        
+
 1. Retrieve client endpoint information by running the `endpoints` command:
-        
+
         $ dcos elastic endpoints coordinator
         {
             "vips": [
@@ -55,7 +55,7 @@ enterprise: 'no'
         {
             "name": "John Doe"
         }'
-        
+
 1. Retrieve data from your indice:
 
         $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'

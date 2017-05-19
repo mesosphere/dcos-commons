@@ -1,5 +1,5 @@
 ---
-post_title: Usage Example 
+post_title: Usage Example
 menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
