@@ -16,71 +16,71 @@ import (
 )
 
 func HTTPServiceGet(urlPath string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
 }
 
 func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
 func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
 func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
 func HTTPServiceDelete(urlPath string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
 }
 
 func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 
 func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
 }
 
 func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
 }
 
 func HTTPServicePost(urlPath string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
 }
 
 func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
 }
 
 func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
 
 func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 func HTTPServicePut(urlPath string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
 }
 
 func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 
 func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
 }
 
 func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
 func httpQuery(request *http.Request) *http.Response {
@@ -152,7 +152,27 @@ func httpQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func checkHTTPResponse(response *http.Response) *http.Response {
+func checkCosmosHTTPResponse(response *http.Response) *http.Response {
+	switch {
+	case response.StatusCode == 401:
+		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
+		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
+	case response.StatusCode == 404:
+		log.Printf("HTTP %s Query for %s failed: %s", response.Request.Method, response.Request.URL, response.Status)
+		log.Fatalf("Package management commands require Enterprise DC/OS 1.10 or later.")
+	case response.StatusCode == 500:
+		log.Printf("HTTP %s Query for %s failed: %s",
+			response.Request.Method, response.Request.URL, response.Status)
+		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+	case response.StatusCode < 200 || response.StatusCode >= 300:
+		log.Fatalf("HTTP %s Query for %s failed: %s",
+			response.Request.Method, response.Request.URL, response.Status)
+	}
+	return response
+}
+
+func checkServiceHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
