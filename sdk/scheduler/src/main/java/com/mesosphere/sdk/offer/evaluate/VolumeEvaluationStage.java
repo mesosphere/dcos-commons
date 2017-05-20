@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.slf4j.Logger;
@@ -20,39 +21,47 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  */
 public class VolumeEvaluationStage extends ResourceEvaluationStage {
     private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
-    private final String containerPath;
-    private final VolumeRequirement volumeRequirement;
+    private final VolumeSpec volumeSpec;
+    private final Optional<String> persistenceId;
 
-    public VolumeEvaluationStage(VolumeRequirement volumeRequirement, String taskName, String containerPath) {
-        super(volumeRequirement, taskName);
-        this.volumeRequirement = volumeRequirement;
-        this.containerPath = containerPath;
+    public VolumeEvaluationStage(
+            VolumeSpec volumeSpec,
+            String taskName,
+            Optional<String> resourceId,
+            Optional<String> persistenceId) {
+        super(volumeSpec, resourceId, taskName);
+        this.volumeSpec = volumeSpec;
+        this.persistenceId = persistenceId;
+    }
+
+    private boolean createsVolume() {
+        return !persistenceId.isPresent();
     }
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        Optional<MesosResource> mesosResourceOptional = volumeRequirement.satisfy(mesosResourcePool);
+        Optional<MesosResource> mesosResourceOptional = consume(volumeSpec, mesosResourcePool);
 
         if (!mesosResourceOptional.isPresent()) {
-            return fail(this, "Insufficient resources for disk for volume '%s'", containerPath);
+            return fail(this, "Insufficient resources for disk for volume '%s'", volumeSpec.getContainerPath());
         }
 
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
-        Resource fulfilledResource = getFulfilledResource(volumeRequirement, mesosResourceOptional.get());
+        Resource fulfilledResource = getFulfilledResource(volumeSpec, mesosResourceOptional.get());
 
-        if (volumeRequirement.reservesResource()) {
-            logger.info("    Resource '{}' requires a RESERVE operation", volumeRequirement.getName());
+        if (reservesResource()) {
+            logger.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
             offerRecommendations.add(
                     new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
-        if (volumeRequirement.createsVolume()) {
-            logger.info("    Resource '{}' requires a CREATE operation", volumeRequirement.getName());
+        if (createsVolume()) {
+            logger.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
         logger.info("  Generated '{}' resource for task: [{}]",
-                volumeRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
+                volumeSpec.getName(), TextFormat.shortDebugString(fulfilledResource));
 
         setProtos(podInfoBuilder, fulfilledResource);
 
@@ -60,16 +69,16 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
                 this,
                 offerRecommendations,
                 "Satisfied requirements for %s volume '%s'",
-                volumeRequirement.getDiskType(),
-                containerPath);
+                volumeSpec.getType(),
+                volumeSpec.getContainerPath());
     }
 
-    protected Resource getFulfilledResource(VolumeRequirement volumeRequirement, MesosResource mesosResource) {
+    protected Resource getFulfilledResource(VolumeSpec volumeSpec, MesosResource mesosResource) {
         // TODO: Correctly generate fulfilled resource
-        Resource.Builder builder = super.getFulfilledResource(volumeRequirement).toBuilder();
-        String persistenceId = volumeRequirement.createsVolume() ?
+        Resource.Builder builder = super.getFulfilledResource().toBuilder();
+        String persistenceId = createsVolume() ?
                 UUID.randomUUID().toString() :
-                volumeRequirement.getPersistenceId();
+                this.persistenceId.get();
         DiskInfo diskInfo = builder.getDisk().toBuilder()
                 .setPersistence(DiskInfo.Persistence.newBuilder()
                         .setId(persistenceId))

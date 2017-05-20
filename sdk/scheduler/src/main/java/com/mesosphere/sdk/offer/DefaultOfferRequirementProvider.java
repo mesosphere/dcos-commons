@@ -208,15 +208,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                 Function.identity()));
 
         List<ResourceRequirement> resourceRequirements = new ArrayList<>();
-
-        for (ResourceSpec r : resourceSet.getResources()) {
-            resourceRequirements.add(r.getResourceRequirement(resourceMap.get(r.getName())));
-        }
-
-        for (VolumeSpec v : resourceSet.getVolumes()) {
-            resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
-        }
-
         return resourceRequirements;
     }
 
@@ -246,13 +237,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .collect(Collectors.toMap(r -> r.getDisk().getVolume().getContainerPath(), Function.identity())));
         }
 
-        List<ResourceRequirement> resourceRequirements = new ArrayList<>();
-        for (VolumeSpec v : podInstance.getPod().getVolumes()) {
-            resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
-        }
-
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return ExecutorRequirement.createNewExecutorRequirement(podInstance.getName(), resourceRequirements);
+        return ExecutorRequirement.createNewExecutorRequirement(podInstance.getName(), null);
     }
 
     private static Protos.TaskInfo getNewTaskInfo(

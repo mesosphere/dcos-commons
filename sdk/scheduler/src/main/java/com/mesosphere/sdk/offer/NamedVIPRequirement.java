@@ -53,16 +53,7 @@ public class NamedVIPRequirement extends PortRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new NamedVIPEvaluationStage(
-                this,
-                taskName,
-                getPortName(),
-                getPort(),
-                getEnvKey(),
-                getProtocol(),
-                getVisibility(),
-                getVipName(),
-                getVipPort());
+        return null;
     }
 
     public static class Builder extends PortRequirement.Builder {

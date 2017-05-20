@@ -6,6 +6,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by gabriel on 5/18/17.
@@ -17,7 +18,9 @@ public class PodInstanceRequirementTestUtils {
 
     public static PodInstanceRequirement getCpuRequirement(double value, int index) {
         PodInstance podInstance = getCpuPodInstance(value, index);
-        List<String> taskNames = TaskUtils.getTaskNames(podInstance);
+        List<String> taskNames = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
         return PodInstanceRequirement.newBuilder(getCpuPodInstance(value, index), taskNames).build();
     }
 

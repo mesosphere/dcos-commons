@@ -3,17 +3,22 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
-import org.apache.mesos.Protos.*;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,9 +54,8 @@ public class OfferEvaluator {
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
 
-        OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
         for (int i = 0; i < offers.size(); ++i) {
-            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
+            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement);
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
@@ -97,10 +101,7 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
-    public List<OfferEvaluationStage> getEvaluationPipeline(
-            PodInstanceRequirement podInstanceRequirement,
-            OfferRequirement offerRequirement) {
-
+    public List<OfferEvaluationStage> getEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationPipeline.add(new PlacementRuleEvaluationStage(
@@ -108,42 +109,7 @@ public class OfferEvaluator {
                     podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
-        if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
-            ExecutorRequirement executorRequirement = offerRequirement.getExecutorRequirementOptional().get();
-
-            // We don't want to re-reserve resources for an already-running executor.
-            if (!executorRequirement.isRunningExecutor()) {
-                for (ResourceRequirement r : executorRequirement.getResourceRequirements()) {
-                    evaluationPipeline.add(r.getEvaluationStage(null));
-                }
-            }
-            evaluationPipeline.add(executorRequirement.getEvaluationStage());
-        } else {
-            evaluationPipeline.add(new ExecutorEvaluationStage());
-        }
-
-        for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-            String taskName = taskRequirement.getName();
-            for (ResourceRequirement r : taskRequirement.getResourceRequirements()) {
-                evaluationPipeline.add(r.getEvaluationStage(taskName));
-            }
-
-            evaluationPipeline.add(taskRequirement.getEvaluationStage(taskName));
-        }
-        evaluationPipeline.add(new ReservationEvaluationStage(offerRequirement.getResourceIds()));
-
-        return evaluationPipeline;
-    }
-
-    private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
-        stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
-        for (EvaluationOutcome child : outcome.getChildren()) {
-            logOutcome(stringBuilder, child, indent + "  ");
-        }
-    }
-
-    private OfferRequirement getOfferRequirement(PodInstanceRequirement podInstanceRequirement)
-            throws InvalidRequirementException {
+        // TODO: Replace Executor Evaluation
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noTasksExist = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
@@ -169,14 +135,92 @@ public class OfferEvaluator {
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
 
-        OfferRequirement offerRequirement = null;
         if (shouldGetNewRequirement) {
-            offerRequirement = offerRequirementProvider.getNewOfferRequirement(podInstanceRequirement);
+            evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement));
         } else {
-            offerRequirement = offerRequirementProvider.getExistingOfferRequirement(podInstanceRequirement);
+            evaluationPipeline.addAll(getExistingEvaluationPipeline(podInstanceRequirement));
         }
 
-        logger.debug("OfferRequirement: {}", offerRequirement);
-        return offerRequirement;
+        return evaluationPipeline;
+    }
+
+    private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
+        stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
+        for (EvaluationOutcome child : outcome.getChildren()) {
+            logOutcome(stringBuilder, child, indent + "  ");
+        }
+    }
+
+    private List<OfferEvaluationStage> getNewEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
+        Map<ResourceSet, String> resourceSets = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .collect(Collectors.toMap(TaskSpec::getResourceSet, TaskSpec::getName));
+
+        List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        for (Map.Entry<ResourceSet, String> entry : resourceSets.entrySet()) {
+            String taskName = entry.getValue();
+            for (ResourceSpec resourceSpec : entry.getKey().getResources()) {
+                evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
+            }
+            // TODO: Volume evaluation goes here
+
+            evaluationStages.add(new LaunchEvaluationStage(taskName));
+        }
+
+        return  evaluationStages;
+    }
+
+    private List<OfferEvaluationStage> getExistingEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
+        List<OfferEvaluationStage> offerEvaluationStages = new ArrayList<>();
+        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
+
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            if (tasksToLaunch.contains(taskSpec.getName())) {
+                taskSpecs.add(taskSpec);
+            }
+        }
+        /*
+        List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .filter(name -> podInstanceRequirement.getTasksToLaunch().contains(name))
+                .collect(Collectors.toList());
+                */
+
+        for (TaskSpec taskSpec : taskSpecs) {
+            String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
+            Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskInfoName);
+            if (!taskInfo.isPresent()) {
+                logger.error(String.format("Failed to fetch task %s.  Cannot generate resource map.", taskInfoName));
+                return Collections.emptyList();
+            }
+
+            Map<ResourceSpec, String> resourceSpecStringMap = getResourceSpecIdMap(taskInfo.get(), taskSpec);
+            for (Map.Entry<ResourceSpec, String> entry : resourceSpecStringMap.entrySet()) {
+                offerEvaluationStages.add(
+                        new ResourceEvaluationStage(
+                                entry.getKey(), // ResourceSpec
+                                Optional.of(entry.getValue()), // ResourceID
+                                taskSpec.getName())); // Task name
+            }
+
+            offerEvaluationStages.add(new LaunchEvaluationStage(taskSpec.getName()));
+        }
+
+        return offerEvaluationStages;
+    }
+
+    private Map<ResourceSpec, String> getResourceSpecIdMap(Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
+        Map<String, Protos.Resource> resourceMap = taskInfo.getResourcesList().stream()
+                .collect(Collectors.toMap(Protos.Resource::getName, Function.identity()));
+
+        Map<ResourceSpec, String> resourceSpecStringMap = new HashMap<>();
+        ResourceSet resourceSet = taskSpec.getResourceSet();
+        for (ResourceSpec resourceSpec : resourceSet.getResources()) {
+            resourceSpecStringMap.put(
+                    resourceSpec,
+                    ResourceUtils.getResourceId(
+                            resourceMap.get(resourceSpec.getName())));
+        }
+
+        return resourceSpecStringMap;
     }
 }

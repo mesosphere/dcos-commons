@@ -83,24 +83,4 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         builder.getScalarBuilder().setValue(value);
         return builder.build();
     }
-
-    @Override
-    public VolumeRequirement getResourceRequirement(Protos.Resource resource) {
-        if (resource != null) {
-            return VolumeRequirement.newBuilder(resource).build();
-        }
-
-        switch (getType()) {
-            case ROOT:
-                return VolumeRequirement.newBuilder(getRole(), getValue(), getContainerPath())
-                        .diskType(Constants.ROOT_DISK_TYPE)
-                        .build();
-            case MOUNT:
-                return VolumeRequirement.newBuilder(getRole(), getValue(), getContainerPath())
-                        .diskType(Constants.MOUNT_DISK_TYPE)
-                        .build();
-            default:
-                throw new IllegalArgumentException(String.format("Can't handle unknown disk type, %s", getType()));
-        }
-    }
 }

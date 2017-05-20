@@ -724,21 +724,39 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(getFirstLabel(reserveResource).getValue(), getFirstLabel(launchResource).getValue());
     }
 
-    /*
     @Test
     public void testLaunchExpectedScalar() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
+        // Launch for the first time.
+        Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        // TODO: Store expected TaskInfo in StateStore so OfferEvaluator generates right OfferRequirement internally
-        Resource expectedScalar = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+        String resourceId = getFirstLabel(reserveResource).getValue();
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again on expected resources.
+        Resource expectedScalar = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+
+        recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedScalar))));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(0).getOperation();
+        launchOperation = recommendations.get(0).getOperation();
         Resource launchResource =
             launchOperation
             .getLaunch()
@@ -751,6 +769,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
+    /*
     @Test
     public void testLaunchAttributesEmbedded() throws Exception {
         String resourceId = UUID.randomUUID().toString();

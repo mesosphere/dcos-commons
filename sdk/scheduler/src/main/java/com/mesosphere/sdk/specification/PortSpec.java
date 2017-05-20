@@ -48,15 +48,6 @@ public class PortSpec extends DefaultResourceSpec {
     }
 
     @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        if (resource != null) {
-            return PortRequirement.newBuilder(resource, portName).build();
-        }
-
-        return PortRequirement.newBuilder(getRole(), (int) getValue().getScalar().getValue(), portName).build();
-    }
-
-    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }

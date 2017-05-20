@@ -38,7 +38,7 @@ public class ResourceRequirement implements MesosRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new ResourceEvaluationStage(this, taskName);
+        return null;
     }
 
     @Override

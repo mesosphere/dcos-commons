@@ -4,15 +4,13 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 
+import com.mesosphere.sdk.specification.PortSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.IntStream;
 
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 
@@ -27,19 +25,20 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     private final String portName;
     private final Optional<String> customEnvKey;
-    private final PortRequirement portRequirement;
+    private final PortSpec portSpec;
     private String resourceId;
 
     protected final long port;
 
     public PortEvaluationStage(
-            PortRequirement portRequirement,
+            PortSpec portSpec,
             String taskName,
             String portName,
             long port,
-            Optional<String> customEnvKey) {
-        super(portRequirement, taskName);
-        this.portRequirement = portRequirement;
+            Optional<String> customEnvKey,
+            Optional<String> resourceId) {
+        super(portSpec, resourceId, taskName);
+        this.portSpec = portSpec;
         this.portName = portName;
         this.port = port;
         this.customEnvKey = customEnvKey;
@@ -120,8 +119,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     }
 
     @Override
-    protected Protos.Resource getFulfilledResource(ResourceRequirement resourceRequirement) {
-        Protos.Resource reservedResource = super.getFulfilledResource(resourceRequirement);
+    protected Protos.Resource getFulfilledResource() {
+        Protos.Resource reservedResource = super.getFulfilledResource();
         if (!StringUtils.isBlank(resourceId)) {
             reservedResource = ResourceUtils.setResourceId(ResourceUtils.clearResourceId(reservedResource), resourceId);
         }

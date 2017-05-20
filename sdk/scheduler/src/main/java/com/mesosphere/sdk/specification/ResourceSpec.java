@@ -27,9 +27,6 @@ public interface ResourceSpec {
     @JsonProperty("principal")
     String getPrincipal();
 
-    @JsonIgnore
-    ResourceRequirement getResourceRequirement(Protos.Resource resource);
-
     default Optional<String> getEnvKey() {
         return Optional.of(getName());
     }

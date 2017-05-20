@@ -166,7 +166,7 @@ public class MesosResourcePool {
             return Optional.of(new MesosResource(resource));
         } else {
             if (availableValue == null) {
-                logger.info("Offer lacks any resources named {}", name);
+                logger.info("Offer lacks any unreserved resources named {}", name);
             } else {
                 logger.info("Offered quantity of {} is insufficient: desired {}, offered {}",
                         name,

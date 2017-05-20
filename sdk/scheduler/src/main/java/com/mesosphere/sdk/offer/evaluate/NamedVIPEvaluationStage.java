@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 
 import java.util.Optional;
 
+import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
@@ -23,16 +24,17 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final long vipPort;
 
     public NamedVIPEvaluationStage(
-            NamedVIPRequirement namedVIPRequirement,
+            NamedVIPSpec namedVIPSpec,
             String taskName,
             String portName,
             long port,
             Optional<String> customEnvKey,
+            Optional<String> resourceId,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
             long vipPort) {
-        super(namedVIPRequirement, taskName, portName, port, customEnvKey);
+        super(namedVIPSpec, taskName, portName, port, customEnvKey, resourceId);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;

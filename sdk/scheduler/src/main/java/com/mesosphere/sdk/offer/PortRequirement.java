@@ -43,7 +43,7 @@ public class PortRequirement extends ResourceRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new PortEvaluationStage(this, taskName, getPortName(), getPort(), getEnvKey());
+        return null;
     }
 
     public static class Builder extends ResourceRequirement.Builder {

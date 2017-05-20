@@ -51,7 +51,7 @@ public class VolumeRequirement extends ResourceRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new VolumeEvaluationStage(this, taskName, containerPath);
+        return null;
     }
 
     @Override
