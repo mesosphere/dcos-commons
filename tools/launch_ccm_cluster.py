@@ -292,7 +292,7 @@ class CCMLauncher(object):
 
         if config.postlaunch_steps != 'none':
             is_enterprise = config.cf_template.startswith('ee.')
-            clustinit = configure_test_cluster.ClusterInitializer(cluster_id,
+            clustinit = configure_test_cluster.ClusterInitializer(
                     stack_id, auth_token, dns_address, is_enterprise,
                     config.security_mode)
             initmaster = True
