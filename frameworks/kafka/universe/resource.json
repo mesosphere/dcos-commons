@@ -4,7 +4,7 @@
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/bootstrap.zip",
-      "kafka-tgz": "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.1.0.tgz",
+      "kafka-tgz": "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.2.1.tgz",
       "kafka-scheduler-zip": "{{artifact-dir}}/kafka-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }

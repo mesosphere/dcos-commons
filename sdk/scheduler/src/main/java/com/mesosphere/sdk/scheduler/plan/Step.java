@@ -28,6 +28,8 @@ public interface Step extends Element, Interruptible {
      */
     Optional<PodInstanceRequirement> start();
 
+    Optional<PodInstanceRequirement> getPodInstanceRequirement();
+
     /**
      * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
      * {@link #start()} has been successfully accepted/fulfilled. The {@code recommendations} param is
@@ -41,7 +43,7 @@ public interface Step extends Element, Interruptible {
      * Return the Asset that this Step intends to work on.
      * @return The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.
      */
-    Optional<String> getAsset();
+    Optional<PodInstanceRequirement> getAsset();
 
     /**
      * Reports whether the Asset associated with this Step is dirty.
@@ -51,10 +53,10 @@ public interface Step extends Element, Interruptible {
     }
 
     @Override
-    default boolean isEligible(Collection<String> dirtyAssets) {
+    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return Element.super.isEligible(dirtyAssets) &&
                 !isInterrupted() &&
-                !(getAsset().isPresent() && dirtyAssets.contains(getAsset().get()));
+                !(getAsset().isPresent() && PlanUtils.assetConflicts(getAsset().get(), dirtyAssets));
     }
 
     /**

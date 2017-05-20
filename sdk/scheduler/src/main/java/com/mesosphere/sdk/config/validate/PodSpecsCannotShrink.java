@@ -5,7 +5,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import javafx.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Sample configuration validator which validates that a ServiceSpecification's number of PodSpecs

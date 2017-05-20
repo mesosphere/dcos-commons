@@ -13,7 +13,6 @@ def hello_task_count():
     return task_count('HELLO_COUNT')
 
 
-
 def world_task_count():
     return task_count('WORLD_COUNT')
 

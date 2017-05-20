@@ -83,7 +83,6 @@ class ClusterInitializer(object):
         #_run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
         #_run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
         #_run_script('setup_permissions.sh', 'nobody kafka-role'.split())
-        #_run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
     def _initialize_dcos_cli(self):
         logger.info("Initializing dcos config")

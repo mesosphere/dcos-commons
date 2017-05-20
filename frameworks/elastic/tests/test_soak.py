@@ -13,4 +13,5 @@ def test_soak_upgrade_downgrade():
     """
     with open('elastic.json') as options_file:
         install_options = json.load(options_file)
-    sdk_test_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT, install_options)
+    sdk_test_upgrade.soak_upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, PACKAGE_NAME,
+                                            DEFAULT_TASK_COUNT, install_options)

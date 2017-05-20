@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 
 /**
- * Given a StateStore and a PlanSpecification the DeployPlanFactory can generate a Plan.
+ * Given a PhaseFactory and a StrategyGenerator for the Phases, the DeployPlanFactory generates a Plan.
  */
 public class DeployPlanFactory implements PlanFactory {
     private final StrategyGenerator<Phase> strategyGenerator;

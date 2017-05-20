@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Interruptible;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 
 import java.util.Collection;
 
@@ -21,5 +22,5 @@ public interface Strategy<C extends Element> extends Interruptible {
      *     this call
      * @return zero or more candidates for work to be performed
      */
-    Collection<C> getCandidates(Collection<C> elements, Collection<String> dirtyAssets);
+    Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets);
 }

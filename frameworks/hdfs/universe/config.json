@@ -30,6 +30,11 @@
           "type": "string",
           "default": "parallel"
         },
+        "update_strategy": {
+          "description": "HDFS update strategy. [parallel, serial]",
+          "type": "string",
+          "default": "serial"
+        },
         "tls": {
           "type": "object",
           "description": "TLS configuration properties.",

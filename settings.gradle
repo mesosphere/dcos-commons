@@ -27,17 +27,11 @@ project(":frameworks/hdfs").name = "hdfs"
 include 'frameworks/template'
 project(":frameworks/template").name = "template"
 
-include 'frameworks/prototype'
-project(":frameworks/prototype").name = "prototype"
-
 include 'frameworks/proxylite'
 project(":frameworks/proxylite").name = "proxylite"
 
 include 'frameworks/cassandra'
 project(":frameworks/cassandra").name = "cassandra"
-
-include 'frameworks/spark'
-project(":frameworks/spark").name = "spark"
 
 include 'examples/cniexample'
 project(":examples/cniexample").name = "cniexample"

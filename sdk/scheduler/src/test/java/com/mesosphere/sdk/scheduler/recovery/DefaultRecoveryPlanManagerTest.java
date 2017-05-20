@@ -1,21 +1,22 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -23,14 +24,12 @@ import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -78,7 +77,6 @@ public class DefaultRecoveryPlanManagerTest {
     private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
 
-    private static TestingServer testingServer;
     private DefaultOfferRequirementProvider offerRequirementProvider;
 
     private static List<Offer> getOffers() {
@@ -95,26 +93,21 @@ public class DefaultRecoveryPlanManagerTest {
     @Captor
     private ArgumentCaptor<List<OfferRecommendation>> recommendationCaptor;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        CuratorTestUtils.clear(testingServer);
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
-        stateStore = new CuratorStateStore(TestConstants.SERVICE_NAME, testingServer.getConnectString());
+        Persister persister = new MemPersister();
+        stateStore = new DefaultStateStore(persister);
 
         serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
                 YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
                         .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
 
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         taskInfo = TaskInfo.newBuilder(taskInfo)
@@ -283,7 +276,10 @@ public class DefaultRecoveryPlanManagerTest {
         assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals("test-task-type-0:[test-task-name]",
-                recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
+                recoveryManager.getPlan()
+                        .getChildren().get(0)
+                        .getChildren().get(0)
+                        .getName());
         reset(mockDeployManager);
     }
 
@@ -424,5 +420,53 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
+    }
+
+    @Test
+    public void testClearCompletedPermanentFailureStep() {
+        String taskName0 = TestConstants.TASK_NAME + 0;
+        TaskSpec taskSpec0 =
+                TestPodFactory.getTaskSpec(
+                        taskName0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+        TaskSpec taskSpec1 =
+                TestPodFactory.getTaskSpec(
+                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+        PodSpec podSpec = DefaultPodSpec.newBuilder("")
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec0, taskSpec1))
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+
+        TaskInfo taskInfo0 = TaskInfo.newBuilder()
+                .setName(TaskSpec.getInstanceName(podInstance, taskSpec0))
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .build();
+        TaskInfo taskInfo1 = TaskInfo.newBuilder()
+                .setName(TaskSpec.getInstanceName(podInstance, taskSpec1))
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .build();
+        stateStore.storeTasks(Arrays.asList(taskInfo0, taskInfo1));
+
+        FailureUtils.markFailed(podInstance, stateStore);
+        assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
+
+        // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
+        // of its permanent failure mark
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(taskName0))
+                        .recoveryType(RecoveryType.PERMANENT)
+                        .build();
+        Step step = new DefaultRecoveryStep(
+                podInstance.getName(),
+                Status.COMPLETE,
+                podInstanceRequirement,
+                new UnconstrainedLaunchConstrainer(),
+                stateStore);
+
+        recoveryManager.update(step);
+        assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
     }
 }

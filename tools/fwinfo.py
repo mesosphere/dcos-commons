@@ -9,6 +9,7 @@ Specifically:
 """
 
 import collections
+import json
 import logging
 import os
 import random
@@ -26,13 +27,17 @@ def init_repo_root(repo_root):
     _repo_root=repo_root
 
 
-def add_framework(framework_name, repo_root=None):
+def add_framework(framework_name, repo_root=None, dcos_version=None):
     if not repo_root:
         repo_root=_repo_root
     logger.debug("add_framework(%s, repo_root=%s)", framework_name, repo_root)
     if get_framework(framework_name):
         raise Exception("Tried to add framework %s when it already exists")
     fwobj = FrameworkTestInfo(framework_name, repo_root)
+    if not fwobj.supports_version(dcos_version):
+        logger.info("Skipping framework %s, which does not support dcos version %s",
+                framework_name, dcos_version)
+        return None
     _framework_infos.append(fwobj)
     return fwobj
 
@@ -53,7 +58,7 @@ def have_framework(framework_name):
         return True
     return False
 
-def autodiscover_frameworks(repo_root=None):
+def autodiscover_frameworks(repo_root=None, dcos_version=None):
     if not repo_root:
         repo_root=_repo_root
     if not repo_root:
@@ -64,7 +69,7 @@ def autodiscover_frameworks(repo_root=None):
     frameworks_dir = os.path.join(repo_root, 'frameworks')
     frameworks = os.listdir(frameworks_dir)
     for framework in frameworks:
-        add_framework(framework, repo_root)
+        add_framework(framework, repo_root, dcos_version=dcos_version)
 
 def shuffle_order():
     random.shuffle(_framework_infos)
@@ -88,10 +93,32 @@ class FrameworkTestInfo(object):
         # TODO figure out what this trailing slash is for and eliminate
         self.testdir = os.path.join(self.dir, 'tests') + "/"
         self.actions = collections.OrderedDict() # succeeded and failed steps land here
+        self._determine_minimum_dcos_version()
 
     def __repr__(self):
         # <classname frameworkname>
         return "<%s %s>" % (self.__class__.__name__, self.name)
+
+    def _determine_minimum_dcos_version(self):
+        universe_package_json = os.path.join(self.dir, 'universe', 'package.json')
+        with open(universe_package_json) as f:
+            text = f.read()
+            package_info = json.loads(text)
+            # fully possible for this to return None, which is correct
+            min_dcos_version = package_info.get("minDcosReleaseVersion")
+            self.min_dcos_version = min_dcos_version
+
+    def supports_version(self, available_version):
+        """ Given an version number for a running DCOS cluster, does this
+        framework think it can run on the passed-in dcos version?"""
+        if not self.min_dcos_version or not available_version:
+            return True
+        # render versions as tuples
+        avail_tuple = available_version.split('.')
+        avail_tuple = tuple(map(int, avail_tuple))
+        minversion_tuple = self.min_dcos_version.split('.')
+        minversion_tuple = tuple(map(int, minversion_tuple))
+        return avail_tuple >= minversion_tuple
 
     def start_action(self, name):
         self.actions[name] = {'start': time.time()}

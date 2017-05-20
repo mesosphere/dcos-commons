@@ -1,32 +1,25 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.curator.CuratorUtils;
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.scheduler.*;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
-
+import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -38,14 +31,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
-    protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
-    private DefaultScheduler.Builder schedulerBuilder;
-
+    private Scheduler scheduler;
     private ServiceSpec serviceSpec;
+    private StateStore stateStore;
+    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
@@ -78,73 +70,51 @@ public class DefaultService implements Service {
     }
 
     protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
+        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
+
+        try {
+            // Use a single stateStore for either scheduler as the StateStoreCache
+            // requires a single instance of StateStore.
+            this.stateStore = schedulerBuilder.getStateStore();
+            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+                if (!StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                            "Uninstall cannot be canceled once enabled.");
+                    StateStoreUtils.setUninstalling(stateStore);
+                }
+
+                LOGGER.info("Launching UninstallScheduler...");
+                this.scheduler = new UninstallScheduler(
+                        schedulerBuilder.getServiceSpec().getApiPort(),
+                        schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                        stateStore,
+                        schedulerBuilder.getConfigStore());
+            } else {
+                if (StateStoreUtils.isUninstalling(stateStore)) {
+                    LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                            "Reenable the uninstall flag to complete the process.");
+                    SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+                }
+                this.scheduler = schedulerBuilder.build();
+            }
+        } catch (Throwable e) {
+            LOGGER.error("Failed to build scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
     }
 
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
 
-        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
-        curatorClient.start();
-
-        InterProcessMutex curatorMutex = lock(curatorClient, schedulerBuilder.getServiceSpec().getName());
+        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        locker.lock();
         try {
             register();
         } finally {
-            unlock(curatorMutex);
-            curatorClient.close();
-        }
-    }
-
-    /**
-     * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
-     * same service.
-     */
-    private static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName) {
-        return lock(curatorClient, serviceName, LOCK_PATH, LOCK_ATTEMPTS);
-    }
-
-    protected static InterProcessMutex lock(
-            CuratorFramework curatorClient,
-            String serviceName,
-            String lockPathString,
-            int lockAttempts) {
-        String rootPath = CuratorUtils.toServiceRootPath(serviceName);
-        String lockPath = CuratorUtils.join(rootPath, lockPathString);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
-
-        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
-        final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?",
-                lockPath, serviceName, serviceName);
-        try {
-            for (int i = 0; i < lockAttempts; ++i) {
-                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                    return curatorMutex;
-                }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, lockAttempts, failureLogMsg);
-            }
-            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        } catch (Exception ex) {
-            LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        }
-        return null; // not reachable, only here for a happy java
-    }
-
-    /**
-     * Releases the lock previously obtained by {@link #lock(CuratorFramework, String)}.
-     */
-    protected static void unlock(InterProcessMutex curatorMutex) {
-        try {
-            curatorMutex.release();
-        } catch (Exception ex) {
-            LOGGER.error("Error releasing ZK lock.", ex);
+            locker.unlock();
         }
     }
 
@@ -153,20 +123,25 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
-        DefaultScheduler defaultScheduler = null;
-        try {
-            defaultScheduler = schedulerBuilder.build();
-        } catch (Throwable e) {
-            LOGGER.error("Failed to build scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        if (allButStateStoreUninstalled()) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return;
         }
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
+        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        Protos.Status status = new SchedulerDriverFactory()
+                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .run();
+        // TODO(nickbp): Exit scheduler process here?
+        LOGGER.error("Scheduler driver exited with status: {}", status);
+    }
 
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-        registerAndRunFramework(
-                defaultScheduler,
-                getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
-                serviceSpec.getZookeeperConnection(),
-                schedulerBuilder.getSchedulerFlags());
+    private boolean allButStateStoreUninstalled() {
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return StateStoreUtils.isUninstalling(stateStore) &&
+                ResourceUtils.allResourcesUninstalled(stateStore.fetchTasks()) &&
+                !stateStore.fetchFrameworkId().isPresent();
     }
 
     protected ServiceSpec getServiceSpec() {
@@ -187,18 +162,6 @@ public class DefaultService implements Service {
         return false;
     }
 
-    private static void registerAndRunFramework(
-            Scheduler sched,
-            Protos.FrameworkInfo frameworkInfo,
-            String zookeeperHost,
-            SchedulerFlags schedulerFlags) {
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        Protos.Status status = new SchedulerDriverFactory().create(
-                sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost), schedulerFlags).run();
-        // TODO(nickbp): Exit scheduler process here?
-        LOGGER.error("Scheduler driver exited with status: {}", status);
-    }
-
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
     }
@@ -211,10 +174,10 @@ public class DefaultService implements Service {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                                                                     .setName(serviceName)
-                                                                     .setFailoverTimeout(failoverTimeoutSec)
-                                                                     .setUser(userString)
-                                                                     .setCheckpoint(true);
+                .setName(serviceName)
+                .setFailoverTimeout(failoverTimeoutSec)
+                .setUser(userString)
+                .setCheckpoint(true);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
@@ -237,9 +200,7 @@ public class DefaultService implements Service {
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
-        if (optionalFrameworkId.isPresent()) {
-            fwkInfoBuilder.setId(optionalFrameworkId.get());
-        }
+        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());

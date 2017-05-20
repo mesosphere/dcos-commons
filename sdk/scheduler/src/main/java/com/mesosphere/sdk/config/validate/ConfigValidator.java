@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.Service;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import javafx.util.Pair;
 

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.ResourceSpec;
+import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -487,7 +489,7 @@ public class ResourceUtils {
 
     private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
         if (!resource.hasDisk() || !resource.getDisk().hasVolume()) {
-            throw new IllegalArgumentException(String.format("Resource should have a disk with a volume."));
+            throw new IllegalArgumentException("Resource should have a disk with a volume.");
         }
 
         String resourceContainerPath = resource.getDisk().getVolume().getContainerPath();
@@ -578,6 +580,39 @@ public class ResourceUtils {
                 String.format(
                         "Task has no resource with name '%s': %s",
                         resourceName, TextFormat.shortDebugString(executorBuilder)));
+    }
+
+    /**
+     * Returns a list of all the resources associated with a task, including {@link Executor} resources.
+     * @param taskInfo The {@link Protos.TaskInfo} containing the {@link Protos.Resource}.
+     * @return a list of {@link Protos.Resource}s.
+     */
+    public static List<Protos.Resource> getAllResources(Protos.TaskInfo taskInfo) {
+        List<Resource> resources = new ArrayList<>();
+        // Get all resources from both the task level and the executor level
+        resources.addAll(taskInfo.getResourcesList());
+        if (taskInfo.hasExecutor()) {
+            resources.addAll(taskInfo.getExecutor().getResourcesList());
+        }
+        return resources;
+    }
+
+    /**
+     * Returns a list of unique resource IDs associated with {@link Protos.TaskInfo}'s.
+     * @param taskInfos Collection of taskInfos from which to extract the unique resource IDs
+     * @return List of unique resource IDs
+     */
+    public static List<String> getResourceIds(Collection<TaskInfo> taskInfos) {
+        return taskInfos.stream()
+                .map(ResourceUtils::getAllResources)
+                .flatMap(Collection::stream)
+                .map(ResourceUtils::getResourceId)
+                .distinct().collect(Collectors.toList());
+    }
+
+    public static boolean allResourcesUninstalled(Collection<TaskInfo> taskInfos) {
+        return ResourceUtils.getResourceIds(taskInfos).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     /**

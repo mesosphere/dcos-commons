@@ -24,10 +24,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.*;
+import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
 
 /**
- * A default implementation of the OfferRequirementProvider interface.
+ * A default implementation of the {@link OfferRequirementProvider} interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);

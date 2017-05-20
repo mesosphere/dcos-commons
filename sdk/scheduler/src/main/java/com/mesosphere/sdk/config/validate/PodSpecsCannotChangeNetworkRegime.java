@@ -7,12 +7,10 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import javafx.util.Pair;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Validates that pods do not move from a virtual network that does not use port mapping (and thus ignores the ports
@@ -51,17 +49,15 @@ public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<Servic
             // now we check that the none of the new pods move from not using host ports to using them (or vice
             // versa)
             PodSpec oldPod = oldPods.get(kv.getKey());
-            if (oldPod != null) {  // if this is an initial config, don't need to check
-                if (podSpecUsesHostPorts(oldPod) != podSpecUsesHostPorts(newPod)) {
-                    errors.add(ConfigValidationError.transitionError(
-                            String.format("PodSpec[name:%s]", oldPod.getType()),
-                            String.format("%s", oldPod.getNetworks().toString()),
-                            String.format("%s", newPod.getNetworks().toString()),
-                            String.format("New config has pod %s moving networks from %s to %s, changing it's " +
-                                            "host ports requirements from %s to %s, not allowed.",
-                                    newPod.getType(), oldPod.getNetworks().toString(), newPod.getNetworks().toString(),
-                                    podSpecUsesHostPorts(oldPod), podSpecUsesHostPorts(newPod))));
-                }
+            if (oldPod != null && podSpecUsesHostPorts(oldPod) != podSpecUsesHostPorts(newPod)) {
+                errors.add(ConfigValidationError.transitionError(
+                        String.format("PodSpec[name:%s]", oldPod.getType()),
+                        String.format("%s", oldPod.getNetworks().toString()),
+                        String.format("%s", newPod.getNetworks().toString()),
+                        String.format("New config has pod %s moving networks from %s to %s, changing it's " +
+                                        "host ports requirements from %s to %s, not allowed.",
+                                newPod.getType(), oldPod.getNetworks().toString(), newPod.getNetworks().toString(),
+                                podSpecUsesHostPorts(oldPod), podSpecUsesHostPorts(newPod))));
             }
         }
         return errors;

@@ -4,31 +4,34 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
+import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.awaitility.Awaitility;
-import org.awaitility.Duration;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -152,14 +155,15 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
+    private static ServiceSpec getServiceSpec(PodSpec... pods) {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .apiPort(0)
-                .zookeeperConnection("foo.bar.com")
-                .pods(Arrays.asList(pods));
+                .zookeeperConnection("badhost-shouldbeignored:2181")
+                .pods(Arrays.asList(pods))
+                .build();
     }
 
     private static Capabilities getCapabilities(Boolean enableGpu) throws Exception {
@@ -172,35 +176,20 @@ public class DefaultSchedulerTest {
         return getCapabilities(DEFAULT_GPU_POLICY);
     }
 
-    private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB).build();
-    private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
-    private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
-    private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
-    private static final ServiceSpec INVALID_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, invalidPodB).build();
-
-    private static TestingServer testingServer;
-
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        CuratorTestUtils.clear(testingServer);
-
-        StateStoreCache.resetInstanceForTests();
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
-        stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION, mockSchedulerFlags, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
-        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION, flags)
+        ServiceSpec serviceSpec = getServiceSpec(podA, podB);
+        stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
+        configStore = new DefaultConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+        defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -219,10 +208,9 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(TestPlacementUtils.PASS)
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(serviceSpecification, testingServer.getConnectString());
+        DefaultScheduler.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -230,13 +218,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(new PlacementRuleMissingEquality())
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMissingEquality.class));
+                serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -244,13 +229,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(PlacementRuleMismatchedAnnotations.class));
+                serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
     }
 
     @Test
@@ -258,13 +240,10 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
                         .placementRule(TestPlacementUtils.PASS)
-                        .build())
-                .build();
+                        .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Arrays.asList(TestPlacementUtils.PASS.getClass()));
+                serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
     }
 
     @Test
@@ -280,7 +259,8 @@ public class DefaultSchedulerTest {
         installStep(0, 0, getSufficientOfferForTaskA());
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -289,7 +269,8 @@ public class DefaultSchedulerTest {
         testLaunchA();
         installStep(1, 0, getSufficientOfferForTaskB());
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -303,7 +284,8 @@ public class DefaultSchedulerTest {
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitTermination();
-        Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -311,7 +293,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -319,7 +301,8 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -327,7 +310,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -335,7 +318,8 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -344,7 +328,7 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -354,7 +338,7 @@ public class DefaultSchedulerTest {
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING),
-                getStepStatuses(plan));
+                PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
@@ -380,7 +364,8 @@ public class DefaultSchedulerTest {
 
         // Wait for the Step to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
 
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
@@ -468,7 +453,8 @@ public class DefaultSchedulerTest {
                                 ++launchOp;
                                 break;
                             default:
-                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
+                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(),
+                                        false);
                         }
                     }
                     if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
@@ -508,14 +494,14 @@ public class DefaultSchedulerTest {
 
         // Wait for the Step to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
 
         Assert.assertTrue(stepTaskA0.isComplete());
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -541,8 +527,7 @@ public class DefaultSchedulerTest {
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         Protos.Offer expectedOffer = OfferTestUtils.getOffer(expectedResources);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(expectedOffer));
@@ -551,8 +536,7 @@ public class DefaultSchedulerTest {
                 operationsCaptor.capture(),
                 any());
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isStarting(), equalTo(true));
-        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
-        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+        Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         operations = operationsCaptor.getValue();
         launchedTaskId = getTaskId(operations);
@@ -570,7 +554,7 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
-        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION, flags)
+        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, invalidPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
@@ -617,62 +601,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testClearFailureMarkOnRunning() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testClearFailureMarkOnFinished() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnFailure() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
-    }
-
-    @Test
-    public void testMaintainFailureMarkOnError() throws InterruptedException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TestConstants.TASK_NAME)
-                .setTaskId(TestConstants.TASK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .build();
-        taskInfo = FailureUtils.markFailed(taskInfo);
-
-        stateStore.storeTasks(Arrays.asList(taskInfo));
-        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
-        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
-    }
-
-    @Test
     public void testApiServerNotReadyDecline() {
         TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
         testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
@@ -680,27 +608,49 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testApiServerTimeout() throws Exception {
-        int timeoutMillis = 100;
-        when(mockSchedulerFlags.getApiServerInitTimeout()).thenReturn(java.time.Duration.ofMillis(timeoutMillis));
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION, mockSchedulerFlags)
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
-                .build();
-        Assert.assertFalse(defaultScheduler.apiServerReady());
-        Thread.sleep(timeoutMillis * 10);
-        exit.expectSystemExitWithStatus(SchedulerErrorCode.API_SERVER_TIMEOUT.getValue());
-        defaultScheduler.apiServerReady();
+    public void testOverrideDeployWithUpdate() {
+        Collection<Plan> plans = getDeployUpdatePlans();
+        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE);
+        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .findFirst().get();
+
+        Assert.assertEquals(1, deployPlan.getChildren().size());
     }
 
-    private Callable<Boolean> taskMarkFailed(String taskName) {
-        return new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
-            }
-        };
+    @Test
+    public void testNoOverrideOfDeployPlanOnInstall() {
+        Collection<Plan> plans = getDeployUpdatePlans();
+        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
+        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
+        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .findFirst().get();
+
+        Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    /**
+     * Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
+     */
+    private Collection<Plan> getDeployUpdatePlans() {
+        Phase phase = mock(Phase.class);
+        Plan deployPlan = mock(Plan.class);
+        when(deployPlan.getName()).thenReturn(Constants.DEPLOY_PLAN_NAME);
+        when(deployPlan.getChildren()).thenReturn(Arrays.asList(phase, phase));
+
+        Plan updatePlan = mock(Plan.class);
+        when(updatePlan.getName()).thenReturn(Constants.UPDATE_PLAN_NAME);
+        when(updatePlan.getChildren()).thenReturn(Arrays.asList(phase));
+
+        Assert.assertEquals(2, deployPlan.getChildren().size());
+        Assert.assertEquals(1, updatePlan.getChildren().size());
+        return Arrays.asList(deployPlan, updatePlan);
     }
 
     private int countOperationType(
@@ -781,13 +731,6 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private static List<Status> getStepStatuses(Plan plan) {
-        return plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .map(step -> step.getStatus())
-                .collect(Collectors.toList());
-    }
-
     private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
         return Matchers.argThat(new BaseMatcher<Collection<T>>() {
             @Override
@@ -851,7 +794,8 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
+                PlanTestUtils.getStepStatuses(plan));
         Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
 
         return taskIds;
@@ -910,7 +854,11 @@ public class DefaultSchedulerTest {
                     defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
-                    defaultScheduler.recoveryPlanManagerFactoryOptional);
+                    defaultScheduler.recoveryPlanOverriderFactory,
+                    new ConfigurationUpdater.UpdateResult(
+                            UUID.randomUUID(),
+                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,
+                            Collections.emptyList()));
             this.apiServerReady = apiServerReady;
         }
 

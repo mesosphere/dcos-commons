@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
@@ -10,6 +11,16 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 public class StateStoreException extends RuntimeException {
 
     private final Reason reason;
+
+    public StateStoreException(PersisterException e) {
+        super(e);
+        this.reason = Reason.STORAGE_ERROR;
+    }
+
+    public StateStoreException(PersisterException e, String message) {
+        super(message, e);
+        this.reason = Reason.STORAGE_ERROR;
+    }
 
     public StateStoreException(Reason reason, Throwable e) {
         super(e);

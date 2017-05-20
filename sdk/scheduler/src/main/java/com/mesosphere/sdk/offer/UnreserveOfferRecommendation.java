@@ -10,9 +10,10 @@ import java.util.Arrays;
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code UNRESERVE} Operation.
  */
-public class UnreserveOfferRecommendation implements OfferRecommendation {
+public class UnreserveOfferRecommendation implements UninstallRecommendation {
     private final Offer offer;
     private final Operation operation;
+    private final Resource resource;
 
     public UnreserveOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
@@ -33,6 +34,7 @@ public class UnreserveOfferRecommendation implements OfferRecommendation {
                 .setUnreserve(Operation.Unreserve.newBuilder()
                         .addAllResources(Arrays.asList(resource)))
                 .build();
+        this.resource = resource;
     }
 
     @Override
@@ -48,5 +50,10 @@ public class UnreserveOfferRecommendation implements OfferRecommendation {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public Resource getResource() {
+        return resource;
     }
 }

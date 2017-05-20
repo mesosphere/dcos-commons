@@ -119,8 +119,8 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
-        Assert.assertEquals(NEW_ID, result.targetId);
-        Assert.assertTrue(result.errors.isEmpty());
+        Assert.assertEquals(NEW_ID, result.getTargetId());
+        Assert.assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
@@ -138,8 +138,8 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.fetch(UNKNOWN_ID)).thenReturn(mockUnknownConfig);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
-        Assert.assertEquals(NEW_ID, result.targetId);
-        Assert.assertTrue(result.errors.isEmpty());
+        Assert.assertEquals(NEW_ID, result.getTargetId());
+        Assert.assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
@@ -151,8 +151,8 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
-        Assert.assertEquals(NEW_ID, result.targetId);
-        Assert.assertTrue(result.errors.isEmpty());
+        Assert.assertEquals(NEW_ID, result.getTargetId());
+        Assert.assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
@@ -168,8 +168,8 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
         when(mockConfigStore.fetch(UNKNOWN_ID)).thenReturn(mockUnknownConfig);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertTrue(result.errors.isEmpty());
+        Assert.assertEquals(TARGET_ID, result.getTargetId());
+        Assert.assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
@@ -180,8 +180,8 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertTrue(result.errors.isEmpty());
+        Assert.assertEquals(TARGET_ID, result.getTargetId());
+        Assert.assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
@@ -191,7 +191,7 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertEquals(1, result.errors.size());
+        Assert.assertEquals(TARGET_ID, result.getTargetId());
+        Assert.assertEquals(1, result.getErrors().size());
     }
 }
