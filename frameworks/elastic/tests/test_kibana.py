@@ -59,7 +59,7 @@ def test_kibana(options, path):
 
 
 def kibana_endpoint_success_predicate(path):
-    cmd = "curl -I -s http://web.kibana.marathon.l4lb.thisdcos.directory:80{}".format(path)
+    cmd = "curl -I http://web.kibana.marathon.l4lb.thisdcos.directory:80{}".format(path)
     exit_status, result = shakedown.run_command_on_master(cmd)
     utils.out("Waiting for success status from Kibana home: {}".format(result))
     return result and "HTTP/1.1 200" in result
