@@ -142,7 +142,7 @@
             "title": "CPU count",
             "description": "CPU requirements",
             "type": "number",
-            "default":1
+            "default":0.3
           },
           "mem": {
             "title": "Memory size (MB)",
@@ -176,7 +176,7 @@
             "title": "CPU count",
             "description": "CPU requirements",
             "type": "number",
-            "default":1
+            "default":0.3
           },
           "mem": {
             "title": "Memory size (MB)",
@@ -198,9 +198,9 @@
           },
           "admin_email": {
             "title": "Administrator Email/Login",
-            "description": "Email to use for the Lighthouse account. Default password is admin and can be changed after first login. Only used for resetting password",
+            "description": "Email to use for the Lighthouse account. Default password is admin and can be changed after first login. Used for resetting password and sending alerts.",
             "type": "string",
-            "default": ""
+            "default": "portworx@yourcompany.com"
           }
         },
         "required":[

@@ -18,21 +18,24 @@ pods:
                 {{#LIGHTHOUSE_ENABLED}}
                 if [ $POD_INSTANCE_INDEX -eq "0" ]; then
                     authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
-                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST \
+                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
                         -H "Accept:application/json" -H "Authorization:Basic $authkey" \
                         http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
                 fi
                 {{/LIGHTHOUSE_ENABLED}}
 
-                PWX_TOKEN=$(etcdctl --endpoints http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379 get /pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} | jq -r ".token")
+                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} | jq -r ".node" | jq -r ".value"| jq -r ".token")
 
                 echo "[Unit]
                     Description=Portworx Container
                     Wants=docker.service
                     After=docker.service
+                    StartLimitIntervalSec=3600
+                    StartLimitBurst=10000
                     [Service]
                     TimeoutStartSec=0
                     Restart=always
+                    ExecStartPre=/usr/bin/ping -c 1 master.mesos
                     ExecStartPre=-/usr/bin/docker stop %n
                     ExecStartPre=-/usr/bin/docker rm -f %n
                     ExecStart=/usr/bin/docker run --net=host --privileged=true \
@@ -77,7 +80,7 @@ pods:
       start:
         goal: RUNNING
         memory: 1024
-        cpus: 1
+        cpus: 0.5
         cmd: >
             /work/bin/etcd-mesos-scheduler -alsologtostderr=true \
                 -address=${LIBPROCESS_IP} \
@@ -117,7 +120,7 @@ pods:
     tasks:
       start:
         goal: RUNNING
-        memory: 1024
+        memory: 512
         cpus: 0.3
         cmd: /work/bin/etcd --proxy=on --discovery-srv=${FRAMEWORK_NAME}.mesos --listen-client-urls 'http://0.0.0.0:2379'
         readiness-check:
@@ -145,7 +148,7 @@ pods:
           size: 25
   lighthouse:
     count: 1
-    image: disrani/lh:latest
+    image: portworx/px-lighthouse:latest
     placement: {{LIGHTHOUSE_PLACEMENT}}
     tasks:
       start:
