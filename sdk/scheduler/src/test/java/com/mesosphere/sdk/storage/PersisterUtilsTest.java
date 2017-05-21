@@ -4,13 +4,21 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import org.apache.curator.test.TestingServer;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
  * Tests for {@link PersisterUtils}.
  */
 public class PersisterUtilsTest {
+
+    static TestingServer testZk;
+
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testZk = new TestingServer();
+    }
 
     @Test
     public void testJoinPath() {

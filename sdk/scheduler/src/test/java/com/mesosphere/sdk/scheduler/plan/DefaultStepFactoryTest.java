@@ -3,15 +3,15 @@ package com.mesosphere.sdk.scheduler.plan;
 import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -37,10 +37,6 @@ public class DefaultStepFactoryTest {
     @BeforeClass
     public static void beforeAll() throws Exception {
         testingServer = new TestingServer();
-    }
-
-    @Before
-    public void beforeEach() throws Exception {
     }
 
     @Test(expected = Step.InvalidStepException.class)
@@ -86,13 +82,10 @@ public class DefaultStepFactoryTest {
 
         CuratorTestUtils.clear(testingServer);
 
-        stateStore = new DefaultStateStore(
-                "test-framework-name", CuratorPersister.newBuilder(testingServer.getConnectString()).build());
-
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                Collections.emptyList(),
-                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
+        Persister persister =
+                CuratorPersister.newBuilder(TestConstants.SERVICE_NAME, testingServer.getConnectString()).build();
+        stateStore = new DefaultStateStore(persister);
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
@@ -127,13 +120,10 @@ public class DefaultStepFactoryTest {
 
         CuratorTestUtils.clear(testingServer);
 
-        stateStore = new DefaultStateStore(
-                "test-framework-name", CuratorPersister.newBuilder(testingServer.getConnectString()).build());
-
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                Collections.emptyList(),
-                CuratorPersister.newBuilder(testingServer.getConnectString()).build());
+        Persister persister =
+                CuratorPersister.newBuilder(TestConstants.SERVICE_NAME, testingServer.getConnectString()).build();
+        stateStore = new DefaultStateStore(persister);
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);

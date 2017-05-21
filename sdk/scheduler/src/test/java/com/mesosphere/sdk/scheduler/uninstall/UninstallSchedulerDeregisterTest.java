@@ -31,8 +31,7 @@ public class UninstallSchedulerDeregisterTest {
         StateStoreCache.resetInstanceForTests();
 
         StateStore stateStore = StateStoreCache.getInstance(new DefaultStateStore(
-                "testing-uninstall",
-                CuratorPersister.newBuilder(testingServer.getConnectString()).build()));
+                CuratorPersister.newBuilder("testing-uninstall", testingServer.getConnectString()).build()));
 
         // No framework ID is set yet, and there are no tasks, and no ScheduleDriver
         uninstallScheduler = new UninstallScheduler(0, Duration.ofSeconds(1), stateStore, configStore);

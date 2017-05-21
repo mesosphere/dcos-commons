@@ -4,10 +4,10 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+
 import org.apache.curator.test.TestingServer;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,19 +36,13 @@ public class DefaultConfigStoreTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
-        Persister persister = CuratorPersister.newBuilder(testZk.getConnectString()).build();
-        store = new DefaultConfigStore<StringConfiguration>(
-                new StringConfiguration.Factory(), ROOT_ZK_PATH, persister);
+        Persister persister = CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build();
+        store = new DefaultConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
 
         // Check that schema version was created in the correct location:
-        assertNotEquals(0, persister.get("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, persister.get("SchemaVersion").length);
 
         testConfig = new StringConfiguration("test-config");
-    }
-
-    @After
-    public void afterEach() {
-        ((DefaultConfigStore<StringConfiguration>) store).close();
     }
 
     @Test
@@ -61,10 +55,9 @@ public class DefaultConfigStoreTest {
     public void testRootPathMapping() throws Exception {
         UUID id = store.store(testConfig);
         store.setTargetConfig(id);
-        CuratorPersister curator = CuratorPersister.newBuilder(testZk.getConnectString()).build();
-        assertNotEquals(0, curator.get("/dcos-service-test-root-path/ConfigTarget").length);
-        assertNotEquals(0, curator.get(
-                "/dcos-service-test-root-path/Configurations/" + id.toString()).length);
+        CuratorPersister curator = CuratorPersister.newBuilder(ROOT_ZK_PATH, testZk.getConnectString()).build();
+        assertNotEquals(0, curator.get("ConfigTarget").length);
+        assertNotEquals(0, curator.get("Configurations/" + id.toString()).length);
     }
 
     @Test

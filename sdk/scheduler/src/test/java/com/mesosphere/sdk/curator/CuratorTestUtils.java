@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.testutils;
+package com.mesosphere.sdk.curator;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -16,7 +16,9 @@ public class CuratorTestUtils {
     public static final String PASSWORD = "testpassword";
 
     public static void clear(TestingServer testingServer) throws Exception {
-        CuratorFramework client = getClient(testingServer);
+        CuratorFramework client = CuratorFrameworkFactory.newClient(
+                testingServer.getConnectString(),
+                new RetryOneTime(RETRY_DELAY_MS));
         client.start();
 
         for (String rootNode : client.getChildren().forPath("/")) {
@@ -26,11 +28,5 @@ public class CuratorTestUtils {
         }
 
         client.close();
-    }
-
-    private static CuratorFramework getClient(TestingServer testingServer) {
-        return CuratorFrameworkFactory.newClient(
-                testingServer.getConnectString(),
-                new RetryOneTime(RETRY_DELAY_MS));
     }
 }

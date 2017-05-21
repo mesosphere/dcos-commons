@@ -18,9 +18,9 @@ public interface Persister {
      * Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.
      * If the path is valid but has no data (i.e. is a parent of another path), this returns {@code null}.
      *
-     * @throws Exception if the requested path doesn't exist, or for other access errors
+     * @throws PersisterException if the requested path doesn't exist, or for other access errors
      */
-    byte[] get(String path) throws Exception;
+    byte[] get(String path) throws PersisterException;
 
     /**
      * Returns the names of child nodes at the provided path. Some returned nodes may have {@code null} data when
@@ -31,34 +31,34 @@ public interface Persister {
      *
      * <p>To get the list of nodes at the root, use "" or "/" as the input path.
      *
-     * @throws Exception if the requested path doesn't exist, or for other access errors
+     * @throws PersisterException if the requested path doesn't exist, or for other access errors
      */
-    Collection<String> getChildren(String path) throws Exception;
+    Collection<String> getChildren(String path) throws PersisterException;
 
     /**
      * Writes a single value to storage at the specified path, replacing any existing data at the path or creating the
      * path if it doesn't exist yet.
      *
-     * @throws Exception in the event of an access error
+     * @throws PersisterException in the event of an access error
      */
-    void set(String path, byte[] bytes) throws Exception;
+    void set(String path, byte[] bytes) throws PersisterException;
 
     /**
      * Atomically writes many values to storage at once.
      *
      * @see #set(String, byte[])
-     * @throws Exception in the event of an access error, in which case no changes should have been made
+     * @throws PersisterException in the event of an access error, in which case no changes should have been made
      */
-    void setMany(Map<String, byte[]> pathBytesMap) throws Exception;
+    void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException;
 
     /**
      * Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
      *
      * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
      *
-     * @throws Exception if the data at the requested path didn't exist, or for other access errors
+     * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
      */
-    void deleteAll(String path) throws Exception;
+    void deleteAll(String path) throws PersisterException;
 
     /**
      * Closes this storage and cleans up any local client resources. No other operations should be performed against the

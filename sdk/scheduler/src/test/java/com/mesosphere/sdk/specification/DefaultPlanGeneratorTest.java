@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -12,7 +13,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.apache.curator.test.TestingServer;
 import org.junit.*;
@@ -57,7 +57,8 @@ public class DefaultPlanGeneratorTest {
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
 
-        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        CuratorPersister persister = CuratorPersister.newBuilder(
+                serviceSpec.getName(), testingServer.getConnectString()).build();
         stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, persister);
         configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList(), persister);
 

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.curator.CuratorTestUtils;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
@@ -16,7 +17,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -109,8 +110,9 @@ public class DefaultRecoveryPlanManagerTest {
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
-        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
-        stateStore = new DefaultStateStore(TestConstants.SERVICE_NAME, persister);
+        Persister persister =
+                CuratorPersister.newBuilder(TestConstants.SERVICE_NAME, testingServer.getConnectString()).build();
+        stateStore = new DefaultStateStore(persister);
 
         serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
                 YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()

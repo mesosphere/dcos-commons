@@ -1,19 +1,16 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterUtils;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of {@link SchemaVersionStore} which persists data in Zookeeper.
+ * An implementation of {@link SchemaVersionStore} which relies on the provided {@link Persister} for data persistence.
  */
 public class DefaultSchemaVersionStore implements SchemaVersionStore {
 
@@ -53,10 +50,9 @@ public class DefaultSchemaVersionStore implements SchemaVersionStore {
      * Creates a new version store against the provided Framework Name, as would be provided to
      * {@link DefaultConfigStore} or {@link DefaultStateStore}.
      */
-    DefaultSchemaVersionStore(Persister persister, String frameworkName) {
+    DefaultSchemaVersionStore(Persister persister) {
         this.persister = persister;
-        this.schemaVersionPath =
-                PersisterUtils.join(CuratorUtils.getServiceRootPath(frameworkName), SCHEMA_VERSION_NAME);
+        this.schemaVersionPath = SCHEMA_VERSION_NAME;
     }
 
     public int fetch() throws StateStoreException {
@@ -67,7 +63,7 @@ public class DefaultSchemaVersionStore implements SchemaVersionStore {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Invalid data when fetching schema version in '%s'", schemaVersionPath));
             }
-            String rawString = new String(bytes, CHARSET);;
+            String rawString = new String(bytes, CHARSET);
             logger.debug("Schema version retrieved from '{}': {}", schemaVersionPath, rawString);
             try {
                 return Integer.parseInt(rawString);
@@ -76,15 +72,17 @@ public class DefaultSchemaVersionStore implements SchemaVersionStore {
                         "Unable to parse fetched schema version: '%s' from path: %s",
                         rawString, schemaVersionPath), e);
             }
-        } catch (KeeperException.NoNodeException e) {
-            // The schema version doesn't exist yet. Initialize to the current version.
-            logger.debug("Schema version not found at path: {}. New service install? " +
-                    "Initializing path to schema version: {}.",
-                    schemaVersionPath, CURRENT_SCHEMA_VERSION);
-            store(CURRENT_SCHEMA_VERSION);
-            return CURRENT_SCHEMA_VERSION;
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, "Storage error when fetching schema version", e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // The schema version doesn't exist yet. Initialize to the current version.
+                logger.debug("Schema version not found at path: {}. New service install? " +
+                        "Initializing path to schema version: {}.",
+                        schemaVersionPath, CURRENT_SCHEMA_VERSION);
+                store(CURRENT_SCHEMA_VERSION);
+                return CURRENT_SCHEMA_VERSION;
+            } else {
+                throw new StateStoreException(Reason.STORAGE_ERROR, "Storage error when fetching schema version", e);
+            }
         }
     }
 

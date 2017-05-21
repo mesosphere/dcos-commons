@@ -74,12 +74,13 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
-        CuratorPersister persister = CuratorPersister.newBuilder(testingServer.getConnectString()).build();
+        CuratorPersister persister =
+                CuratorPersister.newBuilder(serviceSpec.getName(), testingServer.getConnectString()).build();
 
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
-                .setStateStore(new DefaultStateStore(serviceSpec.getName(), persister))
-                .setConfigStore(new DefaultConfigStore<>(
-                        DefaultServiceSpec.getConfigurationFactory(serviceSpec), serviceSpec.getName(), persister))
+                .setStateStore(new DefaultStateStore(persister))
+                .setConfigStore(
+                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)
                 .build();

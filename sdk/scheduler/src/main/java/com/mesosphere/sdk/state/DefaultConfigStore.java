@@ -4,12 +4,10 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
-import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +17,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Stores String Configurations in Zookeeper.
+ * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
  *
  * <p>The ZNode structure in Zookeeper is as follows:
  * <br>rootPath/
@@ -47,18 +45,16 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
 
     private final ConfigurationFactory<T> factory;
     private final Persister persister;
-    private final String configurationsPath;
-    private final String targetPath;
 
     /**
      * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data.
      */
-    public DefaultConfigStore(ConfigurationFactory<T> factory, String frameworkName, Persister persister) {
+    public DefaultConfigStore(ConfigurationFactory<T> factory, Persister persister) {
         this.factory = factory;
         this.persister = persister;
 
         // Check version up-front:
-        int currentVersion = new DefaultSchemaVersionStore(persister, frameworkName).fetch();
+        int currentVersion = new DefaultSchemaVersionStore(persister).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -66,10 +62,6 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
                             "(support: min=%d, max=%d)",
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
-
-        final String rootPath = CuratorUtils.getServiceRootPath(frameworkName);
-        this.targetPath = PersisterUtils.join(rootPath, TARGET_PATH_NAME);
-        this.configurationsPath = PersisterUtils.join(rootPath, CONFIGURATIONS_PATH_NAME);
     }
 
     @Override
@@ -79,9 +71,9 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         byte[] data = config.getBytes();
         try {
             persister.set(path, data);
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to store configuration to path '%s': %s", path, config), e);
+        } catch (PersisterException e) {
+            throw new ConfigStoreException(e, String.format(
+                    "Failed to store configuration to path '%s': %s", path, config));
         }
 
         return id;
@@ -93,12 +85,14 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         byte[] data;
         try {
             data = persister.get(path);
-        } catch (KeeperException.NoNodeException e) {
-            throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
-                    "Configuration '%s' was not found at path '%s'", id, path), e);
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to retrieve configuration '%s' from path '%s'", id, path), e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
+                        "Configuration '%s' was not found at path '%s'", id, path), e);
+            } else {
+                throw new ConfigStoreException(e, String.format(
+                        "Failed to retrieve configuration '%s' from path '%s'", id, path));
+            }
         }
         return factory.parse(data);
     }
@@ -108,15 +102,15 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         String path = getConfigPath(id);
         try {
             persister.deleteAll(path);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent Configuration should not
-            // result in an exception.
-            logger.warn("Requested configuration '{}' to be deleted does not exist at path '{}'",
-                    id, path);
-            return;
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to delete configuration '%s' at path '%s'", id, path), e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Clearing a non-existent Configuration should not result in an exception.
+                logger.warn("Requested configuration '{}' to be deleted does not exist at path '{}'", id, path);
+                return;
+            } else {
+                throw new ConfigStoreException(e, String.format(
+                        "Failed to delete configuration '%s' at path '%s'", id, path));
+            }
         }
     }
 
@@ -124,32 +118,36 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
     public Collection<UUID> list() throws ConfigStoreException {
         try {
             Collection<UUID> ids = new ArrayList<>();
-            for (String id : persister.getChildren(configurationsPath)) {
-                ids.add(UUID.fromString(id));
+            for (String id : persister.getChildren(CONFIGURATIONS_PATH_NAME)) {
+                try {
+                    ids.add(UUID.fromString(id));
+                } catch (IllegalArgumentException e) {
+                    throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
+                            String.format("Invalid UUID value: %s", id), e);
+                }
             }
             return ids;
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent Configuration should not
-            // result in an exception.
-            logger.warn("Configuration list at path '{}' does not exist: returning empty list",
-                    configurationsPath);
-            return new ArrayList<>();
-        } catch (IllegalArgumentException e) {
-            throw new ConfigStoreException(Reason.SERIALIZATION_ERROR, String.format("Invalid UUID value"), e);
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to retrieve list of configurations from '%s'", configurationsPath), e);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Clearing a non-existent Configuration should not result in an exception.
+                logger.warn("Configuration list at path '{}' does not exist: returning empty list",
+                        CONFIGURATIONS_PATH_NAME);
+                return new ArrayList<>();
+            } else {
+                throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
+                        "Failed to retrieve list of configurations from '%s'", CONFIGURATIONS_PATH_NAME), e);
+            }
         }
     }
 
     @Override
     public void setTargetConfig(UUID id) throws ConfigStoreException {
         try {
-            persister.set(targetPath, id.toString().getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
+            persister.set(TARGET_PATH_NAME, id.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (PersisterException e) {
+            throw new ConfigStoreException(e, String.format(
                     "Failed to assign current target configuration to '%s' at path '%s'",
-                    id, targetPath), e);
+                    id, TARGET_PATH_NAME));
         }
     }
 
@@ -157,15 +155,15 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
     public UUID getTargetConfig() throws ConfigStoreException {
         String uuidStr;
         try {
-            uuidStr = new String(persister.get(targetPath), StandardCharsets.UTF_8);
-        } catch (KeeperException.NoNodeException e) {
-            throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
-                    "Current target configuration couldn't be found at path '%s'",
-                    targetPath), e);
-        } catch (Exception e) {
-            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Failed to retrieve current target configuration from path '%s'",
-                    targetPath), e);
+            uuidStr = new String(persister.get(TARGET_PATH_NAME), StandardCharsets.UTF_8);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
+                        "Current target configuration couldn't be found at path '%s'", TARGET_PATH_NAME), e);
+            } else {
+                throw new ConfigStoreException(e, String.format(
+                        "Failed to retrieve current target configuration from path '%s'", TARGET_PATH_NAME));
+            }
         }
         try {
             return UUID.fromString(uuidStr);
@@ -179,7 +177,7 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         persister.close();
     }
 
-    private String getConfigPath(UUID id) {
-        return PersisterUtils.join(configurationsPath, id.toString());
+    private static String getConfigPath(UUID id) {
+        return PersisterUtils.join(CONFIGURATIONS_PATH_NAME, id.toString());
     }
 }
