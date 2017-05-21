@@ -54,7 +54,9 @@ def test_kibana_installation_with_xpack():
 def test_kibana(options, path):
     shakedown.install_package(PACKAGE_NAME, options_json=options)
     shakedown.deployment_wait(timeout=WAIT_TIME_IN_SECONDS, app_id="/{}".format(PACKAGE_NAME))
-    shakedown.wait_for(lambda: kibana_endpoint_success_predicate(path), timeout_seconds=WAIT_TIME_IN_SECONDS)
+    shakedown.wait_for(lambda: kibana_endpoint_success_predicate(path),
+                       timeout_seconds=WAIT_TIME_IN_SECONDS,
+                       noisy=True)
     install.uninstall(PACKAGE_NAME)
 
 
