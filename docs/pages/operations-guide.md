@@ -598,7 +598,7 @@ $ dcos package describe elastic --config
         ...
         "user": {
           "default": "core",
-          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
+          "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string"
         }
       }
