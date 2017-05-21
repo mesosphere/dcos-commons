@@ -10,7 +10,7 @@ import sdk_utils
 
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 7
-WAIT_TIME_IN_SECONDS = 6 * 60
+WAIT_TIME_IN_SECONDS = 10 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()

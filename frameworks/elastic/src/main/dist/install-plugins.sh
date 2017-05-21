@@ -27,5 +27,5 @@ fi
 
 for PLUGIN in ${PLUGINS}; do
     echo "Installing plugin: $PLUGIN"
-#    ./elasticsearch-$ELASTIC_VERSION/bin/elasticsearch-plugin install --batch ${PLUGIN}
+    ./elasticsearch-$ELASTIC_VERSION/bin/elasticsearch-plugin install --batch ${PLUGIN}
 done
