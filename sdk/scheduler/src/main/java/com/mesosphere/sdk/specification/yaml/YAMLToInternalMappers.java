@@ -17,6 +17,8 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
@@ -31,6 +33,8 @@ public class YAMLToInternalMappers {
     private static final String DEFAULT_VIP_PROTOCOL = "tcp";
 
     public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
@@ -189,6 +193,10 @@ public class YAMLToInternalMappers {
                 networks.addAll(rawNetworks.entrySet().stream()
                         .map(rawNetworkEntry -> {
                             String networkName = rawNetworkEntry.getKey();
+                            if (!DcosConstants.isSupportedNetwork(networkName)) {
+                                LOGGER.warn(String.format("Virtual netwwork %s is not currently supported, you " +
+                                        "may experience unexpected behavior", networkName));
+                            }
                             networkNames.add(networkName);
                             RawNetwork rawNetwork = rawNetworks.get(networkName);
                             return from(networkName, rawNetwork, collatePorts(rawPod));

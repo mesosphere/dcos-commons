@@ -35,7 +35,7 @@ public class DcosConstants {
     public static boolean networkSupportsPortMapping(String networkName) {
         boolean supportsPortMapping;
         switch (networkName) {
-            case "dcos":
+            case DEFAULT_OVERLAY_NETWORK:
                 supportsPortMapping = false;
                 break;
             default:

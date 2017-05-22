@@ -615,6 +615,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
 
+        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
+            LOGGER.warn(String.format("Virtual netwwork %s is not currently supported, you " +
+                    "may experience unexpected behavior", networkSpec.getName()));
+        }
+
         if (!networkSpec.getPortMappings().isEmpty() &&
                 DcosConstants.networkSupportsPortMapping(networkSpec.getName())) {
             // we double check the availability of port mapping here in case the service spec was made in
@@ -623,11 +628,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 Integer hostPort = e.getKey();
                 Integer containerPort = e.getValue();
                 LOGGER.info("Mapping container port {} to host port {}", containerPort, hostPort);
-                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                netInfoBuilder.addPortMappingsBuilder()
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
                         .setProtocol("tcp")  // TODO(arand) check that this is necessary
-                        .build());
+                        .build();
             }
         }
 
