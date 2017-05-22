@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import javafx.util.Pair;
+import org.antlr.v4.runtime.misc.Pair;
 
 /**
  * The {@code ConfigurationValidation} interface should be implemented by any class which intends to
@@ -36,6 +36,7 @@ public interface ConfigValidator<C extends Configuration> {
         List<ConfigValidationError> errors = new ArrayList<>();
         if (nullableOldConfig == null) {
             // No sizes to compare.
+
             return new Pair<>(errors, Collections.emptyMap());
         }
 
