@@ -79,10 +79,15 @@ public class PodInfoBuilder {
         return Optional.ofNullable(executorBuilder);
     }
 
-    public Collection<Protos.Resource.Builder> getResourceBuilders() {
+    public Collection<Protos.Resource.Builder> getTaskResourceBuilders() {
         return taskBuilders.values().stream()
                 .map(t -> t.getResourcesBuilderList())
                 .flatMap(xs -> xs.stream())
+                .collect(Collectors.toList());
+    }
+
+    public Collection<Protos.Resource.Builder> getExecutorResourceBuilders() {
+        return executorBuilder.getResourcesBuilderList().stream()
                 .collect(Collectors.toList());
     }
 

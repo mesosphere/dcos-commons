@@ -52,7 +52,11 @@ public class OfferEvaluatorTestBase {
                 flags);
     }
 
+    protected static Label getLabel(Resource resource, int index) {
+        return resource.getReservation().getLabels().getLabels(index);
+    }
+
     protected static Label getFirstLabel(Resource resource) {
-        return resource.getReservation().getLabels().getLabels(0);
+        return getLabel(resource, 0);
     }
 }

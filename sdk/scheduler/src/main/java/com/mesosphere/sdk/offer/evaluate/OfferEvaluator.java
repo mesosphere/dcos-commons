@@ -6,12 +6,10 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.ResourceSet;
-import com.mesosphere.sdk.specification.ResourceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
@@ -161,7 +159,15 @@ public class OfferEvaluator {
             for (ResourceSpec resourceSpec : entry.getKey().getResources()) {
                 evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
             }
-            // TODO: Volume evaluation goes here
+
+            for (VolumeSpec volumeSpec : entry.getKey().getVolumes()) {
+                evaluationStages.add(
+                        new VolumeEvaluationStage(
+                                volumeSpec,
+                                taskName,
+                                Optional.empty(),
+                                Optional.empty()));
+            }
 
             evaluationStages.add(new LaunchEvaluationStage(taskName));
         }
@@ -171,19 +177,9 @@ public class OfferEvaluator {
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
         List<OfferEvaluationStage> offerEvaluationStages = new ArrayList<>();
-        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
-
-        List<TaskSpec> taskSpecs = new ArrayList<>();
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (tasksToLaunch.contains(taskSpec.getName())) {
-                taskSpecs.add(taskSpec);
-            }
-        }
-        /*
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .filter(name -> podInstanceRequirement.getTasksToLaunch().contains(name))
+                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
-                */
 
         for (TaskSpec taskSpec : taskSpecs) {
             String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
@@ -193,14 +189,25 @@ public class OfferEvaluator {
                 return Collections.emptyList();
             }
 
-            Map<ResourceSpec, String> resourceSpecStringMap = getResourceSpecIdMap(taskInfo.get(), taskSpec);
-            for (Map.Entry<ResourceSpec, String> entry : resourceSpecStringMap.entrySet()) {
+            Map<ResourceSpec, String> resourceSpecIdMap = getResourceSpecIdMap(taskInfo.get(), taskSpec);
+            for (Map.Entry<ResourceSpec, String> entry : resourceSpecIdMap.entrySet()) {
                 offerEvaluationStages.add(
                         new ResourceEvaluationStage(
                                 entry.getKey(), // ResourceSpec
                                 Optional.of(entry.getValue()), // ResourceID
                                 taskSpec.getName())); // Task name
             }
+
+            Map<VolumeSpec, Pair<String, String>> volumeSpecIdMap = getVolumeSpecIdMap(taskInfo.get(), taskSpec);
+            for (Map.Entry<VolumeSpec, Pair<String, String>> entry : volumeSpecIdMap.entrySet()) {
+                offerEvaluationStages.add(
+                        new VolumeEvaluationStage(
+                                entry.getKey(),
+                                taskSpec.getName(),
+                                Optional.of(entry.getValue().getLeft()),
+                                Optional.of(entry.getValue().getRight())));
+            }
+
 
             offerEvaluationStages.add(new LaunchEvaluationStage(taskSpec.getName()));
         }
@@ -222,5 +229,38 @@ public class OfferEvaluator {
         }
 
         return resourceSpecStringMap;
+    }
+
+    private Map<VolumeSpec, Pair<String, String>> getVolumeSpecIdMap(Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
+        List<Protos.Resource> resourceList = taskInfo.getResourcesList().stream()
+                .filter(resource -> resource.hasDisk())
+                .filter(resource -> resource.getDisk().hasVolume())
+                .collect(Collectors.toList());
+
+        // ContainerPath --> PersistenceId
+        Map<String, String> persistenceMap = new HashMap<>();
+        for (Protos.Resource resource : resourceList) {
+            String containerPath = resource.getDisk().getVolume().getContainerPath();
+            persistenceMap.put(containerPath, resource.getDisk().getPersistence().getId());
+        }
+
+        // ContainerPath --> ResourceId
+        Map<String, String> resourceMap = new HashMap<>();
+        for (Protos.Resource resource : resourceList) {
+            String containerPath = resource.getDisk().getVolume().getContainerPath();
+            resourceMap.put(containerPath, ResourceUtils.getResourceId(resource));
+        }
+
+        Map<VolumeSpec, Pair<String, String>> volumeSpecIdMap = new HashMap<>();
+        ResourceSet resourceSet = taskSpec.getResourceSet();
+        for (VolumeSpec volumeSpec: resourceSet.getVolumes()) {
+            volumeSpecIdMap.put(
+                    volumeSpec,
+                    Pair.of(
+                            resourceMap.get(volumeSpec.getContainerPath()),
+                            persistenceMap.get(volumeSpec.getContainerPath())));
+        }
+
+        return volumeSpecIdMap;
     }
 }

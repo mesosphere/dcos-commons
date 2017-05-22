@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * The outcome of invoking an {@link OfferEvaluationStage}. Describes whether the evaluation passed or failed, and the
@@ -122,8 +123,8 @@ public class EvaluationOutcome {
         return children;
     }
 
-    public Collection<OfferRecommendation> getOfferRecommendations() {
-        Collection<OfferRecommendation> recommendations = new ArrayList<>();
+    public List<OfferRecommendation> getOfferRecommendations() {
+        List<OfferRecommendation> recommendations = new ArrayList<>();
         recommendations.addAll(offerRecommendations);
         for (EvaluationOutcome outcome : getChildren()) {
             recommendations.addAll(outcome.getOfferRecommendations());

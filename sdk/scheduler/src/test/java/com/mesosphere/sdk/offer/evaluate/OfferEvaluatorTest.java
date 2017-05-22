@@ -32,8 +32,220 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
-
     @Mock ServiceSpec serviceSpec;
+
+    @Test
+    public void testReserveLaunchScalar() throws Exception {
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+        Assert.assertEquals(2, recommendations.size());
+
+        // Validate RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertFalse(reserveResource.hasDisk());
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(getFirstLabel(reserveResource).getValue(), getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
+    public void testLaunchExpectedScalar() throws Exception {
+        // Launch for the first time.
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+        String resourceId = getFirstLabel(reserveResource).getValue();
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again on expected resources.
+        Resource expectedScalar = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+
+        recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedScalar))));
+        Assert.assertEquals(1, recommendations.size());
+
+        // Validate LAUNCH Operation
+        launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
+    public void testReserveCreateLaunchRootVolume() throws Exception {
+        Resource offeredCpuResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredDiskResource = ResourceUtils.getUnreservedRootVolume(2000);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+        Assert.assertEquals(4, recommendations.size()); // RESERVE, RESERVE, CREATE, LAUNCH
+
+        // Validate CPU RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertFalse(reserveResource.hasDisk());
+
+        // Validate DISK RESERVE Operation
+        reserveOperation = recommendations.get(1).getOperation();
+        reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+
+        // Validate CREATE Operation
+        String resourceId = getFirstLabel(reserveResource).getValue();
+        Operation createOperation = recommendations.get(2).getOperation();
+        Resource createResource =
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
+
+        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertTrue(createResource.getDisk().hasVolume());
+
+        // Validate LAUNCH Operation
+        String persistenceId = createResource.getDisk().getPersistence().getId();
+        Operation launchOperation = recommendations.get(3).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(1);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+    }
+
+    @Test
+    public void testExpectedRootVolume() throws Exception {
+        // Launch for the first time.
+        Resource offeredCpuResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredDiskResource = ResourceUtils.getUnreservedRootVolume(2000);
+
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500);
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+
+        String cpuResourceId = ResourceUtils.getResourceId(
+                recommendations.get(0).getOperation()
+                        .getReserve()
+                        .getResources(0));
+
+        Operation createOperation = recommendations.get(2).getOperation();
+        Resource createResource =
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
+        String diskResourceId = ResourceUtils.getResourceId(createResource);
+        String persistenceId = ResourceUtils.getPersistenceId(createResource);
+
+        Operation launchOperation = recommendations.get(recommendations.size()-1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again on expected resources.
+        Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
+        Resource expectedDisk = ResourceTestUtils.getExpectedRootVolume(1500, diskResourceId, persistenceId);
+        recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedCpu, expectedDisk))));
+        Assert.assertEquals(1, recommendations.size());
+
+        launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(1);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
+        Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+        Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
+    }
 
     /*
     @Test
@@ -477,61 +689,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
     }
 
-    @Test
-    public void testReserveCreateLaunchRootVolume() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredRootVolume(1500);
-        Resource offeredResource = ResourceUtils.getUnreservedRootVolume(2000);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(3, recommendations.size());
-
-        // Validate RESERVE Operation
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-            reserveOperation
-            .getReserve()
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
-
-        // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
-        Operation createOperation = recommendations.get(1).getOperation();
-        Resource createResource =
-            createOperation
-            .getCreate()
-            .getVolumesList()
-            .get(0);
-
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
-        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertTrue(createResource.getDisk().hasVolume());
-
-        // Validate LAUNCH Operation
-        String persistenceId = createResource.getDisk().getPersistence().getId();
-        Operation launchOperation = recommendations.get(2).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-        Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-    }
 
     @Test
     public void testFailCreateRootVolume() throws Exception {
@@ -682,92 +839,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
     }
     */
-
-    @Test
-    public void testReserveLaunchScalar() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(2, recommendations.size());
-
-        // Validate RESERVE Operation
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-            reserveOperation
-            .getReserve()
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
-        Assert.assertFalse(reserveResource.hasDisk());
-
-        // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(1).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(getFirstLabel(reserveResource).getValue(), getFirstLabel(launchResource).getValue());
-    }
-
-    @Test
-    public void testLaunchExpectedScalar() throws Exception {
-        // Launch for the first time.
-        Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
-        String resourceId = getFirstLabel(reserveResource).getValue();
-
-        Operation launchOperation = recommendations.get(1).getOperation();
-        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
-
-
-        // Launch again on expected resources.
-        Resource expectedScalar = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-
-        recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedScalar))));
-        Assert.assertEquals(1, recommendations.size());
-
-        // Validate LAUNCH Operation
-        launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-    }
 
     /*
     @Test

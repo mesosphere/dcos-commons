@@ -47,13 +47,17 @@ public class ResourceTestUtils {
     }
 
     public static Resource getExpectedRootVolume(double diskSize, String resourceId) {
+        return getExpectedRootVolume(diskSize, resourceId, TestConstants.PERSISTENCE_ID);
+    }
+
+    public static Resource getExpectedRootVolume(double diskSize, String resourceId, String persistenceId) {
         return ResourceUtils.getExpectedRootVolume(
                 diskSize,
                 resourceId,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
-                TestConstants.PERSISTENCE_ID);
+                persistenceId);
     }
 
     public static Resource getDesiredScalar(String name, double value) {
