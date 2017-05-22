@@ -113,7 +113,7 @@ public class DefaultSecretSpec implements SecretSpec {
          * @param filePath the {@code filePath} to set
          * @return a reference to this Builder
          */
-        public Builder count(String filePath) {
+        public Builder filePath(String filePath) {
             this.filePath = filePath;
             return this;
         }
