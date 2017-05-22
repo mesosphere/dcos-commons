@@ -3,8 +3,6 @@ web-url: http://proxylite-0-server.proxylite.mesos:4040
 pods:
   web:
     image: ubuntu:14.04
-    networks:
-      mesos-bridge:
     count: 1
     tasks:
       server:
@@ -18,8 +16,6 @@ pods:
             port: 4041
   web2:
     image: nlsun/pyhttpsd:1.0.1
-    networks:
-      mesos-bridge:
     count: 1
     tasks:
       server:
@@ -33,8 +29,6 @@ pods:
             port: 4042
   proxylite:
     image: mesosphere/proxylite:2.1.0
-    networks:
-      mesos-bridge:
     count: 1
     tasks:
       server:
