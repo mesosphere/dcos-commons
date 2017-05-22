@@ -24,7 +24,7 @@ def setup_module(module):
 @pytest.mark.smoke
 def test_kibana_installation_no_xpack():
     options = {}
-    path = "/service/kibana"
+    path = "/service/kibana/"
     test_kibana(options, path)
 
 
