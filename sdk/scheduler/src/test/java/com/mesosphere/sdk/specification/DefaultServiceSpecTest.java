@@ -395,7 +395,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
-        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
                 .getName());
     }
 

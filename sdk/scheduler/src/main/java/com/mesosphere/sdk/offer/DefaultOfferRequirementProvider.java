@@ -13,7 +13,6 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-import com.sun.nio.sctp.IllegalReceiveException;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.slf4j.Logger;
@@ -602,8 +601,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
                     podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
-        } else {
-            LOGGER.info("No NetworkInfo provided");
         }
 
         if (!podSpec.getRLimits().isEmpty()) {
@@ -635,7 +632,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            throw new IllegalReceiveException("Network-labels is not implemented, yet");
+            throw new IllegalStateException("Network-labels is not implemented, yet");
         }
 
         return netInfoBuilder.build();

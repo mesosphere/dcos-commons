@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by Rand on 5/18/17.
  */
-public class PodSpecsCannorChangeNetworkRegimeTest {
+public class PodSpecsCannotChangeNetworkRegimeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotChangeNetworkRegime();
 
     @Mock
