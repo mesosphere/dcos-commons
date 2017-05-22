@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 
@@ -16,51 +17,51 @@ import (
 )
 
 func HTTPServiceGet(urlPath string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
 }
 
 func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
 func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
 func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
 func HTTPServiceDelete(urlPath string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
 }
 
 func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 
 func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
 }
 
 func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
 }
 
 func HTTPServicePost(urlPath string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
 }
 
 func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
 }
 
 func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
 
 func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
@@ -68,19 +69,19 @@ func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
 }
 
 func HTTPServicePut(urlPath string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
 }
 
 func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 
 func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
 }
 
 func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
-	return checkServiceHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
 func httpQuery(request *http.Request) *http.Response {
@@ -152,39 +153,74 @@ func httpQuery(request *http.Request) *http.Response {
 	return response
 }
 
+func printError(response *http.Response) {
+	log.Printf("HTTP %s Query for %s failed: %s",
+		response.Request.Method, response.Request.URL, response.Status)
+}
+
+func printErrorAndExit(response *http.Response) {
+	printError(response)
+	os.Exit(1)
+}
+
+func printServiceNameErrorAndExit(response *http.Response) {
+	printError(response)
+	log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+	log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+}
+
+func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
+	requestedVersion := data["updateVersion"]
+	//TODO: this is probably an array?
+	validVersions := data["validVersions"]
+	printError(response)
+	log.Printf("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
+	log.Fatalf("- Valid versions are: %s", validVersions)
+}
+
+func parseCosmosHTTPErrorResponse(response *http.Response) {
+	responseJSON, err := UnmarshalJSON(GetResponseBytes(response))
+	if err != nil {
+		printErrorAndExit(response)
+	}
+	if errorType, present := responseJSON["type"]; present {
+		message := responseJSON["message"]
+		switch errorType {
+		case "MarathonAppNotFound":
+			printServiceNameErrorAndExit(response)
+		case "BadVersionUpdate":
+			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
+		default:
+			if config.Verbose {
+				log.Printf("Cosmos error: %s: %s", errorType, message)
+			}
+			printErrorAndExit(response)
+		}
+	}
+}
+
 func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 	switch {
-	case response.StatusCode == 401:
-		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
-		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 404:
-		log.Printf("HTTP %s Query for %s failed: %s", response.Request.Method, response.Request.URL, response.Status)
-		log.Fatalf("Package management commands require Enterprise DC/OS 1.10 or later.")
-	case response.StatusCode == 500:
-		log.Printf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
-		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
-	case response.StatusCode < 200 || response.StatusCode >= 300:
-		log.Fatalf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
+		printError(response)
+		log.Fatalf("Package management commands require Enterprise DC/OS 1.10 or newer.")
+	case response.StatusCode == 400:
+		parseCosmosHTTPErrorResponse(response)
+	default:
+		return checkHTTPResponse(response)
 	}
 	return response
 }
 
-func checkServiceHTTPResponse(response *http.Response) *http.Response {
+func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
 		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
 		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 500:
-		log.Printf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
-		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-		log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
-		log.Fatalf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
+		printErrorAndExit(response)
 	}
 	return response
 }

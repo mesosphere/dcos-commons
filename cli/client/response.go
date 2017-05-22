@@ -55,3 +55,12 @@ func GetResponseBytes(response *http.Response) []byte {
 	}
 	return responseBytes
 }
+
+func UnmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
+	var responseJSON map[string]interface{}
+	err := json.Unmarshal([]byte(jsonBytes), &responseJSON)
+	if err != nil {
+		return nil, err
+	}
+	return responseJSON, nil
+}
