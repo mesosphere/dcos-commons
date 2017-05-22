@@ -2,7 +2,7 @@ package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import javafx.util.Pair;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
@@ -16,8 +16,8 @@ public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
     public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
         Pair<List<ConfigValidationError>, Map<String, PodSpec>> pair = validateInitialConfigs(nullableOldConfig,
                 newConfig);
-        List<ConfigValidationError> errors = pair.getKey();
-        Map<String, PodSpec> newPods = pair.getValue();
+        List<ConfigValidationError> errors = pair.a;
+        Map<String, PodSpec> newPods = pair.b;
 
         if (newPods.isEmpty()) {
             return errors;

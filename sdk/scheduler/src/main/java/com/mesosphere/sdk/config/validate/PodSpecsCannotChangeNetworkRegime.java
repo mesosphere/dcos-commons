@@ -5,7 +5,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import javafx.util.Pair;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,8 +22,8 @@ public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<Servic
     public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
         Pair<List<ConfigValidationError>, Map<String, PodSpec>> pair = validateInitialConfigs(
                 nullableOldConfig, newConfig);
-        List<ConfigValidationError> errors = pair.getKey();
-        Map<String, PodSpec> newPods = pair.getValue();
+        List<ConfigValidationError> errors = pair.a;
+        Map<String, PodSpec> newPods = pair.b;
         if (newPods.isEmpty()) {
             return errors;
         }
