@@ -23,25 +23,19 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
-    private final String portName;
-    private final Optional<String> customEnvKey;
-    private final PortSpec portSpec;
+    protected final PortSpec portSpec;
     private String resourceId;
-
-    protected final long port;
 
     public PortEvaluationStage(
             PortSpec portSpec,
             String taskName,
-            String portName,
-            long port,
-            Optional<String> customEnvKey,
             Optional<String> resourceId) {
         super(portSpec, resourceId, taskName);
         this.portSpec = portSpec;
-        this.portName = portName;
-        this.port = port;
-        this.customEnvKey = customEnvKey;
+    }
+
+    protected long getPort() {
+        return portSpec.getValue().getRanges().getRange(0).getBegin();
     }
 
     @Override
@@ -52,7 +46,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
         Optional<String> taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable());
 
-        long assignedPort = port;
+        long assignedPort = getPort();
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
         } else if (assignedPort == 0) {
@@ -176,9 +170,9 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
      * Invalid characters are replaced with underscores.
      */
     private String getPortEnvironmentVariable() {
-        String draftEnvName = customEnvKey.isPresent()
-                ? customEnvKey.get() // use custom name as-is
-                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
+        String draftEnvName = portSpec.getEnvKey().isPresent()
+                ? portSpec.getEnvKey().get() // use custom name as-is
+                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return TaskUtils.toEnvName(draftEnvName);
     }

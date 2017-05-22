@@ -157,7 +157,15 @@ public class OfferEvaluator {
         for (Map.Entry<ResourceSet, String> entry : resourceSets.entrySet()) {
             String taskName = entry.getValue();
             for (ResourceSpec resourceSpec : entry.getKey().getResources()) {
-                evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
+                if (resourceSpec instanceof PortSpec) {
+                    PortSpec portSpec = (PortSpec) resourceSpec;
+                    evaluationStages.add(new PortEvaluationStage(
+                            portSpec,
+                            taskName,
+                            Optional.empty()));
+                } else {
+                    evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
+                }
             }
 
             for (VolumeSpec volumeSpec : entry.getKey().getVolumes()) {

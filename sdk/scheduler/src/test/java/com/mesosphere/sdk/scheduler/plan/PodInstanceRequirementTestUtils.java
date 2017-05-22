@@ -4,6 +4,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,14 +14,6 @@ import java.util.stream.Collectors;
  * Created by gabriel on 5/18/17.
  */
 public class PodInstanceRequirementTestUtils {
-    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize) {
-        return getRootVolumeRequirement(cpus, diskSize, 0);
-    }
-
-    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
-        return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
-    }
-
     public static PodInstanceRequirement getCpuRequirement(double value) {
         return getCpuRequirement(value, 0);
     }
@@ -29,24 +22,54 @@ public class PodInstanceRequirementTestUtils {
         return getRequirement(getCpuResourceSet(value), index);
     }
 
-    public static ResourceSet getCpuResourceSet(double value) {
+    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize) {
+        return getRootVolumeRequirement(cpus, diskSize, 0);
+    }
+
+    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
+        return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
+    }
+
+    public static PodInstanceRequirement getPortsRequirement(long begin, long end) {
+        return getRequirement(getPortsResourceSet(begin, end), 0);
+    }
+
+    private static ResourceSet getCpuResourceSet(double value) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(value)
                 .build();
     }
 
-
     /**
      * Gets a test root volume resource set
      * @param cpus Some resource other than disk must be specified so CPU size is required.
      * @param diskSize The disk size required.
      */
-    public static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
+    private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
                 .addVolume(Constants.ROOT_DISK_TYPE, diskSize, TestConstants.CONTAINER_PATH)
+                .build();
+    }
+
+    private static ResourceSet getPortsResourceSet(long begin, long end) {
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .addResource(new PortSpec(
+                        Constants.PORTS_RESOURCE_TYPE,
+                        Protos.Value.newBuilder()
+                                .setType(Protos.Value.Type.RANGES)
+                                .setRanges(Protos.Value.Ranges.newBuilder()
+                                        .addRange(Protos.Value.Range.newBuilder()
+                                                .setBegin(begin)
+                                                .setEnd(end)))
+                                .build(),
+                        TestConstants.ROLE,
+                        TestConstants.PRINCIPAL,
+                        TestConstants.PORT_ENV_NAME,
+                        TestConstants.PORT_ENV_NAME))
                 .build();
     }
 

@@ -34,7 +34,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             DiscoveryInfo.Visibility visibility,
             String vipName,
             long vipPort) {
-        super(namedVIPSpec, taskName, portName, port, customEnvKey, resourceId);
+        super(namedVIPSpec, taskName, resourceId);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -86,7 +86,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             for (Protos.Label l : portBuilder.getLabels().getLabelsList()) {
                 if (l.getKey().startsWith(ResourceUtils.VIP_PREFIX) &&
                         l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
-                    portBuilder.setNumber((int) port);
+                    portBuilder.setNumber((int) getPort());
                     portBuilder.setVisibility(visibility);
                     portBuilder.setProtocol(protocol);
                     return true;
