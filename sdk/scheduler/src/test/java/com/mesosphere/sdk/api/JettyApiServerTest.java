@@ -27,6 +27,11 @@ public class JettyApiServerTest {
 
     @Before
     public void beforeEach() throws IOException {
+        // using a busy-wait and retry pattern to reach the sync point where
+        // server and client connect. This approach was chosen b/c it took a
+        // minimal amount of effort to use a generally applicable pattern to
+        // resolve local build/test failures, but a more elegant solution may
+        // be to use LifeCycle.Listener.
         final int jettyStartRetries = 10;
         final int jettyStartRetryDelay = 1000;
         MockitoAnnotations.initMocks(this);
@@ -80,6 +85,8 @@ public class JettyApiServerTest {
     }
 
     private void sleep(int ms) {
+        // an interruptable sleep b/c if interrupted, i.e. by SIGINT, np,
+        // continue to crash, don't worry about sleep
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) { }
