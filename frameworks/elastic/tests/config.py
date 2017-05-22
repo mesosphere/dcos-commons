@@ -11,12 +11,11 @@ import sdk_utils
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 7
 WAIT_TIME_IN_SECONDS = 10 * 60
+KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
-
-TASK_RUNNING_STATE = 'TASK_RUNNING'
 
 
 def as_json(fn):
@@ -42,6 +41,25 @@ def index_health_success_predicate(index_name, color):
 def check_elasticsearch_index_health(index_name, color):
     return shakedown.wait_for(lambda: index_health_success_predicate(index_name, color),
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
+
+
+def check_kibana_adminrouter_integration(path):
+    return shakedown.wait_for(lambda: kibana_health_success_predicate(path),
+                              timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS,
+                              noisy=True)
+
+
+def kibana_health_success_predicate(path):
+    result = get_kibana_status(path)
+    return result and "HTTP/1.1 200" in result
+
+
+def get_kibana_status(path):
+    token = shakedown.authenticate('bootstrapuser', 'deleteme')
+    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}{}".format(
+        token, shakedown.dcos_url(), path)
+    exit_status, output = shakedown.run_command_on_master(curl_cmd)
+    return output
 
 
 def expected_nodes_success_predicate():

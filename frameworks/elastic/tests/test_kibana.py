@@ -4,11 +4,14 @@ import shakedown
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_utils as utils
-from tests.config import wait_for_expected_nodes_to_exist, DEFAULT_TASK_COUNT
+from tests.config import \
+    wait_for_expected_nodes_to_exist, \
+    DEFAULT_TASK_COUNT, \
+    check_kibana_adminrouter_integration, \
+    KIBANA_WAIT_TIME_IN_SECONDS
 
 PACKAGE_NAME = "kibana"
 ELASTIC_PACKAGE_NAME = "elastic"
-WAIT_TIME_IN_SECONDS = 15 * 60
 
 
 def setup_module(module):
@@ -21,7 +24,7 @@ def setup_module(module):
 @pytest.mark.smoke
 def test_kibana_installation_no_xpack():
     options = {}
-    path = "/"
+    path = "/service/kibana"
     test_kibana(options, path)
 
 
@@ -45,7 +48,7 @@ def test_kibana_installation_with_xpack():
             "xpack_enabled": True
         }
     }
-    path = "/login"
+    path = "/service/kibana/login"
     # installing Kibana w/x-pack can take 15 minutes
     test_kibana(options, path)
     install.uninstall(ELASTIC_PACKAGE_NAME)
@@ -53,13 +56,7 @@ def test_kibana_installation_with_xpack():
 
 def test_kibana(options, path):
     shakedown.install_package(PACKAGE_NAME, options_json=options)
-    shakedown.deployment_wait(timeout=WAIT_TIME_IN_SECONDS, app_id="/{}".format(PACKAGE_NAME))
-    shakedown.wait_for(lambda: kibana_endpoint_success_predicate(path), timeout_seconds=WAIT_TIME_IN_SECONDS)
+    shakedown.deployment_wait(timeout=KIBANA_WAIT_TIME_IN_SECONDS, app_id="/{}".format(PACKAGE_NAME))
+    check_kibana_adminrouter_integration(path)
     install.uninstall(PACKAGE_NAME)
 
-
-def kibana_endpoint_success_predicate(path):
-    cmd = "curl -I -s http://web.kibana.marathon.l4lb.thisdcos.directory:80{}".format(path)
-    exit_status, result = shakedown.run_command_on_master(cmd)
-    utils.out("Waiting for success status from Kibana home: {}".format(result))
-    return result and "HTTP/1.1 200" in result
