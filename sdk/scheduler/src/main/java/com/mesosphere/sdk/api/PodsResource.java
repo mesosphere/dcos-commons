@@ -24,9 +24,11 @@ import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.TaskStatusWriter;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
@@ -51,6 +53,7 @@ public class PodsResource extends PrettyJsonResource {
     private static final String UNKNOWN_POD_LABEL = "UNKNOWN_POD";
 
     private final TaskKiller taskKiller;
+    private final TaskStatusWriter taskStatusWriter;
     private final StateStore stateStore;
     private final RestartHook restartHook;
 
@@ -59,8 +62,10 @@ public class PodsResource extends PrettyJsonResource {
      * provided {@link TaskKiller} to restart/replace tasks, but with no {@link RestartHook} to be called before those
      * restart/replace operations.
      */
-    public PodsResource(TaskKiller taskKiller, StateStore stateStore) {
-        this(taskKiller, stateStore, null);
+    public PodsResource(TaskKiller taskKiller,
+                        TaskStatusWriter taskStatusWriter,
+                        StateStore stateStore) {
+        this(taskKiller, taskStatusWriter, stateStore, null);
     }
 
     /**
@@ -68,8 +73,12 @@ public class PodsResource extends PrettyJsonResource {
      * provided {@link TaskKiller} to restart/replace tasks. Additionally, the provided {@link RestartHook} is invoked
      * before tasks are restarted or replaced.
      */
-    public PodsResource(TaskKiller taskKiller, StateStore stateStore, RestartHook restartHook) {
+    public PodsResource(TaskKiller taskKiller,
+                        TaskStatusWriter taskStatusWriter,
+                        StateStore stateStore,
+                        RestartHook restartHook) {
         this.taskKiller = taskKiller;
+        this.taskStatusWriter = taskStatusWriter;
         this.stateStore = stateStore;
         this.restartHook = restartHook;
     }
@@ -196,7 +205,7 @@ public class PodsResource extends PrettyJsonResource {
         }
     }
 
-    private Response restartPod(String name, boolean destructive) {
+    private Response restartPod(String name, boolean destructive) throws Exception {
         // look up all tasks in the provided pod name:
         List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
         if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
@@ -231,6 +240,13 @@ public class PodsResource extends PrettyJsonResource {
             }
             taskKiller.killTask(taskInfo.getTaskId(), destructive);
             restartedTaskNames.add(taskInfo.getName());
+            if (destructive) {
+                // Immediately overwrite the TaskStatus to ensure that REPLACE
+                // proceeds even if Mesos cannot be told what to do.
+                taskStatusWriter.writeTaskStatus(taskInfo.getTaskId(),
+                    Protos.TaskState.TASK_KILLED,
+                    "Task killed by explicit TaskStatusWriter call in PodsResource");
+            }
         }
 
         JSONObject json = new JSONObject();

@@ -100,7 +100,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
      * <p>
      * 1. Updates existing steps.
      * 2. If the needs recovery and doesn't yet have a step in the plan, removes any COMPLETED steps for this task
-     * (at most one step for a given task can exist) and creates a new PENDING step.
+     * (at most one step for a given taskd can exist) and creates a new PENDING step.
      *
      * @param status task status
      */

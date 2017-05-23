@@ -2,11 +2,13 @@ import json
 
 import pytest
 import shakedown
+import time
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -83,6 +85,45 @@ def test_pods_replace():
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
     # assert old_agent != new_agent
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+@pytest.mark.shutdown_node
+def test_pods_replace_dead_agent():
+    # Find a pod that is on a different agent than the scheduler.
+    scheduler_ip = shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()
+    sdk_utils.out('marathon ip = {}'.format(scheduler_ip))
+
+    agent_to_kill = None
+    for pod_id in range(0, DEFAULT_TASK_COUNT):
+        task = 'world-{}-server'.format(pod_id)
+        task_ip = shakedown.get_service_ips(PACKAGE_NAME, task_name=task)
+        if task_ip != scheduler_ip:
+            agent_to_kill = task_ip
+            break
+
+    if agent_to_kill is None:
+        sdk_utils.out("Failed to find an agent to kill. All world tasks are on scheduler agent.")
+        raise
+
+    # Initial task id
+    task_ids = tasks.get_task_ids(PACKAGE_NAME, 'world-{}'.format(pod_id))
+    stdout = cmd.run_cli('{} state property suppressed'.format(PACKAGE_NAME))
+    assert stdout.rstrip('\n') == 'true' # make sure we're already suppressed.
+
+    # Don't use `shutdown now` so that SSH command completes successfully.
+    status, stdout = shakedown.run_command_on_agent(agent_to_kill, 'sudo shutdown -h +1')
+    sdk_utils.out('shutdown agent {}: [{}] {}'.format(agent_to_kill, status, stdout))
+    assert status is True
+    time.sleep(100) # Make sure agent is shutdown.
+
+    cmd.run_cli('{} replace pod world-{}'.format(PACKAGE_NAME, pod_id))
+    time.sleep(5)
+    stdout = cmd.run_cli('{} state property suppressed'.format(PACKAGE_NAME))
+    assert stdout.rstrip('\n') == 'false' # make sure we've revived.
+
+    tasks.check_tasks_updated(PACKAGE_NAME, 'node', task_ids)
 
 
 @pytest.mark.recovery
