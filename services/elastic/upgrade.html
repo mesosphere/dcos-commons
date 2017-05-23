@@ -104,6 +104,8 @@
           
           <li><a href="../../services/elastic/configure.html">Configuring</a></li>
           
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
           <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
@@ -117,6 +119,8 @@
           <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
           
         </ul>
       </li>
@@ -154,9 +158,9 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -190,7 +194,7 @@
 <h1 id="upgrade-instructions">Upgrade Instructions</h1>
 
 <ol>
-  <li>In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch or Kibana node tasks).</li>
+  <li>In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch node tasks).</li>
   <li>Verify that you no longer see the Elastic instance in the DC/OS web interface.</li>
   <li>From the DC/OS CLI, install the N+1 version of Elastic (where N is your current version) with any customizations you require in a JSON options file:</li>
 </ol>

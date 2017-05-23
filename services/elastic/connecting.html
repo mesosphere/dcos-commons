@@ -104,6 +104,8 @@
           
           <li><a href="../../services/elastic/configure.html">Configuring</a></li>
           
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
           <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
@@ -117,6 +119,8 @@
           <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
           
         </ul>
       </li>
@@ -154,9 +158,9 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -220,6 +224,85 @@
 </div>
 
 <p>The default framework name is <code class="highlighter-rouge">elastic</code>. If you customized the name your framework, you need to adjust the service address accordingly.</p>
+
+<h2 id="kibana">Kibana</h2>
+
+<p><a href="https://www.elastic.co/products/kibana">Kibana</a> lets you visualize your Elasticsearch data and navigate the Elastic Stack. You can install Kibana like any other DC/OS package via the <strong>Universe</strong> &gt; <strong>Packages</strong> tab of the DC/OS web interface or the DC/OS CLI:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install kibana
+</code></pre>
+</div>
+
+<p>This command launches a new Kibana application with the default name <code class="highlighter-rouge">kibana</code> and the default Elasticsearch URL <code class="highlighter-rouge">http://coordinator.elastic.l4lb.thisdcos.directory:9200</code>. Two Kibana application instances cannot share the same name, so installing additional Kibana applications beyond the default one requires customizing the <code class="highlighter-rouge">name</code> at install time for each additional instance.</p>
+
+<h3 id="access-kibana">Access Kibana</h3>
+
+<ol>
+  <li>
+    <p>Log into your DC/OS cluster so that you can see the Dashboard. You should see your Elastic service and your Kibana service running under Services.</p>
+  </li>
+  <li>
+    <p>Make sure Kibana is ready for use. Depending on your Kibana node’s resources and whether or not you are installing X-Pack, it can take ~10 minutes to launch. If you look in the stdout log for Kibana, you will see this line takes the longest when installing X-Pack:</p>
+  </li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>  Optimizing and caching browser bundles...
+</code></pre>
+</div>
+
+<p>Then you’ll see this:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="w">  </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"log"</span><span class="p">,</span><span class="nt">"@timestamp"</span><span class="p">:</span><span class="s2">"2016-12-08T22:37:46Z"</span><span class="p">,</span><span class="nt">"tags"</span><span class="p">:[</span><span class="s2">"listening"</span><span class="p">,</span><span class="s2">"info"</span><span class="p">],</span><span class="nt">"pid"</span><span class="p">:</span><span class="mi">12263</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"Server running at http://0.0.0.0:5601"</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ol>
+  <li>If you installed X-Pack, go to
+    <div class="highlighter-rouge"><pre class="highlight"><code>  http://&lt;dcos_url&gt;/service/kibana/login
+</code></pre>
+    </div>
+    <p>and log in with <code class="highlighter-rouge">elastic</code>/<code class="highlighter-rouge">changeme</code>.</p>
+  </li>
+</ol>
+
+<p>Otherwise go to</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>  http://&lt;dcos_url&gt;/service/kibana
+</code></pre>
+</div>
+
+<h3 id="configuration-guidelines">Configuration Guidelines</h3>
+
+<ul>
+  <li>Service name: This needs to be unique for each instance of the service that is running.</li>
+  <li>Service user: This must be a non-root user that already exists on each agent. The default user is <code class="highlighter-rouge">nobody</code>.</li>
+  <li>The Kibana X-Pack plugin is not installed by default, but you can enable it. See the <a href="x-pack.md">X-Pack documentation</a> to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic).</li>
+  <li>Elasticsearch credentials: If you have X-Pack enabled, Kibana will use these credentials for authorization. The default user is  <code class="highlighter-rouge">kibana</code>.</li>
+  <li>Elasticsearch URL: This is a required configuration parameter. The default value <code class="highlighter-rouge">http://coordinator.elastic.l4lb.thisdcos.directory:9200</code> corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.</li>
+</ul>
+
+<h3 id="custom-installation">Custom Installation</h3>
+
+<p>You can customize the Kibana installation in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that installs X-Pack and customizes the service name and Elasticsearch URL:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"another-kibana"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"kibana"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"elasticsearch_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://my.elasticsearch.cluster:9200"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"xpack_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre>
+</div>
+
+<p>The command below installs Kibana using a <code class="highlighter-rouge">options.json</code> file:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install kibana --options<span class="o">=</span>options.json 
+</code></pre>
+</div>
+
 
 </div>
 </div>

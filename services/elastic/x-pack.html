@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Backup and Restore</title>
+<title>Elastic: X-Pack</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -186,11 +186,28 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Backup and Restore</h1>
+<h1>Elastic: X-Pack</h1>
 <div id="content">
-<h1 id="backup-and-restore">Backup and Restore</h1>
+<h1 id="elastic-x-pack">Elastic X-Pack</h1>
 
-<p>You interact with the Elasticsearch cluster directly to perform snapshot and restore operations. Elasticsearch’s built in <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html">snapshot and restore module</a> allows you to create snapshots of individual indices or an entire cluster into a remote repository like a shared file system, S3, or HDFS.</p>
+<p><a href="https://www.elastic.co/guide/en/x-pack/current/xpack-introduction.html">X-Pack</a> is an Elastic Stack extension that bundles security, alerting, monitoring, reporting, and graph capabilities into one easy-to-install package. X-Pack is a commercial product of Elastic that requires a license. By default, X-Pack is not installed as part of the DC/OS Elastic service. However, it’s easy to enable X-Pack as part of the service configuration:</p>
+
+<p><img src="img/x-pack.png" alt="x-pack" /></p>
+
+<p>You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don’t wish to purchase a license, you can disable it without losing access to your data.</p>
+
+<h2 id="license-expiration">License Expiration</h2>
+
+<p>If you uninstall the X-Pack plugin via the service configuration or you let your license expire, remember these two important points:</p>
+
+<ol>
+  <li>Your data is still there.</li>
+  <li>All data operations (read and write) continue to work.</li>
+</ol>
+
+<p><a href="https://www.elastic.co/guide/en/x-pack/current/graph-getting-started.html">Graph</a>, <a href="https://www.elastic.co/guide/en/x-pack/current/ml-getting-started.html">Machine Learning</a>, <a href="https://www.elastic.co/guide/en/x-pack/current/watcher-getting-started.html">Alerting and Notification</a>, <a href="https://www.elastic.co/guide/en/x-pack/current/monitoring-getting-started.html">Monitoring</a>, and <a href="https://www.elastic.co/guide/en/x-pack/current/security-getting-started.html">Security</a> all operate with reduced functionality when X-Pack becomes unavailable.</p>
+
+<p>Click <a href="https://www.elastic.co/guide/en/x-pack/current/license-expiration.html">here</a> to learn more about how X-Pack license expiration is handled.</p>
 
 </div>
 </div>

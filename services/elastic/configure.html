@@ -104,6 +104,8 @@
           
           <li><a href="../../services/elastic/configure.html">Configuring</a></li>
           
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
           <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
@@ -117,6 +119,8 @@
           <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
           
         </ul>
       </li>
@@ -154,9 +158,9 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -200,11 +204,12 @@
 
 <ul>
   <li>Service name: This needs to be unique for each instance of the service that is running. It is also used as your cluster name.</li>
-  <li>Service user. This must be a non-root user that already exists on each agent. The default user for CoreOS-based clusters is core.</li>
-  <li>Plugins: X-Pack will already be installed for you, but you can specify other plugins via a comma-separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.</li>
+  <li>Service user: This must be a non-root user that already exists on each agent. The default user is <code class="highlighter-rouge">nobody</code>.</li>
+  <li>X-Pack is not installed by default, but you can enable it. X-Pack comes with a 30-day trial license.</li>
+  <li>Health check credentials: If you have X-Pack enabled, the health check will use these credentials for authorization. We recommend you create a specific Elastic user/password for this with minimal capabilities rather than using the default superuser <code class="highlighter-rouge">elastic</code>.</li>
+  <li>Plugins: You can specify other plugins via a comma-separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.</li>
   <li>CPU/RAM/Disk/Heap: These will be specific to your DC/OS cluster and your Elasticsearch use cases. Please refer to Elastic’s guidelines for configuration.</li>
-  <li>Node counts: At least 1 data node is required for the cluster to operate at all. You do not need to use a coordinator node unless you are using Kibana. There is no maximum for node counts.</li>
-  <li>If you are running Kibana, make sure you have exactly 1 proxylite task running. Pick an available port for it to listen on. If you are not running Kibana, do not run a proxylite task.</li>
+  <li>Node counts: At least 1 data node is required for the cluster to operate at all. You do not need to use a coordinator node. Learn about Elasticsearch node types <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html">here</a>. There is no maximum for node counts.</li>
   <li>Master transport port: You can pick whichever port works for your DC/OS cluster. The default is 9300. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster. If you want to ensure a particular distribution of nodes of one task type (e.g., master nodes spread across 3 racks, data nodes on one class of machines), specify this via the Marathon placement constraint.</li>
   <li>Serial vs Parallel deployment. By default, the DC/OS Elastic Service tells DC/OS to install and update everything in parallel. You can change this to serial in order to have each node installed one at a time.</li>
 </ul>
@@ -227,6 +232,8 @@
   <li>Memory</li>
   <li>JVM Heap (do not exceed ½ available node RAM)</li>
   <li>Node count (up, not down)</li>
+  <li>Health check credentials</li>
+  <li>X-Pack enabled/disabled</li>
   <li>Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.</li>
 </ul>
 
@@ -238,9 +245,9 @@
 
 <h1 id="topology">Topology</h1>
 
-<p>Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator, kibana.</p>
+<p>Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator.</p>
 
-<p>The default placement strategy distributes all instances of the same node task type to different agents. So no two master nodes would run on the same agent, but a data node might get placed onto an agent that is also running a master node.</p>
+<p>The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon placement constraints</a> for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers.</p>
 
 <p><img src="img/private-nodes-by-agent.png" alt="agent" />
 <img src="img/private-node-by-vip.png" alt="vip" /></p>
@@ -253,7 +260,6 @@
   <li>3 master-only nodes</li>
   <li>2 data-only nodes</li>
   <li>1 ingest-only node</li>
-  <li>1 Kibana node with X-Pack installed</li>
   <li>1 coordinator node</li>
 </ul>
 
@@ -261,7 +267,7 @@
 
 <h2 id="minimal-topology">Minimal Topology</h2>
 
-<p>You can set up a minimal development/staging cluster without ingest nodes, coordinator nodes, or Kibana. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node. By default, Elasticsearch creates indices with a replication factor of 1 (i.e., 1 primary shard + 1 replica), so with 1 data node, your cluster will be stuck in a ‘yellow’ state unless you change the replication factor.</p>
+<p>You can set up a minimal development/staging cluster without ingest nodes, or coordinator nodes. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node. By default, Elasticsearch creates indices with a replication factor of 1 (i.e., 1 primary shard + 1 replica), so with 1 data node, your cluster will be stuck in a ‘yellow’ state unless you change the replication factor.</p>
 
 <p>Note that with X-Pack installed, the default monitoring behavior is to try to write to an ingest node every few seconds. Without an ingest node, you will see frequent warnings in your master node error logs. While they can be ignored, you can turn them off by disabling X-Pack monitoring in your cluster, like this:</p>
 

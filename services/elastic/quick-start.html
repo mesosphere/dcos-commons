@@ -104,6 +104,8 @@
           
           <li><a href="../../services/elastic/configure.html">Configuring</a></li>
           
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
           <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
@@ -117,6 +119,8 @@
           <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
           
         </ul>
       </li>
@@ -154,9 +158,9 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Kick the Tires</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -234,14 +238,14 @@
     <p>Now that you are inside your DC/OS cluster, you can connect to your Elasticsearch cluster directly.</p>
   </li>
   <li>
-    <p>Create an indice:</p>
+    <p>Create an index:</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
 </code></pre>
     </div>
   </li>
   <li>
-    <p>Store data in your indice:</p>
+    <p>Store data in your index:</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
  {
@@ -251,47 +255,11 @@
     </div>
   </li>
   <li>
-    <p>Retrieve data from your indice:</p>
+    <p>Retrieve data from your index:</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
 </code></pre>
     </div>
-  </li>
-</ol>
-
-<h1 id="access-kibana">Access Kibana</h1>
-
-<ol>
-  <li>
-    <p>Log into your DC/OS cluster so that you can see the Dashboard. You should see your Elastic service running under Services.</p>
-  </li>
-  <li>
-    <p>Make sure Kibana is ready for use. The <code class="highlighter-rouge">kibana-deploy</code> phase should be marked as <code class="highlighter-rouge">COMPLETE</code> when you check the plan status:</p>
-  </li>
-</ol>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>  dcos elastic plan show deploy
-</code></pre>
-</div>
-
-<p>Depending on your Kibana node’s resources, it can take ~10 minutes to launch. If you look in the stdout log for the Kibana task, you will see this line takes the longest:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>  Optimizing and caching browser bundles...
-</code></pre>
-</div>
-
-<p>Then you’ll see this:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="w">  </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="s2">"log"</span><span class="p">,</span><span class="nt">"@timestamp"</span><span class="p">:</span><span class="s2">"2016-12-08T22:37:46Z"</span><span class="p">,</span><span class="nt">"tags"</span><span class="p">:[</span><span class="s2">"listening"</span><span class="p">,</span><span class="s2">"info"</span><span class="p">],</span><span class="nt">"pid"</span><span class="p">:</span><span class="mi">12263</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"Server running at http://0.0.0.0:5601"</span><span class="p">}</span><span class="w">
-</span></code></pre>
-</div>
-
-<ol>
-  <li>Then, go to this URL:
-    <div class="highlighter-rouge"><pre class="highlight"><code>  http://&lt;dcos_url&gt;/service/elastic/kibana/login
-</code></pre>
-    </div>
-    <p>And log in with <code class="highlighter-rouge">elastic</code>/<code class="highlighter-rouge">changeme</code></p>
   </li>
 </ol>
 
