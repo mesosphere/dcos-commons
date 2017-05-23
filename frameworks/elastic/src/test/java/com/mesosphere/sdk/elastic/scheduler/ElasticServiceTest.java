@@ -20,7 +20,10 @@ public class ElasticServiceTest extends BaseServiceSpecTest {
         ENV_VARS.set("FRAMEWORK_NAME", "elastic");
         ENV_VARS.set("FRAMEWORK_USER", "non-root");
         ENV_VARS.set("PLAN_STRATEGY", "parallel");
-        ENV_VARS.set("ELASTICSEARCH_PLUGINS", "analysis-icu");
+        ENV_VARS.set("TASKCFG_ALL_ELASTICSEARCH_PLUGINS", "analysis-icu");
+        ENV_VARS.set("TASKCFG_ALL_XPACK_ENABLED", "false");
+        ENV_VARS.set("ELASTICSEARCH_HEALTH_USER", "elastic");
+        ENV_VARS.set("ELASTICSEARCH_HEALTH_USER_PASSWORD", "changeme");
         ENV_VARS.set("MASTER_NODE_CPUS", "1");
         ENV_VARS.set("MASTER_NODE_MEM", "4000");
         ENV_VARS.set("MASTER_NODE_HEAP_MB", "2000");
@@ -45,15 +48,6 @@ public class ElasticServiceTest extends BaseServiceSpecTest {
         ENV_VARS.set("COORDINATOR_NODE_HEAP_MB", "2000");
         ENV_VARS.set("COORDINATOR_NODE_DISK", "10000");
         ENV_VARS.set("COORDINATOR_NODE_DISK_TYPE", "ROOT");
-        ENV_VARS.set("KIBANA_COUNT", "1");
-        ENV_VARS.set("KIBANA_CPUS", "1");
-        ENV_VARS.set("KIBANA_MEM", "2000");
-        ENV_VARS.set("KIBANA_DISK", "2000");
-        ENV_VARS.set("KIBANA_DISK_TYPE", "ROOT");
-        ENV_VARS.set("KIBANA_PASSWORD", "changeme");
-        ENV_VARS.set("PROXYLITE_CPUS", ".1");
-        ENV_VARS.set("PROXYLITE_MEM", "32");
-        ENV_VARS.set("PROXYLITE_PORT", "4040");
         URL resource = ElasticServiceTest.class.getClassLoader().getResource("svc.yml");
         ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }

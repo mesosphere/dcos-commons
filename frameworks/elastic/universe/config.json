@@ -16,7 +16,7 @@
           "default":""
         },
         "user": {
-          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
+          "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string",
           "default": "nobody"
         },
@@ -26,7 +26,7 @@
           "default": ""
         },
         "deploy_strategy": {
-          "description": "Elasticsearch and Kibana rollout strategy. [parallel, serial]",
+          "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",
           "default": "parallel"
         }
@@ -42,10 +42,25 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "xpack_enabled": {
+          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
+          "type": "boolean",
+          "default": false
+        },
         "plugins": {
           "description": "Comma-separated list of plugins to install",
           "type": "string",
           "default": ""
+        },
+        "health_user": {
+          "description": "Elastic username to use for X-Pack authentication, if enabled",
+          "type": "string",
+          "default": "elastic"
+        },
+        "health_user_password": {
+          "description": "Password to use with health_user for X-Pack authentication, if enabled. Note that you are not setting the password here. You are telling the framework the credentials to use when sending in health check requests.",
+          "type": "string",
+          "default": "changeme"
         }
       }
     },
@@ -180,7 +195,7 @@
         "mem": {
           "description": "Node mem requirements",
           "type": "integer",
-          "default": 1024
+          "default": 2048
         },
         "heap": {
           "description": "The Elasticsearch process JVM heap configuration object",
@@ -274,80 +289,6 @@
         "mem",
         "disk",
         "count"
-      ]
-    },
-    "kibana": {
-      "description": "Kibana configuration properties",
-      "type": "object",
-      "properties": {
-        "count": {
-          "description": "Number of Kibana nodes to run",
-          "type": "integer",
-          "default": 1,
-          "minimum": 0
-        },
-        "cpus": {
-          "description": "Kibana cpu requirements",
-          "type": "number",
-          "default": 0.5
-        },
-        "mem": {
-          "description": "Kibana mem requirements",
-          "type": "integer",
-          "default": 2048
-        },
-        "disk": {
-          "description": "Kibana disk requirements (minimal for logging)",
-          "type": "integer",
-          "default": 100
-        },
-        "disk_type": {
-          "type": "string",
-          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
-          "default": "ROOT"
-        },
-        "password": {
-          "description": "'kibana' user password for basic authentication with Elasticsearch",
-          "type": "string",
-          "default": "changeme"
-        },
-        "placement": {
-          "description": "Marathon-style placement constraints",
-          "type": "string"
-        }
-      },
-      "required": [
-        "cpus",
-        "mem",
-        "disk",
-        "password",
-        "count"
-      ]
-    },
-    "proxylite": {
-      "description": "Proxylite configuration properties",
-      "type": "object",
-      "properties": {
-        "cpus": {
-          "description": "Proxylite cpu requirements",
-          "type": "number",
-          "default": 0.1
-        },
-        "mem": {
-          "description": "Proxylite mem requirements",
-          "type": "integer",
-          "default": 100
-        },
-        "port": {
-          "description": "HTTP port for Proxylite to listen on.",
-          "type": "integer",
-          "default": 4040
-        }
-      },
-      "required": [
-        "cpus",
-        "mem",
-        "port"
       ]
     }
   }
