@@ -276,8 +276,9 @@ def _build_upload_aws(framework):
         msg = template % (framework.buildscript, framework.name)
         raise CommandFailure(cmd_args)
     with open(url_textfile_path) as url_file:
-        stub_url = url_file.read().strip()
-    framework.stub_universe_url = stub_url
+        # nearly always one url, but sometimes more
+        stub_urls = url_file.read().splitlines()
+    framework.stub_universe_urls = stub_urls
 
 def _recover_stub_urls(run_attrs, repo_root):
     """If run with test_only, acquire the stub_universe urls from the
@@ -288,8 +289,8 @@ def _recover_stub_urls(run_attrs, repo_root):
         url_textfile_path = _make_url_path(framework)
         try:
             with open(url_textfile_path) as url_file:
-                stub_url = url_file.read().strip()
-            framework.stub_universe_url = stub_url
+                stub_urls = url_file.read().splitlines()
+            framework.stub_universe_urls = stub_urls
         except:
             logger.error("Failed to open universe url_file=%s for framework=%s",
                     url_textfile_path, framework.name)
@@ -317,8 +318,8 @@ def build_and_upload_single(framework, run_attrs):
     _action_wrapper("upload %s to aws" % framework.name,
             framework, func, *args)
 
-    logger.info("Built/uploaded framework=%s stub_universe_url=%s.",
-            framework.name, framework.stub_universe_url)
+    logger.info("Built/uploaded framework=%s stub_universe_urls=%s.",
+            framework.name, framework.stub_universe_urls)
 
 
 def setup_clusters(run_attrs):
@@ -549,20 +550,22 @@ def start_test_background(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown in background for %s", framework.name)
-    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
-            framework.stub_universe_url, cluster.url, cluster.auth_token)
+    logger.debug("stub_universe_urls:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_urls, cluster.url, cluster.auth_token)
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
     runtests_script = os.path.join(repo_root, 'tools', 'run_tests.py')
 
+
     # Why this trailing slash here? no idea.
     framework_testdir = os.path.join(framework.dir, 'tests') + "/"
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
+    for stub_url in framework.stub_universe_urls:
+        cmd_args.extend(["--stub-universe", stub_url])
 
     output_filename = os.path.join(get_work_dir(), "%s.out" % framework.name)
     output_file = open(output_filename, "w+b")
@@ -582,10 +585,9 @@ def run_test(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown for %s", framework.name)
-    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
-            framework.stub_universe_url, cluster.url, cluster.auth_token)
+    logger.debug("stub_universes:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_urls, cluster.url, cluster.auth_token)
     custom_env = os.environ.copy()
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
@@ -593,6 +595,8 @@ def run_test(framework, cluster, repo_root):
     # Why this trailing slash here? no idea.
     framework_testdir = os.path.join(framework.dir, 'tests') + "/"
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
+    for stub_url in framework.stub_universe_urls:
+        cmd_args.extend(["--stub-universe", stub_url])
     completed_cmd = subprocess.run(cmd_args, env=custom_env)
     if completed_cmd.returncode != 0:
         msg = "Test script: %s invocation returned failure for %s.  FAIL"
