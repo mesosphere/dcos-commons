@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
@@ -45,6 +46,11 @@ public class PortSpec extends DefaultResourceSpec {
     @Override
     public Optional<String> getEnvKey() {
         return Optional.ofNullable(envKey);
+    }
+
+    @JsonIgnore
+    public long getPort() {
+        return getValue().getRanges().getRange(0).getBegin();
     }
 
     @Override

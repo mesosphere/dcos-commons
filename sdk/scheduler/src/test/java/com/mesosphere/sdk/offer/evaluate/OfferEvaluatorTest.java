@@ -184,53 +184,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testReserveTaskDynamicPort() throws Exception {
-        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredPorts),
-                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
-
-        Assert.assertEquals(2, recommendations.size());
-
-        Operation launchOperation = recommendations.get(1).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
-        Resource fulfilledPortResource = taskInfo.getResources(0);
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
-
-        CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
-        Assert.assertEquals(envvars.toString(), 1, envvars.size());
-        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
-    }
-
-    @Test
-    public void testLaunchExpectedPort() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(desiredResource))));
-        Assert.assertEquals(1, recommendations.size());
-
-        // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-    }
-
-    @Test
     public void testLaunchExpectedDynamicPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
         Resource desiredResource = ResourceUtils.setLabel(

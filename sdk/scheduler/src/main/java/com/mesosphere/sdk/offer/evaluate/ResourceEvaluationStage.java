@@ -26,9 +26,9 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final String taskName;
-    private final ResourceSpec resourceSpec;
-    private final Optional<String> resourceId;
+    protected final String taskName;
+    protected final Optional<String> resourceId;
+    protected ResourceSpec resourceSpec;
 
     public ResourceEvaluationStage(ResourceSpec resourceSpec, Optional<String> resourceId, String taskName) {
         this.resourceSpec = resourceSpec;

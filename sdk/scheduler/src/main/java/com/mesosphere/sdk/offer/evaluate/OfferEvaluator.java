@@ -156,7 +156,8 @@ public class OfferEvaluator {
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         for (Map.Entry<ResourceSet, String> entry : resourceSets.entrySet()) {
             String taskName = entry.getValue();
-            for (ResourceSpec resourceSpec : entry.getKey().getResources()) {
+            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getKey());
+            for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof PortSpec) {
                     PortSpec portSpec = (PortSpec) resourceSpec;
                     evaluationStages.add(new PortEvaluationStage(
@@ -181,6 +182,31 @@ public class OfferEvaluator {
         }
 
         return  evaluationStages;
+    }
+
+    private List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
+        // Statically defined ports, then dynamic ports, then everything else
+        List<ResourceSpec> staticPorts = new ArrayList<>();
+        List<ResourceSpec> dynamicPorts = new ArrayList<>();
+        List<ResourceSpec> simpleResources = new ArrayList<>();
+
+        for (ResourceSpec resourceSpec : resourceSet.getResources()) {
+            if (resourceSpec instanceof PortSpec) {
+                if (((PortSpec) resourceSpec).getPort() == 0) {
+                    dynamicPorts.add(resourceSpec);
+                } else {
+                    staticPorts.add(resourceSpec);
+                }
+            } else {
+                simpleResources.add(resourceSpec);
+            }
+        }
+
+        List<ResourceSpec> resourceSpecs = new ArrayList<>();
+        resourceSpecs.addAll(staticPorts);
+        resourceSpecs.addAll(dynamicPorts);
+        resourceSpecs.addAll(simpleResources);
+        return resourceSpecs;
     }
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
