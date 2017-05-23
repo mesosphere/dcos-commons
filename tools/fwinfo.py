@@ -89,6 +89,8 @@ class FrameworkTestInfo(object):
         self.output_file = None # in background
         self.popen = None
         self.dir = os.path.join(repo_root, 'frameworks', self.name)
+        if not os.path.isdir(self.dir):
+            raise ValueError("Invalid framework name %s" % self.name)
         self.buildscript = os.path.join(self.dir, 'build.sh')
         # TODO figure out what this trailing slash is for and eliminate
         self.testdir = os.path.join(self.dir, 'tests') + "/"
