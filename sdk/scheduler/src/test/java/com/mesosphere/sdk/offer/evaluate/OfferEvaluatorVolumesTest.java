@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Offer evaluation tests concerning volumes.
@@ -208,6 +209,64 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
+    }
+
+    @Test
+    public void testExpectedMountVolume() throws Exception {
+        // Launch for the first time.
+        Resource offeredCpuResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredDiskResource = ResourceUtils.getUnreservedMountVolume(2000, "/dcos/volume0");
+
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500);
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+
+        String cpuResourceId = ResourceUtils.getResourceId(
+                recommendations.get(0).getOperation()
+                        .getReserve()
+                        .getResources(0));
+
+        Operation createOperation = recommendations.get(2).getOperation();
+        Resource createResource =
+                createOperation
+                        .getCreate()
+                        .getVolumesList()
+                        .get(0);
+        String diskResourceId = ResourceUtils.getResourceId(createResource);
+        String persistenceId = ResourceUtils.getPersistenceId(createResource);
+
+        Operation launchOperation = recommendations.get(recommendations.size()-1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again on expected resources.
+        Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
+        Resource expectedDisk = ResourceTestUtils.getExpectedMountVolume(2000, diskResourceId, persistenceId);
+        recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedCpu, expectedDisk))));
+        Assert.assertEquals(1, recommendations.size());
+
+        launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(1);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+        Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
     }
 
     /*

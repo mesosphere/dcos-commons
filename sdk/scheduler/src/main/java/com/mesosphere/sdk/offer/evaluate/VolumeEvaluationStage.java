@@ -52,8 +52,14 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
             offerRecommendations.addAll(intermediateOutcome.getRecommendations());
             resource = intermediateOutcome.getResource();
         } else {
-            Optional<MesosResource> mesosResourceOptional =
-                    mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
+            Optional<MesosResource> mesosResourceOptional = Optional.empty();
+            if (reservesResource()) {
+                mesosResourceOptional =
+                        mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
+            } else {
+                mesosResourceOptional =
+                        mesosResourcePool.getReservedResourceById(resourceId.get());
+            }
 
             if (!mesosResourceOptional.isPresent()) {
                 return fail(

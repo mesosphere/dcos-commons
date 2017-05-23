@@ -28,10 +28,10 @@ public class ResourceTestUtils {
     }
 
     public static Resource getExpectedMountVolume(double diskSize) {
-        return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID);
+        return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
     }
 
-    public static Resource getExpectedMountVolume(double diskSize, String resourceId) {
+    public static Resource getExpectedMountVolume(double diskSize, String resourceId, String persistenceId) {
         return ResourceUtils.getExpectedMountVolume(
                 diskSize,
                 resourceId,
@@ -39,7 +39,7 @@ public class ResourceTestUtils {
                 TestConstants.PRINCIPAL,
                 TestConstants.MOUNT_ROOT,
                 TestConstants.CONTAINER_PATH,
-                TestConstants.PERSISTENCE_ID);
+                persistenceId);
     }
 
     public static Resource getExpectedRootVolume(double diskSize) {
