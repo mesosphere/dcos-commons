@@ -157,6 +157,14 @@ plans:
         pod: node
         steps:
           - default: [[server]]
+  replace:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[server]]
   repair:
     strategy: serial
     phases:
