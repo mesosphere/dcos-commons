@@ -13,10 +13,10 @@ redirect_from: "/ops-guide"
 This operations guide describes how to manage stateful DC/OS services that are based on the DC/OS SDK. Consult the [Developer Guide](developer-guide.html) to learn how to build DC/OS SDK services.
 
 This guide is structured into four major sections:
-- Overview of components architecture.
-- List of the available tools and how to use them.
-- How to perform and monitor common operations in the cluster using the available tools.
-- How to use the tools to troubleshoot.
+- Overview of [component architecture](#dcos-sdk-service-overview).
+- List of the [available tools](#diagnostic-tools) and how to use them.
+- How to perform and monitor [common operations](#common-operations) in the cluster using the available tools.
+- How to use the tools to [troubleshoot problems](#troubleshooting).
 
 # DC/OS SDK Service Overview
 
