@@ -381,66 +381,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testReserveCreateLaunchMountVolume() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(3, recommendations.size());
-
-        // Validate RESERVE Operation
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
-
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
-
-        // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
-        Operation createOperation = recommendations.get(1).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
-
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
-        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertTrue(createResource.getDisk().hasVolume());
-
-        // Validate LAUNCH Operation
-        String persistenceId = createResource.getDisk().getPersistence().getId();
-        Operation launchOperation = recommendations.get(2).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-        Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
-    }
-
-    @Test
     public void testUpdateMountVolumeSuccess() throws Exception {
         String resourceId = UUID.randomUUID().toString();
         Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);

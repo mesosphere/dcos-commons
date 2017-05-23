@@ -16,7 +16,6 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 import org.apache.curator.test.TestingServer;

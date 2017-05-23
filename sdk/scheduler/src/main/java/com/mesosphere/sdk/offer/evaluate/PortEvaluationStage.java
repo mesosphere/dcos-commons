@@ -81,7 +81,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         }
 
         List<OfferRecommendation> offerRecommendations = evaluationOutcome.getOfferRecommendations();
-        Protos.Resource fulfilledResource = getFulfilledResource(reservedResource);
+        //Protos.Resource fulfilledResource = getFulfilledResource(reservedResource);
+        return null;
     }
 
     @Override

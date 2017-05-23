@@ -4,20 +4,13 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
-
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
+import java.util.*;
 
 /**
  * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that it contains a sufficient amount
@@ -54,10 +47,25 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+        IntermediateEvaluationOutcome intermediateOutcome = evaluateInternal(mesosResourcePool, podInfoBuilder);
+        if (intermediateOutcome.hasPassed()) {
+            setProtos(podInfoBuilder, intermediateOutcome.getResource());
+        }
+
+        return intermediateOutcome.toEvaluationOutcome();
+    }
+
+    protected IntermediateEvaluationOutcome evaluateInternal(
+            MesosResourcePool mesosResourcePool,
+            PodInfoBuilder podInfoBuilder) {
 
         Optional<MesosResource> mesosResourceOptional = consume(resourceSpec, mesosResourcePool);
         if (!mesosResourceOptional.isPresent()) {
-            return fail(this, "Failed to satisfy required resource '%s'", getSummary());
+            return new IntermediateEvaluationOutcome(
+                    false,
+                    null,
+                    Collections.emptyList(),
+                    Arrays.asList(String.format("Failed to satisfy required resource '%s'", getSummary())));
         }
 
         OfferRecommendation offerRecommendation = null;
@@ -89,10 +97,14 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
                 mesosResourceOptional = consume(requiredAdditionalResources, mesosResourcePool);
                 if (!mesosResourceOptional.isPresent()) {
-                    return fail(
-                            this,
-                            "Insufficient resources to increase reservation of resource '%s'",
-                            getSummary());
+                    return new IntermediateEvaluationOutcome(
+                            false,
+                            null,
+                            Collections.emptyList(),
+                            Arrays.asList(
+                                    String.format(
+                                            "Insufficient resources to increase reservation of resource '%s'",
+                                            getSummary())));
                 }
 
                 mesosResource = mesosResourceOptional.get();
@@ -115,14 +127,19 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             }
         }
 
-        setProtos(podInfoBuilder, fulfilledResource);
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+        if (offerRecommendation != null) {
+            recommendations.add(offerRecommendation);
+        }
 
-        return pass(
-                this,
-                offerRecommendation == null ? Collections.emptyList() : Arrays.asList(offerRecommendation),
-                "Offer contains sufficient '%s': for requirement: '%s'",
-                resourceSpec.getName(),
-                getSummary());
+        return new IntermediateEvaluationOutcome(
+                true,
+                fulfilledResource,
+                recommendations,
+                Arrays.asList(String.format(
+                        "Offer contains sufficient '%s': for requirement: '%s'",
+                        resourceSpec.getName(),
+                        getSummary())));
     }
 
     protected Resource getFulfilledResource() {

@@ -10,7 +10,6 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
 import com.mesosphere.sdk.offer.VolumeRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
