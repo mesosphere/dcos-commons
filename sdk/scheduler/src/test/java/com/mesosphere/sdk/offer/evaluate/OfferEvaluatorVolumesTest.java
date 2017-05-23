@@ -158,10 +158,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500),
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredCpuResource, offeredDiskResource))));
-        Assert.assertEquals(3, recommendations.size());
+        Assert.assertEquals(4, recommendations.size()); // RESERVE, RESERVE, CREATE, LAUNCH
 
         // Validate RESERVE Operation
-        Operation reserveOperation = recommendations.get(0).getOperation();
+        Operation reserveOperation = recommendations.get(1).getOperation();
         Resource reserveResource =
                 reserveOperation
                         .getReserve()
@@ -178,7 +178,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate CREATE Operation
         String resourceId = getFirstLabel(reserveResource).getValue();
-        Operation createOperation = recommendations.get(1).getOperation();
+        Operation createOperation = recommendations.get(2).getOperation();
         Resource createResource =
                 createOperation
                         .getCreate()
@@ -193,14 +193,14 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();
-        Operation launchOperation = recommendations.get(2).getOperation();
+        Operation launchOperation = recommendations.get(3).getOperation();
         Resource launchResource =
                 launchOperation
                         .getLaunch()
                         .getTaskInfosList()
                         .get(0)
                         .getResourcesList()
-                        .get(0);
+                        .get(1);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());

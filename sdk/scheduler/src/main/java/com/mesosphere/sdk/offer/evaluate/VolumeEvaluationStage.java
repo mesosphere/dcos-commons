@@ -41,13 +41,48 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        IntermediateEvaluationOutcome intermediateOutcome = evaluateInternal(mesosResourcePool, podInfoBuilder);
-        if (!intermediateOutcome.hasPassed()) {
-            return intermediateOutcome.toEvaluationOutcome();
+        List<OfferRecommendation> offerRecommendations = new ArrayList<>();
+        Resource resource;
+        if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
+            IntermediateEvaluationOutcome intermediateOutcome = evaluateInternal(mesosResourcePool, podInfoBuilder);
+            if (!intermediateOutcome.hasPassed()) {
+                return intermediateOutcome.toEvaluationOutcome();
+            }
+
+            offerRecommendations.addAll(intermediateOutcome.getRecommendations());
+            resource = intermediateOutcome.getResource();
+        } else {
+            Optional<MesosResource> mesosResourceOptional =
+                    mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
+
+            if (!mesosResourceOptional.isPresent()) {
+                return fail(
+                        this,
+                        "Failed to find MOUNT volume for '%s'.",
+                        getSummary());
+            }
+
+            Resource.Builder builder = mesosResourceOptional.get().getResource().toBuilder()
+                    .setRole(resourceSpec.getRole())
+                    .setName(resourceSpec.getName());
+            builder = ResourceUtils.setValue(builder, mesosResourceOptional.get().getValue()).toBuilder();
+
+            Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
+            if (reservationInfo.isPresent()) {
+                builder.setReservation(reservationInfo.get());
+            }
+
+            resource = builder.build();
+            if (reservesResource()) {
+                // Initial reservation of resources
+                logger.info("    Resource '{}' requires a RESERVE operation", resourceSpec.getName());
+                offerRecommendations.add(new ReserveOfferRecommendation(
+                        mesosResourcePool.getOffer(),
+                        resource));
+            }
         }
 
-        List<OfferRecommendation> offerRecommendations = new ArrayList<>(intermediateOutcome.getRecommendations());
-        Resource fulfilledResource = getFulfilledResource(intermediateOutcome.getResource());
+        Resource fulfilledResource = getFulfilledResource(resource);
 
         if (createsVolume()) {
             logger.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
