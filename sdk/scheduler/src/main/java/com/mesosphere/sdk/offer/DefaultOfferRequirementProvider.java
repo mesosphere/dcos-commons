@@ -616,7 +616,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         netInfoBuilder.setName(networkSpec.getName());
 
         if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
-            LOGGER.warn(String.format("Virtual netwwork %s is not currently supported, you " +
+            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
                     "may experience unexpected behavior", networkSpec.getName()));
         }
 

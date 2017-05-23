@@ -194,7 +194,7 @@ public class YAMLToInternalMappers {
                         .map(rawNetworkEntry -> {
                             String networkName = rawNetworkEntry.getKey();
                             if (!DcosConstants.isSupportedNetwork(networkName)) {
-                                LOGGER.warn(String.format("Virtual netwwork %s is not currently supported, you " +
+                                LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
                                         "may experience unexpected behavior", networkName));
                             }
                             networkNames.add(networkName);

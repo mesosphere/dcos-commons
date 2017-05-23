@@ -30,7 +30,7 @@ pre-test() {
 ### Private functions
 
 get_docker_image_name() {
-    cat "$SVC_YML" | grep 'image-name: ' | grep 'proxylite' | sed -e 's/^.*image-name: \(.*\)/\1/'
+    cat "$SVC_YML" | grep 'image-name: ' | grep 'proxylite' | sed -e 's/^.*image: \(.*\)/\1/'
 }
 
 tagless_docker_image_name() {

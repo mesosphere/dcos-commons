@@ -2,7 +2,7 @@ name: "proxylite"
 web-url: http://proxylite-0-server.proxylite.mesos:4040
 pods:
   web:
-    image-name: ubuntu:14.04
+    image: ubuntu:14.04
     count: 1
     tasks:
       server:
@@ -15,7 +15,7 @@ pods:
             env-key: PORT_HTTPD
             port: 4041
   web2:
-    image-name: nlsun/pyhttpsd:1.0.1
+    image: nlsun/pyhttpsd:1.0.1
     count: 1
     tasks:
       server:
@@ -28,7 +28,7 @@ pods:
             env-key: PORT_PYHTTPSD
             port: 4042
   proxylite:
-    image-name: mesosphere/proxylite:2.1.0
+    image: mesosphere/proxylite:2.1.0
     count: 1
     tasks:
       server:
