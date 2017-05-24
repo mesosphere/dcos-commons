@@ -11,8 +11,6 @@ import org.apache.mesos.Protos;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class represents a ports resource with multiple ports.

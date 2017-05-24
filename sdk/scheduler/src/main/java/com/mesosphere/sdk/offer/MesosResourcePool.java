@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

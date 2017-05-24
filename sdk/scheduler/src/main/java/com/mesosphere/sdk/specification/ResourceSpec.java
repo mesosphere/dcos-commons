@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.apache.mesos.Protos;
