@@ -29,12 +29,12 @@ def teardown_module(module):
 
 
 def try_job(job_name):
-    try:
-        launch_and_verify_job(job_name)
-    except AssertionError:
-        return False
+    job_name = qualified_job_name(job_name)
 
-    return True
+    run_id = launch_job(job_name)
+    verify_job_finished(job_name, run_id)
+
+    assert run_id in get_runs(job_name)['history']['successfulFinishedRuns']
 
 
 @pytest.mark.sanity

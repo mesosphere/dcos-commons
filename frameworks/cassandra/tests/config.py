@@ -77,13 +77,22 @@ def get_default_replacements():
 
 def launch_and_verify_job(job_name):
     job_name = qualified_job_name(job_name)
+    run_id = launch_job(job_name)
 
+    verify_job_succeeded(job_name, run_id)
+
+
+def launch_job(job_name):
     output = cmd.run_cli('job run {}'.format(job_name))
     # Get the id of the run we just initiated
     run_id = json.loads(
         cmd.run_cli('job show runs {} --json'.format(job_name))
     )[0]['id']
 
+    return run_id
+
+
+def verify_job_succeeded(job_name, run_id):
     # Verify that our most recent run succeeded
     spin.time_wait_noisy(lambda: (
         run_id in [
@@ -92,6 +101,25 @@ def launch_and_verify_job(job_name):
                 'job history --show-failures --json {}'.format(job_name)
             ))['history']['successfulFinishedRuns']
         ]
+    ))
+
+
+def verify_job_finished(job_name, run_id):
+    spin.time_wait_noisy(lambda: (
+        run_id in [
+            r['id'] for r in
+            get_runs(job_name)['history']['successfulFinishedRuns']
+        ] or
+        run_id in [
+            r['id'] for r in
+            get_runs(job_name)['history']['failedFinishedRuns']
+        ]
+    ))
+
+
+def get_runs(job_name):
+    return json.loads(cmd.run_cli(
+        'job history --show-failures --json {}'.format(job_name)
     ))
 
 
