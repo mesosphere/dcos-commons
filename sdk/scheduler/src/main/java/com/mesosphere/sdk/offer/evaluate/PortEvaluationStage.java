@@ -14,8 +14,9 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
- * This class evaluates an offer for a single port against an {@link OfferRequirement}, finding a port dynamically
- * in the offer where specified by the framework and modifying {@link org.apache.mesos.Protos.TaskInfo} and
+ * This class evaluates an offer for a single port against a
+ * {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}, finding a port dynamically in the offer where
+ * specified by the framework and modifying {@link org.apache.mesos.Protos.TaskInfo} and
  * {@link org.apache.mesos.Protos.ExecutorInfo} where appropriate so that the port is available in their respective
  * environments.
  */
