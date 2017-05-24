@@ -12,7 +12,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value.Range;
 
 import com.mesosphere.sdk.offer.MesosResource;
-import com.mesosphere.sdk.offer.ResourceCollectUtils;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 
@@ -216,7 +216,7 @@ public class ResourceTestUtils {
     }
 
     public static String getResourceId(Resource resource) {
-        return ResourceCollectUtils.getResourceId(resource).orElse(null);
+        return ResourceCollectionUtils.getResourceId(resource).orElse(null);
     }
 
     private static ReservationInfo getExpectedReservationInfo(String resourceId, String principal) {

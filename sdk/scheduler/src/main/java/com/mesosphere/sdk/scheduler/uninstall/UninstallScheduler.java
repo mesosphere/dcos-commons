@@ -83,8 +83,8 @@ public class UninstallScheduler implements Scheduler {
 
         // create one UninstallStep per unique Resource, including Executor resources
         List<Step> taskSteps = new ArrayList<>();
-        for (Protos.Resource resource : ResourceCollectUtils.getAllResources(stateStore.fetchTasks())) {
-            Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+        for (Protos.Resource resource : ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())) {
+            Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
             if (!resourceId.isPresent()) {
                 continue;
             }

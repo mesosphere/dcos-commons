@@ -6,7 +6,7 @@ import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.ResourceCollectUtils;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskRequirement;
 import com.mesosphere.sdk.offer.VolumeRequirement;
@@ -45,7 +45,7 @@ public class OfferRequirementTestUtils {
         TaskRequirement taskRequirement = new TaskRequirement(
                 TaskTestUtils.getTaskInfo(Arrays.asList(resource)), getResourceRequirements(Arrays.asList(resource)));
         ExecutorRequirement executorRequirement = ExecutorRequirement.create(
-                ResourceCollectUtils.getResourceId(executorResource).orElse("").isEmpty()
+                ResourceCollectionUtils.getResourceId(executorResource).orElse("").isEmpty()
                         ? TaskTestUtils.getExecutorInfo(executorResource)
                         : TaskTestUtils.getExistingExecutorInfo(executorResource),
                 getResourceRequirements(Arrays.asList(executorResource)));

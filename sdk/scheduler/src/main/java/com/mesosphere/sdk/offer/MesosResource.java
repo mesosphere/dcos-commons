@@ -43,7 +43,7 @@ public class MesosResource {
     }
 
     public Optional<String> getResourceId() {
-        return ResourceCollectUtils.getResourceId(resource);
+        return ResourceCollectionUtils.getResourceId(resource);
     }
 
     public boolean hasReservation() {

@@ -4,7 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceCollectUtils;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -143,8 +143,8 @@ public class DefaultService implements Service {
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
         return StateStoreUtils.isUninstalling(stateStore) &&
                 !stateStore.fetchFrameworkId().isPresent() &&
-                ResourceCollectUtils.getResourceIds(
-                        ResourceCollectUtils.getAllResources(stateStore.fetchTasks())).stream()
+                ResourceCollectionUtils.getResourceIds(
+                        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
                     .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 

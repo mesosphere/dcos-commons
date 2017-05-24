@@ -46,7 +46,7 @@ public class ResourceBuilder {
         ResourceBuilder builder =
                 new ResourceBuilder(resource.getRole(), principal, resource.getName(), getValue(resource));
 
-        Optional<String> resourceId = ResourceCollectUtils.getResourceId(resource);
+        Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
         if (resourceId.isPresent()) {
             builder.setResourceId(resourceId.get());
         }

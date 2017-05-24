@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * This class encapsulates common methods for scanning collections of Resources.
  */
-public class ResourceCollectUtils {
+public class ResourceCollectionUtils {
 
     /**
      * Returns a list of all the resources associated with one or more tasks, including {@link Executor} resources.
@@ -18,7 +18,7 @@ public class ResourceCollectUtils {
      */
     public static List<Protos.Resource> getAllResources(Collection<TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(ResourceCollectUtils::getAllResources)
+                .map(ResourceCollectionUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -47,7 +47,7 @@ public class ResourceCollectUtils {
      */
     public static List<String> getResourceIds(Collection<Resource> resources) {
         return resources.stream()
-                .map(ResourceCollectUtils::getResourceId)
+                .map(ResourceCollectionUtils::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .distinct()

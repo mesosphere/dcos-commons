@@ -126,7 +126,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private static Optional<String> getResourceId(List<Resource> resources, String resourceName) {
         return resources.stream()
                 .filter(resource -> resource.getName().equals(resourceName))
-                .map(ResourceCollectUtils::getResourceId)
+                .map(ResourceCollectionUtils::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .findFirst();
