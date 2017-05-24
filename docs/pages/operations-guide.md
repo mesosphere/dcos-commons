@@ -271,12 +271,12 @@ pods:
       ...
 ```
 
-This has a few direct effects:
+This has a few _direct_ effects:
   * Every pod gets its own IP address and its own array of ports
   * Pods do not use the ports on the host machine
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`
 
-There are a few indirect effects that a framework architect should know:
+There are a few _indirect_ effects:
   * The `ports` resource requirements in the service spec will ignored as resource requirements. 
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
