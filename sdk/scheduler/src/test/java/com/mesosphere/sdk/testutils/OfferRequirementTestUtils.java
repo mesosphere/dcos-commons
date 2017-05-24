@@ -2,21 +2,14 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ExecutorRequirement;
-import com.mesosphere.sdk.offer.NamedVIPRequirement;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskRequirement;
-import com.mesosphere.sdk.offer.VolumeRequirement;
 import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;

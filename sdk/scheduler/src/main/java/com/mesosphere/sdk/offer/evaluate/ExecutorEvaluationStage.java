@@ -2,14 +2,13 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
 
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 
 /**
- * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that executor IDs match between
- * the two and setting the executor ID for a newly-launching pod.
+ * This class evaluates an ensuring that the offered Executor ID matches the needed ID
+ * and setting the executor ID for a newly-launching pod.
  */
 public class ExecutorEvaluationStage implements OfferEvaluationStage {
     private final Protos.ExecutorID executorId;

@@ -128,7 +128,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
             return -1;
         }
 
-        for (int i=0; i<resources.size(); i++) {
+        for (int i = 0; i < resources.size(); i++) {
             Resource resource = resources.get(i);
             String localResourceId = ResourceUtils.getResourceId(resource);
             if (localResourceId == null) {

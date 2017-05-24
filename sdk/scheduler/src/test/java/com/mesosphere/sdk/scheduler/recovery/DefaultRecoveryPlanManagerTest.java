@@ -79,7 +79,6 @@ public class DefaultRecoveryPlanManagerTest {
     private ServiceSpec serviceSpec;
 
     private static TestingServer testingServer;
-    private DefaultOfferRequirementProvider offerRequirementProvider;
 
     private static List<Offer> getOffers() {
         return getOffers(TestPodFactory.CPU, TestPodFactory.MEM);
@@ -137,13 +136,10 @@ public class DefaultRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        offerRequirementProvider = new DefaultOfferRequirementProvider(
-                stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
-                        offerRequirementProvider,
                         serviceSpec.getName(),
                         configTarget,
                         OfferRequirementTestUtils.getTestSchedulerFlags()),

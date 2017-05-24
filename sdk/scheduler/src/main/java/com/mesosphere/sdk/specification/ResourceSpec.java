@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import org.apache.mesos.Protos;
 
 import java.util.Optional;

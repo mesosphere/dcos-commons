@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * to which they are attached.
  */
 public class PodInfoBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
 

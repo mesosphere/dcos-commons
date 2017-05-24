@@ -30,7 +30,6 @@ public class OfferEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
-    private final OfferRequirementProvider offerRequirementProvider;
     private final String serviceName;
     private final UUID targetConfigId;
     private final SchedulerFlags schedulerFlags;
@@ -38,12 +37,10 @@ public class OfferEvaluator {
     @Inject
     public OfferEvaluator(
             StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider,
             String serviceName,
             UUID targetConfigId,
             SchedulerFlags schedulerFlags) {
         this.stateStore = stateStore;
-        this.offerRequirementProvider = offerRequirementProvider;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
         this.schedulerFlags = schedulerFlags;

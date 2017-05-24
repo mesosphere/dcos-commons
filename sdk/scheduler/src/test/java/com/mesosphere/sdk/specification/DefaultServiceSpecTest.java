@@ -14,8 +14,6 @@ import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 import org.apache.curator.test.TestingServer;

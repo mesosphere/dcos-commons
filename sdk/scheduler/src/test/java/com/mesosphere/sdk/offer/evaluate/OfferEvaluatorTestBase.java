@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
@@ -28,7 +26,6 @@ public class OfferEvaluatorTestBase {
     protected static final String ROOT_ZK_PATH = "/test-root-path";
     static TestingServer testZk; // Findbugs wants this to be package-protected for some reason
 
-    protected OfferRequirementProvider offerRequirementProvider;
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
 
@@ -42,11 +39,8 @@ public class OfferEvaluatorTestBase {
         CuratorTestUtils.clear(testZk);
         MockitoAnnotations.initMocks(this);
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
-        offerRequirementProvider =
-                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         evaluator = new OfferEvaluator(
                 stateStore,
-                offerRequirementProvider,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 flags);

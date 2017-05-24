@@ -5,7 +5,6 @@ import java.util.Collection;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -24,14 +23,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public interface PlacementRule {
 
     /**
-     * Returns whether the provided {@link Offer}, combined with the accompanying {@link OfferRequirement} and
+     * Returns whether the provided {@link Offer}, combined with the accompanying
      * {@link TaskInfo}s, passes or fails this placement constraint.
      *
      * @param offer the offer to be examined
-     * @param offerRequirement the offer requirement describing what's to be done with this offer
      * @param tasks the currently deployed tasks in the system, possibly including a duplicate
      *              of the task being launched as represented in the offerRequirement. Use
-     *              {@link PlacementUtils#areEquivalent(TaskInfo, OfferRequirement)} to detect
+     *              {@link PlacementUtils#areEquivalent(TaskInfo, PodInstance)} to detect
      *              duplicates
      * @return an {@link EvaluationOutcome} object describing whether the placement succeeded or failed and why
      */

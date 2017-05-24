@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
@@ -91,7 +90,6 @@ public class DefaultPlanCoordinatorTest {
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
-    private DefaultOfferRequirementProvider provider;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -119,13 +117,10 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(
-                stateStore, serviceSpecification.getName(), UUID.randomUUID(), flags);
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
-                        provider,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         SchedulerFlags.fromEnv()),

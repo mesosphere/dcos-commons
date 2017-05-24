@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.NamedVIPRequirement;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 
 import java.util.Optional;
@@ -13,9 +10,9 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 
 
 /**
- * This class evaluates an offer against a given {@link OfferRequirement} for port resources as in
- * {@link PortEvaluationStage}, additionally setting {@link org.apache.mesos.Protos.DiscoveryInfo} properly for
- * DC/OS to pick up the specified named VIP mapping.
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}
+ * for port resources as in {@link PortEvaluationStage}, additionally setting
+ * {@link org.apache.mesos.Protos.DiscoveryInfo} properly for DC/OS to pick up the specified named VIP mapping.
  */
 public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final String protocol;

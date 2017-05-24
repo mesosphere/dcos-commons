@@ -90,7 +90,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     private SchedulerApiServer schedulerApiServer;
 
     protected SchedulerDriver driver;
-    protected OfferRequirementProvider offerRequirementProvider;
     protected Map<String, EndpointProducer> customEndpointProducers;
     protected Optional<RestartHook> customRestartHook;
     protected Reconciler reconciler;
@@ -368,8 +367,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                     plans,
                     stateStore,
                     configStore,
-                    new DefaultOfferRequirementProvider(
-                            stateStore, serviceSpec.getName(), configUpdateResult.getTargetId(), getSchedulerFlags()),
                     endpointProducers,
                     restartHookOptional,
                     Optional.ofNullable(recoveryPlanOverriderFactory),
@@ -557,7 +554,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
@@ -568,7 +564,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
-        this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
@@ -618,7 +613,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
-                        offerRequirementProvider,
                         serviceSpec.getName(),
                         configStore.getTargetConfig(),
                         schedulerFlags),
