@@ -128,10 +128,12 @@ func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func HandleUpdate(app *kingpin.Application) {
+func HandleDescribe(app *kingpin.Application) {
 	describeCmd := &DescribeHandler{}
 	app.Command("describe", "View the package configuration for this DC/OS service").Action(describeCmd.DescribeConfiguration)
+}
 
+func HandleUpdate(app *kingpin.Application) {
 	updateCmd := &UpdateHandler{}
 	update := app.Command("update", "Update the package version or configuration for this DC/OS service").Action(updateCmd.UpdateConfiguration)
 	update.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
