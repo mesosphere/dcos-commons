@@ -123,12 +123,15 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                         resourceSpec.getName(),
                         TextFormat.shortDebugString(mesosResource.getValue()),
                         TextFormat.shortDebugString(resourceSpec.getValue()));
-                Value unreserve = ValueUtils.subtract(mesosResource.getValue(), resourceSpec.getValue());
 
+                Value unreserve = ValueUtils.subtract(mesosResource.getValue(), resourceSpec.getValue());
+                Resource resource = ResourceUtils.setValue(
+                        getFulfilledResource().toBuilder(),
+                        unreserve);
                 // Unreservation of no longer needed resources
                 offerRecommendation = new UnreserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
-                        ResourceUtils.setValue(mesosResource.getResource().toBuilder(), unreserve));
+                        resource);
             }
         }
 

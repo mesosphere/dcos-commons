@@ -184,6 +184,71 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
 
+    @Test
+    public void testDecreaseReservationScalar() throws Exception {
+        // Launch for the first time.
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+
+        Operation unreserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                unreserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+        String resourceId = getFirstLabel(reserveResource).getValue();
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again with fewer resources.
+        podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpu(1.0);
+
+        recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredResource, unreservedResource))));
+        Assert.assertEquals(2, recommendations.size());
+
+        // Validate UNRESERVE Operation
+        unreserveOperation = recommendations.get(0).getOperation();
+        Resource unreserveResource =
+                unreserveOperation
+                        .getUnreserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Resource.ReservationInfo reservation =
+                reserveResource.getReservations(unreserveResource.getReservationsCount() - 1);
+        Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
+        Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
+        Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
+
+        // Validate LAUNCH Operation
+        launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
+    }
+
+
     /*
     @Test
     public void testUpdateStaticToStaticPort() throws Exception {
@@ -691,47 +756,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
         Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
-    public void testDecreaseReservationScalar() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(2, recommendations.size());
-
-        // Validate UNRESERVE Operation
-        Operation unreserveOperation = recommendations.get(1).getOperation();
-        Resource unreserveResource =
-            unreserveOperation
-            .getUnreserve()
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
-        Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, unreserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
-
-        // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-        Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
     }
 
     @Test

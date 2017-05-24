@@ -105,8 +105,6 @@ public class MesosResourcePool {
                             mesosResource.getResource().toBuilder(), ValueUtils.subtract(availableValue, value));
                     reservedPool.put(resourceId, new MesosResource(remaining));
                     // return only the claimed resource amount from this reservation
-                    mesosResource = new MesosResource(
-                            ResourceUtils.setValue(mesosResource.getResource().toBuilder(), value));
                 } else {
                     reservedPool.remove(resourceId);
                 }
