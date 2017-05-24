@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -174,31 +174,29 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected java.util.Optional&lt;Resource.ReservationInfo&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledReservationInfo--">getFulfilledReservationInfo</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>protected Resource</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledResource-Resource-">getFulfilledResource</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getResourceRequirement--">getResourceRequirement</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>protected java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getTaskName--">getTaskName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Resource-">setProtos</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
          Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setResourceRequirement-com.mesosphere.sdk.offer.ResourceRequirement-">setResourceRequirement</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&nbsp;resourceRequirement)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>protected Resource</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#toFulfilledResource-Resource-">toFulfilledResource</a></span>(Resource&nbsp;resource)</code>
+<div class="block">Populates an offered Mesos Resource with additional metadata from the original Resource Requirement.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#validateRequirements-com.mesosphere.sdk.offer.OfferRequirement-">validateRequirements</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</code>&nbsp;</td>
 </tr>
@@ -327,32 +325,25 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;validateRequirements(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</pre>
 </li>
 </ul>
-<a name="getFulfilledResource-Resource-">
+<a name="toFulfilledResource-Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getFulfilledResource</h4>
-<pre>protected&nbsp;Resource&nbsp;getFulfilledResource(Resource&nbsp;resource)</pre>
+<h4>toFulfilledResource</h4>
+<pre>protected&nbsp;Resource&nbsp;toFulfilledResource(Resource&nbsp;resource)</pre>
+<div class="block">Populates an offered Mesos Resource with additional metadata from the original Resource Requirement.
+ This additional metadata is often required before e.g. sending back a reservation request to Mesos.</div>
 </li>
 </ul>
 <a name="setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Resource-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>setProtos</h4>
 <pre>protected&nbsp;void&nbsp;setProtos(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                          Resource&nbsp;resource)</pre>
-</li>
-</ul>
-<a name="getFulfilledReservationInfo--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getFulfilledReservationInfo</h4>
-<pre>protected&nbsp;java.util.Optional&lt;Resource.ReservationInfo&gt;&nbsp;getFulfilledReservationInfo()</pre>
 </li>
 </ul>
 </li>

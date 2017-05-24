@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -182,7 +182,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#getName--">getName</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#getPrincipal--">getPrincipal</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
@@ -190,7 +190,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#getResource--">getResource</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#getResourceId--">getResourceId</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
@@ -211,13 +211,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#hasResourceId--">hasResourceId</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#isAtomic--">isAtomic</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResource.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -356,22 +352,13 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;Value.Type&nbsp;getType()</pre>
 </li>
 </ul>
-<a name="hasResourceId--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>hasResourceId</h4>
-<pre>public&nbsp;boolean&nbsp;hasResourceId()</pre>
-</li>
-</ul>
 <a name="getResourceId--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getResourceId</h4>
-<pre>public&nbsp;java.lang.String&nbsp;getResourceId()</pre>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceId()</pre>
 </li>
 </ul>
 <a name="hasReservation--">
@@ -407,7 +394,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getPrincipal</h4>
-<pre>public&nbsp;java.lang.String&nbsp;getPrincipal()</pre>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPrincipal()</pre>
 </li>
 </ul>
 <a name="toString--">
