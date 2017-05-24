@@ -50,7 +50,7 @@ public class CapabilityValidator {
             if (!podSpec.getNetworks().isEmpty()) {
                 String cniNotSupportedMessage = "This cluster's DC/OS version does not support CNI port mapping";
                 for (NetworkSpec networkSpec : podSpec.getNetworks()) {
-                    if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) && !capabilities.supportCniPortMapping()) {
+                    if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) && !capabilities.supportsCNINetworking()) {
                         // ask for port mapping but not supported
                         throw new CapabilityValidationException(cniNotSupportedMessage);
                     }
@@ -58,7 +58,7 @@ public class CapabilityValidator {
 
                 for (TaskSpec taskSpec : podSpec.getTasks()) {
                     for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                        if (resourceSpec.getName().equals("ports") && !capabilities.supportCniPortMapping()) {
+                        if (resourceSpec.getName().equals("ports") && !capabilities.supportsCNINetworking()) {
                             throw new CapabilityValidationException(cniNotSupportedMessage);
                         }
                     }

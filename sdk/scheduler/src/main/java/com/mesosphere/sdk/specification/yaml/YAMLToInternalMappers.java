@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +17,8 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
@@ -30,6 +33,8 @@ public class YAMLToInternalMappers {
     private static final String DEFAULT_VIP_PROTOCOL = "tcp";
 
     public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
@@ -161,6 +166,52 @@ public class YAMLToInternalMappers {
                 .type(podName)
                 .user(rawPod.getUser());
 
+        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
+        // functionality (CNI or otherwise) will land in the pod-level only.
+        RawContainerInfoProvider containerInfoProvider = null;
+        List<String> networkNames = new ArrayList<>();
+        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
+            if (rawPod.getContainer() != null) {
+                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
+                        + "pod %s or under %s:container, but not both.", podName, podName));
+            }
+            containerInfoProvider = rawPod;
+        } else if (rawPod.getContainer() != null) {
+            containerInfoProvider = rawPod.getContainer();
+        }
+
+        if (containerInfoProvider != null) {
+            List<RLimit> rlimits = new ArrayList<>();
+            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
+                RawRLimit rawRLimit = entry.getValue();
+                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+            }
+
+            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
+            final Collection<NetworkSpec> networks = new ArrayList<>();
+            if (MapUtils.isNotEmpty(rawNetworks)) {
+                networks.addAll(rawNetworks.entrySet().stream()
+                        .map(rawNetworkEntry -> {
+                            String networkName = rawNetworkEntry.getKey();
+                            if (!DcosConstants.isSupportedNetwork(networkName)) {
+                                LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
+                                        "may experience unexpected behavior", networkName));
+                            }
+                            networkNames.add(networkName);
+                            RawNetwork rawNetwork = rawNetworks.get(networkName);
+                            return from(networkName, rawNetwork, collatePorts(rawPod));
+                        })
+                        .collect(Collectors.toList()));
+            }
+
+            builder.image(containerInfoProvider.getImage())
+                    .networks(networks)
+                    .rlimits(rlimits);
+
+        }
+
+        boolean usePortResources = maybeUsePortResources(networkNames);
+
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
@@ -178,7 +229,8 @@ public class YAMLToInternalMappers {
                                 rawResourceSet.getVolume(),
                                 rawResourceSet.getVolumes(),
                                 role,
-                                principal);
+                                principal,
+                                usePortResources);
                     })
                     .collect(Collectors.toList()));
         }
@@ -204,7 +256,8 @@ public class YAMLToInternalMappers {
                     configNamespace,
                     resourceSets,
                     role,
-                    principal));
+                    principal,
+                    usePortResources));
         }
         builder.tasks(taskSpecs);
 
@@ -219,45 +272,6 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
 
-        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
-        // functionality (CNI or otherwise) will land in the pod-level only.
-        RawContainerInfoProvider containerInfoProvider = null;
-        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
-            if (rawPod.getContainer() != null) {
-                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
-                        + "pod %s or under %s:container, but not both.", podName, podName));
-            }
-            containerInfoProvider = rawPod;
-        } else if (rawPod.getContainer() != null) {
-            containerInfoProvider = rawPod.getContainer();
-        }
-
-
-        if (containerInfoProvider != null) {
-            List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
-                RawRLimit rawRLimit = entry.getValue();
-                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
-            }
-
-            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
-            final Collection<NetworkSpec> networks = new ArrayList<>();
-            if (MapUtils.isNotEmpty(rawNetworks)) {
-                networks.addAll(rawNetworks.entrySet().stream()
-                        .map(rawNetworkEntry -> {
-                            String networkName = rawNetworkEntry.getKey();
-                            RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            return from(networkName, rawNetwork, collatePorts(rawPod));
-                        })
-                        .collect(Collectors.toList()));
-            }
-
-            builder.image(containerInfoProvider.getImage())
-                .networks(networks)
-                .rlimits(rlimits);
-
-        }
-
         return builder.build();
     }
 
@@ -268,7 +282,8 @@ public class YAMLToInternalMappers {
             ConfigNamespace configNamespace,
             Collection<ResourceSet> resourceSets,
             String role,
-            String principal) throws Exception {
+            String principal,
+            boolean usePortResources) throws Exception {
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
                 .environment(rawTask.getEnv())
@@ -333,7 +348,8 @@ public class YAMLToInternalMappers {
                     rawTask.getVolume(),
                     rawTask.getVolumes(),
                     role,
-                    principal));
+                    principal,
+                    usePortResources));
         }
 
         return builder.build();
@@ -348,7 +364,8 @@ public class YAMLToInternalMappers {
             RawVolume rawSingleVolume,
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
-            String principal) {
+            String principal,
+            boolean usePortResources) {
 
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
@@ -384,7 +401,7 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
-        if (rawPorts != null) {
+        if (rawPorts != null && usePortResources) {
             resourceSetBuilder.addResource(from(role, principal, rawPorts));
         }
 
@@ -417,38 +434,33 @@ public class YAMLToInternalMappers {
             RawNetwork rawNetwork,
             Collection<Integer> ports) throws IllegalArgumentException {
         DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder().networkName(networkName);
-        Map<Integer, Integer> portMap = new HashMap<>();
-        if (rawNetwork.numberOfPortMappings() > 0) {
-            // zip the host and container ports together
-            portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
-                    .boxed().collect(Collectors
-                            .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+        boolean supportsPortMapping = DcosConstants.networkSupportsPortMapping(networkName);
+        if (!supportsPortMapping && rawNetwork.numberOfPortMappings() > 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Virtual Network %s doesn't support container->host port mapping", networkName));
         }
-        if (ports.size() > 0) {
-            for (Integer port : ports) {
-                // iterate over the task ports and if they aren't being remapped do a 1:1 (host:container) mapping
-                if (!portMap.values().contains(port)) {
-                    portMap.put(port, port);
+        if (supportsPortMapping) {
+            Map<Integer, Integer> portMap = new HashMap<>();  // hostPort:containerPort
+            if (rawNetwork.numberOfPortMappings() > 0) {
+                // zip the host and container ports together
+                portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
+                        .boxed().collect(Collectors
+                                .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+            }
+            if (ports.size() > 0) {
+                for (Integer port : ports) {
+                    // iterate over the task ports and if they aren't being remapped do a 1:1 (host:container) mapping
+                    if (!portMap.keySet().contains(port)) {
+                        portMap.put(port, port);
+                    }
                 }
             }
-        }
-        builder.portMappings(portMap);
-
-        if (rawNetwork.getNetgroups() != null) {
-            Set<String> netgroupSet = new HashSet<>(rawNetwork.getNetgroups());
-            if (netgroupSet.size() != rawNetwork.getNetgroups().size()) {
-                throw new IllegalArgumentException("Cannot have repeat netgroups");
-            }
-            builder.netgroups(netgroupSet);
+            builder.portMappings(portMap);
+        } else {
+            builder.portMappings(Collections.emptyMap());
         }
 
-        if (rawNetwork.getIpAddresses() != null) {
-            Set<String> ipAddressSet = new HashSet<>(rawNetwork.getIpAddresses());
-            if (ipAddressSet.size() != rawNetwork.getIpAddresses().size()) {
-                throw new IllegalArgumentException("Cannot have repeat IP address requests");
-            }
-            builder.ipAddresses(ipAddressSet);
-        }
+        //TODO(arand) implement network labels
 
         return builder.build();
     }
@@ -472,6 +484,15 @@ public class YAMLToInternalMappers {
             }
         }
         return ports;
+    }
+
+    private static boolean maybeUsePortResources(Collection<String> networkNames) {
+        for (String networkName : networkNames) {
+            if (DcosConstants.networkSupportsPortMapping(networkName)) {
+                return true;
+            }
+        }
+        return networkNames.size() == 0;  // if we have no networks, we want to use port resources
     }
 
     private static ResourceSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts) {

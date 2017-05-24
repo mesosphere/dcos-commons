@@ -12,6 +12,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotChangeNetworkRegime;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
 import com.mesosphere.sdk.curator.CuratorPersister;
@@ -504,7 +505,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new PodSpecsCannotShrink(),
-                new TaskVolumesCannotChange());
+                new TaskVolumesCannotChange(),
+                new PodSpecsCannotChangeNetworkRegime());
     }
 
     /**

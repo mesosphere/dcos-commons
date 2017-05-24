@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -290,6 +291,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (taskSpec.getDiscovery().isPresent()) {
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
+
+        taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
@@ -594,29 +597,29 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
 
-        if (!networkSpec.getPortMappings().isEmpty()) {
+        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
+            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
+                    "may experience unexpected behavior", networkSpec.getName()));
+        }
+
+        if (!networkSpec.getPortMappings().isEmpty() &&
+                DcosConstants.networkSupportsPortMapping(networkSpec.getName())) {
+            // we double check the availability of port mapping here in case the service spec was made in
+            // pure java instead of YAML
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
                 Integer hostPort = e.getKey();
                 Integer containerPort = e.getValue();
-                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                LOGGER.info("Mapping container port {} to host port {}", containerPort, hostPort);
+                netInfoBuilder.addPortMappingsBuilder()
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
-                        .build());
+                        .setProtocol("tcp")  // TODO(arand) check that this is necessary
+                        .build();
             }
         }
 
-        if (!networkSpec.getNetgroups().isEmpty()) {
-            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
-        }
-
-        if (!networkSpec.getIpAddresses().isEmpty()) {
-            for (String ipAddressString : networkSpec.getIpAddresses()) {
-                netInfoBuilder.addIpAddresses(
-                        Protos.NetworkInfo.IPAddress.newBuilder()
-                                .setIpAddress(ipAddressString)
-                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-                                .build());
-            }
+        if (!networkSpec.getLabels().isEmpty()) {
+            throw new IllegalStateException("Network-labels is not implemented, yet");
         }
 
         return netInfoBuilder.build();

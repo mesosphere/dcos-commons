@@ -3,8 +3,7 @@ pods:
   pod-type:
     count: 2
     networks:
-      dcos:
-        ip-addresses: ["172.16.254.1"]
+      mesos-bridge:
     tasks:
       meta-data-task:
         goal: RUNNING
@@ -20,6 +19,8 @@ pods:
           size: 5000
   meta-data-resourceset:
     count: 2
+    networks:
+      mesos-bridge:
     resource-sets:
       data-store-resources:
         cpus: 0.1
@@ -31,8 +32,6 @@ pods:
           path: "data-store-container-path"
           type: ROOT
           size: 5000
-    networks:
-      dcos:
     tasks:
       meta-data-task-resourceset:
         goal: RUNNING
@@ -50,31 +49,10 @@ pods:
           path: "meta-data-container-path"
           type: ROOT
           size: 5000
-  meta-data-with-group:
-    count: 2
-    networks:
-      dcos:
-        groups: ["mygroup"]
-    tasks:
-      meta-data-task:
-        goal: RUNNING
-        cmd: "./task-cmd"
-        cpus: 0.1
-        memory: 512
-        ports:
-          http:
-            port: 8080
-          another:
-            port: 8081
-        volume:
-          path: "meta-data-container-path"
-          type: ROOT
-          size: 5000
   meta-data-with-port-mapping:
     count: 2
     networks:
-      dcos:
-        groups: ["mygroup"]
+      mesos-bridge:
         host-ports: [4040, 4041]
         container-ports: [8080, 8081]
     tasks:
@@ -85,9 +63,9 @@ pods:
         memory: 512
         ports:
           http:
-            port: 8080
+            port: 4040
           another:
-            port: 8081
+            port: 4041
         volume:
           path: "meta-data-container-path"
           type: ROOT
