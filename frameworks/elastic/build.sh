@@ -4,9 +4,9 @@ set -e
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
 
+FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 $FRAMEWORK_DIR/versions.sh
 
-FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$(dirname "$(dirname $FRAMEWORK_DIR)")"
 export TOOLS_DIR=${ROOT_DIR}/tools
 BUILD_DIR=$FRAMEWORK_DIR/build/distributions
