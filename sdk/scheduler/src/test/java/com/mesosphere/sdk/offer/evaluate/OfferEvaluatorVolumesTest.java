@@ -40,10 +40,12 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
+        Resource.ReservationInfo reservation =
+                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -56,10 +58,12 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
+        reservation =
+                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
@@ -141,12 +145,14 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(1);
 
+        Resource.ReservationInfo reservation =
+                launchResource.getReservations(launchResource.getReservationsCount() - 1);
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
     }
@@ -169,11 +175,13 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
+        Resource.ReservationInfo reservation =
+                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.ROLE, reservation.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 

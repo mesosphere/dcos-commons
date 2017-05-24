@@ -52,10 +52,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
+        Resource.ReservationInfo reservation =
+                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -118,6 +120,69 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
+    @Test
+    public void testIncreaseReservationScalar() throws Exception {
+        // Launch for the first time.
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+        String resourceId = getFirstLabel(reserveResource).getValue();
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+
+
+        // Launch again with more resources.
+        podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
+        offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpu(1.0);
+
+        recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredResource, unreservedResource))));
+        Assert.assertEquals(2, recommendations.size());
+
+        // Validate RESERVE Operation
+        reserveOperation = recommendations.get(0).getOperation();
+        reserveResource =
+                reserveOperation
+                        .getReserve()
+                        .getResourcesList()
+                        .get(0);
+
+        Resource.ReservationInfo reservation =
+                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+        Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
+
+        // Validate LAUNCH Operation
+        launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
+    }
 
     /*
     @Test
@@ -613,49 +678,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 new SchedulerLabelReader(launchTask).getOfferAttributeStrings());
         Resource launchResource = launchTask.getResourcesList().get(0);
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-    }
-
-    @Test
-    public void testIncreaseReservationScalar() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        // TODO: Store expected TaskInfo in StateStore so OfferEvaluator generates right OfferRequirement internally
-        Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        Resource unreservedResource = ResourceTestUtils.getUnreservedCpu(1.0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredResource, unreservedResource))));
-        Assert.assertEquals(2, recommendations.size());
-
-        // Validate RESERVE Operation
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-            reserveOperation
-            .getReserve()
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
-
-        // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(1).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-        Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
 
     @Test

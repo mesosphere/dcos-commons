@@ -94,8 +94,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 ResourceSpec requiredAdditionalResources = DefaultResourceSpec.newBuilder(resourceSpec)
                         .value(difference)
                         .build();
+                mesosResourceOptional = mesosResourcePool.consumeUnreservedMerged(
+                        requiredAdditionalResources.getName(),
+                        requiredAdditionalResources.getValue());
 
-                mesosResourceOptional = consume(requiredAdditionalResources, mesosResourcePool);
                 if (!mesosResourceOptional.isPresent()) {
                     return new IntermediateEvaluationOutcome(
                             false,
@@ -109,10 +111,13 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
                 mesosResource = mesosResourceOptional.get();
 
+                Resource resource = ResourceUtils.setValue(
+                        getFulfilledResource().toBuilder(),
+                        mesosResource.getValue());
                 // Reservation of additional resources
                 offerRecommendation = new ReserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
-                        mesosResource.getResource());
+                        resource);
             } else {
                 logger.info("    Reservation for resource '{}' needs decreasing from current {} to required {}",
                         resourceSpec.getName(),
@@ -151,7 +156,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
         if (reservationInfo.isPresent()) {
-            builder.setReservation(reservationInfo.get());
+            builder.addReservations(reservationInfo.get());
         }
 
         return builder.build();
@@ -163,6 +168,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return Optional.of(Resource.ReservationInfo
                 .newBuilder()
                 .setPrincipal(resourceSpec.getPrincipal())
+                .setRole(resourceSpec.getRole())
                 .setLabels(
                         Protos.Labels.newBuilder()
                                 .addLabels(

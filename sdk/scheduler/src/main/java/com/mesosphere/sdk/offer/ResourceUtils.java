@@ -366,13 +366,29 @@ public class ResourceUtils {
     }
 
     public static String getResourceId(Resource resource) {
-        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
-            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-                if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                    return label.getValue();
-                }
+        ReservationInfo reservationInfo = getReservationInfo(resource);
+        if (reservationInfo == null) {
+            return null;
+        }
+
+        for (Label label : reservationInfo.getLabels().getLabelsList()) {
+            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
+                return label.getValue();
             }
         }
+
+        return null;
+    }
+
+    private static ReservationInfo getReservationInfo(Resource resource) {
+        if (resource.hasReservation()) {
+            return resource.getReservation();
+        }
+
+        if (resource.getReservationsCount() > 0) {
+            return resource.getReservations(resource.getReservationsCount() - 1);
+        }
+
         return null;
     }
 
