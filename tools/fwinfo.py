@@ -85,7 +85,7 @@ class FrameworkTestInfo(object):
         self.running = False
         self.cluster = None
         self.test_success = None # set to True or False later
-        self.stub_universe_url = None # url where cluster can download framework
+        self.stub_universe_urls = [] # url(s) where cluster can download framework
         self.output_file = None # in background
         self.popen = None
         self.dir = os.path.join(repo_root, 'frameworks', self.name)
