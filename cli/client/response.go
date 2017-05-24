@@ -8,7 +8,29 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
+
+// Fake functions that allow us to assert against output
+var logMessage = log.Printf
+var logMessageAndExit = log.Fatalf
+
+func printError(response *http.Response) {
+	logMessage("HTTP %s Query for %s failed: %s",
+		response.Request.Method, response.Request.URL, response.Status)
+}
+
+func printErrorAndExit(response *http.Response) {
+	logMessageAndExit("HTTP %s Query for %s failed: %s",
+		response.Request.Method, response.Request.URL, response.Status)
+}
+
+func printServiceNameErrorAndExit(response *http.Response) {
+	printError(response)
+	logMessage("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+	logMessageAndExit("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+}
 
 func PrintText(text string) {
 	fmt.Fprintf(os.Stdout, "%s\n", text)

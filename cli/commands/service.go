@@ -47,7 +47,6 @@ func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
 }
 
 func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error {
-	// TODO: add error handling
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
@@ -81,8 +80,7 @@ func printStatus() {
 	log.Printf("Status has not been implemented yet. Please use `dcos %s --name=%s plan show` to view progress.", config.ModuleName, config.ServiceName)
 }
 
-func checkAndReadJSONFile(filename string) (map[string]interface{}, error) {
-	// TODO: any validation?
+func readJSONFile(filename string) (map[string]interface{}, error) {
 	fileBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -98,20 +96,15 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 	return string(responseJSON["marathonDeploymentId"].(string)), nil
 }
 
-func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
-	if cmd.Status {
-		printStatus()
-		return nil
-	}
+func doUpdate(optionsFile, packageVersion string) {
 	request := UpdateRequest{AppID: config.ServiceName}
-	if len(cmd.PackageVersion) > 0 {
-		// TODO: check package version format is valid
-		request.PackageVersion = cmd.PackageVersion
+	if len(packageVersion) > 0 {
+		request.PackageVersion = packageVersion
 	}
-	if len(cmd.OptionsFile) > 0 {
-		optionsJSON, err := checkAndReadJSONFile(cmd.OptionsFile)
+	if len(optionsFile) > 0 {
+		optionsJSON, err := readJSONFile(optionsFile)
 		if err != nil {
-			log.Fatalf("Failed to load specified options file %s: %s", cmd.OptionsFile, err)
+			log.Fatalf("Failed to load specified options file %s: %s", optionsFile, err)
 		}
 		request.OptionsJSON = optionsJSON
 	}
@@ -123,7 +116,15 @@ func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.PrintText(fmt.Sprintf("Updated started. Please use `dcos %s --name=%s update --status` to view progress.", config.ModuleName, config.ServiceName))
+	client.PrintText(fmt.Sprintf("Update started. Please use `dcos %s --name=%s service update --status` to view progress.", config.ModuleName, config.ServiceName))
+}
+
+func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
+	if cmd.Status {
+		printStatus()
+		return nil
+	}
+	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
 	return nil
 }
 

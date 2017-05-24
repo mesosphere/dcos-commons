@@ -6,10 +6,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
 	"strings"
 
@@ -64,10 +62,6 @@ func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
 	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
-func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
-}
-
 func HTTPServicePut(urlPath string) *http.Response {
 	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
 }
@@ -118,7 +112,7 @@ func httpQuery(request *http.Request) *http.Response {
 		// include custom CA cert as verified
 		cert, err := ioutil.ReadFile(config.TlsCACertPath)
 		if err != nil {
-			log.Fatalf("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
+			logMessageAndExit("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
 		}
 		certPool := x509.NewCertPool()
 		certPool.AppendCertsFromPEM(cert)
@@ -137,77 +131,18 @@ func httpQuery(request *http.Request) *http.Response {
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
-			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			log.Printf("- Is someone intercepting the connection to steal your credentials?")
-			log.Printf("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
-			log.Fatalf("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
+			logMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			logMessage("- Is someone intercepting the connection to steal your credentials?")
+			logMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
+			logMessageAndExit("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
 		default:
-			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			log.Printf("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			log.Fatalf("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			logMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			logMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
+			logMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
 	if config.Verbose {
-		log.Printf("Response: %s (%d bytes)", response.Status, response.ContentLength)
-	}
-	return response
-}
-
-func printError(response *http.Response) {
-	log.Printf("HTTP %s Query for %s failed: %s",
-		response.Request.Method, response.Request.URL, response.Status)
-}
-
-func printErrorAndExit(response *http.Response) {
-	printError(response)
-	os.Exit(1)
-}
-
-func printServiceNameErrorAndExit(response *http.Response) {
-	printError(response)
-	log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-	log.Fatalf("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
-}
-
-func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
-	requestedVersion := data["updateVersion"]
-	//TODO: this is probably an array?
-	validVersions := data["validVersions"]
-	printError(response)
-	log.Printf("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
-	log.Fatalf("- Valid versions are: %s", validVersions)
-}
-
-func parseCosmosHTTPErrorResponse(response *http.Response) {
-	responseJSON, err := UnmarshalJSON(GetResponseBytes(response))
-	if err != nil {
-		printErrorAndExit(response)
-	}
-	if errorType, present := responseJSON["type"]; present {
-		message := responseJSON["message"]
-		switch errorType {
-		case "MarathonAppNotFound":
-			printServiceNameErrorAndExit(response)
-		case "BadVersionUpdate":
-			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
-		default:
-			if config.Verbose {
-				log.Printf("Cosmos error: %s: %s", errorType, message)
-			}
-			printErrorAndExit(response)
-		}
-	}
-}
-
-func checkCosmosHTTPResponse(response *http.Response) *http.Response {
-	switch {
-	case response.StatusCode == 404:
-		printError(response)
-		log.Fatalf("Package management commands require Enterprise DC/OS 1.10 or newer.")
-	case response.StatusCode == 400:
-		parseCosmosHTTPErrorResponse(response)
-	default:
-		return checkHTTPResponse(response)
+		logMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
 	return response
 }
@@ -215,8 +150,8 @@ func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
-		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
-		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
+		logMessage("Got 401 Unauthorized response from %s", response.Request.URL)
+		logMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 500:
 		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
@@ -241,15 +176,6 @@ func createServiceHTTPRequest(method, urlPath string) *http.Request {
 	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), "", "", "")
 }
 
-func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
-	// NOTE: this explicitly only allows use of /service/ endpoints within Cosmos. See DCOS-15772
-	// for the "correct" solution to allow cleaner use of /package/ endpoints.
-	endpoint := strings.Replace(urlPath, "/", ".", -1)
-	acceptHeader := fmt.Sprintf("application/vnd.dcos.service.%s-response+json;charset=utf-8;version=v1", endpoint)
-	contentTypeHeader := fmt.Sprintf("application/vnd.dcos.service.%s-request+json;charset=utf-8;version=v1", endpoint)
-	return createHTTPRawRequest(method, createCosmosURL(urlPath), jsonPayload, acceptHeader, contentTypeHeader)
-}
-
 func createHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	return createHTTPURLRequest(method, url, payload, accept, contentType)
 }
@@ -272,26 +198,10 @@ func createServiceURL(urlPath, urlQuery string) *url.URL {
 	return createURL(config.DcosUrl, joinedURLPath, urlQuery)
 }
 
-func createCosmosURL(urlPath string) *url.URL {
-	// Try to fetch the Cosmos URL from the system configuration
-	if len(config.CosmosUrl) == 0 {
-		config.CosmosUrl = OptionalCLIConfigValue("package.cosmos_url")
-	}
-
-	// Use Cosmos URL if we have it specified
-	if len(config.CosmosUrl) > 0 {
-		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
-		return createURL(config.CosmosUrl, joinedURLPath, "")
-	}
-	getDCOSURL()
-	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
-	return createURL(config.DcosUrl, joinedURLPath, "")
-}
-
 func createURL(baseURL, urlPath, urlQuery string) *url.URL {
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
-		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
+		logMessageAndExit("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
 	}
 	parsedURL.Path = urlPath
 	parsedURL.RawQuery = urlQuery
@@ -300,14 +210,14 @@ func createURL(baseURL, urlPath, urlQuery string) *url.URL {
 
 func createHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	if config.Verbose {
-		log.Printf("HTTP Query: %s %s", method, url)
+		logMessage("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
-			log.Printf("  Payload: %s", payload)
+			logMessage("  Payload: %s", payload)
 		}
 	}
 	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
-		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, url, err)
+		logMessageAndExit("Failed to create HTTP %s request for %s: %s", method, url, err)
 	}
 	if len(config.DcosAuthToken) == 0 {
 		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
