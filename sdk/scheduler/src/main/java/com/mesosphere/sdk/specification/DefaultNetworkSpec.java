@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.validation.Valid;
 import java.util.Collections;
@@ -79,7 +80,7 @@ public class DefaultNetworkSpec implements NetworkSpec {
 
     @Override
     public String toString() {
-        return String.format("Network %s", getName());
+        return ReflectionToStringBuilder.toString(this);
     }
 
     /**

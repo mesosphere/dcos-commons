@@ -28,7 +28,7 @@ public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<Servic
             return errors;
         }
 
-        // check the PodSpecs to make sure none of them make a transition form a state where they use host ports
+        // check the PodSpecs to make sure none of them make a transition from a state where they use host ports
         // to one where they don't (or vice versa).
         Map<String, PodSpec> oldPods = nullableOldConfig.getPods().stream()
                 .collect(Collectors.toMap(PodSpec::getType, podSpec -> podSpec));
@@ -53,7 +53,7 @@ public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<Servic
                         String.format("PodSpec[name:%s]", oldPod.getType()),
                         oldPod.getNetworks().toString(),
                         newPod.getNetworks().toString(),
-                        String.format("New config has pod %s moving networks from %s to %s, changing it's " +
+                        String.format("New config has pod %s moving networks from %s to %s, changing its " +
                                         "host ports requirements from %s to %s, not allowed.",
                                 newPod.getType(), oldPod.getNetworks().toString(), newPod.getNetworks().toString(),
                                 podSpecUsesHostPorts(oldPod), podSpecUsesHostPorts(newPod))));

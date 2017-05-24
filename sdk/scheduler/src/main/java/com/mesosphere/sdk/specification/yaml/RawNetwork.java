@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Raw YAML network. Null class for now, since only network name is supported, but will gain fields in the future.
+ * Raw YAML network.
  */
 public class RawNetwork {
     private final List<Integer> hostPorts;
