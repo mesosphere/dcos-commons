@@ -6,10 +6,12 @@ set -e
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
 
+$FRAMEWORK_DIR/versions.sh
+
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$(dirname "$(dirname ${FRAMEWORK_DIR})")"
 export TOOLS_DIR=${ROOT_DIR}/tools
-export TEMPLATE_ELASTIC_VERSION="5.4.0"
+
 PUBLISH_STEP=${1-none}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe-kibana}
 case "$PUBLISH_STEP" in
