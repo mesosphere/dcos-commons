@@ -146,7 +146,7 @@ public class DefaultRecoveryPlanManagerTest {
                         offerRequirementProvider,
                         serviceSpec.getName(),
                         configTarget,
-                        SchedulerFlags.fromEnv()),
+                        OfferRequirementTestUtils.getTestSchedulerFlags()),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
@@ -187,8 +187,9 @@ public class DefaultRecoveryPlanManagerTest {
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedDoRelaunch() throws Exception {
         final List<Offer> offers = getOffers();
-
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_FAILED);
 
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(status);

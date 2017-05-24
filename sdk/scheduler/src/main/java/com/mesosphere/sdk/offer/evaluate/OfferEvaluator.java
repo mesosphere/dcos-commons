@@ -109,10 +109,13 @@ public class OfferEvaluator {
 
         // TODO: Replace Executor Evaluation
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
-        boolean noTasksExist = TaskUtils.getTaskNames(podInstance).stream()
+        boolean noLaunchedTasksExist = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
+                .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
+                .map(resource -> ResourceUtils.getResourceId(resource))
+                .filter(resourceId -> resourceId != null && !resourceId.isEmpty())
                 .count() == 0;
 
         boolean podHasFailed = podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)
@@ -123,7 +126,7 @@ public class OfferEvaluator {
         if (podHasFailed) {
             description = "failed";
             shouldGetNewRequirement = true;
-        } else if (noTasksExist) {
+        } else if (noLaunchedTasksExist) {
             description = "new";
             shouldGetNewRequirement = true;
         } else {
