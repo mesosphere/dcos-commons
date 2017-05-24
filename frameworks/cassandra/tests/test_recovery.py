@@ -34,7 +34,10 @@ def try_job(job_name):
     run_id = launch_job(job_name)
     verify_job_finished(job_name, run_id)
 
-    assert run_id in get_runs(job_name)['history']['successfulFinishedRuns']
+    return run_id in [
+        r['id'] for r in
+        get_runs(job_name)['history']['successfulFinishedRuns']
+    ]
 
 
 @pytest.mark.sanity
