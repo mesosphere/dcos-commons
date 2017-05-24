@@ -5,9 +5,13 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.specification.DefaultResourceSet;
+import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Assert;
@@ -15,7 +19,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Offer evaluation tests concerning volumes.
@@ -277,46 +280,55 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
     }
 
-    /*
     @Test
-    public void testCreateMultipleVolumes() throws Exception {
-        Resource offeredResources = ResourceTestUtils.getUnreservedDisk(3);
-        List<Resource> desiredResources = Arrays.asList(
-                ResourceUtils.setLabel(
-                        ResourceTestUtils.getDesiredRootVolume(1), TestConstants.CONTAINER_PATH_LABEL, "pv0"),
-                ResourceUtils.setLabel(
-                        ResourceTestUtils.getDesiredRootVolume(2), TestConstants.CONTAINER_PATH_LABEL, "pv1"));
+    public void testCreateMultipleRootVolumes() throws Exception {
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .cpus(1.0)
+                .addVolume(
+                        VolumeSpec.Type.ROOT.name(),
+                        1.0,
+                        TestConstants.CONTAINER_PATH + "-a")
+                .addVolume(
+                        VolumeSpec.Type.ROOT.name(),
+                        2.0,
+                        TestConstants.CONTAINER_PATH + "-b")
+                .build();
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResources));
+        Resource offeredDisk = ResourceTestUtils.getUnreservedDisk(3);
+        Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 1.0);
+
+        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredCpu, offeredDisk));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResources, false),
+                podInstanceRequirement,
                 Arrays.asList(offer));
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
 
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(3).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(4).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(3).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(4).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(5).getOperation().getType());
 
         // Validate Create Operation
-        Operation createOperation = recommendations.get(1).getOperation();
-        Assert.assertEquals("pv0", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+        Operation createOperation = recommendations.get(2).getOperation();
+        Assert.assertEquals(TestConstants.CONTAINER_PATH + "-a", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
 
         // Validate Create Operation
-        createOperation = recommendations.get(3).getOperation();
-        Assert.assertEquals("pv1", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+        createOperation = recommendations.get(4).getOperation();
+        Assert.assertEquals(TestConstants.CONTAINER_PATH + "-b", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
 
         // Validate Launch Operation
-        Operation launchOperation = recommendations.get(4).getOperation();
-        for (TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
+        Operation launchOperation = recommendations.get(5).getOperation();
+        for (Protos.TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
             for (Resource resource : taskInfo.getResourcesList()) {
-                Label resourceIdLabel = getFirstLabel(resource);
+                Protos.Label resourceIdLabel = getFirstLabel(resource);
                 Assert.assertTrue(resourceIdLabel.getKey().equals("resource_id"));
                 Assert.assertTrue(resourceIdLabel.getValue().length() > 0);
             }
         }
     }
-    */
 }

@@ -574,65 +574,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testExpectedMountVolume() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource expectedResource = ResourceTestUtils.getExpectedMountVolume(1000, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(expectedResource),
-                        Arrays.asList(OfferTestUtils.getOffer(expectedResource)));
-        Assert.assertEquals(1, recommendations.size());
-
-        Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(1000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
-        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-    }
-
-    @Test
-    public void testExpectedRootVolume() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource expectedResource = ResourceTestUtils.getExpectedRootVolume(1000, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(expectedResource),
-                        Arrays.asList(OfferTestUtils.getOffer(expectedResource)));
-        Assert.assertEquals(1, recommendations.size());
-
-        Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-            launchOperation
-            .getLaunch()
-            .getTaskInfosList()
-            .get(0)
-            .getResourcesList()
-            .get(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(1000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
-        Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
-    }
-
-    @Test
     public void testReserveExecutorVolume() throws Exception {
         Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
         Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);

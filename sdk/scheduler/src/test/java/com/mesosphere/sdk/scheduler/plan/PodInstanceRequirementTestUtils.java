@@ -89,7 +89,7 @@ public class PodInstanceRequirementTestUtils {
                 .build();
     }
 
-    private static PodInstanceRequirement getRequirement(ResourceSet resourceSet, int index) {
+    public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, int index) {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
