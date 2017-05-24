@@ -211,6 +211,9 @@ public class KafkaConfigUpgrade {
                 // it does not matter what name I gave to resource set
                 .id("broker-resource-set")
                 .addVolume(kafkaSchedulerConfiguration.getBrokerConfiguration().getDiskType(),
+                        kafkaSchedulerConfiguration.getBrokerConfiguration().getDockerDriverName(),
+                        kafkaSchedulerConfiguration.getBrokerConfiguration().getDockerVolumeName(),
+                        kafkaSchedulerConfiguration.getBrokerConfiguration().getDockerDriverOptions(),
                         kafkaSchedulerConfiguration.getBrokerConfiguration().getDisk(),
                         this.newPath)
                 .cpus(kafkaSchedulerConfiguration.getBrokerConfiguration().getCpus())

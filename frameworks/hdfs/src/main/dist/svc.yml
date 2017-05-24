@@ -4,6 +4,7 @@ scheduler:
 pods:
   journal:
     count: 3
+    image: python:2.7
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -23,6 +24,9 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
+          docker_volume_driver: {{JOURNAL_DISK_DOCKER_VOLUME_DRIVER}}
+          docker_volume_name: {{{JOURNAL_DISK_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{JOURNAL_DISK_DOCKER_DRIVER_OPTIONS}}}
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
@@ -47,6 +51,7 @@ pods:
           JOURNALNODE: true
   name:
     count: 2
+    image: python:2.7
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -64,6 +69,9 @@ pods:
           path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+          docker_volume_driver: {{NAME_DISK_DOCKER_VOLUME_DRIVER}}
+          docker_volume_name: {{{NAME_DISK_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{NAME_DISK_DOCKER_DRIVER_OPTIONS}}}
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
         memory: {{ZKFC_MEM}}
@@ -105,8 +113,8 @@ pods:
           NAMENODE: true
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
@@ -201,6 +209,7 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    image: python:2.7
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -226,6 +235,9 @@ pods:
           path: data-data
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
+          docker_volume_driver: {{DATA_DISK_DOCKER_VOLUME_DRIVER}}
+          docker_volume_name: {{{DATA_DISK_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{DATA_DISK_DOCKER_DRIVER_OPTIONS}}}
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:

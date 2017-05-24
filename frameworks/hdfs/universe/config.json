@@ -103,9 +103,24 @@
           "default": 5000
         },
         "disk_type":{
-          "description":"Journal node disk type",
+          "description":"Journal node disk type [ROOT, MOUNT, DOCKER]",
           "type":"string",
           "default": "ROOT"
+        },
+        "docker_volume_driver":{
+          "description":"DOCKER volume driver",
+          "type":"string",
+          "default": "pxd"
+        },
+        "docker_volume_name":{
+          "description":"DOCKER volume name",
+          "type":"string",
+          "default": "HDFSJournalVolume"
+        },
+        "docker_driver_options":{
+          "description":"DOCKER driver options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         }
       },
       "required":[
@@ -135,9 +150,24 @@
           "default": 5000
         },
         "disk_type":{
-          "description":"Name node disk type",
+          "description":"Name node disk type [ROOT, MOUNT, DOCKER]",
           "type":"string",
           "default": "ROOT"
+        },
+        "docker_volume_driver":{
+          "description":"DOCKER volume driver",
+          "type":"string",
+          "default": "pxd"
+        },
+        "docker_volume_name":{
+          "description":"DOCKER volume name",
+          "type":"string",
+          "default": "HDFSNameVolume"
+        },
+        "docker_driver_options":{
+          "description":"DOCKER driver options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         }
       },
       "required":[
@@ -192,9 +222,24 @@
           "default": 5000
         },
         "disk_type":{
-          "description":"Data node disk type",
+          "description":"Data node disk type [ROOT, MOUNT, DOCKER]",
           "type":"string",
           "default": "ROOT"
+        },
+        "docker_volume_driver":{
+          "description":"DOCKER volume driver",
+          "type":"string",
+          "default": "pxd"
+        },
+        "docker_volume_name":{
+          "description":"DOCKER volume name",
+          "type":"string",
+          "default": "HDFSDataVolume"
+        },
+        "docker_driver_options":{
+          "description":"DOCKER driver options. Comma separated key=value pairs",
+          "type":"string",
+          "default": ""
         }
       },
       "required":[

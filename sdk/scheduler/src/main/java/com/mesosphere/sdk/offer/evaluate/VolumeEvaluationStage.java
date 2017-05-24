@@ -35,6 +35,15 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         ResourceRequirement resourceRequirement = getResourceRequirement();
         Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
+
+        if (getVolumeType() == "DOCKER") {
+            Collection<OfferRecommendation> offerRecommendations = new ArrayList<>();
+            return pass(this, offerRecommendations,
+                    "No resources required for DOCKER volume '%s' on '%s'",
+                    resourceRequirement.getResource().getDisk().getVolume().getContainerPath(),
+                    mesosResourcePool.getOffer().getHostname());
+        }
+
         if (!mesosResourceOptional.isPresent()) {
             return fail(this, "Failed to satisfy requirements for %s volume '%s': %s",
                     getVolumeType(),
@@ -115,6 +124,14 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
     }
 
     private String getVolumeType() {
-        return getResourceRequirement().getResource().getDisk().hasSource() ? "MOUNT" : "ROOT";
+        if (getResourceRequirement().getResource().getDisk().hasSource()) {
+            return "MOUNT";
+        } else {
+            if (getResourceRequirement().getResource().getDisk().getVolume().getSource().hasDockerVolume()) {
+                return "DOCKER";
+            } else {
+                return "ROOT";
+            }
+        }
     }
 }

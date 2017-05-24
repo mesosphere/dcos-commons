@@ -189,7 +189,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         if (executorInfo == null) {
             executorInfo = getNewExecutorInfo(
-                    podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+                    podInstance.getPod(), podInstance.getIndex(), serviceName, targetConfigurationId, schedulerFlags);
         }
 
         Map<String, Protos.Resource> volumeMap = new HashMap<>();
@@ -492,7 +492,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
-            resources.add(getVolumeResource(volumeSpec));
+            Protos.Resource resource = getVolumeResource(volumeSpec);
+            if (resource != null) {
+                resources.add(getVolumeResource(volumeSpec));
+            }
         }
 
         return coalesceResources(resources);
@@ -514,6 +517,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         volumeSpec.getPrincipal(),
                         volumeSpec.getValue().getScalar().getValue(),
                         volumeSpec.getContainerPath());
+                break;
+            case DOCKER:
                 break;
             default:
                 LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
@@ -576,10 +581,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId, schedulerFlags);
+        return getNewExecutorInfo(podInstance.getPod(), podInstance.getIndex(), serviceName, targetConfigurationId,
+                schedulerFlags);
     }
 
-    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec, int podIndex) {
         if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
             return null;
         }
@@ -604,7 +610,81 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
         }
 
+        if (!podSpec.getTasks().isEmpty()) {
+            Map<String, List<String>> addedVolumes = new HashMap<String, List<String>>();
+            for (TaskSpec task : podSpec.getTasks()) {
+                if (!task.getResourceSet().getVolumes().isEmpty()) {
+                    addDockerVolumes(containerInfo, task.getResourceSet().getVolumes(), podIndex, addedVolumes);
+                }
+            }
+        }
         return containerInfo.build();
+    }
+
+    /**
+     * Adds all Docker volumes to the container. If a volume was already added for the same driver it is skipped
+     * @param containerInfo The continaer in which the volmue should be added
+     * @param volumes Collection from which Docker Volumes types should be added
+     * @param podIndex Index of the pod. Used to contruct the docker volume name
+     * @param addedVolmues Map of volumes which have already been added for a driver
+     */
+    private static void addDockerVolumes(Protos.ContainerInfo.Builder containerInfo, Collection<VolumeSpec> volumes,
+            int podIndex, Map<String, List<String>> addedVolumes) {
+        for (VolumeSpec volume : volumes) {
+            if (volume.getType() == VolumeSpec.Type.DOCKER) {
+                DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
+                String volumeName = dockerVolume.getVolumeName() + "-" + Integer.toString(podIndex);
+                // If the driver/volume has already been added, skip it
+                if (addedVolumes.containsKey(dockerVolume.getDriverName())) {
+                    if (addedVolumes.get(dockerVolume.getDriverName()).contains(volumeName)) {
+                        LOGGER.info("DOCKER volume {} with driver {} already present, skipping", volumeName,
+                                dockerVolume.getDriverName());
+                        continue;
+                    }
+                } else {
+                    addedVolumes.put(dockerVolume.getDriverName(), new ArrayList<String>());
+                }
+                addedVolumes.get(dockerVolume.getDriverName()).add(volumeName);
+
+                // Add all the driver options
+                List<Protos.Parameter> paramsList = new ArrayList<Protos.Parameter>();
+                Protos.Parameters.Builder driverOptions = Protos.Parameters.newBuilder();
+                if (dockerVolume.getDriverOptions() != null) {
+                    for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
+                        paramsList.add(Protos.Parameter.newBuilder()
+                                .setKey(option.getKey())
+                                .setValue(option.getValue())
+                                .build());
+                    }
+                }
+                // Pass the volume size as an option. Size is in MB, round up to closest in GB
+                int sizeGB = (int) dockerVolume.getSize() / 1024;
+                if ((dockerVolume.getSize() % 1024) != 0) {
+                    sizeGB++;
+                }
+                paramsList.add(Protos.Parameter.newBuilder()
+                        .setKey("size")
+                        .setValue(Integer.toString(sizeGB))
+                        .build());
+
+                driverOptions.addAllParameter(paramsList);
+                driverOptions.build();
+
+                LOGGER.info("Adding DOCKER volume {} with driver {} to pod", volumeName,
+                        dockerVolume.getDriverName());
+                containerInfo.addVolumes(Protos.Volume.newBuilder().setSource(
+                        Protos.Volume.Source.newBuilder()
+                                .setDockerVolume(Protos.Volume.Source.DockerVolume.newBuilder()
+                                        .setDriver(dockerVolume.getDriverName())
+                                        .setName(volumeName)
+                                        .setDriverOptions(driverOptions)
+                                        .build())
+                                .setType(Protos.Volume.Source.Type.DOCKER_VOLUME)
+                                .build())
+                        .setMode(Protos.Volume.Mode.RW)
+                        .setContainerPath(volume.getContainerPath()));
+            }
+        }
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
@@ -661,6 +741,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private static Protos.ExecutorInfo getNewExecutorInfo(
             PodSpec podSpec,
+            int podIndex,
             String serviceName,
             UUID targetConfigurationId,
             SchedulerFlags schedulerFlags) throws IllegalStateException {
@@ -668,7 +749,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
         // Populate ContainerInfo with the appropriate information from PodSpec
-        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
+        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec, podIndex);
         if (containerInfo != null) {
             executorInfoBuilder.setContainer(containerInfo);
         }

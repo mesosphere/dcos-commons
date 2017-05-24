@@ -33,6 +33,9 @@ pods:
         volume:
           path: container-path
           type: {{CASSANDRA_DISK_TYPE}}
+          docker_volume_driver: {{CASSANDRA_DOCKER_VOLUME_DRIVER}}
+          docker_volume_name: {{{CASSANDRA_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{CASSANDRA_DOCKER_DRIVER_OPTIONS}}}
           size: {{CASSANDRA_DISK_MB}}
       sidecar-resources:
         cpus: 1

@@ -22,6 +22,12 @@ public class BrokerConfiguration {
     private double disk;
     @JsonProperty("disk_type")
     private String diskType;
+    @JsonProperty("docker_driver_name")
+    private String dockerDriverName;
+    @JsonProperty("docker_volume_name")
+    private String dockerVolumeName;
+    @JsonProperty("docker_driver_options")
+    private String dockerDriverOptions;
     @JsonProperty("kafka_uri")
     private String kafkaUri;
     @JsonProperty("java_uri")
@@ -46,6 +52,9 @@ public class BrokerConfiguration {
             @JsonProperty("heap") HeapConfig heap,
             @JsonProperty("disk") double disk,
             @JsonProperty("disk_type") String diskType,
+            @JsonProperty("docker_driver_name") String dockerDriverName,
+            @JsonProperty("docker_volume_name") String dockerVolumeName,
+            @JsonProperty("docker_driver_options") String dockerDriverOptions,
             @JsonProperty("kafka_uri") String kafkaUri,
             @JsonProperty("java_uri") String javaUri,
             @JsonProperty("overrider_uri") String overriderUri,
@@ -56,6 +65,9 @@ public class BrokerConfiguration {
         this.mem = mem;
         this.heap = heap;
         this.disk = disk;
+        this.dockerDriverName = dockerDriverName;
+        this.dockerVolumeName = dockerVolumeName;
+        this.dockerDriverOptions = dockerDriverOptions;
         this.diskType = diskType;
         this.kafkaUri = kafkaUri;
         this.javaUri = javaUri;
@@ -103,6 +115,18 @@ public class BrokerConfiguration {
 
     public String getDiskType() {
         return diskType;
+    }
+
+    public String getDockerDriverName() {
+        return dockerDriverName;
+    }
+
+    public String getDockerVolumeName() {
+        return dockerVolumeName;
+    }
+
+    public String getDockerDriverOptions() {
+        return dockerDriverOptions;
     }
 
     @JsonProperty("disk_type")
