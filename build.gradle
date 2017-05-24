@@ -40,14 +40,14 @@ allprojects {
     targetCompatibility = '1.8'
 
     repositories {
+        mavenLocal()
+        mavenCentral()
         maven {
             url "http://downloads.mesosphere.com/maven/"
         }
         maven {
             url "http://downloads.mesosphere.com/maven-snapshot/"
         }
-        mavenLocal()
-        mavenCentral()
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
