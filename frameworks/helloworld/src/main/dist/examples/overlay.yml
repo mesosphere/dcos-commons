@@ -5,7 +5,7 @@ pods:
     uris:
       # this python script starts a basic HTTP server, it responds on a specific port with a given message
       # USAGE: python3 http_py3responder.py <port> <message>
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
+      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     # join the 'dcos' overlay network
     networks:
       dcos:
@@ -25,7 +25,7 @@ pods:
   hello-host:
     count: {{HELLO_COUNT}}
     uris:
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
+      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     image: ubuntu:14.04
     resource-sets:
       hello-resource:

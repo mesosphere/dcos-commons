@@ -28,7 +28,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("WORLD_DISK", "5000");
     }
 
-
     @Test
     public void testYmlBase() throws Exception {
         testYaml("svc.yml");

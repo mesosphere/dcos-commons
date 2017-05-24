@@ -35,9 +35,6 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
     @Mock
     private PodSpec hostpod2;
 
-    //private List<PodSpec> overlayPods = new ArrayList<>(Arrays.asList(overlaypod1, overlaypod2));
-    //private List<PodSpec> hostPods = new ArrayList<>(Arrays.asList(hostpod1, hostpod2));
-    //private List<PodSpec> bridgePods = new ArrayList<>(Arrays.asList(bridgepod1, bridgepod2));
     private List<PodSpec> overlayPods = new ArrayList<>();
     private List<PodSpec> hostPods = new ArrayList<>();
     private List<PodSpec> bridgePods = new ArrayList<>();
@@ -78,8 +75,8 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
 
     }
 
-    private void testConfigTransition(List<PodSpec> oldPodSpecs, List<PodSpec> newPodSpecs,
-                                 int expectedHomoTransitionErrors, int expectedHeteroTransitionErrors)
+    private void testConfigTransition(List<PodSpec> oldPodSpecs, List<PodSpec> newPodSpecs, 
+                                      int expectedHomoTransitionErrors, int expectedHeteroTransitionErrors)
             throws InvalidRequirementException {
         ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
