@@ -90,7 +90,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = '1.4.0-reservation-refinement'
+    mesosVer = '1.3.0-rc1'
 }
 
 subprojects {

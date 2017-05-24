@@ -47,7 +47,7 @@ public class OfferEvaluatorTestBase {
     }
 
     protected static Label getLabel(Resource resource, int index) {
-        return resource.getReservations(resource.getReservationsCount() - 1).getLabels().getLabels(index);
+        return resource.getReservation().getLabels().getLabels(index);
     }
 
     protected static Label getFirstLabel(Resource resource) {

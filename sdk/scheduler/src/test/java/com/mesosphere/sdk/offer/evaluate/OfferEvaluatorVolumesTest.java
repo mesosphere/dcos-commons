@@ -43,8 +43,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        Resource.ReservationInfo reservation =
-                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
@@ -61,8 +60,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        reservation =
-                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
@@ -148,8 +146,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(1);
 
-        Resource.ReservationInfo reservation =
-                launchResource.getReservations(launchResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = launchResource.getReservation();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
@@ -178,11 +175,9 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        Resource.ReservationInfo reservation =
-                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, reservation.getRole());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());

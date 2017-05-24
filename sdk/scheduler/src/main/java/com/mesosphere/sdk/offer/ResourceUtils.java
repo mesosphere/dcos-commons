@@ -385,10 +385,6 @@ public class ResourceUtils {
             return resource.getReservation();
         }
 
-        if (resource.getReservationsCount() > 0) {
-            return resource.getReservations(resource.getReservationsCount() - 1);
-        }
-
         return null;
     }
 

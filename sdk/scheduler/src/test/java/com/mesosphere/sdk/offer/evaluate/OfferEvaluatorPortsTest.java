@@ -35,7 +35,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
         Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
-        Protos.Label resourceIdLabel = fulfilledPortResource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
@@ -89,7 +89,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
         Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
-        Protos.Label resourceIdLabel = fulfilledPortResource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();

@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that it contains a sufficient amount
- * or value of the supplied {@link Resource}, and creating a {@link ReserveOfferRecommendation} or
- * {@link UnreserveOfferRecommendation} where necessary.
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
+ * ensuring that it contains a sufficient amount or value of the supplied {@link Resource}, and creating a
+ * {@link ReserveOfferRecommendation} or {@link UnreserveOfferRecommendation} where necessary.
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -159,7 +159,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
         if (reservationInfo.isPresent()) {
-            builder.addReservations(reservationInfo.get());
+            builder.setReservation(reservationInfo.get());
         }
 
         return builder.build();
@@ -171,7 +171,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return Optional.of(Resource.ReservationInfo
                 .newBuilder()
                 .setPrincipal(resourceSpec.getPrincipal())
-                .setRole(resourceSpec.getRole())
                 .setLabels(
                         Protos.Labels.newBuilder()
                                 .addLabels(

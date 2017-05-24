@@ -73,7 +73,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
             Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
             if (reservationInfo.isPresent()) {
-                builder.addReservations(reservationInfo.get());
+                builder.setReservation(reservationInfo.get());
             }
 
             resource = builder.build();

@@ -52,8 +52,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        Resource.ReservationInfo reservation =
-                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
@@ -160,8 +159,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        Resource.ReservationInfo reservation =
-                reserveResource.getReservations(reserveResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
@@ -224,8 +222,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .getResourcesList()
                         .get(0);
 
-        Resource.ReservationInfo reservation =
-                reserveResource.getReservations(unreserveResource.getReservationsCount() - 1);
+        Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
