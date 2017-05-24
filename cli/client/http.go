@@ -149,10 +149,10 @@ func httpQuery(request *http.Request) *http.Response {
 
 func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
-	case response.StatusCode == 401:
+	case response.StatusCode == http.StatusUnauthorized:
 		logMessage("Got 401 Unauthorized response from %s", response.Request.URL)
 		logMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
-	case response.StatusCode == 500:
+	case response.StatusCode == http.StatusInternalServerError:
 		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		printErrorAndExit(response)

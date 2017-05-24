@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"io"
 	"net/http"
 	"testing"
 
@@ -32,6 +33,18 @@ func createExampleRequest(t *testing.T) (*http.Request, []byte) {
 	return createCosmosHTTPJSONRequest("POST", "describe", string(requestBody)), requestBody
 }
 
+func createExampleResponse(t *testing.T, statusCode int, filename string) http.Response {
+	request, _ := createExampleRequest(t)
+	status := fmt.Sprintf("%v %s", statusCode, http.StatusText(statusCode))
+
+	var responseBody io.ReadCloser
+	if filename != "" {
+		responseBody = ioutil.NopCloser(bytes.NewBuffer(loadFile(t, filename)))
+	}
+
+	return http.Response{StatusCode: statusCode, Status: status, Request: request, Body: responseBody}
+}
+
 func setup() {
 	config.DcosUrl = "https://my.dcos.url/"
 	config.DcosAuthToken = "dummytoken"
@@ -49,8 +62,7 @@ func Test404ErrorResponse(t *testing.T) {
 	setup()
 
 	// fake 404 response
-	request, _ := createExampleRequest(t)
-	fourOhFourResponse := http.Response{StatusCode: 404, Status: "404 Not Found", Request: request}
+	fourOhFourResponse := createExampleResponse(t, http.StatusNotFound, "")
 
 	checkCosmosHTTPResponse(&fourOhFourResponse)
 
@@ -63,12 +75,10 @@ func Test404ErrorResponse(t *testing.T) {
 func TestAppNotFoundErrorResponse(t *testing.T) {
 	setup()
 
-	// fake 400 response for MarathonAppNotFound
 	config.ServiceName = "hello-world-1"
 
-	request, _ := createExampleRequest(t)
-	response := ioutil.NopCloser(bytes.NewBuffer(loadFile(t, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")))
-	fourHundredResponse := http.Response{StatusCode: 400, Status: "400 Bad Request", Request: request, Body: response}
+	// fake 400 response for MarathonAppNotFound
+	fourHundredResponse := createExampleResponse(t, http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
 
 	checkCosmosHTTPResponse(&fourHundredResponse)
 
@@ -82,9 +92,7 @@ func TestBadVersionErrorResponse(t *testing.T) {
 	setup()
 
 	// create 400 response for BadVersionUpdate
-	request, _ := createExampleRequest(t)
-	response := ioutil.NopCloser(bytes.NewBuffer(loadFile(t, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")))
-	fourHundredResponse := http.Response{StatusCode: 400, Status: "400 Bad Request", Request: request, Body: response}
+	fourHundredResponse := createExampleResponse(t, http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
 
 	checkCosmosHTTPResponse(&fourHundredResponse)
 

@@ -46,10 +46,10 @@ func parseCosmosHTTPErrorResponse(response *http.Response) {
 
 func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 	switch {
-	case response.StatusCode == 404:
+	case response.StatusCode == http.StatusNotFound:
 		printError(response)
 		logMessageAndExit("Package management commands require Enterprise DC/OS 1.10 or newer.")
-	case response.StatusCode == 400:
+	case response.StatusCode == http.StatusBadRequest:
 		parseCosmosHTTPErrorResponse(response)
 	default:
 		return checkHTTPResponse(response)
