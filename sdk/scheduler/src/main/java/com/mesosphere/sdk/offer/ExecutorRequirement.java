@@ -24,11 +24,12 @@ public class ExecutorRequirement {
      * presented in the ExecutorInfo an ExecutorRequirement representing a need for a new Executor is returned.  In the
      * second case, if an ExecutorInfo with a valid name is presented a requirement indicating use of an already running
      * Executor is generated.
-     * @param executorInfo is the ExecutorInfo indicate what requirement should be generated.
+     *
+     * @param executorInfo is the ExecutorInfo indicate what requirement should be generated
      * @param resourceRequirements the requirements for resources attached to this executor
      * @return an ExecutorRequirement to be used to evaluate Offers by the OfferEvaluator
      * @throws InvalidRequirementException when a malformed ExecutorInfo is presented indicating an invalid
-     * ExecutorRequirement.
+     * ExecutorRequirement
      */
     public static ExecutorRequirement create(
             ExecutorInfo executorInfo,
@@ -51,14 +52,12 @@ public class ExecutorRequirement {
     }
 
     private static ExecutorRequirement getExistingExecutorRequirement(ExecutorInfo executorInfo)
-        throws InvalidRequirementException {
+            throws InvalidRequirementException {
         ExecutorRequirement executorRequirement = new ExecutorRequirement(executorInfo, null);
-
         if (executorRequirement.desiresResources()) {
             throw new InvalidRequirementException("When using an existing Executor, no new resources may be required.");
-        } else {
-            return executorRequirement;
         }
+        return executorRequirement;
     }
 
     private ExecutorRequirement(
@@ -89,13 +88,8 @@ public class ExecutorRequirement {
     }
 
     public boolean desiresResources() {
-        for (ResourceRequirement resReq : getResourceRequirements()) {
-            if (resReq.reservesResource()) {
-                return true;
-            }
-        }
-
-        return false;
+        return getResourceRequirements().stream()
+                .anyMatch(resReq -> resReq.reservesResource());
     }
 
     /**

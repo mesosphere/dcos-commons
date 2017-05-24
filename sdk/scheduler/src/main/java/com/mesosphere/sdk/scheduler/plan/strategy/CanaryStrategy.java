@@ -3,8 +3,6 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,8 +27,6 @@ import java.util.stream.Collectors;
  * {@link com.mesosphere.sdk.scheduler.plan.Phase}s in their {@link com.mesosphere.sdk.scheduler.plan.Plan}.
  */
 public class CanaryStrategy implements Strategy<Step> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CanaryStrategy.class);
 
     /**
      * One proceed() to launch the first block, then a second proceed() to launch all the rest.

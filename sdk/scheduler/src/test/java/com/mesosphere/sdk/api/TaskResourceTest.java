@@ -3,11 +3,11 @@ package com.mesosphere.sdk.api;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -146,7 +146,7 @@ public class TaskResourceTest {
         List<Value.Range> ranges = new ArrayList<>();
         ranges.add(range1);
         ranges.add(range2);
-        Resource rangeResource = ResourceUtils.getUnreservedRanges("ports", ranges);
+        Resource rangeResource = ResourceTestUtils.getUnreservedRanges("ports", ranges);
 
         TaskInfo taskInfo = getTaskInfoBuilder(taskName)
                 .addResources(rangeResource)

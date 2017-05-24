@@ -3,8 +3,8 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -74,8 +74,8 @@ public class NamedVIPSpec extends PortSpec {
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
         Protos.Resource portResource = resource == null ?
-                ResourceUtils.getDesiredResource(this) :
-                ResourceUtils.withValue(resource, getValue());
+                ResourceBuilder.fromSpec(this).build() :
+                ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build();
         return new NamedVIPRequirement(
                 portResource,
                 getPortName(),

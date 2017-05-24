@@ -2,6 +2,9 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
+
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -33,7 +36,7 @@ public class ResourceRequirement {
         return mesosResource.getRole();
     }
 
-    public String getPrincipal() {
+    public Optional<String> getPrincipal() {
         return mesosResource.getPrincipal();
     }
 
@@ -41,7 +44,7 @@ public class ResourceRequirement {
         return mesosResource.getName();
     }
 
-    public String getResourceId() {
+    public Optional<String> getResourceId() {
         return mesosResource.getResourceId();
     }
 
@@ -72,7 +75,8 @@ public class ResourceRequirement {
      * destination.
      */
     public boolean expectsResource() {
-        return hasResourceId() && !getResourceId().isEmpty();
+        Optional<String> resourceId = getResourceId();
+        return resourceId.isPresent() && !resourceId.get().isEmpty();
     }
 
     /**
@@ -109,10 +113,6 @@ public class ResourceRequirement {
 
     public OfferEvaluationStage getEvaluationStage(String taskName) {
         return new ResourceEvaluationStage(getResource(), taskName);
-    }
-
-    private boolean hasResourceId() {
-        return mesosResource.hasResourceId();
     }
 
     private boolean hasPersistenceId() {

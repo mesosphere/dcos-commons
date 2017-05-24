@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -87,7 +87,7 @@ public class DefaultResourceSpec implements ResourceSpec {
 
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new ResourceRequirement(resource == null ? ResourceUtils.getDesiredResource(this) : resource);
+        return new ResourceRequirement(resource == null ? ResourceBuilder.fromSpec(this).build() : resource);
     }
 
     @Override

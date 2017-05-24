@@ -33,7 +33,7 @@ public class OfferRequirementTest {
     @Test
     public void testOneResourceId() throws InvalidRequirementException {
         String testResourceId = UUID.randomUUID().toString();
-        Resource resource = ResourceUtils.getExpectedScalar(
+        Resource resource = ResourceTestUtils.getExpectedScalar(
                 "cpus",
                 1.0,
                 testResourceId,
@@ -46,7 +46,7 @@ public class OfferRequirementTest {
 
     @Test
     public void testOnePersistenceId() throws InvalidRequirementException {
-        Resource resource = ResourceUtils.getExpectedMountVolume(
+        Resource resource = ResourceTestUtils.getExpectedMountVolume(
                 1000,
                 TestConstants.PERSISTENCE_ID,
                 TestConstants.ROLE,
@@ -64,13 +64,13 @@ public class OfferRequirementTest {
     @Test
     public void testOneOfEachId() throws InvalidRequirementException {
         String testResourceId = UUID.randomUUID().toString();
-        Resource cpu = ResourceUtils.getExpectedScalar(
+        Resource cpu = ResourceTestUtils.getExpectedScalar(
                 "cpus",
                 1.0,
                 testResourceId,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL);
-        Resource volume = ResourceUtils.getExpectedMountVolume(
+        Resource volume = ResourceTestUtils.getExpectedMountVolume(
                 1000,
                 TestConstants.PERSISTENCE_ID,
                 TestConstants.ROLE,

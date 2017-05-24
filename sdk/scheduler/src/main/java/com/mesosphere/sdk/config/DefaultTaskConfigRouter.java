@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 
 /**
  * Default implementation of a {@link TaskConfigRouter} which interprets the system environment,
@@ -56,7 +56,7 @@ public class DefaultTaskConfigRouter implements TaskConfigRouter {
         // convert eg "index-mgr" or "index.mgr" to "TASKCFG_INDEX_MGR_":
 
         // 1. TASKCFG_<TASK_TYPE>_* for items matching this type:
-        set.add(String.format(TASKCFG_ENV_FORMAT, TaskUtils.toEnvName(taskType)));
+        set.add(String.format(TASKCFG_ENV_FORMAT, EnvUtils.toEnvName(taskType)));
 
         // 2. TASKCFG_ALL_* for items matching all types:
         set.add(ALL_TASKS_PREFIX);

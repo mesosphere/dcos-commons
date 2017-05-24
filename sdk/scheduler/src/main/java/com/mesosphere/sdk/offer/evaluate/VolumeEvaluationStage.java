@@ -43,7 +43,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         }
 
         final MesosResource mesosResource = mesosResourceOptional.get();
-        Resource fulfilledResource = getFulfilledResource(mesosResource.getResource());
+        Resource fulfilledResource = toFulfilledResource(mesosResource.getResource());
         Collection<OfferRecommendation> offerRecommendations = new ArrayList<>();
 
         if (resourceRequirement.reservesResource()) {
@@ -73,45 +73,39 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
     }
 
     @Override
-    protected Resource getFulfilledResource(Resource resource) {
-        Resource.Builder builder = super.getFulfilledResource(resource).toBuilder();
-        Optional<DiskInfo> diskInfo = getFulfilledDiskInfo(resource);
+    protected Resource toFulfilledResource(Resource consumedResource) {
+        Resource fulfilledResource = super.toFulfilledResource(consumedResource);
+
+        //TODO(nickbp): use ResourceBuilder for this?
+        Optional<DiskInfo> diskInfo = getFulfilledDiskInfo(consumedResource);
         if (diskInfo.isPresent()) {
-            builder.setDisk(diskInfo.get());
+            fulfilledResource = fulfilledResource.toBuilder()
+                    .setDisk(diskInfo.get())
+                    .build();
         }
 
-        return builder.build();
+        return fulfilledResource;
     }
 
-    private Optional<DiskInfo> getFulfilledDiskInfo(Resource resource) {
+    private Optional<DiskInfo> getFulfilledDiskInfo(Resource consumedResource) {
         ResourceRequirement resourceRequirement = getResourceRequirement();
         if (!resourceRequirement.getResource().hasDisk()) {
             return Optional.empty();
         }
 
         DiskInfo.Builder builder = DiskInfo.newBuilder(resourceRequirement.getResource().getDisk());
-        if (resource.getDisk().hasSource()) {
-            builder.setSource(resource.getDisk().getSource());
+
+        if (consumedResource.getDisk().hasSource()) {
+            builder.setSource(consumedResource.getDisk().getSource());
         }
 
-        Optional<DiskInfo.Persistence> persistence = getFulfilledPersistence();
-        if (persistence.isPresent()) {
-            builder.setPersistence(persistence.get());
+        if (resourceRequirement.createsVolume()) {
+            builder.getPersistenceBuilder()
+                    .mergeFrom(resourceRequirement.getResource().getDisk().getPersistence())
+                    .setId(UUID.randomUUID().toString());
         }
 
         return Optional.of(builder.build());
-    }
-
-    private Optional<DiskInfo.Persistence> getFulfilledPersistence() {
-        ResourceRequirement resourceRequirement = getResourceRequirement();
-        if (!resourceRequirement.createsVolume()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(DiskInfo.Persistence
-                    .newBuilder(resourceRequirement.getResource().getDisk().getPersistence())
-                    .setId(UUID.randomUUID().toString())
-                    .build());
-        }
     }
 
     private String getVolumeType() {

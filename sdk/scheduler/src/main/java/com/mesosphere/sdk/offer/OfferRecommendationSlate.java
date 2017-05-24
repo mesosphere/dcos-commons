@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Offer.Operation;
 
 import java.util.ArrayList;
@@ -85,7 +86,14 @@ public class OfferRecommendationSlate {
             if (ports == null && resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 ports = resource;
             } else if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
-                ports = ResourceUtils.mergeRanges(ports, resource);
+                Value.Builder mergedValue = Value.newBuilder().setType(Value.Type.RANGES);
+                mergedValue.getRangesBuilder().addAllRange(
+                        RangeAlgorithms.mergeRanges(
+                                ports.getRanges().getRangeList(),
+                                resource.getRanges().getRangeList()));
+                ports = ResourceBuilder.fromExistingResource(ports)
+                        .setValue(mergedValue.build())
+                        .build();
             } else {
                 recommendations.add(recommendation);
             }

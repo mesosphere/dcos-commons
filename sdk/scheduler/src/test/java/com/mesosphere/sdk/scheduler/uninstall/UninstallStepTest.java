@@ -2,9 +2,9 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.CreateOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class UninstallStepTest {
     @Test
     public void testMatchingUpdateOfferStatus() throws Exception {
         OfferRecommendation offerRecommendation = new UnreserveOfferRecommendation(null,
-                ResourceUtils.getExpectedScalar("cpus",
+                ResourceTestUtils.getExpectedScalar("cpus",
                         1.0,
                         RESOURCE_ID,
                         TestConstants.ROLE,
@@ -46,7 +46,7 @@ public class UninstallStepTest {
     @Test
     public void testNonMatchingUpdateOfferStatus() throws Exception {
         OfferRecommendation offerRecommendation = new UnreserveOfferRecommendation(null,
-                ResourceUtils.getExpectedScalar("cpus",
+                ResourceTestUtils.getExpectedScalar("cpus",
                         1.0,
                         DIFFERENT_RESOURCE_ID,
                         TestConstants.ROLE,
@@ -58,10 +58,10 @@ public class UninstallStepTest {
 
     @Test
     public void testMixedUpdateOfferStatus() throws Exception {
-        OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceUtils.getDesiredRootVolume(
+        OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceTestUtils.getDesiredRootVolume(
                 TestConstants.ROLE, TestConstants.PRINCIPAL, 999.0, "container-path"));
         OfferRecommendation rec2 = new UnreserveOfferRecommendation(null,
-                ResourceUtils.getExpectedScalar("cpus", 1.0, RESOURCE_ID, TestConstants.ROLE, TestConstants.PRINCIPAL));
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, RESOURCE_ID, TestConstants.ROLE, TestConstants.PRINCIPAL));
         uninstallStep.start();
         uninstallStep.updateOfferStatus(Arrays.asList(rec1, rec2));
         assert uninstallStep.getStatus().equals(Status.COMPLETE);
