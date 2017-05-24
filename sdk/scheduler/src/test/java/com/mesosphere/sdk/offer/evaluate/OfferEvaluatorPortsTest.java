@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -36,7 +35,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
         Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
-        Protos.Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Protos.Label resourceIdLabel = fulfilledPortResource.getReservations(0).getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
@@ -60,7 +59,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
 
         // Launch on previously reserved resources
-        Protos.Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+        Protos.Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId);
 
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -70,18 +69,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Validate LAUNCH Operation
         launchOperation = recommendations.get(0).getOperation();
         Protos.Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(0);
+                launchOperation.getLaunch().getTaskInfosList().get(0).getResourcesList().get(0);
 
         Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
-    /*
     @Test
     public void testReserveTaskDynamicPort() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
@@ -96,12 +89,11 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
         Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
-        Protos.Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Protos.Label resourceIdLabel = fulfilledPortResource.getReservations(0).getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
     }
-    */
 }
