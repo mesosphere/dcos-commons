@@ -132,7 +132,6 @@ func httpQuery(request *http.Request) *http.Response {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
 			logMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			logMessage("- Is someone intercepting the connection to steal your credentials?")
 			logMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
 			logMessageAndExit("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
 		default:
