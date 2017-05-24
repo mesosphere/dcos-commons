@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -138,21 +138,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#ipAddresses-java.util.Set-">ipAddresses</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;ipAddresses)</code>
-<div class="block">Sets the IP/Container addresses that this network is going to request.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#networkLabels-java.util.Map-">networkLabels</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;labels)</code>
+<div class="block">Sets the network-labels, which are K/V pairs passed to the CNI plugin.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#netgroups-java.util.Set-">netgroups</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;netgroups)</code>
-<div class="block">Sets the netgroups mappings.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#networkName-java.lang.String-">networkName</a></span>(java.lang.String&nbsp;networkName)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#portMappings-java.util.Map-">portMappings</a></span>(java.util.Map&lt;java.lang.Integer,java.lang.Integer&gt;&nbsp;portMappings)</code>
 <div class="block">Sets the host-to-container port mappings.</div>
@@ -194,23 +188,6 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="netgroups-java.util.Set-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>netgroups</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a>&nbsp;netgroups(java.util.Set&lt;java.lang.String&gt;&nbsp;netgroups)</pre>
-<div class="block">Sets the netgroups mappings.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>netgroups</code> - a set of netgroups (identifiers), only containers sharing netgroups will be allowed to
-                  communicate with each other.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a reference to this builder</dd>
-</dl>
-</li>
-</ul>
 <a name="portMappings-java.util.Map-">
 <!--   -->
 </a>
@@ -227,19 +204,19 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="ipAddresses-java.util.Set-">
+<a name="networkLabels-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>ipAddresses</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a>&nbsp;ipAddresses(java.util.Set&lt;java.lang.String&gt;&nbsp;ipAddresses)</pre>
-<div class="block">Sets the IP/Container addresses that this network is going to request.</div>
+<h4>networkLabels</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a>&nbsp;networkLabels(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;labels)</pre>
+<div class="block">Sets the network-labels, which are K/V pairs passed to the CNI plugin.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>ipAddresses</code> - list of IP addresses for the container to request</dd>
+<dd><code>labels</code> - Key/Value mappings to pass to CNI plugin</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a reference to this builder</dd>
+<dd>A reference to this builder</dd>
 </dl>
 </li>
 </ul>

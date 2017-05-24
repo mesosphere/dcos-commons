@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,7 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">RawNetwork</span>
 extends java.lang.Object</pre>
-<div class="block">Raw YAML network. Null class for now, since only network name is supported, but will gain fields in the future.</div>
+<div class="block">Raw YAML network.</div>
 </li>
 </ul>
 </div>
@@ -137,14 +137,10 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawNetwork.html#getHostPorts--">getHostPorts</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawNetwork.html#getIpAddresses--">getIpAddresses</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawNetwork.html#getLabels--">getLabels</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawNetwork.html#getNetgroups--">getNetgroups</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawNetwork.html#numberOfPortMappings--">numberOfPortMappings</a></span>()</code>&nbsp;</td>
 </tr>
@@ -202,22 +198,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getNetgroups--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getNetgroups</h4>
-<pre>public&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getNetgroups()</pre>
-</li>
-</ul>
-<a name="getIpAddresses--">
+<a name="getLabels--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getIpAddresses</h4>
-<pre>public&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getIpAddresses()</pre>
+<h4>getLabels</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;getLabels()</pre>
 </li>
 </ul>
 </li>
