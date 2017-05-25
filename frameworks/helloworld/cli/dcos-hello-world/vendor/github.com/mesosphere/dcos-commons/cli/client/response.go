@@ -10,6 +10,10 @@ import (
 	"os"
 )
 
+func PrintText(text string) {
+	fmt.Fprintf(os.Stdout, "%s\n", text)
+}
+
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 	var outBuf bytes.Buffer
 	err := json.Indent(&outBuf, responseBytes, "", "  ")
@@ -35,7 +39,7 @@ func PrintJSON(response *http.Response) {
 }
 
 func PrintResponseText(response *http.Response) {
-	fmt.Fprintf(os.Stdout, "%s\n", GetResponseText(response))
+	PrintText(GetResponseText(response))
 }
 
 func GetResponseText(response *http.Response) string {
@@ -50,13 +54,4 @@ func GetResponseBytes(response *http.Response) []byte {
 			response.Request.Method, response.Request.URL, err)
 	}
 	return responseBytes
-}
-
-func UnmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
-	var responseJSON map[string]interface{}
-	err := json.Unmarshal([]byte(jsonBytes), &responseJSON)
-	if err != nil {
-		return nil, err
-	}
-	return responseJSON, nil
 }

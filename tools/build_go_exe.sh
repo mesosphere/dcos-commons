@@ -49,9 +49,9 @@ case "$GO_VERSION" in
         ;;
 esac
 
-# Add symlink from GOPATH which points into the repository directory:
+# Add symlink from GOPATH which points into the repository directory, if necessary:
 SYMLINK_LOCATION="$GOPATH_ORG/$REPO_NAME"
-if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_DIR" ]; then
+if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_DIR" ] && [ ! -d "$SYMLINK_LOCATION" -o "$SYMLINK_LOCATION" != "$REPO_ROOT_DIR" ]; then
     echo "Creating symlink from GOPATH=$SYMLINK_LOCATION to REPOPATH=$REPO_ROOT_DIR"
     rm -rf "$SYMLINK_LOCATION"
     mkdir -p "$GOPATH_ORG"
