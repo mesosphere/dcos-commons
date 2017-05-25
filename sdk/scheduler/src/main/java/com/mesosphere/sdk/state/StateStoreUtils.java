@@ -157,7 +157,7 @@ public class StateStoreUtils {
         Collection<Protos.Resource> reservedResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
             MesosResource mesosResource = new MesosResource(resource);
-            if (mesosResource.hasResourceId()) {
+            if (mesosResource.getResourceId().isPresent()) {
                 reservedResources.add(resource);
             }
         }

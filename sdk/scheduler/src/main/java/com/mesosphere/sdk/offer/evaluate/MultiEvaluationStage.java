@@ -2,9 +2,11 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.RangeAlgorithms;
 import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Value;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +65,15 @@ public class MultiEvaluationStage implements OfferEvaluationStage {
             if (mergedResource == null) {
                 mergedResource = resource;
             } else {
-                mergedResource = ResourceUtils.mergeRanges(mergedResource, resource);
+                Value.Builder mergedValue = Value.newBuilder();
+                mergedValue
+                        .setType(Value.Type.RANGES)
+                        .getRangesBuilder().addAllRange(RangeAlgorithms.mergeRanges(
+                                mergedResource.getRanges().getRangeList(),
+                                resource.getRanges().getRangeList()));
+                mergedResource = ResourceBuilder.fromExistingResource(mergedResource)
+                        .setValue(mergedValue.build())
+                        .build();
             }
         }
 

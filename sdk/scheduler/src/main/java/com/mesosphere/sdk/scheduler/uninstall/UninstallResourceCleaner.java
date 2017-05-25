@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.ResourceCleaner;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -27,8 +28,9 @@ public class UninstallResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<Resource> getReservedResourcesToBeUnreserved(Offer offer) {
-        List<Resource> resources = offer.getResourcesList().stream().
-                filter(resource -> ResourceUtils.getResourceId(resource) != null).collect(Collectors.toList());
+        List<Resource> resources = offer.getResourcesList().stream()
+                .filter(resource -> ResourceCollectionUtils.getResourceId(resource).isPresent())
+                .collect(Collectors.toList());
         logger.info("Reserved resources to be unreserved: {}", resources);
         return resources;
     }
@@ -42,8 +44,9 @@ public class UninstallResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
-        List<Resource> resources = offer.getResourcesList().stream().
-                filter(resource -> ResourceUtils.getPersistenceId(resource) != null).collect(Collectors.toList());
+        List<Resource> resources = offer.getResourcesList().stream()
+                .filter(resource -> resource.hasDisk() && resource.getDisk().hasPersistence())
+                .collect(Collectors.toList());
         logger.info("Persistent volumes to be destroyed and unreserved: {}", resources);
         return resources;
     }

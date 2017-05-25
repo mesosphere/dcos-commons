@@ -4,7 +4,7 @@
 
 - [Overview](index.md)
 - [Install and Customize](install.md)
-- [Kick the Tires](quick-start.md)
+- [Quick Start](quick-start.md)
 - [Uninstall](uninstall.md)
 - [Configure](configure.md)
 - [Connecting Clients](connecting-clients.md)

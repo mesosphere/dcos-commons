@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
@@ -183,7 +183,7 @@ public class EndpointsResource {
      *
      * @param endpointsByName the map to write to
      * @param taskInfo the task which has the port
-     * @param directHostPort the host:port value to advertise for directly connecting to the task
+     * @param dnsHostPort the host:port value to advertise for directly connecting to the task
      * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */
@@ -217,12 +217,12 @@ public class EndpointsResource {
 
             // (distinctly) append entry to 'vips' for this task:
             String vipHostPort = String.format("%s.%s.%s:%d",
-                    vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port);
+                    vipInfo.name, serviceName, Constants.VIP_HOST_TLD, vipInfo.port);
             Boolean foundVip = false;
             if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
                 JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
                 for (Object vipPresent : vips) {
-                    if (vipHostPort.equals((String) vipPresent)) {
+                    if (vipHostPort.equals(vipPresent)) {
                         foundVip = true;
                         break;
                     }
@@ -266,7 +266,7 @@ public class EndpointsResource {
         }
 
         private static VIPInfo parse(String taskName, Label label) {
-            if (!label.getKey().startsWith(ResourceUtils.VIP_PREFIX)) {
+            if (!label.getKey().startsWith(Constants.VIP_PREFIX)) {
                 return null;
             }
             List<String> namePort = Splitter.on(':').splitToList(label.getValue());

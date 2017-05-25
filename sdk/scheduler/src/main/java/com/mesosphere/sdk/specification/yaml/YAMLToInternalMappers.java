@@ -210,7 +210,8 @@ public class YAMLToInternalMappers {
 
         }
 
-        boolean usePortResources = maybeUsePortResources(networkNames);
+        //boolean usePortResources = maybeUsePortResources(networkNames);
+        boolean usePortResources = true;
 
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
