@@ -18,15 +18,15 @@ func printBadVersionErrorAndExit(response *http.Response, data map[string]interf
 	requestedVersion := data["updateVersion"]
 	//TODO: this is probably an array?
 	validVersions := data["validVersions"]
-	printError(response)
-	logMessage("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
-	logMessageAndExit("- Valid versions are: %s", validVersions)
+	printResponseError(response)
+	LogMessage("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
+	LogMessageAndExit("- Valid versions are: %s", validVersions)
 }
 
 func parseCosmosHTTPErrorResponse(response *http.Response) {
 	responseJSON, err := UnmarshalJSON(GetResponseBytes(response))
 	if err != nil {
-		printErrorAndExit(response)
+		printResponseErrorAndExit(response)
 	}
 	if errorType, present := responseJSON["type"]; present {
 		message := responseJSON["message"]
@@ -37,9 +37,9 @@ func parseCosmosHTTPErrorResponse(response *http.Response) {
 			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
 		default:
 			if config.Verbose {
-				logMessage("Cosmos error: %s: %s", errorType, message)
+				LogMessage("Cosmos error: %s: %s", errorType, message)
 			}
-			printErrorAndExit(response)
+			printResponseErrorAndExit(response)
 		}
 	}
 }
@@ -47,8 +47,8 @@ func parseCosmosHTTPErrorResponse(response *http.Response) {
 func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
-		printError(response)
-		logMessageAndExit("Package management commands require Enterprise DC/OS 1.10 or newer.")
+		printResponseError(response)
+		LogMessageAndExit("Package management commands require Enterprise DC/OS 1.10 or newer.")
 	case response.StatusCode == http.StatusBadRequest:
 		parseCosmosHTTPErrorResponse(response)
 	default:

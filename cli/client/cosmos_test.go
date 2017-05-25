@@ -51,8 +51,8 @@ func setup() {
 	config.ServiceName = "hello-world"
 
 	// reassign logging functions to allow us to check output
-	logMessage = logRecorder
-	logMessageAndExit = logRecorder
+	LogMessage = logRecorder
+	LogMessageAndExit = logRecorder
 }
 
 func teardown() {
