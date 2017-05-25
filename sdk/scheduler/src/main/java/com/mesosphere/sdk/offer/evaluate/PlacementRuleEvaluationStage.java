@@ -28,6 +28,9 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
             return pass(this, "No placement rule defined");
         }
 
-        return placementRule.filter(mesosResourcePool.getOffer(), podInfoBuilder.getPodInstance(), deployedTasks);
+        return placementRule.filter(
+                mesosResourcePool.getOffer(),
+                podInfoBuilder.getPodInstance(),
+                deployedTasks);
     }
 }

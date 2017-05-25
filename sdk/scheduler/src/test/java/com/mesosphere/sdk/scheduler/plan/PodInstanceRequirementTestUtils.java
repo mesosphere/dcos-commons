@@ -42,7 +42,7 @@ public class PodInstanceRequirementTestUtils {
         return getRequirement(getPortsResourceSet(begin, end), 0);
     }
 
-    private static ResourceSet getCpuResourceSet(double value) {
+    public static ResourceSet getCpuResourceSet(double value) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(value)
@@ -90,6 +90,10 @@ public class PodInstanceRequirementTestUtils {
     }
 
     public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, int index) {
+        return getRequirement(resourceSet, TestConstants.POD_TYPE, index);
+    }
+
+    public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, String type, int index) {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
@@ -101,7 +105,7 @@ public class PodInstanceRequirementTestUtils {
                 .build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .type(TestConstants.POD_TYPE)
+                .type(type)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec))
                 .build();
