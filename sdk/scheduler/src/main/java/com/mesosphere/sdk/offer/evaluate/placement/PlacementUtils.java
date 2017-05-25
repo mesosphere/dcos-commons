@@ -57,8 +57,7 @@ public class PlacementUtils {
 
     /**
      * Returns whether the provided {@link TaskInfo}, representing a previously-launched task,
-     * has a matching the task name and task type within the provided {@link OfferRequirement},
-     * representing a new task about to be launched.
+     * is in the same provided pod provided in the {@link PodInstance}.
      */
     public static boolean areEquivalent(TaskInfo taskInfo, PodInstance podInstance) {
         try {
