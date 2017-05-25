@@ -258,7 +258,6 @@
           <li><a href="#health-checks" id="markdown-toc-health-checks">Health Checks</a></li>
           <li><a href="#readiness-checks" id="markdown-toc-readiness-checks">Readiness Checks</a></li>
           <li><a href="#volumes" id="markdown-toc-volumes">Volumes</a></li>
-          <li><a href="#proxy" id="markdown-toc-proxy">Proxy</a></li>
           <li><a href="#proxy-fallback" id="markdown-toc-proxy-fallback">Proxy Fallback</a></li>
         </ul>
       </li>
@@ -1751,83 +1750,6 @@ hello
 </div>
 
 <p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="http://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
-
-<h3 id="proxy">Proxy</h3>
-
-<p>The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.</p>
-
-<p><strong>Important:</strong> Read through all these instructions before you begin.</p>
-
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">web-url</span><span class="pi">:</span> <span class="s">http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}</span>
-<span class="s">pods</span><span class="pi">:</span>
-  <span class="s">proxylite</span><span class="pi">:</span>
-    <span class="s">image</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:2.1.0</span>
-    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
-    <span class="s">tasks</span><span class="pi">:</span>
-      <span class="s">server</span><span class="pi">:</span>
-        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
-        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/proxylite/run.sh"</span>
-        <span class="s">cpus</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_CPUS</span><span class="pi">}}</span>
-        <span class="s">memory</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_MEM</span><span class="pi">}}</span>
-        <span class="s">ports</span><span class="pi">:</span>
-          <span class="s">proxylite</span><span class="pi">:</span>
-            <span class="s">env-key</span><span class="pi">:</span> <span class="s">PORT_PROXYLITE</span>
-            <span class="s">port</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_PORT</span><span class="pi">}}</span>
-        <span class="s">env</span><span class="pi">:</span>
-          <span class="s">ROOT_REDIRECT</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/example"</span>
-          <span class="s">EXTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/v1,/example"</span>
-          <span class="s">INTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"</span>
-</code></pre>
-</div>
-
-<ol>
-  <li>Delete these 3 labels from your Marathon application definition:
-    <ul>
-      <li><code class="highlighter-rouge">DCOS_FRAMEWORK_NAME</code></li>
-      <li><code class="highlighter-rouge">DCOS_SERVICE_PORT_INDEX</code></li>
-      <li><code class="highlighter-rouge">DCOS_SERVICE_SCHEME</code></li>
-    </ul>
-  </li>
-  <li>
-    <p>Add <code class="highlighter-rouge">ROOT_REDIRECT</code> to your service definition.</p>
-
-    <ul>
-      <li><code class="highlighter-rouge">ROOT_REDIRECT</code> sets a redirect from <code class="highlighter-rouge">/</code> (a.k.a. the root path) to a path of your choosing. For example, <code class="highlighter-rouge">/example</code> redirects <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}</code> to <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}/example</code></li>
-    </ul>
-  </li>
-  <li>
-    <p>Add <code class="highlighter-rouge">EXTERNAL_ROUTES</code> and <code class="highlighter-rouge">INTERNAL_ROUTES</code> to your service definition.</p>
-
-    <ul>
-      <li>
-        <p>The <code class="highlighter-rouge">EXTERNAL_ROUTES</code> and <code class="highlighter-rouge">INTERNAL_ROUTES</code> have a 1:1 mapping (they are both comma-separated lists).</p>
-      </li>
-      <li>
-        <p>For example, in the declaration above, if you navigate to <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}/v1/plan</code>, you’ll get redirected to <code class="highlighter-rouge">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan</code></p>
-      </li>
-    </ul>
-  </li>
-  <li>Things to watch out for:
-    <ul>
-      <li>No trailing slashes in <code class="highlighter-rouge">EXTERNAL_ROUTES</code> or <code class="highlighter-rouge">INTERNAL_ROUTES</code>.</li>
-      <li>The external route is <em>replaced</em> with the internal route.
-        <ul>
-          <li>It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is <em>not the case</em>.</li>
-          <li>For example, in the above declaration, “/v1” is replaced with “/v1”, so nothing changes. However one might use <code class="highlighter-rouge">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}</code> as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.</li>
-        </ul>
-      </li>
-      <li>
-        <p>When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.</p>
-
-        <p>You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:</p>
-
-        <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./bootstrap</span><span class="nv"> </span><span class="s">-resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">/proxylite/run.sh"</span>
-</code></pre>
-        </div>
-      </li>
-    </ul>
-  </li>
-</ol>
 
 <h3 id="proxy-fallback">Proxy Fallback</h3>
 
