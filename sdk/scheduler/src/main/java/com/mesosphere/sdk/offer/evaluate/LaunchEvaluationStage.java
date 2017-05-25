@@ -11,8 +11,8 @@ import java.util.Optional;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 
 /**
- * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo} in an {@link OfferRequirement}, ensuring
- * that this metadata is available in the task's environment and creating an {@link LaunchOfferRecommendation}.
+ * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
+ * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
@@ -26,6 +26,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Optional<Protos.ExecutorInfo.Builder> executorBuilder = podInfoBuilder.getExecutorBuilder();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)

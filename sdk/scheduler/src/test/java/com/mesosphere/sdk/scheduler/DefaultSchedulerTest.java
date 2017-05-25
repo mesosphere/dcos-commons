@@ -59,7 +59,6 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
-    /*
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
@@ -827,8 +826,7 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass");
         }
     }
@@ -843,8 +841,7 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass");
         }
 
@@ -875,7 +872,6 @@ public class DefaultSchedulerTest {
                     defaultScheduler.plans,
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
-                    defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
                     defaultScheduler.recoveryPlanOverriderFactory,
@@ -891,5 +887,4 @@ public class DefaultSchedulerTest {
             return apiServerReady;
         }
     }
-    */
 }

@@ -71,6 +71,10 @@ public class PodInfoBuilder {
         */
     }
 
+    public Collection<Protos.TaskInfo.Builder> getTaskBuilders() {
+        return taskBuilders.values();
+    }
+
     public Protos.TaskInfo.Builder getTaskBuilder(String taskName) {
         return taskBuilders.get(taskName);
     }
