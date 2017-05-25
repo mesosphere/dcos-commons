@@ -3,6 +3,7 @@ import pytest
 from tests.config import *
 import sdk_cmd as cmd
 import sdk_install as install
+import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_spin as spin
 import sdk_tasks as tasks
@@ -46,6 +47,14 @@ def test_node_replace_replaces_node():
     node_ip = [
         t for t in tasks.split('\n') if t.startswith('node-2-server')
     ].pop().split()[1]
+
+    # Update the placement constraints so the new node doesn't end up on the
+    # same host
+    config = marathon.get_config(PACKAGE_NAME)
+    config['env']['PLACEMENT_CONSTRAINT'] = 'hostname:UNLIKE:{}'.format(node_ip)
+    marathon.update_app(PACKAGE_NAME, config)
+
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pods replace node-2')
