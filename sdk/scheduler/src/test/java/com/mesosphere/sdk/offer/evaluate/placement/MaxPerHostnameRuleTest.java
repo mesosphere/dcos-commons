@@ -1,34 +1,34 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
+import org.apache.mesos.Protos.Attribute;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.Value;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
-import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link MaxPerHostnameRule}.
  */
 public class MaxPerHostnameRuleTest {
-    /*
-
     private static final String HOSTNAME_1 = "www.hostname.1";
     private static final String HOSTNAME_2 = "www.hostname.2";
     private static final String HOSTNAME_3 = "www.hostname.3";
@@ -64,10 +64,45 @@ public class MaxPerHostnameRuleTest {
     private static final Collection<TaskInfo> TASKS = Arrays.asList(
             TASK_NO_HOSTNAME, TASK_HOSTNAME_1, TASK_HOSTNAME_2, TASK_HOSTNAME_3);
 
-    private static final OfferRequirement REQ = OfferRequirementTestUtils.getOfferRequirement();
-    private static final OfferRequirement REQ_WITH_NO_HOSTNAME = getOfferReq(TASK_NO_HOSTNAME);
-    private static final OfferRequirement REQ_WITH_HOSTNAME_1 = getOfferReq(TASK_HOSTNAME_1);
-    private static final OfferRequirement REQ_WITH_HOSTNAME_2 = getOfferReq(TASK_HOSTNAME_2);
+    private static final PodInstance REQ = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance();
+    private static final PodInstance REQ_WITH_NO_HOSTNAME = getPodInstance(TASK_NO_HOSTNAME);
+    private static final PodInstance REQ_WITH_HOSTNAME_1 = getPodInstance(TASK_HOSTNAME_1);
+    private static final PodInstance REQ_WITH_HOSTNAME_2 = getPodInstance(TASK_HOSTNAME_2);
+
+    private static TaskInfo getTask(String id, Offer offer) {
+        TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
+        taskBuilder.getTaskIdBuilder().setValue(id);
+        try {
+            taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setHostname(offer).toProto());
+        return taskBuilder.build();
+    }
+
+    private static PodInstance getPodInstance(TaskInfo taskInfo) {
+        try {
+            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
+            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
+                    resourceSet,
+                    labels.getType(),
+                    labels.getIndex())
+                    .getPodInstance()
+                    .getPod();
+            return new DefaultPodInstance(podSpec, labels.getIndex());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static Offer getOfferWithResources() {
+        Offer.Builder o = OfferTestUtils.getEmptyOfferBuilder();
+        OfferTestUtils.addResource(o, "a");
+        OfferTestUtils.addResource(o, "b");
+        return o.build();
+    }
 
     @Test
     public void testLimitZero() {
@@ -345,33 +380,4 @@ public class MaxPerHostnameRuleTest {
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }
-
-    private static TaskInfo getTask(String id, Offer offer) {
-        TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
-        taskBuilder.getTaskIdBuilder().setValue(id);
-        try {
-            taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setHostname(offer).toProto());
-        return taskBuilder.build();
-    }
-
-    private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
-        try {
-            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
-            return OfferRequirement.create(labels.getType(), labels.getIndex(), Arrays.asList(taskInfo));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static Offer getOfferWithResources() {
-        Offer.Builder o = OfferTestUtils.getEmptyOfferBuilder();
-        OfferTestUtils.addResource(o, "a");
-        OfferTestUtils.addResource(o, "b");
-        return o.build();
-    }
-    */
 }

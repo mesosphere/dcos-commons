@@ -2,23 +2,21 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.specification.DefaultPodSpec;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
@@ -30,8 +28,6 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link RoundRobinByAttributeRule}.
  */
 public class RoundRobinByAttributeRuleTest {
-    /*
-
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
             .type("type")
@@ -40,12 +36,57 @@ public class RoundRobinByAttributeRuleTest {
             .build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
-    @BeforeClass
-    public static void beforeAll() throws InvalidRequirementException {
-        POD_INSTANCE = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
+    private static final String ATTRIB_NAME = "rack_id";
+
+    private static TaskInfo getTaskInfo(String taskName, String attrVal) {
+        return getTaskInfo(taskName, ATTRIB_NAME, attrVal);
     }
 
-    private static final String ATTRIB_NAME = "rack_id";
+    private static TaskInfo getTaskInfo(String taskName, String attrName, String attrVal) {
+        TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(taskName));
+        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
+                .setOfferAttributes(offerWithAttribute(attrName, attrVal))
+                .toProto());
+        return infoBuilder.build();
+    }
+
+    private static Offer offerWithAttribute(String value) {
+        return offerWithAttribute(ATTRIB_NAME, value);
+    }
+
+    private static Offer offerWithAttribute(String name, String value) {
+        Protos.Resource resource = ResourceUtils.setValue(
+                Protos.Resource.newBuilder()
+                        .setName("cpus"),
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0))
+                        .build());
+        Offer.Builder offerBuilder = OfferTestUtils.getOffer(resource).toBuilder();
+        offerBuilder.addAttributesBuilder()
+                .setName(name)
+                .setType(Value.Type.TEXT)
+                .getTextBuilder().setValue(value);
+        return offerBuilder.build();
+    }
+
+    private static PodInstance getPodInstance(TaskInfo taskInfo) {
+        try {
+            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
+            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
+                    resourceSet,
+                    labels.getType(),
+                    labels.getIndex())
+                    .getPodInstance()
+                    .getPod();
+            return new DefaultPodInstance(podSpec, labels.getIndex());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     @Test
     public void testRolloutWithAgentCount() throws TaskException, InvalidRequirementException {
@@ -63,10 +104,7 @@ public class RoundRobinByAttributeRuleTest {
         // 1st task fits on value1:
         assertTrue(rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks).isPassing());
         TaskInfo taskInfo1 = getTaskInfo("1", "value1");
-        OfferRequirement req1 = OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                new SchedulerLabelReader(taskInfo1).getIndex(),
-                Arrays.asList(taskInfo1));
+        PodInstance req1 = getPodInstance(taskInfo1);
         tasks.add(taskInfo1); // value1:1
         // 2nd task doesn't fit on value1 which already has something, but does fit on value2/value3:
         EvaluationOutcome outcome = rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks);
@@ -74,10 +112,7 @@ public class RoundRobinByAttributeRuleTest {
         assertTrue(rule.filter(offerWithAttribute("value2"), POD_INSTANCE, tasks).isPassing());
         assertTrue(rule.filter(offerWithAttribute("value3"), POD_INSTANCE, tasks).isPassing());
         TaskInfo taskInfo2 = getTaskInfo("2", "value3");
-        OfferRequirement req2 = OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                new SchedulerLabelReader(taskInfo2).getIndex(),
-                Arrays.asList(taskInfo2));
+        PodInstance req2 = getPodInstance(taskInfo2);
         tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
         assertTrue(rule.filter(offerWithAttribute("value1"), req1, tasks).isPassing());
@@ -132,20 +167,14 @@ public class RoundRobinByAttributeRuleTest {
         // 1st task fits on value1:
         assertTrue(rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks).isPassing());
         TaskInfo taskInfo1 = getTaskInfo("1", "value1");
-        OfferRequirement req1 = OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                new SchedulerLabelReader(taskInfo1).getIndex(),
-                Arrays.asList(taskInfo1));
+        PodInstance req1 = getPodInstance(taskInfo1);
         tasks.add(taskInfo1); // value1:1
         // 2nd task fits on any of value1/value2/value3, as we don't yet know of other valid values:
         assertTrue(rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks).isPassing());
         assertTrue(rule.filter(offerWithAttribute("value2"), POD_INSTANCE, tasks).isPassing());
         assertTrue(rule.filter(offerWithAttribute("value3"), POD_INSTANCE, tasks).isPassing());
         TaskInfo taskInfo2 = getTaskInfo("2", "value3");
-        OfferRequirement req2 = OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                new SchedulerLabelReader(taskInfo2).getIndex(),
-                Arrays.asList(taskInfo2));
+        PodInstance req2 = getPodInstance(taskInfo2);
         tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
         assertTrue(rule.filter(offerWithAttribute("value1"), req1, tasks).isPassing());
@@ -183,32 +212,4 @@ public class RoundRobinByAttributeRuleTest {
         assertTrue(rule.filter(offerWithAttribute("value3"), POD_INSTANCE, tasks).isPassing());
         assertTrue(rule.filter(offerWithAttribute("value4"), POD_INSTANCE, tasks).isPassing());
     }
-
-    private static TaskInfo getTaskInfo(String taskName, String attrVal) {
-        return getTaskInfo(taskName, ATTRIB_NAME, attrVal);
-    }
-
-    private static TaskInfo getTaskInfo(String taskName, String attrName, String attrVal) {
-        TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
-                .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName));
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
-                .setOfferAttributes(offerWithAttribute(attrName, attrVal))
-                .toProto());
-        return infoBuilder.build();
-    }
-
-    private static Offer offerWithAttribute(String value) {
-        return offerWithAttribute(ATTRIB_NAME, value);
-    }
-
-    private static Offer offerWithAttribute(String name, String value) {
-        Offer.Builder offerBuilder = OfferTestUtils.getOffer(ResourceTestUtils.getCpuRequirement(1.0)).toBuilder();
-        offerBuilder.addAttributesBuilder()
-                .setName(name)
-                .setType(Value.Type.TEXT)
-                .getTextBuilder().setValue(value);
-        return offerBuilder.build();
-    }
-    */
 }
