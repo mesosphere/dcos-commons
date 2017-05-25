@@ -13,7 +13,7 @@ public class LaunchEvaluationStageTest {
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);

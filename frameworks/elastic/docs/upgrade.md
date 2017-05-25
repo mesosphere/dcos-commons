@@ -10,7 +10,7 @@ We support upgrade/rollback between adjacent versions only. Concretely, to upgra
 
 # Upgrade Instructions
 
-1. In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch or Kibana node tasks).
+1. In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch node tasks).
 2. Verify that you no longer see the Elastic instance in the DC/OS web interface.
 3. From the DC/OS CLI, install the N+1 version of Elastic (where N is your current version) with any customizations you require in a JSON options file:
 

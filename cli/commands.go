@@ -3,13 +3,14 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/commands"
-	"github.com/mesosphere/dcos-commons/cli/config"
-	"github.com/mesosphere/dcos-commons/cli/client"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/client"
+	"github.com/mesosphere/dcos-commons/cli/commands"
+	"github.com/mesosphere/dcos-commons/cli/config"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func GetModuleName() (string, error) {
@@ -30,10 +31,12 @@ func GetArguments() []string {
 
 func HandleDefaultSections(app *kingpin.Application) {
 	commands.HandleConfigSection(app)
+	commands.HandleDescribe(app)
 	commands.HandleEndpointsSection(app)
 	commands.HandlePlanSection(app)
 	commands.HandlePodsSection(app)
 	commands.HandleStateSection(app)
+	commands.HandleUpdate(app)
 }
 
 func New() *kingpin.Application {
@@ -41,8 +44,8 @@ func New() *kingpin.Application {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-
-	app := kingpin.New(fmt.Sprintf("dcos %s", modName), "")
+	config.ModuleName = modName
+	app := kingpin.New(fmt.Sprintf("dcos %s", config.ModuleName), "")
 
 	app.HelpFlag.Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&config.Verbose)
@@ -50,7 +53,7 @@ func New() *kingpin.Application {
 	// This fulfills an interface that's expected by the main DC/OS CLI:
 	// Prints a description of the module.
 	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.ParseContext) error {
-		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(modName))
+		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(config.ModuleName))
 		os.Exit(0)
 		return nil
 	}).Bool()
@@ -69,7 +72,7 @@ func New() *kingpin.Application {
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
 	serviceName := client.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
 	if len(serviceName) == 0 {
-		serviceName = modName
+		serviceName = config.ModuleName
 	}
 	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&config.ServiceName)
 

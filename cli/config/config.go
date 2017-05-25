@@ -3,6 +3,8 @@ package config
 var (
 	DcosAuthToken string
 	DcosUrl       string
+	CosmosUrl     string
+	ModuleName    string
 	ServiceName   string
 
 	TlsForceInsecure bool

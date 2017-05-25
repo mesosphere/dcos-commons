@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.apache.mesos.Protos.Value.Range;
-import org.apache.mesos.Protos.Value.Ranges;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +22,7 @@ public final class RangeAlgorithms {
     public static List<Range> mergeRanges(List<Range> r1, List<Range> r2) {
         List<Interval> intervals = rangesToIntervals(r1);
         intervals.addAll(rangesToIntervals(r2));
-        IntervalSet intervalSet = intervalsToIntervalSet(intervals);
-
-        return intervalsToRanges(intervalSet.getIntervals());
+        return intervalsToRanges(intervalsToIntervalSet(intervals).getIntervals());
     }
 
     /**
@@ -47,39 +44,23 @@ public final class RangeAlgorithms {
         return i1.equals(i2);
     }
 
-    public static Ranges fromRangeList(List<Range> ranges) {
-        return Ranges.newBuilder().addAllRange(ranges).build();
-    }
-
     private static Interval rangeToInterval(Range range) {
         return Interval.of((int) range.getBegin(), (int) range.getEnd());
     }
 
-    private static Range intervalToRange(Interval interval) {
-        Range.Builder builder = Range.newBuilder();
-        builder.setBegin(interval.a);
-        builder.setEnd(interval.b);
-
-        return builder.build();
-    }
-
     private static List<Interval> rangesToIntervals(List<Range> ranges) {
         List<Interval> intervals = new ArrayList<Interval>();
-
         for (Range range : ranges) {
             intervals.add(rangeToInterval(range));
         }
-
         return intervals;
     }
 
     private static List<Range> intervalsToRanges(List<Interval> intervals) {
         List<Range> ranges = new ArrayList<Range>();
-
         for (Interval interval : intervals) {
-            ranges.add(intervalToRange(interval));
+            ranges.add(Range.newBuilder().setBegin(interval.a).setEnd(interval.b).build());
         }
-
         return ranges;
     }
 
@@ -88,16 +69,12 @@ public final class RangeAlgorithms {
         for (Interval interval : intervals) {
             intervalSet.add(interval.a, interval.b);
         }
-
         return intervalSet;
     }
 
     private static List<Range> intervalSetToRanges(IntervalSet intervalSet) {
-        if (intervalSet.isNil()) {
-            return new ArrayList<Range>();
-        }
-
-        List<Interval> intervals = intervalSet.getIntervals();
-        return intervalsToRanges(intervals);
+        return intervalSet.isNil()
+                ? new ArrayList<Range>()
+                : intervalsToRanges(intervalSet.getIntervals());
     }
 }

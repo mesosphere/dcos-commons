@@ -1415,63 +1415,6 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
-### Proxy
-
-The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.
-
-**Important:** Read through all these instructions before you begin.
-
-```yaml
-web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
-pods:
-  proxylite:
-    image: mesosphere/proxylite:2.1.0
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "/proxylite/run.sh"
-        cpus: {{PROXYLITE_CPUS}}
-        memory: {{PROXYLITE_MEM}}
-        ports:
-          proxylite:
-            env-key: PORT_PROXYLITE
-            port: {{PROXYLITE_PORT}}
-        env:
-          ROOT_REDIRECT: "/example"
-          EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: "http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"
-```
-
-
-1. Delete these 3 labels from your Marathon application definition:
-    * `DCOS_FRAMEWORK_NAME`
-    * `DCOS_SERVICE_PORT_INDEX`
-    * `DCOS_SERVICE_SCHEME`
-
-1. Add `ROOT_REDIRECT` to your service definition.
-
-    * `ROOT_REDIRECT` sets a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{FRAMEWORK_NAME}}` to `<adminrouter>/service/{{FRAMEWORK_NAME}}/example`
-
-1. Add `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` to your service definition.
-
-    * The `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` have a 1:1 mapping (they are both comma-separated lists).
-
-    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
-
-1. Things to watch out for:
-    *  No trailing slashes in `EXTERNAL_ROUTES` or `INTERNAL_ROUTES`.
-    * The external route is *replaced* with the internal route.
-        - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
-        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
-
-      You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
-
-      ```yaml
-      cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
-      ```
-
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).

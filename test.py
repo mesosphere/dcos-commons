@@ -88,15 +88,6 @@ def detect_requirements(run_attrs):
             logger.info("command %s ... found." % cmd)
             return True
 
-    def docker_works():
-        exit_code = subprocess.call(['docker', 'ps'], stdout=subprocess.DEVNULL)
-        if exit_code == 0:
-            logger.info("docker is ... working.")
-            return True
-        else:
-            logger.info("docker is ... not working.  FAIL")
-            return False
-
     def have_or_can_create_cluster():
         if 'CLUSTER_URL' in os.environ:
             if 'CLUSTER_AUTH_TOKEN' in os.environ:
@@ -154,11 +145,6 @@ def detect_requirements(run_attrs):
     # upload requirements
     results['aws'] = have_command("aws")
     # TODO: verify can access our s3 bucket
-
-    results['docker'] = have_command("docker")
-    if results['docker']:
-        results['docker_works'] = docker_works()
-    # TODO: validate we have the docker access
 
     # test requirements
     results['virtualenv'] = have_command("virtualenv")
@@ -233,25 +219,6 @@ def build_and_upload(run_attrs=parse_args([])):
         _action_wrapper("build %s" % framework.name,
                 framework, func, *args)
 
-# TODO: consider moving this to Nexus
-def _upload_proxylite(framework):
-    logger.info("trying to push proxylite to docker [1/2]")
-    cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
-    completed_cmd = subprocess.run(cmd_args)
-    if completed_cmd.returncode == 0:
-        logger.info("docker push succeeded.")
-    else:
-        logger.info("docker push failed; sleeping 5 seconds (XXX)")
-        time.sleep(5)
-        logger.info("trying to push proxylite to docker [2/2]")
-        completed_cmd = subprocess.run(cmd_args)
-        if completed_cmd.returncode == 0:
-            logger.info("docker push succeeded.")
-        else:
-            logger.info("docker push failed; aborting proxylite test")
-            raise CommandFailure(cmd_args)
-    logger.info("Push of proxylite to docker complete.")
-
 def _make_url_path(framework):
     return os.path.join(framework.dir, "%s-framework-url" % framework.name)
 
@@ -276,8 +243,9 @@ def _build_upload_aws(framework):
         msg = template % (framework.buildscript, framework.name)
         raise CommandFailure(cmd_args)
     with open(url_textfile_path) as url_file:
-        stub_url = url_file.read().strip()
-    framework.stub_universe_url = stub_url
+        # nearly always one url, but sometimes more
+        stub_urls = url_file.read().splitlines()
+    framework.stub_universe_urls = stub_urls
 
 def _recover_stub_urls(run_attrs, repo_root):
     """If run with test_only, acquire the stub_universe urls from the
@@ -288,8 +256,8 @@ def _recover_stub_urls(run_attrs, repo_root):
         url_textfile_path = _make_url_path(framework)
         try:
             with open(url_textfile_path) as url_file:
-                stub_url = url_file.read().strip()
-            framework.stub_universe_url = stub_url
+                stub_urls = url_file.read().splitlines()
+            framework.stub_universe_urls = stub_urls
         except:
             logger.error("Failed to open universe url_file=%s for framework=%s",
                     url_textfile_path, framework.name)
@@ -303,12 +271,6 @@ def build_and_upload_single(framework, run_attrs):
     """
     logger.info("Starting build & upload for %s", framework.name)
 
-    if framework.name == 'proxylite':
-        func = _upload_proxylite
-        args = framework,
-        _action_wrapper("upload proxylite",
-                framework, func, *args)
-
     # TODO handle stub universes?  Only for single?
 
     # TODO build and push should probably be broken out as two recorded actions
@@ -317,8 +279,8 @@ def build_and_upload_single(framework, run_attrs):
     _action_wrapper("upload %s to aws" % framework.name,
             framework, func, *args)
 
-    logger.info("Built/uploaded framework=%s stub_universe_url=%s.",
-            framework.name, framework.stub_universe_url)
+    logger.info("Built/uploaded framework=%s stub_universe_urls=%s.",
+            framework.name, framework.stub_universe_urls)
 
 
 def setup_clusters(run_attrs):
@@ -528,7 +490,13 @@ def _setup_strict(framework, cluster, repo_root):
         custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
         for role_base in (framework.name, framework.name + "2"):
+
             role_arg = '%s-role' % role_base
+
+            # XXX helloworld is terrible and doesn't use its own name
+            if role_base == 'helloworld':
+                role_arg = 'hello-world-role'
+
             cmd_args = [perm_setup_script, 'root', role_arg]
 
             completed_cmd = subprocess.run(cmd_args, env=custom_env)
@@ -549,20 +517,22 @@ def start_test_background(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown in background for %s", framework.name)
-    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
-            framework.stub_universe_url, cluster.url, cluster.auth_token)
+    logger.debug("stub_universe_urls:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_urls, cluster.url, cluster.auth_token)
 
     custom_env = os.environ.copy()
     custom_env['TEST_GITHUB_LABEL'] = framework.name
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
     runtests_script = os.path.join(repo_root, 'tools', 'run_tests.py')
 
+
     # Why this trailing slash here? no idea.
     framework_testdir = os.path.join(framework.dir, 'tests') + "/"
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
+    for stub_url in framework.stub_universe_urls:
+        cmd_args.extend(["--stub-universe", stub_url])
 
     output_filename = os.path.join(get_work_dir(), "%s.out" % framework.name)
     output_file = open(output_filename, "w+b")
@@ -582,10 +552,9 @@ def run_test(framework, cluster, repo_root):
     _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown for %s", framework.name)
-    logger.debug("stub_universe:%s cluster_url:%s authtoken:%s",
-            framework.stub_universe_url, cluster.url, cluster.auth_token)
+    logger.debug("stub_universes:%s cluster_url:%s authtoken:%s",
+            framework.stub_universe_urls, cluster.url, cluster.auth_token)
     custom_env = os.environ.copy()
-    custom_env['STUB_UNIVERSE_URL'] = framework.stub_universe_url
     custom_env['TEST_GITHUB_LABEL'] = framework.name
     custom_env['CLUSTER_URL'] = cluster.url
     custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
@@ -593,6 +562,8 @@ def run_test(framework, cluster, repo_root):
     # Why this trailing slash here? no idea.
     framework_testdir = os.path.join(framework.dir, 'tests') + "/"
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
+    for stub_url in framework.stub_universe_urls:
+        cmd_args.extend(["--stub-universe", stub_url])
     completed_cmd = subprocess.run(cmd_args, env=custom_env)
     if completed_cmd.returncode != 0:
         msg = "Test script: %s invocation returned failure for %s.  FAIL"

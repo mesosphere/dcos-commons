@@ -367,10 +367,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             // For use by bootstrap process: an environment variable pointing to (comma-separated):
             // a. where the template file was downloaded (by the mesos fetcher)
             // b. where the rendered result should go
-            CommandUtils.setEnvVar(
-                    commandInfoBuilder,
-                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
-                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
+            commandInfoBuilder.setEnvironment(EnvUtils.withEnvVar(
+                    commandInfoBuilder.getEnvironment(),
+                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, EnvUtils.toEnvName(config.getName())),
+                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath())));
         }
     }
 
@@ -419,19 +419,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return EnvUtils.fromMapToEnvironment(environment).build();
+        return EnvUtils.toProto(environment);
     }
 
-    private static Protos.Environment.Builder mergeEnvironments(
+    private static Protos.Environment mergeEnvironments(
             Protos.Environment primary, Protos.Environment secondary) {
-        Map<String, String> primaryVariables = EnvUtils.fromEnvironmentToMap(primary);
-        for (Map.Entry<String, String> secondaryEntry : EnvUtils.fromEnvironmentToMap(secondary).entrySet()) {
+        Map<String, String> primaryVariables = EnvUtils.toMap(primary);
+        for (Map.Entry<String, String> secondaryEntry : EnvUtils.toMap(secondary).entrySet()) {
             if (!primaryVariables.containsKey(secondaryEntry.getKey())) {
                 primaryVariables.put(secondaryEntry.getKey(), secondaryEntry.getValue());
             }
         }
 
-        return EnvUtils.fromMapToEnvironment(primaryVariables);
+        return EnvUtils.toProto(primaryVariables);
     }
 
     private static void validateTaskRequirements(List<TaskRequirement> taskRequirements)
@@ -470,7 +470,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (oldResource != null) {
                 // Update existing resource
                 try {
-                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpec));
+                    updatedResources.add(ResourceBuilder.fromExistingResource(oldResource)
+                            .setValue(resourceSpec.getValue())
+                            .build());
                 } catch (IllegalArgumentException e) {
                     LOGGER.error("Failed to update Resources with exception: ", e);
                     // On failure to update resources, keep the old resources.
@@ -478,7 +480,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 }
             } else {
                 // Add newly added resource
-                updatedResources.add(ResourceUtils.getExpectedResource(resourceSpec));
+                updatedResources.add(ResourceBuilder.fromSpec(resourceSpec).build());
             }
         }
 
@@ -491,7 +493,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Collection<Protos.Resource> resources = new ArrayList<>();
 
         for (ResourceSpec resourceSpec : resourceSet.getResources()) {
-            resources.add(ResourceUtils.getExpectedResource(resourceSpec));
+            resources.add(ResourceBuilder.fromSpec(resourceSpec).build());
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
@@ -502,27 +504,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.Resource getVolumeResource(VolumeSpec volumeSpec) {
-        Protos.Resource volume = null;
-        switch (volumeSpec.getType()) {
-            case ROOT:
-                volume = ResourceUtils.getDesiredRootVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            case MOUNT:
-                volume = ResourceUtils.getDesiredMountVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            default:
-                LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
-        }
-
-        return volume;
+        return volumeSpec.getResourceRequirement(null).getResource();
     }
 
     private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {

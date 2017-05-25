@@ -3,7 +3,8 @@ package com.mesosphere.sdk.specification;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -11,6 +12,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -140,8 +142,10 @@ public class DefaultService implements Service {
     private boolean allButStateStoreUninstalled() {
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
         return StateStoreUtils.isUninstalling(stateStore) &&
-                ResourceUtils.allResourcesUninstalled(stateStore.fetchTasks()) &&
-                !stateStore.fetchFrameworkId().isPresent();
+                !stateStore.fetchFrameworkId().isPresent() &&
+                ResourceCollectionUtils.getResourceIds(
+                        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+                    .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     protected ServiceSpec getServiceSpec() {
