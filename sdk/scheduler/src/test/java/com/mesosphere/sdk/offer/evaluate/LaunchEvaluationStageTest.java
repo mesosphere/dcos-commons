@@ -1,6 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -9,8 +13,9 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.UUID;
+
 public class LaunchEvaluationStageTest {
-    /*
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
@@ -18,30 +23,40 @@ public class LaunchEvaluationStageTest {
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
-        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+                podInstanceRequirement,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                OfferRequirementTestUtils.getTestSchedulerFlags());
 
         EvaluationOutcome outcome = evaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         // labels are sorted alphabetically (see LabelUtils):
-
         Protos.Label label = taskBuilder.getLabels().getLabels(0);
-        Assert.assertEquals(label.getKey(), "index");
-        Assert.assertEquals(label.getValue(), Integer.toString(TestConstants.TASK_INDEX));
+        Assert.assertEquals("goal_state", label.getKey());
+        Assert.assertEquals(GoalState.RUNNING.name(), label.getValue());
 
         label = taskBuilder.getLabels().getLabels(1);
-        Assert.assertEquals(label.getKey(), "offer_attributes");
-        Assert.assertEquals(label.getValue(), "");
+        Assert.assertEquals("index", label.getKey());
+        Assert.assertEquals(Integer.toString(TestConstants.TASK_INDEX), label.getValue());
 
         label = taskBuilder.getLabels().getLabels(2);
-        Assert.assertEquals(label.getKey(), "offer_hostname");
-        Assert.assertEquals(label.getValue(), TestConstants.HOSTNAME);
+        Assert.assertEquals("offer_attributes", label.getKey());
+        Assert.assertEquals("", label.getValue());
 
         label = taskBuilder.getLabels().getLabels(3);
+        Assert.assertEquals("offer_hostname", label.getKey());
+        Assert.assertEquals(TestConstants.HOSTNAME, label.getValue());
+
+        label = taskBuilder.getLabels().getLabels(4);
+        Assert.assertEquals("target_configuration", label.getKey());
+        Assert.assertEquals(36, label.getValue().length());
+
+        label = taskBuilder.getLabels().getLabels(5);
         Assert.assertEquals(label.getKey(), "task_type");
-        Assert.assertEquals(label.getValue(), TestConstants.TASK_TYPE);
+        Assert.assertEquals(TestConstants.POD_TYPE, label.getValue());
     }
-    */
 }
