@@ -905,7 +905,16 @@ The most basic set of features present in the YAML representation of the `Servic
 
 ### Containers
 
-Each pod runs inside a single container. We can specify the `image` that we want to use (for example, a Docker image), the `rlimits`, and the overlay `networks` to join.  The `image` field specifies the Docker image to run for that pod, the image is run in the Mesos Universal Container Runtime. For a container to have its own IP address it needs to join a virtual network, the only supported network at present is the `dcos` overlay network. Finally, `rlimits` allows you to set POSIX resource limits for every task that runs inside that container. 
+Each pod runs inside a single container. The `ServiceSpec` specifies the following: 
+  * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
+  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.  
+  * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
+
+The example `ServiceSpec` below specifies: 
+  * The `ubuntu` container image.
+  * The soft limit for number of open file descriptors for any task in the `hello` pod as 1024, and the hard limit to 2048.
+  * That the pod should join the `dcos` virtual network.
+  
 
 In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
 
