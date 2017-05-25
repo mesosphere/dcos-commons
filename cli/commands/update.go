@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
@@ -77,6 +76,7 @@ type UpdateRequest struct {
 }
 
 func printStatus() {
+	// TODO: implement
 	client.LogMessage("Status has not been implemented yet. Please use `dcos %s --name=%s plan show` to view progress.", config.ModuleName, config.ServiceName)
 }
 
@@ -104,7 +104,8 @@ func doUpdate(optionsFile, packageVersion string) {
 	if len(optionsFile) > 0 {
 		optionsJSON, err := readJSONFile(optionsFile)
 		if err != nil {
-			log.Fatalf("Failed to load specified options file %s: %s", optionsFile, err)
+			client.LogMessage("Failed to load specified options file %s: %s", optionsFile, err)
+			return
 		}
 		request.OptionsJSON = optionsJSON
 	}

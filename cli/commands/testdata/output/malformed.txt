@@ -1,0 +1,1 @@
+Failed to load specified options file testdata/input/malformed.json: unexpected end of JSON input
