@@ -111,7 +111,8 @@ def get_package_options(additional_options={}):
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
         return _merge_dictionary(additional_options, {
-            'service': { 'principal': 'service-acct', 'secret_name': 'secret' }
+            'service': { 'principal': 'service-acct', 'secret_name': 'secret',
+                         'mesos_api_version': 'V0'}
         })
     else:
         return additional_options
