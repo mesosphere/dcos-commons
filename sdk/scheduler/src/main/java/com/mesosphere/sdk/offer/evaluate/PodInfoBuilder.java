@@ -4,11 +4,13 @@ import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,10 @@ public class PodInfoBuilder {
                 .toBuilder();
 
         this.podInstance = podInstance;
+
+        for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
+            validateTaskInfo(taskBuilder);
+        }
 
         // TODO: Fix reusing executors
         /*
@@ -411,5 +417,59 @@ public class PodInfoBuilder {
 
     public PodInstance getPodInstance() {
         return podInstance;
+    }
+
+    /**
+     * Checks that the TaskInfo is valid at the point of requirement construction, making it
+     * easier for the framework developer to trace problems in their implementation. These checks
+     * reflect requirements enforced elsewhere, eg in {@link com.mesosphere.sdk.state.StateStore}.
+     */
+    private static void validateTaskInfo(Protos.TaskInfo.Builder builder)
+            throws InvalidRequirementException {
+        if (!builder.hasName() || StringUtils.isEmpty(builder.getName())) {
+            throw new InvalidRequirementException(String.format(
+                    "TaskInfo must have a name: %s", builder));
+        }
+
+        if (builder.hasTaskId()
+                && !StringUtils.isEmpty(builder.getTaskId().getValue())) {
+            // Task ID may be included if this is replacing an existing task. In that case, we still
+            // perform a sanity check to ensure that the original Task ID was formatted correctly.
+            // We must allow Task ID to be present but empty because it is a required proto field.
+            String taskName;
+            try {
+                taskName = CommonIdUtils.toTaskName(builder.getTaskId());
+            } catch (TaskException e) {
+                throw new InvalidRequirementException(String.format(
+                        "When non-empty, TaskInfo.id must be a valid ID. "
+                                + "Set to an empty string or leave existing valid value. %s %s",
+                        builder, e));
+            }
+            if (!taskName.equals(builder.getName())) {
+                throw new InvalidRequirementException(String.format(
+                        "When non-empty, TaskInfo.id must align with TaskInfo.name. Use "
+                                + "TaskUtils.toTaskId(): %s", builder));
+            }
+        }
+
+        if (builder.hasExecutor()) {
+            throw new InvalidRequirementException(String.format(
+                    "TaskInfo must not contain ExecutorInfo. "
+                            + "Use ExecutorRequirement for any Executor requirements: %s", builder));
+        }
+
+        SchedulerLabelReader labels = new SchedulerLabelReader(builder);
+
+        try {
+            labels.getType();
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
+
+        try {
+            labels.getIndex();
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
     }
 }
