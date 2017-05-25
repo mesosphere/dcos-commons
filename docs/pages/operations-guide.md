@@ -254,7 +254,7 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Overlay networks
 
-The SDK supports `pods` joining the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
 
 ```yaml
 pods:
@@ -271,12 +271,12 @@ pods:
       ...
 ```
 
-This has a few _direct_ effects:
-  * Every pod gets its own IP address and its own array of ports
-  * Pods do not use the ports on the host machine
-  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`
+When a pod is on the `dcos` overlay network:
+  * Every pod gets its own IP address and its own array of ports.
+  * Pods do not use the ports on the host machine.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`.
 
-There are a few _indirect_ effects:
+Specifying that pod join the `dcos` overlay network has the following indirect effects:
   * The `ports` resource requirements in the service spec will ignored as resource requirements. 
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 

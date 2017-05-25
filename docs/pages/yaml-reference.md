@@ -101,12 +101,12 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     networks:
       dcos:
     ```
-    **N.B.** when a pod joins the overlay it has the following effects:
-     * The pod is given it's own IP address from the sub-net of the overlay belonging to the agent the pod is deployed to.
-        * The IP can be retrieved using the DNS `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory` (This DNS will also work for pods on the host network).
-     * The `ports` resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.
-     * Once this pod is on the overlay, you cannot change the configuration to one where it moves to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources. 
-     * For more information see the DC/OS Virtual Network [documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
+     * when a pod joins the overlay it has the following effects:
+       * The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed.
+          * The IP can be retrieved using the DNS `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory` (This DNS will also work for pods on the host network).
+       * The `ports` resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.
+       * Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources. 
+       * For more information see the DC/OS Virtual Network [documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
 
   * `uris`
 
