@@ -7,7 +7,7 @@ set -e
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
 
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$FRAMEWORK_DIR/versions.sh
+source $FRAMEWORK_DIR/versions.sh
 ROOT_DIR="$(dirname "$(dirname ${FRAMEWORK_DIR})")"
 export TOOLS_DIR=${ROOT_DIR}/tools
 
