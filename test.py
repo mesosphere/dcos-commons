@@ -88,15 +88,6 @@ def detect_requirements(run_attrs):
             logger.info("command %s ... found." % cmd)
             return True
 
-    def docker_works():
-        exit_code = subprocess.call(['docker', 'ps'], stdout=subprocess.DEVNULL)
-        if exit_code == 0:
-            logger.info("docker is ... working.")
-            return True
-        else:
-            logger.info("docker is ... not working.  FAIL")
-            return False
-
     def have_or_can_create_cluster():
         if 'CLUSTER_URL' in os.environ:
             if 'CLUSTER_AUTH_TOKEN' in os.environ:
@@ -154,11 +145,6 @@ def detect_requirements(run_attrs):
     # upload requirements
     results['aws'] = have_command("aws")
     # TODO: verify can access our s3 bucket
-
-    results['docker'] = have_command("docker")
-    if results['docker']:
-        results['docker_works'] = docker_works()
-    # TODO: validate we have the docker access
 
     # test requirements
     results['virtualenv'] = have_command("virtualenv")
@@ -233,25 +219,6 @@ def build_and_upload(run_attrs=parse_args([])):
         _action_wrapper("build %s" % framework.name,
                 framework, func, *args)
 
-# TODO: consider moving this to Nexus
-def _upload_proxylite(framework):
-    logger.info("trying to push proxylite to docker [1/2]")
-    cmd_args = ['bash', 'frameworks/proxylite/scripts/ci.sh', 'pre-test']
-    completed_cmd = subprocess.run(cmd_args)
-    if completed_cmd.returncode == 0:
-        logger.info("docker push succeeded.")
-    else:
-        logger.info("docker push failed; sleeping 5 seconds (XXX)")
-        time.sleep(5)
-        logger.info("trying to push proxylite to docker [2/2]")
-        completed_cmd = subprocess.run(cmd_args)
-        if completed_cmd.returncode == 0:
-            logger.info("docker push succeeded.")
-        else:
-            logger.info("docker push failed; aborting proxylite test")
-            raise CommandFailure(cmd_args)
-    logger.info("Push of proxylite to docker complete.")
-
 def _make_url_path(framework):
     return os.path.join(framework.dir, "%s-framework-url" % framework.name)
 
@@ -303,12 +270,6 @@ def build_and_upload_single(framework, run_attrs):
     project for another day.
     """
     logger.info("Starting build & upload for %s", framework.name)
-
-    if framework.name == 'proxylite':
-        func = _upload_proxylite
-        args = framework,
-        _action_wrapper("upload proxylite",
-                framework, func, *args)
 
     # TODO handle stub universes?  Only for single?
 
