@@ -99,8 +99,6 @@ func TestBadVersionErrorResponse(t *testing.T) {
 	expectedOutput := loadFile(t, "testdata/output/bad-version.txt")
 	assert.Equal(t, string(expectedOutput), capturedOutput.String())
 
-	capturedOutput.Reset()
-
 	teardown()
 }
 func TestCreateCosmosHTTPJSONRequest(t *testing.T) {
