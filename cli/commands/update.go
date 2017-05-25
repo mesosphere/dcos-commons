@@ -1,12 +1,10 @@
 package commands
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
@@ -22,11 +20,9 @@ type DescribeRequest struct {
 }
 
 func reportErrorAndExit(err error, responseBytes []byte) {
-	log.Printf("Failed to unmarshal response. Error: %s", err)
-	log.Printf("Original data follows:")
-	outBuf := *bytes.NewBuffer(responseBytes)
-	outBuf.WriteTo(os.Stdout)
-	os.Exit(1)
+	client.LogMessage("Failed to unmarshal response. Error: %s", err)
+	client.LogMessage("Original data follows:")
+	client.LogMessageAndExit(string(responseBytes))
 }
 
 func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
@@ -46,7 +42,7 @@ func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error {
+func doDescribe() {
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
@@ -57,9 +53,13 @@ func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error
 	if resolvedOptionsBytes != nil {
 		client.PrintJSONBytes(resolvedOptionsBytes, nil)
 	} else {
-		log.Printf("No user options stored for service %s.", config.ServiceName)
-		log.Fatalf("User options are only persisted for packages installed with Enterprise DC/OS 1.10 or newer.")
+		client.LogMessage("No user options stored for service %s.", config.ServiceName)
+		client.LogMessageAndExit("User options are only persisted for packages installed with Enterprise DC/OS 1.10 or newer.")
 	}
+}
+
+func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error {
+	doDescribe()
 	return nil
 }
 
@@ -77,7 +77,7 @@ type UpdateRequest struct {
 }
 
 func printStatus() {
-	log.Printf("Status has not been implemented yet. Please use `dcos %s --name=%s plan show` to view progress.", config.ModuleName, config.ServiceName)
+	client.LogMessage("Status has not been implemented yet. Please use `dcos %s --name=%s plan show` to view progress.", config.ModuleName, config.ServiceName)
 }
 
 func readJSONFile(filename string) (map[string]interface{}, error) {
@@ -116,7 +116,7 @@ func doUpdate(optionsFile, packageVersion string) {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.PrintText(fmt.Sprintf("Update started. Please use `dcos %s --name=%s service update --status` to view progress.", config.ModuleName, config.ServiceName))
+	client.LogMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s service update --status` to view progress.", config.ModuleName, config.ServiceName))
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
