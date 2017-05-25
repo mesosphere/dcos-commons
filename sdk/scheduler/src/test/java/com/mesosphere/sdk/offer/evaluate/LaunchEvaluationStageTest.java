@@ -13,6 +13,7 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.UUID;
 
 public class LaunchEvaluationStageTest {
@@ -28,7 +29,8 @@ public class LaunchEvaluationStageTest {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags());
+                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                Collections.emptyList());
 
         EvaluationOutcome outcome = evaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

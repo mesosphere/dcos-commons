@@ -46,7 +46,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             IntermediateEvaluationOutcome intermediateOutcome = evaluateInternal(mesosResourcePool, podInfoBuilder);
             if (!intermediateOutcome.hasPassed()) {
-                return intermediateOutcome.toEvaluationOutcome();
+                return intermediateOutcome.toEvaluationOutcome(this);
             }
 
             offerRecommendations.addAll(intermediateOutcome.getRecommendations());

@@ -11,7 +11,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The OfferEvaluator processes {@link Offer}s and produces {@link OfferRecommendation}s.
+ * The OfferEvaluator processes {@link Protos.Offer}s and produces {@link OfferRecommendation}s.
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
  * in reference to the {@link OfferRequirement with which it was constructed.  In the
  * case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
@@ -46,19 +45,27 @@ public class OfferEvaluator {
         this.schedulerFlags = schedulerFlags;
     }
 
-    public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
+    public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
             throws StateStoreException, InvalidRequirementException {
 
-        for (int i = 0; i < offers.size(); ++i) {
-            List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement);
+        // All tasks in the service (used by some PlacementRules):
+        Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
+                .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
+        // Preexisting tasks for this pod (if any):
+        Map<String, Protos.TaskInfo> thisPodTasks =
+                TaskUtils.getTaskNames(podInstanceRequirement.getPodInstance()).stream()
+                .map(taskName -> allTasks.get(taskName))
+                .filter(taskInfo -> taskInfo != null)
+                .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
-            Offer offer = offers.get(i);
+        for (int i = 0; i < offers.size(); ++i) {
+            List<OfferEvaluationStage> evaluationStages =
+                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
+
+            Protos.Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
-                    podInstanceRequirement,
-                    serviceName,
-                    targetConfigId,
-                    schedulerFlags);
+                    podInstanceRequirement, serviceName, targetConfigId, schedulerFlags, thisPodTasks.values());
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -96,20 +103,19 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
-    public List<OfferEvaluationStage> getEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
+    public List<OfferEvaluationStage> getEvaluationPipeline(
+            PodInstanceRequirement podInstanceRequirement,
+            Collection<Protos.TaskInfo> allTasks,
+            Map<String, Protos.TaskInfo> thisPodTasks) {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationPipeline.add(new PlacementRuleEvaluationStage(
-                    stateStore.fetchTasks(),
-                    podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
         // TODO: Replace Executor Evaluation
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
-        boolean noLaunchedTasksExist = TaskUtils.getTaskNames(podInstance).stream()
-                .map(taskName -> stateStore.fetchTask(taskName))
-                .filter(taskInfoOptional -> taskInfoOptional.isPresent())
-                .map(taskInfoOptional -> taskInfoOptional.get())
+        boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
                 .map(resource -> ResourceUtils.getResourceId(resource))
                 .filter(resourceId -> resourceId != null && !resourceId.isEmpty())
@@ -136,7 +142,7 @@ public class OfferEvaluator {
         if (shouldGetNewRequirement) {
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement));
         } else {
-            evaluationPipeline.addAll(getExistingEvaluationPipeline(podInstanceRequirement));
+            evaluationPipeline.addAll(getExistingEvaluationPipeline(podInstanceRequirement, thisPodTasks));
         }
 
         return evaluationPipeline;
@@ -158,12 +164,11 @@ public class OfferEvaluator {
             String taskName = entry.getValue();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getKey());
             for (ResourceSpec resourceSpec : resourceSpecs) {
-                if (resourceSpec instanceof PortSpec) {
-                    PortSpec portSpec = (PortSpec) resourceSpec;
-                    evaluationStages.add(new PortEvaluationStage(
-                            portSpec,
-                            taskName,
-                            Optional.empty()));
+                if (resourceSpec instanceof NamedVIPSpec) {
+                    evaluationStages.add(new NamedVIPEvaluationStage(
+                            (NamedVIPSpec) resourceSpec, taskName, Optional.empty()));
+                } else if (resourceSpec instanceof PortSpec) {
+                    evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }
@@ -209,7 +214,8 @@ public class OfferEvaluator {
         return resourceSpecs;
     }
 
-    private List<OfferEvaluationStage> getExistingEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
+    private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
+            PodInstanceRequirement podInstanceRequirement, Map<String, Protos.TaskInfo> podTasks) {
         List<OfferEvaluationStage> offerEvaluationStages = new ArrayList<>();
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
@@ -217,29 +223,35 @@ public class OfferEvaluator {
 
         for (TaskSpec taskSpec : taskSpecs) {
             String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
-            Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskInfoName);
-            if (!taskInfo.isPresent()) {
+            Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
+            if (taskInfo == null) {
                 logger.error(String.format("Failed to fetch task %s.  Cannot generate resource map.", taskInfoName));
                 return Collections.emptyList();
             }
 
-            Map<ResourceSpec, String> resourceSpecIdMap = getResourceSpecIdMap(taskInfo.get(), taskSpec);
+            // ResourceSpec => ResourceID
+            Map<ResourceSpec, String> resourceSpecIdMap = getResourceSpecIdMap(taskInfo, taskSpec);
             for (Map.Entry<ResourceSpec, String> entry : resourceSpecIdMap.entrySet()) {
-                offerEvaluationStages.add(
-                        new ResourceEvaluationStage(
-                                entry.getKey(), // ResourceSpec
-                                Optional.of(entry.getValue()), // ResourceID
-                                taskSpec.getName())); // Task name
+                if (entry.getKey() instanceof NamedVIPSpec) {
+                    offerEvaluationStages.add(new NamedVIPEvaluationStage(
+                            (NamedVIPSpec) entry.getKey(), taskSpec.getName(), Optional.of(entry.getValue())));
+                } else if (entry.getKey() instanceof PortSpec) {
+                    offerEvaluationStages.add(new PortEvaluationStage(
+                            (PortSpec) entry.getKey(), taskSpec.getName(), Optional.of(entry.getValue())));
+                } else {
+                    offerEvaluationStages.add(new ResourceEvaluationStage(
+                            entry.getKey(), Optional.of(entry.getValue()), taskSpec.getName()));
+                }
             }
 
-            Map<VolumeSpec, Pair<String, String>> volumeSpecIdMap = getVolumeSpecIdMap(taskInfo.get(), taskSpec);
+            // VolumeSpec => ResourceID + PersistenceID
+            Map<VolumeSpec, Pair<String, String>> volumeSpecIdMap = getVolumeSpecIdMap(taskInfo, taskSpec);
             for (Map.Entry<VolumeSpec, Pair<String, String>> entry : volumeSpecIdMap.entrySet()) {
-                offerEvaluationStages.add(
-                        new VolumeEvaluationStage(
-                                entry.getKey(),
-                                taskSpec.getName(),
-                                Optional.of(entry.getValue().getLeft()),
-                                Optional.of(entry.getValue().getRight())));
+                offerEvaluationStages.add(new VolumeEvaluationStage(
+                        entry.getKey(),
+                        taskSpec.getName(),
+                        Optional.of(entry.getValue().getLeft()),
+                        Optional.of(entry.getValue().getRight())));
             }
 
 
@@ -249,7 +261,7 @@ public class OfferEvaluator {
         return offerEvaluationStages;
     }
 
-    private Map<ResourceSpec, String> getResourceSpecIdMap(Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
+    private static Map<ResourceSpec, String> getResourceSpecIdMap(Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
         Map<String, Protos.Resource> resourceMap = taskInfo.getResourcesList().stream()
                 .collect(Collectors.toMap(Protos.Resource::getName, Function.identity()));
 
@@ -257,15 +269,14 @@ public class OfferEvaluator {
         ResourceSet resourceSet = taskSpec.getResourceSet();
         for (ResourceSpec resourceSpec : resourceSet.getResources()) {
             resourceSpecStringMap.put(
-                    resourceSpec,
-                    ResourceUtils.getResourceId(
-                            resourceMap.get(resourceSpec.getName())));
+                    resourceSpec, ResourceUtils.getResourceId(resourceMap.get(resourceSpec.getName())));
         }
 
         return resourceSpecStringMap;
     }
 
-    private Map<VolumeSpec, Pair<String, String>> getVolumeSpecIdMap(Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
+    private static Map<VolumeSpec, Pair<String, String>> getVolumeSpecIdMap(
+            Protos.TaskInfo taskInfo, TaskSpec taskSpec) {
         List<Protos.Resource> resourceList = taskInfo.getResourcesList().stream()
                 .filter(resource -> resource.hasDisk())
                 .filter(resource -> resource.getDisk().hasVolume())

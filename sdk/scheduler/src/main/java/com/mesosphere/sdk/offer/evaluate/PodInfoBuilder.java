@@ -9,6 +9,8 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +33,16 @@ public class PodInfoBuilder {
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private final Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
+    private final Map<String, Map<String, String>> lastTaskEnvs;
+    private final Map<String, String> lastExecutorEnv;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags)
-            throws InvalidRequirementException {
+            SchedulerFlags schedulerFlags,
+            Collection<Protos.TaskInfo> currentPodTasks)
+                    throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
             Protos.TaskInfo.Builder taskInfoBuilder =
@@ -47,18 +52,30 @@ public class PodInfoBuilder {
                             podInstanceRequirement.getEnvironment(),
                             serviceName,
                             targetConfigId).toBuilder();
-
-           this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
+            // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
+            // as we're only looking at tasks within a given pod
+            this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
         }
 
-        this.executorBuilder = getExecutorInfo(
-                podInstance.getPod(),
-                serviceName,
-                targetConfigId,
-                schedulerFlags)
-                .toBuilder();
+        this.executorBuilder =
+                getExecutorInfo(podInstance.getPod(), serviceName, targetConfigId, schedulerFlags).toBuilder();
 
         this.podInstance = podInstance;
+
+        this.lastTaskEnvs = new HashMap<>();
+        for (Protos.TaskInfo currentTask : currentPodTasks) {
+            // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
+            // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
+            // TaskInfo name.
+            this.lastTaskEnvs.put(
+                    currentTask.getName(), EnvUtils.fromEnvironmentToMap(currentTask.getCommand().getEnvironment()));
+        }
+        this.lastExecutorEnv = new HashMap<>();
+        if (!currentPodTasks.isEmpty()) {
+            // Use the ExecutorInfo copy from the first executor:
+            Protos.ExecutorInfo executorInfo = currentPodTasks.iterator().next().getExecutor();
+            this.lastExecutorEnv.putAll(EnvUtils.fromEnvironmentToMap(executorInfo.getCommand().getEnvironment()));
+        }
 
         // TODO: Fix reusing executors
         /*
@@ -75,12 +92,23 @@ public class PodInfoBuilder {
         return taskBuilders.values();
     }
 
-    public Protos.TaskInfo.Builder getTaskBuilder(String taskName) {
-        return taskBuilders.get(taskName);
+    public Protos.TaskInfo.Builder getTaskBuilder(String taskSpecName) {
+        return taskBuilders.get(taskSpecName);
     }
 
     public Optional<Protos.ExecutorInfo.Builder> getExecutorBuilder() {
         return Optional.ofNullable(executorBuilder);
+    }
+
+    public Optional<String> getLastTaskEnv(String taskSpecName, String envName) {
+        Map<String, String> env = lastTaskEnvs.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+        return (env == null)
+            ? Optional.empty()
+            : Optional.ofNullable(env.get(envName));
+    }
+
+    public Optional<String> getLastExecutorEnv(String envName) {
+        return Optional.ofNullable(lastExecutorEnv.get(envName));
     }
 
     public Collection<Protos.Resource.Builder> getTaskResourceBuilders() {
@@ -93,18 +121,6 @@ public class PodInfoBuilder {
     public Collection<Protos.Resource.Builder> getExecutorResourceBuilders() {
         return executorBuilder.getResourcesBuilderList().stream()
                 .collect(Collectors.toList());
-    }
-
-    private static Protos.TaskInfo.Builder clearResources(Protos.TaskInfo.Builder builder) {
-        builder.clearResources();
-
-        return builder;
-    }
-
-    private static Protos.ExecutorInfo.Builder clearResources(Protos.ExecutorInfo.Builder builder) {
-        builder.clearResources();
-
-        return builder;
     }
 
     private static Protos.TaskInfo getTaskInfo(
@@ -406,10 +422,15 @@ public class PodInfoBuilder {
     }
 
     public int getIndex() {
-        return  podInstance.getIndex();
+        return podInstance.getIndex();
     }
 
     public PodInstance getPodInstance() {
         return podInstance;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

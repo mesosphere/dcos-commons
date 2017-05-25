@@ -20,22 +20,12 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final String vipName;
     private final long vipPort;
 
-    public NamedVIPEvaluationStage(
-            NamedVIPSpec namedVIPSpec,
-            String taskName,
-            String portName,
-            long port,
-            Optional<String> customEnvKey,
-            Optional<String> resourceId,
-            String protocol,
-            DiscoveryInfo.Visibility visibility,
-            String vipName,
-            long vipPort) {
+    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
         super(namedVIPSpec, taskName, resourceId);
-        this.protocol = protocol;
-        this.visibility = visibility;
-        this.vipName = vipName;
-        this.vipPort = vipPort;
+        this.protocol = namedVIPSpec.getProtocol();
+        this.visibility = namedVIPSpec.getVisibility();
+        this.vipName = namedVIPSpec.getVipName();
+        this.vipPort = namedVIPSpec.getVipPort();
     }
 
     @Override
@@ -51,7 +41,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
                 ResourceUtils.addVIP(taskBuilder, vipName, vipPort, protocol, visibility, resource);
             }
-        } else if (podInfoBuilder.getExecutorBuilder().isPresent()) {
+        } else {
             boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getExecutorBuilder().get());
 
             if (!didUpdate) {
