@@ -13,12 +13,12 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.UUID;
 
 public class LaunchEvaluationStageTest {
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
-        Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
         Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
@@ -28,7 +28,8 @@ public class LaunchEvaluationStageTest {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags());
+                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                Collections.emptyList());
 
         EvaluationOutcome outcome = evaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

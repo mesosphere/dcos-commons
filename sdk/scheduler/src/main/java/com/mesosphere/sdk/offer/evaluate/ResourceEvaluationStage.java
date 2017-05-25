@@ -52,7 +52,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             setProtos(podInfoBuilder, intermediateOutcome.getResource());
         }
 
-        return intermediateOutcome.toEvaluationOutcome();
+        return intermediateOutcome.toEvaluationOutcome(this);
     }
 
     protected IntermediateEvaluationOutcome evaluateInternal(

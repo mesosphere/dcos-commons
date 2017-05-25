@@ -1,19 +1,27 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 5/18/17.
+ * Utilities relating to constructing {@link PodInstanceRequirement}s.
  */
 public class PodInstanceRequirementTestUtils {
+
+    private PodInstanceRequirementTestUtils() {
+        // do not instantiate
+    }
+
     public static PodInstanceRequirement getCpuRequirement(double value) {
         return getCpuRequirement(value, 0);
     }
@@ -38,8 +46,16 @@ public class PodInstanceRequirementTestUtils {
         return getRequirement(getMountVolumeResourceSet(cpus, diskSize), index);
     }
 
-    public static PodInstanceRequirement getPortsRequirement(long begin, long end) {
-        return getRequirement(getPortsResourceSet(begin, end), 0);
+    public static PodInstanceRequirement getPortRequirement(int port) {
+        return getPortsRequirement(Collections.singleton(port));
+    }
+
+    public static PodInstanceRequirement getPortsRequirement(Collection<Integer> ports) {
+        return getRequirement(getPortsResourceSet(ports), 0);
+    }
+
+    public static PodInstanceRequirement getVIPRequirement(int vipPort, int taskPort) {
+        return getRequirement(getVIPResourceSet(Collections.singletonMap(vipPort, taskPort)), 0);
     }
 
     public static ResourceSet getCpuResourceSet(double value) {
@@ -70,23 +86,52 @@ public class PodInstanceRequirementTestUtils {
                 .build();
     }
 
-    private static ResourceSet getPortsResourceSet(long begin, long end) {
-        return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
-                .id(TestConstants.RESOURCE_SET_ID)
-                .addResource(new PortSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.RANGES)
-                                .setRanges(Protos.Value.Ranges.newBuilder()
-                                        .addRange(Protos.Value.Range.newBuilder()
-                                                .setBegin(begin)
-                                                .setEnd(end)))
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL,
-                        TestConstants.PORT_ENV_NAME,
-                        TestConstants.PORT_ENV_NAME))
-                .build();
+    private static ResourceSet getPortsResourceSet(Collection<Integer> ports) {
+        DefaultResourceSet.Builder builder =
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID);
+        for (int port : ports) {
+            Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
+                    .setType(Protos.Value.Type.RANGES);
+            valueBuilder.getRangesBuilder().addRangeBuilder()
+                    .setBegin(port)
+                    .setEnd(port);
+            builder.addResource(new PortSpec(
+                    Constants.PORTS_RESOURCE_TYPE,
+                    valueBuilder.build(),
+                    TestConstants.ROLE,
+                    TestConstants.PRINCIPAL,
+                    TestConstants.PORT_ENV_NAME + "_" + port,
+                    String.format("test-port-%d", port)));
+        }
+        return builder.build();
+    }
+
+    private static ResourceSet getVIPResourceSet(Map<Integer, Integer> vipPorts) {
+        DefaultResourceSet.Builder builder =
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID);
+        for (Map.Entry<Integer, Integer> entry : vipPorts.entrySet()) {
+            int taskPort = entry.getValue();
+            Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
+                    .setType(Protos.Value.Type.RANGES);
+            valueBuilder.getRangesBuilder().addRangeBuilder()
+                    .setBegin(taskPort)
+                    .setEnd(taskPort);
+            builder.addResource(new NamedVIPSpec(
+                    Constants.PORTS_RESOURCE_TYPE,
+                    valueBuilder.build(),
+                    TestConstants.ROLE,
+                    TestConstants.PRINCIPAL,
+                    TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
+                    TestConstants.VIP_NAME + "-" + taskPort,
+                    "tcp",
+                    DiscoveryInfo.Visibility.EXTERNAL,
+                    TestConstants.VIP_NAME + "-" + taskPort,
+                    entry.getKey()));
+        }
+        return builder.build();
+
     }
 
     public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, int index) {

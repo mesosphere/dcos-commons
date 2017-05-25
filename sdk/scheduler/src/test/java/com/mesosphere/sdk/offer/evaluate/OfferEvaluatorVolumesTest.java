@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -37,47 +36,33 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate CPU RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
-        Resource reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
         Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
 
         // Validate DISK RESERVE Operation
         reserveOperation = recommendations.get(1).getOperation();
-        reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
+        reserveResource = reserveOperation.getReserve().getResources(0);
 
         reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceId(reserveResource).length());
 
         // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
+        String resourceId = getResourceId(reserveResource);
         Operation createOperation = recommendations.get(2).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
+        Resource createResource = createOperation.getCreate().getVolumes(0);
 
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(resourceId, getResourceId(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
@@ -85,16 +70,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();
         Operation launchOperation = recommendations.get(3).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(1);
+        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
     }
@@ -112,16 +91,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
 
         String cpuResourceId = ResourceUtils.getResourceId(
-                recommendations.get(0).getOperation()
-                        .getReserve()
-                        .getResources(0));
+                recommendations.get(0).getOperation().getReserve().getResources(0));
 
         Operation createOperation = recommendations.get(2).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
+        Resource createResource = createOperation.getCreate().getVolumes(0);
         String diskResourceId = ResourceUtils.getResourceId(createResource);
         String persistenceId = ResourceUtils.getPersistenceId(createResource);
 
@@ -138,13 +111,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(1);
+        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Resource.ReservationInfo reservation = launchResource.getReservation();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
@@ -153,8 +120,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(diskResourceId, getResourceId(launchResource));
     }
 
     @Test
@@ -169,30 +135,21 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(1).getOperation();
-        Resource reserveResource =
-                reserveOperation
-                        .getReserve()
-                        .getResourcesList()
-                        .get(0);
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
         Resource.ReservationInfo reservation = reserveResource.getReservation();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
-        Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
+        Assert.assertEquals(36, getResourceId(reserveResource).length());
 
         // Validate CREATE Operation
-        String resourceId = getFirstLabel(reserveResource).getValue();
+        String resourceId = getResourceId(reserveResource);
         Operation createOperation = recommendations.get(2).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
+        Resource createResource = createOperation.getCreate().getVolumes(0);
 
-        Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
+        Assert.assertEquals(resourceId, getResourceId(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
@@ -201,16 +158,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();
         Operation launchOperation = recommendations.get(3).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(1);
+        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
@@ -230,16 +181,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
 
         String cpuResourceId = ResourceUtils.getResourceId(
-                recommendations.get(0).getOperation()
-                        .getReserve()
-                        .getResources(0));
+                recommendations.get(0).getOperation().getReserve().getResources(0));
 
         Operation createOperation = recommendations.get(2).getOperation();
-        Resource createResource =
-                createOperation
-                        .getCreate()
-                        .getVolumesList()
-                        .get(0);
+        Resource createResource = createOperation.getCreate().getVolumes(0);
         String diskResourceId = ResourceUtils.getResourceId(createResource);
         String persistenceId = ResourceUtils.getPersistenceId(createResource);
 
@@ -256,13 +201,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(1);
+        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
@@ -271,8 +210,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
-        Assert.assertEquals(diskResourceId, getFirstLabel(launchResource).getValue());
+        Assert.assertEquals(diskResourceId, getResourceId(launchResource));
     }
 
     @Test
@@ -320,9 +258,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(5).getOperation();
         for (Protos.TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
             for (Resource resource : taskInfo.getResourcesList()) {
-                Protos.Label resourceIdLabel = getFirstLabel(resource);
-                Assert.assertTrue(resourceIdLabel.getKey().equals("resource_id"));
-                Assert.assertTrue(resourceIdLabel.getValue().length() > 0);
+                Assert.assertFalse(getResourceId(resource).isEmpty());
             }
         }
     }

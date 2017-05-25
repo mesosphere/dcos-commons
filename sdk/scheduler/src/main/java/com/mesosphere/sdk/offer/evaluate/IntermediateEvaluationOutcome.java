@@ -44,15 +44,15 @@ public class IntermediateEvaluationOutcome {
         return messages;
     }
 
-    public EvaluationOutcome toEvaluationOutcome() {
+    public EvaluationOutcome toEvaluationOutcome(Object source) {
         if (hasPassed()) {
             return pass(
-                    this,
+                    source,
                     getRecommendations(),
                     getMessages().toString());
         } else {
             return fail(
-                    this,
+                    source,
                     getMessages().toString());
         }
     }

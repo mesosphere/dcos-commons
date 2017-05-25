@@ -49,7 +49,8 @@ public class PlacementRuleEvaluationStageTest {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags()));
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        Collections.emptyList()));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
@@ -81,7 +82,8 @@ public class PlacementRuleEvaluationStageTest {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags()));
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        Collections.emptyList()));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
