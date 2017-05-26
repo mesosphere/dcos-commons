@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
+import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -302,5 +304,54 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getOffer(wrongOfferedResource)));
         Assert.assertEquals(0, recommendations.size());
         Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
+    public void testReserveCreateExecutorVolume() throws Exception {
+        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
+        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        List<Resource> offeredResources = Arrays.asList(
+                ResourceTestUtils.getUnreservedMountVolume(2000),
+                ResourceTestUtils.getUnreservedCpu(1.0));
+
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredResources);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
+                PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
+                Arrays.asList(
+                        new DefaultVolumeSpec(
+                                1000,
+                                VolumeSpec.Type.MOUNT,
+                                TestConstants.CONTAINER_PATH,
+                                TestConstants.ROLE,
+                                TestConstants.PRINCIPAL,
+                                "env-key")),
+                TestConstants.POD_TYPE,
+                0);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
+        Assert.assertEquals(4, recommendations.size());
+
+        // Validate just the operations pertaining to the executor
+        // Validate RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
+
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(36, getResourceId(reserveResource).length());
+
+        // Validate CREATE Operation
+        String resourceId = getResourceId(reserveResource);
+        Operation createOperation = recommendations.get(1).getOperation();
+        Resource createResource = createOperation.getCreate().getVolumes(0);
+
+        Assert.assertEquals(resourceId, getResourceId(createResource));
+        Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertTrue(createResource.getDisk().hasVolume());
     }
 }

@@ -67,6 +67,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
             MesosResource mesosResource = mesosResourceOptional.get();
             Resource.Builder builder = mesosResource.getResource().toBuilder();
+            builder.setRole(volumeSpec.getRole());
 
             Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
             if (reservationInfo.isPresent()) {

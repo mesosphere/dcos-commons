@@ -6,11 +6,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -158,6 +154,37 @@ public class PodInstanceRequirementTestUtils {
                 .type(type)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec))
+                .build();
+
+        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+
+        List<String> taskNames = podInstance.getPod().getTasks().stream()
+                .map(ts -> ts.getName())
+                .collect(Collectors.toList());
+
+        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
+    }
+
+    public static PodInstanceRequirement getExecutorRequirement(
+            ResourceSet taskResources,
+            Collection<VolumeSpec> executorVolumes,
+            String type,
+            int index) {
+        TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
+                .name(TestConstants.TASK_NAME)
+                .commandSpec(
+                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                                .value(TestConstants.TASK_CMD)
+                                .build())
+                .goalState(GoalState.RUNNING)
+                .resourceSet(taskResources)
+                .build();
+
+        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
+                .type(type)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec))
+                .volumes(executorVolumes)
                 .build();
 
         PodInstance podInstance = new DefaultPodInstance(podSpec, index);

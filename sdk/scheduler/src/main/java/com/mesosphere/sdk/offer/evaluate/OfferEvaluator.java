@@ -176,6 +176,11 @@ public class OfferEvaluator {
                 .collect(Collectors.toMap(TaskSpec::getResourceSet, TaskSpec::getName));
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
+            evaluationStages.add(
+                    new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty()));
+        }
+
         for (Map.Entry<ResourceSet, String> entry : resourceSets.entrySet()) {
             String taskName = entry.getValue();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getKey());
