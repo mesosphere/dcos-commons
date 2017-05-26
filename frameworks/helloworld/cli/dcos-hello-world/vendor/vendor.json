@@ -21,18 +21,11 @@
 			"revisionTime": "2015-10-22T06:55:26Z"
 		},
 		{
-			"checksumSHA1": "buwHuMlu4XpRnkhd8Mz8+Dbomx4=",
-			"path": "github.com/mesosphere/dcos-commons/cli",
-			"revision": "369c45cd4a55534e4869bb371cfe8912dcd5fe37",
-			"revisionTime": "2017-05-19T22:03:24Z",
-			"tree": true
-		},
-		{
 			"checksumSHA1": "ZvPW/nSYs/UeoZejaV2ZSm9+2Do=",
 			"path": "gopkg.in/alecthomas/kingpin.v2",
 			"revision": "7f0871f2e17818990e4eed73f9b5c2f429501228",
 			"revisionTime": "2017-03-28T23:38:35Z"
 		}
 	],
-	"rootPath": "github.com/mesosphere/dcos-commons/frameworks/helloworld/cli"
+	"rootPath": "github.com/mesosphere/dcos-commons/frameworks/helloworld/cli/dcos-hello-world"
 }
