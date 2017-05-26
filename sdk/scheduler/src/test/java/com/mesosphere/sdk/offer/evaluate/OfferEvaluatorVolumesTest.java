@@ -282,4 +282,25 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         Assert.assertEquals(0, recommendations.size());
     }
+
+    @Test
+    public void testFailCreateRootVolume() throws Exception {
+        Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
+    public void testFailToCreateVolumeWithWrongResource() throws Exception {
+        Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
+                Arrays.asList(OfferTestUtils.getOffer(wrongOfferedResource)));
+        Assert.assertEquals(0, recommendations.size());
+        Assert.assertEquals(0, recommendations.size());
+    }
 }

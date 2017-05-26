@@ -168,64 +168,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     /*
     @Test
-    public void testUpdateMountVolumeSuccess() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);
-        Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(updatedResource),
-                        Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(1, recommendations.size());
-
-        Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(0);
-
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        Assert.assertEquals(getResourceId(updatedResource).getValue(), getResourceId(launchResource).getValue());
-        Assert.assertEquals(updatedResource.getDisk().getPersistence().getId(), launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
-    }
-
-    @Test
-    public void testUpdateMountVolumeFailure() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(2500, resourceId);
-        Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000, resourceId);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(updatedResource),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
-    public void testFailToCreateVolumeWithWrongResource() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredRootVolume(1000);
-        Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                Arrays.asList(OfferTestUtils.getOffer(wrongOfferedResource)));
-        Assert.assertEquals(0, recommendations.size());
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-
-    @Test
-    public void testFailCreateRootVolume() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredRootVolume(1000 * 2);
-        Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(desiredResource),
-                        Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
     public void testReserveExecutorVolume() throws Exception {
         Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
         Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
