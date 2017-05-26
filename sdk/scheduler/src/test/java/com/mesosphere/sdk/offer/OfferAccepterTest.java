@@ -47,7 +47,7 @@ public class OfferAccepterTest {
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -64,7 +64,7 @@ public class OfferAccepterTest {
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -72,7 +72,7 @@ public class OfferAccepterTest {
                 anyObject());
 
         taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).clearTransient().toProto());
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build())));
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), true)));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(
                 anyCollectionOf(OfferID.class),

@@ -55,10 +55,11 @@ public class DefaultStepTest {
         LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
-                    .setTaskId(taskID)
-                    .setName(taskName)
-                    .setSlaveId(TestConstants.AGENT_ID)
-                    .build());
+                        .setTaskId(taskID)
+                        .setName(taskName)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                true);
         step.updateOfferStatus(Arrays.asList(launchRec));
 
         Assert.assertTrue(step.isStarting());

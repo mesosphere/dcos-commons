@@ -16,9 +16,14 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
+    private final boolean shouldLaunch;
 
     public LaunchEvaluationStage(String taskName) {
+        this(taskName, true);
+    }
+    public LaunchEvaluationStage(String taskName, boolean shouldLaunch) {
         this.taskName = taskName;
+        this.shouldLaunch = shouldLaunch;
     }
 
     @Override
@@ -44,7 +49,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                Arrays.asList(new LaunchOfferRecommendation(offer, taskBuilder.build())),
+                Arrays.asList(new LaunchOfferRecommendation(offer, taskBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement");
     }
 }

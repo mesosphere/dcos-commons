@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -15,19 +16,22 @@ import org.apache.mesos.Protos.TaskInfo;
 public class LaunchOfferRecommendation implements OfferRecommendation {
     private final Offer offer;
     private final Operation operation;
-    private final boolean isTransient;
     private final TaskInfo taskInfo;
+    private final boolean shouldLaunch;
 
-    public LaunchOfferRecommendation(Offer offer, TaskInfo originalTaskInfo) {
+    public LaunchOfferRecommendation(Offer offer, TaskInfo originalTaskInfo, boolean shouldLaunch) {
         this.offer = offer;
-        this.isTransient = new SchedulerLabelReader(originalTaskInfo).isTransient();
+        this.shouldLaunch = shouldLaunch;
 
-        TaskInfo.Builder taskInfoBuilder = originalTaskInfo.toBuilder()
-                .setSlaveId(offer.getSlaveId());
-        if (isTransient) {
-            taskInfoBuilder.getTaskIdBuilder().setValue("");
+        TaskInfo.Builder taskBuilder = originalTaskInfo.toBuilder();
+        if (!shouldLaunch) {
+            new SchedulerLabelWriter(taskBuilder).setTransient();
+            taskBuilder.getTaskIdBuilder().setValue("");
         }
-        this.taskInfo = taskInfoBuilder.build();
+
+        taskBuilder.setSlaveId(offer.getSlaveId());
+
+        this.taskInfo = taskBuilder.build();
 
         // The packed TaskInfo is only used in the launch operation itself, which is what we pass to Mesos.
         // The rest of the Scheduler uses unpacked TaskInfos.
@@ -48,8 +52,8 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
         return offer;
     }
 
-    public boolean isTransient() {
-        return isTransient;
+    public boolean shouldLaunch() {
+        return shouldLaunch;
     }
 
     /**

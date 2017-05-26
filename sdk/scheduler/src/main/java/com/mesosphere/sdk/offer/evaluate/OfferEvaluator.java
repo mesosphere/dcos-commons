@@ -197,7 +197,8 @@ public class OfferEvaluator {
                         new VolumeEvaluationStage(volumeSpec, taskName, Optional.empty(), Optional.empty()));
             }
 
-            evaluationStages.add(new LaunchEvaluationStage(taskName));
+            boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
+            evaluationStages.add(new LaunchEvaluationStage(taskName, shouldBeLaunched));
         }
 
         return evaluationStages;
@@ -247,7 +248,9 @@ public class OfferEvaluator {
             }
 
             evaluationStages.addAll(new TaskResourceMapper(taskSpec, taskInfo).getEvaluationStages());
-            evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName()));
+
+            boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
+            evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch));
         }
 
         return evaluationStages;
