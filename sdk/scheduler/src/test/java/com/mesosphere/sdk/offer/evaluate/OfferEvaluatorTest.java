@@ -168,40 +168,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     /*
     @Test
-    public void testConsumeMultipleMountVolumesSuccess() throws Exception {
-        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource offeredResourceA = ResourceTestUtils.getUnreservedMountVolume(2000);
-        Resource offeredResourceB = ResourceTestUtils.getUnreservedMountVolume(3000);
-
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResourceA, offeredResourceB));
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
-                Arrays.asList(desiredResourceA, desiredResourceB), false);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
-        Assert.assertEquals(5, recommendations.size());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(3).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(4).getOperation().getType());
-    }
-
-    @Test
-    public void testConsumeMultipleMountVolumesFailure() throws Exception {
-        Resource desiredResourceA = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource desiredResourceB = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResource));
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
-                Arrays.asList(desiredResourceA, desiredResourceB), false);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
     public void testUpdateMountVolumeSuccess() throws Exception {
         String resourceId = UUID.randomUUID().toString();
         Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);
