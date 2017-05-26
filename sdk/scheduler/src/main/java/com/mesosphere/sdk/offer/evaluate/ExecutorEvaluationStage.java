@@ -4,30 +4,25 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import org.apache.mesos.Protos;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+import java.util.Optional;
+
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class evaluates an ensuring that the offered Executor ID matches the needed ID
  * and setting the executor ID for a newly-launching pod.
  */
 public class ExecutorEvaluationStage implements OfferEvaluationStage {
-    private final Protos.ExecutorID executorId;
+    private final Optional<Protos.ExecutorID> executorId;
 
     /**
      * Instantiate with an expected {@link org.apache.mesos.Protos.ExecutorID} to check for in offers. If not found,
      * the offer will be rejected by this stage.
      * @param executorId the executor ID to look for in incoming offers
      */
-    public ExecutorEvaluationStage(Protos.ExecutorID executorId) {
+    public ExecutorEvaluationStage(Optional<Protos.ExecutorID> executorId) {
         this.executorId = executorId;
-    }
-
-    /**
-     * Instantiate with no expected {@link org.apache.mesos.Protos.ExecutorID} to check for in offers. A new ID will
-     * be created for the {@link org.apache.mesos.Protos.ExecutorInfo} at evaluation time.
-     */
-    public ExecutorEvaluationStage() {
-        this(null);
     }
 
     @Override
@@ -46,8 +41,8 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
 
         // Set executor ID *after* the other check above for its presence:
         Protos.ExecutorID newExecutorId;
-        if (executorId != null) {
-            newExecutorId = executorId;
+        if (executorId.isPresent()) {
+            newExecutorId = executorId.get();
         } else {
             newExecutorId = CommonIdUtils.toExecutorId(executorBuilder.getName());
         }
@@ -56,12 +51,12 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {
-        if (executorId == null) {
+        if (!executorId.isPresent()) {
             return true;
         }
 
         for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorId)) {
+            if (execId.equals(executorId.get())) {
                 return true;
             }
         }

@@ -42,7 +42,8 @@ public class PodInfoBuilder {
             String serviceName,
             UUID targetConfigId,
             SchedulerFlags schedulerFlags,
-            Collection<Protos.TaskInfo> currentPodTasks)
+            Collection<Protos.TaskInfo> currentPodTasks,
+            Optional<Protos.ExecutorID> executorID)
                     throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {

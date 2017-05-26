@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class PlacementRuleEvaluationStageTest {
@@ -50,7 +51,8 @@ public class PlacementRuleEvaluationStageTest {
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
-                        Collections.emptyList()));
+                        Collections.emptyList(),
+                        Optional.empty()));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
@@ -83,7 +85,8 @@ public class PlacementRuleEvaluationStageTest {
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
-                        Collections.emptyList()));
+                        Collections.emptyList(),
+                        Optional.empty()));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());

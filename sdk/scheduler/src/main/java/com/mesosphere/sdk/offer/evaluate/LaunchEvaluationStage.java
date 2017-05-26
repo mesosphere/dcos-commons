@@ -36,6 +36,9 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
             .setHostname(offer)
             .toProto());
         if (executorBuilder.isPresent()) {
+            if (executorBuilder.get().getExecutorId().getValue().isEmpty()) {
+               executorBuilder.get().setExecutorId(CommonIdUtils.toExecutorId(executorBuilder.get().getName()));
+            }
             taskBuilder.setExecutor(executorBuilder.get());
         }
 

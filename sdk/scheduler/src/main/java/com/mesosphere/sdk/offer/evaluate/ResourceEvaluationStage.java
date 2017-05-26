@@ -190,7 +190,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         }
     }
 
-
     protected String getSummary() {
         return String.format(
                 "name: '%s', value: '%s', role: '%s', principal: '%s', resourceId: '%s'",
