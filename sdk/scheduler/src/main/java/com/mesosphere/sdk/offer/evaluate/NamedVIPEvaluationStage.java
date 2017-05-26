@@ -3,8 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRequirement;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
@@ -22,6 +21,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
     private final Integer vipPort;
+    private final boolean onOverlay;
 
     public NamedVIPEvaluationStage(
             Protos.Resource resource,
@@ -32,12 +32,15 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
-            Integer vipPort) {
-        super(resource, taskName, portName, port, customEnvKey);
+            Integer vipPort,
+            boolean useHostPorts,
+            boolean onOverlay) {
+        super(resource, taskName, portName, port, customEnvKey, useHostPorts);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
+        this.onOverlay = onOverlay;
     }
 
     @Override
@@ -129,7 +132,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return false;
     }
 
-    private static DiscoveryInfo.Builder addVIP(
+    private DiscoveryInfo.Builder addVIP(
             DiscoveryInfo.Builder builder,
             String vipName,
             String protocol,
@@ -142,7 +145,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addAllLabels(getVIPLabels(vipName, vipPort, onOverlay));
 
         // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
@@ -150,7 +153,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return builder;
     }
 
-    private static DiscoveryInfo getVIPDiscoveryInfo(
+    private DiscoveryInfo getVIPDiscoveryInfo(
             String taskName,
             String vipName,
             Integer vipPort,
@@ -166,15 +169,23 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addAllLabels(getVIPLabels(vipName, vipPort, onOverlay));
 
         return discoveryInfoBuilder.build();
     }
 
-    private static Label getVIPLabel(String vipName, Integer vipPort) {
-        return Label.newBuilder()
+    private static Collection<Label> getVIPLabels(String vipName, Integer vipPort, boolean onOverlay) {
+        List<Label> labels = new ArrayList<>();
+        labels.add(Label.newBuilder()
                 .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))
                 .setValue(String.format("%s:%d", vipName, vipPort))
-                .build();
+                .build());
+        if (onOverlay) {
+            labels.add(Label.newBuilder()
+                    .setKey(String.format("%s", Constants.VIP_OVERLAY_FLAG_KEY))
+                    .setValue(String.format("%s", Constants.VIP_OVERLAY_FLAG_VALUE))
+                    .build());
+        }
+        return labels;
     }
 }

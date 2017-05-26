@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.TaskRequirement;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;

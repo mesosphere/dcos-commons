@@ -34,7 +34,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
@@ -73,7 +75,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -115,7 +119,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

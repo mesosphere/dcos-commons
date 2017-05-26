@@ -200,6 +200,20 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
+    public void testNewOfferRequirementOnOverlayNetworkWithVip() throws Exception {
+        PodInstance podInstance = getPodInstance("valid-minimal-overlay-vip.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, false,
+                DcosConstants.DEFAULT_OVERLAY_NETWORK);
+        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
+    }
+
+    @Test
     public void testNewOfferRequirementOverlayNetworkWithPortForwarding() throws Exception {
         PodInstance networkPodInstance = getPodInstance("valid-networks-port-mapping.yml");
         List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);

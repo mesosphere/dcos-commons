@@ -12,6 +12,7 @@ import org.apache.mesos.Protos;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -22,6 +23,7 @@ public class PortSpec extends DefaultResourceSpec {
     @Size(min = 1)
     private final String portName;
     private final String envKey;
+    private final Collection<String> networkNames;
 
     @JsonCreator
     public PortSpec(
@@ -30,10 +32,12 @@ public class PortSpec extends DefaultResourceSpec {
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
-            @JsonProperty("port-name") String portName) {
+            @JsonProperty("port-name") String portName,
+            @JsonProperty("network-names") Collection<String> networkNames) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
         this.envKey = envKey;
+        this.networkNames = networkNames;
     }
 
     @JsonProperty("port-name")
@@ -47,6 +51,11 @@ public class PortSpec extends DefaultResourceSpec {
         return Optional.ofNullable(envKey);
     }
 
+    @JsonProperty("network-names")
+    public Collection<String> getNetworkNames() {
+        return networkNames;
+    }
+
     @Override
     public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
         return new PortRequirement(
@@ -55,7 +64,8 @@ public class PortSpec extends DefaultResourceSpec {
                         ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build(),
                 getPortName(),
                 (int) getValue().getRanges().getRange(0).getBegin(),
-                getEnvKey());
+                getEnvKey(),
+                networkNames);
     }
 
     @Override

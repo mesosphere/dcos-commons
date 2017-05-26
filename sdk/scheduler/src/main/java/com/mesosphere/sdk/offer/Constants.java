@@ -28,4 +28,7 @@ public class Constants {
     public static final String VIP_PREFIX = "VIP_";
     /** TLD to be used for VIP-based hostnames. */
     public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
+
+    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
+    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
 }
