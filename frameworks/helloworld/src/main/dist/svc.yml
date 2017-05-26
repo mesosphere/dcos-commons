@@ -4,6 +4,7 @@ scheduler:
   user: {{SERVICE_USER}}
 pods:
   hello:
+    user: {{SERVICE_USER}}
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
     user: {{SERVICE_USER}}
@@ -27,6 +28,7 @@ pods:
           timeout: 10
           max-consecutive-failures: 3
   world:
+    user: {{SERVICE_USER}}
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
     user: {{SERVICE_USER}}
