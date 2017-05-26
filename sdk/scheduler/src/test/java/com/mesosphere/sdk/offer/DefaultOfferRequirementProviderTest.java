@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -186,6 +187,37 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
+    public void testNewOfferRequirementHasCorrectHostPortFlag() throws Exception {
+        PodInstance podInstance = getPodInstance("valid-minimal-ports.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().iterator().next();
+        List<? extends ResourceRequirement> portsResources = taskRequirement.getResourceRequirements().stream()
+                .filter(resource -> resource.getName() == Constants.PORTS_RESOURCE_TYPE)
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, portsResources.size());
+        PortsRequirement portsRequirement = (PortsRequirement ) portsResources.get(0);
+        // Check the portRequirement
+        PortRequirement portRequirement = (PortRequirement ) portsRequirement.getPortRequirements().iterator().next();
+        Assert.assertEquals("http", portRequirement.getPortName());
+        Assert.assertEquals(TestConstants.CONTAINER_PORT, portRequirement.getPort());
+        Assert.assertTrue(portRequirement.usingHostPorts());
+
+        // Check the MesosResource
+        Protos.Resource resource = portRequirement.getResource();
+        Assert.assertEquals(Constants.PORTS_RESOURCE_TYPE, resource.getName());
+        Assert.assertEquals(Protos.Value.Type.RANGES, resource.getType());
+        Assert.assertEquals(TestConstants.CONTAINER_PORT,
+                resource.getRanges().getRange(0).getBegin());
+
+        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
+    }
+
+    @Test
     public void testNewOfferRequirementOnOverlayNetwork() throws Exception {
         PodInstance podInstance = getPodInstance("valid-minimal-overlay.yml");
         List<String> tasksToLaunch = getTasksToLaunch(podInstance);
@@ -194,20 +226,25 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, false,
-                DcosConstants.DEFAULT_OVERLAY_NETWORK);
-        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
-    }
+        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().iterator().next();
+        List<? extends ResourceRequirement> portsResources = taskRequirement.getResourceRequirements().stream()
+                .filter(resource -> resource.getName() == Constants.PORTS_RESOURCE_TYPE)
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, portsResources.size());
+        PortsRequirement portsRequirement = (PortsRequirement ) portsResources.get(0);
+        // Check the portRequirement
+        PortRequirement portRequirement = (PortRequirement ) portsRequirement.getPortRequirements().iterator().next();
+        Assert.assertEquals("http", portRequirement.getPortName());
+        Assert.assertEquals(TestConstants.CONTAINER_PORT, portRequirement.getPort());
+        Assert.assertFalse(portRequirement.usingHostPorts());
 
-    @Test
-    public void testNewOfferRequirementOnOverlayNetworkWithVip() throws Exception {
-        PodInstance podInstance = getPodInstance("valid-minimal-overlay-vip.yml");
-        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
-        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
-        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
-        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        // Check the MesosResource
+        Protos.Resource resource = portRequirement.getResource();
+        Assert.assertEquals(Constants.PORTS_RESOURCE_TYPE, resource.getName());
+        Assert.assertEquals(Protos.Value.Type.RANGES, resource.getType());
+        Assert.assertEquals(TestConstants.CONTAINER_PORT,
+                resource.getRanges().getRange(0).getBegin());
+
         testOfferRequirementHasCorrectNetworkInfo(offerRequirement, false,
                 DcosConstants.DEFAULT_OVERLAY_NETWORK);
         finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);

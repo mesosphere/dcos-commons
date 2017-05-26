@@ -54,39 +54,35 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        if (!useHostPorts) {  // on a virtual network that isolates this container from the host ports
-            return super.evaluate(mesosResourcePool, podInfoBuilder);
-        } else {
-            // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-            Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
-                    podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
-                    podInfoBuilder.getExecutorBuilder().get().getCommand();
-            Optional<String> taskPort = EnvUtils.getEnvVar(commandInfo.getEnvironment(), getPortEnvironmentVariable());
-            int assignedPort = port;
+        // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
+        Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
+                podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
+                podInfoBuilder.getExecutorBuilder().get().getCommand();
+        Optional<String> taskPort = EnvUtils.getEnvVar(commandInfo.getEnvironment(), getPortEnvironmentVariable());
+        int assignedPort = port;
 
-            if (assignedPort == 0 && taskPort.isPresent()) {
-                assignedPort = Integer.parseInt(taskPort.get());
-            } else if (assignedPort == 0) {
-                Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
-                if (!dynamicPort.isPresent()) {
-                    return fail(this,
-                            "No ports were available for dynamic claim in offer: %s",
-                            mesosResourcePool.getOffer().toString());
-                }
-
-                assignedPort = dynamicPort.get();
+        if (assignedPort == 0 && taskPort.isPresent()) {
+            assignedPort = Integer.parseInt(taskPort.get());
+        } else if (assignedPort == 0) {
+            Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
+            if (!dynamicPort.isPresent() && useHostPorts) {
+                return fail(this,
+                        "No ports were available for dynamic claim in offer: %s",
+                        mesosResourcePool.getOffer().toString());
             }
 
-            // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
-            // we want to use the reservation ID we created for the first port in this cycle for all subsequent ports.
-            resourceId = getResourceId(getTaskName().isPresent()
-                            ? podInfoBuilder.getTaskBuilder(getTaskName().get()).getResourcesList()
-                            : podInfoBuilder.getExecutorBuilder().get().getResourcesList(),
-                    Constants.PORTS_RESOURCE_TYPE).orElse("");
-            super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
-
-            return super.evaluate(mesosResourcePool, podInfoBuilder);
+            assignedPort = dynamicPort.get();
         }
+
+        // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
+        // we want to use the reservation ID we created for the first port in this cycle for all subsequent ports.
+        resourceId = getResourceId(getTaskName().isPresent()
+                        ? podInfoBuilder.getTaskBuilder(getTaskName().get()).getResourcesList()
+                        : podInfoBuilder.getExecutorBuilder().get().getResourcesList(),
+                Constants.PORTS_RESOURCE_TYPE).orElse("");
+        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
+
+        return super.evaluate(mesosResourcePool, podInfoBuilder);
     }
 
     @Override
