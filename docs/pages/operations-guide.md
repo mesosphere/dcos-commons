@@ -252,6 +252,38 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 
 A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
 
+## Overlay networks
+
+The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+
+```yaml
+pods:
+  pod-on-overlay:
+    count: {{COUNT}}
+    # join the 'dcos' overlay network
+    networks:
+      dcos:
+    tasks:
+      ...
+  pod-on-host:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+
+When a pod is on the `dcos` overlay network:
+  * Every pod gets its own IP address and its own array of ports.
+  * Pods do not use the ports on the host machine.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`.
+
+Specifying that pod join the `dcos` overlay network has the following indirect effects:
+  * The `ports` resource requirements in the service spec will ignored as resource requirements. 
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
+  
+  
+  
+
 ## Placement Constraints
 
 Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
