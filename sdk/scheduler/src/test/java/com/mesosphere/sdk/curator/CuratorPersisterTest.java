@@ -2,8 +2,10 @@ package com.mesosphere.sdk.curator;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ACLPathAndBytesable;
+import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.PathAndBytesable;
+import org.apache.curator.framework.api.ProtectACLCreateModePathAndBytesable;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionBridge;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
@@ -19,6 +21,7 @@ import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.junit.*;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -29,9 +32,11 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -40,7 +45,9 @@ import static org.mockito.Mockito.when;
 public class CuratorPersisterTest {
     @Mock private CuratorFramework mockClient;
     @Mock private CuratorTransaction mockTransaction;
-    @Mock private CuratorTransactionFinal mockTransactionFinal;
+    @Mock private CuratorTransactionFinal mockTranactionFinal;
+    @Mock private CreateBuilder mockCreateBuilder;
+    @Mock private ProtectACLCreateModePathAndBytesable<String> mockCreateParentsBuilder;
     @Mock private ExistsBuilder mockExistsBuilder;
     @Mock private Stat mockStat;
     private CuratorPersister mockedPersister;
@@ -93,6 +100,32 @@ public class CuratorPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
 
         mockedPersister = new CuratorPersister(TestConstants.SERVICE_NAME, mockClient);
+    }
+
+    @Test
+    public void testStoreFolderedService() throws Exception {
+        when(mockClient.create()).thenReturn(mockCreateBuilder);
+        when(mockCreateBuilder.creatingParentsIfNeeded()).thenReturn(mockCreateParentsBuilder);
+
+        String originalServiceName = "/folder/path/to/myservice";
+        mockedPersister = new CuratorPersister(originalServiceName, mockClient);
+        mockedPersister.set(PATH_1, DATA_1);
+        verify(mockCreateParentsBuilder).forPath(
+                Mockito.eq("/dcos-service-folder.path.to.myservice" + PATH_1),
+                Mockito.eq(DATA_1));
+    }
+
+    @Test
+    public void testStoreUnfolderedService() throws Exception {
+        when(mockClient.create()).thenReturn(mockCreateBuilder);
+        when(mockCreateBuilder.creatingParentsIfNeeded()).thenReturn(mockCreateParentsBuilder);
+
+        String originalServiceName = "myservice";
+        mockedPersister = new CuratorPersister(originalServiceName, mockClient);
+        mockedPersister.set(PATH_1, DATA_1);
+        verify(mockCreateParentsBuilder).forPath(
+                Mockito.eq("/dcos-service-" + originalServiceName + PATH_1),
+                Mockito.eq(DATA_1));
     }
 
     @Test
@@ -350,10 +383,31 @@ public class CuratorPersisterTest {
 
         persister.deleteAll("");
 
-        // The root-level "lock" is preserved:
+        // The root-level "lock" is preserved (it's special):
         assertEquals(Collections.singleton("lock"), persister.getChildren(""));
         assertArrayEquals(DATA_1, persister.get("lock"));
         assertEquals(Collections.singleton("/lock"), PersisterUtils.getAllKeys(persister));
+    }
+
+    @Test
+    public void testWriteServiceName() throws Exception {
+        CuratorTestUtils.clear(testZk);
+        String folderedName = "/path/to/myservice";
+        when(mockServiceSpec.getName()).thenReturn(folderedName);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).build();
+        assertEquals(Collections.singleton("servicename"), persister.getChildren(""));
+        assertArrayEquals(folderedName.getBytes(StandardCharsets.UTF_8), persister.get("servicename"));
+
+        // Now try changing the name to one that collides:
+        String collidingName = "/path/to.myservice";
+        when(mockServiceSpec.getName()).thenReturn(collidingName);
+        try {
+            CuratorPersister.newBuilder(mockServiceSpec).build();
+            fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Collision"));
+        }
     }
 
     /**

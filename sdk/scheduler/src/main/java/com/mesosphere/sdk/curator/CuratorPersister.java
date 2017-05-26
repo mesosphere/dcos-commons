@@ -120,7 +120,9 @@ public class CuratorPersister implements Persister {
                         "username and password must both be provided, or both must be empty.");
             }
 
-            return new CuratorPersister(serviceName, client);
+            CuratorPersister persister = new CuratorPersister(serviceName, client);
+            CuratorUtils.initServiceName(persister, serviceName);
+            return persister;
         }
     }
 
@@ -130,18 +132,7 @@ public class CuratorPersister implements Persister {
      * @param serviceSpec the service for which data will be stored
      */
     public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return newBuilder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
-    }
-
-    /**
-     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
-     *
-     * @param serviceName the service/framework name for namespacing data on the ZK server
-     * @param zookeeperConnection the zookeeper connection information to use (format: {@code host:port})
-     */
-    @VisibleForTesting
-    public static Builder newBuilder(String serviceName, String zookeeperConnection) {
-        return new Builder(serviceName, zookeeperConnection);
+        return new Builder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
     }
 
     @VisibleForTesting
@@ -391,7 +382,7 @@ public class CuratorPersister implements Persister {
     private String withFrameworkPrefix(String path) {
         path = PersisterUtils.join(serviceRootPath, path);
         // Avoid any trailing slashes, which lead to STORAGE_ERRORs:
-        while (path.endsWith(PersisterUtils.PATH_DELIM)) {
+        while (path.endsWith(PersisterUtils.PATH_DELIM_STR)) {
             path = path.substring(0, path.length() - 1);
         }
         return path;
