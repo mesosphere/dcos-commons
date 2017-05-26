@@ -214,6 +214,7 @@
       </li>
       <li><a href="#persistent-volumes" id="markdown-toc-persistent-volumes">Persistent Volumes</a></li>
       <li><a href="#pods-vs-tasks" id="markdown-toc-pods-vs-tasks">Pods vs Tasks</a></li>
+      <li><a href="#overlay-networks" id="markdown-toc-overlay-networks">Overlay networks</a></li>
       <li><a href="#placement-constraints" id="markdown-toc-placement-constraints">Placement Constraints</a>        <ul>
           <li><a href="#updating-placement-constraints" id="markdown-toc-updating-placement-constraints">Updating placement constraints</a></li>
         </ul>
@@ -620,6 +621,42 @@ Agent 3: X B
 <h2 id="pods-vs-tasks">Pods vs Tasks</h2>
 
 <p>A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, <a href="#restart-a-pod">restart</a> and <a href="#replace-a-pod">replace</a> operations are at Pod granularity rather than Task granularity.</p>
+
+<h2 id="overlay-networks">Overlay networks</h2>
+
+<p>The SDK allows <code class="highlighter-rouge">pods</code> to join the <code class="highlighter-rouge">dcos</code> overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">pod-on-overlay</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="c1"># join the 'dcos' overlay network</span>
+    <span class="s">networks</span><span class="pi">:</span>
+      <span class="s">dcos</span><span class="pi">:</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">...</span>
+  <span class="s">pod-on-host</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">...</span>
+</code></pre>
+</div>
+
+<p>When a pod is on the <code class="highlighter-rouge">dcos</code> overlay network:</p>
+<ul>
+  <li>Every pod gets its own IP address and its own array of ports.</li>
+  <li>Pods do not use the ports on the host machine.</li>
+  <li>Pod IP addresses can be resolved with the DNS: <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>.</li>
+</ul>
+
+<p>Specifying that pod join the <code class="highlighter-rouge">dcos</code> overlay network has the following indirect effects:</p>
+<ul>
+  <li>The <code class="highlighter-rouge">ports</code> resource requirements in the service spec will ignored as resource requirements.
+    <ul>
+      <li>This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.</li>
+    </ul>
+  </li>
+  <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.</li>
+</ul>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
 

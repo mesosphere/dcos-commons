@@ -1234,7 +1234,21 @@ installed the
 
 <h3 id="containers">Containers</h3>
 
-<p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the Docker image to run for that container, the virtual network memberships, and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, and the hard limit to 2048:</p>
+<p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the following:</p>
+<ul>
+  <li>We can specify the <code class="highlighter-rouge">image</code> that we want to use, for example, a Docker image. The image is run in the Mesos <a href="https://dcos.io/docs/latest/deploying-services/containerizers/ucr/">Universal Container Runtime</a>.</li>
+  <li>The <code class="highlighter-rouge">networks</code> field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the <code class="highlighter-rouge">dcos</code> overlay network.</li>
+  <li>The <code class="highlighter-rouge">rlimits</code> field allows you to set POSIX resource limits for every task that runs inside the container.</li>
+</ul>
+
+<p>The example <code class="highlighter-rouge">ServiceSpec</code> below specifies:</p>
+<ul>
+  <li>The <code class="highlighter-rouge">ubuntu</code> container image.</li>
+  <li>The soft limit for number of open file descriptors for any task in the <code class="highlighter-rouge">hello</code> pod as 1024, and the hard limit to 2048.</li>
+  <li>That the pod should join the <code class="highlighter-rouge">dcos</code> virtual network.</li>
+</ul>
+
+<p>In the example below, we’re specifying that we want to run the <code class="highlighter-rouge">ubuntu</code> image, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, the hard limit to 2048 and we’re specifying that the pod joins the <code class="highlighter-rouge">dcos</code> overlay network:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1242,7 +1256,7 @@ installed the
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
     <span class="s">image</span><span class="pi">:</span> <span class="s">ubuntu</span>
     <span class="s">networks</span><span class="pi">:</span>
-      <span class="s">dcos</span><span class="pi">:</span> <span class="pi">{}</span>
+      <span class="s">dcos</span><span class="pi">:</span> 
     <span class="s">rlimits</span><span class="pi">:</span>
       <span class="s">RLIMIT_NOFILE</span><span class="pi">:</span>
         <span class="s">soft</span><span class="pi">:</span> <span class="s">1024</span>
@@ -1255,8 +1269,8 @@ installed the
         <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
 </code></pre>
 </div>
-
-<p>Currently an empty YAML dictionary is passed as the body for each network definition under <code class="highlighter-rouge">networks</code>, since we only support joining virtual networks by name, but in the future it will be possible to specify port mappings and other information in a network definition.</p>
+<p><strong>Overlay networks</strong>
+The SDK supports having pods join the <code class="highlighter-rouge">dcos</code> overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the <code class="highlighter-rouge">dcos</code> overlay to the host network or vice-versa. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
 
 <p><strong>Note:</strong> Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md">the Mesos documentation on rlimits</a>.</p>
 

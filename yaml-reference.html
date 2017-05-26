@@ -315,16 +315,19 @@
   dcos:
 </code></pre>
         </div>
-        <p><strong>N.B.</strong> when a pod joins the overlay it has the following effects:</p>
         <ul>
-          <li>The pod is given it’s own IP address from the sub-net of the overlay belonging to the agent the pod is deployed to.
+          <li>when a pod joins the overlay it has the following effects:
             <ul>
-              <li>The IP can be retrieved using the DNS <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code> (This DNS will also work for pods on the host network).</li>
+              <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed.
+                <ul>
+                  <li>The IP can be retrieved using the DNS <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code> (This DNS will also work for pods on the host network).</li>
+                </ul>
+              </li>
+              <li>The <code class="highlighter-rouge">ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it’s own IP address.</li>
+              <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task’s reserved resources.</li>
+              <li>For more information see the DC/OS Virtual Network <a href="https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns">documentation</a>.</li>
             </ul>
           </li>
-          <li>The <code class="highlighter-rouge">ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it’s own IP address.</li>
-          <li>Once this pod is on the overlay, you cannot change the configuration to one where it moves to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task’s reserved resources.</li>
-          <li>For more information see the DC/OS Virtual Network <a href="https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns">documentation</a>.</li>
         </ul>
       </li>
       <li>
