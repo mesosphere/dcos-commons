@@ -10,7 +10,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: while sleep $SLEEP_DURATION ; do echo hello >> hello-container-path/output ; done
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -34,9 +34,10 @@ pods:
       server:
         goal: RUNNING
         cmd: >
-               echo world1 >> world-container-path1/output &&
-               echo world2 >> world-container-path2/output &&
-               sleep $SLEEP_DURATION
+               while sleep $SLEEP_DURATION ;
+               do echo world1 >> world-container-path1/output &&
+               echo world2 >> world-container-path2/output ;
+               done
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
         volumes:
