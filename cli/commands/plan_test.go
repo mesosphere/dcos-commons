@@ -1,9 +1,9 @@
-package cli
+package commands
 
 import (
-	"testing"
-	"reflect"
 	"encoding/json"
+	"reflect"
+	"testing"
 )
 
 func TestGetVariablePairParsesVariable(t *testing.T) {
@@ -74,7 +74,7 @@ func TestSingleVariableIsMarshaledToJSON(t *testing.T) {
 func TestMultipleVariablesAreMarshaledToJSON(t *testing.T) {
 	parameters := []string{"var=value", "var2=value2"}
 	expectedParameters, _ := json.Marshal(map[string]string{
-		"var": "value",
+		"var":  "value",
 		"var2": "value2",
 	})
 
