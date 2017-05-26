@@ -19,4 +19,6 @@ public class Constants {
 
     public static final String ROOT_DISK_TYPE = "ROOT";
     public static final String MOUNT_DISK_TYPE = "MOUNT";
+
+    public static final String ANY_ROLE = "*";
 }

@@ -113,7 +113,6 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_0"));
     }
 
-    /*
     @Test
     public void testUpdateStaticToStaticPort() throws Exception {
         // Launch for the first time: get port 555
@@ -131,14 +130,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
 
-        Operation launchOperation = recommendations.get(1).getOperation();
+        Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
-        Resource fulfilledPortResource = taskInfo.getResources(0);
-        Assert.assertEquals(resourceId, getResourceId(fulfilledPortResource));
 
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
@@ -162,20 +159,17 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         // RESERVE, UNRESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
 
-        Operation launchOperation = recommendations.get(1).getOperation();
+        Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
-        Resource fulfilledPortResource = taskInfo.getResources(0);
-        Assert.assertEquals(resourceId, getResourceId(fulfilledPortResource));
 
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
     }
-    */
 
     @Test
     public void testLaunchExpectedMultiplePorts() throws Exception {

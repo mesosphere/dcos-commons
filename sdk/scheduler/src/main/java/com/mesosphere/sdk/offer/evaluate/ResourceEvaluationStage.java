@@ -151,7 +151,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     protected Resource getFulfilledResource() {
-        // TODO: Correctly generate fulfilled resource
         Resource.Builder builder = Resource.newBuilder()
                 .setRole(resourceSpec.getRole())
                 .setName(resourceSpec.getName());

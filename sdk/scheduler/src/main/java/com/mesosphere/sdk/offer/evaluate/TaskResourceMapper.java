@@ -29,6 +29,8 @@ import com.mesosphere.sdk.specification.VolumeSpec;
  */
 class TaskResourceMapper {
     private static final Logger logger = LoggerFactory.getLogger(TaskResourceMapper.class);
+    private final List<Protos.Resource> orphanedResources = new ArrayList<>();
+    private final List<OfferEvaluationStage> evaluationStages;
 
     /**
      * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
@@ -66,16 +68,24 @@ class TaskResourceMapper {
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
         this.resources = taskInfo.getResourcesList();
         this.taskEnv = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        this.evaluationStages = getEvaluationStagesInternal();
+    }
+
+    public List<Protos.Resource> getOrphanedResources() {
+        return orphanedResources;
     }
 
     public List<OfferEvaluationStage> getEvaluationStages() {
+        return evaluationStages;
+    }
+
+    private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
         remainingResourceSpecs.addAll(resourceSpecs);
 
         // these are resourcespecs which were matched with taskinfo resources. may need updates
         List<ResourceLabels> matchingResources = new ArrayList<>();
         // these are taskinfo resources which weren't found in the resourcespecs. likely need dereservations
-        List<Protos.Resource> orphanedResources = new ArrayList<>();
         for (Protos.Resource taskResource : resources) {
             Optional<ResourceLabels> matchingResource;
             switch (taskResource.getName()) {

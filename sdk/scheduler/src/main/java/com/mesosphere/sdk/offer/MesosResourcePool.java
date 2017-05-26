@@ -174,6 +174,54 @@ public class MesosResourcePool {
         }
     }
 
+    public void free(MesosResource mesosResource) {
+        if (mesosResource.isAtomic()) {
+            freeAtomicResource(mesosResource);
+            return;
+        } else {
+            freeMergedResource(mesosResource);
+            return;
+        }
+    }
+
+    private void freeMergedResource(MesosResource mesosResource) {
+        if (!mesosResource.getResourceId().isEmpty()) {
+            reservedPool.remove(mesosResource.getResourceId());
+        }
+
+        Value currValue = unreservedMergedPool.get(mesosResource.getName());
+
+        if (currValue == null) {
+            currValue = ValueUtils.getZero(mesosResource.getType());
+        }
+
+        Value updatedValue = ValueUtils.add(currValue, mesosResource.getValue());
+        unreservedMergedPool.put(mesosResource.getName(), updatedValue);
+    }
+
+    private void freeAtomicResource(MesosResource mesosResource) {
+        Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
+        resBuilder.clearReservation();
+        resBuilder.setRole(Constants.ANY_ROLE);
+
+        if (resBuilder.hasDisk()) {
+            Resource.DiskInfo.Builder diskBuilder = Resource.DiskInfo.newBuilder(resBuilder.getDisk());
+            diskBuilder.clearPersistence();
+            diskBuilder.clearVolume();
+            resBuilder.setDisk(diskBuilder.build());
+        }
+
+        Resource releasedResource = resBuilder.build();
+
+        List<MesosResource> resList = unreservedAtomicPool.get(mesosResource.getName());
+        if (resList == null) {
+            resList = new ArrayList<MesosResource>();
+        }
+
+        resList.add(new MesosResource(releasedResource));
+        unreservedAtomicPool.put(mesosResource.getName(), resList);
+    }
+
     private static boolean sufficientValue(Value desired, Value available) {
         if (desired == null) {
             return true;

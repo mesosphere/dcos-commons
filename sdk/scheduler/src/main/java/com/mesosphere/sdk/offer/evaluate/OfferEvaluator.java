@@ -20,9 +20,7 @@ import java.util.stream.Collectors;
 /**
  * The OfferEvaluator processes {@link Protos.Offer}s and produces {@link OfferRecommendation}s.
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
- * in reference to the {@link OfferRequirement with which it was constructed.  In the
- * case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
- * are ever returned.
+ * in reference to {@link PodInstanceRequirement}s.
  */
 public class OfferEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
@@ -247,7 +245,10 @@ public class OfferEvaluator {
                 return Collections.emptyList();
             }
 
-            evaluationStages.addAll(new TaskResourceMapper(taskSpec, taskInfo).getEvaluationStages());
+            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(taskSpec, taskInfo);
+            taskResourceMapper.getOrphanedResources()
+                    .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+            evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
             evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch));
