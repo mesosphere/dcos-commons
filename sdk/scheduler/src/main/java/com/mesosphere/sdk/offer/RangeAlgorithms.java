@@ -47,6 +47,18 @@ public final class RangeAlgorithms {
         return i1.equals(i2);
     }
 
+    /**
+     * Returns whether the provided value is encompassed by any of the provided ranges.
+     */
+    public static boolean isInAny(List<Range> ranges, long value) {
+        for (Interval interval : rangesToIntervals(ranges)) {
+            if (interval.a <= value && value <= interval.b) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Ranges fromRangeList(List<Range> ranges) {
         return Ranges.newBuilder().addAllRange(ranges).build();
     }

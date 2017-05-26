@@ -62,10 +62,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
             }
 
             if (!mesosResourceOptional.isPresent()) {
-                return fail(
-                        this,
-                        "Failed to find MOUNT volume for '%s'.",
-                        getSummary());
+                return fail(this, "Failed to find MOUNT volume for '%s'.", getSummary());
             }
 
             MesosResource mesosResource = mesosResourceOptional.get();
@@ -121,25 +118,5 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
         builder.setDisk(diskInfo);
 
         return builder.build();
-    }
-
-    private int getResourceIndex(List<Resource> resources, String resourceId) {
-        if (resourceId == null) {
-            return -1;
-        }
-
-        for (int i = 0; i < resources.size(); i++) {
-            Resource resource = resources.get(i);
-            String localResourceId = ResourceUtils.getResourceId(resource);
-            if (localResourceId == null) {
-                continue;
-            }
-
-            if (localResourceId.equals(resourceId)) {
-                return i;
-            }
-        }
-
-        return -1;
     }
 }

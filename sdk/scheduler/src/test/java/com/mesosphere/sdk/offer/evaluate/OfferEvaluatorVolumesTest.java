@@ -111,6 +111,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(recommendations.toString(), 2, launchOperation.getLaunch().getTaskInfos(0).getResourcesCount());
         Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Resource.ReservationInfo reservation = launchResource.getReservation();
@@ -201,6 +202,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(recommendations.toString(), 2, launchOperation.getLaunch().getTaskInfos(0).getResourcesCount());
         Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());

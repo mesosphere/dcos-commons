@@ -9,7 +9,6 @@ import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
@@ -20,9 +19,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Offer evaluation tests concerning ports.
@@ -33,9 +32,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(555, 555);
 
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
+        List<OfferRecommendation> recommendations =
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
 
         Assert.assertEquals(2, recommendations.size());
 
@@ -61,8 +59,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Launch on previously reserved resources
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(
-                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId))));
+                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
@@ -84,8 +81,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Relaunch: detect (from envvar) and reuse previously reserved dynamic port 10000
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(
-                        ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId))));
+                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
@@ -101,9 +97,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
 
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
+        List<OfferRecommendation> recommendations =
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
 
         Assert.assertEquals(2, recommendations.size());
 
@@ -117,7 +112,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(envvars.toString(),
                 String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_0"));
     }
-/*
+
+    /*
     @Test
     public void testUpdateStaticToStaticPort() throws Exception {
         // Launch for the first time: get port 555
@@ -129,9 +125,9 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Now lets move to port 666:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(
+                OfferTestUtils.getOffers(Arrays.asList(
                         ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
-                        ResourceTestUtils.getUnreservedPorts(666, 666)))));
+                        ResourceTestUtils.getUnreservedPorts(666, 666))));
 
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
@@ -146,20 +142,23 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
     }
 
     @Test
     public void testUpdateDynamicToStaticPort() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource offeredReservedResource = ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId);
-        Resource offeredUnreservedResource = ResourceTestUtils.getUnreservedPorts(666, 666);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
+        // Launch for the first time: get port 555 from dynamic port
+        Resource reserveResource = recordLaunchWithOfferedResources(
                 PodInstanceRequirementTestUtils.getPortRequirement(0),
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(
-                        offeredReservedResource, offeredUnreservedResource))));
+                ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
+        String resourceId = getResourceId(reserveResource);
+
+        // Now lets move to port 666:
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                PodInstanceRequirementTestUtils.getPortRequirement(666),
+                OfferTestUtils.getOffers(Arrays.asList(
+                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                        ResourceTestUtils.getUnreservedPorts(666, 666))));
 
         // RESERVE, UNRESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
@@ -174,33 +173,49 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 1, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
     }
+    */
 
     @Test
     public void testLaunchExpectedMultiplePorts() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource offeredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10001, resourceId);
+        // Launch for the first time: get ports 10000,10001
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001);
+        List<Resource> reserveResources = recordLaunchWithOfferedResources(
+                podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10001));
+        Assert.assertEquals(reserveResources.toString(), 2, reserveResources.size());
+        String resourceId0 = getResourceId(reserveResources.get(0));
+        String resourceId1 = getResourceId(reserveResources.get(1));
 
+        // Now try relaunch:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                PodInstanceRequirementTestUtils.getPortsRequirement(Arrays.asList(10000, 10001)),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+                PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001),
+                OfferTestUtils.getOffers(Arrays.asList(
+                        ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId0),
+                        ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId1))));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
 
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(0);
-        Assert.assertEquals(resourceId, getResourceId(launchResource));
+        List<Resource> launchResources = launchOperation.getLaunch().getTaskInfos(0).getResourcesList();
+        Assert.assertEquals(launchResources.toString(), 2, launchResources.size());
+
+        Assert.assertEquals(resourceId0, getResourceId(launchResources.get(0)));
+        Assert.assertEquals(resourceId1, getResourceId(launchResources.get(1)));
     }
 
     @Test
     public void testReserveTaskMultipleDynamicPorts() throws Exception {
+        String portenv0 = TestConstants.PORT_ENV_NAME + "_DYN_ZERO";
+        String portenv1 = TestConstants.PORT_ENV_NAME + "_DYN_ONE";
+        Map<String, Integer> ports = new HashMap<>();
+        ports.put(portenv0, 0);
+        ports.put(portenv1, 0);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                PodInstanceRequirementTestUtils.getPortsRequirement(Arrays.asList(0, 0)),
-                Arrays.asList(OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPorts(10000, 10001))));
+                PodInstanceRequirementTestUtils.getPortRequirement(ports),
+                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
 
         // TODO(nickbp): we now produce two separate ports RESERVE operations instead of one combined operation.
         //               does mesos allow this?
@@ -223,23 +238,21 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 2, envvars.size());
-        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_10000"));
-        Assert.assertEquals(String.valueOf(10001), envvars.get(TestConstants.PORT_ENV_NAME + "_10001"));
+        Assert.assertEquals(String.valueOf(10000), envvars.get(portenv0));
+        Assert.assertEquals(String.valueOf(10001), envvars.get(portenv1));
 
         Assert.assertEquals(10000, taskInfo.getResources(0).getRanges().getRange(0).getBegin());
         Assert.assertEquals(10000, taskInfo.getResources(0).getRanges().getRange(0).getEnd());
         Assert.assertEquals(10001, taskInfo.getResources(1).getRanges().getRange(0).getBegin());
         Assert.assertEquals(10001, taskInfo.getResources(1).getRanges().getRange(0).getEnd());
     }
-    */
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testReserveTaskNamedVIPPort() throws Exception {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 10000),
-                Arrays.asList(OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPorts(10000, 10000))));
+                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
         Assert.assertEquals(2, recommendations.size());
 
@@ -271,7 +284,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     public void testReserveTaskDynamicVIPPort() throws Exception {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 0),
-                Arrays.asList(OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPorts(10000, 10000))));
+                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
         Assert.assertEquals(2, recommendations.size());
 

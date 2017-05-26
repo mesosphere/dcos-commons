@@ -15,7 +15,6 @@ import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -674,10 +673,6 @@ public class DefaultSchedulerTest {
         return Arrays.asList(deployPlan, updatePlan);
     }
 
-    private Callable<Boolean> taskMarkFailed(String taskName) {
-        return () -> FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
-    }
-
     private int countOperationType(
             Protos.Offer.Operation.Type operationType,
             Collection<Protos.Offer.Operation> operations) {
@@ -755,7 +750,7 @@ public class DefaultSchedulerTest {
                                 ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
                 .build();
     }
-    
+
     private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
         return Matchers.argThat(new BaseMatcher<Collection<T>>() {
             @Override

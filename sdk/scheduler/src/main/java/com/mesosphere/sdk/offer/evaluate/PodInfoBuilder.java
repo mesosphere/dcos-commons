@@ -35,7 +35,6 @@ public class PodInfoBuilder {
     private final Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
     private final Map<String, Map<String, String>> lastTaskEnvs;
-    private final Map<String, String> lastExecutorEnv;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
@@ -72,12 +71,6 @@ public class PodInfoBuilder {
             this.lastTaskEnvs.put(
                     currentTask.getName(), EnvUtils.fromEnvironmentToMap(currentTask.getCommand().getEnvironment()));
         }
-        this.lastExecutorEnv = new HashMap<>();
-        if (!currentPodTasks.isEmpty()) {
-            // Use the ExecutorInfo copy from the first executor:
-            Protos.ExecutorInfo executorInfo = currentPodTasks.iterator().next().getExecutor();
-            this.lastExecutorEnv.putAll(EnvUtils.fromEnvironmentToMap(executorInfo.getCommand().getEnvironment()));
-        }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
             validateTaskInfo(taskBuilder);
@@ -111,10 +104,6 @@ public class PodInfoBuilder {
         return (env == null)
             ? Optional.empty()
             : Optional.ofNullable(env.get(envName));
-    }
-
-    public Optional<String> getLastExecutorEnv(String envName) {
-        return Optional.ofNullable(lastExecutorEnv.get(envName));
     }
 
     public Collection<Protos.Resource.Builder> getTaskResourceBuilders() {
