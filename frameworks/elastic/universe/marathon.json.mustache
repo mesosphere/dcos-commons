@@ -18,6 +18,7 @@
   },
   {{/service.secret_name}}
   "env": {
+    "ELASTIC_VERSION": "{{resource.assets.uris.elastic}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
     "DIAGNOSTICS_URI" : "{{resource.assets.uris.diagnostics-zip}}",
