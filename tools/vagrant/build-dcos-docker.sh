@@ -122,6 +122,10 @@ if [ ! -f ${ARTIFACT_JDK} ]; then
 fi &&
 sudo tar -C /opt -xzf ${ARTIFACT_JDK} &&
 
+echo '#### Installing Python3' &&
+yes | sudo yum install epel-release &&
+yes | sudo yum install python34 &&
+
 echo '### Configure env' &&
 echo 'export GOPATH=/home/vagrant/go' >> ~/.bash_profile &&
 echo 'export JAVA_HOME=\$(echo /opt/jdk*)' >> ~/.bash_profile &&
