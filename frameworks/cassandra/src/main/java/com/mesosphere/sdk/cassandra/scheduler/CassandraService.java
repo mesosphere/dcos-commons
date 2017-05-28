@@ -22,19 +22,24 @@ public class CassandraService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(CassandraService.class);
 
     public CassandraService(File pathToYamlSpecification) throws Exception {
+        super(createSchedulerBuilder(pathToYamlSpecification));
+    }
+
+    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
+            throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
         DefaultScheduler.Builder schedulerBuilder =
                 DefaultScheduler.newBuilder(
                         YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags),
                         schedulerFlags)
-                .setPlansFrom(rawServiceSpec)
-                .setCustomResources(getResources())
-                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
-        initService(schedulerBuilder);
+                        .setPlansFrom(rawServiceSpec)
+                        .setCustomResources(getResources())
+                        .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+        return schedulerBuilder;
     }
 
-    private Collection<Object> getResources() {
+    private static Collection<Object> getResources() {
         final Collection<Object> apiResources = new ArrayList<>();
         Collection<String> configuredSeeds = new ArrayList<>(
                 Arrays.asList(System.getenv("TASKCFG_ALL_LOCAL_SEEDS").split(",")));

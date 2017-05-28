@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.specification.DefaultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +16,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
-            new ElasticService(new File(args[0])).run();
+            new DefaultService(new File(args[0]), SchedulerFlags.fromEnv()).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
