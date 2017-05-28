@@ -1,7 +1,6 @@
 {
   "assets": {
     "uris": {
-      "elastic": "{{elastic-version}}",
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "executor-zip": "{{artifact-dir}}/executor.zip",
