@@ -96,9 +96,9 @@ public class KafkaZKClient {
                                             kafkaServicePath + TOPICS_PATH + "/"
                                                     + topicName + "/partitions" + "/" + partitionId + "/state"),
                                             "UTF-8"));
-            partitions.add((new JSONObject()).put(partitionId, state));
+            partitions.add(new JSONObject().put(partitionId, state));
         }
-        return (new JSONObject()).put("partitions", partitions);
+        return new JSONObject().put("partitions", partitions);
     }
 
     public List<String> getBrokerEndpoints() {
