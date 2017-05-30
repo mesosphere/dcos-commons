@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.mesos.Protos.Attribute;

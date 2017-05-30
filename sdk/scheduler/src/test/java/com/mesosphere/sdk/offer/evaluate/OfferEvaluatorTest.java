@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.OperationRecorder;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
@@ -13,7 +13,6 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -25,8 +24,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Mock ServiceSpec serviceSpec;
@@ -364,7 +364,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals("name-0-node", operation.getLaunch().getTaskInfos(0).getName());
     }
 
-    /*
     @Test
     public void testRelaunchFailedPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -388,19 +387,19 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
 
-        // Validate format task operations
+        // Validate node task operations
         Operation operation = recommendations.get(0).getOperation();
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(1).getOperation();
-        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
-        operation = recommendations.get(2).getOperation();
-        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
-        operation = recommendations.get(3).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
-        // Validate node task operations
-        operation = recommendations.get(4).getOperation();
+        // Validate format task operations
+        operation = recommendations.get(2).getOperation();
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
@@ -502,7 +501,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
     }
-    */
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
         OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);

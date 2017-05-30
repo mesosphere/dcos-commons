@@ -13,7 +13,6 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;

@@ -171,27 +171,23 @@ public class OfferEvaluator {
         }
     }
 
-    private static Map<ResourceSet, String> getNewResourceSets(PodInstanceRequirement podInstanceRequirement) {
-        Map<ResourceSet, String> resourceSets =
+    private static Map<String, ResourceSet> getNewResourceSets(PodInstanceRequirement podInstanceRequirement) {
+        Map<String, ResourceSet> resourceSets =
                 podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                         .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                        .collect(Collectors.toMap(TaskSpec::getResourceSet, TaskSpec::getName));
-
-        List<String> claimedResourceSetNames = resourceSets.keySet().stream()
-                .map(resourceSet -> resourceSet.getId())
-                .collect(Collectors.toList());
+                        .collect(Collectors.toMap(TaskSpec::getName, TaskSpec::getResourceSet));
 
         for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (resourceSets.values().contains(taskSpec.getName())) {
+            if (resourceSets.keySet().contains(taskSpec.getName())) {
                 continue;
             }
 
-            Set<String> resourceSetNames = resourceSets.keySet().stream()
+            Set<String> resourceSetNames = resourceSets.values().stream()
                     .map(resourceSet -> resourceSet.getId())
                     .collect(Collectors.toSet());
 
             if (!resourceSetNames.contains(taskSpec.getResourceSet().getId())) {
-                resourceSets.put(taskSpec.getResourceSet(), taskSpec.getName());
+                resourceSets.put(taskSpec.getName(), taskSpec.getResourceSet());
             }
         }
 
@@ -225,7 +221,7 @@ public class OfferEvaluator {
 
 
     private static List<OfferEvaluationStage> getNewEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
-        Map<ResourceSet, String> resourceSets = getNewResourceSets(podInstanceRequirement);
+        Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
@@ -233,9 +229,9 @@ public class OfferEvaluator {
                     new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty()));
         }
 
-        for (Map.Entry<ResourceSet, String> entry : resourceSets.entrySet()) {
-            String taskName = entry.getValue();
-            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getKey());
+        for (Map.Entry<String, ResourceSet> entry : resourceSets.entrySet()) {
+            String taskName = entry.getKey();
+            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
                     evaluationStages.add(
@@ -247,7 +243,7 @@ public class OfferEvaluator {
                 }
             }
 
-            for (VolumeSpec volumeSpec : entry.getKey().getVolumes()) {
+            for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
                 evaluationStages.add(
                         new VolumeEvaluationStage(volumeSpec, taskName, Optional.empty(), Optional.empty()));
             }

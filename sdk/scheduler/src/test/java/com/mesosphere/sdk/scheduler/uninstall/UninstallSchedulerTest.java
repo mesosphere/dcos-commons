@@ -5,6 +5,7 @@ import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -61,7 +62,7 @@ public class UninstallSchedulerTest {
     StateStore stateStore;
     private static TestingServer testingServer;
     private UninstallScheduler uninstallScheduler;
-    @Mock private ConfigStore configStore;
+    @Mock private ConfigStore<ServiceSpec> configStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     @BeforeClass
@@ -171,7 +172,7 @@ public class UninstallSchedulerTest {
                 int port,
                 Duration apiServerInitTimeout,
                 StateStore stateStore,
-                ConfigStore configStore,
+                ConfigStore<ServiceSpec> configStore,
                 boolean apiServerReady) {
             super(port, apiServerInitTimeout, stateStore, configStore);
             this.apiServerReady = apiServerReady;

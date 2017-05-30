@@ -1,16 +1,9 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 

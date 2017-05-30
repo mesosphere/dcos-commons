@@ -5,7 +5,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 
 import org.apache.mesos.Protos.TaskInfo;

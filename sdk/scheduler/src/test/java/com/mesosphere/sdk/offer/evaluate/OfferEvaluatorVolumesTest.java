@@ -307,8 +307,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveCreateExecutorVolume() throws Exception {
-        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
         List<Resource> offeredResources = Arrays.asList(
                 ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpu(1.0));
@@ -357,8 +355,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testRelaunchExecutorVolumeFailure() throws Exception {
         // Create for the first time.
-        Resource executorVolume = ResourceTestUtils.getDesiredMountVolume(1000);
-        Resource taskCpu = ResourceTestUtils.getDesiredCpu(1.0);
         List<Resource> offeredResources = Arrays.asList(
                 ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpu(1.0));
@@ -392,8 +388,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
 
         // Evaluation for a second time
-        executorVolume = ResourceTestUtils.getExpectedMountVolume(2500, resourceId, persistenceId);
-        taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
         offeredResources = Arrays.asList(
                 ResourceTestUtils.getExpectedMountVolume(2000, resourceId, persistenceId),
                 ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));

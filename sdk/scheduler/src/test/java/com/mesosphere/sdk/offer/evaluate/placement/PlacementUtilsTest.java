@@ -1,14 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Test;
 
 import java.util.Arrays;
