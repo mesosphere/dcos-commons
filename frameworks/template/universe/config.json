@@ -20,7 +20,7 @@
             "title": "User",
             "description": "The user that the service will run as.",
             "type": "string",
-            "default": "root"
+            "default": "nobody"
           },
           "principal": {
             "title": "Custom principal (optional)",
