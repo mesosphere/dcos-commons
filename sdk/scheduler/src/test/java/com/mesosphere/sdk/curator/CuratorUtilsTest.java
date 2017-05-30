@@ -42,11 +42,11 @@ public class CuratorUtilsTest {
         assertEquals("/dcos-service-test", CuratorUtils.getServiceRootPath("/test"));
         assertEquals("/dcos-service-test", CuratorUtils.getServiceRootPath("test"));
 
-        assertEquals("/dcos-service-path.to.myteam.test", CuratorUtils.getServiceRootPath("/path/to/myteam/test"));
-        assertEquals("/dcos-service-path.to.myteam.test", CuratorUtils.getServiceRootPath("path/to/myteam/test"));
+        assertEquals("/dcos-service-path__to__myteam__test", CuratorUtils.getServiceRootPath("/path/to/myteam/test"));
+        assertEquals("/dcos-service-path__to__myteam__test", CuratorUtils.getServiceRootPath("path/to/myteam/test"));
 
-        assertEquals("/dcos-service-.test", CuratorUtils.getServiceRootPath("//test"));
-        assertEquals("/dcos-service-path.to.myteam..test", CuratorUtils.getServiceRootPath("/path/to/myteam//test"));
+        assertEquals("/dcos-service-__test", CuratorUtils.getServiceRootPath("//test"));
+        assertEquals("/dcos-service-path__to__myteam____test", CuratorUtils.getServiceRootPath("/path/to/myteam//test"));
     }
 
     @Test
@@ -64,9 +64,9 @@ public class CuratorUtilsTest {
         CuratorUtils.initServiceName(persister, originalServiceName);
 
         verify(mockGetDataBuilder).forPath(
-                Mockito.eq("/dcos-service-folder.path.to.myservice/servicename"));
+                Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
         verify(mockCreateParentsBuilder).forPath(
-                Mockito.eq("/dcos-service-folder.path.to.myservice/servicename"),
+                Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"),
                 Mockito.eq(originalServiceName.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -82,7 +82,7 @@ public class CuratorUtilsTest {
         CuratorUtils.initServiceName(persister, originalServiceName);
 
         verify(mockGetDataBuilder).forPath(
-                Mockito.eq("/dcos-service-folder.path.to.myservice/servicename"));
+                Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
     }
 
     @Test
@@ -101,6 +101,6 @@ public class CuratorUtilsTest {
         }
 
         verify(mockGetDataBuilder).forPath(
-                Mockito.eq("/dcos-service-folder.path.to.myservice/servicename"));
+                Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
     }
 }

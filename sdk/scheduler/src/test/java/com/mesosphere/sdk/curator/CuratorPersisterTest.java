@@ -111,7 +111,7 @@ public class CuratorPersisterTest {
         mockedPersister = new CuratorPersister(originalServiceName, mockClient);
         mockedPersister.set(PATH_1, DATA_1);
         verify(mockCreateParentsBuilder).forPath(
-                Mockito.eq("/dcos-service-folder.path.to.myservice" + PATH_1),
+                Mockito.eq("/dcos-service-folder__path__to__myservice" + PATH_1),
                 Mockito.eq(DATA_1));
     }
 
@@ -400,7 +400,7 @@ public class CuratorPersisterTest {
         assertArrayEquals(folderedName.getBytes(StandardCharsets.UTF_8), persister.get("servicename"));
 
         // Now try changing the name to one that collides:
-        String collidingName = "/path/to.myservice";
+        String collidingName = "/path/to__myservice";
         when(mockServiceSpec.getName()).thenReturn(collidingName);
         try {
             CuratorPersister.newBuilder(mockServiceSpec).build();

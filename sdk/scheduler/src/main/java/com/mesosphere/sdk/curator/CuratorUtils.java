@@ -21,10 +21,10 @@ class CuratorUtils {
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
 
     /**
-     * Escape character to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
+     * Escape sequence to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
      * confuse ZK with those.
      */
-    private static final char FRAMEWORK_NAME_SLASH_ESCAPE = '.';
+    private static final String FRAMEWORK_NAME_SLASH_ESCAPE = "__";
 
     /**
      * Name to use for storing a reverse mapping of the service name. This is lowercased as it's something that's being
@@ -61,10 +61,10 @@ class CuratorUtils {
     static String getServiceRootPath(String frameworkName) {
         if (frameworkName.startsWith(PersisterUtils.PATH_DELIM_STR)) {
             // Trim any leading slash
-            frameworkName = frameworkName.substring(1);
+            frameworkName = frameworkName.substring(PersisterUtils.PATH_DELIM_STR.length());
         }
         // Replace any other slashes (e.g. from folder support) with dots:
-        frameworkName = frameworkName.replace(PersisterUtils.PATH_DELIM, FRAMEWORK_NAME_SLASH_ESCAPE);
+        frameworkName = frameworkName.replace(PersisterUtils.PATH_DELIM_STR, FRAMEWORK_NAME_SLASH_ESCAPE);
         // dcos-service-<your.name.here>
         return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName;
     }
