@@ -37,9 +37,7 @@ public class DefaultService implements Service {
 
     private DefaultScheduler.Builder schedulerBuilder;
     private Scheduler scheduler;
-    private ServiceSpec serviceSpec;
     private StateStore stateStore;
-    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
@@ -72,8 +70,6 @@ public class DefaultService implements Service {
     }
 
     private void initService() {
-        this.serviceSpec = schedulerBuilder.getServiceSpec();
-        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
 
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
         this.stateStore = schedulerBuilder.getStateStore();
@@ -103,11 +99,11 @@ public class DefaultService implements Service {
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
         initService();
 
-        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
             register();
@@ -125,11 +121,11 @@ public class DefaultService implements Service {
             LOGGER.info("Not registering framework because it is uninstalling.");
             return;
         }
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        String zkUri = String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
-                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
                 .run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
@@ -145,7 +141,7 @@ public class DefaultService implements Service {
     }
 
     protected ServiceSpec getServiceSpec() {
-        return this.serviceSpec;
+        return this.schedulerBuilder.getServiceSpec();
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
