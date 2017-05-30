@@ -171,9 +171,61 @@ public class OfferEvaluator {
         }
     }
 
+    private static Map<ResourceSet, String> getNewResourceSets(PodInstanceRequirement podInstanceRequirement) {
+        Map<ResourceSet, String> resourceSets =
+                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                        .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
+                        .collect(Collectors.toMap(TaskSpec::getResourceSet, TaskSpec::getName));
+
+        List<String> claimedResourceSetNames = resourceSets.keySet().stream()
+                .map(resourceSet -> resourceSet.getId())
+                .collect(Collectors.toList());
+
+        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            if (resourceSets.values().contains(taskSpec.getName())) {
+                continue;
+            }
+
+            Set<String> resourceSetNames = resourceSets.keySet().stream()
+                    .map(resourceSet -> resourceSet.getId())
+                    .collect(Collectors.toSet());
+
+            if (!resourceSetNames.contains(taskSpec.getResourceSet().getId())) {
+                resourceSets.put(taskSpec.getResourceSet(), taskSpec.getName());
+            }
+        }
+
+        return resourceSets;
+    }
+
+    private static List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
+        // Statically defined ports, then dynamic ports, then everything else
+        List<ResourceSpec> staticPorts = new ArrayList<>();
+        List<ResourceSpec> dynamicPorts = new ArrayList<>();
+        List<ResourceSpec> simpleResources = new ArrayList<>();
+
+        for (ResourceSpec resourceSpec : resourceSet.getResources()) {
+            if (resourceSpec instanceof PortSpec) {
+                if (((PortSpec) resourceSpec).getPort() == 0) {
+                    dynamicPorts.add(resourceSpec);
+                } else {
+                    staticPorts.add(resourceSpec);
+                }
+            } else {
+                simpleResources.add(resourceSpec);
+            }
+        }
+
+        List<ResourceSpec> resourceSpecs = new ArrayList<>();
+        resourceSpecs.addAll(staticPorts);
+        resourceSpecs.addAll(dynamicPorts);
+        resourceSpecs.addAll(simpleResources);
+        return resourceSpecs;
+    }
+
+
     private static List<OfferEvaluationStage> getNewEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
-        Map<ResourceSet, String> resourceSets = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .collect(Collectors.toMap(TaskSpec::getResourceSet, TaskSpec::getName));
+        Map<ResourceSet, String> resourceSets = getNewResourceSets(podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
@@ -207,31 +259,6 @@ public class OfferEvaluator {
         return evaluationStages;
     }
 
-    private static List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
-        // Statically defined ports, then dynamic ports, then everything else
-        List<ResourceSpec> staticPorts = new ArrayList<>();
-        List<ResourceSpec> dynamicPorts = new ArrayList<>();
-        List<ResourceSpec> simpleResources = new ArrayList<>();
-
-        for (ResourceSpec resourceSpec : resourceSet.getResources()) {
-            if (resourceSpec instanceof PortSpec) {
-                if (((PortSpec) resourceSpec).getPort() == 0) {
-                    dynamicPorts.add(resourceSpec);
-                } else {
-                    staticPorts.add(resourceSpec);
-                }
-            } else {
-                simpleResources.add(resourceSpec);
-            }
-        }
-
-        List<ResourceSpec> resourceSpecs = new ArrayList<>();
-        resourceSpecs.addAll(staticPorts);
-        resourceSpecs.addAll(dynamicPorts);
-        resourceSpecs.addAll(simpleResources);
-        return resourceSpecs;
-    }
-
     private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Map<String, Protos.TaskInfo> podTasks,
@@ -244,7 +271,10 @@ public class OfferEvaluator {
 
         for (TaskSpec taskSpec : taskSpecs) {
             String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
-            Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
+            Protos.TaskInfo taskInfo = getTaskInfoSharingResourceSet(
+                    podInstanceRequirement.getPodInstance(),
+                    taskSpec,
+                    podTasks);
             if (taskInfo == null) {
                 logger.error(String.format("Failed to fetch task %s.  Cannot generate resource map.", taskInfoName));
                 return Collections.emptyList();
@@ -260,5 +290,32 @@ public class OfferEvaluator {
         }
 
         return evaluationStages;
+    }
+
+    private static Protos.TaskInfo getTaskInfoSharingResourceSet(
+            PodInstance podInstance,
+            TaskSpec taskSpec,
+            Map<String, Protos.TaskInfo> podTasks) {
+
+        String taskInfoName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
+        Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
+        if (taskInfo != null) {
+            return taskInfo;
+        }
+
+        String resourceSetId = taskSpec.getResourceSet().getId();
+        List<String> sharedTaskNames = podInstance.getPod().getTasks().stream()
+                .filter(ts -> ts.getResourceSet().getId().equals(resourceSetId))
+                .map(ts -> TaskSpec.getInstanceName(podInstance, ts.getName()))
+                .collect(Collectors.toList());
+
+        for (String taskName : sharedTaskNames) {
+            taskInfo = podTasks.get(taskName);
+            if (taskInfo != null) {
+                return taskInfo;
+            }
+        }
+
+        return null;
     }
 }

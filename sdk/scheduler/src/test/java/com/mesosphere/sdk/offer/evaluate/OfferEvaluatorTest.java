@@ -294,7 +294,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
     }
 
-    /*
     @Test
     public void testLaunchSequencedTasksInPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -318,21 +317,27 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
 
-        // Validate format task operations
+        // Validate node task operations
         Operation operation = recommendations.get(0).getOperation();
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
-        operation = recommendations.get(1).getOperation();
-        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
-        operation = recommendations.get(2).getOperation();
-        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
-        operation = recommendations.get(3).getOperation();
+        LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendations.get(1);
+        operation = launchOfferRecommendation.getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        Assert.assertEquals("name-0-backup", operation.getLaunch().getTaskInfos(0).getName());
+        Assert.assertFalse(launchOfferRecommendation.shouldLaunch());
 
-        // Validate node task operations
-        operation = recommendations.get(4).getOperation();
+        // Validate format task operations
+        operation = recommendations.get(2).getOperation();
         Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
-        operation = recommendations.get(5).getOperation();
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
+        launchOfferRecommendation = (LaunchOfferRecommendation) recommendations.get(5);
+        operation = launchOfferRecommendation.getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        Assert.assertEquals("name-0-format", operation.getLaunch().getTaskInfos(0).getName());
+        Assert.assertTrue(launchOfferRecommendation.shouldLaunch());
 
         recordOperations(recommendations);
 
@@ -342,24 +347,24 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
-        List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(
-                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build())
-                .getTaskRequirements().stream()
-                .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
-                .map(resourceRequirement -> resourceRequirement.getResourceId())
-                .collect(Collectors.toList());
-        Assert.assertEquals(resourceIds.toString(), 2, resourceIds.size());
+        Resource cpuResource = operation.getLaunch().getTaskInfos(0).getResources(0);
+        Resource diskResource = operation.getLaunch().getTaskInfos(0).getResources(1);
+        String cpuResourceId = ResourceUtils.getResourceId(cpuResource);
+        String diskResourceId = ResourceUtils.getResourceId(diskResource);
+        String persistenceId = ResourceUtils.getPersistenceId(diskResource);
 
         Offer expectedOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceIds.get(0)),
-                ResourceTestUtils.getExpectedScalar("disk", 50.0, resourceIds.get(1))));
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId),
+                ResourceTestUtils.getExpectedRootVolume(50.0, diskResourceId, persistenceId)));
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(expectedOffer));
         // Providing the expected reserved resources should result in a LAUNCH operation.
         Assert.assertEquals(1, recommendations.size());
         operation = recommendations.get(0).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        Assert.assertEquals("name-0-node", operation.getLaunch().getTaskInfos(0).getName());
     }
 
+    /*
     @Test
     public void testRelaunchFailedPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
