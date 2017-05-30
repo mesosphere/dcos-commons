@@ -170,6 +170,7 @@ public class OfferRequirementTestUtils {
         return resourceRequirements;
     }
 
+    @SuppressWarnings("PMD.UselessOverridingMethod")
     public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
         return new SchedulerLabelWriter(taskInfo) {
             @Override

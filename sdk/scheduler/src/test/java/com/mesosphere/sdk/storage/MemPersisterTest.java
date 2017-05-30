@@ -58,6 +58,7 @@ public class MemPersisterTest {
         testGetMissingForPersister(persister);
     }
 
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     private static void testGetMissingForPersister(Persister persister) {
         try {
             persister.get(KEY);
@@ -216,6 +217,7 @@ public class MemPersisterTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testMultithreadedSetGetDelete() throws InterruptedException {
         Collection<Runnable> threads = new ArrayList<>();
         for (int i = 0; i < 10; ++i) {

@@ -101,6 +101,7 @@ public class PersisterCacheTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testSetGetDelete() throws PersisterException {
         cache.set(KEY, VAL);
         assertArrayEquals(VAL, cache.get(KEY));
@@ -172,6 +173,7 @@ public class PersisterCacheTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testSetFailsCacheUnchanged() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
@@ -196,6 +198,7 @@ public class PersisterCacheTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testSetManyFailsCacheUnchanged() throws PersisterException {
         Map<String, byte[]> map = new HashMap<>();
         map.put(KEY, VAL);
@@ -228,6 +231,7 @@ public class PersisterCacheTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testDeleteFailsCacheUnchanged() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
@@ -272,6 +276,7 @@ public class PersisterCacheTest {
     }
 
     @Test
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void testMultithreadedSetGetDelete() throws InterruptedException {
         Collection<Runnable> threads = new ArrayList<>();
         for (int i = 0; i < 10; ++i) {

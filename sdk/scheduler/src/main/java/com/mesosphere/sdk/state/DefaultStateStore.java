@@ -200,9 +200,7 @@ public class DefaultStateStore implements StateStore {
         try {
             persister.deleteAll(PersisterUtils.PATH_DELIM);
         } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                // Nothing to delete, apparently. Treat as a no-op
-            } else {
+            if (e.getReason() != Reason.NOT_FOUND) {
                 throw new StateStoreException(e);
             }
         }

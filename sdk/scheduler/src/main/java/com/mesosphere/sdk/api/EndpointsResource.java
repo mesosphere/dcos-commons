@@ -150,7 +150,7 @@ public class EndpointsResource {
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
             // Mesos DNS hostname:
             String mesosDnsHost = String.format("%s.%s.mesos",
-                    (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
+                    taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName()
                     ? taskInfo.getDiscovery().getName()
                     : taskInfo.getName(),
                     serviceName);

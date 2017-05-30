@@ -64,7 +64,7 @@ public class CanaryStrategy implements Strategy<Step> {
 
     private List<Step> interruptCanarySteps(List<Step> steps) {
         List<Step> canarySteps = steps.stream()
-                .filter(step -> (step.isPending() || step.isInterrupted()))
+                .filter(step -> step.isPending() || step.isInterrupted())
                 .limit(requiredProceeds)
                 .collect(Collectors.toList());
         canarySteps.forEach(step -> step.interrupt());

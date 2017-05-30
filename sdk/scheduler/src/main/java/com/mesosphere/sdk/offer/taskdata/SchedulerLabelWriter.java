@@ -133,7 +133,7 @@ public class SchedulerLabelWriter extends LabelWriter {
     @VisibleForTesting
     protected Optional<HealthCheck> getReadinessCheck() throws TaskException {
         Optional<String> encodedReadinessCheck = getOptional(LabelConstants.READINESS_CHECK_LABEL);
-        return (encodedReadinessCheck.isPresent())
+        return encodedReadinessCheck.isPresent()
                 ? Optional.of(LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
                 : Optional.empty();
     }

@@ -134,7 +134,7 @@ public class DefaultStepFactory implements StepFactory {
         LOGGER.info("Task: '{}' is on target: {} and has reached goal: {} or has permanently failed: {}.",
                 taskInfo.getName(), isOnTarget, hasReachedGoal, hasPermanentlyFailed);
 
-        if ((isOnTarget && hasReachedGoal) || hasPermanentlyFailed) {
+        if (isOnTarget && hasReachedGoal || hasPermanentlyFailed) {
             return Status.COMPLETE;
         } else {
             return Status.PENDING;

@@ -19,6 +19,6 @@ public class PositiveScalarProtoValueValidator implements
                            ConstraintValidatorContext context) {
         return value != null // Not valid if null.
                 && (value.hasRanges()  // Ignore Ranges.
-                || (value.hasScalar() && value.getScalar().getValue() > 0));
+                || value.hasScalar() && value.getScalar().getValue() > 0);
     }
 }
