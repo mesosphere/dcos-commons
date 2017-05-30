@@ -23,6 +23,8 @@ public class DcosConstants {
     // in general if the network does not support port-mapping, but the task maps the ports the behavior is
     // as expected.
     public static final Boolean DEFAULT_PORT_MAPPING_POLICY = true;
+    public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1000;
+    public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2000;
 
     /**
      * This must never change, as it affects the path to the SchemaVersion object for a given

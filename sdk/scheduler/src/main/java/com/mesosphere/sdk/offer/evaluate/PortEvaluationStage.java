@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -12,12 +14,7 @@ import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
@@ -54,24 +51,28 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
         Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
                 podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
         Optional<String> taskPort = EnvUtils.getEnvVar(commandInfo.getEnvironment(), getPortEnvironmentVariable());
         int assignedPort = port;
 
-        if (assignedPort == 0 && taskPort.isPresent()) {
-            assignedPort = Integer.parseInt(taskPort.get());
-        } else if (assignedPort == 0) {
-            Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
-            if (!dynamicPort.isPresent() && useHostPorts) {
-                return fail(this,
-                        "No ports were available for dynamic claim in offer: %s",
-                        mesosResourcePool.getOffer().toString());
+        // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
+        if (assignedPort == 0) {
+            if (taskPort.isPresent()) {
+                assignedPort = Integer.parseInt(taskPort.get());
+            } else {
+                Optional<Integer> dynamicPort = useHostPorts ?
+                        selectDynamicPort(mesosResourcePool, podInfoBuilder)
+                        : selectOverlayPort(podInfoBuilder);
+                if (!dynamicPort.isPresent()) {
+                    return fail(this,
+                            "No ports were available for dynamic claim in offer: %s",
+                            mesosResourcePool.getOffer().toString());
+                }
+                LOGGER.info("assigned port dynamically {}", dynamicPort.get().toString());
+                assignedPort = dynamicPort.get();
             }
-
-            assignedPort = dynamicPort.get();
         }
 
         // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
@@ -80,9 +81,20 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                         ? podInfoBuilder.getTaskBuilder(getTaskName().get()).getResourcesList()
                         : podInfoBuilder.getExecutorBuilder().get().getResourcesList(),
                 Constants.PORTS_RESOURCE_TYPE).orElse("");
+
         super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
 
-        return super.evaluate(mesosResourcePool, podInfoBuilder);
+        if (useHostPorts) {
+            return super.evaluate(mesosResourcePool, podInfoBuilder);
+        } else {
+            ResourceRequirement resourceRequirement= getResourceRequirement();
+            setProtos(podInfoBuilder, resourceRequirement.getResource());
+            return pass(
+                    this,
+                    Collections.emptyList(),
+                    "Not using host ports, ignoring port resource requirements, using port %s",
+                    TextFormat.shortDebugString(resourceRequirement.getValue()));
+        }
     }
 
     @Override
@@ -111,22 +123,25 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             } catch (TaskException e) {
                 LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
+            if (useHostPorts) { // we only use the resource if we're using the host ports
+                Collection<Resource> updatedResourceList =
+                        updateOrAddRangedResource(taskBuilder.getResourcesList(), resource);
+                taskBuilder
+                        .clearResources()
+                        .addAllResources(updatedResourceList);
+            }
 
-            Collection<Resource> updatedResourceList =
-                    updateOrAddRangedResource(taskBuilder.getResourcesList(), resource);
-            taskBuilder
-                    .clearResources()
-                    .addAllResources(updatedResourceList);
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
-
-            Collection<Resource> updatedResourceList =
-                    updateOrAddRangedResource(executorBuilder.getResourcesList(), resource);
-            executorBuilder
-                    .clearResources()
-                    .addAllResources(updatedResourceList);
+            if (useHostPorts) {
+                Collection<Resource> updatedResourceList =
+                        updateOrAddRangedResource(executorBuilder.getResourcesList(), resource);
+                executorBuilder
+                        .clearResources()
+                        .addAllResources(updatedResourceList);
+            }
         }
     }
 
@@ -209,6 +224,20 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                     .findFirst();
         }
 
+        return dynamicPort;
+    }
+
+    private static Optional<Integer> selectOverlayPort(PodInfoBuilder podInfoBuilder) {
+        // take the next available port in the range.
+        Optional<Integer> dynamicPort = Optional.empty();
+        for (int i = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
+             i <= DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_END; i++) {
+            if (!podInfoBuilder.isAssignedOverlayPort(i)) {
+                dynamicPort = Optional.of(i);
+                podInfoBuilder.addAssignedOverlayPort(i);
+                break;
+            }
+        }
         return dynamicPort;
     }
 
