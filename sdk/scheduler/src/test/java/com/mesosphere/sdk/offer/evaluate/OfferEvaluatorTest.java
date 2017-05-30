@@ -168,39 +168,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     /*
     @Test
-    public void testUpdateExecutorVolumeSuccess() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(1500, resourceId);
-        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        List<Resource> offeredResources = Arrays.asList(
-                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
-                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
-
-        Offer offer = OfferTestUtils.getOffer(offeredResources);
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
-    public void testUpdateExecutorVolumeFailure() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        Resource executorVolume = ResourceTestUtils.getExpectedMountVolume(2500, resourceId);
-        Resource taskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        List<Resource> offeredResources = Arrays.asList(
-                ResourceTestUtils.getExpectedMountVolume(2000, resourceId),
-                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
-
-        Offer offer = OfferTestUtils.getOffer(offeredResources);
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(taskCpu, executorVolume);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(offerRequirement, Arrays.asList(offer));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    /*
-    @Test
     public void testLaunchAttributesEmbedded() throws Exception {
         String resourceId = UUID.randomUUID().toString();
         // TODO: Store expected TaskInfo in StateStore so OfferEvaluator generates right OfferRequirement internally
