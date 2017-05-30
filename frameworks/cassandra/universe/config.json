@@ -50,6 +50,11 @@
           "type": "string",
           "enum": ["serial", "parallel"],
           "default": "serial"
+        },
+        "backup_local_path": {
+          "description": "Path to host on network for local backup storage",
+          "type": "string", 
+          "default": "/" //TODO: CHANGE THIS!!!!
         }
       },
       "required": [

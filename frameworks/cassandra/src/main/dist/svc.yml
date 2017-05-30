@@ -103,6 +103,12 @@ pods:
         goal: FINISHED
         cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
+      #ADDED
+      upload-local: 
+        goal: FINISHED
+        cmd: cp -r container-path/snapshot/ backup/$(date +%Y-%m-%d-%H-%M) #TODO: ADD USER@HOST/PATH here
+        resource-set: sidecar-resources
+      ###
       upload-azure:
         goal: FINISHED
         cmd: >
@@ -133,6 +139,14 @@ pods:
 
                 rm container-path/snapshot.tar.gz
         resource-set: sidecar-resources
+      #ADDED
+      fetch-local: 
+        goal: FINISHED
+        cmd: > 
+                mkdir container-path/snapshot ;
+                cp -r $(RESTORE_PATH) container-path/snapshot  
+        resource-set: sidecar-resources
+      #TODO ABOVE
       restore-schema:
         goal: FINISHED
         cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
@@ -222,6 +236,48 @@ plans:
         pod: node
         steps:
           - default: [[restore-snapshot]]
+  #ADDED
+  backup-local: 
+    strategy: serial
+    phases: 
+      backup-schema: 
+        strategy: serial
+        pod: node
+        steps: 
+          - default: [[backup-schema]]
+      create-snapshots: 
+        strategy: parallel
+        pod: nodesteps: 
+          - default: [[snapshot]]
+      upload-backups: 
+        strategy: {{BACKUP_RESTORE_STRATEGY}} #WHAT IS THIS???
+        pod: node
+        steps:
+            - default: [[upload-local]]
+      cleanup-snapshots: 
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[cleanup-snapshot]]
+  restore-local: 
+    strategy: serial
+    phases: 
+      fetch-local: 
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps: 
+          - default: [[fetch-local]]
+      restore-schema: 
+        strategy: serial
+        pod: node
+        steps: 
+          - default: [[restore-schema]]
+      restore-snapshots: 
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps: 
+          - default: [[restore-snapshot]]
+  # END
   backup-azure:
     strategy: serial
     phases:
