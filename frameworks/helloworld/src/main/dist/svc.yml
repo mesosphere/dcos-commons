@@ -45,7 +45,7 @@ pods:
         goal: RUNNING
         cmd: "python3 http_py3responder.py 4044 hello from the overlay network!"
         resource-set: hello-resource
-  hello-host:
+  hello-host-vip:
     count: 1
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
@@ -66,6 +66,23 @@ pods:
         goal: RUNNING
         cmd: "python3 http_py3responder.py 4044 hello from the host network!"
         resource-set: hello-resource
+  hello-host:
+    count: 1
+    uris:
+      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+    image: ubuntu:14.04
+    resource-sets:
+      hello-resource:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        ports:
+          test:
+            port: 4044
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "python3 http_py3responder.py 4044 hello from the host network!"
+        resource-set: hello-resource
 
 plans:
   deploy:
@@ -79,6 +96,11 @@ plans:
       hello-overlay-deploy:
         strategy: serial
         pod: hello-overlay
+        steps:
+          - default: [[server]]
+      hello-host-vip-deploy:
+        strategy: serial
+        pod: hello-host-vip
         steps:
           - default: [[server]]
       hello-host-deploy:
