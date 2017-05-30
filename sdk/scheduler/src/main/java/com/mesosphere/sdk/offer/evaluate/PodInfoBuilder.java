@@ -75,16 +75,6 @@ public class PodInfoBuilder {
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
             validateTaskInfo(taskBuilder);
         }
-
-        // TODO: Fix reusing executors
-        /*
-        // If this executor is already running, we won't be claiming any new resources for it, and we want to make sure
-        // to provide an identical ExecutorInfo to Mesos for any other tasks that are going to launch in this pod.
-        // So don't clear the resources on the existing protobuf, we're just going to pass it as is.
-        if (executorBuilder != null && !executorRequirement.get().isRunningExecutor()) {
-            clearResources(executorBuilder);
-        }
-        */
     }
 
     public Collection<Protos.TaskInfo.Builder> getTaskBuilders() {
