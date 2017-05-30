@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
-    public void testReserveTaskStaticPort() throws Exception {
+    public void testReserveStaticPort() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(555, 555);
 
@@ -45,6 +45,16 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
         Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(command.getEnvironment());
         Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME + "_555"));
+    }
+
+    @Test
+    public void testReserveStaticPortFailure() throws Exception {
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(666, 666);
+
+        List<OfferRecommendation> recommendations =
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
+        Assert.assertEquals(0, recommendations.size());
     }
 
     @Test
