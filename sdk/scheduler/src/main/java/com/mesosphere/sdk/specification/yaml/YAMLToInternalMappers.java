@@ -39,53 +39,30 @@ public class YAMLToInternalMappers {
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
-     * @param rawSvcSpec the raw service specification representing a YAML file
+     * @param rawServiceSpec the raw service specification representing a YAML file
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
     static DefaultServiceSpec from(
-            RawServiceSpec rawSvcSpec,
+            RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
             YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
-        RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-        String role = null;
-        String principal = null;
-        Integer apiPort = null;
-        String zookeeper = null;
+        verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
 
-        if (rawScheduler != null) {
-            principal = rawScheduler.getPrincipal();
-            role = rawScheduler.getRole();
-            apiPort = rawScheduler.getApiPort();
-            zookeeper = rawScheduler.getZookeeper();
-        }
-        // Fall back to defaults as needed, if either RawScheduler or a given RawScheduler field is missing:
-        if (StringUtils.isEmpty(role)) {
-            role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
-        }
-        if (StringUtils.isEmpty(principal)) {
-            principal = SchedulerUtils.nameToPrincipal(rawSvcSpec.getName());
-        }
-        if (apiPort == null) {
-            apiPort = schedulerFlags.getApiServerPort();
-        }
-        if (StringUtils.isEmpty(zookeeper)) {
-            zookeeper = SchedulerUtils.defaultZkHost();
-        }
-
-        verifyRawSpec(rawSvcSpec);
+        String role = SchedulerUtils.getServiceRole(rawServiceSpec);
+        String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
-                .name(rawSvcSpec.getName())
+                .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
-                .apiPort(apiPort)
-                .zookeeperConnection(zookeeper)
-                .webUrl(rawSvcSpec.getWebUrl());
+                .apiPort(SchedulerUtils.getApiPort(rawServiceSpec, schedulerFlags))
+                .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
+                .webUrl(rawServiceSpec.getWebUrl());
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
-        final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
+        final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         TaskConfigRouter taskConfigRouter = new DefaultTaskConfigRouter();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
             pods.add(from(
@@ -103,9 +80,9 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
-    private static void verifyRawSpec(RawServiceSpec rawServiceSpec) {
+    private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
         // Verify that tasks in separate pods don't share a discovery prefix.
-        Map<String, Long> dnsPrefixCounts = rawServiceSpec.getPods().values().stream()
+        Map<String, Long> dnsPrefixCounts = rawPods.stream()
                 .flatMap(p -> p.getTasks().values().stream()
                         .map(t -> t.getDiscovery())
                         .filter(d -> d != null)

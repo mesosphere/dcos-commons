@@ -23,6 +23,17 @@ from tests.config import (
     bump_world_cpus
 )
 
+FOLDERED_SERVICE_NAME = "/path/to/" + PACKAGE_NAME
+
+
+def uninstall_foldered():
+    install.uninstall(
+        FOLDERED_SERVICE_NAME,
+        package_name=PACKAGE_NAME,
+        role=FOLDERED_SERVICE_NAME.lstrip('/') + '-role',
+        principal=FOLDERED_SERVICE_NAME + '-principal',
+        zk='dcos-service-' + FOLDERED_SERVICE_NAME.lstrip('/').replace('/', '.'))
+
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
@@ -42,6 +53,22 @@ def close_enough(val0, val1):
 @pytest.mark.smoke
 def test_install():
     check_running()
+
+
+@pytest.mark.speedy
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_install_foldered():
+    check_running()
+    uninstall_foldered() # clean up any prior leftovers
+
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+    tasks.check_running(FOLDERED_SERVICE_NAME, configured_task_count())
+    uninstall_foldered()
 
 
 @pytest.mark.sanity
@@ -174,7 +201,7 @@ def test_state_properties_get():
     assert stdout == "true\n"
 
 
-@pytest.mark.speedy
+@pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     check_running()

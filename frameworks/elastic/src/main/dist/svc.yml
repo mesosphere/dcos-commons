@@ -1,7 +1,6 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
-  user: {{FRAMEWORK_USER}}
 pods:
   master:
     count: 3
