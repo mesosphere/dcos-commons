@@ -9,10 +9,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
@@ -65,7 +62,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testLaunchExpectedScalar() throws Exception {
+    public void testRelaunchExpectedScalar() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
 
         // Launch for the first time.
@@ -166,13 +163,31 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
     }
 
-    /*
+    @Test
+    public void testFailIncreaseReservationScalar() throws Exception {
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
+        Resource reserveResource = recordLaunchWithOfferedResources(
+                podInstanceRequirement,
+                ResourceUtils.getUnreservedScalar("cpus", 2.0))
+                .get(0);
+        String resourceId = getResourceId(reserveResource);
+
+        Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+        Assert.assertEquals(0, recommendations.size());
+    }
+
     @Test
     public void testLaunchAttributesEmbedded() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        // TODO: Store expected TaskInfo in StateStore so OfferEvaluator generates right OfferRequirement internally
-        Resource expectedResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        // Launch for the first time.
+        String resourceId = getFirstResourceId(
+                recordLaunchWithOfferedResources(
+                        podInstanceRequirement,
+                        ResourceUtils.getUnreservedScalar("cpus", 2.0)));
+        Resource expectedResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
         Offer.Builder offerBuilder = OfferTestUtils.getOffer(expectedResource).toBuilder();
         Attribute.Builder attrBuilder =
@@ -200,75 +215,49 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testFailIncreaseReservationScalar() throws Exception {
-        String resourceId = UUID.randomUUID().toString();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        // TODO: Store expected TaskInfo in StateStore so OfferEvaluator generates right OfferRequirement internally
-        Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+    public void testLaunchMultipleTasksPerExecutor() throws Exception {
+        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
+
+        ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .cpus(1.0)
+                .id("resourceSetA")
+                .build();
+        ResourceSet resourceSetB = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                .cpus(2.0)
+                .id("resourceSetB")
+                .build();
+
+        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                .value("./cmd")
+                .build();
+
+        TaskSpec taskSpecA = DefaultTaskSpec.newBuilder()
+                .name("taskA")
+                .commandSpec(commandSpec)
+                .goalState(GoalState.RUNNING)
+                .resourceSet(resourceSetA)
+                .build();
+        TaskSpec taskSpecB = DefaultTaskSpec.newBuilder()
+                .name("taskB")
+                .commandSpec(commandSpec)
+                .goalState(GoalState.RUNNING)
+                .resourceSet(resourceSetB)
+                .build();
+
+        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
+                .addTask(taskSpecA)
+                .addTask(taskSpecB)
+                .count(1)
+                .type(TestConstants.POD_TYPE)
+                .build();
+
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("taskA", "taskB"))
+                        .build();
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
-        Assert.assertEquals(0, recommendations.size());
-    }
-
-    @Test
-    public void testAvoidAgents() throws Exception {
-        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(
-                        desiredCpu,
-                        PlacementUtils.getAgentPlacementRule(
-                                Arrays.asList(TestConstants.AGENT_ID.getValue()), Collections.emptyList()).get()),
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
-
-        Assert.assertEquals(0, recommendations.size());
-
-        recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(
-                        desiredCpu,
-                        PlacementUtils.getAgentPlacementRule(
-                                Arrays.asList("some-random-agent"), Collections.emptyList()).get()),
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
-
-        Assert.assertEquals(2, recommendations.size());
-    }
-
-    @Test
-    public void testColocateAgents() throws Exception {
-        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(
-                        desiredCpu,
-                        PlacementUtils.getAgentPlacementRule(
-                                Collections.emptyList(), Arrays.asList("some-random-agent")).get()),
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
-
-        Assert.assertEquals(0, recommendations.size());
-
-        recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(
-                        desiredCpu,
-                        PlacementUtils.getAgentPlacementRule(
-                                Collections.emptyList(), Arrays.asList(TestConstants.AGENT_ID.getValue())).get()),
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
-
-        Assert.assertEquals(2, recommendations.size());
-    }
-
-    @Test
-    public void testLaunchMultipleTasksPerExecutor() throws Exception {
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
-        List<Resource> desiredResources = Arrays.asList(
-                ResourceTestUtils.getDesiredCpu(1.0),
-                ResourceTestUtils.getDesiredCpu(2.0));
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResources, true),
                 Arrays.asList(OfferTestUtils.getOffer(null, Arrays.asList(offeredResource))));
 
         Assert.assertEquals(4, recommendations.size());
@@ -285,12 +274,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchNotOnFirstOffer() throws Exception {
-        Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         Resource insufficientOffer = ResourceUtils.getUnreservedScalar("mem", 2.0);
         Resource sufficientOffer = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+                podInstanceRequirement,
                 Arrays.asList(
                         OfferTestUtils.getOffer(insufficientOffer),
                         OfferTestUtils.getOffer(sufficientOffer)));
@@ -305,6 +294,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
     }
 
+    /*
     @Test
     public void testLaunchSequencedTasksInPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
