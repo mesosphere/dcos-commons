@@ -12,7 +12,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 

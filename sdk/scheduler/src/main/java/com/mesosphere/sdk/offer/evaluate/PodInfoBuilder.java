@@ -2,12 +2,11 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.TaskRequirement;
 import org.apache.mesos.Protos;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 /**
  * A {@link PodInfoBuilder} encompasses a mutable group of {@link org.apache.mesos.Protos.TaskInfo.Builder}s and,

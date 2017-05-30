@@ -87,7 +87,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         if (useHostPorts) {
             return super.evaluate(mesosResourcePool, podInfoBuilder);
         } else {
-            ResourceRequirement resourceRequirement= getResourceRequirement();
+            ResourceRequirement resourceRequirement = getResourceRequirement();
             setProtos(podInfoBuilder, resourceRequirement.getResource());
             return pass(
                     this,
