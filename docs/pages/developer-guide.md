@@ -328,7 +328,7 @@ pods:
         resource-set: hello-resources
 ```
 
-By default a the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
+By default, the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
 
 ```yaml
 plans:
