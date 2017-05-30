@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -84,17 +85,18 @@ public class DefaultOfferRequirementProviderTest {
     public void testPlacementPassthru() throws InvalidRequirementException {
         List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
-    private void finishNewOfferTest(OfferRequirement offerRequirement, List<String> tasksToLaunch, PodInstance podInstance) throws InvalidRequirementException {
+    private void finishNewOfferTest(OfferRequirement offerRequirement, List<String> tasksToLaunch,
+                                    PodInstance podInstance) throws InvalidRequirementException {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
 
-        Assert.assertFalse(taskInfo.hasContainer());
+        Assert.assertTrue(taskInfo.hasContainer());
         Assert.assertTrue(taskInfo.hasCommand());
 
         Assert.assertEquals(taskInfo.getDiscovery().getVisibility(), Protos.DiscoveryInfo.Visibility.CLUSTER);
@@ -104,7 +106,7 @@ public class DefaultOfferRequirementProviderTest {
         CommandInfo taskCommand = taskInfo.getCommand();
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
-        Map<String, String> taskEnv = EnvUtils.fromEnvironmentToMap(taskCommand.getEnvironment());
+        Map<String, String> taskEnv = EnvUtils.toMap(taskCommand.getEnvironment());
         Assert.assertEquals(taskEnv.toString(), 6, taskEnv.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, taskEnv.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
@@ -125,7 +127,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals("test-java-uri", uris.get(1).getValue());
         String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
                 TestConstants.SERVICE_NAME,
-                ResourceUtils.VIP_HOST_TLD,
+                Constants.VIP_HOST_TLD,
                 uuid.toString(),
                 podInstance.getPod().getType(),
                 tasksToLaunch.get(0));
@@ -136,7 +138,7 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     private void testOfferRequirementHasCorrectNetworkInfo(OfferRequirement offerRequirement,
-            int correctNumberOfNetgroups, int correctNumberOfIpAddresses, boolean checkPortMapping) {
+                                                           boolean checkPortMapping, String expectedNetworkName) {
         if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
             // Check for exactly 1 NetworkInfo
             Assert.assertEquals(1,
@@ -146,35 +148,25 @@ public class DefaultOfferRequirementProviderTest {
                     .getExecutorRequirementOptional().get()
                     .getExecutorInfo().getContainer()
                     .getNetworkInfos(0);
-            // Check that it has the correct name
-            Assert.assertEquals(TestConstants.OVERLAY_NETWORK_NAME, networkInfo.getName());
-
-            // Check that it requests the correct IP address
-            Assert.assertEquals(networkInfo.getIpAddressesCount(), correctNumberOfIpAddresses);
-            if (correctNumberOfIpAddresses > 0) {
-                Assert.assertEquals(networkInfo.getIpAddresses(0).getIpAddress(), TestConstants.IPADDRESS1);
-                Assert.assertEquals(networkInfo.getIpAddresses(0).getProtocol(),
-                        Protos.NetworkInfo.Protocol.IPv4);
-            }
-
+            Assert.assertEquals(expectedNetworkName, networkInfo.getName());
             if (checkPortMapping) {
+                Assert.assertTrue(DcosConstants.networkSupportsPortMapping(expectedNetworkName));
                 Assert.assertEquals(TestConstants.NUMBER_OF_PORT_MAPPINGS, networkInfo.getPortMappingsCount());
                 Assert.assertEquals(TestConstants.HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
                 Assert.assertEquals(TestConstants.CONTAINER_PORT, networkInfo
                         .getPortMappings(0).getContainerPort());
-                Assert.assertEquals(networkInfo.getGroupsCount(), correctNumberOfNetgroups);
             } else {
-                // same as above (with mapping) except that the container port should me mapped to the same port on
-                // the host
-                Assert.assertEquals(networkInfo.getPortMappingsCount(), TestConstants.NUMBER_OF_PORT_MAPPINGS);
-                Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(), TestConstants.CONTAINER_PORT);
-                Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(),
-                        networkInfo.getPortMappings(0).getContainerPort());
-            }
-
-            if (correctNumberOfNetgroups > 0) {
-                Assert.assertTrue(networkInfo.getGroups(0).equals(TestConstants.NETGROUP1));
-                Assert.assertTrue(networkInfo.getGroups(1).equals(TestConstants.NETGROUP2));
+                if (DcosConstants.networkSupportsPortMapping(expectedNetworkName)) {
+                    // same as above (with mapping) except that the container port should me mapped to the same port on
+                    // the host
+                    Assert.assertEquals(networkInfo.getPortMappingsCount(), TestConstants.NUMBER_OF_PORT_MAPPINGS);
+                    Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(), TestConstants.CONTAINER_PORT);
+                    Assert.assertEquals(networkInfo.getPortMappings(0).getHostPort(),
+                            networkInfo.getPortMappings(0).getContainerPort());
+                } else {
+                    // we don't map the ports if the overlay network doesn't explicitly allow it.
+                    Assert.assertTrue(networkInfo.getPortMappingsCount() == 0);
+                }
             }
        } else {
             Assert.fail();
@@ -186,7 +178,7 @@ public class DefaultOfferRequirementProviderTest {
         List<String> tasksToLaunch = getTasksToLaunch(podInstance);
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
@@ -194,44 +186,45 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
-    public void testNewOfferRequirementNetworks() throws Exception {
+    public void testNewOfferRequirementOnOverlayNetwork() throws Exception {
+        PodInstance podInstance = getPodInstance("valid-minimal-overlay.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, false,
+                DcosConstants.DEFAULT_OVERLAY_NETWORK);
+        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementOverlayNetworkWithPortForwarding() throws Exception {
         PodInstance networkPodInstance = getPodInstance("valid-networks-port-mapping.yml");
         List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(networkPodInstance, tasksToLaunch).build());
 
         Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 2, 1, true);
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, true, "mesos-bridge");
         finishNewOfferTest(offerRequirement, tasksToLaunch, networkPodInstance);
     }
 
     @Test
-    public void testNewOfferRequirementNetworksPortForwarding() throws Exception {
-        PodInstance networkPodInstance = getPodInstance("valid-minimal-networks.yml");
-        List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
-
-        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
-        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
-        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 0, 0, false);
-        finishNewOfferTest(offerRequirement, tasksToLaunch, networkPodInstance);
-    }
-
-    @Test
-    public void testNewOfferRequirementNetworksWithDocker() throws Exception {
+    public void testNewOfferRequiremenOverlayNetworkWithDocker() throws Exception {
         PodInstance dockerNetworkPodInstance = getPodInstance("valid-minimal-networks-docker.yml");
         List<String> tasksToLaunch = getTasksToLaunch(dockerNetworkPodInstance);
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(dockerNetworkPodInstance, tasksToLaunch));
+                PodInstanceRequirement.newBuilder(dockerNetworkPodInstance, tasksToLaunch).build());
 
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, 0, 1, true);
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement, false,
+                DcosConstants.DEFAULT_OVERLAY_NETWORK);
         Protos.ContainerInfo containerInfo = offerRequirement
                 .getExecutorRequirementOptional().get().getExecutorInfo().getContainer();
         Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
@@ -244,7 +237,9 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
+                PodInstanceRequirement.newBuilder(
+                        dockerPodInstance,
+                        TaskUtils.getTaskNames(dockerPodInstance)).build());
 
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals("server", offerRequirement.getType());
@@ -258,14 +253,14 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
         Assert.assertEquals(containerInfo.getMesos().getImage().getDocker().getName(), "group/image");
 
-        Assert.assertFalse(taskInfo.hasContainer());
+        Assert.assertTrue(taskInfo.hasContainer());
         Assert.assertTrue(taskInfo.hasCommand());
 
         Assert.assertEquals("cmd", taskInfo.getCommand().getValue());
 
         Assert.assertTrue(taskInfo.getCommand().getUrisList().isEmpty());
 
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, envvars.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
@@ -279,23 +274,28 @@ public class DefaultOfferRequirementProviderTest {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
 
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
-                    dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        dockerPodInstance,
+                        TaskUtils.getTaskNames(dockerPodInstance)).build();
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement);
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 4, envvars.size());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
-        offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement.withParameters(parameters));
+        offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                        .environment(parameters)
+                        .build());
 
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
@@ -312,7 +312,8 @@ public class DefaultOfferRequirementProviderTest {
         String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
         when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
-                provider.getExistingOfferRequirement(PodInstanceRequirement.create(podInstance, tasksToLaunch));
+                provider.getExistingOfferRequirement(
+                        PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
         Assert.assertNotNull(offerRequirement);
     }
 
@@ -330,21 +331,25 @@ public class DefaultOfferRequirementProviderTest {
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(podInstance, tasksToLaunch);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build();
         OfferRequirement offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement);
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        Map<String, String> envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
-        offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement.withParameters(parameters));
+        offerRequirement = provider.getExistingOfferRequirement(
+                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                        .environment(parameters)
+                        .build());
 
         taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         taskInfo = taskRequirement.getTaskInfo();
 
-        envvars = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
 }

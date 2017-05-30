@@ -135,10 +135,15 @@ dcos==0.4.16
 set -e
 echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
 virtualenv -p $(which python3) --always-copy {venv_path}
+echo ls -l {venv_path}/bin/pip
+ls -l {venv_path}/bin/pip
+echo head {venv_path}/bin/pip
+head {venv_path}/bin/pip
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
-pip install -r {reqs_file}
+echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
+{venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
 py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
@@ -223,12 +228,39 @@ def _rand_str(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
 
+def _make_packagename():
+    return 'testpkg-' + _rand_str(8)
+
+
+def handle_stub_options(argv):
+    stub_flag = '--stub-universe'
+    stub_universes = {}
+    if not stub_flag in argv:
+        return argv, stub_universes
+    argv_copy = argv[:]
+    while stub_flag in argv_copy:
+        flag_pos = argv_copy.index(stub_flag)
+        try:
+            flag_val = argv_copy[flag_pos + 1]
+        except:
+            sys.exit("Missing url argument for flag --stub-universe")
+        stub_universes[_make_packagename()] = flag_val
+        # drop flag + arg
+        del argv_copy[flag_pos:flag_pos+2]
+    return argv_copy, stub_universes
+
+
 def main(argv):
     if len(argv) < 3:
         print_help(argv)
         return 1
     test_type = argv[1]
     test_dirs = argv[2]
+
+    # Destructively handle --stub-universe args to avoid disturbing below
+    # messy arg parsing
+    argv, stub_universes = handle_stub_options(argv)
+
 
     cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
     if cluster_url:
@@ -247,10 +279,10 @@ def main(argv):
 
     tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
 
-    stub_universes = {}
-    stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
-    if stub_universe_url:
-        stub_universes['testpkg-' + _rand_str(8)] = stub_universe_url
+    if not stub_universes:
+        stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
+        if stub_universe_url:
+            stub_universes[_make_packagename()] = stub_universe_url
 
     pytest_types = os.environ.get('TEST_TYPES', 'sanity')
 

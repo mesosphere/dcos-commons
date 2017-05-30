@@ -15,7 +15,7 @@ public class ResourceEvaluationStageTest {
     @Test
     public void testReserveResource() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
@@ -55,7 +55,7 @@ public class ResourceEvaluationStageTest {
                 new ResourceEvaluationStage(expectedResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
                 resourceEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
-        Assert.assertTrue(outcome.isPassing());
+        Assert.assertTrue(outcome.toString(), outcome.isPassing());
 
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
@@ -73,7 +73,7 @@ public class ResourceEvaluationStageTest {
     @Test
     public void testCannotReserveResource() throws Exception {
         Protos.Resource desiredResource = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 0.5);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 0.5);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);

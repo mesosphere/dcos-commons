@@ -1,21 +1,16 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.TestStep;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
@@ -27,6 +22,10 @@ public class ParallelStrategyTest {
     @Mock Step el0;
     @Mock Step el1;
     @Mock Step el2;
+
+    @Mock private PodInstanceRequirement podInstanceRequirement0;
+    @Mock private PodInstanceRequirement podInstanceRequirement1;
+    @Mock private PodInstanceRequirement podInstanceRequirement2;
 
     private ParallelStrategy<Step> strategy;
     private List<Step> steps;
@@ -40,17 +39,17 @@ public class ParallelStrategyTest {
         when(el1.getName()).thenReturn("step1");
         when(el2.getName()).thenReturn("step2");
 
-        when(el0.getAsset()).thenReturn(Optional.of("step0"));
-        when(el1.getAsset()).thenReturn(Optional.of("step1"));
-        when(el2.getAsset()).thenReturn(Optional.of("step2"));
+        when(el0.getAsset()).thenReturn(Optional.of(podInstanceRequirement0));
+        when(el1.getAsset()).thenReturn(Optional.of(podInstanceRequirement1));
+        when(el2.getAsset()).thenReturn(Optional.of(podInstanceRequirement2));
 
         when(el0.isPending()).thenReturn(true);
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(true);
+        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
+        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
+        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         steps = Arrays.asList(el0, el1, el2);
     }
@@ -60,16 +59,16 @@ public class ParallelStrategyTest {
         Assert.assertEquals(3, getCandidates().size());
 
         when(el0.isComplete()).thenReturn(true);
-        when(el0.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(2, getCandidates().size());
 
         when(el1.isComplete()).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates().size());
         Assert.assertEquals(el2, getCandidates().iterator().next());
 
         when(el2.isComplete()).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(String.class))).thenReturn(false);
+        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertTrue(getCandidates().isEmpty());
     }
 

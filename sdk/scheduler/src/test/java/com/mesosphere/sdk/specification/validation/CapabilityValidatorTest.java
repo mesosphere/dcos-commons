@@ -45,7 +45,7 @@ public class CapabilityValidatorTest {
     public void testSpecSucceedsWithRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        when(mockCapabilities.supportCniPortMapping()).thenReturn(true);
+        when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
@@ -110,7 +110,7 @@ public class CapabilityValidatorTest {
         capabilityValidator.validate(serviceSpec);
 
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
-        when(mockCapabilities.supportCniPortMapping()).thenReturn(true);
+        when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
         serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), flags, mockFileReader);
 

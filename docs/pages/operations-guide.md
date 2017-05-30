@@ -13,10 +13,10 @@ redirect_from: "/ops-guide"
 This operations guide describes how to manage stateful DC/OS services that are based on the DC/OS SDK. Consult the [Developer Guide](developer-guide.html) to learn how to build DC/OS SDK services.
 
 This guide is structured into four major sections:
-- Overview of components architecture.
-- List of the available tools and how to use them.
-- How to perform and monitor common operations in the cluster using the available tools.
-- How to use the tools to troubleshoot.
+- Overview of [component architecture](#dcos-sdk-service-overview).
+- List of the [available tools](#diagnostic-tools) and how to use them.
+- How to perform and monitor [common operations](#common-operations) in the cluster using the available tools.
+- How to use the tools to [troubleshoot problems](#troubleshooting).
 
 # DC/OS SDK Service Overview
 
@@ -251,6 +251,38 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 ## Pods vs Tasks
 
 A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
+
+## Overlay networks
+
+The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+
+```yaml
+pods:
+  pod-on-overlay:
+    count: {{COUNT}}
+    # join the 'dcos' overlay network
+    networks:
+      dcos:
+    tasks:
+      ...
+  pod-on-host:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+
+When a pod is on the `dcos` overlay network:
+  * Every pod gets its own IP address and its own array of ports.
+  * Pods do not use the ports on the host machine.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`.
+
+Specifying that pod join the `dcos` overlay network has the following indirect effects:
+  * The `ports` resource requirements in the service spec will ignored as resource requirements. 
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
+  
+  
+  
 
 ## Placement Constraints
 
@@ -598,7 +630,7 @@ $ dcos package describe elastic --config
         ...
         "user": {
           "default": "core",
-          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
+          "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string"
         }
       }

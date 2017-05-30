@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -55,7 +54,7 @@ public class NamedVIPEvaluationStageTest {
     @Test
     public void testVIPIsReused() throws InvalidRequirementException {
         String resourceId = UUID.randomUUID().toString();
-        Protos.Resource expectedPorts = ResourceUtils.setLabel(
+        Protos.Resource expectedPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId),
                 TestConstants.HAS_VIP_LABEL,
                 "test-vip:80");
@@ -91,7 +90,7 @@ public class NamedVIPEvaluationStageTest {
 
     @Test
     public void testPortNumberIsUpdated() throws InvalidRequirementException {
-        Protos.Resource desiredPorts = ResourceUtils.setLabel(
+        Protos.Resource desiredPorts = ResourceTestUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 10000, 10000),
                 TestConstants.HAS_VIP_LABEL,
                 "test-vip:80");

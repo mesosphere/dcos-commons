@@ -142,7 +142,7 @@ pods:
         cmd: >
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
-                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -d {{TASKCFG_ALL_LOCAL_SEEDS}} "$t" ;
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -f apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml -d {{TASKCFG_ALL_LOCAL_SEEDS}} -p {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} "$t" ;
                     done
                 done
 
@@ -150,6 +150,14 @@ pods:
         resource-set: sidecar-resources
 plans:
   deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[server]]
+  replace:
     strategy: serial
     phases:
       node-deploy:

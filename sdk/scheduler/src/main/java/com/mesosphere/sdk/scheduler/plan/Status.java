@@ -14,8 +14,8 @@ package com.mesosphere.sdk.scheduler.plan;
  * result in a {@link Step} with an ERROR state.
  *
  * The WAITING is a special state only used to show propagating effect of interrupted elements.  It indicates that
- * either current {@link Element} is interrupted or at least one of its children is interrepted. It is only returned by
- * PlanUtils.getStatus(). Status will never set to WAITING and should never be comparating whether it is WAITING or not.
+ * either current {@link Element} is interrupted or at least one of its children is interrupted. It is only returned by
+ * PlanUtils.getStatus(). Status will never set to WAITING and should never be comparing whether it is WAITING or not.
  * Internally, interrupt is a separate state, and isInterrupted() call is used to check whether an {@link Element} is
  * interrupted or not.
  */

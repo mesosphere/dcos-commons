@@ -36,8 +36,9 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
             if (resourceIds.contains(entry.getKey())) {
                 logger.info("    Remaining reservation for resource {} unclaimed, generating UNRESERVE operation",
                         TextFormat.shortDebugString(entry.getValue().getResource()));
-                Protos.Resource unreserveResource = ResourceUtils.setResourceId(
-                        entry.getValue().getResource(), entry.getKey());
+                Protos.Resource unreserveResource = ResourceBuilder.fromExistingResource(entry.getValue().getResource())
+                        .setResourceId(entry.getKey())
+                        .build();
                 recommendations.add(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
             }
         }

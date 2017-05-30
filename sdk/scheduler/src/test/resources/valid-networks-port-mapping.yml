@@ -1,12 +1,9 @@
-# exhaustive network (CNI) service spec yaml
 name: "hello-world"
 pods:
   pod-type:
     count: 1
     networks:
-      dcos:
-        groups: ["mygroup", "hellogroup"]
-        ip-addresses: ["172.16.254.1"]
+      mesos-bridge:
         host-ports: [4040]
         container-ports: [8080]
     tasks:
@@ -14,6 +11,9 @@ pods:
         goal: RUNNING
         cmd: "./task-cmd"
         cpus: 0.1
+        ports:
+          test:
+            port: 4040
         memory: 512
         discovery:
           prefix: meta-data

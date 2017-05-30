@@ -36,6 +36,10 @@ public interface TaskSpec {
     Optional<DiscoverySpec> getDiscovery();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
-        return podInstance.getName() + "-" + taskSpec.getName();
+        return getInstanceName(podInstance, taskSpec.getName());
+    }
+
+    static String getInstanceName(PodInstance podInstance, String taskName) {
+        return podInstance.getName() + "-" + taskName;
     }
 }

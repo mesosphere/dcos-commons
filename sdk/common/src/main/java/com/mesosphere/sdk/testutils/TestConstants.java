@@ -39,15 +39,9 @@ public class TestConstants {
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
     // CNI port mapping constants
-    public static final String OVERLAY_NETWORK_NAME = "dcos";
     public static final int HOST_PORT = 4040;
     public static final int CONTAINER_PORT = 8080;
     public static final int NUMBER_OF_PORT_MAPPINGS = 1;
-    public static final String NETGROUP1 = "mygroup";
-    public static final String NETGROUP2 = "hellogroup";
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    public static final String IPADDRESS1 = "172.16.254.1";
-
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

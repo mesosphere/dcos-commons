@@ -3,9 +3,7 @@ package com.mesosphere.sdk.kafka.upgrade;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.curator.CuratorConfigStore;
-import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -13,6 +11,7 @@ import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -40,7 +39,7 @@ public class KafkaConfigUpgrade {
         }
     }
 
-    private final CuratorStateStoreUpdate stateStore;
+    private final UpdateStateStore stateStore;
     private UUID oldTargetId;
     private UUID newTargetId;
     private ConfigStore<ServiceSpec> configStore;
@@ -50,8 +49,7 @@ public class KafkaConfigUpgrade {
      *  KafkaConfigUpgrade.
      */
     public KafkaConfigUpgrade(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws Exception {
-        this.stateStore = new CuratorStateStoreUpdate(serviceSpec.getName(),
-                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        this.stateStore = new UpdateStateStore(CuratorPersister.newBuilder(serviceSpec).build());
 
         // if framework_id exist and not disabled
         if (!KafkaConfigUpgrade.disabled() && !runningFirstTime(stateStore)) {
@@ -69,7 +67,7 @@ public class KafkaConfigUpgrade {
                     "in KafkaSchedulerConfiguration format");
             return;
         }
-        this.configStore  = createConfigStore(serviceSpec);
+        this.configStore = DefaultScheduler.createConfigStore(serviceSpec, Collections.emptyList());
 
         if (!verifyOldTasks(oldTargetId)){
             throw new KafkaConfigUpgradeException("Aborting Kafka Configuration Upgrade !!!");
@@ -169,19 +167,12 @@ public class KafkaConfigUpgrade {
                 .getResourceSet().getVolumes().stream().findFirst().get().getContainerPath();
     }
 
-    private ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec) throws ConfigStoreException {
-       return DefaultScheduler.createConfigStore(
-                    serviceSpec,
-                    serviceSpec.getZookeeperConnection());
-    }
-
     private Optional<KafkaSchedulerConfiguration> getOldConfiguration(ServiceSpec serviceSpec) {
         KafkaSchedulerConfiguration kafkaSchedulerConfiguration;
 
         /* We assume that old and new configurations both have same name. */
-        ConfigStore<KafkaSchedulerConfiguration> oldConfigStore = new CuratorConfigStore<>(
-                KafkaSchedulerConfiguration.getFactoryInstance(),
-                serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+        ConfigStore<KafkaSchedulerConfiguration> oldConfigStore = new DefaultConfigStore<>(
+                KafkaSchedulerConfiguration.getFactoryInstance(), CuratorPersister.newBuilder(serviceSpec).build());
 
         try {
             this.oldTargetId = oldConfigStore.getTargetConfig();
@@ -387,7 +378,4 @@ public class KafkaConfigUpgrade {
         }
         return false;
     }
-
-
-
 }

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -23,10 +24,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.*;
+import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
 
 /**
- * A default implementation of the OfferRequirementProvider interface.
+ * A default implementation of the {@link OfferRequirementProvider} interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
@@ -295,6 +296,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
+        taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
+
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
@@ -368,10 +371,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             // For use by bootstrap process: an environment variable pointing to (comma-separated):
             // a. where the template file was downloaded (by the mesos fetcher)
             // b. where the rendered result should go
-            CommandUtils.setEnvVar(
-                    commandInfoBuilder,
-                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
-                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
+            commandInfoBuilder.setEnvironment(EnvUtils.withEnvVar(
+                    commandInfoBuilder.getEnvironment(),
+                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, EnvUtils.toEnvName(config.getName())),
+                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath())));
         }
     }
 
@@ -420,19 +423,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return EnvUtils.fromMapToEnvironment(environment).build();
+        return EnvUtils.toProto(environment);
     }
 
-    private static Protos.Environment.Builder mergeEnvironments(
+    private static Protos.Environment mergeEnvironments(
             Protos.Environment primary, Protos.Environment secondary) {
-        Map<String, String> primaryVariables = EnvUtils.fromEnvironmentToMap(primary);
-        for (Map.Entry<String, String> secondaryEntry : EnvUtils.fromEnvironmentToMap(secondary).entrySet()) {
+        Map<String, String> primaryVariables = EnvUtils.toMap(primary);
+        for (Map.Entry<String, String> secondaryEntry : EnvUtils.toMap(secondary).entrySet()) {
             if (!primaryVariables.containsKey(secondaryEntry.getKey())) {
                 primaryVariables.put(secondaryEntry.getKey(), secondaryEntry.getValue());
             }
         }
 
-        return EnvUtils.fromMapToEnvironment(primaryVariables);
+        return EnvUtils.toProto(primaryVariables);
     }
 
     private static void validateTaskRequirements(List<TaskRequirement> taskRequirements)
@@ -471,7 +474,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (oldResource != null) {
                 // Update existing resource
                 try {
-                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpec));
+                    updatedResources.add(ResourceBuilder.fromExistingResource(oldResource)
+                            .setValue(resourceSpec.getValue())
+                            .build());
                 } catch (IllegalArgumentException e) {
                     LOGGER.error("Failed to update Resources with exception: ", e);
                     // On failure to update resources, keep the old resources.
@@ -479,7 +484,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 }
             } else {
                 // Add newly added resource
-                updatedResources.add(ResourceUtils.getExpectedResource(resourceSpec));
+                updatedResources.add(ResourceBuilder.fromSpec(resourceSpec).build());
             }
         }
 
@@ -492,7 +497,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Collection<Protos.Resource> resources = new ArrayList<>();
 
         for (ResourceSpec resourceSpec : resourceSet.getResources()) {
-            resources.add(ResourceUtils.getExpectedResource(resourceSpec));
+            resources.add(ResourceBuilder.fromSpec(resourceSpec).build());
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
@@ -503,27 +508,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.Resource getVolumeResource(VolumeSpec volumeSpec) {
-        Protos.Resource volume = null;
-        switch (volumeSpec.getType()) {
-            case ROOT:
-                volume = ResourceUtils.getDesiredRootVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            case MOUNT:
-                volume = ResourceUtils.getDesiredMountVolume(
-                        volumeSpec.getRole(),
-                        volumeSpec.getPrincipal(),
-                        volumeSpec.getValue().getScalar().getValue(),
-                        volumeSpec.getContainerPath());
-                break;
-            default:
-                LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
-        }
-
-        return volume;
+        return volumeSpec.getResourceRequirement(null).getResource();
     }
 
     private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {
@@ -616,29 +601,29 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
 
-        if (!networkSpec.getPortMappings().isEmpty()) {
+        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
+            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
+                    "may experience unexpected behavior", networkSpec.getName()));
+        }
+
+        if (!networkSpec.getPortMappings().isEmpty() &&
+                DcosConstants.networkSupportsPortMapping(networkSpec.getName())) {
+            // we double check the availability of port mapping here in case the service spec was made in
+            // pure java instead of YAML
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
                 Integer hostPort = e.getKey();
                 Integer containerPort = e.getValue();
-                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                LOGGER.info("Mapping container port {} to host port {}", containerPort, hostPort);
+                netInfoBuilder.addPortMappingsBuilder()
                         .setHostPort(hostPort)
                         .setContainerPort(containerPort)
-                        .build());
+                        .setProtocol("tcp")  // TODO(arand) check that this is necessary
+                        .build();
             }
         }
 
-        if (!networkSpec.getNetgroups().isEmpty()) {
-            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
-        }
-
-        if (!networkSpec.getIpAddresses().isEmpty()) {
-            for (String ipAddressString : networkSpec.getIpAddresses()) {
-                netInfoBuilder.addIpAddresses(
-                        Protos.NetworkInfo.IPAddress.newBuilder()
-                                .setIpAddress(ipAddressString)
-                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-                                .build());
-            }
+        if (!networkSpec.getLabels().isEmpty()) {
+            throw new IllegalStateException("Network-labels is not implemented, yet");
         }
 
         return netInfoBuilder.build();

@@ -4,26 +4,31 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Label;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.*;
+import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
-    private static final Pattern ENVVAR_INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_]");
 
     private TaskUtils() {
         // do not instantiate
@@ -55,17 +60,6 @@ public class TaskUtils {
         return podInstance.getPod().getTasks().stream()
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase
-     * letters, and underscores. Strictly speaking, lowercase characters are not invalid, but this avoids them to follow
-     * convention.
-     *
-     * For example: {@code hello.There999!} => {@code HELLO_THERE999_}
-     */
-    public static String toEnvName(String str) {
-        return ENVVAR_INVALID_CHARS.matcher(str.toUpperCase()).replaceAll("_");
     }
 
     /**
@@ -177,7 +171,7 @@ public class TaskUtils {
             if (oldResourceSpec == null) {
                 LOGGER.info("Resource not found: {}", resourceName);
                 return true;
-            } else if (ResourceUtils.areDifferent(oldResourceSpec, newEntry.getValue())) {
+            } else if (areDifferent(oldResourceSpec, newEntry.getValue())) {
                 LOGGER.info("Resources are different.");
                 return true;
             }
@@ -198,6 +192,28 @@ public class TaskUtils {
         Map<String, ConfigFileSpec> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
             LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean areDifferent(ResourceSpec oldResourceSpec, ResourceSpec newResourceSpec) {
+        Protos.Value oldValue = oldResourceSpec.getValue();
+        Protos.Value newValue = newResourceSpec.getValue();
+        if (!ValueUtils.equal(oldValue, newValue)) {
+            return true;
+        }
+
+        String oldRole = oldResourceSpec.getRole();
+        String newRole = newResourceSpec.getRole();
+        if (!Objects.equals(oldRole, newRole)) {
+            return true;
+        }
+
+        String oldPrincipal = oldResourceSpec.getPrincipal();
+        String newPrincipal = newResourceSpec.getPrincipal();
+        if (!Objects.equals(oldPrincipal, newPrincipal)) {
             return true;
         }
 
@@ -298,27 +314,40 @@ public class TaskUtils {
         return Optional.empty();
     }
 
-    public static Map<PodInstance, List<TaskInfo>> getPodMap(
+    public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
-            Collection<TaskInfo> taskInfos)
-            throws TaskException {
-        Map<PodInstance, List<TaskInfo>> podMap = new HashMap<>();
+            Collection<TaskInfo> failedTasks,
+            Collection<TaskInfo> allTasks) throws TaskException {
 
-        for (TaskInfo taskInfo : taskInfos) {
-            PodInstance podInstance = getPodInstance(configStore, taskInfo);
-            List<TaskInfo> taskList = podMap.get(podInstance);
+        Set<PodInstance> pods = new HashSet<>();
 
-            if (taskList == null) {
-                taskList = Arrays.asList(taskInfo);
-            } else {
-                taskList = new ArrayList<>(taskList);
-                taskList.add(taskInfo);
+        for (TaskInfo taskInfo : failedTasks) {
+            try {
+                pods.add(getPodInstance(configStore, taskInfo));
+            } catch (TaskException e) {
+                LOGGER.error("Failed to get pod instance for TaskInfo: {} with exception: {}", taskInfo, e);
             }
-
-            podMap.put(podInstance, taskList);
         }
 
-        return podMap;
+        List<String> allTaskNames = allTasks.stream()
+                .map(taskInfo -> taskInfo.getName())
+                .collect(Collectors.toList());
+
+        List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
+
+        for (PodInstance podInstance : pods) {
+            List<String> tasksToLaunch = new ArrayList<>();
+            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+                String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
+                if (taskSpec.getGoal() == GoalState.RUNNING && allTaskNames.contains(fullTaskName)) {
+                    tasksToLaunch.add(taskSpec.getName());
+                }
+            }
+
+            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+        }
+
+        return podInstanceRequirements;
     }
 
     public static PodInstance getPodInstance(
@@ -405,7 +434,7 @@ public class TaskUtils {
     }
 
     /**
-     * Determines whether a Task needs to eb reovered based on its current definition (TaskSpec) and status
+     * Determines whether a Task needs to be recovered based on its current definition (TaskSpec) and status
      * (TaskStatus).
      *
      * @param taskSpec   The definition of a task
@@ -436,8 +465,32 @@ public class TaskUtils {
      */
     public static Collection<TaskInfo> clearReservations(Collection<TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(taskInfo -> ResourceUtils.clearResourceIds(taskInfo))
-                .map(taskInfo -> ResourceUtils.clearPersistence(taskInfo))
+                .map(TaskUtils::clearReservationIds)
                 .collect(Collectors.toList());
+    }
+
+    private static TaskInfo clearReservationIds(TaskInfo taskInfo) {
+        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder(taskInfo)
+                .clearResources()
+                .addAllResources(clearReservationIds(taskInfo.getResourcesList()));
+
+        if (taskInfo.hasExecutor()) {
+            taskInfoBuilder.getExecutorBuilder()
+                    .clearResources()
+                    .addAllResources(clearReservationIds(taskInfoBuilder.getExecutor().getResourcesList()));
+        }
+
+        return taskInfoBuilder.build();
+    }
+
+    private static List<Resource> clearReservationIds(List<Resource> resources) {
+        List<Resource> clearedResources = new ArrayList<>();
+        for (Resource resource : resources) {
+            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
+                    .clearResourceId()
+                    .clearPersistenceId()
+                    .build());
+        }
+        return clearedResources;
     }
 }

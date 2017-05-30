@@ -24,20 +24,19 @@ public class DefaultPlanManagerTest {
     private Plan plan;
     private PlanManager planManager;
 
-    @Mock
-    Step mockStep;
-
-    @Mock
-    Reconciler reconciler;
+    @Mock Step mockStep;
+    @Mock Reconciler reconciler;
+    @Mock private PodInstanceRequirement podInstance0;
+    @Mock private PodInstanceRequirement podInstance1;
 
     @Before
     public void beforeEach() {
-        firstStep = new TestStep("step-0");
-        secondStep = new TestStep("step-1");
+        MockitoAnnotations.initMocks(this);
+        firstStep = new TestStep("step-0", podInstance0);
+        secondStep = new TestStep("step-1", podInstance1);
         plan = getTestPlan(firstStep, secondStep);
         planManager = new DefaultPlanManager(plan);
         planManager.getPlan().proceed();
-        MockitoAnnotations.initMocks(this);
     }
 
     @Test
@@ -210,8 +209,8 @@ public class DefaultPlanManagerTest {
     @Test
     public void testAllDirtyAssets() {
         when(reconciler.isReconciled()).thenReturn(false);
-        final TestStep step1 = new TestStep("test-step-1");
-        final TestStep step2 = new TestStep("test-step-2");
+        final TestStep step1 = new TestStep("test-step-0", podInstance0);
+        final TestStep step2 = new TestStep("test-step-1", podInstance1);
 
         final DefaultPhase phase = new DefaultPhase(
                 "phase-1",
@@ -233,17 +232,17 @@ public class DefaultPlanManagerTest {
         waitingManager.getPlan().proceed();
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
 
-        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(2, dirtyAssets.size());
-        Assert.assertTrue(dirtyAssets.contains("test-step-1"));
-        Assert.assertTrue(dirtyAssets.contains("test-step-2"));
+        Assert.assertTrue(dirtyAssets.contains(podInstance0));
+        Assert.assertTrue(dirtyAssets.contains(podInstance1));
     }
 
     @Test
     public void testOneInProgressOnePending() {
         when(reconciler.isReconciled()).thenReturn(false);
-        final TestStep step1 = new TestStep("test-step-1");
-        final TestStep step2 = new TestStep("test-step-2");
+        final TestStep step1 = new TestStep("test-step-0", podInstance0);
+        final TestStep step2 = new TestStep("test-step-1", podInstance1);
         final DefaultPhase phase = new DefaultPhase(
                 "phase-1",
                 Arrays.asList(step1, step2),
@@ -264,16 +263,16 @@ public class DefaultPlanManagerTest {
         waitingPlan.proceed();
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
 
-        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(1, dirtyAssets.size());
-        Assert.assertTrue(dirtyAssets.contains("test-step-2"));
+        Assert.assertTrue(dirtyAssets.contains(podInstance1));
     }
 
     @Test
     public void testOneInProgressOneComplete() {
         when(reconciler.isReconciled()).thenReturn(false);
-        final TestStep step1 = new TestStep("test-step-1");
-        final TestStep step2 = new TestStep("test-step-2");
+        final TestStep step1 = new TestStep("test-step-0", podInstance0);
+        final TestStep step2 = new TestStep("test-step-1", podInstance1);
         final DefaultPhase phase = new DefaultPhase(
                 "phase-1",
                 Arrays.asList(step1, step2),
@@ -294,9 +293,9 @@ public class DefaultPlanManagerTest {
         Assert.assertFalse(phase.isInterrupted());
         Assert.assertEquals(Status.WAITING, waitingManager.getPlan().getStatus());
 
-        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(1, dirtyAssets.size());
-        Assert.assertTrue(dirtyAssets.contains("test-step-2"));
+        Assert.assertTrue(dirtyAssets.contains(podInstance1));
 
         waitingManager.getPlan().proceed();
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());

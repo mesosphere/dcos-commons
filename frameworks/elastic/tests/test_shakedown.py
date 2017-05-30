@@ -2,9 +2,8 @@ import time
 
 import pytest
 
+import sdk_cmd as cmd
 import sdk_install as install
-import sdk_marathon as marathon
-import sdk_tasks as tasks
 import sdk_test_upgrade
 import sdk_utils as utils
 from tests.config import *
@@ -59,29 +58,21 @@ def test_indexing(default_populated_index):
     assert doc["_source"]["name"] == "Loren"
 
 
+@pytest.mark.focus
 @pytest.mark.sanity
-def test_commercial_api_available(default_populated_index):
-    query = {
-        "query": {
-            "match": {
-                "name": "*"
-            }
-        },
-        "vertices": [
-            {
-                "field": "name"
-            }
-        ],
-        "connections": {
-            "vertices": [
-                {
-                    "field": "role"
-                }
-            ]
-        }
-    }
-    response = graph_api(DEFAULT_INDEX_NAME, query)
-    assert response["failures"] == []
+def test_xpack_toggle(default_populated_index):
+    # Verify disabled by default
+    verify_commercial_api_status(False)
+    enable_xpack()
+    # Verify enabled
+    verify_commercial_api_status(True)
+    verify_xpack_license()
+    # Write some data while enabled, disable X-Pack, and verify we can still read what we wrote.
+    create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 2, {"name": "X-Pack", "role": "commercial plugin"})
+    disable_xpack()
+    verify_commercial_api_status(False)
+    doc = get_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 2)
+    assert doc["_source"]["name"] == "X-Pack"
 
 
 @pytest.mark.recovery
@@ -106,15 +97,24 @@ def test_master_reelection():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
+def test_master_node_replace():
+    # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
+    # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
+    cmd.run_cli('elastic pods replace master-0')
+    # setup_function will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['ELASTICSEARCH_PLUGINS'] = plugin_name
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
     marathon.update_app(PACKAGE_NAME, config)
     check_plugin_installed(plugin_name)
 
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['ELASTICSEARCH_PLUGINS'] = ""
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = ""
     marathon.update_app(PACKAGE_NAME, config)
     check_plugin_uninstalled(plugin_name)
 
@@ -127,22 +127,17 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
 
 
-@pytest.mark.sanity
-def test_kibana_proxylite_adminrouter_integration():
-    # run this test as late as possible, as it takes 10+ minutes for kibana to be ready
-    check_kibana_proxylite_adminrouter_integration()
-
-
+@pytest.mark.skip(reason="Removing Kibana/proxylite is a breaking change (ELASTIC-74)")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
-    # Remove this once Universe package version defaults to user `nobody`
     options = {
         "service": {
-            "user": "nobody"
+            "beta-optin": True
         }
     }
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=options)
+    sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                                       additional_options=options)
 
 
 @pytest.mark.recovery

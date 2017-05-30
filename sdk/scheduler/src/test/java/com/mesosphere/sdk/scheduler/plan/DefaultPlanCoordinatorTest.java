@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -13,13 +12,13 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.*;
@@ -43,7 +42,6 @@ public class DefaultPlanCoordinatorTest {
     public static final int SUFFICIENT_DISK = 10000;
     public static final int INSUFFICIENT_MEM = 1;
     public static final int INSUFFICIENT_DISK = 1;
-    private static TestingServer testingServer;
 
     private static final int TASK_A_COUNT = 1;
     private static final String TASK_A_POD_NAME = "POD-A";
@@ -93,15 +91,9 @@ public class DefaultPlanCoordinatorTest {
     private PhaseFactory phaseFactory;
     private DefaultOfferRequirementProvider provider;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
-
     @Before
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
-        CuratorTestUtils.clear(testingServer);
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
 
         taskFailureListener = mock(TaskFailureListener.class);
@@ -114,7 +106,7 @@ public class DefaultPlanCoordinatorTest {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        stateStore = new CuratorStateStore(serviceSpecification.getName(), testingServer.getConnectString());
+        stateStore = new DefaultStateStore(new MemPersister());
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);

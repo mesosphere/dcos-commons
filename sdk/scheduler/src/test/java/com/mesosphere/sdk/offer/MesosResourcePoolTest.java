@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -34,7 +35,7 @@ public class MesosResourcePoolTest {
         Resource resource = ResourceTestUtils.getExpectedMountVolume(1000);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer);
-        String resourceId = new MesosResource(resource).getResourceId();
+        String resourceId = new MesosResource(resource).getResourceId().get();
 
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
         Assert.assertEquals(1, pool.getReservedPool().size());
@@ -98,7 +99,7 @@ public class MesosResourcePoolTest {
     public void testConsumeInsufficientUnreservedMergedResource() {
         Resource desiredUnreservedResource = ResourceTestUtils.getUnreservedCpu(2.0);
         ResourceRequirement resReq = new ResourceRequirement(desiredUnreservedResource);
-        Resource offeredUnreservedResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredUnreservedResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
         Offer offer = OfferTestUtils.getOffer(offeredUnreservedResource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 

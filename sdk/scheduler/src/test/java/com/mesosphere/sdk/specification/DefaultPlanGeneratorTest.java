@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -9,14 +8,13 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import org.apache.curator.test.TestingServer;
 import org.junit.*;
-import org.mockito.MockitoAnnotations;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,23 +28,8 @@ public class DefaultPlanGeneratorTest {
 
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
-    private static TestingServer testingServer;
-
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
-
-    @Before
-    public void beforeEach() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        CuratorTestUtils.clear(testingServer);
-
-        StateStoreCache.resetInstanceForTests();
-    }
 
     @Test
     public void testCustomPhases() throws Exception {
@@ -55,8 +38,9 @@ public class DefaultPlanGeneratorTest {
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
 
-        stateStore = DefaultScheduler.createStateStore(serviceSpec, flags, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        Persister persister = new MemPersister();
+        stateStore = new DefaultStateStore(persister);
+        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
         Assert.assertNotNull(serviceSpec);
 

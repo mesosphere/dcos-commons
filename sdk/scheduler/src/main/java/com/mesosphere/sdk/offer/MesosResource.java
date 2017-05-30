@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
@@ -17,11 +19,9 @@ public class MesosResource {
     public static final String VIP_LABEL_VALUE_KEY = "vip_value";
 
     private final Resource resource;
-    private final String resourceId;
 
     public MesosResource(Resource resource) {
         this.resource = resource;
-        this.resourceId = getResourceIdInternal(resource);
     }
 
     public Resource getResource() {
@@ -42,12 +42,8 @@ public class MesosResource {
         return resource.getType();
     }
 
-    public boolean hasResourceId() {
-        return resourceId != null;
-    }
-
-    public String getResourceId() {
-        return resourceId;
+    public Optional<String> getResourceId() {
+        return ResourceCollectionUtils.getResourceId(resource);
     }
 
     public boolean hasReservation() {
@@ -62,27 +58,14 @@ public class MesosResource {
         return resource.getRole();
     }
 
-    public String getPrincipal() {
-        if (resource.hasReservation() && resource.getReservation().hasPrincipal()) {
-            return resource.getReservation().getPrincipal();
-        }
-
-        return null;
+    public Optional<String> getPrincipal() {
+        return resource.hasReservation() && resource.getReservation().hasPrincipal()
+                ? Optional.of(resource.getReservation().getPrincipal())
+                : Optional.empty();
     }
 
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
-
-    private static String getResourceIdInternal(Resource resource) {
-        if (resource.hasReservation()) {
-            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-                if (label.getKey().equals(RESOURCE_ID_KEY)) {
-                    return label.getValue();
-                }
-            }
-        }
-        return null;
     }
 }

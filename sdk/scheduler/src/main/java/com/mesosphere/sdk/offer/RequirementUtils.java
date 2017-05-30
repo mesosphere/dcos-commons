@@ -13,7 +13,7 @@ public class RequirementUtils {
 
         for (ResourceRequirement resReq : resourceRequirements) {
             if (resReq.expectsResource()) {
-                resourceIds.add(resReq.getResourceId());
+                resourceIds.add(resReq.getResourceId().get());
             }
         }
 

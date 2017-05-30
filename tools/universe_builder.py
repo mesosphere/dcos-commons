@@ -16,8 +16,8 @@ import tempfile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = 'https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz'
-_jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz'
+_jre_url = 'https://downloads.mesosphere.com/java/jre-8u131-linux-x64.tar.gz'
+_jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u131-linux-x64-jce-unlimited.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9.0-rc2-1.2.0-rc2-1.tar.gz'
 
 _command_json_filename = 'command.json'

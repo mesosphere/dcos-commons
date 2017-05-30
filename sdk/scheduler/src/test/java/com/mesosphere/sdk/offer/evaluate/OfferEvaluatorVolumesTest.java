@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -22,9 +21,9 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     public void testCreateMultipleVolumes() throws Exception {
         Resource offeredResources = ResourceTestUtils.getUnreservedDisk(3);
         List<Resource> desiredResources = Arrays.asList(
-                ResourceUtils.setLabel(
+                ResourceTestUtils.setLabel(
                         ResourceTestUtils.getDesiredRootVolume(1), TestConstants.CONTAINER_PATH_LABEL, "pv0"),
-                ResourceUtils.setLabel(
+                ResourceTestUtils.setLabel(
                         ResourceTestUtils.getDesiredRootVolume(2), TestConstants.CONTAINER_PATH_LABEL, "pv1"));
 
         Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResources));

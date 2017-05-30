@@ -2,7 +2,6 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.google.common.collect.ImmutableMap;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
-import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
@@ -102,7 +101,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         String fileStr = new String(bytes, Charset.defaultCharset());
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         Map<String, String> updatedEnv = new HashMap<>(allEnv);
-        updatedEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
         String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));

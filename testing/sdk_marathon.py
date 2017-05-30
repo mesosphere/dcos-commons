@@ -11,6 +11,9 @@ def get_config(app_name):
         return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False)
 
     config = sdk_spin.time_wait_return(lambda: fn()).json()['app']
+    # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
+    # so we have to remove some offending fields to make it re-submittable, since it's not possible to
+    # submit a partial config with only the desired fields changed.
     del config['uris']
     del config['version']
 

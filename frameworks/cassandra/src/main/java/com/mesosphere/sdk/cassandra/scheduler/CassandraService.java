@@ -29,7 +29,8 @@ public class CassandraService extends DefaultService {
                         YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags),
                         schedulerFlags)
                 .setPlansFrom(rawServiceSpec)
-                .setCustomResources(getResources());
+                .setCustomResources(getResources())
+                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
         initService(schedulerBuilder);
     }
 

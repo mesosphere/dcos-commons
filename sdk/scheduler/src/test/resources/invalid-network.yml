@@ -3,13 +3,15 @@ pods:
   server:
     count: 1
     networks:
-      test:
-        # We currently only support empty network definitions (e.g. {}) as only joining a named network
-        # is supported right now.
-        bad: "test"
+      dcos:
+        host-ports: [8080]
+        container-ports: [4040]
     tasks:
       server:
         goal: RUNNING
         cmd: "cmd"
         cpus: 1
         memory: 1024
+        ports:
+          test:
+            port: 8080

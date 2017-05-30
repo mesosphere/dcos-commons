@@ -2,12 +2,10 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 
 import java.time.Duration;
 import java.util.concurrent.*;
@@ -39,18 +37,8 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             boolean exitOnTermination) {
-        return create(executorDriver, taskInfo, getProcess(taskInfo), exitOnTermination);
-    }
-
-    public static ProcessBuilder getProcess(TaskInfo taskInfo) {
-        CommandInfo commandInfo = taskInfo.getCommand();
-        String cmd = commandInfo.getValue();
-
-        ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
-        builder.inheritIO();
-        builder.environment().putAll(EnvUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
-
-        return builder;
+        return create(
+                executorDriver, taskInfo, ProcessBuilderUtils.buildProcess(taskInfo.getCommand()), exitOnTermination);
     }
 
     public static ProcessTask create(
