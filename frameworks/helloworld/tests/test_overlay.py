@@ -89,8 +89,6 @@ def test_overlay_network():
         if "overlay" in name:
             assert "ports" not in resources.keys(), "Task {} should NOT have port resources".format(name)
 
-    #check_task_network("getter-0-get-Host", True)
-    #check_task_network("getter-0-get-Overlay", True)
     check_task_network("hello-overlay-0-server", True)
     check_task_network("hello-overlay-vip-0-server", True)
     check_task_network("hello-host-0-server", False)
