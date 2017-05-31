@@ -64,7 +64,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the host network!"
+        cmd: "python3 http_py3responder.py 4044 hello from the host network with a VIP!"
         resource-set: hello-resource
   hello-host:
     count: 1
@@ -83,6 +83,39 @@ pods:
         goal: RUNNING
         cmd: "python3 http_py3responder.py 4044 hello from the host network!"
         resource-set: hello-resource
+  getter:
+    count: {{HELLO_COUNT}}
+    networks:
+      dcos:
+    tasks:
+      get-Overlay:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      get-Overlay-vip:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      get-Host-vip:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      get-Host:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
 
 plans:
   deploy:
@@ -108,4 +141,9 @@ plans:
         pod: hello-host
         steps:
           - default: [[server]]
+      getter-deploy:
+        strategy: serial
+        pod: getter
+        steps:
+          - default: [[get-Overlay], [get-Host], [get-Overlay-vip], [get-Host-vip]]
 
