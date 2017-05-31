@@ -140,8 +140,16 @@ public class DefaultService implements Service {
     }
 
     private boolean allButStateStoreUninstalled() {
+        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
+        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
+        // have register() called after the StateStore already has the uninstall bit wiped.
+        //
+        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
+        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // StateStoreUtils.isUninstalling().
+
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return StateStoreUtils.isUninstalling(stateStore) &&
+        return (StateStoreUtils.isUninstalling(stateStore) || schedulerFlags.isUninstallEnabled()) &&
                 !stateStore.fetchFrameworkId().isPresent() &&
                 ResourceCollectionUtils.getResourceIds(
                         ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
