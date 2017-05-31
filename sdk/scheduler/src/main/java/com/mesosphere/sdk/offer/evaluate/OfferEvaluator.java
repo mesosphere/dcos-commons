@@ -129,7 +129,6 @@ public class OfferEvaluator {
                     allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
-        // TODO: Replace Executor Evaluation
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
@@ -155,6 +154,7 @@ public class OfferEvaluator {
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
 
+        evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorId(thisPodTasks.values())));
         if (shouldGetNewRequirement) {
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement));
         } else {
@@ -162,6 +162,18 @@ public class OfferEvaluator {
         }
 
         return evaluationPipeline;
+    }
+
+    private Optional<Protos.ExecutorID> getExecutorId(Collection<Protos.TaskInfo> taskInfos) {
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatus.isPresent() && taskStatus.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+                logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
+                return Optional.of(taskInfo.getExecutor().getExecutorId());
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {

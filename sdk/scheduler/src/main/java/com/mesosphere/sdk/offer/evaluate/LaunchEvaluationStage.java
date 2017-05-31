@@ -1,20 +1,24 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
  * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String taskName;
     private final boolean shouldLaunch;
 
@@ -41,9 +45,6 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
             .setHostname(offer)
             .toProto());
         if (executorBuilder.isPresent()) {
-            if (executorBuilder.get().getExecutorId().getValue().isEmpty()) {
-               executorBuilder.get().setExecutorId(CommonIdUtils.toExecutorId(executorBuilder.get().getName()));
-            }
             taskBuilder.setExecutor(executorBuilder.get());
         }
 

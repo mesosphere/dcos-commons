@@ -41,13 +41,16 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
 
         // Set executor ID *after* the other check above for its presence:
         Protos.ExecutorID newExecutorId;
+        String passMsgFormat;
         if (executorId.isPresent()) {
             newExecutorId = executorId.get();
+            passMsgFormat = "Offer contains the matching Executor ID: '%s'";
         } else {
             newExecutorId = CommonIdUtils.toExecutorId(executorBuilder.getName());
+            passMsgFormat = "No Executor ID required, generated: '%s'";
         }
         executorBuilder.setExecutorId(newExecutorId);
-        return pass(this, "Offer contains the matching Executor ID");
+        return pass(this, passMsgFormat, newExecutorId);
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {

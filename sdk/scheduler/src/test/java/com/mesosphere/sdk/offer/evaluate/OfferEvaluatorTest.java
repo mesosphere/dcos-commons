@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.OperationRecorder;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -27,6 +24,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Mock ServiceSpec serviceSpec;
@@ -59,6 +57,16 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(getResourceId(reserveResource), getResourceId(launchResource));
+        String executorId = launchOperation
+                .getLaunch()
+                .getTaskInfos(0)
+                .getExecutor()
+                .getExecutorId()
+                .getValue();
+
+        String prefix = TestConstants.POD_TYPE + CommonIdUtils.NAME_ID_DELIM;
+        Assert.assertTrue(executorId.startsWith(prefix));
+        Assert.assertEquals(prefix.length() + UUID.randomUUID().toString().length(), executorId.length());
     }
 
     @Test
