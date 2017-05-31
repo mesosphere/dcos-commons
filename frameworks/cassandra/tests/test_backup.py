@@ -65,6 +65,17 @@ def test_backup_and_restore_to_azure():
     run_backup_and_restore('backup-azure', 'restore-azure', plan_parameters)
 
 
+@pytest.mark.sanity
+def test_backup_and_restore_to_local():
+    plan_parameters = {
+        'RESTORE_PATH': os.getenv('RESTORE_PATH'),
+        'SNAPSHOT_NAME': str(uuid.uuid1()),
+        'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
+    }
+
+    run_backup_and_restore('backup-local', 'restore-local', plan_parameters)
+
+@pytest.mark.sanity
 def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
     # Write data to Cassandra with a metronome job
     launch_and_verify_job(WRITE_DATA_JOB)
@@ -101,3 +112,4 @@ def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
 
     # Delete data in preparation for any other backup tests
     launch_and_verify_job(DELETE_DATA_JOB)
+

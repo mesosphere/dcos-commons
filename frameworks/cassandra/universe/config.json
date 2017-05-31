@@ -52,7 +52,7 @@
           "default": "serial"
         },
         "backup_local_path": {
-          "description": "Path to host on network for local backup storage",
+          "description": "Path to host on network containing local backup",
           "type": "string", 
           "default": "/" //TODO: CHANGE THIS!!!!
         }

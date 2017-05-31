@@ -106,7 +106,7 @@ pods:
       #ADDED
       upload-local: 
         goal: FINISHED
-        cmd: cp -r container-path/snapshot/ backup/$(date +%Y-%m-%d-%H-%M) #TODO: ADD USER@HOST/PATH here
+        cmd: cp -r container-path/snapshot/ local-backup/$(date +%Y-%m-%d-%H-%M) 
         resource-set: sidecar-resources
       ###
       upload-azure:
@@ -247,7 +247,8 @@ plans:
           - default: [[backup-schema]]
       create-snapshots: 
         strategy: parallel
-        pod: nodesteps: 
+        pod: node
+        steps: 
           - default: [[snapshot]]
       upload-backups: 
         strategy: {{BACKUP_RESTORE_STRATEGY}} #WHAT IS THIS???
