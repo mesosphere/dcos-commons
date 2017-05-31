@@ -64,7 +64,7 @@ public class UninstallResourceCleanerTest {
 
     @Test
     public void testReservedOffer() {
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1, RESERVED_RESOURCE_2,
+        Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(RESERVED_RESOURCE_1, RESERVED_RESOURCE_2,
                 RESERVED_RESOURCE_3, RESERVED_RESOURCE_4));
 
         List<OfferRecommendation> recommendations = uninstallResourceCleaner.evaluate(Collections.singletonList(offer));
@@ -93,7 +93,7 @@ public class UninstallResourceCleanerTest {
 
     @Test
     public void testUnreservedOffer() {
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(UNRESERVED_RESOURCE_1, UNRESERVED_RESOURCE_2));
+        Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(UNRESERVED_RESOURCE_1, UNRESERVED_RESOURCE_2));
 
         List<OfferRecommendation> recommendations = uninstallResourceCleaner.evaluate(Collections.singletonList(offer));
 
@@ -103,7 +103,7 @@ public class UninstallResourceCleanerTest {
 
     @Test
     public void testMixedOffer() {
-        Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1, UNRESERVED_RESOURCE_2));
+        Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(RESERVED_RESOURCE_1, UNRESERVED_RESOURCE_2));
 
         List<OfferRecommendation> recommendations = uninstallResourceCleaner.evaluate(Collections.singletonList(offer));
         assertEquals("Got: " + recommendations, 1, recommendations.size());

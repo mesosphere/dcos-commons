@@ -59,6 +59,8 @@ public class DefaultStepTest {
                         .setName(taskName)
                         .setSlaveId(TestConstants.AGENT_ID)
                         .build(),
+                Protos.ExecutorInfo.newBuilder().setExecutorId(
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
                 true);
         step.updateOfferStatus(Arrays.asList(launchRec));
 

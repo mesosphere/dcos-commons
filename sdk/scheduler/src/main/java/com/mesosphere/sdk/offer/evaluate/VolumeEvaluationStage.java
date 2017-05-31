@@ -47,6 +47,22 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Resource resource;
         final MesosResource mesosResource;
+
+        if (taskName == null && resourceId.isPresent()) {
+            // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
+            // add it to the ExecutorInfo as well as whatever task is being launched.
+            podInfoBuilder.setExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get());
+
+            return pass(
+                    this,
+                    null,
+                    Collections.emptyList(),
+                    "Satisfied requirements for %s volume '%s'",
+                    volumeSpec,
+                    resourceId,
+                    persistenceId);
+        }
+
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
@@ -122,5 +138,4 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private Optional<String> getTaskName() {
         return Optional.ofNullable(taskName);
     }
-
 }

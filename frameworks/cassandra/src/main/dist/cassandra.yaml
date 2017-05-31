@@ -1,6 +1,6 @@
 cluster_name: {{CASSANDRA_CLUSTER_NAME}}
-rpc_address: {{LIBPROCESS_IP}}
-listen_address: {{LIBPROCESS_IP}}
+rpc_address: {{MESOS_CONTAINER_IP}}
+listen_address: {{MESOS_CONTAINER_IP}}
 hints_directory: {{MESOS_SANDBOX}}/container-path/hints
 data_file_directories:
   - {{MESOS_SANDBOX}}/container-path/data

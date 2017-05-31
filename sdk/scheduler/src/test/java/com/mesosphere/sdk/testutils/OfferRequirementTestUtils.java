@@ -1,10 +1,5 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.TaskException;
-import org.apache.mesos.Protos.HealthCheck;
-import org.apache.mesos.Protos.TaskInfo;
-
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
@@ -13,14 +8,6 @@ import java.util.*;
  * This class provides utility methods for tests concerned with OfferRequirements.
  */
 public class OfferRequirementTestUtils {
-    public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
-        return new SchedulerLabelWriter(taskInfo) {
-            @Override
-            public Optional<HealthCheck> getReadinessCheck() throws TaskException {
-                return super.getReadinessCheck();
-            }
-        }.getReadinessCheck();
-    }
 
     public static SchedulerFlags getTestSchedulerFlags() {
         Map<String, String> map = new HashMap<>();

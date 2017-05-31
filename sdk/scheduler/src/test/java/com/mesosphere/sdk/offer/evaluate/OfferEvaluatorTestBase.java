@@ -10,6 +10,7 @@ import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
@@ -24,7 +25,6 @@ import java.util.UUID;
  */
 public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-    protected static final String ROOT_ZK_PATH = "/test-root-path";
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
 
@@ -32,6 +32,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         stateStore = new DefaultStateStore(new MemPersister());
+        stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
     }
 
@@ -43,7 +44,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement, Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredResources))));
+                podInstanceRequirement, Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources))));
 
         List<Resource> reservedResources = new ArrayList<>();
         for (OfferRecommendation recommendation : recommendations) {
@@ -51,7 +52,10 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 reservedResources.addAll(recommendation.getOperation().getReserve().getResourcesList());
             } else if (recommendation instanceof LaunchOfferRecommendation) {
                 // DO NOT extract the TaskInfo from the Operation. That version has a packed CommandInfo.
-                stateStore.storeTasks(Arrays.asList(((LaunchOfferRecommendation) recommendation).getTaskInfo()));
+                LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
+                Protos.TaskInfo taskInfo = launchOfferRecommendation.getTaskInfo().toBuilder()
+                        .setExecutor(launchOfferRecommendation.getExecutorInfo()).build();
+                stateStore.storeTasks(Arrays.asList(taskInfo));
             }
         }
 

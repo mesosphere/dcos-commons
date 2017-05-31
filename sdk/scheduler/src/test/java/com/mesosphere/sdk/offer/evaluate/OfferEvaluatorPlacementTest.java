@@ -46,7 +46,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
@@ -65,9 +65,9 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
@@ -110,8 +110,8 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
     }
 }

@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -17,23 +18,43 @@ public class OfferTestUtils {
         // do not instantiate
     }
 
-    public static List<Protos.Offer> getOffers(List<Protos.Resource> resources) {
-        return Arrays.asList(getOffer(resources));
+    public static List<Protos.Offer> getCompleteOffers(List<Protos.Resource> resources) {
+        return Arrays.asList(getCompleteOffer(resources));
+    }
+
+    public static Protos.Offer getCompleteOffer(Protos.Resource resource) {
+        return getCompleteOffer(Arrays.asList(resource));
     }
 
     public static Protos.Offer getOffer(Protos.Resource resource) {
         return getOffer(Arrays.asList(resource));
     }
 
-    public static Protos.Offer getOffer(List<Protos.Resource> resources) {
+    public static Protos.Offer getOffer(Collection<Protos.Resource> resources) {
         return getEmptyOfferBuilder().addAllResources(resources).build();
     }
 
-    public static List<Protos.Offer> getOffers(Protos.Resource resource) {
-        return getOffers(Arrays.asList(resource));
+    /**
+     * Get an offer that includes sufficient resources to launch the default executor in addition to some task.
+     * @param resources The desired task resources to offer
+     * @return An offer with both executor resources and the supplied resources available
+     */
+    public static Protos.Offer getCompleteOffer(List<Protos.Resource> resources) {
+        return getEmptyOfferBuilder().addAllResources(getExecutorResources()).addAllResources(resources).build();
     }
 
-    public static Protos.Offer getOffer(Protos.ExecutorID executorId, List<Protos.Resource> resources) {
+    public static Collection<Resource> getExecutorResources() {
+        return Arrays.asList(
+                ResourceTestUtils.getUnreservedScalar("cpus", 0.1),
+                ResourceTestUtils.getUnreservedScalar("mem", 256),
+                ResourceTestUtils.getUnreservedScalar("disk", 512));
+    }
+
+    public static List<Protos.Offer> getCompleteOffers(Protos.Resource resource) {
+        return getCompleteOffers(Arrays.asList(resource));
+    }
+
+    public static Protos.Offer getCompleteOffer(Protos.ExecutorID executorId, List<Protos.Resource> resources) {
         Protos.Offer.Builder builder = getEmptyOfferBuilder();
         builder.addAllResources(resources);
 

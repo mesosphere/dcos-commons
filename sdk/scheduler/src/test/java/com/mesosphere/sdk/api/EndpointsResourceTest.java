@@ -42,7 +42,7 @@ public class EndpointsResourceTest {
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
         builder.setLabels(new SchedulerLabelWriter(builder)
-                .setHostname(OfferTestUtils.getOffer(Collections.emptyList()))
+                .setHostname(OfferTestUtils.getCompleteOffer(Collections.emptyList()))
                 .setType("some-task-type")
                 .toProto());
         TASK_WITH_METADATA = builder.build();

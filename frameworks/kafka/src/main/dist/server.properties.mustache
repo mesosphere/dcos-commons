@@ -124,8 +124,7 @@ external.kafka.statsd.tag.enabled=true
 external.kafka.statsd.metrics.exclude_regex=
 
 {{#KAFKA_ADVERTISE_HOST}}
-# TODO this is wrong when overlay network is enabled
-advertised.host.name={{LIBPROCESS_IP}}
+advertised.host.name={{MESOS_CONTAINER_IP}}
 {{/KAFKA_ADVERTISE_HOST}}
 
 port={{KAFKA_BROKER_PORT}}

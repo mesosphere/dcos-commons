@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -18,7 +19,9 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +36,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(555, 555);
 
         List<OfferRecommendation> recommendations =
-                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
 
-        Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
-        Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
+        Protos.TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
@@ -53,8 +56,38 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(666, 666);
 
         List<OfferRecommendation> recommendations =
-                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
         Assert.assertEquals(0, recommendations.size());
+    }
+
+    private Collection<Resource> getExpectedExecutorResources(Protos.ExecutorInfo executorInfo) {
+        String executorCpuId = executorInfo.getResourcesList().stream()
+                .filter(r -> r.getName().equals("cpus"))
+                .map(ResourceUtils::getResourceId)
+                .filter(o -> o.isPresent())
+                .map(o -> o.get())
+                .findFirst()
+                .get();
+        String executorMemId = executorInfo.getResourcesList().stream()
+                .filter(r -> r.getName().equals("mem"))
+                .map(ResourceUtils::getResourceId)
+                .filter(o -> o.isPresent())
+                .map(o -> o.get())
+                .findFirst()
+                .get();
+        String executorDiskId = executorInfo.getResourcesList().stream()
+                .filter(r -> r.getName().equals("disk"))
+                .map(ResourceUtils::getResourceId)
+                .filter(o -> o.isPresent())
+                .map(o -> o.get())
+                .findFirst()
+                .get();
+
+        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuId);
+        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskId);
+
+        return new ArrayList<>(Arrays.asList(expectedExecutorCpu, expectedExecutorMem, expectedExecutorDisk));
     }
 
     @Test
@@ -65,18 +98,21 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 podInstanceRequirement,
                 ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
         String resourceId = getResourceId(reserveResource);
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.add(ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId));
 
         // Launch on previously reserved resources
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId)));
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
         Protos.Offer.Operation launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
-        Protos.Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(0);
+        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
     }
 
@@ -87,18 +123,22 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Resource reserveResource = recordLaunchWithOfferedResources(
                 podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10000)).get(0);
         String resourceId = getResourceId(reserveResource);
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.add(ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId));
+
 
         // Relaunch: detect (from envvar) and reuse previously reserved dynamic port 10000
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId)));
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(0);
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
     }
 
@@ -108,12 +148,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
 
         List<OfferRecommendation> recommendations =
-                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getOffers(offeredPorts));
+                evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
 
-        Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
-        Protos.TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
+        Protos.TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
@@ -130,22 +170,25 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(555),
                 ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
         String resourceId = getResourceId(reserveResource);
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.addAll(Arrays.asList(
+                ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                ResourceTestUtils.getUnreservedPorts(666, 666)));
 
         // Now lets move to port 666:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
-                OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
-                        ResourceTestUtils.getUnreservedPorts(666, 666))));
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
 
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
         Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(2).getOperation().getType());
 
         Operation launchOperation = recommendations.get(2).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
         Map<String, String> envvars = EnvUtils.toMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
@@ -159,22 +202,25 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(0),
                 ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
         String resourceId = getResourceId(reserveResource);
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.addAll(Arrays.asList(
+                ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                ResourceTestUtils.getUnreservedPorts(666, 666)));
 
         // Now lets move to port 666:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
-                OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
-                        ResourceTestUtils.getUnreservedPorts(666, 666))));
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
 
         // RESERVE, UNRESERVE, LAUNCH
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
         Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(2).getOperation().getType());
 
         Operation launchOperation = recommendations.get(2).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
         Map<String, String> envvars = EnvUtils.toMap(
                 TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
@@ -187,23 +233,26 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001);
         List<Resource> reserveResources = recordLaunchWithOfferedResources(
                 podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10001));
-        Assert.assertEquals(reserveResources.toString(), 2, reserveResources.size());
+        Assert.assertEquals(reserveResources.toString(), 5, reserveResources.size());
         String resourceId0 = getResourceId(reserveResources.get(0));
         String resourceId1 = getResourceId(reserveResources.get(1));
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.addAll(Arrays.asList(
+                ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId0),
+                ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId1)));
 
         // Now try relaunch:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001),
-                OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId0),
-                        ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId1))));
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
-        List<Resource> launchResources = launchOperation.getLaunch().getTaskInfos(0).getResourcesList();
+        List<Resource> launchResources = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResourcesList();
         Assert.assertEquals(launchResources.toString(), 2, launchResources.size());
 
         Assert.assertEquals(resourceId0, getResourceId(launchResources.get(0)));
@@ -219,11 +268,11 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         ports.put(portenv1, 0);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(ports),
-                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
+                OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
 
         // TODO(nickbp): we now produce two separate ports RESERVE operations instead of one combined operation.
         //               does mesos allow this?
-        Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
+        Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
 
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource fulfilledPortResource1 = reserveOperation.getReserve().getResources(0);
@@ -235,8 +284,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getEnd());
 
-        Operation launchOperation = recommendations.get(2).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Operation launchOperation = recommendations.get(5).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Assert.assertEquals(getResourceId(taskInfo.getResources(0)), getResourceId(fulfilledPortResource1));
         Assert.assertEquals(getResourceId(taskInfo.getResources(1)), getResourceId(fulfilledPortResource2));
 
@@ -256,12 +305,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     public void testReserveTaskNamedVIPPort() throws Exception {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 10000),
-                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
+                OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
 
-        Operation launchOperation = recommendations.get(1).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Operation launchOperation = recommendations.get(4).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
@@ -288,12 +337,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     public void testReserveTaskDynamicVIPPort() throws Exception {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 0),
-                OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
+                OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
-        Assert.assertEquals(2, recommendations.size());
+        Assert.assertEquals(5, recommendations.size());
 
-        Operation launchOperation = recommendations.get(1).getOperation();
-        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Operation launchOperation = recommendations.get(4).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());

@@ -127,14 +127,14 @@ public class UninstallSchedulerTest {
 
     @Test
     public void testUninstallStepsComplete() throws Exception {
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
 
-        offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
+        offer = OfferTestUtils.getCompleteOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         plan = uninstallScheduler.uninstallPlanManager.getPlan();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
@@ -143,7 +143,7 @@ public class UninstallSchedulerTest {
 
     @Test
     public void testPlanCompletes() throws Exception {
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
 
@@ -160,7 +160,7 @@ public class UninstallSchedulerTest {
         UninstallScheduler uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, false);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 
-        Protos.Offer offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         verify(mockSchedulerDriver, times(1)).declineOffer(any());
     }

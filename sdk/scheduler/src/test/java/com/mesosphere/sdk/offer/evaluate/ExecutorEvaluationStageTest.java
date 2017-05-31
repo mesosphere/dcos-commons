@@ -25,7 +25,9 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceTestUtils.getUnreservedScalar("cpus", 1.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 1.1),
+                        ResourceTestUtils.getUnreservedScalar("mem", 256),
+                        ResourceTestUtils.getUnreservedScalar("disk", 512)));
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
@@ -37,7 +39,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
         MesosResourcePool resources = new MesosResourcePool(
-                OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)),
+                OfferTestUtils.getCompleteOffer(Arrays.asList(expectedTaskCpu)),
                 Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
@@ -50,7 +52,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                                stateStore.fetchTasks()));
+                                stateStore.fetchTasks(),
+                                stateStore.fetchFrameworkId().get()));
         Assert.assertFalse(outcome.isPassing());
     }
 
@@ -62,7 +65,9 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceTestUtils.getUnreservedScalar("cpus", 1.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 1.1),
+                        ResourceTestUtils.getUnreservedScalar("mem", 256),
+                        ResourceTestUtils.getUnreservedScalar("disk", 512)));
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
@@ -72,7 +77,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         .build());
 
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)).toBuilder()
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(expectedTaskCpu)).toBuilder()
                 .addExecutorIds(taskInfo.getExecutor().getExecutorId())
                 .build();
         MesosResourcePool resources = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
@@ -85,7 +90,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
-                        stateStore.fetchTasks());
+                        stateStore.fetchTasks(),
+                        stateStore.fetchFrameworkId().get());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

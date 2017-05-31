@@ -2,7 +2,9 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -21,18 +23,27 @@ import java.util.stream.Collectors;
  */
 public class ExecutorResourceMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
+    private final Protos.ExecutorInfo executorInfo;
+    private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
     private final List<Protos.Resource> resources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
 
-    private static class VolumeLabels {
-        private final VolumeSpec volumeSpec;
+    /**
+     * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
+     */
+    private static class ResourceLabels {
+        private final ResourceSpec resourceSpec;
         private final String resourceId;
-        private final String persistenceId;
+        private final Optional<String> persistenceId;
 
-        private VolumeLabels(VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-            this.volumeSpec = volumeSpec;
+        private ResourceLabels(ResourceSpec resourceSpec, String resourceId) {
+            this(resourceSpec, resourceId, Optional.empty());
+        }
+
+        private ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> persistenceId) {
+            this.resourceSpec = resourceSpec;
             this.resourceId = resourceId;
             this.persistenceId = persistenceId;
         }
@@ -43,8 +54,11 @@ public class ExecutorResourceMapper {
         }
     }
 
-    public ExecutorResourceMapper(PodSpec podSpec, Protos.ExecutorInfo executorInfo) {
+    public ExecutorResourceMapper(
+            PodSpec podSpec, Collection<ResourceSpec> resourceSpecs, Protos.ExecutorInfo executorInfo) {
+        this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
+        this.resourceSpecs = resourceSpecs;
         this.resources = executorInfo.getResourcesList();
         this.evaluationStages = getEvaluationStagesInternal();
     }
@@ -58,20 +72,30 @@ public class ExecutorResourceMapper {
     }
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
-        List<VolumeSpec> remainingVolumeSpecs = new ArrayList<>();
-        remainingVolumeSpecs.addAll(volumeSpecs);
+        List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
+        remainingResourceSpecs.addAll(volumeSpecs);
 
-        List<VolumeLabels> matchingVolumes = new ArrayList<>();
+        if (executorInfo.getExecutorId().getValue().isEmpty()) {
+            remainingResourceSpecs.addAll(resourceSpecs);
+        }
+
+        List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
-            Optional<VolumeLabels> matchingVolume = findMatchingDiskSpec(resource, remainingVolumeSpecs);
-            if (matchingVolume.isPresent()) {
-                if (!remainingVolumeSpecs.remove(matchingVolume.get().volumeSpec)) {
+            Optional<ResourceLabels> matchingResource;
+            if (resource.getName().equals(Constants.DISK_RESOURCE_TYPE) && resource.hasDisk()) {
+                matchingResource = findMatchingDiskSpec(resource, remainingResourceSpecs);
+            } else {
+                matchingResource = findMatchingResourceSpec(resource, remainingResourceSpecs);
+            }
+
+            if (matchingResource.isPresent()) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().resourceSpec)) {
                     throw new IllegalStateException(
                             String.format(
                                     "Didn't find %s in %s",
-                                    matchingVolume.get().volumeSpec, remainingVolumeSpecs));
+                                    matchingResource.get().resourceSpec, remainingResourceSpecs));
                 }
-                matchingVolumes.add(matchingVolume.get());
+                matchingResources.add(matchingResource.get());
             } else {
                 if (resource.hasDisk()) {
                     orphanedResources.add(resource);
@@ -82,60 +106,84 @@ public class ExecutorResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            LOGGER.info("Orphaned task resources no longer in VolumeSpec: {}",
+            LOGGER.info("Orphaned executor resources no longer in executor: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
-        if (!matchingVolumes.isEmpty()) {
-            LOGGER.info("Matching volume/VolumeSpec volumes: {}", matchingVolumes);
-            for (VolumeLabels volumeLabels : matchingVolumes) {
-                VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
-                        volumeLabels.volumeSpec,
-                        null,
-                        Optional.of(volumeLabels.resourceId),
-                        Optional.of(volumeLabels.persistenceId));
-                stages.add(volumeEvaluationStage);
+        if (!matchingResources.isEmpty()) {
+            for (ResourceLabels resourceLabels : matchingResources) {
+                stages.add(newUpdateEvaluationStage(resourceLabels));
             }
         }
 
-        // these are resourcespecs which weren't found in the taskinfo resources. likely need new reservations
-        if (!remainingVolumeSpecs.isEmpty()) {
-            LOGGER.info("Missing VolumeSpec resources not found in executor: {}", remainingVolumeSpecs);
-            for (VolumeSpec missingVolume : remainingVolumeSpecs) {
-                VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
-                        missingVolume,
-                        null,
-                        Optional.empty(),
-                        Optional.empty());
-                stages.add(volumeEvaluationStage);
+        if (!remainingResourceSpecs.isEmpty()) {
+            LOGGER.info("Missing volumes not found in executor: {}", remainingResourceSpecs);
+            for (ResourceSpec missingResource : remainingResourceSpecs) {
+                stages.add(newCreateEvaluationStage(missingResource));
             }
         }
 
         return stages;
     }
 
-    private static Optional<VolumeLabels> findMatchingDiskSpec(
-            Protos.Resource resource,
-            Collection<VolumeSpec> volumeSpecs) {
-        for (VolumeSpec volumeSpec : volumeSpecs) {
-            if (!resource.hasDisk()) {
+    private Optional<ResourceLabels> findMatchingDiskSpec(
+            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
+        for (ResourceSpec resourceSpec : resourceSpecs) {
+            if (!(resourceSpec instanceof VolumeSpec)) {
                 continue;
             }
 
-            if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
-                Optional<String> resourceId = ResourceUtils.getResourceId(resource);
+            if (taskResource.getDisk().getVolume().getContainerPath().equals(
+                    ((VolumeSpec) resourceSpec).getContainerPath())) {
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", resource);
+                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
                 }
 
-                return Optional.of(new VolumeLabels(
-                        volumeSpec,
+                return Optional.of(new ResourceLabels(
+                        resourceSpec,
                         resourceId.get(),
-                        resource.getDisk().getPersistence().getId()));
+                        Optional.of(taskResource.getDisk().getPersistence().getId())));
             }
         }
 
         return Optional.empty();
+    }
+
+    private Optional<ResourceLabels> findMatchingResourceSpec(
+            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
+        for (ResourceSpec resourceSpec : resourceSpecs) {
+            if (resourceSpec.getName().equals(taskResource.getName())) {
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
+                if (!resourceId.isPresent()) {
+                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                    continue;
+                }
+
+                return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
+        return toEvaluationStage(resourceLabels.resourceSpec, Optional.of(resourceLabels.resourceId),
+                resourceLabels.persistenceId);
+    }
+
+    private static OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
+        return toEvaluationStage(resourceSpec, Optional.empty(), Optional.empty());
+    }
+
+    private static OfferEvaluationStage toEvaluationStage(
+            ResourceSpec resourceSpec,
+            Optional<String> resourceId,
+            Optional<String> persistenceId) {
+        if (resourceSpec instanceof VolumeSpec) {
+            return new VolumeEvaluationStage((VolumeSpec) resourceSpec, null, resourceId, persistenceId);
+        } else {
+            return new ResourceEvaluationStage(resourceSpec, resourceId, null);
+        }
     }
 }
