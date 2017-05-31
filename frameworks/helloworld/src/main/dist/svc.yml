@@ -1,149 +1,55 @@
-name: "hello-world"
+name: hello-world
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
-  hello-overlay-vip:
-    count: 1
-    uris:
-      # this python script starts a basic HTTP server, it responds on a specific port with a given message
-      # USAGE: python3 http_py3responder.py <port> <message>
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-    # join the 'dcos' overlay network
-    networks:
-      dcos:
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        ports:
-          test:
-            port: 4044
-            vip:
-              prefix: overlay-vip
-              port: 80
-              advertise: true
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the overlay network with a VIP!"
-        resource-set: hello-resource
-  hello-overlay:
-    count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-    networks:
-      dcos:
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        ports:
-          test:
-            port: 4044
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the overlay network!"
-        resource-set: hello-resource
-  hello-host-vip:
-    count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        ports:
-          test:
-            port: 4044
-            vip:
-              prefix: host-vip
-              port: 80
-              advertise: true
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the host network with a VIP!"
-        resource-set: hello-resource
-  hello-host:
-    count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        ports:
-          test:
-            port: 4044
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the host network!"
-        resource-set: hello-resource
-  getter:
+  hello:
     count: {{HELLO_COUNT}}
-    networks:
-      dcos:
+    placement: {{HELLO_PLACEMENT}}
     tasks:
-      get-Overlay:
+      server:
         goal: RUNNING
+        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Overlay-vip:
+        health-check:
+          cmd: stat hello-container-path/output
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+  world:
+    count: {{WORLD_COUNT}}
+    placement: {{WORLD_PLACEMENT}}
+    tasks:
+      server:
         goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
+        cmd: >
+               echo world1 >> world-container-path1/output &&
+               echo world2 >> world-container-path2/output &&
+               sleep $SLEEP_DURATION
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        volumes:
+          vol1:
+            path: world-container-path1
+            type: ROOT
+            size: {{HELLO_DISK}}
+          vol2:
+            path: world-container-path2
+            type: ROOT
+            size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Host-vip:
-        goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Host:
-        goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-
-plans:
-  deploy:
-    strategy: serial
-    phases:
-      hello-overlay-vip-deploy:
-        strategy: serial
-        pod: hello-overlay-vip
-        steps:
-          - default: [[server]]
-      hello-overlay-deploy:
-        strategy: serial
-        pod: hello-overlay
-        steps:
-          - default: [[server]]
-      hello-host-vip-deploy:
-        strategy: serial
-        pod: hello-host-vip
-        steps:
-          - default: [[server]]
-      hello-host-deploy:
-        strategy: serial
-        pod: hello-host
-        steps:
-          - default: [[server]]
-      getter-deploy:
-        strategy: serial
-        pod: getter
-        steps:
-          - default: [[get-Overlay], [get-Host], [get-Overlay-vip], [get-Host-vip]]
-
+        readiness-check:
+          cmd: BYTES="$(wc -c world-container-path2/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
+          interval: 5
+          delay: 0
+          timeout: 10
