@@ -431,7 +431,7 @@ $ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that brok
 $ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
 ```
 
-## Running Commands within containers
+## Running Commands within Containers
 
 An extremely useful tool for diagnosing task state is the ability to run arbitrary commands _within_ the task. The available tools for doing this depend on the version of DC/OS you're using:
 
