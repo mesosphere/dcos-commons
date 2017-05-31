@@ -5,6 +5,10 @@ scheduler:
 pods:
   hello:
     count: 2
+    volume:
+      path: "executor-volume"
+      type: ROOT
+      size: 1024
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}
@@ -19,17 +23,29 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo $TASK_NAME >> executor-volume/output && cat executor-volume/output && echo 'my volume' >> hello-container-path/output && cat hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
           SLEEP_DURATION: 1000
+        health-check:
+          cmd: "/bin/true"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "/bin/true"
+          interval: 5
+          delay: 0
+          timeout: 60
       once:
         goal: FINISHED
-        cmd: "echo 'I run only once' >> hello-container-path/output"
+        cmd: "echo 'I only run one time' >> executor-volume/output && cat executor-volume/output"
         resource-set: sidecar-resources
       sidecar:
         goal: FINISHED
-        cmd: "echo 'sidecar' >> hello-container-path/output"
+        cmd: "echo 'sidecar' >> executor-volume/output && cat executor-volume/output"
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -43,7 +59,7 @@ plans:
       once-deploy:
         strategy: parallel
         pod: hello
-        steps:
+        steps: 
           - default: [[once]]
   sidecar:
     strategy: serial

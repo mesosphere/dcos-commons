@@ -93,7 +93,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
         logger.info("  Generated '{}' resource for task: [{}]",
                 volumeSpec.getName(), TextFormat.shortDebugString(fulfilledResource));
-        super.setProtos(podInfoBuilder, fulfilledResource);
+        setProtos(podInfoBuilder, fulfilledResource);
 
         return pass(
                 this,
@@ -101,6 +101,18 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
                 "Satisfied requirements for %s volume '%s'",
                 volumeSpec.getType(),
                 volumeSpec.getContainerPath());
+    }
+
+    @Override
+    protected void setProtos(PodInfoBuilder podInfoBuilder, Resource resource) {
+        super.setProtos(podInfoBuilder, resource);
+
+        if (!getTaskName().isPresent()) {
+            // Volumes on the executor must be declared in each TaskInfo.ContainerInfo to be shared among them.
+            for (Protos.TaskInfo.Builder t : podInfoBuilder.getTaskBuilders()) {
+                t.getContainerBuilder().addVolumes(resource.getDisk().getVolume());
+            }
+        }
     }
 
     protected Resource getFulfilledResource(Resource resource) {
@@ -114,7 +126,12 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
                         .setPrincipal(volumeSpec.getPrincipal()))
                 .setVolume(Protos.Volume.newBuilder()
                         .setMode(Protos.Volume.Mode.RW)
-                        .setContainerPath(volumeSpec.getContainerPath()))
+                        .setContainerPath(volumeSpec.getContainerPath())
+                        .setSource(Protos.Volume.Source.newBuilder()
+                                .setType(Protos.Volume.Source.Type.SANDBOX_PATH)
+                                .setSandboxPath(Protos.Volume.Source.SandboxPath.newBuilder()
+                                        .setType(Protos.Volume.Source.SandboxPath.Type.PARENT)
+                                        .setPath(volumeSpec.getContainerPath()))))
                 .build();
         builder.setDisk(diskInfo);
 

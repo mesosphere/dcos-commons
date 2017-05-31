@@ -2,11 +2,11 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-
+import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
 
 /**
@@ -16,9 +16,11 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     private final Offer offer;
     private final Operation operation;
     private final TaskInfo taskInfo;
+    private final ExecutorInfo executorInfo;
     private final boolean shouldLaunch;
 
-    public LaunchOfferRecommendation(Offer offer, TaskInfo originalTaskInfo, boolean shouldLaunch) {
+    public LaunchOfferRecommendation(
+            Offer offer, TaskInfo originalTaskInfo, Protos.ExecutorInfo executorInfo, boolean shouldLaunch) {
         this.offer = offer;
         this.shouldLaunch = shouldLaunch;
 
@@ -31,13 +33,13 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
         taskBuilder.setSlaveId(offer.getSlaveId());
 
         this.taskInfo = taskBuilder.build();
-
-        // The packed TaskInfo is only used in the launch operation itself, which is what we pass to Mesos.
-        // The rest of the Scheduler uses unpacked TaskInfos.
+        this.executorInfo = executorInfo;
         this.operation = Operation.newBuilder()
-                .setType(Operation.Type.LAUNCH)
-                .setLaunch(Operation.Launch.newBuilder()
-                        .addTaskInfos(TaskPackingUtils.pack(this.taskInfo)))
+                .setType(Operation.Type.LAUNCH_GROUP)
+                .setLaunchGroup(Operation.LaunchGroup.newBuilder()
+                        .setExecutor(this.executorInfo)
+                        .setTaskGroup(Protos.TaskGroupInfo.newBuilder()
+                                .addTasks(this.taskInfo)))
                 .build();
     }
 
@@ -56,11 +58,17 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     }
 
     /**
-     * Returns the original, unpacked {@link TaskInfo} to be launched. This varies from the {@link TaskInfo} stored
-     * within the {@link Operation}, which is packed.
+     * Returns the {@link TaskInfo} to be launched.
      */
     public TaskInfo getTaskInfo() {
         return taskInfo;
+    }
+
+    /**
+     * Returns the {@link TaskInfo} to be launched.
+     */
+    public ExecutorInfo getExecutorInfo() {
+        return executorInfo;
     }
 
     @Override

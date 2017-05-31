@@ -32,7 +32,8 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        Optional<Protos.ExecutorInfo.Builder> executorBuilder = podInfoBuilder.getExecutorBuilder();
+        // FIX: no lonegr optional on podinfobuilder
+        Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
         taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
@@ -44,13 +45,11 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
             .setIndex(podInfoBuilder.getIndex())
             .setHostname(offer)
             .toProto());
-        if (executorBuilder.isPresent()) {
-            taskBuilder.setExecutor(executorBuilder.get());
-        }
 
         return pass(
                 this,
-                Arrays.asList(new LaunchOfferRecommendation(offer, taskBuilder.build(), shouldLaunch)),
+                Arrays.asList(new LaunchOfferRecommendation(
+                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement");
     }
 }

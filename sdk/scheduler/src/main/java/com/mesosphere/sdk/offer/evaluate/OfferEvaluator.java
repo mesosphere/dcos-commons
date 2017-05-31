@@ -239,7 +239,6 @@ public class OfferEvaluator {
         return resourceSpecs;
     }
 
-
     private static List<OfferEvaluationStage> getNewEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
@@ -249,9 +248,12 @@ public class OfferEvaluator {
                     new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty()));
         }
 
+        String role = null;
+        String principal = null;
         for (Map.Entry<String, ResourceSet> entry : resourceSets.entrySet()) {
             String taskName = entry.getKey();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
+
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
                     evaluationStages.add(
@@ -261,6 +263,12 @@ public class OfferEvaluator {
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }
+
+                if (role == null && principal == null) {
+                    // FIX: this sucks
+                    role = resourceSpec.getRole();
+                    principal = resourceSpec.getPrincipal();
+                }
             }
 
             for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
@@ -268,11 +276,42 @@ public class OfferEvaluator {
                         new VolumeEvaluationStage(volumeSpec, taskName, Optional.empty(), Optional.empty()));
             }
 
+            // The default executor needs a constant amount of resources, account for them here.
+            for (ResourceSpec resourceSpec : getExecutorResources(role, principal)) {
+                evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), null));
+            }
+
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
             evaluationStages.add(new LaunchEvaluationStage(taskName, shouldBeLaunched));
         }
 
         return evaluationStages;
+    }
+
+    private static List<ResourceSpec> getExecutorResources(String role, String principal) {
+        List<ResourceSpec> resources = new ArrayList<>();
+
+        resources.add(DefaultResourceSpec.newBuilder()
+                .name("cpus")
+                .role(role)
+                .principal(principal)
+                .value(Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1))
+                        .build())
+                .build());
+
+        resources.add(DefaultResourceSpec.newBuilder()
+                .name("mem")
+                .role(role)
+                .principal(principal)
+                .value(Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0))
+                        .build())
+                .build());
+
+        return resources;
     }
 
     private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
