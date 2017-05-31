@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -25,7 +24,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceUtils.getUnreservedScalar("cpus", 1.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 1.0)));
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
@@ -61,7 +60,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceUtils.getUnreservedScalar("cpus", 1.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 1.0)));
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(

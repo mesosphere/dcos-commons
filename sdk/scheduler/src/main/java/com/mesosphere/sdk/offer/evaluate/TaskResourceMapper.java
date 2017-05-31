@@ -1,27 +1,18 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.RangeAlgorithms;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.specification.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.RangeAlgorithms;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.VolumeSpec;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Handles cross-referencing a preexisting {@link Protos.TaskInfo}'s current {@link Protos.Resource}s against a set
@@ -67,7 +58,7 @@ class TaskResourceMapper {
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
         this.resources = taskInfo.getResourcesList();
-        this.taskEnv = EnvUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        this.taskEnv = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         this.evaluationStages = getEvaluationStagesInternal();
     }
 
@@ -141,14 +132,22 @@ class TaskResourceMapper {
             if (!(resourceSpec instanceof VolumeSpec)) {
                 continue;
             }
+
             if (taskResource.getDisk().getVolume().getContainerPath().equals(
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
+                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                if (!resourceId.isPresent()) {
+                    logger.error("Failed to find resource ID for resource: {}", taskResource);
+                    continue;
+                }
+
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
-                        ResourceUtils.getResourceId(taskResource),
+                        resourceId.get(),
                         Optional.of(taskResource.getDisk().getPersistence().getId())));
             }
         }
+
         return Optional.empty();
     }
 
@@ -168,13 +167,26 @@ class TaskResourceMapper {
                         && RangeAlgorithms.isInAny(
                                 taskResource.getRanges().getRangeList(),
                                 Integer.parseInt(portEnvVal))) {
+
                     // The advertised port value is present in this resource. Resource must match!
-                    return Optional.of(new ResourceLabels(resourceSpec, ResourceUtils.getResourceId(taskResource)));
+                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                    if (!resourceId.isPresent()) {
+                        logger.error("Failed to find resource ID for resource: {}", taskResource);
+                        continue;
+                    }
+
+                    return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
                 }
             } else {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
                 if (RangeAlgorithms.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
-                    return Optional.of(new ResourceLabels(resourceSpec, ResourceUtils.getResourceId(taskResource)));
+                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                    if (!resourceId.isPresent()) {
+                        logger.error("Failed to find resource ID for resource: {}", taskResource);
+                        continue;
+                    }
+
+                    return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
                 }
             }
         }
@@ -185,7 +197,13 @@ class TaskResourceMapper {
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (resourceSpec.getName().equals(taskResource.getName())) {
-                return Optional.of(new ResourceLabels(resourceSpec, ResourceUtils.getResourceId(taskResource)));
+                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                if (!resourceId.isPresent()) {
+                    logger.error("Failed to find resource ID for resource: {}", taskResource);
+                    continue;
+                }
+
+                return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
             }
         }
         return Optional.empty();

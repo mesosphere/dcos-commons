@@ -101,7 +101,7 @@ public class StateStoreUtils {
 
         List<TaskInfo> results = new ArrayList<>();
         for (TaskInfo info : allInfos) {
-            String taskPod = null;
+            String taskPod;
             try {
                 taskPod = new SchedulerLabelReader(info).getType();
             } catch (TaskException e) {
@@ -157,7 +157,7 @@ public class StateStoreUtils {
         Collection<Protos.Resource> reservedResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
             MesosResource mesosResource = new MesosResource(resource);
-            if (mesosResource.hasResourceId()) {
+            if (mesosResource.getResourceId().isPresent()) {
                 reservedResources.add(resource);
             }
         }
@@ -191,7 +191,7 @@ public class StateStoreUtils {
 
         LOGGER.info("Tasks for pod: {}",
                 taskInfosForPod.stream()
-                        .map(taskInfo -> taskInfo.getName())
+                        .map(TaskInfo::getName)
                         .collect(Collectors.toList()));
 
         Optional<TaskInfo> taskInfoOptional = taskInfosForPod.stream()
@@ -231,10 +231,10 @@ public class StateStoreUtils {
     }
 
     /**
-     * Sets an 'uninstall' property in the provided {@link StateStore} to the provided value.
+     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
      */
-    public static void setUninstalling(StateStore stateStore, boolean isUninstalling) {
-        setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, isUninstalling);
+    public static void setUninstalling(StateStore stateStore) {
+        setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
     }
 
     private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {

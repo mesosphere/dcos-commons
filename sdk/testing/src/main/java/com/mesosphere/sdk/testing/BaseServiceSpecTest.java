@@ -5,8 +5,11 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStoreCache;
-import org.apache.curator.test.TestingServer;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -15,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
-import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.mock;
@@ -55,7 +57,7 @@ public class BaseServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFlags);
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
-        DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec);
     }
 
     protected void validateServiceSpec(String fileName) throws Exception {
@@ -63,22 +65,19 @@ public class BaseServiceSpecTest {
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, mockFlags);
 
-        TestingServer testingServer = new TestingServer();
-        StateStoreCache.resetInstanceForTests();
-
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
-        when(capabilities.supportCniPortMapping()).thenReturn(true);
+        when(capabilities.supportsCNINetworking()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
 
+        Persister persister = new MemPersister();
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
-                .setStateStore(DefaultScheduler.createStateStore(
-                        serviceSpec, mockFlags, testingServer.getConnectString()))
-                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .setStateStore(new DefaultStateStore(persister))
+                .setConfigStore(
+                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)
                 .build();
-        testingServer.close();
     }
 }

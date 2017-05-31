@@ -1,7 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.api.ArtifactResource;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.InvalidRequirementException;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -69,7 +72,7 @@ public class PodInfoBuilder {
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
             this.lastTaskEnvs.put(
-                    currentTask.getName(), EnvUtils.fromEnvironmentToMap(currentTask.getCommand().getEnvironment()));
+                    currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -220,7 +223,7 @@ public class PodInfoBuilder {
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return EnvUtils.fromMapToEnvironment(environment).build();
+        return EnvUtils.toProto(environment);
     }
 
     private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
@@ -231,10 +234,10 @@ public class PodInfoBuilder {
             // For use by bootstrap process: an environment variable pointing to (comma-separated):
             // a. where the template file was downloaded (by the mesos fetcher)
             // b. where the rendered result should go
-            CommandUtils.setEnvVar(
-                    commandInfoBuilder,
-                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())),
-                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath()));
+            commandInfoBuilder.setEnvironment(EnvUtils.withEnvVar(
+                    commandInfoBuilder.getEnvironment(),
+                    String.format(CONFIG_TEMPLATE_KEY_FORMAT, EnvUtils.toEnvName(config.getName())),
+                    String.format("%s,%s", getConfigTemplateDownloadPath(config), config.getRelativePath())));
         }
     }
 
@@ -355,6 +358,11 @@ public class PodInfoBuilder {
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
 
+        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
+            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
+                    "may experience unexpected behavior", networkSpec.getName()));
+        }
+
         if (!networkSpec.getPortMappings().isEmpty()) {
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
                 Integer hostPort = e.getKey();
@@ -366,18 +374,8 @@ public class PodInfoBuilder {
             }
         }
 
-        if (!networkSpec.getNetgroups().isEmpty()) {
-            netInfoBuilder.addAllGroups(networkSpec.getNetgroups());
-        }
-
-        if (!networkSpec.getIpAddresses().isEmpty()) {
-            for (String ipAddressString : networkSpec.getIpAddresses()) {
-                netInfoBuilder.addIpAddresses(
-                        Protos.NetworkInfo.IPAddress.newBuilder()
-                                .setIpAddress(ipAddressString)
-                                .setProtocol(Protos.NetworkInfo.Protocol.IPv4)
-                                .build());
-            }
+        if (!networkSpec.getLabels().isEmpty()) {
+            throw new IllegalStateException("Network-labels is not implemented, yet");
         }
 
         return netInfoBuilder.build();

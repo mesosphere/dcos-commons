@@ -109,10 +109,12 @@ def download_cli(dcos_url, write_dir):
     url_template = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/dcos-{}/{}'
     cluster_version = get_cluster_version(dcos_url)
     # we only care about the target release number
-    if '-' in cluster_version:
-        cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
-    major, minor = cluster_version.split('.')[:2] # 1.8.8 -> 1.8
-    cluster_version = '%s.%s' % (major, minor)
+    #if '-' in cluster_version:
+    #    cluster_version, _ = cluster_version.split('-', 1) # "1.9-dev" -> 1.9
+    #major, minor = cluster_version.split('.')[:2] # 1.8.8 -> 1.8
+    #cluster_version = '%s.%s' % (major, minor)
+    # XXX 1.10 cli is buggy and floods logs
+    cluster_version = "1.9"
     cli_url = url_template.format(get_download_platform(), cluster_version,
                                   get_cli_filename())
     # actually download to unique filename, then rename into place atomically.

@@ -2,12 +2,16 @@ name: "valid-container-network-test"
 pods:
   server:
     count: 1
-    # Define networks directly on the pod
     networks:
-      test:
+      dcos:
     tasks:
       server:
         goal: RUNNING
         cmd: "cmd"
         cpus: 1
         memory: 1024
+        ports:
+          test:
+            port: 8080
+          test-2:
+            port: 8081

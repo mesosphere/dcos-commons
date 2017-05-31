@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -12,10 +12,8 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
@@ -24,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -36,7 +33,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
@@ -87,16 +83,15 @@ public class DefaultService implements Service {
                 if (!StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                             "Uninstall cannot be canceled once enabled.");
-                    StateStoreUtils.setUninstalling(stateStore, true);
+                    StateStoreUtils.setUninstalling(stateStore);
                 }
 
-                ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(serviceSpec);
                 LOGGER.info("Launching UninstallScheduler...");
                 this.scheduler = new UninstallScheduler(
                         schedulerBuilder.getServiceSpec().getApiPort(),
                         schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
                         stateStore,
-                        configStore);
+                        schedulerBuilder.getConfigStore());
             } else {
                 if (StateStoreUtils.isUninstalling(stateStore)) {
                     LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -116,56 +111,12 @@ public class DefaultService implements Service {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
 
-        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
-                serviceSpec.getZookeeperConnection(), CuratorUtils.getDefaultRetry());
-        curatorClient.start();
-
-        InterProcessMutex curatorMutex = lock(curatorClient, serviceSpec.getName(), LOCK_ATTEMPTS);
+        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        locker.lock();
         try {
             register();
         } finally {
-            unlock(curatorMutex);
-            curatorClient.close();
-        }
-    }
-
-    /**
-     * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
-     * same service.
-     */
-    protected static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName, int lockAttempts) {
-        String lockPath = CuratorUtils.join(
-                CuratorUtils.toServiceRootPath(serviceName), CuratorStateStore.LOCK_PATH_NAME);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
-
-        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
-        String format = "Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?";
-        final String failureLogMsg = String.format(format, lockPath, serviceName, serviceName);
-        try {
-            for (int i = 0; i < lockAttempts; ++i) {
-                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                    return curatorMutex;
-                }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, lockAttempts, failureLogMsg);
-            }
-            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        } catch (Exception ex) {
-            LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
-            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-        }
-        return null; // not reachable, only here for a happy java
-    }
-
-    /**
-     * Releases the lock previously obtained by {@link #lock(CuratorFramework, String)}.
-     */
-    protected static void unlock(InterProcessMutex curatorMutex) {
-        try {
-            curatorMutex.release();
-        } catch (Exception ex) {
-            LOGGER.error("Error releasing ZK lock.", ex);
+            locker.unlock();
         }
     }
 
@@ -174,13 +125,35 @@ public class DefaultService implements Service {
      */
     @Override
     public void register() {
+        if (allButStateStoreUninstalled()) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return;
+        }
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
-        Protos.Status status = new SchedulerDriverFactory().create(scheduler, frameworkInfo, zkUri, schedulerFlags).
-                run();
+        Protos.Status status = new SchedulerDriverFactory()
+                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
+    }
+
+    private boolean allButStateStoreUninstalled() {
+        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
+        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
+        // have register() called after the StateStore already has the uninstall bit wiped.
+        //
+        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
+        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // StateStoreUtils.isUninstalling().
+
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return (StateStoreUtils.isUninstalling(stateStore) || schedulerFlags.isUninstallEnabled()) &&
+                !stateStore.fetchFrameworkId().isPresent() &&
+                ResourceCollectionUtils.getResourceIds(
+                        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+                    .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     protected ServiceSpec getServiceSpec() {

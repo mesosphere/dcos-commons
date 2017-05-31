@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.api.*;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
-import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
+import com.mesosphere.sdk.kafka.upgrade.FilterStateStore;
 import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -12,6 +13,9 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +37,11 @@ public class KafkaService extends DefaultService {
 
         /* Upgrade */
         new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec(), schedulerFlags);
-        CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
-                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        Persister stateStorePersister = CuratorPersister.newBuilder(schedulerBuilder.getServiceSpec()).build();
+        if (schedulerFlags.isStateCacheEnabled()) {
+            stateStorePersister = new PersisterCache(stateStorePersister);
+        }
+        FilterStateStore stateStore = new FilterStateStore(stateStorePersister);
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
         schedulerBuilder.setStateStore(stateStore);
         /* Upgrade */

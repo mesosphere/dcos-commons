@@ -2,11 +2,13 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -14,8 +16,6 @@ import javax.validation.constraints.Pattern;
  * This class provides a default implementation of the VolumeSpec interface.
  */
 public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
-
-    public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
 
@@ -31,7 +31,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             String role,
             String principal,
             String envKey) {
-        this(type, containerPath, RESOURCE_NAME, scalarValue(diskSize), role, principal, envKey);
+        this(type, containerPath, ResourceBuilder.DISK_RESOURCE_TYPE, scalarValue(diskSize), role, principal, envKey);
     }
 
     @JsonCreator

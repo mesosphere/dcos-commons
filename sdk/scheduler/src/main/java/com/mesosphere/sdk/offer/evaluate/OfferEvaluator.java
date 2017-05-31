@@ -132,8 +132,10 @@ public class OfferEvaluator {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
-                .map(resource -> ResourceUtils.getResourceId(resource))
-                .filter(resourceId -> resourceId != null && !resourceId.isEmpty())
+                .map(resource -> ResourceCollectionUtils.getResourceId(resource))
+                .filter(resourceId -> resourceId.isPresent())
+                .map(Optional::get)
+                .filter(resourceId -> !resourceId.isEmpty())
                 .count() == 0;
 
         boolean podHasFailed = podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)

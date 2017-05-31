@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.OfferAccepter;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -14,23 +14,19 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstr
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.DefaultConfigStore;
+import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
-
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -78,8 +74,6 @@ public class DefaultRecoveryPlanManagerTest {
     private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
 
-    private static TestingServer testingServer;
-
     private static List<Offer> getOffers() {
         return getOffers(TestPodFactory.CPU, TestPodFactory.MEM);
     }
@@ -94,26 +88,21 @@ public class DefaultRecoveryPlanManagerTest {
     @Captor
     private ArgumentCaptor<List<OfferRecommendation>> recommendationCaptor;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-    }
-
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        CuratorTestUtils.clear(testingServer);
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
-        stateStore = new CuratorStateStore(TestConstants.SERVICE_NAME, testingServer.getConnectString());
+        Persister persister = new MemPersister();
+        stateStore = new DefaultStateStore(persister);
 
         serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
                 YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
                         .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
 
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
+        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         taskInfo = TaskInfo.newBuilder(taskInfo)

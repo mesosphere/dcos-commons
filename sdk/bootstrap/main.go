@@ -215,16 +215,8 @@ func renderTemplate(origContent string, outPath string, envMap map[string]string
 	// Print a nice debuggable diff of the changes before they're written.
 	log.Printf("Writing rendered '%s' from %s with the following changes (%d bytes -> %d bytes):",
 		outPath, source, len(origContent), len(newContent))
-	line := 0
 	for _, diffRec := range difflib.Diff(strings.Split(origContent, "\n"), strings.Split(newContent, "\n")) {
-		switch diffRec.Delta {
-		case difflib.Common:
-			line++
-			continue
-		case difflib.LeftOnly: // should be paired with a RightOnly. don't count both for the same line.
-			line++
-		}
-		fmt.Fprintf(os.Stderr, "L%04d: %s\n", line, diffRec)
+		fmt.Fprintf(os.Stderr, "%s\n", diffRec)
 	}
 
 	err = ioutil.WriteFile(outPath, []byte(newContent), 0666) // mode shouldn't matter: file should exist

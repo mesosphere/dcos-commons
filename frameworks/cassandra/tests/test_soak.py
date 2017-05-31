@@ -14,6 +14,9 @@ from tests.config import (
     VERIFY_DATA_JOB,
     VERIFY_DELETION_JOB,
     WRITE_DATA_JOB,
+    DataContext,
+    EnvironmentContext,
+    JobContext,
     get_jobs_folder,
     install_cassandra_jobs,
     install_job,
@@ -29,61 +32,6 @@ import sdk_test_upgrade
 import sdk_utils as utils
 
 
-class EnvironmentContext(object):
-    """Context manager for temporarily overriding local process envvars."""
-
-    def __init__(self, variable_mapping=None, **variables):
-        self.new_variables = {}
-
-        self.new_variables.update(
-            {} if variable_mapping is None else variable_mapping
-        )
-        self.new_variables.update(variables)
-
-    def __enter__(self):
-        self.original_variables = os.environ
-        for k, v in self.new_variables.items():
-            os.environ[k] = v
-
-    def __exit__(self, *args):
-        for k, v in self.new_variables.items():
-            if k not in self.original_variables:
-                del os.environ[k]
-            else:
-                os.environ[k] = self.original_variables[k]
-
-
-class JobContext(object):
-    """Context manager for installing and cleaning up metronome jobs."""
-
-    def __init__(self, job_names):
-        self.job_names = job_names
-
-    def __enter__(self):
-        for j in self.job_names:
-            install_job(j, get_jobs_folder())
-
-    def __exit__(self, *args):
-        for j in self.job_names:
-            remove_job(j)
-
-
-class DataContext(object):
-    """Context manager for temporarily installing data in a cluster."""
-
-    def __init__(self, init_jobs=None, cleanup_jobs=None):
-        self.init_jobs = init_jobs if init_jobs is not None else []
-        self.cleanup_jobs = cleanup_jobs if cleanup_jobs is not None else []
-
-    def __enter__(self):
-        for j in self.init_jobs:
-            launch_and_verify_job(j)
-
-    def __exit__(self, *args):
-        for j in self.cleanup_jobs:
-            launch_and_verify_job(j)
-
-
 def get_dcos_cassandra_plan(service_name):
     utils.out('Waiting for {} plan to complete...'.format(service_name))
 
@@ -94,13 +42,19 @@ def get_dcos_cassandra_plan(service_name):
 
 @pytest.mark.soak_backup
 def test_backup_and_restore():
-    # Since this is run on the soak cluster and state is retained, we have to
-    # also delete the test data in preparation for the next run.
-    data_context = DataContext(
-        cleanup_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]
-    )
-    with JobContext(TEST_JOBS), data_context:
-        run_backup_and_restore()
+    plan_parameters = {
+        'S3_BUCKET_NAME': os.getenv(
+            'AWS_BUCKET_NAME', 'infinity-framework-test'
+        ),
+        'AWS_ACCESS_KEY_ID': os.getenv('AWS_ACCESS_KEY_ID'),
+        'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
+        'AWS_REGION': os.getenv('AWS_REGION', 'us-west-2'),
+        'SNAPSHOT_NAME': str(uuid.uuid1()),
+        'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
+    }
+
+    with JobContext(TEST_JOBS):
+        run_backup_and_restore('backup-s3', 'restore-s3', plan_parameters)
 
 
 @pytest.mark.soak_upgrade

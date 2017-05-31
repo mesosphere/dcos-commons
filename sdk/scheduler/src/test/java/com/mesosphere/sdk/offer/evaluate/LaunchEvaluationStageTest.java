@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class LaunchEvaluationStageTest {
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
-        Protos.Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);

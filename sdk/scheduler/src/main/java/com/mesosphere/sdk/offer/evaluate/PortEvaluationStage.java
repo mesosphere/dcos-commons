@@ -1,14 +1,18 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +89,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
-        setPortEnvironmentVariable(taskBuilder.getCommandBuilder(), port);
-
-        // Add port to the health check (if defined)
-        if (taskBuilder.hasHealthCheck()) {
-            setPortEnvironmentVariable(taskBuilder.getHealthCheckBuilder().getCommandBuilder(), port);
-        }
 
         // Add port to the readiness check (if a readiness check is defined)
         try {
@@ -100,8 +98,16 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         } catch (TaskException e) {
             LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
         }
+    }
 
-        taskBuilder.addResources(resource);
+    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
+        Protos.Resource reservedResource = super.getFulfilledResource();
+        if (resourceId.isPresent() && !StringUtils.isBlank(resourceId.get())) {
+            reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
+                    .setResourceId(resourceId.get())
+                    .build();
+        }
+        return reservedResource;
     }
 
     private static Optional<Integer> selectDynamicPort(
@@ -151,8 +157,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 .collect(Collectors.toSet());
     }
 
-    private void setPortEnvironmentVariable(Protos.CommandInfo.Builder commandInfoBuilder, long port) {
-        CommandUtils.setEnvVar(commandInfoBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
+    private Protos.Environment withPortEnvironmentVariable(Protos.Environment environment, long port) {
+        return EnvUtils.withEnvVar(environment, getPortEnvironmentVariable(portSpec), Long.toString(port));
     }
 
     /**
@@ -163,6 +169,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 ? portSpec.getEnvKey().get() // use custom name as-is
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
-        return TaskUtils.toEnvName(draftEnvName);
+        return EnvUtils.toEnvName(draftEnvName);
     }
 }

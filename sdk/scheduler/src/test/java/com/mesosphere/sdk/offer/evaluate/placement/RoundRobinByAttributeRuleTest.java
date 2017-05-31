@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
@@ -56,13 +56,13 @@ public class RoundRobinByAttributeRuleTest {
     }
 
     private static Offer offerWithAttribute(String name, String value) {
-        Protos.Resource resource = ResourceUtils.setValue(
-                Protos.Resource.newBuilder()
-                        .setName("cpus"),
+        Protos.Resource resource = ResourceBuilder.fromUnreservedValue(
+                "cpus",
                 Protos.Value.newBuilder()
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0))
-                        .build());
+                        .build())
+                .build();
         Offer.Builder offerBuilder = OfferTestUtils.getOffer(resource).toBuilder();
         offerBuilder.addAttributesBuilder()
                 .setName(name)

@@ -99,11 +99,12 @@ public class MesosResourcePool {
             } else {
                 Value availableValue = mesosResource.getValue();
                 if (ValueUtils.compare(availableValue, value) > 0) {
-                    // update the value in pool with the remaining unclaimed resource amount
-                    Resource remaining = ResourceUtils.setValue(
-                            mesosResource.getResource().toBuilder(), ValueUtils.subtract(availableValue, value));
+                    // Update the value in pool with the remaining unclaimed resource amount
+                    Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
+                            .setValue(ValueUtils.subtract(availableValue, value))
+                            .build();
                     reservedPool.put(resourceId, new MesosResource(remaining));
-                    // return only the claimed resource amount from this reservation
+                    // Return only the claimed resource amount from this reservation
                 } else {
                     reservedPool.remove(resourceId);
                 }
@@ -159,7 +160,7 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(name, ValueUtils.subtract(availableValue, desiredValue));
-            Resource resource = ResourceUtils.getUnreservedResource(name, desiredValue);
+            Resource resource = ResourceBuilder.fromUnreservedValue(name, desiredValue).build();
             return Optional.of(new MesosResource(resource));
         } else {
             if (availableValue == null) {
@@ -185,8 +186,8 @@ public class MesosResourcePool {
     }
 
     private void freeMergedResource(MesosResource mesosResource) {
-        if (!mesosResource.getResourceId().isEmpty()) {
-            reservedPool.remove(mesosResource.getResourceId());
+        if (mesosResource.getResourceId().isPresent()) {
+            reservedPool.remove(mesosResource.getResourceId().get());
         }
 
         Value currValue = unreservedMergedPool.get(mesosResource.getName());
@@ -248,8 +249,9 @@ public class MesosResourcePool {
         Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
 
         for (MesosResource mesResource : mesosResources) {
-            if (mesResource.hasResourceId()) {
-                reservedPool.put(mesResource.getResourceId(), mesResource);
+            Optional<String> resourceId = mesResource.getResourceId();
+            if (resourceId.isPresent()) {
+                reservedPool.put(resourceId.get(), mesResource);
             }
         }
 
@@ -308,7 +310,7 @@ public class MesosResourcePool {
         Collection<MesosResource> unreservedResources = new ArrayList<MesosResource>();
 
         for (MesosResource mesosResource : mesosResources) {
-            if (!mesosResource.hasResourceId()) {
+            if (!mesosResource.getResourceId().isPresent()) {
                 unreservedResources.add(mesosResource);
             }
         }

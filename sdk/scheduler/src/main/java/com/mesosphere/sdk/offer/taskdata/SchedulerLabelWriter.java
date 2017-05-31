@@ -10,7 +10,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.CommandUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.specification.GoalState;
 
@@ -123,7 +122,8 @@ public class SchedulerLabelWriter extends LabelWriter {
             return this;
         }
         HealthCheck.Builder readinessCheckBuilder = readinessCheck.get().toBuilder();
-        CommandUtils.setEnvVar(readinessCheckBuilder.getCommandBuilder(), key, value);
+        readinessCheckBuilder.getCommandBuilder().setEnvironment(
+                EnvUtils.withEnvVar(readinessCheckBuilder.getCommand().getEnvironment(), key, value));
         return setReadinessCheck(readinessCheckBuilder.build());
     }
 

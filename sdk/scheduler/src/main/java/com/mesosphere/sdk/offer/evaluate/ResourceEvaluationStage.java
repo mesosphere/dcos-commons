@@ -111,9 +111,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
                 mesosResource = mesosResourceOptional.get();
 
-                Resource resource = ResourceUtils.setValue(
-                        getFulfilledResource().toBuilder(),
-                        mesosResource.getValue());
+                Resource resource = ResourceBuilder.fromExistingResource(getFulfilledResource())
+                        .setValue(mesosResource.getValue())
+                        .build();
                 // Reservation of additional resources
                 offerRecommendation = new ReserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
@@ -125,9 +125,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                         TextFormat.shortDebugString(resourceSpec.getValue()));
 
                 Value unreserve = ValueUtils.subtract(mesosResource.getValue(), resourceSpec.getValue());
-                Resource resource = ResourceUtils.setValue(
-                        getFulfilledResource().toBuilder(),
-                        unreserve);
+                Resource resource = ResourceBuilder.fromExistingResource(getFulfilledResource())
+                        .setValue(unreserve)
+                        .build();
                 // Unreservation of no longer needed resources
                 offerRecommendation = new UnreserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
@@ -151,16 +151,12 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     protected Resource getFulfilledResource() {
-        Resource.Builder builder = Resource.newBuilder()
-                .setRole(resourceSpec.getRole())
-                .setName(resourceSpec.getName());
-        builder = ResourceUtils.setValue(builder, resourceSpec.getValue()).toBuilder();
-
+        Resource.Builder builder = ResourceBuilder.fromSpec(resourceSpec).build().toBuilder();
         Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
+
         if (reservationInfo.isPresent()) {
             builder.setReservation(reservationInfo.get());
         }
-
         return builder.build();
     }
 

@@ -35,7 +35,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveLaunchScalar() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -80,7 +80,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceUtils.getUnreservedScalar("cpus", 2.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
 
         // Launch again on expected resources.
         Resource expectedScalar = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
@@ -104,7 +104,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         PodInstanceRequirementTestUtils.getCpuRequirement(1.0),
-                        ResourceUtils.getUnreservedScalar("cpus", 2.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
 
         // Launch again with more resources.
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
@@ -140,7 +140,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testDecreaseReservationScalar() throws Exception {
         // Launch for the first time.
         Resource reserveResource = recordLaunchWithOfferedResources(
-                PodInstanceRequirementTestUtils.getCpuRequirement(2.0), ResourceUtils.getUnreservedScalar("cpus", 2.0))
+                PodInstanceRequirementTestUtils.getCpuRequirement(2.0),
+                ResourceTestUtils.getUnreservedScalar("cpus", 2.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
 
@@ -179,7 +180,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
         Resource reserveResource = recordLaunchWithOfferedResources(
                 podInstanceRequirement,
-                ResourceUtils.getUnreservedScalar("cpus", 2.0))
+                ResourceTestUtils.getUnreservedScalar("cpus", 2.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
 
@@ -197,7 +198,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String resourceId = getFirstResourceId(
                 recordLaunchWithOfferedResources(
                         podInstanceRequirement,
-                        ResourceUtils.getUnreservedScalar("cpus", 2.0)));
+                        ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
         Resource expectedResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
         Offer.Builder offerBuilder = OfferTestUtils.getOffer(expectedResource).toBuilder();
@@ -227,7 +228,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchMultipleTasksPerExecutor() throws Exception {
-        Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 3.0);
 
         ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .cpus(1.0)
@@ -286,8 +287,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchNotOnFirstOffer() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Resource insufficientOffer = ResourceUtils.getUnreservedScalar("mem", 2.0);
-        Resource sufficientOffer = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Resource insufficientOffer = ResourceTestUtils.getUnreservedScalar("mem", 2.0);
+        Resource sufficientOffer = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -318,8 +319,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         // Launch Task with FINISHED goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -360,9 +361,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Resource cpuResource = operation.getLaunch().getTaskInfos(0).getResources(0);
         Resource diskResource = operation.getLaunch().getTaskInfos(0).getResources(1);
-        String cpuResourceId = ResourceUtils.getResourceId(cpuResource);
-        String diskResourceId = ResourceUtils.getResourceId(diskResource);
-        String persistenceId = ResourceUtils.getPersistenceId(diskResource);
+        String cpuResourceId = ResourceTestUtils.getResourceId(cpuResource);
+        String diskResourceId = ResourceTestUtils.getResourceId(diskResource);
+        String persistenceId = ResourceTestUtils.getPersistenceId(diskResource);
 
         Offer expectedOffer = OfferTestUtils.getOffer(Arrays.asList(
                 ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId),
@@ -388,8 +389,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         // Launch Task with FINISHED goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -465,9 +466,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Collections.emptyList());
 
         Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 3.0),
-                ResourceUtils.getUnreservedScalar("mem", 1024),
-                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+                ResourceTestUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceTestUtils.getUnreservedScalar("mem", 1024),
+                ResourceTestUtils.getUnreservedScalar("disk", 500.0)));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 deploymentStep.start().get(),

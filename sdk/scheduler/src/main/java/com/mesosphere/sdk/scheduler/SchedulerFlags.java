@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.mesos.Protos.Credential;
 
 import java.time.Duration;
@@ -68,7 +67,7 @@ public class SchedulerFlags {
     private static final String SDK_UNINSTALL = "SDK_UNINSTALL";
 
     /**
-     * Controls whether the {@link StateStoreCache} is disabled (enabled by default).
+     * Controls whether ZK write-through caching is disabled (enabled by default).
      * If this envvar is set (to anything at all), the cache is disabled.
      */
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";

@@ -5,68 +5,80 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-func HTTPGet(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("GET", urlPath)))
-}
-func HTTPGetQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("GET", urlPath, urlQuery)))
-}
-func HTTPGetData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("GET", urlPath, payload, contentType)))
-}
-func HTTPGetJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("GET", urlPath, jsonPayload)))
+func HTTPServiceGet(urlPath string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
 }
 
-func HTTPDelete(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("DELETE", urlPath)))
-}
-func HTTPDeleteQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("DELETE", urlPath, urlQuery)))
-}
-func HTTPDeleteData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("DELETE", urlPath, payload, contentType)))
-}
-func HTTPDeleteJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
-func HTTPPost(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("POST", urlPath)))
-}
-func HTTPPostQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("POST", urlPath, urlQuery)))
-}
-func HTTPPostData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("POST", urlPath, payload, contentType)))
-}
-func HTTPPostJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("POST", urlPath, jsonPayload)))
+func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
-func HTTPPut(urlPath string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("PUT", urlPath)))
-}
-func HTTPPutQuery(urlPath, urlQuery string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPQueryRequest("PUT", urlPath, urlQuery)))
-}
-func HTTPPutData(urlPath, payload, contentType string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPDataRequest("PUT", urlPath, payload, contentType)))
-}
-func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
-	return CheckHTTPResponse(HTTPQuery(createHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
-func HTTPQuery(request *http.Request) *http.Response {
+func HTTPServiceDelete(urlPath string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
+}
+
+func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+}
+
+func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+}
+
+func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+}
+
+func HTTPServicePost(urlPath string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
+}
+
+func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
+}
+
+func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
+}
+
+func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
+}
+
+func HTTPServicePut(urlPath string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
+}
+
+func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
+}
+
+func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
+}
+
+func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
+	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+}
+
+func httpQuery(request *http.Request) *http.Response {
 	if config.TlsForceInsecure { // user override via '--force-insecure'
 		config.TlsCliSetting = config.TlsUnverified
 	}
@@ -100,7 +112,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 		// include custom CA cert as verified
 		cert, err := ioutil.ReadFile(config.TlsCACertPath)
 		if err != nil {
-			log.Fatalf("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
+			LogMessageAndExit("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
 		}
 		certPool := x509.NewCertPool()
 		certPool.AppendCertsFromPEM(cert)
@@ -119,60 +131,55 @@ func HTTPQuery(request *http.Request) *http.Response {
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
-			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			log.Printf("- Is someone intercepting the connection to steal your credentials?")
-			log.Printf("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
-			log.Fatalf("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
+			LogMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			LogMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
+			LogMessageAndExit("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
 		default:
-			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			log.Printf("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			log.Fatalf("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			LogMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			LogMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
+			LogMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
 	if config.Verbose {
-		log.Printf("Response: %s (%d bytes)", response.Status, response.ContentLength)
+		LogMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
 	return response
 }
 
-func CheckHTTPResponse(response *http.Response) *http.Response {
+func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
-	case response.StatusCode == 401:
-		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
-		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
-	case response.StatusCode == 500:
-		log.Printf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
-		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-		log.Fatalf("- Was the service recently installed? It may still be initializing, Wait a bit and try again.")
+	case response.StatusCode == http.StatusUnauthorized:
+		LogMessage("Got 401 Unauthorized response from %s", response.Request.URL)
+		LogMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
+	case response.StatusCode == http.StatusInternalServerError:
+		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
-		log.Fatalf("HTTP %s Query for %s failed: %s",
-			response.Request.Method, response.Request.URL, response.Status)
+		printResponseErrorAndExit(response)
 	}
 	return response
 }
 
-func createHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
-	return createHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
+func createServiceHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+	return createServiceHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
-func createHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
+func createServiceHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), jsonPayload, "", contentType)
 }
 
-func createHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, urlQuery, "", "")
+func createServiceHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, urlQuery), "", "", "")
 }
 
-func CreateHTTPRequest(method, urlPath string) *http.Request {
-	return createHTTPRawRequest(method, urlPath, "", "", "")
+func createServiceHTTPRequest(method, urlPath string) *http.Request {
+	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), "", "", "")
 }
 
-func createHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
-	return createHTTPURLRequest(method, createURL(urlPath, urlQuery), payload, contentType)
+func createHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
+	return createHTTPURLRequest(method, url, payload, accept, contentType)
 }
 
-func createURL(urlPath, urlQuery string) *url.URL {
+func getDCOSURL() {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosUrl) == 0 {
 		config.DcosUrl = RequiredCLIConfigValue(
@@ -182,25 +189,34 @@ func createURL(urlPath, urlQuery string) *url.URL {
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
 	config.DcosUrl = strings.TrimRight(config.DcosUrl, "#/")
-	parsedUrl, err := url.Parse(config.DcosUrl)
-	if err != nil {
-		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
-	}
-	parsedUrl.Path = path.Join("service", config.ServiceName, urlPath)
-	parsedUrl.RawQuery = urlQuery
-	return parsedUrl
 }
 
-func createHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
+func createServiceURL(urlPath, urlQuery string) *url.URL {
+	getDCOSURL()
+	joinedURLPath := path.Join("service", config.ServiceName, urlPath)
+	return createURL(config.DcosUrl, joinedURLPath, urlQuery)
+}
+
+func createURL(baseURL, urlPath, urlQuery string) *url.URL {
+	parsedURL, err := url.Parse(baseURL)
+	if err != nil {
+		LogMessageAndExit("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
+	}
+	parsedURL.Path = urlPath
+	parsedURL.RawQuery = urlQuery
+	return parsedURL
+}
+
+func createHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	if config.Verbose {
-		log.Printf("HTTP Query: %s %s", method, url)
+		LogMessage("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
-			log.Printf("  Payload: %s", payload)
+			LogMessage("  Payload: %s", payload)
 		}
 	}
 	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
-		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, url, err)
+		LogMessageAndExit("Failed to create HTTP %s request for %s: %s", method, url, err)
 	}
 	if len(config.DcosAuthToken) == 0 {
 		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
@@ -209,6 +225,9 @@ func createHTTPURLRequest(method string, url *url.URL, payload, contentType stri
 	}
 	if len(config.DcosAuthToken) != 0 {
 		request.Header.Set("Authorization", fmt.Sprintf("token=%s", config.DcosAuthToken))
+	}
+	if len(accept) != 0 {
+		request.Header.Set("Accept", accept)
 	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)

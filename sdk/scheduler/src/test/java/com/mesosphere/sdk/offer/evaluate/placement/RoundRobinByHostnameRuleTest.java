@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
@@ -46,13 +46,14 @@ public class RoundRobinByHostnameRuleTest {
 
     private static Offer offerWithHost(String host) {
         return OfferTestUtils.getOffer(
-                ResourceUtils.setValue(
-                        Protos.Resource.newBuilder()
-                                .setName("cpus"),
+                ResourceBuilder.fromUnreservedValue(
+                        "cpus",
                         Protos.Value.newBuilder()
                                 .setType(Protos.Value.Type.SCALAR)
                                 .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0))
-                                .build())).toBuilder()
+                                .build())
+                        .build())
+                .toBuilder()
                 .setHostname(host)
                 .build();
     }

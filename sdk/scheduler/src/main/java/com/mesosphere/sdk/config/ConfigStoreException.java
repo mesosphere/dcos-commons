@@ -2,6 +2,7 @@ package com.mesosphere.sdk.config;
 
 import java.io.IOException;
 
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
@@ -12,6 +13,16 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 public class ConfigStoreException extends IOException {
 
     private final Reason reason;
+
+    public ConfigStoreException(PersisterException e) {
+        super(e);
+        this.reason = Reason.STORAGE_ERROR;
+    }
+
+    public ConfigStoreException(PersisterException e, String message) {
+        super(message, e);
+        this.reason = Reason.STORAGE_ERROR;
+    }
 
     public ConfigStoreException(Reason reason, Throwable cause) {
         super(cause);

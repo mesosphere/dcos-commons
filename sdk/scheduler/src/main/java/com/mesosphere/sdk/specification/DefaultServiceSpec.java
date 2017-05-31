@@ -8,6 +8,7 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
@@ -29,8 +30,6 @@ import java.util.*;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
-
-    public static final String DEFAULT_ZK_CONNECTION = "master.mesos:2181";
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -70,7 +69,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
-                ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
+                ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
         ValidationUtils.validate(this);
@@ -185,15 +184,27 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
+     * @param serviceSpec           specification to test for successful serialization/deserialization
+     * @throws ConfigStoreException if testing the provided specification fails
+     */
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec)
+            throws ConfigStoreException {
+        return getConfigurationFactory(serviceSpec, Collections.emptyList());
+    }
+
+    /**
+     * Returns a {@link ConfigurationFactory} which may be used to deserialize
+     * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
+     * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
+     *
      * @param serviceSpec                  specification to test for successful serialization/deserialization
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
      *                                     Jackson for deserialization. any custom placement rule implementations
      *                                     must be provided
-     * @throws ConfigStoreException if testing the provided specification fails
+     * @throws ConfigStoreException        if testing the provided specification fails
      */
-    public static ConfigurationFactory<ServiceSpec> getFactory(
-            ServiceSpec serviceSpec,
-            Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
+            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
         ConfigurationFactory<ServiceSpec> factory = new Factory(additionalSubtypesToRegister);
         // Serialize and then deserialize:
         ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
@@ -247,7 +258,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final ObjectMapper objectMapper;
 
         /**
-         * @see DefaultServiceSpec#getFactory(ServiceSpec, Collection)
+         * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
          */
         private Factory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());

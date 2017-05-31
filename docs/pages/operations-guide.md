@@ -13,10 +13,10 @@ redirect_from: "/ops-guide"
 This operations guide describes how to manage stateful DC/OS services that are based on the DC/OS SDK. Consult the [Developer Guide](developer-guide.html) to learn how to build DC/OS SDK services.
 
 This guide is structured into four major sections:
-- Overview of components architecture.
-- List of the available tools and how to use them.
-- How to perform and monitor common operations in the cluster using the available tools.
-- How to use the tools to troubleshoot.
+- Overview of [component architecture](#dcos-sdk-service-overview).
+- List of the [available tools](#diagnostic-tools) and how to use them.
+- How to perform and monitor [common operations](#common-operations) in the cluster using the available tools.
+- How to use the tools to [troubleshoot problems](#troubleshooting).
 
 # DC/OS SDK Service Overview
 
@@ -28,13 +28,13 @@ The following work together to deploy and maintain the service.
 
   Mesos is the foundation of the DC/OS cluster. Everything launched within the cluster is allocated resources and managed by Mesos. A typical Mesos cluster has one or three Masters that manage resources for the entire cluster. On DC/OS, the machines running the Mesos Masters will typically run other cluster services as well, such as Marathon and Cosmos, as local system processes. Separately from the Master machines are the Agent machines, which are where in-cluster processes are run. For more information on Mesos architecture, see the [Apache Mesos documentation](https://mesos.apache.org/documentation/latest/architecture/). For more information on DC/OS architecture, see the [DC/OS architecture documentation](https://docs.mesosphere.com/1.9/overview/architecture/).
 
-- Zookeeper
+- ZooKeeper
 
-  Zookeeper is a common foundation for DC/OS system components, like Marathon and Mesos. It provides distributed key-value storage for configuration, synchronization, name registration, and cluster state storage. DC/OS comes with Zookeeper installed by default, typically with one instance per DC/OS master.
+  ZooKeeper is a common foundation for DC/OS system components, like Marathon and Mesos. It provides distributed key-value storage for configuration, synchronization, name registration, and cluster state storage. DC/OS comes with ZooKeeper installed by default, typically with one instance per DC/OS master.
 
-  SDK Schedulers use the default Zookeeper instance to store persistent state across restarts (under ZK nodes named `dcos-service-<svcname>`). This allows Schedulers to be killed at any time and continue where they left off.
+  SDK Schedulers use the default ZooKeeper instance to store persistent state across restarts (under znodes named `dcos-service-<svcname>`). This allows Schedulers to be killed at any time and continue where they left off.
 
-  **Note:** SDK Schedulers currently require Zookeeper, but any persistent configuration storage (such as etcd) could fit this role. Zookeeper is a convenient default because it is always present in DC/OS clusters.
+  **Note:** SDK Schedulers currently require ZooKeeper, but any persistent configuration storage (such as etcd) could fit this role. ZooKeeper is a convenient default because it is always present in DC/OS clusters.
 
 - Marathon
 
@@ -85,9 +85,9 @@ The service Scheduler's `main()` function is run like any other Java application
 
 1. The `svc.yml` template is rendered using the environment variables provided by Marathon.
 
-1. The rendered `svc.yml` "Service Spec" contains the host/port for the Zookeeper instance, which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named `dcos-service-<svcname>`.
+1. The rendered `svc.yml` "Service Spec" contains the host/port for the ZooKeeper instance, which the Scheduler uses for persistent configuration/state storage. The default is `master.mesos:2181`, but may be manually configured to use a different ZooKeeper instance. The Scheduler always stores its information under a znode named `dcos-service-<svcname>`.
 
-1. The Scheduler connects to that Zookeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.
+1. The Scheduler connects to that ZooKeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.
 
   - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
 
@@ -95,7 +95,7 @@ The service Scheduler's `main()` function is run like any other Java application
 
 1. Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the [Offer Cycle](#offer-cycle) and deploying the service. See that section for more information.
 
-1. The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.
+1. The Scheduler retrieves its deployed task state from ZooKeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.
 
 1. The Scheduler deploys those missing tasks through the Mesos offer cycle using a [Deployment Plan](#plans) to determine the ordering of that deployment.
 
@@ -118,17 +118,17 @@ As with initial install above, at this point the Scheduler is re-launched with t
 - Custom logic implemented by the service developer (if any).
 
 In addition, the Scheduler now has a fourth piece:
-- Preexisting state in Zookeeper
+- Preexisting state in ZooKeeper
 
 Scheduler reconfiguration is slightly different from initial deployment because the Scheduler is now comparing its current state to a non-empty prior state and determining what needs to be changed.
 
 1. After the Scheduler has rendered its `svc.yml` against the new environment variables, it has two Service Specs, reflecting two different configurations.
     1. The Service Spec that was just rendered, reflecting the configuration change.
-    1. The prior Service Spec (or "Target Configuration") that was previously stored in ZK.
+    1. The prior Service Spec (or "Target Configuration") that was previously stored in ZooKeeper.
 1. The Scheduler automatically compares the changes between the old and new Service Specs.
     1. __Change validation__: Certain changes, such as editing volumes and scale-down, are not currently supported because they are complicated and dangerous to get wrong.
         - If an invalid change is detected, the Scheduler will send an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.
-        - If the changes are valid, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.
+        - If the changes are valid, the new configuration is stored in ZooKeeper as the new Target Configuration and the change deployment proceeds as described below.
     1. __Change deployment__: The Scheduler produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren't affected by the configuration change will be left as-is.
 
 ## Offer Cycle
@@ -139,7 +139,7 @@ Mesos will periodically notify subscribed Schedulers of resources in the cluster
 
 Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
 
-1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
+1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
 1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.
 1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
 
@@ -251,6 +251,38 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 ## Pods vs Tasks
 
 A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
+
+## Overlay networks
+
+The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+
+```yaml
+pods:
+  pod-on-overlay:
+    count: {{COUNT}}
+    # join the 'dcos' overlay network
+    networks:
+      dcos:
+    tasks:
+      ...
+  pod-on-host:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+
+When a pod is on the `dcos` overlay network:
+  * Every pod gets its own IP address and its own array of ports.
+  * Pods do not use the ports on the host machine.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`.
+
+Specifying that pod join the `dcos` overlay network has the following indirect effects:
+  * The `ports` resource requirements in the service spec will ignored as resource requirements. 
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
+  
+  
+  
 
 ## Placement Constraints
 
@@ -547,11 +579,11 @@ $ dcos beta-dse --name=dse -v pods list
 2017/04/25 15:03:44 Response: 200 OK (-1 bytes)
 ```
 
-## Zookeeper/Exhibitor
+## ZooKeeper/Exhibitor
 
-**Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZK directly may cause your service to behave in inconsistent, even incomprehensible ways.**
+**Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZooKeeper directly may cause your service to behave in inconsistent, even incomprehensible ways.**
 
-DC/OS comes with Exhibitor, a commonly used frontend for viewing Zookeeper. Exhibitor may be accessed at `<dcos-url>/exhibitor`. A given SDK service will have a node named `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
+DC/OS comes with Exhibitor, a commonly used frontend for viewing ZooKeeper. Exhibitor may be accessed at `<dcos-url>/exhibitor`. A given SDK service will have a node named `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
 
 [<img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400"/>](img/ops-guide-exhibitor-view-taskstatus.png)
 
@@ -598,7 +630,7 @@ $ dcos package describe elastic --config
         ...
         "user": {
           "default": "core",
-          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
+          "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string"
         }
       }
@@ -669,7 +701,7 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
 -  "api-port" : 18446,
 +  "api-port" : 15063,
    "web-url" : null,
-   "zookeeper" : "master.mesos:2181",
+   "ZooKeeper" : "master.mesos:2181",
 @@ -40,5 +40,5 @@
              "type" : "SCALAR",
              "scalar" : {
@@ -1005,9 +1037,9 @@ This example shows how steps in the deployment Plan (or any other Plan) can be m
 
 **Note:** The `dcos plan` commands will also accept UUID `id` values instead of the `name` values for the `phase` and `step` arguments. Providing UUIDs avoids the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn't the same one we were expecting (but which had the same name).
 
-## Deleting a task in ZK to forcibly wipe that task
+## Deleting a task in ZooKeeper to forcibly wipe that task
 
-If the scheduler is still failing after `pods replace <name>` to clear a task, a last resort is to use [Exhibitor](#zookeeperexhibitor) to delete the offending task from the Scheduler's ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+If the scheduler is still failing after `pods replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 

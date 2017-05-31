@@ -10,8 +10,6 @@ pods:
     count: 2
     networks:
       dcos:
-        host-ports: [4040]
-        container-ports: [8080]
     rlimits:
       RLIMIT_AS:
         soft: 5
@@ -69,6 +67,8 @@ pods:
   data-store:
     placement: "hostname:UNIQUE"
     count: 3
+    networks:
+      mesos-bridge:
     resource-sets:
       data-store-resources:
         cpus: 0.1

@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -11,6 +10,7 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -26,7 +26,7 @@ import java.util.List;
 public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
     @Test
     public void testAvoidAgents() throws Exception {
-        Protos.Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
@@ -72,7 +72,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testColocateAgents() throws Exception {
-        Protos.Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
