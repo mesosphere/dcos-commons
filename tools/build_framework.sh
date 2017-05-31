@@ -89,7 +89,8 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
         ${FRAMEWORK_NAME} \
         ${UNIVERSE_DIR} \
         ${INCLUDE_BOOTSTRAP} \
-        ${CLI_DIR}/dcos-*/dcos-* \
-        ${CLI_DIR}/dcos-*/*.whl \
+        ${CLI_DIR}/dcos-*/dcos-*-linux \
+        ${CLI_DIR}/dcos-*/dcos-*-darwin \
+        ${CLI_DIR}/dcos-*/dcos-*.exe \
         ${ARTIFACT_FILES}
 fi
