@@ -1,1 +1,0 @@
-Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.

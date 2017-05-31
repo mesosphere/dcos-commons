@@ -1,1 +1,0 @@
-Failed to load specified options file testdata/input/empty.json: unexpected end of JSON input

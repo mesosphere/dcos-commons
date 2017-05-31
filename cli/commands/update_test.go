@@ -95,7 +95,7 @@ func (suite *UpdateTestSuite) TestDescribeNoOptions() {
 
 func (suite *UpdateTestSuite) TestPrintStatus() {
 	printStatus()
-	expectedOutput := suite.loadFile("testdata/output/status.txt")
+	expectedOutput := "Status has not been implemented yet. Please use `dcos hello-world --name=hello-world plan show` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
@@ -107,7 +107,7 @@ func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := suite.loadFile("testdata/output/update.txt")
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -120,7 +120,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := suite.loadFile("testdata/output/update.txt")
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -133,20 +133,20 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := suite.loadFile("testdata/output/update.txt")
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithEmptyFile() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/empty.json", "")
-	expectedOutput := suite.loadFile("testdata/output/empty.txt")
+	expectedOutput := "Failed to load specified options file testdata/input/empty.json: unexpected end of JSON input\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/malformed.json", "")
-	expectedOutput := suite.loadFile("testdata/output/malformed.txt")
+	expectedOutput := "Failed to load specified options file testdata/input/malformed.json: unexpected end of JSON input\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
