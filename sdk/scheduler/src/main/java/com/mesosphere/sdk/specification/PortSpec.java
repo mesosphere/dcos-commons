@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -23,13 +24,12 @@ public class PortSpec extends DefaultResourceSpec {
 
     @JsonCreator
     public PortSpec(
-            @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("port-name") String portName) {
-        super(name, value, role, principal, envKey);
+        super(Constants.PORTS_RESOURCE_TYPE, value, role, principal, envKey);
         this.portName = portName;
         this.envKey = envKey;
     }

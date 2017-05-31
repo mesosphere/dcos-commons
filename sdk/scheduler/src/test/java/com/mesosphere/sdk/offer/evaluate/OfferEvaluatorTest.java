@@ -2,7 +2,10 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;

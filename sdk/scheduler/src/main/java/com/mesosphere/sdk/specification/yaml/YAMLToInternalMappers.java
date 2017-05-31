@@ -498,7 +498,6 @@ public class YAMLToInternalMappers {
                         StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
                 portSpecs.add(new NamedVIPSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
                         portValueBuilder.build(),
                         role,
                         principal,
@@ -510,7 +509,6 @@ public class YAMLToInternalMappers {
                         rawVip.getPort()));
             } else {
                 portSpecs.add(new PortSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
                         portValueBuilder.build(),
                         role,
                         principal,

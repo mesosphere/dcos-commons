@@ -114,33 +114,6 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void validPortResourceEnvKey() throws Exception {
-        /*
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
-
-        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
-                .getResources()
-                .stream()
-                .filter(r -> r.getName().equals("ports"))
-                .collect(Collectors.toList());
-
-        Assert.assertEquals(1, portsResources.size());
-
-       PortsRequirement portsRequirement = (PortsRequirement) portsResources.get(0).getResourceRequirement(null);
-       List<ResourceRequirement> portReqList = (List<ResourceRequirement>) portsRequirement.getPortRequirements();
-
-       Assert.assertEquals(3, portReqList.size());
-
-       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey().get());
-       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getEnvKey().isPresent());
-       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getEnvKey().isPresent());
-       */
-
-    }
-
-    @Test
     public void validPortResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());

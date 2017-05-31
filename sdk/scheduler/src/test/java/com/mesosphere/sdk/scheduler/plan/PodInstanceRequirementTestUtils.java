@@ -98,7 +98,6 @@ public class PodInstanceRequirementTestUtils {
                     .setBegin(envPort.getValue())
                     .setEnd(envPort.getValue());
             builder.addResource(new PortSpec(
-                    Constants.PORTS_RESOURCE_TYPE,
                     valueBuilder.build(),
                     TestConstants.ROLE,
                     TestConstants.PRINCIPAL,
@@ -120,7 +119,6 @@ public class PodInstanceRequirementTestUtils {
                     .setBegin(taskPort)
                     .setEnd(taskPort);
             builder.addResource(new NamedVIPSpec(
-                    Constants.PORTS_RESOURCE_TYPE,
                     valueBuilder.build(),
                     TestConstants.ROLE,
                     TestConstants.PRINCIPAL,
