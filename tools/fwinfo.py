@@ -89,6 +89,8 @@ class FrameworkTestInfo(object):
         self.output_file = None # in background
         self.popen = None
         self.dir = os.path.join(repo_root, 'frameworks', self.name)
+        if not os.path.isdir(self.dir):
+            raise ValueError("Invalid framework name %s" % self.name)
         self.buildscript = os.path.join(self.dir, 'build.sh')
         # TODO figure out what this trailing slash is for and eliminate
         self.testdir = os.path.join(self.dir, 'tests') + "/"
@@ -165,20 +167,20 @@ if __name__ == "__main__":
 
 
         def test_add_with_root(self):
-            add_framework('proxylite', repo_root=abs_repo_root)
-            self.assertEqual(get_framework_names(), ['proxylite'])
+            add_framework('template', repo_root=abs_repo_root)
+            self.assertEqual(get_framework_names(), ['template'])
 
         def test_add_without_root(self):
             init_repo_root(abs_repo_root)
-            self.assertFalse(have_framework('proxylite'))
-            add_framework('proxylite')
-            self.assertTrue(have_framework('proxylite'))
-            self.assertEqual(get_framework_names(), ['proxylite'])
+            self.assertFalse(have_framework('template'))
+            add_framework('template')
+            self.assertTrue(have_framework('template'))
+            self.assertEqual(get_framework_names(), ['template'])
 
         def test_add_dupe_framework(self):
             init_repo_root(abs_repo_root)
-            add_framework('proxylite')
-            self.assertRaises(Exception, add_framework, 'proxylite')
+            add_framework('template')
+            self.assertRaises(Exception, add_framework, 'template')
 
         def test_running_frameworks(self):
             init_repo_root(abs_repo_root)

@@ -10,18 +10,19 @@ import (
 	"os"
 )
 
-func PrintText(response *http.Response) {
-	fmt.Fprintf(os.Stdout, "%s\n", GetResponseText(response))
-}
-
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 	var outBuf bytes.Buffer
 	err := json.Indent(&outBuf, responseBytes, "", "  ")
 	if err != nil {
 		// Be permissive of malformed json, such as character codes in strings that are unknown to
 		// Go's json: Warn in stderr, then print original to stdout.
-		log.Printf("Failed to prettify JSON response data from %s %s query: %s",
-			request.Method, request.URL, err)
+		if request != nil {
+			log.Printf("Failed to prettify JSON response data from %s %s query: %s",
+				request.Method, request.URL, err)
+		} else {
+			log.Printf("Failed to prettify JSON response data: %s", err)
+		}
+
 		log.Printf("Original data follows:")
 		outBuf = *bytes.NewBuffer(responseBytes)
 	}
@@ -31,6 +32,10 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 
 func PrintJSON(response *http.Response) {
 	PrintJSONBytes(GetResponseBytes(response), response.Request)
+}
+
+func PrintResponseText(response *http.Response) {
+	fmt.Fprintf(os.Stdout, "%s\n", GetResponseText(response))
 }
 
 func GetResponseText(response *http.Response) string {
@@ -45,4 +50,13 @@ func GetResponseBytes(response *http.Response) []byte {
 			response.Request.Method, response.Request.URL, err)
 	}
 	return responseBytes
+}
+
+func UnmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
+	var responseJSON map[string]interface{}
+	err := json.Unmarshal([]byte(jsonBytes), &responseJSON)
+	if err != nil {
+		return nil, err
+	}
+	return responseJSON, nil
 }

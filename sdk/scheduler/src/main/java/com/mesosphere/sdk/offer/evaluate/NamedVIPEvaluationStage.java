@@ -170,7 +170,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addAllLabels(getVIPLabels(vipName, vipPort, onOverlay));
-
         return discoveryInfoBuilder.build();
     }
 

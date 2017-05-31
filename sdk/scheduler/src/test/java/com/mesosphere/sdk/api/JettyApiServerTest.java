@@ -16,7 +16,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.Arrays;
 
 /**
@@ -24,14 +23,42 @@ import java.util.Arrays;
  */
 public class JettyApiServerTest {
     private JettyApiServer jettyApiServer;
-    private int port;
     private static final String TEST = "test";
 
     @Before
     public void beforeEach() throws IOException {
+        // using a busy-wait and retry pattern to reach the sync point where
+        // server and client connect. This approach was chosen b/c it took a
+        // minimal amount of effort to use a generally applicable pattern to
+        // resolve local build/test failures, but a more elegant solution may
+        // be to use LifeCycle.Listener.
+        final int jettyStartRetries = 10;
+        final int jettyStartRetryDelay = 1000;
         MockitoAnnotations.initMocks(this);
-        port = getRandomPort();
-        jettyApiServer = new JettyApiServer(port, Arrays.asList(new TestPojo()));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < jettyStartRetries; i++) {
+                    try {
+                        jettyApiServer = new JettyApiServer(0, Arrays.asList(new TestPojo()));
+                        jettyApiServer.start();
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    sleep(jettyStartRetryDelay);
+                }
+            }
+        }).start();
+
+        for(int i = 0; i < jettyStartRetries; i++) {
+            if (jettyApiServer != null && jettyApiServer.isStarted()) {
+                break;
+            }
+            sleep(jettyStartRetryDelay);
+        }
     }
 
     @After
@@ -41,30 +68,11 @@ public class JettyApiServerTest {
 
     @Test
     public void testGetRequest() throws Exception {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    jettyApiServer.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
         HttpClient client = HttpClientBuilder.create().build();
-        HttpGet request = new HttpGet(String.format("http://0.0.0.0:%s/%s", port, TEST));
+        HttpGet request = new HttpGet(String.format("http://127.0.0.1:%s/%s", getJettyApiServerPort(), TEST));
         HttpEntity entity = client.execute(request).getEntity();
         String responseString = EntityUtils.toString(entity, "UTF-8");
-
         Assert.assertEquals(TEST, responseString);
-    }
-
-    private static int getRandomPort() throws IOException {
-        ServerSocket serverSocket = new ServerSocket(0);
-        int port = serverSocket.getLocalPort();
-        serverSocket.close();
-        return port;
     }
 
     @Path("/")
@@ -74,5 +82,23 @@ public class JettyApiServerTest {
         public Response getFrameworkId() {
             return Response.ok(TEST, MediaType.APPLICATION_JSON).build();
         }
+    }
+
+    private void sleep(int ms) {
+        // an interruptable sleep b/c if interrupted, i.e. by SIGINT, np,
+        // continue to crash, don't worry about sleep
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) { }
+    }
+
+    private int getJettyApiServerPort() {
+        if (jettyApiServer == null) {
+            return -1;
+        }
+        if (!jettyApiServer.isStarted()) {
+            return -2;
+        }
+        return jettyApiServer.getLocalPort();
     }
 }
