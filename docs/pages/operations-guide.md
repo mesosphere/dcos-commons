@@ -359,7 +359,7 @@ The `Sandbox` link for one of these tasks shows a list of files from within the 
 
 [<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
 
-If the task is based on a Docker image, this list will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running Commands](#running-commands-within-containers).
+If the task is based on a Docker image, this list will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running commands within containers](#running-commands-within-containers).
 
 In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of `confluent-kafka` and they're each running a `broker-0`. As the cluster grows, this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click "Frameworks" on the upper left to see a list of all the installed frameworks (mapping to our services):
 
@@ -431,7 +431,7 @@ $ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that brok
 $ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
 ```
 
-## Running Commands within containers
+## Running commands within containers
 
 An extremely useful tool for diagnosing task state is the ability to run arbitrary commands _within_ the task. The available tools for doing this depend on the version of DC/OS you're using:
 
