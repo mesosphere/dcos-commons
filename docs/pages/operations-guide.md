@@ -375,24 +375,6 @@ Given the above configuration, let's assume `10.0.10.8` is being decommissioned 
 
 The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in theory they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
 
-## Uninstall
-
-Follow these steps to uninstall a service.
-1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
-   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
-
-For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
-
-```bash
-$ MY_SERVICE_NAME=kafka-dev
-$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
-$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r $MY_SERVICE_NAME-role \
-    -p $MY_SERVICE_NAME-principal \
-    -z dcos-service-$MY_SERVICE_NAME"
-```
-
 # Diagnostic Tools
 
 DC/OS clusters provide several tools for diagnosing problems with services running in the cluster. In addition, the SDK has its own endpoints that describe what the Scheduler is doing at any given time.
@@ -879,6 +861,24 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
     "dse-1-node"
   ]
 }
+```
+
+## Uninstall
+
+Follow these steps to uninstall a service.
+1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+
+```bash
+$ MY_SERVICE_NAME=kafka-dev
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
+    -r $MY_SERVICE_NAME-role \
+    -p $MY_SERVICE_NAME-principal \
+    -z dcos-service-$MY_SERVICE_NAME"
 ```
 
 # Troubleshooting
