@@ -359,7 +359,13 @@ public class DefaultServiceSpecTest {
                         .stream()
                         .filter(r -> r.getName().equals("ports"))
                         .collect(Collectors.toList());
-                Assert.assertEquals(1, portsResources.size());
+
+                int portCount = 1;
+                if (podSpec.getType().equals("meta-data-with-port-mapping")) {
+                    portCount = 2;
+                }
+
+                Assert.assertEquals(portCount, portsResources.size());
             }
         }
     }

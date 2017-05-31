@@ -1,10 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
@@ -17,10 +14,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -88,15 +82,36 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
 
-        // Add port to the readiness check (if a readiness check is defined)
-        try {
-            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
-                    .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
-                    .toProto());
-        } catch (TaskException e) {
-            LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+        if (getTaskName().isPresent()) {
+            String taskName = getTaskName().get();
+            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+            taskBuilder.getCommandBuilder().setEnvironment(
+                    withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
+
+            // Add port to the health check (if defined)
+            if (taskBuilder.hasHealthCheck()) {
+                taskBuilder.getHealthCheckBuilder().getCommandBuilder().setEnvironment(
+                        withPortEnvironmentVariable(taskBuilder.getHealthCheck().getCommand().getEnvironment(), port));
+            } else {
+                LOGGER.info("Health check is not defined for task: {}", taskName);
+            }
+
+            // Add port to the readiness check (if a readiness check is defined)
+            try {
+                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
+                        .toProto());
+            } catch (TaskException e) {
+                LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+            }
+
+            taskBuilder.addResources(resource);
+        } else {
+            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
+            executorBuilder.getCommandBuilder().setEnvironment(
+                    withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
+            executorBuilder.addResources(resource);
         }
     }
 
