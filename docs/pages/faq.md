@@ -16,7 +16,7 @@ title: Frequently Asked Questions
 
 #### __What is a DC/OS service?__
 
-  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is an instance of a service in a DC/OS cluster.
+  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is an instance of an existing service (typically a stateful, distributed service) in a DC/OS cluster. DC/OS services built using the DC/OS SDK implement schedulers which allow for orchestrated installation, update and backup/recovery.
 
 #### __What is a DC/OS package?__
 
