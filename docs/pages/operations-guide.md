@@ -106,11 +106,15 @@ The service Scheduler's `main()` function is run like any other Java application
 
 ### Reconfiguration
 
+This is the flow for reconfiguring a DC/OS service either in order to update specific configuration values, or to upgrade it to a new package version.
+
+#### Starting an update
+
+1. The user edits the Scheduler's environment variables either via the DC/OS Dashboard's Services section, using the Scheduler CLI's `update` command or via Marathon directly (at `<dcos-url>/marathon`).
+
 #### Steps handled by the DC/OS cluster
 
-1. The user edits the Scheduler's environment variables either via the DC/OS Dashboard's Services section or via Marathon directly (at `<dcos-url>/marathon`).
-
-1. Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.
+1. The DC/OS package manager instructs Marathon to kill the current Scheduler and launch a new Scheduler with the updated environment variables.
 
 #### Steps handled by the Scheduler
 
