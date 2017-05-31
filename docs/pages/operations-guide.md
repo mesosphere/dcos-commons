@@ -865,7 +865,17 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 ## Uninstall
 
-Follow these steps to uninstall a service.
+### DC/OS 1.10
+
+Follow these steps to uninstall a service installed on a DC/OS 1.10 cluster:
+
+1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
+
+#### DC/OS <= 1.9 
+
+If you are running DC/OS 1.9 or older, or installed your service on DC/OS 1.9 or older before upgrading to DC/OS 1.10, please follow these steps:
+
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
    For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
 1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
