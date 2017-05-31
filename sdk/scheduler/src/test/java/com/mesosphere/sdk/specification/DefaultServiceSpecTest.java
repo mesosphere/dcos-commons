@@ -31,7 +31,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.mockito.Mock;
@@ -355,7 +354,7 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
-    @Ignore("VIP WIP")
+    @Test
     public void validNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
@@ -368,7 +367,7 @@ public class DefaultServiceSpecTest {
                 .stream()
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
-        Assert.assertEquals(0, portsResources.size());
+        Assert.assertEquals(1, portsResources.size());
     }
 
     @Test
