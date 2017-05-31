@@ -240,7 +240,7 @@
         </ul>
       </li>
       <li><a href="#querying-the-scheduler" id="markdown-toc-querying-the-scheduler">Querying the Scheduler</a></li>
-      <li><a href="#zookeeperexhibitor" id="markdown-toc-zookeeperexhibitor">Zookeeper/Exhibitor</a></li>
+      <li><a href="#zookeeperexhibitor" id="markdown-toc-zookeeperexhibitor">ZooKeeper/Exhibitor</a></li>
     </ul>
   </li>
   <li><a href="#common-operations" id="markdown-toc-common-operations">Common operations</a>    <ul>
@@ -263,7 +263,7 @@
       </li>
       <li><a href="#framework-has-been-removed" id="markdown-toc-framework-has-been-removed">‘Framework has been removed’</a></li>
       <li><a href="#stuck-deployments" id="markdown-toc-stuck-deployments">Stuck deployments</a></li>
-      <li><a href="#deleting-a-task-in-zk-to-forcibly-wipe-that-task" id="markdown-toc-deleting-a-task-in-zk-to-forcibly-wipe-that-task">Deleting a task in ZK to forcibly wipe that task</a></li>
+      <li><a href="#deleting-a-task-in-zookeeper-to-forcibly-wipe-that-task" id="markdown-toc-deleting-a-task-in-zookeeper-to-forcibly-wipe-that-task">Deleting a task in ZooKeeper to forcibly wipe that task</a></li>
       <li><a href="#oomed-task" id="markdown-toc-oomed-task">OOMed task</a></li>
     </ul>
   </li>
@@ -294,13 +294,13 @@
     <p>Mesos is the foundation of the DC/OS cluster. Everything launched within the cluster is allocated resources and managed by Mesos. A typical Mesos cluster has one or three Masters that manage resources for the entire cluster. On DC/OS, the machines running the Mesos Masters will typically run other cluster services as well, such as Marathon and Cosmos, as local system processes. Separately from the Master machines are the Agent machines, which are where in-cluster processes are run. For more information on Mesos architecture, see the <a href="https://mesos.apache.org/documentation/latest/architecture/">Apache Mesos documentation</a>. For more information on DC/OS architecture, see the <a href="https://docs.mesosphere.com/1.9/overview/architecture/">DC/OS architecture documentation</a>.</p>
   </li>
   <li>
-    <p>Zookeeper</p>
+    <p>ZooKeeper</p>
 
-    <p>Zookeeper is a common foundation for DC/OS system components, like Marathon and Mesos. It provides distributed key-value storage for configuration, synchronization, name registration, and cluster state storage. DC/OS comes with Zookeeper installed by default, typically with one instance per DC/OS master.</p>
+    <p>ZooKeeper is a common foundation for DC/OS system components, like Marathon and Mesos. It provides distributed key-value storage for configuration, synchronization, name registration, and cluster state storage. DC/OS comes with ZooKeeper installed by default, typically with one instance per DC/OS master.</p>
 
-    <p>SDK Schedulers use the default Zookeeper instance to store persistent state across restarts (under ZK nodes named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>). This allows Schedulers to be killed at any time and continue where they left off.</p>
+    <p>SDK Schedulers use the default ZooKeeper instance to store persistent state across restarts (under znodes named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>). This allows Schedulers to be killed at any time and continue where they left off.</p>
 
-    <p><strong>Note:</strong> SDK Schedulers currently require Zookeeper, but any persistent configuration storage (such as etcd) could fit this role. Zookeeper is a convenient default because it is always present in DC/OS clusters.</p>
+    <p><strong>Note:</strong> SDK Schedulers currently require ZooKeeper, but any persistent configuration storage (such as etcd) could fit this role. ZooKeeper is a convenient default because it is always present in DC/OS clusters.</p>
   </li>
   <li>
     <p>Marathon</p>
@@ -371,10 +371,10 @@
     <p>The <code class="highlighter-rouge">svc.yml</code> template is rendered using the environment variables provided by Marathon.</p>
   </li>
   <li>
-    <p>The rendered <code class="highlighter-rouge">svc.yml</code> “Service Spec” contains the host/port for the Zookeeper instance, which the Scheduler uses for persistent configuration/state storage. The default is <code class="highlighter-rouge">master.mesos:2181</code>, but may be manually configured to use a different Zookeeper instance. The Scheduler always stores its information under a ZK node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>.</p>
+    <p>The rendered <code class="highlighter-rouge">svc.yml</code> “Service Spec” contains the host/port for the ZooKeeper instance, which the Scheduler uses for persistent configuration/state storage. The default is <code class="highlighter-rouge">master.mesos:2181</code>, but may be manually configured to use a different ZooKeeper instance. The Scheduler always stores its information under a znode named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code>.</p>
   </li>
   <li>
-    <p>The Scheduler connects to that Zookeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.</p>
+    <p>The Scheduler connects to that ZooKeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.</p>
   </li>
 </ol>
 
@@ -392,7 +392,7 @@
     <p>Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the <a href="#offer-cycle">Offer Cycle</a> and deploying the service. See that section for more information.</p>
   </li>
   <li>
-    <p>The Scheduler retrieves its deployed task state from Zookeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.</p>
+    <p>The Scheduler retrieves its deployed task state from ZooKeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.</p>
   </li>
   <li>
     <p>The Scheduler deploys those missing tasks through the Mesos offer cycle using a <a href="#plans">Deployment Plan</a> to determine the ordering of that deployment.</p>
@@ -429,7 +429,7 @@
 
 <p>In addition, the Scheduler now has a fourth piece:</p>
 <ul>
-  <li>Preexisting state in Zookeeper</li>
+  <li>Preexisting state in ZooKeeper</li>
 </ul>
 
 <p>Scheduler reconfiguration is slightly different from initial deployment because the Scheduler is now comparing its current state to a non-empty prior state and determining what needs to be changed.</p>
@@ -438,7 +438,7 @@
   <li>After the Scheduler has rendered its <code class="highlighter-rouge">svc.yml</code> against the new environment variables, it has two Service Specs, reflecting two different configurations.
     <ol>
       <li>The Service Spec that was just rendered, reflecting the configuration change.</li>
-      <li>The prior Service Spec (or “Target Configuration”) that was previously stored in ZK.</li>
+      <li>The prior Service Spec (or “Target Configuration”) that was previously stored in ZooKeeper.</li>
     </ol>
   </li>
   <li>The Scheduler automatically compares the changes between the old and new Service Specs.
@@ -446,7 +446,7 @@
       <li><strong>Change validation</strong>: Certain changes, such as editing volumes and scale-down, are not currently supported because they are complicated and dangerous to get wrong.
         <ul>
           <li>If an invalid change is detected, the Scheduler will send an error message and refuse to proceed until the user has reverted the change by relaunching the Scheduler app in Marathon with the prior config.</li>
-          <li>If the changes are valid, the new configuration is stored in ZK as the new Target Configuration and the change deployment proceeds as described below.</li>
+          <li>If the changes are valid, the new configuration is stored in ZooKeeper as the new Target Configuration and the change deployment proceeds as described below.</li>
         </ul>
       </li>
       <li><strong>Change deployment</strong>: The Scheduler produces a <code class="highlighter-rouge">diff</code> between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren’t affected by the configuration change will be left as-is.</li>
@@ -463,7 +463,7 @@
 <p>Schedulers written using the SDK perform the following operations as Offers are received from Mesos:</p>
 
 <ol>
-  <li><strong>Task Reconciliation</strong>: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler’s tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in Zookeeper. During an initial deployment this process is very fast as no tasks have been launched yet.</li>
+  <li><strong>Task Reconciliation</strong>: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler’s tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.</li>
   <li><strong>Offer Acceptance</strong>: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn’t launching tasks. This is generally because the Scheduler isn’t able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.</li>
   <li><strong>Resource Cleanup</strong>: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn’t know about it anymore. At this point, the Scheduler will automatically clean up those resources.</li>
 </ol>
@@ -972,11 +972,11 @@ broker-container#
 </code></pre>
 </div>
 
-<h2 id="zookeeperexhibitor">Zookeeper/Exhibitor</h2>
+<h2 id="zookeeperexhibitor">ZooKeeper/Exhibitor</h2>
 
-<p><strong>Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZK directly may cause your service to behave in inconsistent, even incomprehensible ways.</strong></p>
+<p><strong>Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZooKeeper directly may cause your service to behave in inconsistent, even incomprehensible ways.</strong></p>
 
-<p>DC/OS comes with Exhibitor, a commonly used frontend for viewing Zookeeper. Exhibitor may be accessed at <code class="highlighter-rouge">&lt;dcos-url&gt;/exhibitor</code>. A given SDK service will have a node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code> visible here. This is where the Scheduler puts its state, so that it isn’t lost if the Scheduler is restarted. In practice it’s far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.</p>
+<p>DC/OS comes with Exhibitor, a commonly used frontend for viewing ZooKeeper. Exhibitor may be accessed at <code class="highlighter-rouge">&lt;dcos-url&gt;/exhibitor</code>. A given SDK service will have a node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code> visible here. This is where the Scheduler puts its state, so that it isn’t lost if the Scheduler is restarted. In practice it’s far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.</p>
 
 <p><a href="img/ops-guide-exhibitor-view-taskstatus.png"><img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400" /></a></p>
 
@@ -1095,7 +1095,7 @@ broker-container#
 -  "api-port" : 18446,
 +  "api-port" : 15063,
    "web-url" : null,
-   "zookeeper" : "master.mesos:2181",
+   "ZooKeeper" : "master.mesos:2181",
 @@ -40,5 +40,5 @@
              "type" : "SCALAR",
              "scalar" : {
@@ -1434,9 +1434,9 @@ broker-container#
 
 <p><strong>Note:</strong> The <code class="highlighter-rouge">dcos plan</code> commands will also accept UUID <code class="highlighter-rouge">id</code> values instead of the <code class="highlighter-rouge">name</code> values for the <code class="highlighter-rouge">phase</code> and <code class="highlighter-rouge">step</code> arguments. Providing UUIDs avoids the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn’t the same one we were expecting (but which had the same name).</p>
 
-<h2 id="deleting-a-task-in-zk-to-forcibly-wipe-that-task">Deleting a task in ZK to forcibly wipe that task</h2>
+<h2 id="deleting-a-task-in-zookeeper-to-forcibly-wipe-that-task">Deleting a task in ZooKeeper to forcibly wipe that task</h2>
 
-<p>If the scheduler is still failing after <code class="highlighter-rouge">pods replace &lt;name&gt;</code> to clear a task, a last resort is to use <a href="#zookeeperexhibitor">Exhibitor</a> to delete the offending task from the Scheduler’s ZK state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:</p>
+<p>If the scheduler is still failing after <code class="highlighter-rouge">pods replace &lt;name&gt;</code> to clear a task, a last resort is to use <a href="#ZooKeeperexhibitor">Exhibitor</a> to delete the offending task from the Scheduler’s ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:</p>
 <ul>
   <li>Automatically unreserve the task’s previous resources with Mesos because it doesn’t recognize them anymore (via the Resource Cleanup operation described earlier).</li>
   <li>Automatically redeploy the task on a new agent.</li>
