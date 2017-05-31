@@ -2,7 +2,7 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.kafka.api.*;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.kafka.upgrade.FilterStateStore;
@@ -48,7 +48,7 @@ public class KafkaService extends DefaultService {
 
         schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +
-                        DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
+                        CuratorUtils.getServiceRootPath(schedulerBuilder.getServiceSpec().getName())));
 
         schedulerBuilder.setCustomResources(
                 getResources(
@@ -58,16 +58,12 @@ public class KafkaService extends DefaultService {
     }
 
     private Collection<Object> getResources(String zookeeperConnection, String serviceName) {
-        KafkaZKClient kafkaZKClient = new KafkaZKClient(
-                zookeeperConnection,
-                DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName);
-
+        KafkaZKClient kafkaZKClient =
+                new KafkaZKClient(zookeeperConnection, CuratorUtils.getServiceRootPath(serviceName));
         final Collection<Object> apiResources = new ArrayList<>();
         apiResources.add(new BrokerResource(kafkaZKClient));
-        apiResources.add(new TopicResource(
-                new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
-                kafkaZKClient));
-
+        apiResources.add(
+                new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")), kafkaZKClient));
         return apiResources;
     }
 }

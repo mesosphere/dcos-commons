@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
@@ -15,7 +14,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
-class CuratorUtils {
+public class CuratorUtils {
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
@@ -34,20 +33,17 @@ class CuratorUtils {
     private static final String SERVICE_NAME_NODE = "servicename";
 
     /**
+     * This must never change, as it affects the path to the SchemaVersion object for a given framework name.
+     */
+    private static final String SERVICE_ROOT_PATH_PREFIX = "/dcos-service-";
+
+    /**
      * This must never change, as it affects the serialization of the ServiceName node.
      */
     private static final Charset SERVICE_NAME_CHARSET = StandardCharsets.UTF_8;
 
     private CuratorUtils() {
         // do not instantiate
-    }
-
-    /**
-     * Returns a reasonable default retry policy for querying ZK.
-     */
-    static RetryPolicy getDefaultRetry() {
-        return new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS, CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
     }
 
     /**
@@ -58,17 +54,24 @@ class CuratorUtils {
      * <li>"/path/to/your-name-here" => /dcos-service-path.to.your-name-here</li>
      * </ul>
      */
-    static String getServiceRootPath(String frameworkName) {
+    public static String getServiceRootPath(String frameworkName) {
         if (frameworkName.startsWith(PersisterUtils.PATH_DELIM_STR)) {
             // Trim any leading slash
             frameworkName = frameworkName.substring(PersisterUtils.PATH_DELIM_STR.length());
         }
-        // Replace any other slashes (e.g. from folder support) with dots:
+        // Replace any other slashes (e.g. from folder support) with double underscores:
         frameworkName = frameworkName.replace(PersisterUtils.PATH_DELIM_STR, FRAMEWORK_NAME_SLASH_ESCAPE);
         // dcos-service-<your.name.here>
-        return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName;
+        return SERVICE_ROOT_PATH_PREFIX + frameworkName;
     }
 
+    /**
+     * Returns a reasonable default retry policy for querying ZK.
+     */
+    static RetryPolicy getDefaultRetry() {
+        return new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS, CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
+    }
     /**
      * Compares the service name to the previously stored name in zookeeper, or creates a new node containing this data
      * if it isn't already present. This is useful for two situations where foldered service names may be confused with
