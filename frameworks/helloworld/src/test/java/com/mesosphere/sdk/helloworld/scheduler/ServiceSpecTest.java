@@ -73,4 +73,8 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         testYaml("examples/gpu_resource.yml");
     }
 
+    @Test
+    public void testPreReservedRole() throws Exception {
+        testYaml("examples/pre-reserved.yml");
+    }
 }

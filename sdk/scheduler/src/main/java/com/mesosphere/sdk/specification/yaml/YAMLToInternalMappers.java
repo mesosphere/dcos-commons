@@ -164,7 +164,8 @@ public class YAMLToInternalMappers {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
-                .user(rawPod.getUser());
+                .user(rawPod.getUser())
+                .preReservedRole(rawPod.getPreReservedRole());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
         // functionality (CNI or otherwise) will land in the pod-level only.
