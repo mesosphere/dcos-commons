@@ -1,11 +1,9 @@
 import pytest
 
 import shakedown
-import dcos
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_utils as utils
 
 from tests.config import (
@@ -29,6 +27,8 @@ def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
+@pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.overlay
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""

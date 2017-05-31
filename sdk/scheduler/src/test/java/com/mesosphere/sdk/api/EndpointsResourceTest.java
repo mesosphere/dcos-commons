@@ -35,6 +35,7 @@ public class EndpointsResourceTest {
     private static final TaskInfo TASK_WITH_HIDDEN_DISCOVERY;
     private static final TaskInfo TASK_WITH_VIPS_1;
     private static final TaskInfo TASK_WITH_VIPS_2;
+    private static final String EXPECTED_DNS_TLD = "autoip.dcos.thisdcos.directory";
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
         builder.setLabels(new SchedulerLabelWriter(builder)
@@ -183,8 +184,8 @@ public class EndpointsResourceTest {
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
         JSONArray dns = vip1.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
-        assertEquals("vips-2.svc-name.mesos:3456", dns.get(1));
+        assertEquals(String.format("vips-1.svc-name.%s:2345", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("vips-2.svc-name.%s:3456", EXPECTED_DNS_TLD), dns.get(1));
         JSONArray address = vip1.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
@@ -198,8 +199,8 @@ public class EndpointsResourceTest {
         assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
         dns = vip2.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1.svc-name.mesos:2346", dns.get(0));
-        assertEquals("vips-2.svc-name.mesos:3457", dns.get(1));
+        assertEquals(String.format("vips-1.svc-name.%s:2346", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("vips-2.svc-name.%s:3457", EXPECTED_DNS_TLD), dns.get(1));
         address = vip2.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2346", address.get(0));
@@ -209,13 +210,13 @@ public class EndpointsResourceTest {
         assertEquals(2, taskType.length());
         dns = taskType.getJSONArray("dns");
         assertEquals(6, dns.length());
-        assertEquals("ports-1.svc-name.mesos:1234", dns.get(0));
-        assertEquals("ports-1.svc-name.mesos:1235", dns.get(1));
+        assertEquals(String.format("ports-1.svc-name.%s:1234", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("ports-1.svc-name.%s:1235", EXPECTED_DNS_TLD), dns.get(1));
         // This task's DiscoveryInfo doesn't have a name set, so it should use the task name for its Mesos-DNS prefix.
-        assertEquals("with-ports-2.svc-name.mesos:1243", dns.get(2));
-        assertEquals("with-ports-2.svc-name.mesos:1244", dns.get(3));
-        assertEquals("vips-1.svc-name.mesos:2348", dns.get(4));
-        assertEquals("vips-2.svc-name.mesos:3459", dns.get(5));
+        assertEquals(String.format("with-ports-2.svc-name.%s:1243", EXPECTED_DNS_TLD), dns.get(2));
+        assertEquals(String.format("with-ports-2.svc-name.%s:1244", EXPECTED_DNS_TLD), dns.get(3));
+        assertEquals(String.format("vips-1.svc-name.%s:2348", EXPECTED_DNS_TLD), dns.get(4));
+        assertEquals(String.format("vips-2.svc-name.%s:3459", EXPECTED_DNS_TLD), dns.get(5));
         address = taskType.getJSONArray("address");
         assertEquals(6, address.length());
         assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
@@ -240,8 +241,8 @@ public class EndpointsResourceTest {
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
         JSONArray dns = json.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
-        assertEquals("vips-2.svc-name.mesos:3456", dns.get(1));
+        assertEquals(String.format("vips-1.svc-name.%s:2345", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("vips-2.svc-name.%s:3456", EXPECTED_DNS_TLD), dns.get(1));
         JSONArray address = json.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
