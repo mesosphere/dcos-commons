@@ -21,10 +21,28 @@
 			"revisionTime": "2015-10-22T06:55:26Z"
 		},
 		{
-			"checksumSHA1": "P3iWutRP+oVM/JerQG8PXutteDA=",
+			"checksumSHA1": "3eEVgzEAupeKrgVinZliQ2pQz1k=",
 			"path": "github.com/mesosphere/dcos-commons/cli",
-			"revision": "1d0caf841e5ffa966f102842af69c81200433c29",
-			"revisionTime": "2017-05-03T20:33:53Z"
+			"revision": "715d27f3e43a5e25b8ecb4beed97333b136fdd9a",
+			"revisionTime": "2017-05-12T03:39:39Z"
+		},
+		{
+			"checksumSHA1": "jRAmnN/GQG0aYFGLXFa9kCnbG68=",
+			"path": "github.com/mesosphere/dcos-commons/cli/client",
+			"revision": "715d27f3e43a5e25b8ecb4beed97333b136fdd9a",
+			"revisionTime": "2017-05-12T03:39:39Z"
+		},
+		{
+			"checksumSHA1": "c98dfK76mbphwOxDiEHE5W67res=",
+			"path": "github.com/mesosphere/dcos-commons/cli/commands",
+			"revision": "715d27f3e43a5e25b8ecb4beed97333b136fdd9a",
+			"revisionTime": "2017-05-12T03:39:39Z"
+		},
+		{
+			"checksumSHA1": "ZMlCs+z3SI8W/xiQl8G4i8KzDQo=",
+			"path": "github.com/mesosphere/dcos-commons/cli/config",
+			"revision": "715d27f3e43a5e25b8ecb4beed97333b136fdd9a",
+			"revisionTime": "2017-05-12T03:39:39Z"
 		},
 		{
 			"checksumSHA1": "ZvPW/nSYs/UeoZejaV2ZSm9+2Do=",

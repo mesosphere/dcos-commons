@@ -117,7 +117,7 @@ mv $PROJECT_PATH/$PROJECT_NAME/src/test/java/com/mesosphere/sdk/template/ $PROJE
 
 UPPER_CASE_PROJECT_NAME=$(echo $PROJECT_NAME | awk '{print toupper($0)}')
 
-find $PROJECT_PATH/$PROJECT_NAME -type f -exec sed -i.bak "s/template/$PROJECT_NAME/g; s/TEMPLATE/$UPPER_CASE_PROJECT_NAME/g; s/template/$PROJECT_NAME/g" {} \;
+find $PROJECT_PATH/$PROJECT_NAME -type f -exec sed -i.bak "s/{{template}}/$PROJECT_NAME/g; s/{{TEMPLATE}}/$UPPER_CASE_PROJECT_NAME/g" {} \;
 sed -i.bak -e '21,$ d' $PROJECT_PATH/$PROJECT_NAME/src/main/dist/svc.yml
 find $PROJECT_PATH/$PROJECT_NAME -type f -name *.bak -exec rm -f {} \;
 

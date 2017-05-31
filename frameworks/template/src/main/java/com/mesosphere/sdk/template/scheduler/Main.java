@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.template.scheduler;
+package com.mesosphere.sdk.{{template}}.scheduler;
 
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;

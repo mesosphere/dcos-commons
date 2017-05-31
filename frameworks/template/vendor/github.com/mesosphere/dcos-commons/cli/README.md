@@ -20,41 +20,26 @@ Prerequisites:
 - git
 - [Go 1.5+](https://golang.org/dl/)
 
-First, get the code and set up the environment (edit `/YOUR/CODEPATH` and `/YOUR/GOPATH` as needed):
+First, get the code and set up the environment (edit `/YOUR/GOPATH` as needed):
 
 ```bash
-export CODEPATH=/YOUR/CODEPATH # eg ~/code
 export GOPATH=/YOUR/GOPATH # eg ~/go
 export GO15VENDOREXPERIMENT=1 # only required if using Go 1.5. for Go 1.6+ this step can be skipped
 
-mkdir -p $CODEPATH
-cd $CODEPATH
-
-git clone git@github.com:mesosphere/dcos-commons
-mkdir -p $GOPATH/src/github.com/mesosphere
-ln -s $CODEPATH/dcos-commons $GOPATH/src/github.com/mesosphere/dcos-commons
+git clone git@github.com:mesosphere/dcos-commons && cd dcos-commons
 ```
 
-Assuming the above structure (with `~/code` for where you put your code and `~/go` for your `GOPATH`), the directory structure should look something like the following:
-
-```
-~/
-  code/
-    dcos-commons/
-  go/
-    src/
-      github.com/
-        mesosphere/
-          dcos-commons # symlink to ~/code/dcos-commons
-```
-
-Now you may build the example CLI module for each targeted platform:
+Now you may build the example CLI module for each targeted platform. Run build.sh from the framework root, e.g. for `helloworld`:
 
 ```bash
-cd $GOPATH/src/github.com/mesosphere/dcos-commons/frameworks/helloworld/cli
-go get
-./build-cli.sh # creates dcos-data-store.exe, dcos-data-store-darwin, dcos-data-store-linux
-./dcos-data-store/dcos-data-store-linux data-store -h
+cd frameworks/helloworld
+./build.sh # will build framework including dcos-hello-world.exe, dcos-hello-world-darwin, dcos-hello-world-linux
+```
+
+To run the compiled CLI (the example below uses Linux, pick the correct binary for your platform):
+
+```bash
+./cli/dcos-hello-world/dcos-hello-world-linux hello-world -h
 ```
 
 ## Develop
@@ -62,6 +47,43 @@ go get
 See the [example CLI module](../frameworks/helloworld/cli/) for an example of how your CLI module could be built. The provided example adds a set of custom commands on top of the standard set.
 
 Like the example CLI module, your own code may simply access the CLI libraries provided here by importing `github.com/mesosphere/dcos-commons/cli`. Your CLI module implementation may pick and choose which standard commands should be included, while also implementing its own custom commands.
+
+### Vendoring Dependencies
+
+It is highly recommended that CLIs depending on these library files use [`govendor`](https://github.com/kardianos/govendor). This will allow the projects to be built against a specific, snapshotted version of this library and insulate them from build failures caused by breaking changes in the `master` branch of this repository.
+
+To vendorise a CLI that depends on this project, (e.g. [`helloworld/cli`](/frameworks/helloworld/cli/)):
+
+1. Install [govendor](https://github.com/kardianos/govendor).
+
+1. Ensure the CLI folder is linked into your `$GOPATH`:
+
+    ```bash
+    cd frameworks/helloworld/cli
+    ln -s $(pwd) $GOPATH/src/github.com/mesosphere/dcos-commons/frameworks/helloworld/cli
+    ```
+
+1. Initialise `govendor` metadata:
+
+    ```bash
+    govendor init
+    ```
+
+1. Fetch the CLI dependency (and any subpackages):
+
+    ```bash
+    govendor fetch github.com/mesosphere/dcos-commons/cli/\^
+    ```
+
+When building this project with a go version greater than 1.5 (`go build` must be run from the project's directory within the `$GOPATH`), these dependencies will be picked up automatically.
+
+To later update the version of this dependency, simply run `fetch` again:
+
+    ```bash
+    govendor fetch github.com/mesosphere/dcos-commons/cli/\^
+    ```
+
+(See the [`govendor` README](https://github.com/kardianos/govendor) for further examples, including fetching a specific revision or tag of this code.)
 
 ### Direct execution
 
