@@ -24,6 +24,8 @@ import (
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
 	resolveRetryDelay = time.Duration(1) * time.Second
+    dns_tld = "autoip.dcos.thisdcos.directory"
+    mesos_dns = "mesos"
 )
 
 var verbose = false
@@ -86,7 +88,9 @@ func parseArgs() args {
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
 				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
 		}
-		args.resolveHosts = []string{ fmt.Sprintf("%s.%s.mesos", taskName, frameworkName) }
+		//args.resolveHosts = []string{ fmt.Sprintf("%s.%s.mesos", taskName, frameworkName) }
+		args.resolveHosts = []string{ fmt.Sprintf("%s.%s.%s", taskName, frameworkName, dns_tld),
+                                      fmt.Sprintf("%s.%s.%s", taskName, frameworkName, mesos_dns)}
 	} else {
 		args.resolveHosts = splitAndClean(rawHosts, ",")
 	}
