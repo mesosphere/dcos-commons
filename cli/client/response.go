@@ -81,3 +81,18 @@ func UnmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
 	}
 	return responseJSON, nil
 }
+
+func GetValueFromJSON(responseBytes []byte, field string) ([]byte, error) {
+	responseJSONBytes, err := UnmarshalJSON(responseBytes)
+	if err != nil {
+		return nil, err
+	}
+	if valueJSON, present := responseJSONBytes[field]; present {
+		valueBytes, err := json.Marshal(valueJSON)
+		if err != nil {
+			return nil, err
+		}
+		return valueBytes, nil
+	}
+	return nil, nil
+}
