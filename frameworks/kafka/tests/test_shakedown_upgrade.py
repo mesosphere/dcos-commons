@@ -76,7 +76,7 @@ def test_upgrade():
     utils.out('All task are restarted')
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-     
+
     address = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
     assert len(address) == 4
     assert len(address['dns']) == DEFAULT_BROKER_COUNT

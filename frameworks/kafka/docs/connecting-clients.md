@@ -60,9 +60,9 @@ The response, for both the CLI and the REST API is as below.
       "10.0.1.27:1025"
     ],
     "dns": [
-      "kafka-2-broker.kafka.mesos:1025",
-      "kafka-0-broker.kafka.mesos:1025",
-      "kafka-1-broker.kafka.mesos:1025"
+      "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+      "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+      "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
     ],
     "vips": [
         "broker.kafka.l4lb.thisdcos.directory:9092"
@@ -160,9 +160,9 @@ The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-co
         "10.0.1.27:1025"
       ],
       "dns": [
-        "kafka-2-broker.kafka.mesos:1025",
-        "kafka-0-broker.kafka.mesos:1025",
-        "kafka-1-broker.kafka.mesos:1025"
+        "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+        "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+        "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
       ],
       "vips": [
         "broker.kafka.l4lb.thisdcos.directory:9092"

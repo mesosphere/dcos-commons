@@ -5,19 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-
-
-
-
-
-
-
-
-
-
-
 <a name="changing-configuration-at-runtime"></a>
-
 # Changing Configuration at Runtime
 
 You can customize your cluster in-place when it is up and running.
@@ -299,7 +287,7 @@ To configure it:
 ```json
     {
         "kafka": {
-            "kafka_zookeeper_uri": "zookeeper.marathon.mesos:2181"
+            "kafka_zookeeper_uri": "zookeeper.marathon.autoip.dcos.thisdcos.directory:2181"
         }
     }
 ```

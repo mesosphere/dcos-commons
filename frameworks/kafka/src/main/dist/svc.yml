@@ -11,6 +11,10 @@ pods:
       - {{BOOTSTRAP_URI}}
       - {{EXECUTOR_URI}}
       - {{LIBMESOS_URI}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}

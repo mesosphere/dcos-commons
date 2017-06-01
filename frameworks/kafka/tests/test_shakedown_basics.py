@@ -53,12 +53,14 @@ def test_endpoints_address():
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
+    for dns_endpoint in endpoints['dns']:
+        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper():
-    zookeeper = command.run_cli('{} endpoints zookeeper'.format(PACKAGE_NAME))
+    zookeeper = service_cli('endpoints zookeeper')
     assert zookeeper.rstrip() == (
         'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
     )
