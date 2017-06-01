@@ -157,13 +157,28 @@ public class EndpointsResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new EndpointsResource(mockStateStore, "svc-name");
+        resource = buildResource(mockStateStore, "svc-name");
+    }
+
+    private static EndpointsResource buildResource(StateStore stateStore, String serviceName) {
+        EndpointsResource resource = new EndpointsResource(stateStore, serviceName);
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
+        return resource;
+    }
+
+    @Test
+    public void testGetAllEndpoints() throws ConfigStoreException {
+        allEndpointsTest("svc-name", "svc-name", "svc-name");
+    }
+
+    @Test
+    public void testGetAllEndpointsFolderedService() throws ConfigStoreException {
+        allEndpointsTest("/path/to/svc-name", "svc-name-to-path", "pathtosvc-name");
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    @Test
-    public void testGetAllEndpoints() throws ConfigStoreException {
+    private void allEndpointsTest(String serviceName, String mesosDnsName, String vipName) {
+        resource = buildResource(mockStateStore, serviceName);
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         Response response = resource.getEndpoints(null);
         assertEquals(200, response.getStatus());
@@ -179,12 +194,12 @@ public class EndpointsResourceTest {
         // due to deprecated "vip", decremented expected at 1.9 -> 2.0
         assertEquals(4, vip1.length());
         // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
+        assertEquals("vip1." + vipName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
+        assertEquals("vip1." + vipName + ".l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
         JSONArray dns = vip1.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1.svc-name.mesos:2345", dns.get(0));
-        assertEquals("vips-2.svc-name.mesos:3456", dns.get(1));
+        assertEquals("vips-1." + mesosDnsName + ".mesos:2345", dns.get(0));
+        assertEquals("vips-2." + mesosDnsName + ".mesos:3456", dns.get(1));
         JSONArray address = vip1.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
@@ -194,12 +209,12 @@ public class EndpointsResourceTest {
         // due to deprecated "vip", decremented expected at 1.9 -> 2.0
         assertEquals(4, vip2.length());
         // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
-        assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
+        assertEquals("vip2." + vipName + ".l4lb.thisdcos.directory:6432", vip2.get("vip"));
+        assertEquals("vip2." + vipName + ".l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
         dns = vip2.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1.svc-name.mesos:2346", dns.get(0));
-        assertEquals("vips-2.svc-name.mesos:3457", dns.get(1));
+        assertEquals("vips-1." + mesosDnsName + ".mesos:2346", dns.get(0));
+        assertEquals("vips-2." + mesosDnsName + ".mesos:3457", dns.get(1));
         address = vip2.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2346", address.get(0));
@@ -209,13 +224,13 @@ public class EndpointsResourceTest {
         assertEquals(2, taskType.length());
         dns = taskType.getJSONArray("dns");
         assertEquals(6, dns.length());
-        assertEquals("ports-1.svc-name.mesos:1234", dns.get(0));
-        assertEquals("ports-1.svc-name.mesos:1235", dns.get(1));
+        assertEquals("ports-1." + mesosDnsName + ".mesos:1234", dns.get(0));
+        assertEquals("ports-1." + mesosDnsName + ".mesos:1235", dns.get(1));
         // This task's DiscoveryInfo doesn't have a name set, so it should use the task name for its Mesos-DNS prefix.
-        assertEquals("with-ports-2.svc-name.mesos:1243", dns.get(2));
-        assertEquals("with-ports-2.svc-name.mesos:1244", dns.get(3));
-        assertEquals("vips-1.svc-name.mesos:2348", dns.get(4));
-        assertEquals("vips-2.svc-name.mesos:3459", dns.get(5));
+        assertEquals("with-ports-2." + mesosDnsName + ".mesos:1243", dns.get(2));
+        assertEquals("with-ports-2." + mesosDnsName + ".mesos:1244", dns.get(3));
+        assertEquals("vips-1." + mesosDnsName + ".mesos:2348", dns.get(4));
+        assertEquals("vips-2." + mesosDnsName + ".mesos:3459", dns.get(5));
         address = taskType.getJSONArray("address");
         assertEquals(6, address.length());
         assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
@@ -268,10 +283,5 @@ public class EndpointsResourceTest {
                 resource.getEndpoint("some-task-type", "native").getEntity());
         assertEquals(resource.getEndpoint("custom", null).getEntity(),
                 resource.getEndpoint("custom", "native").getEntity());
-    }
-
-    @Test
-    public void testWithFolderedService() {
-        assertEquals("TODO", true, false);
     }
 }

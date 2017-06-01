@@ -1,32 +1,31 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
 
-    @BeforeClass
-    public static void beforeAll() {
-        ENV_VARS.put("FRAMEWORK_NAME", "hello-world");
-        ENV_VARS.put("EXECUTOR_URI", "");
-        ENV_VARS.put("LIBMESOS_URI", "");
-        ENV_VARS.put("PORT_API", "8080");
+    public ServiceSpecTest() {
+        super(
+                "FRAMEWORK_NAME", "hello-world",
+                "EXECUTOR_URI", "",
+                "LIBMESOS_URI", "",
+                "PORT_API", "8080",
 
-        ENV_VARS.put("SLEEP_DURATION", "1000");
-        ENV_VARS.put("HELLO_COUNT", "2");
-        ENV_VARS.put("HELLO_PORT", "4444");
-        ENV_VARS.put("HELLO_VIP_NAME", "helloworld");
-        ENV_VARS.put("HELLO_VIP_PORT", "9999");
-        ENV_VARS.put("HELLO_CPUS", "0.1");
-        ENV_VARS.put("HELLO_MEM", "512");
-        ENV_VARS.put("HELLO_DISK", "5000");
+                "SLEEP_DURATION", "1000",
+                "HELLO_COUNT", "2",
+                "HELLO_PORT", "4444",
+                "HELLO_VIP_NAME", "helloworld",
+                "HELLO_VIP_PORT", "9999",
+                "HELLO_CPUS", "0.1",
+                "HELLO_MEM", "512",
+                "HELLO_DISK", "5000",
 
-        ENV_VARS.put("WORLD_COUNT", "3");
-        ENV_VARS.put("WORLD_CPUS", "0.2");
-        ENV_VARS.put("WORLD_MEM", "1024");
-        ENV_VARS.put("WORLD_FAILS", "3");
-        ENV_VARS.put("WORLD_DISK", "5000");
+                "WORLD_COUNT", "3",
+                "WORLD_CPUS", "0.2",
+                "WORLD_MEM", "1024",
+                "WORLD_FAILS", "3",
+                "WORLD_DISK", "5000");
     }
 
     @Test

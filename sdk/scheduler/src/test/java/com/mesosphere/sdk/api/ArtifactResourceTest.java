@@ -105,7 +105,16 @@ public class ArtifactResourceTest {
     }
 
     @Test
-    public void testWithFolderedService() {
-        assertEquals("TODO", true, false);
+    public void testGetTemplateUrl() {
+        UUID uuid = UUID.randomUUID();
+        assertEquals(
+                "http://api.svc-name.marathon.l4lb.thisdcos.directory/v1/artifacts/template/"
+                        + uuid.toString() + "/some-pod/some-task/some-config",
+                ArtifactResource.getTemplateUrl("svc-name", uuid, "some-pod", "some-task", "some-config"));
+        assertEquals(
+                "http://api.pathtosvc-name.marathon.l4lb.thisdcos.directory/v1/artifacts/template/"
+                        + uuid.toString() + "/some-pod/some-task/some-config",
+                ArtifactResource.getTemplateUrl("/path/to/svc-name", uuid, "some-pod", "some-task", "some-config"));
+
     }
 }

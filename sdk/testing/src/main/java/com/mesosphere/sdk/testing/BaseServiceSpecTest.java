@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.testing;
 
+import com.google.api.client.util.Joiner;
 import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -17,6 +18,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Map;
@@ -29,7 +32,10 @@ import static org.mockito.Mockito.when;
  * This class encapsulates common features needed for the validation of YAML ServiceSpec files.
  */
 public class BaseServiceSpecTest {
-    public static final Map<String, String> ENV_VARS = new TreeMap<>();
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected final Map<String, String> envVars = new TreeMap<>();
+
     @Mock
     private SchedulerFlags mockFlags;
 
@@ -38,6 +44,20 @@ public class BaseServiceSpecTest {
         MockitoAnnotations.initMocks(this);
         when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         when(mockFlags.getApiServerPort()).thenReturn(8080);
+    }
+
+    protected BaseServiceSpecTest(Map<String, String> envVars) {
+        this.envVars.putAll(envVars);
+    }
+
+    /**
+     * Invoke as: {@code super("key1", "val1", "key2", "val2", ...)}.
+     */
+    protected BaseServiceSpecTest(String... keyVals) {
+        Assert.assertTrue("keyVals.length must be a multiple of two for key=>val mapping", keyVals.length % 2 == 0);
+        for (int i = 0; i < keyVals.length; i += 2) {
+            this.envVars.put(keyVals[i], keyVals[i + 1]);
+        }
     }
 
     protected void testYaml(String fileName) throws Exception {
@@ -49,12 +69,15 @@ public class BaseServiceSpecTest {
             throw new Exception(
                     "Did not find file: " + fileName + " perhaps you forgot to link it in the Resources folder?");
         }
+
         Map<String, String> envVars = new TreeMap<>();
-        envVars.putAll(ENV_VARS);
+        envVars.putAll(this.envVars);
         envVars.put("CONFIG_TEMPLATE_PATH", new File(yamlFile.getPath()).getParent());
+        logger.info("Configured environment:\n{}", Joiner.on('\n').join(envVars.entrySet()));
+
         RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).setEnv(envVars).build();
-        DefaultServiceSpec serviceSpec =
-                new DefaultServiceSpecBuilder(rawServiceSpec, mockFlags, new DefaultTaskEnvRouter(ENV_VARS)).build();
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(
+                rawServiceSpec, mockFlags, new DefaultTaskEnvRouter(envVars)).build();
         Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);
