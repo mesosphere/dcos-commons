@@ -771,7 +771,7 @@ There are two service discovery options that are relevant to the SDK: mesos-dns 
 All tasks launched in DC/OS receive a DNS address. It is of the form:
 
 ```
-<task-name>.<framework-name>.mesos
+<task-name>.<framework-name>.autoip.dcos.thisdcos.directory
 ```
 
 So a service defined as follows:
@@ -793,7 +793,7 @@ pods:
           size: 50
 ```
 
-would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.mesos". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
+would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.autoip.dcos.thisdcos.directory". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
 
 ```yaml
 name: "hello-world"
@@ -823,7 +823,7 @@ pods:
           prefix: hello
 ```
 
-In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.mesos", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
+In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.autoip.dcos.thisdcos.directory", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
 
 **Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
 
