@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification.yaml;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.commons.io.FileUtils;
@@ -17,6 +19,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 
 /**
  * Generates {@link ServiceSpec} from a given YAML definition.
@@ -55,12 +61,46 @@ public class YAMLServiceSpecFactory {
 
     public static final RawServiceSpec generateRawSpecFromYAML(final String yaml, Map<String, String> env)
             throws Exception {
-        final String yamlWithEnv = TemplateUtils.applyEnvToMustache(yaml, env);
+        HashMap<String, Object> scopes = new HashMap<String, Object>();
+        for (Map.Entry<String, String> entry : env.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (key.startsWith("JSONPARSE_")) {
+                LOGGER.info("JSONPARSE value:\n{}", value);
+                String trimmedValue = value.trim();
+                switch (value.trim().charAt(0)) {
+                    case '{':
+                        scopes.put(key, parseJsonObject(value));
+                        continue;
+                    case '[':
+                        scopes.put(key, parseJsonArray(value));
+                        continue;
+                }
+                throw new IllegalStateException(String.format("Could not parse JSON: %s", value));
+            }
+            scopes.put(key, value);
+        }
+
+        final String yamlWithEnv = TemplateUtils.applyEnvToMustache(yaml, scopes);
         LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
         if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
         return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpec.class);
+    }
+
+    static HashMap<String, Object> parseJsonObject(String str) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        InputStream input = new ByteArrayInputStream(str.getBytes("UTF-8"));
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+        return mapper.readValue(input, typeRef);
+    }
+
+    static List<Object> parseJsonArray(String str) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        InputStream input = new ByteArrayInputStream(str.getBytes("UTF-8"));
+        TypeReference<List<Object>> typeRef = new TypeReference<List<Object>>() {};
+        return mapper.readValue(input, typeRef);
     }
 
     /**

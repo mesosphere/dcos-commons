@@ -33,7 +33,7 @@ public class TemplateUtils {
      * @param environment     Map of environment variables.
      * @return Rendered Mustache template String.
      */
-    public static String applyEnvToMustache(String templateContent, Map<String, String> environment) {
+    public static String applyEnvToMustache(String templateContent, Map<String, Object> environment) {
         StringWriter writer = new StringWriter();
         MustacheFactory mf = new DefaultMustacheFactory();
         Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
