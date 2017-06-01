@@ -1,7 +1,6 @@
 import os
 import sys
 import uuid
-
 import pytest
 
 from tests.config import *
@@ -69,7 +68,7 @@ def test_backup_and_restore_to_azure():
 def test_backup_and_restore_to_local():
     plan_parameters = {
         'RESTORE_PATH': os.getenv('RESTORE_PATH'),
-        'SNAPSHOT_NAME': str(uuid.uuid1()),
+        'SNAPSHOT_NAME': os.getenv('RESTORE_PATH'),
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
