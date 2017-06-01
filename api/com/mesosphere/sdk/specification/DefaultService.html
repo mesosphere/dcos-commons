@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -214,20 +214,16 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#getServiceSpec--">getServiceSpec</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#initService-com.mesosphere.sdk.scheduler.DefaultScheduler.Builder-">initService</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;schedulerBuilder)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#register--">register</a></span>()</code>
 <div class="block">Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the <code>apiPort</code>.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#run--">run</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.lang.Boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#serviceSpecRequestsGpuResources-com.mesosphere.sdk.specification.ServiceSpec-">serviceSpecRequestsGpuResources</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>&nbsp;</td>
 </tr>
@@ -388,18 +384,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="initService-com.mesosphere.sdk.scheduler.DefaultScheduler.Builder-">
+<a name="serviceSpecRequestsGpuResources-com.mesosphere.sdk.specification.ServiceSpec-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>initService</h4>
-<pre>protected&nbsp;void&nbsp;initService(<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;schedulerBuilder)
-                    throws java.lang.Exception</pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
-</dl>
+<h4>serviceSpecRequestsGpuResources</h4>
+<pre>public static&nbsp;java.lang.Boolean&nbsp;serviceSpecRequestsGpuResources(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
 </li>
 </ul>
 <a name="run--">
@@ -436,15 +427,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/Service.html" t
 <li class="blockList">
 <h4>getServiceSpec</h4>
 <pre>protected&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;getServiceSpec()</pre>
-</li>
-</ul>
-<a name="serviceSpecRequestsGpuResources-com.mesosphere.sdk.specification.ServiceSpec-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>serviceSpecRequestsGpuResources</h4>
-<pre>public static&nbsp;java.lang.Boolean&nbsp;serviceSpecRequestsGpuResources(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
 </li>
 </ul>
 <a name="getFrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-java.lang.String-int-">
