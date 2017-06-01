@@ -117,7 +117,7 @@ func doUpdate(optionsFile, packageVersion string) {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.LogMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s service update --status` to view progress.", config.ModuleName, config.ServiceName))
+	client.LogMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update --status` to view progress.", config.ModuleName, config.ServiceName))
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {

@@ -107,7 +107,7 @@ func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -120,7 +120,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -133,7 +133,7 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world service update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
