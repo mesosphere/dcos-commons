@@ -27,5 +27,5 @@
 			"revisionTime": "2017-03-28T23:38:35Z"
 		}
 	],
-	"rootPath": "github.com/mesosphere/dcos-commons/frameworks/helloworld/cli/dcos-hello-world"
+	"rootPath": "github.com/mesosphere/dcos-commons/frameworks/cassandra/cli"
 }
