@@ -141,12 +141,17 @@ public class DefaultService implements Service {
         // StateStoreUtils.isUninstalling().
 
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return (StateStoreUtils.isUninstalling(stateStore) ||
-                schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) &&
-                !stateStore.fetchFrameworkId().isPresent() &&
-                ResourceCollectionUtils.getResourceIds(
-                        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
-                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+        return isUninstalling() && !stateStore.fetchFrameworkId().isPresent() && tasksNeedClearing();
+    }
+
+    private boolean tasksNeedClearing() {
+        return ResourceCollectionUtils.getResourceIds(
+                ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    }
+
+    private boolean isUninstalling() {
+        return StateStoreUtils.isUninstalling(stateStore) || schedulerBuilder.getSchedulerFlags().isUninstallEnabled();
     }
 
     protected ServiceSpec getServiceSpec() {
