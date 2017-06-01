@@ -12,7 +12,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -36,10 +35,9 @@ public class DefaultService implements Service {
     protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
+    private DefaultScheduler.Builder schedulerBuilder;
     private Scheduler scheduler;
-    private ServiceSpec serviceSpec;
     private StateStore stateStore;
-    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
@@ -68,50 +66,44 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        initService(schedulerBuilder);
+        this.schedulerBuilder = schedulerBuilder;
     }
 
-    protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        this.serviceSpec = schedulerBuilder.getServiceSpec();
-        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
+    private void initService() {
 
-        try {
-            // Use a single stateStore for either scheduler as the StateStoreCache
-            // requires a single instance of StateStore.
-            this.stateStore = schedulerBuilder.getStateStore();
-            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
-                if (!StateStoreUtils.isUninstalling(stateStore)) {
-                    LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
-                            "Uninstall cannot be canceled once enabled.");
-                    StateStoreUtils.setUninstalling(stateStore);
-                }
-
-                LOGGER.info("Launching UninstallScheduler...");
-                this.scheduler = new UninstallScheduler(
-                        schedulerBuilder.getServiceSpec().getApiPort(),
-                        schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
-                        stateStore,
-                        schedulerBuilder.getConfigStore());
-            } else {
-                if (StateStoreUtils.isUninstalling(stateStore)) {
-                    LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
-                            "Reenable the uninstall flag to complete the process.");
-                    SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
-                }
-                this.scheduler = schedulerBuilder.build();
+        // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
+        this.stateStore = schedulerBuilder.getStateStore();
+        if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+            if (!StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                        "Uninstall cannot be canceled once enabled.");
+                StateStoreUtils.setUninstalling(stateStore);
             }
-        } catch (Throwable e) {
-            LOGGER.error("Failed to build scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+
+            LOGGER.info("Launching UninstallScheduler...");
+            this.scheduler = new UninstallScheduler(
+                    schedulerBuilder.getServiceSpec().getApiPort(),
+                    schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                    stateStore,
+                    schedulerBuilder.getConfigStore());
+        } else {
+            if (StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                        "Reenable the uninstall flag to complete the process.");
+                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+            }
+            this.scheduler = schedulerBuilder.build();
         }
     }
 
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
-        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        initService();
+
+        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
             register();
@@ -129,11 +121,11 @@ public class DefaultService implements Service {
             LOGGER.info("Not registering framework because it is uninstalling.");
             return;
         }
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        String zkUri = String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
-                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
                 .run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
@@ -153,11 +145,11 @@ public class DefaultService implements Service {
                 !stateStore.fetchFrameworkId().isPresent() &&
                 ResourceCollectionUtils.getResourceIds(
                         ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
-                    .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     protected ServiceSpec getServiceSpec() {
-        return this.serviceSpec;
+        return this.schedulerBuilder.getServiceSpec();
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {

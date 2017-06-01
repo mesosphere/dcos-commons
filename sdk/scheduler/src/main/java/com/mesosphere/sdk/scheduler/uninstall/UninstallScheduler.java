@@ -4,26 +4,23 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.*;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerApiServer;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
@@ -31,21 +28,15 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 /**
  * This scheduler uninstalls the framework and releases all of its resources.
  */
-public class UninstallScheduler implements Scheduler {
+public class UninstallScheduler extends AbstractScheduler {
 
     private static final String RESOURCE_PHASE = "resource-phase";
     private static final String DEREGISTER_PHASE = "deregister-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final int port;
-    protected final StateStore stateStore;
-    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
-    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
-    private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     private final Plan uninstallPlan;
     private final ConfigStore<ServiceSpec> configStore;
-    protected SchedulerDriver driver;
     PlanManager uninstallPlanManager;
-    private Reconciler reconciler;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
     private SchedulerApiServer schedulerApiServer;
@@ -61,8 +52,8 @@ public class UninstallScheduler implements Scheduler {
             Duration apiServerInitTimeout,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore) {
+        super(stateStore);
         this.port = port;
-        this.stateStore = stateStore;
         this.configStore = configStore;
         this.uninstallPlan = getPlan();
         this.uninstallPlanManager = new DefaultPlanManager(uninstallPlan);
@@ -105,7 +96,8 @@ public class UninstallScheduler implements Scheduler {
         return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
     }
 
-    private void initialize(SchedulerDriver driver) throws InterruptedException {
+    @Override
+    protected void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
@@ -118,45 +110,9 @@ public class UninstallScheduler implements Scheduler {
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
         taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore), driver);
-        reconciler = new DefaultReconciler(stateStore);
         Phase resourcePhase = uninstallPlan.getChildren().get(0);
         UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
         offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
-    }
-
-    @Override
-    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        if (isAlreadyRegistered.getAndSet(true)) {
-            // This may occur as the result of a master election.
-            LOGGER.info("Already registered, calling reregistered()");
-            reregistered(driver, masterInfo);
-            return;
-        }
-
-        LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
-        try {
-            initialize(driver);
-        } catch (InterruptedException e) {
-            LOGGER.error("Initialization failed with exception: ", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-        }
-
-        try {
-            stateStore.storeFrameworkId(frameworkId);
-        } catch (Exception e) {
-            LOGGER.error(String.format(
-                    "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
-        }
-
-        this.driver = driver;
-        postRegister();
-    }
-
-    @Override
-    public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        postRegister();
     }
 
     @Override
@@ -207,11 +163,6 @@ public class UninstallScheduler implements Scheduler {
     }
 
     @Override
-    public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.warn("Ignoring rescinded Offer: {}.", offerId.getValue());
-    }
-
-    @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
         LOGGER.info("Received status update for taskId={} state={} message='{}'",
                 status.getTaskId().getValue(),
@@ -228,47 +179,8 @@ public class UninstallScheduler implements Scheduler {
     }
 
     @Override
-    public void frameworkMessage(
-            SchedulerDriver driver,
-            Protos.ExecutorID executorId,
-            Protos.SlaveID slaveId,
-            byte[] data) {
-        LOGGER.error("Received a Framework Message, but don't know how to process it");
-    }
-
-    @Override
-    public void disconnected(SchedulerDriver driver) {
-        LOGGER.error("Disconnected from Master.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
-    }
-
-    @Override
-    public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
-        LOGGER.warn("Agent lost: {}", agentId.getValue());
-    }
-
-    @Override
-    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
-        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
-    }
-
-    @Override
-    public void error(SchedulerDriver driver, String message) {
-        LOGGER.error("SchedulerDriver failed with message: " + message);
-        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
-    }
-
-    private void revive() {
-        LOGGER.info("Reviving offers.");
-        driver.reviveOffers();
-        StateStoreUtils.setSuppressed(stateStore, false);
-    }
-
-    private void postRegister() {
-        reconciler.start();
-        reconciler.reconcile(driver);
-        revive();
-
+    protected void postRegister() {
+        super.postRegister();
         // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep.
         // It's the second Step of the second Phase of the Plan.
         DeregisterStep deregisterStep = (DeregisterStep) uninstallPlan.getChildren().get(1).getChildren().get(0);
