@@ -1,6 +1,6 @@
 cluster_name: {{CASSANDRA_CLUSTER_NAME}}
 rpc_address: {{LIBPROCESS_IP}}
-listen_address: "{{TASK_NAME}}.{{SERVICE_NAME}}.mesos"
+listen_address: "{{TASK_NAME}}.{{SERVICE_NAME}}.autoip.dcos.thisdcos.directory"
 hints_directory: {{MESOS_SANDBOX}}/container-path/hints
 data_file_directories:
   - {{MESOS_SANDBOX}}/container-path/data

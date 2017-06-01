@@ -91,6 +91,11 @@
           "description": "The Marathon-style placement constraint string controlling node placement",
           "default": ""
         },
+        "virtual_network":{
+          "description": "Enable DC/OS Virtual Network",
+          "type": "boolean",
+          "default": false
+        },
         "heap": {
           "type": "object",
           "description": "The Cassandra process JVM heap configuration object.",
