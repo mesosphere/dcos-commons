@@ -6,6 +6,10 @@ pods:
   template:
     count: {{NODE_COUNT}}
     placement: {{NODE_PLACEMENT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:
         goal: RUNNING

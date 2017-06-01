@@ -28,6 +28,9 @@
 
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
+    {{#service.virtual_network}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    {{/service.virtual_network}}
     "NODE_CPUS": "{{node.cpus}}",
     "NODE_MEM": "{{node.mem}}",
     "NODE_DISK": "{{node.disk}}",
