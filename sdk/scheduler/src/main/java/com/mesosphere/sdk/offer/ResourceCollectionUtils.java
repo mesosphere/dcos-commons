@@ -54,10 +54,62 @@ public class ResourceCollectionUtils {
                 .collect(Collectors.toList());
     }
 
+    public static Optional<String> getRole(Resource resource) {
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+
+        if (reservationInfo.isPresent()) {
+            return Optional.of(reservationInfo.get().getRole());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<String> getPrincipal(Resource resource) {
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+
+        if (reservationInfo.isPresent()) {
+            return Optional.of(reservationInfo.get().getPrincipal());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
+        if (resource.getReservationsCount() == 0) {
+            return Optional.empty();
+        }
+
+        return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
+    }
+
     public static Optional<String> getResourceId(Resource resource) {
-        return resource.getReservation().getLabels().getLabelsList().stream()
-                .filter(label -> label.getKey().equals(MesosResource.RESOURCE_ID_KEY))
-                .map(label -> label.getValue())
-                .findFirst();
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+        if (!reservationInfo.isPresent()) {
+            return Optional.empty();
+        }
+
+        for (Label label : reservationInfo.get().getLabels().getLabelsList()) {
+            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
+                return Optional.of(label.getValue());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<String> getPersistenceId(Resource resource) {
+        if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+            return Optional.of(resource.getDisk().getPersistence().getId());
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<String> getSourceRoot(Resource resource) {
+        if (resource.hasDisk() && resource.getDisk().hasSource()) {
+            return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+        }
+
+        return Optional.empty();
     }
 }

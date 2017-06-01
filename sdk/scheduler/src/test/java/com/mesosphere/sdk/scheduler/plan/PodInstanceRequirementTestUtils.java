@@ -154,6 +154,7 @@ public class PodInstanceRequirementTestUtils {
                 .type(type)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec))
+                .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
         PodInstance podInstance = new DefaultPodInstance(podSpec, index);

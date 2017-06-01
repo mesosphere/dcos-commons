@@ -1,107 +1,114 @@
 package com.mesosphere.sdk.offer;
 
-import java.util.Optional;
-
+import com.mesosphere.sdk.specification.DefaultResourceSpec;
+import com.mesosphere.sdk.specification.DefaultVolumeSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
-import org.apache.mesos.Protos.Volume;
 
-import com.mesosphere.sdk.specification.ResourceSpec;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Constructs Mesos {@link Resource} protobufs.
  */
 public class ResourceBuilder {
-
-    /** The name used for reserved network port resources. */
-    public static final String PORTS_RESOURCE_TYPE = "ports";
-    /** The name used for reserved storage/disk resources. */
-    public static final String DISK_RESOURCE_TYPE = "disk";
-
-    /** The "any role" wildcard resource role. */
-    private static final String ANY_ROLE = "*";
-
-
-    private String role;
-    private Optional<String> principal;
     private final String resourceName;
+    private Optional<String> principal;
     private Value value;
+    private Optional<String> role;
+    private final String preReservedRole;
     private Optional<String> resourceId;
-
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
     private Optional<DiskInfo.Source> diskMountInfo;
 
-    public static ResourceBuilder fromSpec(ResourceSpec spec) {
-        return new ResourceBuilder(spec.getRole(), Optional.of(spec.getPrincipal()), spec.getName(), spec.getValue());
+    public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
+        return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
+                .setRole(Optional.of(spec.getRole()))
+                .setPrincipal(Optional.of(spec.getPrincipal()))
+                .setResourceId(resourceId);
+    }
+
+    public static ResourceBuilder fromSpec(
+            VolumeSpec spec,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot) {
+
+        ResourceBuilder resourceBuilder = fromSpec((ResourceSpec) spec, resourceId);
+        switch (spec.getType()) {
+            case ROOT:
+                return resourceBuilder.setRootVolume(spec.getContainerPath(), persistenceId);
+            case MOUNT:
+                if (!sourceRoot.isPresent()) {
+                    throw new IllegalStateException("Source path must be set on MOUNT volumes.");
+                }
+                return resourceBuilder.setMountVolume(spec.getContainerPath(), persistenceId, sourceRoot);
+            default:
+                throw new IllegalStateException(String.format("Unexpected disk type: %s", spec.getType()));
+        }
     }
 
     public static ResourceBuilder fromExistingResource(Resource resource) {
-        Optional<String> principal = resource.hasReservation() && resource.getReservation().hasPrincipal()
-                ? Optional.of(resource.getReservation().getPrincipal())
-                : Optional.empty();
-
-        ResourceBuilder builder =
-                new ResourceBuilder(resource.getRole(), principal, resource.getName(), getValue(resource));
-
         Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
-        if (resourceId.isPresent()) {
-            builder.setResourceId(resourceId.get());
-        }
 
-        if (resource.hasDisk()) {
-            DiskInfo diskInfo = resource.getDisk();
-            String containerPath = diskInfo.getVolume().getContainerPath();
-            Optional<String> persistenceId = diskInfo.getPersistence().getId().equals("")
-                    ? Optional.empty()
-                    : Optional.of(diskInfo.getPersistence().getId());
-            if (diskInfo.hasSource() && diskInfo.getSource().getType() == DiskInfo.Source.Type.MOUNT) {
-                Optional<String> mountRoot = diskInfo.getSource().hasMount()
-                        ? Optional.of(diskInfo.getSource().getMount().getRoot())
-                        : Optional.empty();
-                builder.setMountVolume(containerPath, persistenceId, mountRoot);
-            } else {
-                builder.setRootVolume(containerPath, persistenceId);
-            }
+        if (!resource.hasDisk()) {
+            ResourceSpec resourceSpec = getResourceSpec(resource);
+            return fromSpec(resourceSpec, resourceId);
+        } else {
+            VolumeSpec volumeSpec = getVolumeSpec(resource);
+            Optional<String> persistenceId = ResourceCollectionUtils.getPersistenceId(resource);
+            Optional<String> sourceRoot = ResourceCollectionUtils.getSourceRoot(resource);
+            return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
         }
-        return builder;
     }
 
     public static ResourceBuilder fromUnreservedValue(String resourceName, Value value) {
-        return new ResourceBuilder(ANY_ROLE, Optional.empty(), resourceName, value);
+        return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
     }
 
-    private ResourceBuilder(String role, Optional<String> principal, String resourceName, Value value) {
-        this.role = role;
-        this.principal = principal;
+    private static ResourceSpec getResourceSpec(Resource resource) {
+        if (resource.getReservationsCount() == 0) {
+            throw new IllegalStateException(
+                    "Cannot generate resource spec from resource which has not been reserved by the SDK.");
+        }
+
+        return new DefaultResourceSpec(
+                resource.getName(),
+                ValueUtils.getValue(resource),
+                ResourceCollectionUtils.getRole(resource).get(),
+                resource.getRole(),
+                ResourceCollectionUtils.getPrincipal(resource).get(),
+                ""); // env-key isn't used
+    }
+
+    private static VolumeSpec getVolumeSpec(Resource resource) {
+        VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
+        return new DefaultVolumeSpec(
+                resource.getScalar().getValue(),
+                type,
+                resource.getDisk().getVolume().getContainerPath(),
+                ResourceCollectionUtils.getRole(resource).get(),
+                resource.getRole(),
+                resource.getDisk().getPersistence().getPrincipal(),
+                ""); // env-key isn't used
+    }
+
+    private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
         this.resourceName = resourceName;
         this.value = value;
+        this.preReservedRole = preReservedRole;
+        this.role = Optional.empty();
+        this.principal = Optional.empty();
         this.resourceId = Optional.empty();
         this.diskContainerPath = Optional.empty();
         this.diskPersistenceId = Optional.empty();
         this.diskMountInfo = Optional.empty();
-    }
-
-    /**
-     * Sets the role for this resource. This may initially be the role under which a resource was offered, e.g. "*".
-     * When resource reservation information is being configured, this should be populated with the resource role being
-     * used by the service.
-     */
-    public ResourceBuilder setRole(String role) {
-        this.role = role;
-        return this;
-    }
-
-    /**
-     * Sets the principal for reserving this resource. This may initially be unset when a resource was offered.
-     * When resource reservation information is being configured, this should be populated with the principal being
-     * used by the service.
-     */
-    public ResourceBuilder setPrincipal(String principal) {
-        this.principal = Optional.of(principal);
-        return this;
     }
 
     /**
@@ -116,8 +123,8 @@ public class ResourceBuilder {
      * Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
      * runs. This may be used with e.g. restarting a task at its prior location.
      */
-    public ResourceBuilder setResourceId(String resourceId) {
-        this.resourceId = Optional.of(resourceId);
+    public ResourceBuilder setResourceId(Optional<String> resourceId) {
+        this.resourceId = resourceId;
         return this;
     }
 
@@ -145,7 +152,7 @@ public class ResourceBuilder {
      * @throws IllegalStateException if the resource does not have type {@code disk}
      */
     public ResourceBuilder setRootVolume(String containerPath, Optional<String> existingPersistenceId) {
-        if (!this.resourceName.equals(DISK_RESOURCE_TYPE)) {
+        if (!this.resourceName.equals(Constants.DISK_RESOURCE_TYPE)) {
             throw new IllegalStateException(
                     "Refusing to set disk information against resource of type: " + resourceName);
         }
@@ -176,30 +183,35 @@ public class ResourceBuilder {
     public Resource build() {
         Resource.Builder builder = Resource.newBuilder()
                 .setName(resourceName)
-                .setRole(role);
-        if (resourceId.isPresent()) {
-            builder.getReservationBuilder().getLabelsBuilder().addLabelsBuilder()
-                    .setKey(MesosResource.RESOURCE_ID_KEY)
-                    .setValue(resourceId.get());
+                .setRole(preReservedRole);
+
+        if (role.isPresent()) {
+            String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
+            Resource.ReservationInfo reservationInfo = Resource.ReservationInfo.newBuilder()
+                    .setPrincipal(principal.get())
+                    .setRole(role.get())
+                    .setLabels(
+                            Protos.Labels.newBuilder()
+                                    .addLabels(Protos.Label.newBuilder()
+                                            .setKey(MesosResource.RESOURCE_ID_KEY)
+                                            .setValue(resId)))
+                    .build();
+            builder.addReservations(reservationInfo);
         }
-        if (principal.isPresent()) {
-            builder.getReservationBuilder().setPrincipal(principal.get());
-            if (diskContainerPath.isPresent()) {
-                DiskInfo.Builder diskBuilder = builder.getDiskBuilder();
-                diskBuilder.getVolumeBuilder()
-                        .setContainerPath(diskContainerPath.get())
-                        .setMode(Volume.Mode.RW);
-                diskBuilder.getPersistenceBuilder()
-                        .setPrincipal(principal.get())
-                        .setId(diskPersistenceId.isPresent() ? diskPersistenceId.get() : "");
-                if (diskMountInfo.isPresent()) {
-                    diskBuilder.setSource(diskMountInfo.get());
-                }
+
+        if (diskContainerPath.isPresent()) {
+            DiskInfo.Builder diskBuilder = builder.getDiskBuilder();
+            diskBuilder.getVolumeBuilder()
+                    .setContainerPath(diskContainerPath.get())
+                    .setMode(Protos.Volume.Mode.RW);
+            diskBuilder.getPersistenceBuilder()
+                    .setPrincipal(principal.get())
+                    .setId(diskPersistenceId.isPresent() ? diskPersistenceId.get() : UUID.randomUUID().toString());
+            if (diskMountInfo.isPresent()) {
+                diskBuilder.setSource(diskMountInfo.get());
             }
-        } else if (diskContainerPath.isPresent()) {
-            throw new IllegalStateException(
-                    "Principal is required when disk information has been specified: " + toString());
         }
+
         return setValue(builder, value).build();
     }
 
@@ -239,5 +251,15 @@ public class ResourceBuilder {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    public ResourceBuilder setRole(Optional<String> role) {
+        this.role = role;
+        return this;
+    }
+
+    public ResourceBuilder setPrincipal(Optional<String> principal) {
+        this.principal = principal;
+        return this;
     }
 }

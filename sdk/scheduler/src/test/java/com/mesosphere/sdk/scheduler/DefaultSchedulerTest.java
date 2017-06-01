@@ -372,10 +372,9 @@ public class DefaultSchedulerTest {
 
         // Make offers sufficient to recover Task A-0 and launch Task B-0,
         // and also have some unused reserved resources for cleaning, and verify that only one of those three happens.
-        Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        cpus = ResourceTestUtils.setResourceId(cpus, UUID.randomUUID().toString());
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        mem = ResourceTestUtils.setResourceId(mem, UUID.randomUUID().toString());
+
+        Protos.Resource cpus = ResourceTestUtils.getExpectedScalar("cpus", 1.0, UUID.randomUUID().toString());
+        Protos.Resource mem = ResourceTestUtils.getExpectedScalar("mem", 1.0, UUID.randomUUID().toString());
 
         Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
                 .addAllResources(operations.stream()

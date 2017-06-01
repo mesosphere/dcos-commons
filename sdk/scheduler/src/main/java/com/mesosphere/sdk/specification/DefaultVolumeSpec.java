@@ -2,7 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -35,7 +35,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         this(
                 type,
                 containerPath,
-                ResourceBuilder.DISK_RESOURCE_TYPE,
+                Constants.DISK_RESOURCE_TYPE,
                 scalarValue(diskSize),
                 role,
                 preReservedRole,

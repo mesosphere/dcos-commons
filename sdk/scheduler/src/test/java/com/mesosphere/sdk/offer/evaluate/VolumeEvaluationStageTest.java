@@ -54,7 +54,8 @@ public class VolumeEvaluationStageTest {
         Protos.Resource resource = reserveRecommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
-        Protos.Label reservationLabel = resource.getReservation().getLabels().getLabels(0);
+        Protos.Resource.ReservationInfo reservationInfo = ResourceCollectionUtils.getReservation(resource).get();
+        Protos.Label reservationLabel = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(reservationLabel.getKey(), "resource_id");
         Assert.assertNotEquals(reservationLabel.getValue(), "");
 
@@ -63,7 +64,8 @@ public class VolumeEvaluationStageTest {
         Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().getType());
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
-        reservationLabel = resource.getReservation().getLabels().getLabels(0);
+        reservationInfo = ResourceCollectionUtils.getReservation(resource).get();
+        reservationLabel = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(reservationLabel.getKey(), "resource_id");
         Assert.assertNotEquals(reservationLabel.getValue(), "");
         Assert.assertNotEquals(resource.getDisk().getPersistence().getId(), "");

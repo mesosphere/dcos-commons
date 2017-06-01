@@ -9,7 +9,6 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
@@ -35,17 +34,8 @@ public class OfferEvaluatorTestBase {
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
     }
 
-    protected static String getResourceId(Resource resource) {
-        for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                return label.getValue();
-            }
-        }
-        throw new IllegalStateException("No resource ID found in resource: " + resource);
-    }
-
     protected static String getFirstResourceId(List<Resource> resources) {
-        return getResourceId(resources.get(0));
+        return ResourceCollectionUtils.getResourceId(resources.get(0)).get();
     }
 
     protected List<Resource> recordLaunchWithOfferedResources(
@@ -65,5 +55,13 @@ public class OfferEvaluatorTestBase {
         }
 
         return reservedResources;
+    }
+
+    protected String getResourceId(Resource resource) {
+        return ResourceCollectionUtils.getResourceId(resource).get();
+    }
+
+    protected String getPrincipal(Resource resource) {
+        return ResourceCollectionUtils.getPrincipal(resource).get();
     }
 }

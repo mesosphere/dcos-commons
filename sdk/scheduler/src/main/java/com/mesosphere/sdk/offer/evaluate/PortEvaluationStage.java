@@ -119,7 +119,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         Protos.Resource reservedResource = super.getFulfilledResource();
         if (resourceId.isPresent() && !StringUtils.isBlank(resourceId.get())) {
             reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
-                    .setResourceId(resourceId.get())
+                    .setResourceId(resourceId)
                     .build();
         }
         return reservedResource;

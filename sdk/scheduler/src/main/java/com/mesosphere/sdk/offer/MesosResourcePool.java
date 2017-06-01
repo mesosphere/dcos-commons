@@ -172,7 +172,6 @@ public class MesosResourcePool {
             pool.put(name, ValueUtils.subtract(availableValue, desiredValue));
             reservableMergedPool.put(preReservedRole, pool);
             Resource resource = ResourceBuilder.fromUnreservedValue(name, desiredValue)
-                    .setRole(preReservedRole)
                     .build();
             return Optional.of(new MesosResource(resource));
         } else {

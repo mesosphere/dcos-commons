@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.specification;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
@@ -68,6 +68,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         builder.name = copy.getName();
         builder.value = copy.getValue();
         builder.role = copy.getRole();
+        builder.preReservedRole = copy.getPreReservedRole();
         builder.principal = copy.getPrincipal();
         builder.envKey = copy.getEnvKey().isPresent() ? copy.getEnvKey().get() : null;
         return builder;
@@ -100,7 +101,14 @@ public class DefaultResourceSpec implements ResourceSpec {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+        return String.format(
+                "name: %s, value: %s, role: %s, preReservedRole: %s, principal: %s, envKey: %s",
+                getName(),
+                TextFormat.shortDebugString(getValue()),
+                getRole(),
+                getPreReservedRole(),
+                getPrincipal(),
+                getEnvKey());
     }
 
     @Override
@@ -128,7 +136,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         private String role;
         private String principal;
         private String envKey;
-        public String preReservedRole;
+        public String preReservedRole = Constants.ANY_ROLE;
 
         private Builder() {
         }

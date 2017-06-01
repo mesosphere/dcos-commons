@@ -1,5 +1,9 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.specification.DefaultVolumeSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
@@ -15,6 +19,7 @@ import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.ResourceCollectionUtils;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Utility methods for creating {@link Resource} protobufs in tests.
@@ -66,9 +71,8 @@ public class ResourceTestUtils {
                         .build())
                 .build();
         return Resource.newBuilder(getUnreservedResource("disk", diskValue))
-                .setRole(role)
                 .setDisk(mountVolumeDiskInfo)
-                .setReservation(getExpectedReservationInfo(resourceId, principal))
+                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -99,7 +103,6 @@ public class ResourceTestUtils {
                 .build();
         return Resource.newBuilder(getUnreservedResource("disk", diskValue))
                 .setRole(role)
-                .setReservation(getExpectedReservationInfo("", principal))
                 .setDisk(rootVolumeDiskInfo)
                 .build();
     }
@@ -111,31 +114,26 @@ public class ResourceTestUtils {
             String role,
             String principal,
             String persistenceId) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        DiskInfo rootVolumeDiskInfo = DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId(persistenceId)
-                        .setPrincipal(principal)
-                        .build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
-        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
-                .setRole(role)
-                .setDisk(rootVolumeDiskInfo)
-                .setReservation(getExpectedReservationInfo(resourceId, principal))
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+                diskSize,
+                VolumeSpec.Type.ROOT,
+                containerPath,
+                role,
+                Constants.ANY_ROLE,
+                principal,
+                ""); // env-key isn't used
+        return ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.of(resourceId),
+                Optional.of(persistenceId),
+                Optional.empty())
                 .build();
     }
 
     private static Resource getExpectedResource(String role, String principal, String name, Value value) {
         return Resource.newBuilder(getUnreservedResource(name, value))
                 .setRole(role)
-                .setReservation(getExpectedReservationInfo("", principal))
+                .setReservation(getExpectedReservationInfo("", role, principal))
                 .build();
     }
 
@@ -160,8 +158,7 @@ public class ResourceTestUtils {
                 .setScalar(Value.Scalar.newBuilder().setValue(value))
                 .build();
         return Resource.newBuilder(getUnreservedResource(name, val))
-                .setRole(role)
-                .setReservation(getExpectedReservationInfo(resourceId, principal))
+                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -195,8 +192,7 @@ public class ResourceTestUtils {
                 .setRanges(Value.Ranges.newBuilder().addAllRange(ranges))
                 .build();
         return Resource.newBuilder(getUnreservedResource(name, val))
-                .setRole(role)
-                .setReservation(getExpectedReservationInfo(resourceId, principal))
+                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -220,11 +216,12 @@ public class ResourceTestUtils {
     }
 
     public static String getPersistenceId(Resource diskResource) {
-        return diskResource.getDisk().getPersistence().getId();
+        return ResourceCollectionUtils.getPersistenceId(diskResource).get();
     }
 
-    private static ReservationInfo getExpectedReservationInfo(String resourceId, String principal) {
+    private static ReservationInfo getExpectedReservationInfo(String resourceId, String role, String principal) {
         return ReservationInfo.newBuilder()
+                .setRole(role)
                 .setPrincipal(principal)
                 .setLabels(Labels.newBuilder()
                         .addLabels(Label.newBuilder()
@@ -275,14 +272,6 @@ public class ResourceTestUtils {
         return builder.build();
     }
 
-    public static Resource getDesiredRootVolume(double diskSize) {
-        return getDesiredRootVolume(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                diskSize,
-                TestConstants.CONTAINER_PATH);
-    }
-
     public static Resource getDesiredMountVolume(double diskSize) {
         Value diskValue = Value.newBuilder()
                 .setType(Value.Type.SCALAR)
@@ -301,7 +290,6 @@ public class ResourceTestUtils {
                 .build();
         return Resource.newBuilder(getUnreservedResource("disk", diskValue))
                 .setRole(TestConstants.ROLE)
-                .setReservation(getExpectedReservationInfo("", TestConstants.PRINCIPAL))
                 .setDisk(mountVolumeDiskInfo)
                 .build();
     }
