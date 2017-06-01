@@ -22,28 +22,17 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 	client.LogMessageAndExit(string(responseBytes))
 }
 
-func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
+func parseDescribeResponseForResolvedOptions(responseBytes []byte) ([]byte, error) {
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
 	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
-	responseJSONBytes, err := client.UnmarshalJSON(responseBytes)
-	if err != nil {
-		return nil, err
-	}
-	if resolvedOptions, present := responseJSONBytes["resolvedOptions"]; present {
-		resolvedOptionsBytes, err := json.Marshal(resolvedOptions)
-		if err != nil {
-			return nil, err
-		}
-		return resolvedOptionsBytes, nil
-	}
-	return nil, nil
+	return client.GetValueFromJSON(responseBytes, "resolvedOptions")
 }
 
 func doDescribe() {
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
-	resolvedOptionsBytes, err := parseDescribeResponse(responseBytes)
+	resolvedOptionsBytes, err := parseDescribeResponseForResolvedOptions(responseBytes)
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
@@ -80,8 +69,35 @@ type UpdateRequest struct {
 }
 
 func printPackageVersions() {
-	// TOOD: implement
+	// TODO: write unit tests
 	client.LogMessage("Package Versions has not been implemented yet.")
+	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
+	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
+	responseBytes := client.GetResponseBytes(response)
+	packageBytes, err := client.GetValueFromJSON(responseBytes, "package")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	currentVersionBytes, err := client.GetValueFromJSON(packageBytes, "version")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	downgradeVersionsBytes, err := client.GetValueFromJSON(responseBytes, "downgradesTo")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	upgradeVersionsBytes, err := client.GetValueFromJSON(responseBytes, "upgradesTo")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	client.LogMessage("Current package version is: %s", currentVersionBytes)
+	if downgradeVersionsBytes != nil {
+		client.LogMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
+	}
+	if upgradeVersionsBytes != nil {
+		client.LogMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
+	}
+
 }
 
 func (cmd *UpdateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {
