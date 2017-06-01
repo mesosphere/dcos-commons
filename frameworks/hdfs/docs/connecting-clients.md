@@ -45,7 +45,7 @@ The responses are as below.
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
-        <value>qjournal://journal-0-node.hdfs.mesos:8485;journal-1-node.hdfs.mesos:8485;journal-2-node.hdfs.mesos:8485/hdfs</value>
+        <value>qjournal://journal-0-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-1-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-2-node.hdfs.autoip.dcos.thisdcos.directory:8485/hdfs</value>
     </property>
     <property>
         <name>dfs.namenode.name.dir</name>
@@ -80,7 +80,7 @@ The responses are as below.
     <!-- name-0-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:9001</value>
+        <value>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9001</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
@@ -88,7 +88,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:9002</value>
+        <value>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
@@ -99,7 +99,7 @@ The responses are as below.
     <!-- name-1-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:9001</value>
+        <value>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9001</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
@@ -107,7 +107,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:9002</value>
+        <value>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
