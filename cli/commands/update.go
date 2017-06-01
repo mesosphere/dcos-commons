@@ -67,14 +67,43 @@ func HandleDescribe(app *kingpin.Application) {
 }
 
 type UpdateHandler struct {
+	UpdateName     string
 	OptionsFile    string
 	PackageVersion string
+	ViewStatus     bool
 }
 
 type UpdateRequest struct {
 	AppID          string                 `json:"appId"`
 	PackageVersion string                 `json:"packageVersion,omitempty"`
 	OptionsJSON    map[string]interface{} `json:"options,omitempty"`
+}
+
+func printPackageVersions() {
+	// TOOD: implement
+	client.LogMessage("Package Versions has not been implemented yet.")
+}
+
+func (cmd *UpdateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
+	printPackageVersions()
+	return nil
+}
+
+func readJSONFile(filename string) (map[string]interface{}, error) {
+	fileBytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return client.UnmarshalJSON(fileBytes)
+}
+
+func parseUpdateResponse(responseBytes []byte) (string, error) {
+	responseJSON, err := client.UnmarshalJSON(responseBytes)
+	if err != nil {
+		return "", err
+	}
+	return string(responseJSON["marathonDeploymentId"].(string)), nil
 }
 
 func doUpdate(optionsFile, packageVersion string) {
@@ -134,6 +163,8 @@ func HandleUpdateSection(app *kingpin.Application) {
 	forceRestart.Arg("plan", "Name of the plan to restart").StringVar(&planCmd.PlanName)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&planCmd.Phase)
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&planCmd.Step)
+
+	update.Command("package-versions", "View a list of available package versions to downgrade or upgrade to").Action(cmd.ViewPackageVersions)
 
 	pause := update.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.RunPause)
 	pause.Arg("plan", "Name of the plan to pause").StringVar(&planCmd.PlanName)
