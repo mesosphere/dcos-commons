@@ -8,25 +8,25 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
-        ENV_VARS.set("FRAMEWORK_NAME", "hello-world");
-        ENV_VARS.set("EXECUTOR_URI", "");
-        ENV_VARS.set("LIBMESOS_URI", "");
-        ENV_VARS.set("PORT_API", "8080");
+        ENV_VARS.put("FRAMEWORK_NAME", "hello-world");
+        ENV_VARS.put("EXECUTOR_URI", "");
+        ENV_VARS.put("LIBMESOS_URI", "");
+        ENV_VARS.put("PORT_API", "8080");
 
-        ENV_VARS.set("SLEEP_DURATION", "1000");
-        ENV_VARS.set("HELLO_COUNT", "2");
-        ENV_VARS.set("HELLO_PORT", "4444");
-        ENV_VARS.set("HELLO_VIP_NAME", "helloworld");
-        ENV_VARS.set("HELLO_VIP_PORT", "9999");
-        ENV_VARS.set("HELLO_CPUS", "0.1");
-        ENV_VARS.set("HELLO_MEM", "512");
-        ENV_VARS.set("HELLO_DISK", "5000");
+        ENV_VARS.put("SLEEP_DURATION", "1000");
+        ENV_VARS.put("HELLO_COUNT", "2");
+        ENV_VARS.put("HELLO_PORT", "4444");
+        ENV_VARS.put("HELLO_VIP_NAME", "helloworld");
+        ENV_VARS.put("HELLO_VIP_PORT", "9999");
+        ENV_VARS.put("HELLO_CPUS", "0.1");
+        ENV_VARS.put("HELLO_MEM", "512");
+        ENV_VARS.put("HELLO_DISK", "5000");
 
-        ENV_VARS.set("WORLD_COUNT", "3");
-        ENV_VARS.set("WORLD_CPUS", "0.2");
-        ENV_VARS.set("WORLD_MEM", "1024");
-        ENV_VARS.set("WORLD_FAILS", "3");
-        ENV_VARS.set("WORLD_DISK", "5000");
+        ENV_VARS.put("WORLD_COUNT", "3");
+        ENV_VARS.put("WORLD_CPUS", "0.2");
+        ENV_VARS.put("WORLD_MEM", "1024");
+        ENV_VARS.put("WORLD_FAILS", "3");
+        ENV_VARS.put("WORLD_DISK", "5000");
     }
 
     @Test

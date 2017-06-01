@@ -2,7 +2,8 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 
 import java.io.File;
 
@@ -12,15 +13,16 @@ import java.io.File;
 public class ServiceSpecTestUtils {
 
     public static DefaultServiceSpec getPodInstance(String serviceSpecFileName, SchedulerFlags flags) throws Exception {
-        return getPodInstance(serviceSpecFileName, new YAMLServiceSpecFactory.FileReader(), flags);
+        return getPodInstance(serviceSpecFileName, new DefaultServiceSpecBuilder.FileReader(), flags);
     }
 
     public static DefaultServiceSpec getPodInstance(
-            String serviceSpecFileName, YAMLServiceSpecFactory.FileReader fileReader, SchedulerFlags flags)
+            String serviceSpecFileName, DefaultServiceSpecBuilder.FileReader fileReader, SchedulerFlags flags)
                     throws Exception {
         ClassLoader classLoader = ServiceSpecTestUtils.class.getClassLoader();
         File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
-        return YAMLServiceSpecFactory.generateServiceSpec(
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(file), flags, fileReader);
+        return new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .setFileReader(fileReader)
+                .build();
     }
 }

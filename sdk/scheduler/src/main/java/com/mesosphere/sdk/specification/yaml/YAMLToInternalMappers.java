@@ -4,9 +4,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.mesosphere.sdk.config.ConfigNamespace;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
-import com.mesosphere.sdk.config.TaskConfigRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
@@ -46,7 +44,8 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
-            YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
+            TaskEnvRouter taskEnvRouter,
+            DefaultServiceSpecBuilder.FileReader fileReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
@@ -63,13 +62,12 @@ public class YAMLToInternalMappers {
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
-        TaskConfigRouter taskConfigRouter = new DefaultTaskConfigRouter();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
             pods.add(from(
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
-                    taskConfigRouter.getConfig(entry.getKey()),
+                    taskEnvRouter.getConfig(entry.getKey()),
                     role,
                     principal,
                     schedulerFlags.getExecutorURI()));
@@ -132,9 +130,9 @@ public class YAMLToInternalMappers {
 
     private static PodSpec from(
             RawPod rawPod,
-            YAMLServiceSpecFactory.FileReader fileReader,
+            DefaultServiceSpecBuilder.FileReader fileReader,
             String podName,
-            ConfigNamespace configNamespace,
+            Map<String, String> additionalEnv,
             String role,
             String principal,
             String executorUri) throws Exception {
@@ -230,7 +228,7 @@ public class YAMLToInternalMappers {
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
-                    configNamespace,
+                    additionalEnv,
                     resourceSets,
                     role,
                     principal,
@@ -254,15 +252,15 @@ public class YAMLToInternalMappers {
 
     private static TaskSpec from(
             RawTask rawTask,
-            YAMLServiceSpecFactory.FileReader fileReader,
+            DefaultServiceSpecBuilder.FileReader fileReader,
             String taskName,
-            ConfigNamespace configNamespace,
+            Map<String, String> additionalEnv,
             Collection<ResourceSet> resourceSets,
             String role,
             String principal,
             boolean usePortResources) throws Exception {
 
-        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
+        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(additionalEnv)
                 .environment(rawTask.getEnv())
                 .value(rawTask.getCmd());
 

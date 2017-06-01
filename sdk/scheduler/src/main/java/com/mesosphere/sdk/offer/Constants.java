@@ -23,9 +23,4 @@ public class Constants {
 
     /** The string prepended to reserved resources to indicate that they are uninstalled. */
     public static final String TOMBSTONE_MARKER = "uninstalled_";
-
-    /** Prefix to use for VIP labels in DiscoveryInfos. */
-    public static final String VIP_PREFIX = "VIP_";
-    /** TLD to be used for VIP-based hostnames. */
-    public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 }

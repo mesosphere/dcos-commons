@@ -103,4 +103,9 @@ public class ArtifactResourceTest {
         assertEquals(MediaType.TEXT_PLAIN_TYPE, r.getMediaType());
         assertEquals(configSpec.getTemplateContent(), r.getEntity());
     }
+
+    @Test
+    public void testWithFolderedService() {
+        assertEquals("TODO", true, false);
+    }
 }

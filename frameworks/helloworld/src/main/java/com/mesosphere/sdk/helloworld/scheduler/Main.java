@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 
@@ -21,6 +22,7 @@ public class Main {
             new DefaultService(new File(args[0]), schedulerFlags).run();
         } else {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
+            DefaultTaskEnvRouter taskEnvRouter = new DefaultTaskEnvRouter();
             new DefaultService(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")
@@ -32,7 +34,7 @@ public class Main {
                             .addTask(DefaultTaskSpec.newBuilder()
                                     .name(TASK_NAME)
                                     .goalState(GoalState.RUNNING)
-                                    .commandSpec(DefaultCommandSpec.newBuilder(POD_TYPE)
+                                    .commandSpec(DefaultCommandSpec.newBuilder(taskEnvRouter.getConfig(POD_TYPE))
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())
                                     .resourceSet(DefaultResourceSet

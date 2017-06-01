@@ -269,4 +269,9 @@ public class EndpointsResourceTest {
         assertEquals(resource.getEndpoint("custom", null).getEntity(),
                 resource.getEndpoint("custom", "native").getEntity());
     }
+
+    @Test
+    public void testWithFolderedService() {
+        assertEquals("TODO", true, false);
+    }
 }

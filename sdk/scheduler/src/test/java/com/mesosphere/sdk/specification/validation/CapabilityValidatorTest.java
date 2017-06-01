@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification.validation;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
 import org.junit.Before;
@@ -12,7 +14,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
+import static com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -36,7 +38,8 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -53,7 +56,9 @@ public class CapabilityValidatorTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -69,7 +74,9 @@ public class CapabilityValidatorTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -86,12 +93,14 @@ public class CapabilityValidatorTest {
 
         // check that it works when GPUs are specified at the task level
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
         capabilityValidator.validate(serviceSpec);
 
         // check that it works when GPUs are specified at the resourceSet level
         file = new File(getClass().getClassLoader().getResource("valid-gpu-resourceset.yml").getFile());
-        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags).setFileReader(mockFileReader).build();
         capabilityValidator.validate(serviceSpec);
     }
 
@@ -105,14 +114,16 @@ public class CapabilityValidatorTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
 
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), flags, mockFileReader);
+        serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file2).build(), flags).setFileReader(mockFileReader).build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -129,7 +140,9 @@ public class CapabilityValidatorTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file2).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
         capabilityValidator.validate(serviceSpec);
     }
 }

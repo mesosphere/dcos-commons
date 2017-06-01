@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -24,7 +25,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
+import static com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -125,15 +126,21 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals("test-executor-uri", uris.get(2).getValue());
         Assert.assertEquals("test-libmesos-uri", uris.get(0).getValue());
         Assert.assertEquals("test-java-uri", uris.get(1).getValue());
-        String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
+        String configOneUrl = ArtifactResource.getTemplateUrl(
                 TestConstants.SERVICE_NAME,
-                Constants.VIP_HOST_TLD,
-                uuid.toString(),
+                uuid,
                 podInstance.getPod().getType(),
-                tasksToLaunch.get(0));
-        Assert.assertEquals(artifactDirUrl + "config-one", uris.get(3).getValue());
+                tasksToLaunch.get(0),
+                "config-one");
+        Assert.assertEquals(configOneUrl, uris.get(3).getValue());
         Assert.assertEquals("config-templates/config-one", uris.get(3).getOutputFile());
-        Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
+        String configTwoUrl = ArtifactResource.getTemplateUrl(
+                TestConstants.SERVICE_NAME,
+                uuid,
+                podInstance.getPod().getType(),
+                tasksToLaunch.get(0),
+                "config-two");
+        Assert.assertEquals(configTwoUrl, uris.get(4).getValue());
         Assert.assertEquals("config-templates/config-two", uris.get(4).getOutputFile());
     }
 

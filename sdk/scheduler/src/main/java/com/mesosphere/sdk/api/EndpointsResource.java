@@ -7,9 +7,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
@@ -149,11 +147,9 @@ public class EndpointsResource {
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
             // Mesos DNS hostname:
-            String mesosDnsHost = String.format("%s.%s.mesos",
-                    (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
+            String mesosDnsTaskName = (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
                     ? taskInfo.getDiscovery().getName()
-                    : taskInfo.getName(),
-                    serviceName);
+                    : taskInfo.getName();
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
 
@@ -168,8 +164,8 @@ public class EndpointsResource {
                         serviceName,
                         endpointsByName,
                         taskInfo,
-                        String.format("%s:%d", mesosDnsHost, port.getNumber()),
-                        String.format("%s:%d", nativeHost, port.getNumber()),
+                        EndpointUtils.toMesosDnsEndpoint(serviceName, mesosDnsTaskName, port.getNumber()),
+                        EndpointUtils.toEndpoint(nativeHost, port.getNumber()),
                         port.getLabels().getLabelsList());
             }
         }
@@ -197,18 +193,18 @@ public class EndpointsResource {
         // Search for any VIPs to add the above host:port against:
         boolean foundAnyVips = false;
         for (Label label : portLabels) {
-            VIPInfo vipInfo = VIPInfo.parse(taskInfo.getName(), label);
-            if (vipInfo == null) {
+            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskInfo.getName(), label);
+            if (!vipInfo.isPresent()) {
                 continue;
             }
 
             // VIP found. file host:port against the VIP name.
             foundAnyVips = true;
 
-            JSONObject vipEndpoint = endpointsByName.get(vipInfo.name);
+            JSONObject vipEndpoint = endpointsByName.get(vipInfo.get().getVipName());
             if (vipEndpoint == null) {
                 vipEndpoint = new JSONObject();
-                endpointsByName.put(vipInfo.name, vipEndpoint);
+                endpointsByName.put(vipInfo.get().getVipName(), vipEndpoint);
             }
 
             // append entry to 'dns' and 'address' arrays for this task:
@@ -216,8 +212,7 @@ public class EndpointsResource {
             vipEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
 
             // (distinctly) append entry to 'vips' for this task:
-            String vipHostPort = String.format("%s.%s.%s:%d",
-                    vipInfo.name, serviceName, Constants.VIP_HOST_TLD, vipInfo.port);
+            String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo.get());
             Boolean foundVip = false;
             if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
                 JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
@@ -250,41 +245,6 @@ public class EndpointsResource {
             // append entry to 'direct' array for this task:
             taskEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
             taskEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
-        }
-    }
-
-    /**
-     * Struct for VIP name + port, e.g. 'broker' and 9092.
-     */
-    private static class VIPInfo {
-        private final String name;
-        private final int port;
-
-        private VIPInfo(String name, int port) {
-            this.name = name;
-            this.port = port;
-        }
-
-        private static VIPInfo parse(String taskName, Label label) {
-            if (!label.getKey().startsWith(Constants.VIP_PREFIX)) {
-                return null;
-            }
-            List<String> namePort = Splitter.on(':').splitToList(label.getValue());
-            if (namePort.size() != 2) {
-                LOGGER.error("Task {}'s VIP value for {} is invalid, expected 2 components but got {}: {}",
-                        taskName, label.getKey(), namePort.size(), label.getValue());
-                return null;
-            }
-            int vipPort;
-            try {
-                vipPort = Integer.parseInt(namePort.get(1));
-            } catch (NumberFormatException e) {
-                LOGGER.error(String.format(
-                        "Unable to Task %s's VIP port from %s as an int",
-                        taskName, label.getValue()), e);
-                return null;
-            }
-            return new VIPInfo(namePort.get(0), vipPort);
         }
     }
 }

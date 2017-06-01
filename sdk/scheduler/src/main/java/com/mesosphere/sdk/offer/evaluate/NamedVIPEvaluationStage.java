@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 
 
@@ -18,6 +16,8 @@ import org.apache.mesos.Protos.Resource;
  * DC/OS to pick up the specified named VIP mapping.
  */
 public class NamedVIPEvaluationStage extends PortEvaluationStage {
+
+    private final String taskName;
     private final String protocol;
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
@@ -34,6 +34,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             String vipName,
             Integer vipPort) {
         super(resource, taskName, portName, port, customEnvKey);
+        this.taskName = taskName;
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -115,8 +116,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private boolean maybeUpdateVIP(Protos.DiscoveryInfo.Builder builder) {
         for (Protos.Port.Builder portBuilder : builder.getPortsBuilder().getPortsBuilderList()) {
             for (Protos.Label l : portBuilder.getLabels().getLabelsList()) {
-                if (l.getKey().startsWith(Constants.VIP_PREFIX) &&
-                        l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
+                Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskName, l);
+                if (vipInfo.isPresent()
+                        && vipInfo.get().getVipName().equals(vipName)
+                        && vipInfo.get().getVipPort() == vipPort) {
                     portBuilder.setNumber(
                             (int) getResourceRequirement().getResource().getRanges().getRange(0).getBegin());
                     portBuilder.setVisibility(visibility);
@@ -142,7 +145,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addLabels(EndpointUtils.createVipLabel(vipName, vipPort));
 
         // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
@@ -166,15 +169,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addLabels(EndpointUtils.createVipLabel(vipName, vipPort));
 
         return discoveryInfoBuilder.build();
-    }
-
-    private static Label getVIPLabel(String vipName, Integer vipPort) {
-        return Label.newBuilder()
-                .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))
-                .setValue(String.format("%s:%d", vipName, vipPort))
-                .build();
     }
 }

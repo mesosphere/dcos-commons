@@ -5,7 +5,8 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluatorTestBase;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -32,8 +33,8 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
     public static void beforeAll() throws Exception {
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
         File file = new File(classLoader.getResource("shared-resource-set.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).build();
+        serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, flags).build();
     }
 
     @Before

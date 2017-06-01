@@ -128,7 +128,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
-        private Collection<Object> resources = new ArrayList<>();
+        private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
@@ -221,8 +221,8 @@ public class DefaultScheduler implements Scheduler, Observer {
          * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
          * to the defaults.
          */
-        public Builder setCustomResources(Collection<Object> resources) {
-            this.resources = resources;
+        public Builder setCustomResources(Collection<Object> customResources) {
+            this.customResources = customResources;
             return this;
         }
 
@@ -381,7 +381,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             return new DefaultScheduler(
                     serviceSpec,
                     getSchedulerFlags(),
-                    resources,
+                    customResources,
                     plans,
                     stateStore,
                     configStore,

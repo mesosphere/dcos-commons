@@ -10,9 +10,11 @@ import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 
@@ -29,10 +31,19 @@ public class KafkaService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
 
     public KafkaService(File pathToYamlSpecification) throws Exception {
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
+        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(pathToYamlSpecification).build();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+
+        // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
+        String zookeeperUri =
+                SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags)
+                + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
+        LOGGER.info("Running Kafka with zookeeper path: {}", zookeeperUri);
+
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                new DefaultServiceSpecBuilder(rawServiceSpec, schedulerFlags)
+                        .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", zookeeperUri)
+                        .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
 
         /* Upgrade */
