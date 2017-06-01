@@ -30,14 +30,3 @@ project(":frameworks/template").name = "template"
 include 'frameworks/cassandra'
 project(":frameworks/cassandra").name = "cassandra"
 
-include 'examples/test'
-project(":examples/test").name = "test"
-
-include 'examples/testme'
-project(":examples/testme").name = "testme"
-
-include 'examples/testme'
-project(":examples/testme").name = "testme"
-
-include 'examples/testme'
-project(":examples/testme").name = "testme"
