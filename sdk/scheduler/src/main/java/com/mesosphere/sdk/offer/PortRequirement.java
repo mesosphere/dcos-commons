@@ -58,8 +58,8 @@ public class PortRequirement extends ResourceRequirement {
         if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
             return true;
         }
-        for (String netwokName : networkNames) {
-            if (DcosConstants.networkSupportsPortMapping(netwokName)) {
+        for (String networkName : networkNames) {
+            if (DcosConstants.networkSupportsPortMapping(networkName)) {
                 return true;
             }
         }

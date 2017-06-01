@@ -41,7 +41,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             String portName,
             int port,
             Optional<String> customEnvKey,
-            boolean useHostPorts){
+            boolean useHostPorts) {
         super(resource, taskName);
         this.portName = portName;
         this.port = port;
