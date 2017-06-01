@@ -52,8 +52,8 @@ func doDescribe() {
 	if resolvedOptionsBytes != nil {
 		client.PrintJSONBytes(resolvedOptionsBytes, nil)
 	} else {
-		client.LogMessage("No user options stored for service %s.", config.ServiceName)
-		client.LogMessageAndExit("User options are only persisted for packages installed with Enterprise DC/OS 1.10 or newer.")
+		client.LogMessage("Package configuration is not available for service %s.", config.ServiceName)
+		client.LogMessageAndExit("Only packages installed with Enterprise DC/OS 1.10 or newer will have configuration persisted.")
 	}
 }
 
