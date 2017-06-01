@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.api;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -123,7 +123,7 @@ public class TaskResource {
 
     private JSONObject getTaskConnection(Protos.TaskInfo taskInfo) {
         JSONObject conn = new JSONObject();
-        conn.put("dns", String.format("%s.%s.mesos", taskInfo.getName(), frameworkName));
+        conn.put("dns", String.format("%s.%s.autoip.dcos.thisdcos.directory", taskInfo.getName(), frameworkName));
         conn.put("ports", getPortString(taskInfo));
         return conn;
     }

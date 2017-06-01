@@ -37,6 +37,10 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
+    {{#service.virtual_network}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    {{/service.virtual_network}}
+
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",

@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.api;
 
-import org.apache.mesos.Protos.*;
-
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
-
+import org.apache.mesos.Protos.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -33,11 +31,19 @@ public class TaskResourceTest {
 
     private TaskResource resource;
 
+    private static TaskInfo.Builder getTaskInfoBuilder(String taskName) {
+        return TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
+    }
+
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
         resource = new TaskResource(mockStateStore, mockTaskKiller, FRAMEWORK_NAME);
     }
+
     @Test
     public void testGetTaskNames() {
         List<String> taskNames = Arrays.asList("task0", "task1", "task2");
@@ -158,7 +164,7 @@ public class TaskResourceTest {
         assertEquals(200, response.getStatus());
 
         JSONObject obj = new JSONObject((String) response.getEntity());
-        assertEquals(taskName + "." + FRAMEWORK_NAME + ".mesos", obj.get("dns"));
+        assertEquals(taskName + "." + FRAMEWORK_NAME + ".autoip.dcos.thisdcos.directory", obj.get("dns"));
         assertEquals("2000-3000,8080", obj.get("ports"));
     }
 
@@ -169,12 +175,5 @@ public class TaskResourceTest {
 
         Response response = resource.getConnection(taskName);
         assertEquals(404, response.getStatus());
-    }
-
-    private static TaskInfo.Builder getTaskInfoBuilder(String taskName) {
-        return TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
     }
 }
