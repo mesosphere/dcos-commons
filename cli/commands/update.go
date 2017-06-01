@@ -42,6 +42,7 @@ func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
 }
 
 func doDescribe() {
+	config.Command = "describe"
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
@@ -97,6 +98,7 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 }
 
 func doUpdate(optionsFile, packageVersion string) {
+	config.Command = "update"
 	request := UpdateRequest{AppID: config.ServiceName}
 	if len(packageVersion) > 0 {
 		request.PackageVersion = packageVersion
