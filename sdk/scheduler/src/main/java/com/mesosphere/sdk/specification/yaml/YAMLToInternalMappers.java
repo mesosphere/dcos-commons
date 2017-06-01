@@ -230,6 +230,7 @@ public class YAMLToInternalMappers {
                                 rawResourceSet.getVolume(),
                                 rawResourceSet.getVolumes(),
                                 role,
+                                rawPod.getPreReservedRole(),
                                 principal,
                                 usePortResources);
                     })
@@ -238,10 +239,10 @@ public class YAMLToInternalMappers {
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
                     Collections.emptyList() :
-                    Arrays.asList(from(rawPod.getVolume(), role, principal)));
+                    Arrays.asList(from(rawPod.getVolume(), role, rawPod.getPreReservedRole(), principal)));
 
             volumeSpecs.addAll(rawPod.getVolumes().values().stream()
-                    .map(v -> from(v, role, principal))
+                    .map(v -> from(v, role, rawPod.getPreReservedRole(), principal))
                     .collect(Collectors.toList()));
 
             builder.volumes(volumeSpecs);
@@ -257,6 +258,7 @@ public class YAMLToInternalMappers {
                     configNamespace,
                     resourceSets,
                     role,
+                    rawPod.getPreReservedRole(),
                     principal,
                     usePortResources));
         }
@@ -283,6 +285,7 @@ public class YAMLToInternalMappers {
             ConfigNamespace configNamespace,
             Collection<ResourceSet> resourceSets,
             String role,
+            String preReservedRole,
             String principal,
             boolean usePortResources) throws Exception {
 
@@ -349,6 +352,7 @@ public class YAMLToInternalMappers {
                     rawTask.getVolume(),
                     rawTask.getVolumes(),
                     role,
+                    preReservedRole,
                     principal,
                     usePortResources));
         }
@@ -365,10 +369,11 @@ public class YAMLToInternalMappers {
             RawVolume rawSingleVolume,
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
+            String preReservedRole,
             String principal,
             boolean usePortResources) {
 
-        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
+        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, preReservedRole, principal);
 
         if (rawVolumes != null) {
             if (rawSingleVolume != null) {
@@ -403,7 +408,7 @@ public class YAMLToInternalMappers {
         }
 
         if (rawPorts != null && usePortResources) {
-            from(role, principal, rawPorts).getPortSpecs()
+            from(role, preReservedRole, principal, rawPorts).getPortSpecs()
                     .forEach(portSpec -> resourceSetBuilder.addResource(portSpec));
         }
 
@@ -412,7 +417,7 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String principal) {
+    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String preReservedRole, String principal) {
         VolumeSpec.Type volumeTypeEnum;
         try {
             volumeTypeEnum = VolumeSpec.Type.valueOf(rawVolume.getType());
@@ -427,6 +432,7 @@ public class YAMLToInternalMappers {
                 volumeTypeEnum,
                 rawVolume.getPath(),
                 role,
+                preReservedRole,
                 principal,
                 "DISK_SIZE");
     }
@@ -497,7 +503,11 @@ public class YAMLToInternalMappers {
         return networkNames.size() == 0;  // if we have no networks, we want to use port resources
     }
 
-    private static PortsSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts) {
+    private static PortsSpec from(
+            String role,
+            String preReservedRole,
+            String principal,
+            WriteOnceLinkedHashMap<String, RawPort> rawPorts) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
         String envKey = null;
@@ -522,6 +532,7 @@ public class YAMLToInternalMappers {
                 portSpecs.add(new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,
+                        preReservedRole,
                         principal,
                         rawPort.getEnvKey(),
                         name,
@@ -533,6 +544,7 @@ public class YAMLToInternalMappers {
                 portSpecs.add(new PortSpec(
                         portValueBuilder.build(),
                         role,
+                        preReservedRole,
                         principal,
                         rawPort.getEnvKey(),
                         name));

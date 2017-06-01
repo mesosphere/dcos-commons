@@ -70,14 +70,14 @@ public class TaskUtilsTest {
         TaskSpec oldTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID)
                         .cpus(5.)
                         .build());
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID)
                         .cpus(5.)
                         .memory(6.)
@@ -91,14 +91,14 @@ public class TaskUtilsTest {
         TaskSpec oldTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID)
                         .cpus(5.)
                         .build());
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID)
                         .memory(5.)
                         .build());
@@ -111,7 +111,7 @@ public class TaskUtilsTest {
         TaskSpec oldTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID)
                         .cpus(5.)
                         .memory(3.)
@@ -119,7 +119,7 @@ public class TaskUtilsTest {
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                         .id(TestConstants.RESOURCE_SET_ID + "b")
                         .cpus(5.)
                         .memory(3.)

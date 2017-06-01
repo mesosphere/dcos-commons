@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -129,6 +130,7 @@ public class NamedVIPEvaluationStageTest {
         return new NamedVIPSpec(
                 valueBuilder.build(),
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
                 TestConstants.VIP_NAME + "-" + taskPort,
@@ -140,7 +142,7 @@ public class NamedVIPEvaluationStageTest {
 
     private PodInstanceRequirement getPodInstanceRequirement(int taskPort) {
         // Build Pod
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
                 .addResource(getNamedVIPSpec(taskPort))

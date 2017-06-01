@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -31,17 +32,20 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Size(min = 1)
     private final String principal;
     private final String envKey;
+    private final String preReservedRole;
 
     @JsonCreator
     public DefaultResourceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey) {
         this.name = name;
         this.value = value;
         this.role = role;
+        this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.principal = principal;
         this.envKey = envKey;
     }
@@ -50,6 +54,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         name = builder.name;
         value = builder.value;
         role = builder.role;
+        preReservedRole = builder.preReservedRole;
         principal = builder.principal;
         envKey = builder.envKey;
     }
@@ -76,6 +81,11 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Override
     public String getRole() {
         return role;
+    }
+
+    @Override
+    public String getPreReservedRole() {
+        return preReservedRole;
     }
 
     @Override
@@ -118,6 +128,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         private String role;
         private String principal;
         private String envKey;
+        public String preReservedRole;
 
         private Builder() {
         }
@@ -152,6 +163,11 @@ public class DefaultResourceSpec implements ResourceSpec {
          */
         public Builder role(String role) {
             this.role = role;
+            return this;
+        }
+
+        public Builder preReservedRole(String preReservedRole) {
+            this.preReservedRole = preReservedRole;
             return this;
         }
 

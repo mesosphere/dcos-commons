@@ -35,7 +35,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     protected Optional<MesosResource> consume(ResourceSpec resourceSpec, MesosResourcePool pool) {
         if (reservesResource()) {
-            return pool.consumeUnreservedMerged(resourceSpec.getName(), resourceSpec.getValue());
+            return pool.consumeReservableMerged(
+                    resourceSpec.getName(),
+                    resourceSpec.getValue(),
+                    resourceSpec.getPreReservedRole());
         } else {
             return pool.consumeReserved(resourceSpec.getName(), resourceSpec.getValue(), resourceId.get());
         }
@@ -94,9 +97,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 ResourceSpec requiredAdditionalResources = DefaultResourceSpec.newBuilder(resourceSpec)
                         .value(difference)
                         .build();
-                mesosResourceOptional = mesosResourcePool.consumeUnreservedMerged(
+                mesosResourceOptional = mesosResourcePool.consumeReservableMerged(
                         requiredAdditionalResources.getName(),
-                        requiredAdditionalResources.getValue());
+                        requiredAdditionalResources.getValue(),
+                        resourceSpec.getPreReservedRole());
 
                 if (!mesosResourceOptional.isPresent()) {
                     return new IntermediateEvaluationOutcome(

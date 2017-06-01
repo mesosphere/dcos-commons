@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
@@ -207,6 +208,7 @@ public class KafkaConfigUpgrade {
             no need to give ports to intermediate Spec */
         ResourceSet newResourceSet = DefaultResourceSet.newBuilder(
                 kafkaSchedulerConfiguration.getServiceConfiguration().getRole(),
+                Constants.ANY_ROLE,
                 kafkaSchedulerConfiguration.getServiceConfiguration().getPrincipal())
                 // it does not matter what name I gave to resource set
                 .id("broker-resource-set")

@@ -26,10 +26,11 @@ public class PortSpec extends DefaultResourceSpec {
     public PortSpec(
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("port-name") String portName) {
-        super(Constants.PORTS_RESOURCE_TYPE, value, role, principal, envKey);
+        super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal, envKey);
         this.portName = portName;
         this.envKey = envKey;
     }

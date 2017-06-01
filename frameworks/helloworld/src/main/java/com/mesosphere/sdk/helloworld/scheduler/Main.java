@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 
@@ -36,7 +37,7 @@ public class Main {
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())
                                     .resourceSet(DefaultResourceSet
-                                            .newBuilder("hello-world-role", "hello-world-principal")
+                                            .newBuilder("hello-world-role", Constants.ANY_ROLE, "hello-world-principal")
                                             .id("hello-resources")
                                             .cpus(CPUS)
                                             .memory(256.0)

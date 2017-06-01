@@ -230,11 +230,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testLaunchMultipleTasksPerExecutor() throws Exception {
         Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 3.0);
 
-        ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .cpus(1.0)
                 .id("resourceSetA")
                 .build();
-        ResourceSet resourceSetB = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSetB = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .cpus(2.0)
                 .id("resourceSetB")
                 .build();

@@ -19,6 +19,7 @@ import java.util.Objects;
  */
 public class DefaultResourceSet implements ResourceSet {
 
+    private final String preReservedRole;
     @NotNull
     @Size(min = 1)
     private String id;
@@ -41,11 +42,13 @@ public class DefaultResourceSet implements ResourceSet {
             @JsonProperty("resource-specifications") Collection<ResourceSpec> resources,
             @JsonProperty("volume-specifications") Collection<VolumeSpec> volumes,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal) {
         this.id = id;
         this.resources = resources;
         this.volumes = volumes;
         this.role = role;
+        this.preReservedRole = preReservedRole;
         this.principal = principal;
     }
 
@@ -55,15 +58,16 @@ public class DefaultResourceSet implements ResourceSet {
                 builder.resources,
                 builder.volumes,
                 builder.role,
+                builder.preReservedRole,
                 builder.principal);
     }
 
-    public static Builder newBuilder(String role, String principal) {
-        return new Builder(role, principal);
+    public static Builder newBuilder(String role, String preReservedRole, String principal) {
+        return new Builder(role, preReservedRole, principal);
     }
 
     public static Builder newBuilder(DefaultResourceSet copy) {
-        Builder builder = new Builder(copy.role, copy.principal);
+        Builder builder = new Builder(copy.role, copy.preReservedRole, copy.principal);
         builder.resources = copy.resources;
         builder.volumes = copy.volumes;
         return builder;
@@ -111,9 +115,11 @@ public class DefaultResourceSet implements ResourceSet {
         private Collection<VolumeSpec> volumes;
         private String role;
         private String principal;
+        public String preReservedRole;
 
-        private Builder(String role, String principal) {
+        private Builder(String role, String preReservedRole, String principal) {
             this.role = role;
+            this.preReservedRole = preReservedRole;
             this.principal = principal;
             resources = new LinkedList<>();
             volumes = new LinkedList<>();
@@ -179,6 +185,7 @@ public class DefaultResourceSet implements ResourceSet {
                     volumeTypeEnum,
                     containerPath,
                     role,
+                    preReservedRole,
                     principal,
                     "DISK_SIZE");
             if (volumes.stream()

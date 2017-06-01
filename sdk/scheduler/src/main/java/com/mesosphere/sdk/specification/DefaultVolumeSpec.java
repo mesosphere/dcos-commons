@@ -29,9 +29,18 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             Type type,
             String containerPath,
             String role,
+            String preReservedRole,
             String principal,
             String envKey) {
-        this(type, containerPath, ResourceBuilder.DISK_RESOURCE_TYPE, scalarValue(diskSize), role, principal, envKey);
+        this(
+                type,
+                containerPath,
+                ResourceBuilder.DISK_RESOURCE_TYPE,
+                scalarValue(diskSize),
+                role,
+                preReservedRole,
+                principal,
+                envKey);
     }
 
     @JsonCreator
@@ -41,9 +50,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal")  String principal,
             @JsonProperty("env-key")  String envKey) {
-        super(name, value, role, principal, envKey);
+        super(name, value, role, preReservedRole, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;
 
