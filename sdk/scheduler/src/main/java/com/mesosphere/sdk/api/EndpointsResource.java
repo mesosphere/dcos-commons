@@ -15,6 +15,7 @@ import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
@@ -136,7 +137,7 @@ public class EndpointsResource {
     /**
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
-    private static Map<String, JSONObject> getDiscoveryEndpoints(
+    private Map<String, JSONObject> getDiscoveryEndpoints(
             String serviceName,
             Collection<TaskInfo> taskInfos) throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
@@ -157,7 +158,17 @@ public class EndpointsResource {
                     Constants.DNS_TLD);
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
-
+            List<String> ipAddresses = new ArrayList<>();
+            if (stateStore.fetchStatus(taskInfo.getName()).isPresent()) {
+                // try and get the network status IP
+                Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).get();
+                if (taskStatus.hasContainerStatus() && taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+                    for (Protos.NetworkInfo networkInfo : taskStatus.getContainerStatus().getNetworkInfosList()) {
+                        String ipAddress = networkInfo.getIpAddresses(0).getIpAddress();
+                        ipAddresses.add(ipAddress);
+                    }
+                }
+            }
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
                     LOGGER.info(
@@ -165,12 +176,14 @@ public class EndpointsResource {
                             port.getVisibility(), YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
                     continue;
                 }
+                String hostIpString = ipAddresses.isEmpty() ? nativeHost :
+                        (ipAddresses.size() == 1 ? ipAddresses.get(0) : ipAddresses.toString());
                 addPortToEndpoints(
                         serviceName,
                         endpointsByName,
                         taskInfo,
                         String.format("%s:%d", mesosDnsHost, port.getNumber()),
-                        String.format("%s:%d", nativeHost, port.getNumber()),
+                        String.format("%s:%d", hostIpString, port.getNumber()),
                         port.getLabels().getLabelsList());
             }
         }

@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -158,6 +159,9 @@ public class EndpointsResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
+        for (TaskInfo taskInfo : TASK_INFOS) {
+            when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.empty());
+        }
         resource = new EndpointsResource(mockStateStore, "svc-name");
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
     }
