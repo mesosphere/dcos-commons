@@ -11,7 +11,6 @@ import (
 )
 
 type DescribeHandler struct {
-	DescribeName string
 }
 
 type DescribeRequest struct {
@@ -42,7 +41,6 @@ func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
 }
 
 func doDescribe() {
-	config.Command = "describe"
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
@@ -59,12 +57,17 @@ func doDescribe() {
 }
 
 func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	doDescribe()
 	return nil
 }
 
+func HandleDescribe(app *kingpin.Application) {
+	describeCmd := &DescribeHandler{}
+	app.Command("describe", "View the package configuration for this DC/OS service").Action(describeCmd.DescribeConfiguration)
+}
+
 type UpdateHandler struct {
-	UpdateName     string
 	OptionsFile    string
 	PackageVersion string
 	Status         bool
@@ -98,7 +101,6 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 }
 
 func doUpdate(optionsFile, packageVersion string) {
-	config.Command = "update"
 	request := UpdateRequest{AppID: config.ServiceName}
 	if len(packageVersion) > 0 {
 		request.PackageVersion = packageVersion
@@ -123,17 +125,13 @@ func doUpdate(optionsFile, packageVersion string) {
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	if cmd.Status {
 		printStatus()
 		return nil
 	}
 	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
 	return nil
-}
-
-func HandleDescribe(app *kingpin.Application) {
-	describeCmd := &DescribeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(describeCmd.DescribeConfiguration)
 }
 
 func HandleUpdate(app *kingpin.Application) {
