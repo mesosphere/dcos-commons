@@ -10,18 +10,12 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
-import com.mesosphere.sdk.config.validate.ConfigValidationError;
-import com.mesosphere.sdk.config.validate.ConfigValidator;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotChangeNetworkRegime;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
-import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
+import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -37,18 +31,11 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
-import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
-import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +45,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -66,38 +52,28 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler implements Scheduler, Observer {
+public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     /**
      * Time to wait for the executor thread to terminate. Only used by unit tests.
      *
      * Default: 10 seconds
      */
-    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
-    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
-    protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
-
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
-    protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    protected final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
+    final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
-
-    private SchedulerApiServer schedulerApiServer;
-
-    protected SchedulerDriver driver;
     protected Map<String, EndpointProducer> customEndpointProducers;
     protected Optional<RestartHook> customRestartHook;
-    protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
@@ -106,11 +82,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected PlanManager recoveryPlanManager;
     protected PlanCoordinator planCoordinator;
     protected Collection<Object> resources;
+    private SchedulerApiServer schedulerApiServer;
 
     /**
-     * Builder class for {@link DefaultScheduler}s. Uses provided custom values or reasonable defaults.
-     *
-     * Instances may be created via {@link DefaultScheduler#newBuilder(ServiceSpec, SchedulerFlags)}.
+     * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     public static class Builder {
         private final ServiceSpec serviceSpec;
@@ -182,8 +157,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Specifies a custom {@link ConfigStore}, otherwise the return value of
-         * {@link DefaultScheduler#createConfigStore(ServiceSpec)} will be used.
+         * Specifies a custom {@link ConfigStore}.
          *
          * The config store persists a copy of the current configuration ('target' configuration),
          * while also storing historical configurations.
@@ -311,8 +285,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * Creates a new scheduler instance with the provided values or their defaults.
          *
          * @return a new scheduler instance
-         * @throws IllegalStateException if config validation failed when updating the target config for a default
-         * {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
+         * @throws IllegalStateException if config validation failed when updating the target config.
          */
         public DefaultScheduler build() {
             if (capabilities == null) {
@@ -332,7 +305,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             // Update/validate config as needed to reflect the new service spec:
             final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
                     serviceSpec,
-                    schedulerFlags,
                     stateStore,
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
@@ -520,7 +492,6 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<ConfigValidator<ServiceSpec>> configValidators) {
@@ -533,6 +504,43 @@ public class DefaultScheduler implements Scheduler, Observer {
             LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            String errMsg = String.format("Found multiple deploy plans: %s", deployPlans);
+            LOGGER.error(errMsg);
+            throw new IllegalStateException(errMsg);
+        }
+    }
+
+    private Plan getDeployPlan() {
+        return getDeployPlan(plans).get();
+    }
+
+    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+        if (errors.isEmpty()) {
+            return plans;
+        }
+
+        Collection<Plan> updatedPlans = new ArrayList<>();
+        Plan deployPlan = getDeployPlan(plans).get();
+        deployPlan = new DefaultPlan(
+                deployPlan.getName(),
+                deployPlan.getChildren(),
+                deployPlan.getStrategy(),
+                errors);
+
+        updatedPlans.add(deployPlan);
+        plans.stream().filter(plan -> !plan.isDeployPlan()).map(updatedPlans::add);
+
+        return updatedPlans;
     }
 
     /**
@@ -549,11 +557,11 @@ public class DefaultScheduler implements Scheduler, Observer {
             Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
+        super(stateStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.resources = resources;
         this.plans = plans;
-        this.stateStore = stateStore;
         this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
@@ -568,7 +576,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
-    private void initialize(SchedulerDriver driver) throws InterruptedException {
+    protected void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
@@ -598,8 +606,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
-        reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
+        offerAccepter = new OfferAccepter(Collections.singletonList(new PersistentLaunchRecorder(stateStore,
+                serviceSpec)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
@@ -725,41 +733,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     @Override
-    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        if (isAlreadyRegistered.getAndSet(true)) {
-            // This may occur as the result of a master election.
-            LOGGER.info("Already registered, calling reregistered()");
-            reregistered(driver, masterInfo);
-            return;
-        }
-
-        LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
-        try {
-            initialize(driver);
-        } catch (InterruptedException e) {
-            LOGGER.error("Initialization failed with exception: ", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-        }
-
-        try {
-            stateStore.storeFrameworkId(frameworkId);
-        } catch (Exception e) {
-            LOGGER.error(String.format(
-                    "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
-        }
-
-        this.driver = driver;
-        postRegister();
-    }
-
-    @Override
-    public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        postRegister();
-    }
-
-    @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
@@ -802,9 +775,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
             // offer cycle.
             final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-            if (cleanerScheduler.isPresent()) {
-                acceptedOffers.addAll(cleanerScheduler.get().resourceOffers(driver, offers));
-            }
+            cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
+                    resourceCleanerScheduler.resourceOffers(driver, offers)));
 
             unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
 
@@ -818,71 +790,28 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     @Override
-    public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.warn("Ignoring rescinded Offer: {}.", offerId.getValue());
-    }
-
-    @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                LOGGER.info("Received status update for taskId={} state={} message='{}'",
-                        status.getTaskId().getValue(),
-                        status.getState().toString(),
-                        status.getMessage());
+        executor.execute(() -> {
+            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+                    status.getTaskId().getValue(),
+                    status.getState().toString(),
+                    status.getMessage());
 
-                // Store status, then pass status to PlanManager => Plan => Steps
-                try {
-                    stateStore.storeStatus(status);
-                    planCoordinator.getPlanManagers().stream()
-                            .forEach(planManager -> planManager.update(status));
-                    reconciler.update(status);
+            // Store status, then pass status to PlanManager => Plan => Steps
+            try {
+                stateStore.storeStatus(status);
+                planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
+                reconciler.update(status);
 
-                    if (StateStoreUtils.isSuppressed(stateStore)
-                            && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                        revive();
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                            + "This may be expected if Mesos sent stale status information: " + status, e);
+                if (StateStoreUtils.isSuppressed(stateStore)
+                        && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
+                    revive();
                 }
+            } catch (Exception e) {
+                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                        + "This may be expected if Mesos sent stale status information: " + status, e);
             }
         });
-    }
-
-    @Override
-    public void frameworkMessage(
-            SchedulerDriver driver,
-            Protos.ExecutorID executorId,
-            Protos.SlaveID slaveId,
-            byte[] data) {
-        LOGGER.error("Received a Framework Message, but don't know how to process it");
-    }
-
-    @Override
-    public void disconnected(SchedulerDriver driver) {
-        LOGGER.error("Disconnected from Master.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
-    }
-
-    @Override
-    public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
-        // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Agent lost: {}", agentId.getValue());
-    }
-
-    @Override
-    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
-        // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
-    }
-
-    @Override
-    public void error(SchedulerDriver driver, String message) {
-        LOGGER.error("SchedulerDriver failed with message: " + message);
-
-        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
     private void suppressOrRevive() {
@@ -899,64 +828,5 @@ public class DefaultScheduler implements Scheduler, Observer {
                 suppress();
             }
         }
-    }
-
-    private void suppress() {
-        LOGGER.info("Suppressing offers.");
-        driver.suppressOffers();
-        StateStoreUtils.setSuppressed(stateStore, true);
-    }
-
-    private void revive() {
-        LOGGER.info("Reviving offers.");
-        driver.reviveOffers();
-        StateStoreUtils.setSuppressed(stateStore, false);
-    }
-
-    private void postRegister() {
-        reconciler.start();
-        reconciler.reconcile(driver);
-        revive();
-    }
-
-    private Plan getDeployPlan() {
-        return getDeployPlan(plans).get();
-    }
-
-    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
-        List<Plan> deployPlans = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .collect(Collectors.toList());
-
-        if (deployPlans.size() == 1) {
-            return Optional.of(deployPlans.get(0));
-        } else if (deployPlans.size() == 0) {
-            return Optional.empty();
-        } else {
-            String errMsg = String.format("Found multiple deploy plans: %s", deployPlans);
-            LOGGER.error(errMsg);
-            throw new IllegalStateException(errMsg);
-        }
-    }
-
-    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
-        if (errors.isEmpty()) {
-            return plans;
-        }
-
-        Collection<Plan> updatedPlans = new ArrayList<>();
-        Plan deployPlan = getDeployPlan(plans).get();
-        deployPlan = new DefaultPlan(
-                deployPlan.getName(),
-                deployPlan.getChildren(),
-                deployPlan.getStrategy(),
-                errors);
-
-        updatedPlans.add(deployPlan);
-        plans.stream()
-                .filter(plan -> !plan.isDeployPlan())
-                .map(plan -> updatedPlans.add(plan));
-
-        return updatedPlans;
     }
 }

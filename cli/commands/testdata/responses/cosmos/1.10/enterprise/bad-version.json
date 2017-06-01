@@ -1,9 +1,0 @@
-{
-  "data": {
-    "currentVersion": "stub-universe",
-    "updateVersion": "not-a-valid",
-    "validVersions": []
-  },
-  "message": "The service of version stub-universe cannot update to the requested version not-a-valid",
-  "type": "BadVersionUpdate"
-}

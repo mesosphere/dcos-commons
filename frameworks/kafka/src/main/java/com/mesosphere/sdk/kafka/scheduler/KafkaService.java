@@ -3,7 +3,9 @@ package com.mesosphere.sdk.kafka.scheduler;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.kafka.api.*;
+import com.mesosphere.sdk.kafka.api.BrokerResource;
+import com.mesosphere.sdk.kafka.api.KafkaZKClient;
+import com.mesosphere.sdk.kafka.api.TopicResource;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.kafka.upgrade.FilterStateStore;
 import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
@@ -16,19 +18,21 @@ import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Kafka Service.
  */
 public class KafkaService extends DefaultService {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
-
     public KafkaService(File pathToYamlSpecification) throws Exception {
+        super(createSchedulerBuilder(pathToYamlSpecification));
+    }
+
+    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
+            throws Exception {
+
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
@@ -54,10 +58,10 @@ public class KafkaService extends DefaultService {
                 getResources(
                         schedulerBuilder.getServiceSpec().getZookeeperConnection(),
                         schedulerBuilder.getServiceSpec().getName()));
-        initService(schedulerBuilder);
+        return schedulerBuilder;
     }
 
-    private Collection<Object> getResources(String zookeeperConnection, String serviceName) {
+    private static Collection<Object> getResources(String zookeeperConnection, String serviceName) {
         KafkaZKClient kafkaZKClient = new KafkaZKClient(
                 zookeeperConnection,
                 DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName);
