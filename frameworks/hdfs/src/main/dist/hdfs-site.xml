@@ -26,7 +26,7 @@
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
-        <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value>
+        <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value>
     </property>
     <property>
         <name>dfs.namenode.name.dir</name>
@@ -61,7 +61,7 @@
     <!-- name-0-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-0-node</name>
-        <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
+        <value>name-0-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
@@ -69,7 +69,7 @@
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
-        <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
+        <value>name-0-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
@@ -80,7 +80,7 @@
     <!-- name-1-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
-        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
+        <value>name-1-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
@@ -88,7 +88,7 @@
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
-        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
+        <value>name-1-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
