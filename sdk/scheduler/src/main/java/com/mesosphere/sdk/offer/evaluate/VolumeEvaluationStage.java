@@ -110,7 +110,12 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
         if (!getTaskName().isPresent()) {
             // Volumes on the executor must be declared in each TaskInfo.ContainerInfo to be shared among them.
             for (Protos.TaskInfo.Builder t : podInfoBuilder.getTaskBuilders()) {
-                t.getContainerBuilder().addVolumes(resource.getDisk().getVolume());
+                Protos.ContainerInfo.Builder builder = t.getContainerBuilder();
+
+                if (!builder.hasType()) {
+                    builder.setType(Protos.ContainerInfo.Type.MESOS);
+                }
+                builder.addVolumes(resource.getDisk().getVolume());
             }
         }
     }

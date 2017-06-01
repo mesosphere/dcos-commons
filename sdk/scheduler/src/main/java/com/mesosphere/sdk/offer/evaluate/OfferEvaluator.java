@@ -85,7 +85,9 @@ public class OfferEvaluator {
                     serviceName,
                     targetConfigId,
                     schedulerFlags,
-                    thisPodTasks.values());
+                    thisPodTasks.values(),
+                    // FIX: signal if this is fucked
+                    stateStore.fetchFrameworkId().get());
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -311,6 +313,16 @@ public class OfferEvaluator {
                         .build())
                 .build());
 
+        resources.add(DefaultResourceSpec.newBuilder()
+                .name("disk")
+                .role(role)
+                .principal(principal)
+                .value(Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(256.0))
+                        .build())
+                .build());
+
         return resources;
     }
 
@@ -347,7 +359,10 @@ public class OfferEvaluator {
                 return Collections.emptyList();
             }
 
-            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(taskSpec, taskInfo);
+            String role = taskSpec.getResourceSet().getResources().iterator().next().getRole();
+            String principal = taskSpec.getResourceSet().getResources().iterator().next().getPrincipal();
+            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(
+                    taskSpec, taskInfo, getExecutorResources(role, principal));
             taskResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
