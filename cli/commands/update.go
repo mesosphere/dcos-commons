@@ -63,16 +63,22 @@ func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error
 }
 
 type UpdateHandler struct {
-	UpdateName     string
-	OptionsFile    string
-	PackageVersion string
-	Status         bool
+	UpdateName          string
+	OptionsFile         string
+	PackageVersion      string
+	ViewPackageVersions bool
+	ViewStatus          bool
 }
 
 type UpdateRequest struct {
 	AppID          string                 `json:"appId"`
 	PackageVersion string                 `json:"packageVersion,omitempty"`
 	OptionsJSON    map[string]interface{} `json:"options,omitempty"`
+}
+
+func printPackageVersions() {
+	// TOOD: implement
+	client.LogMessage("Package Versions has not been implemented yet.")
 }
 
 func printStatus() {
@@ -121,7 +127,11 @@ func doUpdate(optionsFile, packageVersion string) {
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
-	if cmd.Status {
+	if cmd.ViewPackageVersions {
+		printPackageVersions()
+		return nil
+	}
+	if cmd.ViewStatus {
 		printStatus()
 		return nil
 	}
@@ -138,6 +148,7 @@ func HandleUpdate(app *kingpin.Application) {
 	updateCmd := &UpdateHandler{}
 	update := app.Command("update", "Update the package version or configuration for this DC/OS service").Action(updateCmd.UpdateConfiguration)
 	update.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
-	update.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
-	update.Flag("status", "View status of this update").BoolVar(&updateCmd.Status)
+	update.Flag("package-version", "The desired package version to update to").StringVar(&updateCmd.PackageVersion)
+	update.Flag("package-versions", "View a list of available package versions to downgrade or upgrade to").BoolVar(&updateCmd.ViewPackageVersions)
+	update.Flag("status", "View status of this update").BoolVar(&updateCmd.ViewStatus)
 }
