@@ -8,11 +8,7 @@ import (
 func main() {
 	app := cli.New()
 
-	cli.HandleConfigSection(app)
-	cli.HandleEndpointsSection(app)
-	cli.HandlePlanSection(app)
-	cli.HandlePodsSection(app)
-	cli.HandleStateSection(app)
+	cli.HandleDefaultSections(app)
 
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
 }

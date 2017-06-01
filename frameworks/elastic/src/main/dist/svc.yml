@@ -7,9 +7,9 @@ pods:
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
-      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
-      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
+      - {{ELASTICSEARCH_URI}}
+      - {{XPACK_URI}}
+      - {{DIAGNOSTICS_URI}}
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -66,9 +66,9 @@ pods:
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
-      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
-      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
+      - {{ELASTICSEARCH_URI}}
+      - {{XPACK_URI}}
+      - {{DIAGNOSTICS_URI}}
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -125,9 +125,9 @@ pods:
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
-      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
-      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
+      - {{ELASTICSEARCH_URI}}
+      - {{XPACK_URI}}
+      - {{DIAGNOSTICS_URI}}
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -184,9 +184,9 @@ pods:
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
-      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
-      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
-      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{SUPPORT_DIAGNOSTICS_VERSION}}/support-diagnostics-{{SUPPORT_DIAGNOSTICS_VERSION}}-dist.zip
+      - {{ELASTICSEARCH_URI}}
+      - {{XPACK_URI}}
+      - {{DIAGNOSTICS_URI}}
     container:
       rlimits:
         RLIMIT_NOFILE:

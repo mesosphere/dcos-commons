@@ -1,0 +1,2 @@
+No user options stored for service hello-world.
+User options are only persisted for packages installed with Enterprise DC/OS 1.10 or newer.

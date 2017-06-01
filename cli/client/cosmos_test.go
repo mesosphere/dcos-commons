@@ -12,143 +12,128 @@ import (
 
 	"github.com/mesosphere/dcos-commons/cli/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-var capturedOutput bytes.Buffer
-
-func logRecorder(format string, a ...interface{}) {
-	capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
+type CosmosTestSuite struct {
+	suite.Suite
+	capturedOutput bytes.Buffer
 }
 
-func loadFile(t *testing.T, filename string) []byte {
+func (suite *CosmosTestSuite) logRecorder(format string, a ...interface{}) {
+	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
+}
+
+func (suite *CosmosTestSuite) loadFile(filename string) []byte {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		t.Fatal(err)
+		suite.T().Fatal(err)
 	}
 	return data
 }
 
-func createExampleRequest(t *testing.T) (*http.Request, []byte) {
-	requestBody := loadFile(t, "testdata/requests/example.json")
+func (suite *CosmosTestSuite) SetupSuite() {
+	config.DcosUrl = "https://my.dcos.url/"
+	config.DcosAuthToken = "dummytoken"
+
+	// reassign logging functions to allow us to check output
+	LogMessage = suite.logRecorder
+	LogMessageAndExit = suite.logRecorder
+}
+
+func (suite *CosmosTestSuite) SetupTest() {
+	config.ServiceName = "hello-world"
+}
+
+func (suite *CosmosTestSuite) TearDownTest() {
+	suite.capturedOutput.Reset()
+}
+func TestUpdateTestSuite(t *testing.T) {
+	suite.Run(t, new(CosmosTestSuite))
+}
+
+func (suite *CosmosTestSuite) createExampleRequest() (*http.Request, []byte) {
+	requestBody := suite.loadFile("testdata/requests/example.json")
 	return createCosmosHTTPJSONRequest("POST", "describe", string(requestBody)), requestBody
 }
 
-func createExampleResponse(t *testing.T, statusCode int, filename string) http.Response {
-	request, _ := createExampleRequest(t)
+func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) http.Response {
+	request, _ := suite.createExampleRequest()
 	status := fmt.Sprintf("%v %s", statusCode, http.StatusText(statusCode))
 
 	var responseBody io.ReadCloser
 	if filename != "" {
-		responseBody = ioutil.NopCloser(bytes.NewBuffer(loadFile(t, filename)))
+		responseBody = ioutil.NopCloser(bytes.NewBuffer(suite.loadFile(filename)))
 	}
 
 	return http.Response{StatusCode: statusCode, Status: status, Request: request, Body: responseBody}
 }
 
-func setup() {
-	config.DcosUrl = "https://my.dcos.url/"
-	config.DcosAuthToken = "dummytoken"
-	config.ServiceName = "hello-world"
-
-	// reassign logging functions to allow us to check output
-	LogMessage = logRecorder
-	LogMessageAndExit = logRecorder
-}
-
-func teardown() {
-	capturedOutput.Reset()
-}
-func Test404ErrorResponse(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) Test404ErrorResponse() {
 	// fake 404 response
-	fourOhFourResponse := createExampleResponse(t, http.StatusNotFound, "")
+	fourOhFourResponse := suite.createExampleResponse(http.StatusNotFound, "")
 
 	checkCosmosHTTPResponse(&fourOhFourResponse)
 
-	expectedOutput := loadFile(t, "testdata/output/404.txt")
-	assert.Equal(t, string(expectedOutput), capturedOutput.String())
-
-	teardown()
+	expectedOutput := suite.loadFile("testdata/output/404.txt")
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-func TestAppNotFoundErrorResponse(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
 	config.ServiceName = "hello-world-1"
 
 	// fake 400 response for MarathonAppNotFound
-	fourHundredResponse := createExampleResponse(t, http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
+	fourHundredResponse := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
 
 	checkCosmosHTTPResponse(&fourHundredResponse)
 
-	expectedOutput := loadFile(t, "testdata/output/bad-name.txt")
-	assert.Equal(t, string(expectedOutput), capturedOutput.String())
-
-	teardown()
+	expectedOutput := suite.loadFile("testdata/output/bad-name.txt")
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-func TestBadVersionErrorResponse(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	// create 400 response for BadVersionUpdate
-	fourHundredResponse := createExampleResponse(t, http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
+	fourHundredResponse := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
 
 	checkCosmosHTTPResponse(&fourHundredResponse)
 
-	expectedOutput := loadFile(t, "testdata/output/bad-version.txt")
-	assert.Equal(t, string(expectedOutput), capturedOutput.String())
-
-	capturedOutput.Reset()
-
-	teardown()
+	expectedOutput := suite.loadFile("testdata/output/bad-version.txt")
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
-func TestCreateCosmosHTTPJSONRequest(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	// create a request
-	request, requestBody := createExampleRequest(t)
+	request, requestBody := suite.createExampleRequest()
 
 	// check request headers, URL and body
-	assert.Equal(t, "application/vnd.dcos.service.describe-response+json;charset=utf-8;version=v1", request.Header["Accept"][0])
-	assert.Equal(t, "application/vnd.dcos.service.describe-request+json;charset=utf-8;version=v1", request.Header["Content-Type"][0])
-	assert.Equal(t, "token=dummytoken", request.Header["Authorization"][0])
-	assert.Equal(t, "https://my.dcos.url/cosmos/service/describe", request.URL.String())
+	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-response+json;charset=utf-8;version=v1", request.Header["Accept"][0])
+	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-request+json;charset=utf-8;version=v1", request.Header["Content-Type"][0])
+	assert.Equal(suite.T(), "token=dummytoken", request.Header["Authorization"][0])
+	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/describe", request.URL.String())
 	actualBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		t.Fatal(err)
+		suite.T().Fatal(err)
 	}
-	assert.Equal(t, requestBody, actualBody)
-
-	teardown()
+	assert.Equal(suite.T(), requestBody, actualBody)
 }
 
-func TestLocalCosmosUrl(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
 	// create a URL where the user has manually specified a URL to Cosmos
 	config.CosmosUrl = "https://my.local.cosmos/"
 
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
 
-	assert.Equal(t, "https://my.local.cosmos/service/describe", describeURL.String())
-	assert.Equal(t, "https://my.local.cosmos/service/update", updateURL.String())
+	assert.Equal(suite.T(), "https://my.local.cosmos/service/describe", describeURL.String())
+	assert.Equal(suite.T(), "https://my.local.cosmos/service/update", updateURL.String())
 
 	config.CosmosUrl = ""
-
-	teardown()
 }
 
-func TestCosmosUrl(t *testing.T) {
-	setup()
-
+func (suite *CosmosTestSuite) TestCosmosUrl() {
 	// create a URL where Cosmos is running on the DC/OS cluster
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
 
-	assert.Equal(t, "https://my.dcos.url/cosmos/service/describe", describeURL.String())
-	assert.Equal(t, "https://my.dcos.url/cosmos/service/update", updateURL.String())
-
-	teardown()
+	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/describe", describeURL.String())
+	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/update", updateURL.String())
 }
