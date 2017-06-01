@@ -68,6 +68,11 @@ public class PodInstanceRequirement {
         return TaskUtils.getStepName(getPodInstance(), getTasksToLaunch());
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
     /**
      * A PodInstanceRequirement conflictsWith with another it if applies to the same pod instance and some
      * tasks in that pod.

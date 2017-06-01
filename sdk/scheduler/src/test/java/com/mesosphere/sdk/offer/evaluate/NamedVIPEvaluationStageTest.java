@@ -170,7 +170,6 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos,
-                Optional.empty());
+                taskInfos);
     }
 }

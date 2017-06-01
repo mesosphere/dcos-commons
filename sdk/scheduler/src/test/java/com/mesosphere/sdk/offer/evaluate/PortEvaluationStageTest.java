@@ -35,8 +35,7 @@ public class PortEvaluationStageTest {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                Collections.emptyList(),
-                Optional.empty());
+                Collections.emptyList());
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(PortSpec portSpec) {

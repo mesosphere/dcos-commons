@@ -38,7 +38,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
         MesosResourcePool resources = new MesosResourcePool(OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)));
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor()));
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(
                         resources,
@@ -47,8 +47,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                                stateStore.fetchTasks(),
-                                Optional.of(taskInfo.getExecutor().getExecutorId())));
+                                stateStore.fetchTasks()));
         Assert.assertFalse(outcome.isPassing());
     }
 
@@ -76,15 +75,14 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
         MesosResourcePool resources = new MesosResourcePool(offer);
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor()));
         PodInfoBuilder podInfoBuilder =
                 new PodInfoBuilder(
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
-                        stateStore.fetchTasks(),
-                        Optional.of(taskInfo.getExecutor().getExecutorId()));
+                        stateStore.fetchTasks());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

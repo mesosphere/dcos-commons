@@ -19,9 +19,13 @@ import java.util.stream.Collectors;
  * of expected {@link ResourceSpec}s for that task.
  */
 class TaskResourceMapper {
-    private static final Logger logger = LoggerFactory.getLogger(TaskResourceMapper.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
+    private final String taskSpecName;
+    private final Collection<ResourceSpec> resourceSpecs;
+    private final Collection<Protos.Resource> resources;
+    private final Map<String, String> taskEnv;
 
     /**
      * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
@@ -46,11 +50,6 @@ class TaskResourceMapper {
             return ToStringBuilder.reflectionToString(this);
         }
     }
-
-    private final String taskSpecName;
-    private final Collection<ResourceSpec> resourceSpecs;
-    private final Collection<Protos.Resource> resources;
-    private final Map<String, String> taskEnv;
 
     public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo) {
         this.taskSpecName = taskSpec.getName();
@@ -80,15 +79,15 @@ class TaskResourceMapper {
         for (Protos.Resource taskResource : resources) {
             Optional<ResourceLabels> matchingResource;
             switch (taskResource.getName()) {
-            case Constants.DISK_RESOURCE_TYPE:
-                matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
-                break;
-            case Constants.PORTS_RESOURCE_TYPE:
-                matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs, taskEnv);
-                break;
-            default:
-                matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
-                break;
+                case Constants.DISK_RESOURCE_TYPE:
+                    matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
+                    break;
+                case Constants.PORTS_RESOURCE_TYPE:
+                    matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs, taskEnv);
+                    break;
+                default:
+                    matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
+                    break;
             }
             if (matchingResource.isPresent()) {
                 if (!remainingResourceSpecs.remove(matchingResource.get().resourceSpec)) {
@@ -104,7 +103,6 @@ class TaskResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            // TODO(nickbp) add a stage that unreserves/destroys...
             logger.info("Orphaned task resources no longer in TaskSpec: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }

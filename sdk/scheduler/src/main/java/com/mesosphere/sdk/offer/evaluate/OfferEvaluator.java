@@ -63,14 +63,20 @@ public class OfferEvaluator {
                 .filter(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING))
                 .count() > 0;
 
-        Optional<Protos.ExecutorID> executorId = Optional.empty();
-        if (anyTaskIsRunning) {
-            executorId = Optional.of(thisPodTasks.values().stream().findFirst().get().getExecutor().getExecutorId());
+        Optional<Protos.ExecutorInfo> executorInfo = Optional.empty();
+        if (!thisPodTasks.isEmpty()) {
+            Protos.ExecutorInfo.Builder execInfoBuilder =
+                    thisPodTasks.values().stream().findFirst().get().getExecutor().toBuilder();
+            if (!anyTaskIsRunning) {
+                execInfoBuilder.setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
+            }
+
+            executorInfo = Optional.of(execInfoBuilder.build());
         }
 
         for (int i = 0; i < offers.size(); ++i) {
             List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorId);
+                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
@@ -79,8 +85,7 @@ public class OfferEvaluator {
                     serviceName,
                     targetConfigId,
                     schedulerFlags,
-                    thisPodTasks.values(),
-                    executorId);
+                    thisPodTasks.values());
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -122,7 +127,7 @@ public class OfferEvaluator {
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> allTasks,
             Map<String, Protos.TaskInfo> thisPodTasks,
-            Optional<Protos.ExecutorID> executorID) {
+            Optional<Protos.ExecutorInfo> executorInfo) {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationPipeline.add(new PlacementRuleEvaluationStage(
@@ -156,22 +161,23 @@ public class OfferEvaluator {
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
 
-        evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorId(thisPodTasks.values())));
+        evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
         if (shouldGetNewRequirement) {
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement));
         } else {
-            evaluationPipeline.addAll(getExistingEvaluationPipeline(podInstanceRequirement, thisPodTasks, executorID));
+            evaluationPipeline.addAll(
+                    getExistingEvaluationPipeline(podInstanceRequirement, thisPodTasks, executorInfo.get()));
         }
 
         return evaluationPipeline;
     }
 
-    private Optional<Protos.ExecutorID> getExecutorId(Collection<Protos.TaskInfo> taskInfos) {
+    private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
         for (Protos.TaskInfo taskInfo : taskInfos) {
             Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
             if (taskStatus.isPresent() && taskStatus.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
                 logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
-                return Optional.of(taskInfo.getExecutor().getExecutorId());
+                return Optional.of(taskInfo.getExecutor());
             }
         }
 
@@ -272,12 +278,24 @@ public class OfferEvaluator {
     private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Map<String, Protos.TaskInfo> podTasks,
-            Optional<Protos.ExecutorID> executorID) {
+            Protos.ExecutorInfo executorInfo) {
 
-        List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
+
+        List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+
+        if (executorInfo.getExecutorId().getValue().isEmpty()) {
+            ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
+                    podInstanceRequirement.getPodInstance().getPod(),
+                    executorInfo);
+            executorResourceMapper.getOrphanedResources()
+                    .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
+            executorResourceMapper.getOrphanedResources()
+                    .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+            evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
+        }
 
         for (TaskSpec taskSpec : taskSpecs) {
             String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());

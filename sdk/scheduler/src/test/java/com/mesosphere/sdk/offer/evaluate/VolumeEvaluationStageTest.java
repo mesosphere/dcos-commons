@@ -42,8 +42,7 @@ public class VolumeEvaluationStageTest {
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                                Collections.emptyList(),
-                                Optional.empty()));
+                                Collections.emptyList()));
         Assert.assertTrue(outcome.isPassing());
 
         List<OfferRecommendation> recommendations = new ArrayList<>(outcome.getOfferRecommendations());
@@ -92,8 +91,7 @@ public class VolumeEvaluationStageTest {
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                                Collections.emptyList(),
-                                Optional.empty()));
+                                Collections.emptyList()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }

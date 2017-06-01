@@ -35,7 +35,7 @@ public class PodInfoBuilder {
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
 
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
-    private final Protos.ExecutorInfo.Builder executorBuilder;
+    private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
     private final Map<String, Map<String, String>> lastTaskEnvs;
 
@@ -44,8 +44,7 @@ public class PodInfoBuilder {
             String serviceName,
             UUID targetConfigId,
             SchedulerFlags schedulerFlags,
-            Collection<Protos.TaskInfo> currentPodTasks,
-            Optional<Protos.ExecutorID> executorID)
+            Collection<Protos.TaskInfo> currentPodTasks)
                     throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
@@ -90,6 +89,10 @@ public class PodInfoBuilder {
 
     public Optional<Protos.ExecutorInfo.Builder> getExecutorBuilder() {
         return Optional.ofNullable(executorBuilder);
+    }
+
+    public void setExecutorBuilder(Protos.ExecutorInfo.Builder executorBuilder) {
+        this.executorBuilder = executorBuilder;
     }
 
     public Optional<String> getLastTaskEnv(String taskSpecName, String envName) {

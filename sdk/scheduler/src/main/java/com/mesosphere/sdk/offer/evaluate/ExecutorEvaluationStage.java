@@ -14,15 +14,15 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * and setting the executor ID for a newly-launching pod.
  */
 public class ExecutorEvaluationStage implements OfferEvaluationStage {
-    private final Optional<Protos.ExecutorID> executorId;
+    private final Optional<Protos.ExecutorInfo> executorInfo;
 
     /**
      * Instantiate with an expected {@link org.apache.mesos.Protos.ExecutorID} to check for in offers. If not found,
      * the offer will be rejected by this stage.
-     * @param executorId the executor ID to look for in incoming offers
+     * @param executorInfo the executor ID to look for in incoming offers
      */
-    public ExecutorEvaluationStage(Optional<Protos.ExecutorID> executorId) {
-        this.executorId = executorId;
+    public ExecutorEvaluationStage(Optional<Protos.ExecutorInfo> executorInfo) {
+        this.executorInfo = executorInfo;
     }
 
     @Override
@@ -31,35 +31,34 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             return pass(this, "No executor requirement defined");
         }
 
-        Protos.Offer offer = mesosResourcePool.getOffer();
-        Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-        if (!hasExpectedExecutorId(offer)) {
+        if (!hasExpectedExecutorId(mesosResourcePool.getOffer())) {
             return fail(this,
                     "Offer does not contain the needed Executor ID: '%s'",
-                    executorBuilder.getExecutorId().getValue());
+                    executorInfo.get().getExecutorId().getValue());
         }
 
-        // Set executor ID *after* the other check above for its presence:
         Protos.ExecutorID newExecutorId;
         String passMsgFormat;
-        if (executorId.isPresent()) {
-            newExecutorId = executorId.get();
+        if (executorInfo.isPresent()) {
+            newExecutorId = executorInfo.get().getExecutorId();
             passMsgFormat = "Offer contains the matching Executor ID: '%s'";
+            podInfoBuilder.setExecutorBuilder(executorInfo.get().toBuilder());
         } else {
+            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             newExecutorId = CommonIdUtils.toExecutorId(executorBuilder.getName());
             passMsgFormat = "No Executor ID required, generated: '%s'";
+            executorBuilder.setExecutorId(newExecutorId);
         }
-        executorBuilder.setExecutorId(newExecutorId);
-        return pass(this, passMsgFormat, newExecutorId);
+        return pass(this, passMsgFormat, newExecutorId.getValue());
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {
-        if (!executorId.isPresent()) {
+        if (!executorInfo.isPresent()) {
             return true;
         }
 
         for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorId.get())) {
+            if (execId.equals(executorInfo.get().getExecutorId())) {
                 return true;
             }
         }
