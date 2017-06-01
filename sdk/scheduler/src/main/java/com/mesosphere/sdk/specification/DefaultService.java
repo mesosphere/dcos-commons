@@ -69,6 +69,20 @@ public class DefaultService implements Service {
         this.schedulerBuilder = schedulerBuilder;
     }
 
+    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private void initService() {
 
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
@@ -156,20 +170,6 @@ public class DefaultService implements Service {
 
     protected ServiceSpec getServiceSpec() {
         return this.schedulerBuilder.getServiceSpec();
-    }
-
-    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
