@@ -66,7 +66,7 @@ type UpdateHandler struct {
 	UpdateName     string
 	OptionsFile    string
 	PackageVersion string
-	Status         bool
+	RawJson        bool
 }
 
 type UpdateRequest struct {
@@ -75,36 +75,20 @@ type UpdateRequest struct {
 	OptionsJSON    map[string]interface{} `json:"options,omitempty"`
 }
 
-func printStatus() {
-	// TODO: implement
-	client.LogMessage("Status has not been implemented yet. Please use `dcos %s --name=%s plan show` to view progress.", config.ModuleName, config.ServiceName)
-}
-
-func readJSONFile(filename string) (map[string]interface{}, error) {
-	fileBytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return client.UnmarshalJSON(fileBytes)
-}
-
-func parseUpdateResponse(responseBytes []byte) (string, error) {
-	responseJSON, err := client.UnmarshalJSON(responseBytes)
-	if err != nil {
-		return "", err
-	}
-	return string(responseJSON["marathonDeploymentId"].(string)), nil
-}
-
 func doUpdate(optionsFile, packageVersion string) {
 	request := UpdateRequest{AppID: config.ServiceName}
 	if len(packageVersion) > 0 {
 		request.PackageVersion = packageVersion
 	}
 	if len(optionsFile) > 0 {
-		optionsJSON, err := readJSONFile(optionsFile)
+		fileBytes, err := ioutil.ReadFile(optionsFile)
 		if err != nil {
-			client.LogMessage("Failed to load specified options file %s: %s", optionsFile, err)
+			client.LogMessageAndExit("Failed to load specified options file %s: %s", optionsFile, err)
+			return
+		}
+		optionsJSON, err := client.UnmarshalJSON(fileBytes)
+		if err != nil {
+			client.LogMessageAndExit("Failed to parse JSON in specified options file %s: %s", optionsFile, err)
 			return
 		}
 		request.OptionsJSON = optionsJSON
@@ -112,20 +96,32 @@ func doUpdate(optionsFile, packageVersion string) {
 	requestContent, _ := json.Marshal(request)
 	response := client.HTTPCosmosPostJSON("update", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
-	// TODO: do something interesting with update response
-	_, err := parseUpdateResponse(responseBytes)
+	_, err := client.UnmarshalJSON(responseBytes)
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.LogMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s service update --status` to view progress.", config.ModuleName, config.ServiceName))
+	client.LogMessage(
+		"Update started. Please use `dcos %s --name=%s service update status` to view progress.",
+		config.ModuleName, config.ServiceName)
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
-	if cmd.Status {
-		printStatus()
-		return nil
-	}
 	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
+	return nil
+}
+
+func printStatus(rawJson bool) {
+	planName := "deploy"
+	response := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
+	if rawJson {
+		client.PrintJSON(response)
+	} else {
+		client.LogMessage(toStatusTree(planName, client.GetResponseBytes(response)))
+	}
+}
+
+func (cmd *UpdateHandler) PrintStatus(c *kingpin.ParseContext) error {
+	printStatus(cmd.RawJson)
 	return nil
 }
 
@@ -139,5 +135,7 @@ func HandleUpdate(app *kingpin.Application) {
 	update := app.Command("update", "Update the package version or configuration for this DC/OS service").Action(updateCmd.UpdateConfiguration)
 	update.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
 	update.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
-	update.Flag("status", "View status of this update").BoolVar(&updateCmd.Status)
+
+	status := update.Command("status", "View status of the current update").Alias("show").Action(updateCmd.PrintStatus)
+	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&updateCmd.RawJson)
 }
