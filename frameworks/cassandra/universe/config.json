@@ -391,6 +391,11 @@
           "description": "The total size of the commit log in Mb.",
           "default": 8192
         },
+        "auto_snapshot": {
+          "type": "boolean",
+          "description": "Take a snapshot of the data before truncating a keyspace or dropping a table",
+          "default": true
+        },
         "roles_update_interval_in_ms": {
           "type": "integer",
           "description": "The refresh interval for the roles cache",
@@ -587,6 +592,7 @@
         "hints_flush_period_in_ms",
         "concurrent_materialized_view_writes",
         "commitlog_total_space_in_mb",
+        "auto_snapshot",
         "roles_update_interval_in_ms",
         "permissions_update_interval_in_ms",
         "key_cache_keys_to_save",

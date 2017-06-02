@@ -95,7 +95,7 @@ trickle_fsync_interval_in_kb: 10240
 rpc_server_type: sync
 incremental_backups: false
 snapshot_before_compaction: false
-auto_snapshot: true
+auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
 cross_node_timeout: false
 endpoint_snitch: SimpleSnitch
 roles_update_interval_in_ms: {{CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS}}

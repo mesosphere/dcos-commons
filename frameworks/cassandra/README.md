@@ -238,6 +238,7 @@ You can configure most of the settings exposed in Apache Cassandra's `cassandra.
 *   `dynamic_snitch_update_interval_in_ms`
 *   `dynamic_snitch_reset_interval_in_ms`
 *   `dynamic_snitch_badness_threshold`
+*   `auto_snapshot`
 *   `roles_update_interval_in_ms`
 *   `permissions_update_interval_in_ms`
 *   `key_cache_keys_to_save`
