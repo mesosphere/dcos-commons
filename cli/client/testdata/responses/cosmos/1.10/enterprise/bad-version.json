@@ -2,7 +2,7 @@
   "data": {
     "currentVersion": "stub-universe",
     "updateVersion": "not-a-valid",
-    "validVersions": []
+    "validVersions": [ "v0.8", "v0.9", "v1.1", "v2.0" ]
   },
   "message": "The service of version stub-universe cannot update to the requested version not-a-valid",
   "type": "BadVersionUpdate"

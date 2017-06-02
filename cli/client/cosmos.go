@@ -15,9 +15,8 @@ func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
 }
 
 func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
-	requestedVersion := data["updateVersion"]
-	//TODO: this is probably an array?
-	validVersions := data["validVersions"]
+	requestedVersion, _ := GetValueFromJSON(data, "updateVersion")
+	validVersions, _ := GetValueFromJSON(data, "validVersions")
 	printResponseError(response)
 	LogMessage("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
 	LogMessageAndExit("- Valid versions are: %s", validVersions)
