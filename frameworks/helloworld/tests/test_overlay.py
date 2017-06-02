@@ -1,4 +1,5 @@
 import pytest
+import json
 
 import shakedown
 
@@ -94,4 +95,35 @@ def test_overlay_network():
     check_task_network("hello-host-0-server", False)
     check_task_network("hello-host-vip-0-server", False)
 
+    endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints".format(pkg=PACKAGE_NAME))
+    endpoints_result = json.loads(endpoints_result)
+    assert rc == 0, "Getting endpoints failed"
+    assert len(endpoints_result) == 2, "Wrong number of endpoints got {} should be 2".format(len(endpoints_result))
 
+
+    overlay_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints overlay-vip".format(pkg=PACKAGE_NAME))
+    assert rc == 0, "Getting overlay endpoints failed"
+    overlay_endpoints_result = json.loads(overlay_endpoints_result)
+    assert "address" in overlay_endpoints_result.keys(), "overlay endpoints missing 'address'"\
+           "{}".format(overlay_endpoints_result)
+    assert len(overlay_endpoints_result["address"]) == 1
+    assert overlay_endpoints_result["address"][0].startswith("9")
+    overlay_port = overlay_endpoints_result["address"][0].split(":")[-1]
+    assert overlay_port == "4044"
+    assert "dns" in overlay_endpoints_result.keys()
+    assert len(overlay_endpoints_result["dns"]) == 1
+    assert overlay_endpoints_result["dns"][0] == "hello-overlay-vip-0-server.hello-world.autoip.dcos.thisdcos.directory:4044"
+
+
+    host_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints host-vip".format(pkg=PACKAGE_NAME))
+    assert rc == 0, "Getting host endpoints failed"
+    host_endpoints_result = json.loads(host_endpoints_result)
+    assert "address" in host_endpoints_result.keys(), "overlay endpoints missing 'address'"\
+           "{}".format(host_endpoints_result)
+    assert len(host_endpoints_result["address"]) == 1
+    assert host_endpoints_result["address"][0].startswith("10")
+    host_port = host_endpoints_result["address"][0].split(":")[-1]
+    assert host_port == "4044"
+    assert "dns" in host_endpoints_result.keys()
+    assert len(host_endpoints_result["dns"]) == 1
+    assert host_endpoints_result["dns"][0] == "hello-host-vip-0-server.hello-world.autoip.dcos.thisdcos.directory:4044"

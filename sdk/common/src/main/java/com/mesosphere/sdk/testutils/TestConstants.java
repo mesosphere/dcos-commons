@@ -13,6 +13,7 @@ public class TestConstants {
     public static final String CONTAINER_PATH_LABEL = "container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
     public static final String HOSTNAME = "test-hostname";
+    public static final String OVERLAY_HOSTNAME = "overlay-hostname";
     public static final String MOUNT_ROOT = "test-mount-root";
     public static final Protos.OfferID OFFER_ID = Protos.OfferID.newBuilder().setValue("test-offer-id").build();
     public static final String PERSISTENCE_ID = "test-persistence-id";

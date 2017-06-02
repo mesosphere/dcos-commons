@@ -9,6 +9,7 @@ import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Ports;
 import org.apache.mesos.Protos.TaskInfo;
@@ -141,6 +142,8 @@ public class EndpointsResourceTest {
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("ignored_no_vip").setValue("ignored:6432");
         TASK_WITH_VIPS_2 = builder.build();
+
+
     }
     private static final Collection<TaskInfo> TASK_INFOS = Arrays.asList(
             TASK_EMPTY,
@@ -165,6 +168,27 @@ public class EndpointsResourceTest {
         }
         resource = new EndpointsResource(mockStateStore, "svc-name");
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
+    }
+
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private void testEndpoint(String expectedHostname) throws ConfigStoreException {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        Response response = resource.getEndpoint("vip1", null);
+        assertEquals(200, response.getStatus());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
+        assertEquals(json.toString(), 4, json.length());
+        // deprecated, remove "vip" at 1.9 -> 2.0
+        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
+        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
+        JSONArray dns = json.getJSONArray("dns");
+        assertEquals(2, dns.length());
+        assertEquals(String.format("vips-1.svc-name.%s:2345", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("vips-2.svc-name.%s:3456", EXPECTED_DNS_TLD), dns.get(1));
+        JSONArray address = json.getJSONArray("address");
+        assertEquals(2, address.length());
+        assertEquals(expectedHostname + ":2345", address.get(0));
+        assertEquals(expectedHostname + ":3456", address.get(1));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -235,23 +259,38 @@ public class EndpointsResourceTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testGetOneEndpoint() throws ConfigStoreException {
+        testEndpoint(TestConstants.HOSTNAME);
+    }
+
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    @Test
+    public void testOneOverlayEndpoint() throws ConfigStoreException {
+        // build mock stateStore from the inside out
+        // IPAddress
+        Protos.NetworkInfo.IPAddress.Builder ipAddressBuilder = Protos.NetworkInfo.IPAddress.newBuilder();
+        ipAddressBuilder.setIpAddress(TestConstants.OVERLAY_HOSTNAME);
+        // NetworkInfo
+        Protos.NetworkInfo.Builder networkInfoBuilder = Protos.NetworkInfo.newBuilder();
+        networkInfoBuilder.addIpAddresses(ipAddressBuilder.build());
+        // ContainerInfo
+        Protos.ContainerStatus.Builder containerStatusBuilder = Protos.ContainerStatus.newBuilder();
+        containerStatusBuilder.addNetworkInfos(networkInfoBuilder.build());
+        // TaskStatus
+        Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder();
+        taskStatusBuilder.setContainerStatus(containerStatusBuilder.build());
+        taskStatusBuilder.setState(Protos.TaskState.TASK_RUNNING);
+        taskStatusBuilder.setTaskId(TestConstants.TASK_ID);
+        Protos.TaskStatus TASK_STATUS = taskStatusBuilder.build();
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("vip1", null);
-        assertEquals(200, response.getStatus());
-        JSONObject json = new JSONObject((String) response.getEntity());
-        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
-        assertEquals(json.toString(), 4, json.length());
-        // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
-        JSONArray dns = json.getJSONArray("dns");
-        assertEquals(2, dns.length());
-        assertEquals(String.format("vips-1.svc-name.%s:2345", EXPECTED_DNS_TLD), dns.get(0));
-        assertEquals(String.format("vips-2.svc-name.%s:3456", EXPECTED_DNS_TLD), dns.get(1));
-        JSONArray address = json.getJSONArray("address");
-        assertEquals(2, address.length());
-        assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
+
+        testEndpoint(TestConstants.HOSTNAME);
+
+        for (TaskInfo taskInfo : TASK_INFOS) {
+            when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(TASK_STATUS));
+        }
+
+        testEndpoint(TestConstants.OVERLAY_HOSTNAME);
+
     }
 
     @Test
