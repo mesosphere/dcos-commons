@@ -22,17 +22,13 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 	client.LogMessageAndExit(string(responseBytes))
 }
 
-func parseDescribeResponseForResolvedOptions(responseBytes []byte) ([]byte, error) {
-	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
-	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
-	return client.GetValueFromJSON(responseBytes, "resolvedOptions")
-}
-
 func doDescribe() {
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
-	resolvedOptionsBytes, err := parseDescribeResponseForResolvedOptions(responseBytes)
+	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
+	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
+	resolvedOptionsBytes, err := client.GetValueFromJSON(responseBytes, "resolvedOptions")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
@@ -70,7 +66,6 @@ type UpdateRequest struct {
 
 func printPackageVersions() {
 	// TODO: write unit tests
-	client.LogMessage("Package Versions has not been implemented yet.")
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
