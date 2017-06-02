@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
@@ -73,15 +74,20 @@ public class UninstallScheduler extends AbstractScheduler {
         }
 
         // create one UninstallStep per unique Resource, including Executor resources
+        // We filter to unique Resource Id's, because Executor level resources are tracked
+        // on multiple Tasks.
         List<Step> taskSteps = new ArrayList<>();
-        for (Protos.Resource resource : ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())) {
-            Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
-            if (!resourceId.isPresent()) {
-                continue;
-            }
-            Status status = resourceId.get().startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
-            taskSteps.add(new UninstallStep(resourceId.get(), status));
-        }
+        Map<Optional<String>, Boolean> uniqueResourceIds = new ConcurrentHashMap<>();
+        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks()).stream()
+                .filter(resource -> {
+                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+                    return resourceId.isPresent() && uniqueResourceIds.putIfAbsent(resourceId, Boolean.TRUE) == null;
+                })
+                .forEach(resource -> {
+                    String resourceId = ResourceCollectionUtils.getResourceId(resource).get();
+                    taskSteps.add(new UninstallStep(resourceId,
+                            resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING));
+                });
 
         Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                 Collections.emptyList());

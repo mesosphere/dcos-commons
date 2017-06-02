@@ -7,11 +7,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.PlanTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
@@ -34,7 +30,9 @@ public class UninstallSchedulerTest {
 
     private static final String RESERVED_RESOURCE_1_ID = "reserved-resource-id";
     private static final String RESERVED_RESOURCE_2_ID = "reserved-volume-id";
-    private static final String RESERVED_RESOURCE_3_ID = "reserved-cpu-id";
+    private static final String RESERVED_RESOURCE_3_ID = "reserved-cpu-id-0";
+    private static final String RESERVED_RESOURCE_4_ID = "reserved-cpu-id-1";
+
     private static final Protos.Resource RESERVED_RESOURCE_1 = ResourceTestUtils.getExpectedRanges(
             "ports",
             Collections.singletonList(Protos.Value.Range.newBuilder().setBegin(123).setEnd(234).build()),
@@ -54,8 +52,18 @@ public class UninstallSchedulerTest {
             RESERVED_RESOURCE_3_ID,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL);
+    private static final Protos.Resource RESERVED_RESOURCE_4 = ResourceTestUtils.getExpectedScalar(
+            "cpus",
+            1.0,
+            RESERVED_RESOURCE_4_ID,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
+
     private static final Protos.TaskInfo TASK_A = TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1,
             RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
+    private static final Protos.TaskInfo TASK_B = Protos.TaskInfo.newBuilder(TaskTestUtils
+            .getTaskInfo(Arrays.asList(RESERVED_RESOURCE_2, RESERVED_RESOURCE_4))).setName("other-task-info").build();
+
     private StateStore stateStore;
     private UninstallScheduler uninstallScheduler;
     @Mock private ConfigStore<ServiceSpec> configStore;
@@ -88,6 +96,22 @@ public class UninstallSchedulerTest {
     public void testInitialPlan() throws Exception {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
         List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
+    }
+
+    @Test
+    public void testInitialPlanTaskResourceOverlap() throws Exception {
+        // Add TASK_B, which overlaps with TASK_A.
+        stateStore = new DefaultStateStore(new MemPersister());
+        stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
+        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+
+        Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
+        // 4 unique resources + deregister step.
+        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING,
+                Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
