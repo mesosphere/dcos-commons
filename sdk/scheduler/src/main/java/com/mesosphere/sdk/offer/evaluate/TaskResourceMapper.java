@@ -24,9 +24,7 @@ class TaskResourceMapper {
     private final List<OfferEvaluationStage> evaluationStages;
     private final String taskSpecName;
     private final Collection<ResourceSpec> resourceSpecs;
-    private final Collection<ResourceSpec> executorResources;
     private final Collection<Protos.Resource> resources;
-    private final Collection<Protos.Resource> executorShit;
     private final Map<String, String> taskEnv;
 
     /**
@@ -53,13 +51,11 @@ class TaskResourceMapper {
         }
     }
 
-    public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo, Collection<ResourceSpec> executorResources) {
+    public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo) {
         this.taskSpecName = taskSpec.getName();
         this.resourceSpecs = new ArrayList<>();
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
-        this.executorResources = executorResources;
-        this.executorShit = taskInfo.getExecutor().getResourcesList();
         this.resources = taskInfo.getResourcesList();
         this.taskEnv = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         this.evaluationStages = getEvaluationStagesInternal();
@@ -73,80 +69,56 @@ class TaskResourceMapper {
         return evaluationStages;
     }
 
-    private List<ResourceLabels> getMatchingResources(
-            Collection<ResourceSpec> newResourceSpecs, Collection<Protos.Resource> existingResources) {
-        List<ResourceLabels> matchingResources = new ArrayList<>();
-
-        // these are resources which weren't found in the resourcespecs. likely need dereservations
-        for (Protos.Resource resource : existingResources) {
-            Optional<ResourceLabels> matchingResource;
-            switch (resource.getName()) {
-                case Constants.DISK_RESOURCE_TYPE:
-                    matchingResource = findMatchingDiskSpec(resource, newResourceSpecs);
-                    break;
-                case Constants.PORTS_RESOURCE_TYPE:
-                    matchingResource = findMatchingPortSpec(resource, newResourceSpecs, taskEnv);
-                    break;
-                default:
-                    matchingResource = findMatchingResourceSpec(resource, newResourceSpecs);
-                    break;
-            }
-            if (matchingResource.isPresent()) {
-                if (!newResourceSpecs.remove(matchingResource.get().resourceSpec)) {
-                    throw new IllegalStateException(String.format("Didn't find %s in %s",
-                            matchingResource.get().resourceSpec, newResourceSpecs));
-                }
-                matchingResources.add(matchingResource.get());
-            } else {
-                orphanedResources.add(resource);
-            }
-        }
-
-        return matchingResources;
-    }
-
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
         remainingResourceSpecs.addAll(resourceSpecs);
 
-        // these are resourcespecs which were matched with task/executor resources. may need updates
-        List<ResourceLabels> matchingTaskResources = getMatchingResources(resourceSpecs, resources);
-        List<ResourceLabels> matchingExecutorResources = getMatchingResources(executorResources, executorShit);
+        // these are resourcespecs which were matched with taskinfo resources. may need updates
+        List<ResourceLabels> matchingResources = new ArrayList<>();
+        // these are taskinfo resources which weren't found in the resourcespecs. likely need dereservations
+        for (Protos.Resource taskResource : resources) {
+            Optional<ResourceLabels> matchingResource;
+            switch (taskResource.getName()) {
+                case Constants.DISK_RESOURCE_TYPE:
+                    matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
+                    break;
+                case Constants.PORTS_RESOURCE_TYPE:
+                    matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs, taskEnv);
+                    break;
+                default:
+                    matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
+                    break;
+            }
+            if (matchingResource.isPresent()) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().resourceSpec)) {
+                    throw new IllegalStateException(String.format("Didn't find %s in %s",
+                            matchingResource.get().resourceSpec, remainingResourceSpecs));
+                }
+                matchingResources.add(matchingResource.get());
+            } else {
+                orphanedResources.add(taskResource);
+            }
+        }
 
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            // TODO(nickbp) add a stage that unreserves/destroys...
-            logger.info("Orphaned task resources no longer in TaskSpec or executor: {}",
+            logger.info("Orphaned task resources no longer in TaskSpec: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
-        if (!matchingTaskResources.isEmpty()) {
-            logger.info("Matching task/TaskSpec resources: {}", matchingTaskResources);
-            for (ResourceLabels resourceLabels : matchingTaskResources) {
+        if (!matchingResources.isEmpty()) {
+            logger.info("Matching task/TaskSpec resources: {}", matchingResources);
+            for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(taskSpecName, resourceLabels));
             }
         }
 
         // these are resourcespecs which weren't found in the taskinfo resources. likely need new reservations
-        if (!resourceSpecs.isEmpty()) {
+        if (!remainingResourceSpecs.isEmpty()) {
             logger.info("Missing TaskSpec resources not found in task: {}", remainingResourceSpecs);
-            for (ResourceSpec missingResource : resourceSpecs) {
+            for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(taskSpecName, missingResource));
-            }
-        }
-
-        if (!matchingExecutorResources.isEmpty()) {
-            logger.info("Matching executor resources: {}", matchingExecutorResources);
-            for (ResourceLabels resourceLabels : matchingExecutorResources) {
-                stages.add(newUpdateEvaluationStage(null, resourceLabels));
-            }
-        }
-
-        if (!executorResources.isEmpty()) {
-            logger.info("Missing executor resources not found in task: {}", executorResources);
-            for (ResourceSpec missingResource : executorResources) {
-                stages.add(newCreateEvaluationStage(null, missingResource));
             }
         }
         return stages;

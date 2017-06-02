@@ -337,9 +337,13 @@ public class OfferEvaluator {
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
 
+        ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
+        String role = firstResource.getRole();
+        String principal = firstResource.getPrincipal();
         if (executorInfo.getExecutorId().getValue().isEmpty()) {
             ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
                     podInstanceRequirement.getPodInstance().getPod(),
+                    getExecutorResources(role, principal),
                     executorInfo);
             executorResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
@@ -359,10 +363,7 @@ public class OfferEvaluator {
                 return Collections.emptyList();
             }
 
-            String role = taskSpec.getResourceSet().getResources().iterator().next().getRole();
-            String principal = taskSpec.getResourceSet().getResources().iterator().next().getPrincipal();
-            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(
-                    taskSpec, taskInfo, getExecutorResources(role, principal));
+            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(taskSpec, taskInfo);
             taskResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
