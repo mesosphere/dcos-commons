@@ -5,15 +5,17 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-# Add a Data Node
+# Updating Configuration
+
+## Add a Data Node
 Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
 
-## Node Info
+### Node Info
 
 Comprehensive information is available about every node.  To list all nodes:
 
 ```bash
-dcos hdfs --name=<service-name> pods list
+dcos beta-hdfs --name=<service-name> pods list
 ```
 
 Result:
@@ -39,7 +41,7 @@ $ dcos hdfs --name=<service-name> pods info <node-id>
 
 For example:
 ```bash
-$ dcos hdfs pods info journal-0
+$ dcos beta-hdfs pods info journal-0
 ```
 
 Result:
@@ -520,17 +522,17 @@ Result:
 ]
 ```
 
-## Node Status
+### Node Status
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos hdfs --name=<service-name> pods info <node-id>
+$ dcos beta-hdfs --name=<service-name> pods info <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos hdfs pods info journal-0
+$ dcos beta-hdfs pods info journal-0
 ```
 
 ```json

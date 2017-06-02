@@ -5,7 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
+Beta-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
 
 ## Prerequisites
 
@@ -16,25 +16,27 @@ HDFS is available in the Universe and can be installed by using either the web i
 - A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
 - Each agent node must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
 
-# Default Installation
+# Installation
 
-Install HDFS from the DC/OS CLI.
-
-```bash
-$ dcos package install hdfs
-```
+Install Beta-HDFS from the DC/OS web interface. Find the package in Universe and perform an advanced installation. On the **Service** tab, scroll to the bottom and click the box next to **AGREE TO BETA TERMS**. Then, click **REVIEW AND INSTALL**.
 
 This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the `name` at install time for each additional instance. See the Custom Installation section for more information.
 
 The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
 
-**Note:** Alternatively, you can [install HDFS from the DC/OS web interface](https://docs.mesosphere.com/1.9/deploying-services/install/). If you install HDFS from the web interface, you must install the HDFS DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+Once you have installed Beta-HDFS, install the CLI.
 
 ```bash
-dcos package install hdfs --cli
+dcos package install beta-hdfs --cli
 ```
 
-# Custom Installation
+# Service Settings
+
+## Service Name
+
+Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `beta-hdfs`.
+
+## Custom Installation
 
 If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
 
@@ -59,6 +61,8 @@ See the Configuration section for a list of fields that can be customized via a 
 
 # Minimal Installation
 Many of the other Infinity services currently support DC/OS Vagrant deployment. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.
+
+<a name="multiple-install"></a>
 
 # Multiple HDFS cluster Installation
 
