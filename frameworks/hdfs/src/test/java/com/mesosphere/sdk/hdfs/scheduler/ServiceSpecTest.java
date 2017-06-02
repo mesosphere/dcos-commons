@@ -2,6 +2,7 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.google.common.collect.ImmutableMap;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
@@ -9,9 +10,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,11 +96,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     private void renderTemplate(String pathStr) throws IOException {
-        Path path = Paths.get(pathStr);
-        byte[] bytes = Files.readAllBytes(path);
-        String fileStr = new String(bytes, Charset.defaultCharset());
+        String fileStr = new String(Files.readAllBytes(Paths.get(pathStr)), StandardCharsets.UTF_8);
+
+        // Reproduction of what's done in Main.java:
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         Map<String, String> updatedEnv = new HashMap<>(allEnv);
+        updatedEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
         String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));
