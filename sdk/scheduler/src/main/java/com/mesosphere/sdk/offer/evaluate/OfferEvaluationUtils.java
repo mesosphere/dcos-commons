@@ -31,7 +31,7 @@ public class OfferEvaluationUtils {
         if (!mesosResourceOptional.isPresent()) {
             return fail(
                     resourceEvaluationStage,
-                    "Offer failed to satisfy: {} with resourceId: {}",
+                    "Offer failed to satisfy: %s with resourceId: %s",
                     resourceSpec,
                     resourceId);
         }
@@ -71,7 +71,7 @@ public class OfferEvaluationUtils {
                 if (!mesosResourceOptional.isPresent()) {
                     return fail(
                             resourceEvaluationStage,
-                            "Insufficient resources to increase reservation of resource '{}' with resourceId",
+                            "Insufficient resources to increase reservation of resource '%s' with resourceId",
                             resourceSpec,
                             resourceId);
                 }
@@ -85,7 +85,7 @@ public class OfferEvaluationUtils {
                         mesosResourcePool.getOffer(),
                         resource);
             } else {
-                LOGGER.info("    Reservation for resource '{}' needs decreasing from current {} to required {}",
+                LOGGER.info("    Reservation for resource '%s' needs decreasing from current %s to required {}",
                         resourceSpec.getName(),
                         TextFormat.shortDebugString(mesosResource.getValue()),
                         TextFormat.shortDebugString(resourceSpec.getValue()));

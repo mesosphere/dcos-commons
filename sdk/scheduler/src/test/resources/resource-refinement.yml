@@ -1,0 +1,10 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    pre-reserved-role: base-role
+    tasks:
+      test-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 1.0
