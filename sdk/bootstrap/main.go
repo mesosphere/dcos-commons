@@ -48,6 +48,9 @@ type args struct {
 
 	// Install certs from .ssl into JRE/lib/security/cacerts
 	installCerts bool
+
+    // Get Task IP
+    getTaskIp bool
 }
 
 func parseArgs() args {
@@ -74,6 +77,8 @@ func parseArgs() args {
 		"Largest template file that may be processed, or zero for no limit.")
 	flag.BoolVar(&args.installCerts, "install-certs", true,
 		"Whether to install certs from .ssl to the JRE.")
+
+    flag.BoolVar(&args.getTaskIp, "getTaskIp", false, "Return task IP")
 
 	flag.Parse()
 
@@ -324,10 +329,49 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
+func GetLocalIP() string {
+    addrs, err := net.InterfaceAddrs()
+    if err != nil {
+        return ""
+    }
+    for _, address := range addrs {
+        // check the address type and if it is not a loopback the display it
+        if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+            if ipnet.IP.To4() != nil {
+                return ipnet.IP.String()
+            }
+        }
+    }
+    return ""
+}
 // main
 
 func main() {
 	args := parseArgs()
+
+    libprocess_ip, found := os.LookupEnv("LIBPROCESS_IP")
+
+    if !found {
+        log.Fatalf("Cannot find LIBPROCESS_IP")
+    }
+
+    if libprocess_ip == "0.0.0.0" {
+        log.Printf("ILLEGAL you must be on the overlay network, getting you a new one!")
+        libprocess_ip = GetLocalIP()
+        if libprocess_ip == "" {
+            log.Fatalf("Failed to get new local IP")
+        }
+
+        err := os.Setenv("LIBPROCESS_IP", libprocess_ip)
+        if err != nil {
+            log.Fatalf("Failed to SET new LIBPROCESS_IP")
+        }
+    }
+
+    if args.getTaskIp {
+        log.Printf("exporting new task IP %s", libprocess_ip)
+        fmt.Printf("%s", libprocess_ip)
+    }
 
 	if args.printEnvEnabled {
 		printEnv()
@@ -348,6 +392,6 @@ func main() {
 	if (args.installCerts) {
 		installDCOSCertIntoJRE()
 	}
-
+    log.Printf("Local IP --> %s", GetLocalIP())
 	log.Printf("SDK Bootstrap successful.")
 }

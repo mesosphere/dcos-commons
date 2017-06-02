@@ -90,12 +90,14 @@ def uninstall(service_name, package_name=None):
 
     janitor_start = time.time()
 
-    janitor_cmd = (
-        'docker run mesosphere/janitor /janitor.py '
-        '-r {svc}-role -p {svc}-principal -z dcos-service-{svc} --auth_token={auth}')
-    shakedown.run_command_on_master(janitor_cmd.format(
-        svc=service_name,
-        auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
+    #janitor_cmd = (
+    #    'docker run mesosphere/janitor /janitor.py '
+    #    '-r {svc}-role -p {svc}-principal -z dcos-service-{svc} --auth_token={auth}')
+    #shakedown.run_command_on_master(janitor_cmd.format(
+    #    svc=service_name,
+    #    auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
+
+    sdk_utils.out("Skipping janitor because Ben made uninstall work?")
 
     finish = time.time()
 
