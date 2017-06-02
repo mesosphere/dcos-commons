@@ -291,7 +291,7 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```
-$ dcos hdfs pods list
+$ dcos beta-hdfs pods list
 ```
 
 HTTP Example
@@ -321,12 +321,12 @@ $ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<no
 
 CLI Example
 ```
-$ dcos hdfs pods info journalnode-0
+$ dcos beta-hdfs pods info journal-0
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journalnode-0/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -726,7 +726,7 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos hdfs pods replace <node-id>
+$ dcos beta-hdfs pods replace <node-id>
 ```
 
 HTTP Example
@@ -742,7 +742,7 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos hdfs pods restart <node-id>
+$ dcos beta-hdfs pods restart <node-id>
 ```
 
 HTTP Example
@@ -762,7 +762,7 @@ You can view the current target configuration by sending a GET request to `/v1/c
 
 CLI Example
 ```
-$ dcos hdfs config target
+$ dcos beta-hdfs config target
 ```
 
 HTTP Example
@@ -2026,7 +2026,7 @@ You can list all configuration IDs by sending a GET request to `/v1/configuratio
 
 CLI Example
 ```
-$ dcos hdfs config list
+$ dcos beta-hdfs config list
 ```
 
 HTTP Example
