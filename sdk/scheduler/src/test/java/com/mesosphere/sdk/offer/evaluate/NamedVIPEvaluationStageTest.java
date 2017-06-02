@@ -83,7 +83,7 @@ public class NamedVIPEvaluationStageTest {
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Assert.assertEquals(0, taskBuilder.getResourcesCount());
         Protos.Port port = discoveryInfo.getPorts().getPorts(0);
-        Assert.assertEquals(port.getNumber(), 1000);
+        Assert.assertEquals(port.getNumber(),1025);
         Assert.assertEquals(port.getProtocol(), "sctp");
 
         Protos.Label vipLabel = port.getLabels().getLabels(0);
