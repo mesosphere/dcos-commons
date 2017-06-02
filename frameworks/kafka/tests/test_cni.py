@@ -29,9 +29,10 @@ def teardown_module(module):
 # --------- Placement -------------
 
 
-@pytest.mark.smoke
-@pytest.mark.sanity
-@pytest.mark.speedy
+#@pytest.mark.smoke
+#@pytest.mark.sanity
+#@pytest.mark.speedy
+@pytest.mark.skip("https://jira.mesosphere.com/browse/INFINITY-1656 LIBPROCESS_IP will be 0.0.0.0")
 def test_cni_deployment():
     install.install(
         PACKAGE_NAME,
