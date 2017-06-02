@@ -11,8 +11,7 @@ import java.util.*;
 
 /**
  * A representation of the pool of resources available in a single {@link Offer}. Tracks the
- * consumption of the {@link Offer}'s resources, as they are matched with
- * {@link ResourceRequirement}s.
+ * consumption of the {@link Offer}'s resources.
  */
 public class MesosResourcePool {
     private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
@@ -25,16 +24,16 @@ public class MesosResourcePool {
     /**
      * Creates a new pool of resources based on what's available in the provided {@link Offer}.
      */
-    public MesosResourcePool(Offer offer) {
-        init(offer);
-    }
-
-    private void init(Offer offer) {
+    public MesosResourcePool(Offer offer, Optional<String> role) {
         this.offer = offer;
-        final Collection<MesosResource> mesosResources = getMesosResources(offer);
+        final Collection<MesosResource> mesosResources = getMesosResources(offer, role);
         this.unreservedAtomicPool = getUnreservedAtomicPool(mesosResources);
         this.dynamicallyReservedPool = getDynamicallyReservedPool(mesosResources);
         this.reservableMergedPool = getReservableMergedPool(mesosResources);
+    }
+
+    public MesosResourcePool(Offer offer) {
+        this(offer, Optional.empty());
     }
 
     /**
@@ -76,14 +75,6 @@ public class MesosResourcePool {
      */
     public Optional<MesosResource> getReservedResourceById(String resourceId) {
         return Optional.ofNullable(dynamicallyReservedPool.get(resourceId));
-    }
-
-    /**
-     * Update the offer this pool represents, re-calculating available unreserved, reserved and atomic resources.
-     * @param offer the offer to encapsulate
-     */
-    public void update(Offer offer) {
-        init(offer);
     }
 
     public Optional<MesosResource> consumeReserved(String name, Value value, String resourceId) {
@@ -249,14 +240,32 @@ public class MesosResourcePool {
         return ValueUtils.compare(difference, ValueUtils.getZero(desired.getType())) <= 0;
     }
 
-    private static Collection<MesosResource> getMesosResources(Offer offer) {
+    private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {
         Collection<MesosResource> mesosResources = new ArrayList<MesosResource>();
-
         for (Resource resource : offer.getResourcesList()) {
-            mesosResources.add(new MesosResource(resource));
+            if (consumableResource(role, resource)) {
+                mesosResources.add(new MesosResource(resource));
+            }
         }
 
         return mesosResources;
+    }
+
+    private static boolean consumableResource(Optional<String> podRole, Resource resource) {
+        if (!podRole.isPresent()) {
+            return true;
+        }
+
+        if (!resource.hasAllocationInfo()) {
+            return true;
+        }
+
+        if (!resource.getAllocationInfo().hasRole()) {
+            return true;
+        }
+
+        String allocationRole = resource.getAllocationInfo().getRole();
+        return podRole.get().equals(allocationRole);
     }
 
     private static Map<String, MesosResource> getReservedPool(

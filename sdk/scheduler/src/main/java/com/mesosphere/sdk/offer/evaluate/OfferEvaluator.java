@@ -42,6 +42,16 @@ public class OfferEvaluator {
         this.schedulerFlags = schedulerFlags;
     }
 
+    private Optional<String> getPodRole(PodSpec podSpec) {
+        if (podSpec.getTasks().size() == 0) {
+            logger.error("PodSpec contains no tasks, cannot determine its role.");
+            return Optional.empty();
+        }
+
+        return Optional.of(
+                podSpec.getTasks().get(0).getResourceSet().getResources().stream().findAny().get().getRole());
+    }
+
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
             throws StateStoreException, InvalidRequirementException {
 
@@ -79,7 +89,9 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
-            MesosResourcePool resourcePool = new MesosResourcePool(offer);
+            MesosResourcePool resourcePool = new MesosResourcePool(
+                    offer,
+                    getPodRole(podInstanceRequirement.getPodInstance().getPod()));
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,
