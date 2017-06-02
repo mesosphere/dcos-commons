@@ -25,7 +25,7 @@ def setup_module(module):
 def teardown_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
-    
+
 # --------- Placement -------------
 
 
@@ -41,7 +41,7 @@ def test_placement_unique_hostname():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
@@ -58,7 +58,7 @@ def test_placement_max_one_per_hostname():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 

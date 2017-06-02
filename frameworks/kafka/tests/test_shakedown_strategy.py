@@ -66,7 +66,7 @@ def test_canary_first():
 
     # do not use service_plan always
     # when here, plan should always return properly
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
 
     assert pl['status'] == 'WAITING'
     assert pl['phases'][0]['status'] == 'WAITING'
@@ -87,7 +87,7 @@ def test_canary_second():
 
     broker_count_check(DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     assert pl['phases'][0]['status'] == 'COMPLETE'
 
@@ -99,12 +99,12 @@ def test_canary_second():
 @pytest.mark.sanity
 def test_no_change():
     broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
-    plan1 = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    plan1 = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
 
     config = marathon.get_config(SERVICE_NAME)
     marathon.update_app(SERVICE_NAME, config)
 
-    plan2 = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    plan2 = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
 
     assert plan1 == plan2
     try:
@@ -139,7 +139,7 @@ def test_increase_count():
 
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'WAITING'
     assert pl['phases'][0]['status'] == 'WAITING'
 
@@ -154,7 +154,7 @@ def test_increase_count():
 
     broker_count_check(DEFAULT_BROKER_COUNT + 1)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     assert pl['phases'][0]['status'] == 'COMPLETE'
 
@@ -167,7 +167,7 @@ def test_increase_count():
 def test_increase_cpu():
     def plan_waiting():
         try:
-            pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+            pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
             if pl['status'] == 'WAITING':
                 return True
         except:
@@ -176,7 +176,7 @@ def test_increase_cpu():
 
     def plan_complete():
         try:
-            pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+            pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
             if pl['status'] == 'COMPLETE':
                 return True
         except:
@@ -187,7 +187,7 @@ def test_increase_cpu():
 
     spin.time_wait_return(plan_waiting)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'WAITING'
     assert pl['phases'][0]['status'] == 'WAITING'
 
@@ -207,7 +207,7 @@ def test_increase_cpu():
 
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT + 1)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
 
     assert pl['status'] == 'WAITING'
     assert pl['phases'][0]['status'] == 'WAITING'
@@ -226,7 +226,7 @@ def test_increase_cpu():
 
     spin.time_wait_return(plan_complete)
 
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    pl = service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
 
     assert pl['status'] == 'COMPLETE'
     assert pl['phases'][0]['status'] == 'COMPLETE'
