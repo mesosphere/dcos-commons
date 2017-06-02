@@ -2,7 +2,6 @@ import json
 import re
 
 import dcos.marathon
-import dcos.subcommand
 import pytest
 import shakedown
 
@@ -24,27 +23,14 @@ from tests.config import (
     bump_world_cpus
 )
 
-FOLDERED_SERVICE_NAME = "/path/to/" + PACKAGE_NAME
-
-
-def uninstall_foldered():
-    install.uninstall(
-        FOLDERED_SERVICE_NAME,
-        package_name=PACKAGE_NAME,
-        role=FOLDERED_SERVICE_NAME.lstrip('/') + '-role',
-        principal=FOLDERED_SERVICE_NAME + '-principal',
-        zk='dcos-service-' + FOLDERED_SERVICE_NAME.lstrip('/').replace('/', '__'))
-
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    uninstall_foldered()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
-    uninstall_foldered()
 
 
 def close_enough(val0, val1):
@@ -53,22 +39,9 @@ def close_enough(val0, val1):
     return diff < epsilon
 
 
-@pytest.mark.sanity
 @pytest.mark.smoke
-def test_install_foldered():
+def test_install():
     check_running()
-
-    install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-    tasks.check_running(FOLDERED_SERVICE_NAME, configured_task_count())
-
-    uninstall_foldered()
-    # the above also uninstalls the hello-world CLI. lets get that back before continuing with other tests.
-    # COULD use 'dcos.subcommand.install()' here, but that requires a full versioned 'package' object...
-    cmd.run_cli('package install --cli ' + PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -124,7 +97,6 @@ def test_bump_hello_nodes():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_pods_list():
     stdout = cmd.run_cli('hello-world pods list')
     jsonobj = json.loads(stdout)
