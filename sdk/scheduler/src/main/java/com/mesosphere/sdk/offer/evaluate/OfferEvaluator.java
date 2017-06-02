@@ -340,17 +340,16 @@ public class OfferEvaluator {
         ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
         String role = firstResource.getRole();
         String principal = firstResource.getPrincipal();
-        if (executorInfo.getExecutorId().getValue().isEmpty()) {
-            ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
-                    podInstanceRequirement.getPodInstance().getPod(),
-                    getExecutorResources(role, principal),
-                    executorInfo);
-            executorResourceMapper.getOrphanedResources()
-                    .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
-            executorResourceMapper.getOrphanedResources()
-                    .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
-            evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
-        }
+
+        ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
+                podInstanceRequirement.getPodInstance().getPod(),
+                getExecutorResources(role, principal),
+                executorInfo);
+        executorResourceMapper.getOrphanedResources()
+                .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
+        executorResourceMapper.getOrphanedResources()
+                .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+        evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
 
         for (TaskSpec taskSpec : taskSpecs) {
             String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());

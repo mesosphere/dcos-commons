@@ -43,6 +43,35 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Resource resource;
+
+        if (taskName == null && !reservesResource()) {
+            Optional<Resource> executorVolume = podInfoBuilder.getExecutorBuilder().get().getResourcesList().stream()
+                    .filter(r -> {
+                        boolean found = false;
+                        for (Protos.Label l : r.getReservation().getLabels().getLabelsList()) {
+                            if (l.getKey().equals("resource_id") && l.getValue().equals(resourceId.get())) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        return found;
+                    })
+                    .findFirst();
+
+            if (executorVolume.isPresent()) {
+                setProtos(podInfoBuilder, executorVolume.get());
+
+                return pass(
+                        this,
+                        "Satisfied requirements for %s volume '%s'",
+                        volumeSpec.getType(),
+                        volumeSpec.getContainerPath());
+            } else {
+                return fail(this, "Failed to find exec vol", getSummary());
+            }
+        }
+
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             IntermediateEvaluationOutcome intermediateOutcome = evaluateInternal(mesosResourcePool, podInfoBuilder);
             if (!intermediateOutcome.hasPassed()) {

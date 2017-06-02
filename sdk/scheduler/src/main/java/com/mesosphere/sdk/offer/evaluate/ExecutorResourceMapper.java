@@ -74,8 +74,11 @@ public class ExecutorResourceMapper {
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
-        remainingResourceSpecs.addAll(resourceSpecs);
         remainingResourceSpecs.addAll(volumeSpecs);
+
+        if (executorInfo.getExecutorId().getValue().isEmpty()) {
+            remainingResourceSpecs.addAll(resourceSpecs);
+        }
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
@@ -102,12 +105,12 @@ public class ExecutorResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            logger.info("Orphaned task resources no longer in executor: {}",
+            logger.info("Orphaned executor resources no longer in executor: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
         if (!matchingResources.isEmpty()) {
-            logger.info("Matching task/TaskSpec resources: {}", matchingResources);
+            logger.info("Matching executor resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(resourceLabels));
             }

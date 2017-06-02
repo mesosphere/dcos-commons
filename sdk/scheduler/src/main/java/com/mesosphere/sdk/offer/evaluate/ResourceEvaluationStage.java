@@ -179,7 +179,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         if (getTaskName().isPresent()) {
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             taskBuilder.addResources(resource);
-        } else {
+        } else if (!resourceId.isPresent()) {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.addResources(resource);
         }
