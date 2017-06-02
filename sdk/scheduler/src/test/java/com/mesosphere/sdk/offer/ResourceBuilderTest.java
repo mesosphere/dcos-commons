@@ -37,7 +37,6 @@ public class ResourceBuilderTest {
         Assert.assertEquals(1.0, resource.getScalar().getValue(), 0.0);
         Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
         Assert.assertFalse(resource.hasReservation());
-        Assert.assertEquals(0, resource.getReservationsCount());
     }
 
     /*
@@ -72,7 +71,7 @@ public class ResourceBuilderTest {
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
 
-        Protos.Label label = resource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals(36, label.getValue().length());
     }
 
@@ -90,7 +89,7 @@ public class ResourceBuilderTest {
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
-        Protos.Label label = resource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
     }
 
@@ -165,7 +164,7 @@ public class ResourceBuilderTest {
         validateScalarResoure(resource);
         validateDisk(resource);
 
-        Protos.Label label = resource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
         Assert.assertEquals(persistenceId.get(), resource.getDisk().getPersistence().getId());
     }
@@ -261,7 +260,7 @@ public class ResourceBuilderTest {
         Assert.assertTrue(source.hasMount());
         Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
 
-        Protos.Label label = resource.getReservations(0).getLabels().getLabels(0);
+        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
         Assert.assertEquals(persistenceId.get(), resource.getDisk().getPersistence().getId());
     }
@@ -331,13 +330,11 @@ public class ResourceBuilderTest {
 
     private void validateScalarResoure(Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
-        Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
-        Assert.assertFalse(resource.hasReservation());
-        Assert.assertEquals(1, resource.getReservationsCount());
+        Assert.assertTrue(resource.hasReservation());
 
-        Protos.Resource.ReservationInfo reservationInfo = resource.getReservations(0);
+        Protos.Resource.ReservationInfo reservationInfo = resource.getReservation();
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
-        Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
+        Assert.assertEquals(TestConstants.ROLE, resource.getRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
 
         Protos.Label label = reservationInfo.getLabels().getLabels(0);

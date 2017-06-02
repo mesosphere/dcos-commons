@@ -73,7 +73,7 @@ public class ResourceBuilder {
     }
 
     private static ResourceSpec getResourceSpec(Resource resource) {
-        if (resource.getReservationsCount() == 0) {
+        if (!resource.hasReservation()) {
             throw new IllegalStateException(
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
         }
@@ -189,14 +189,14 @@ public class ResourceBuilder {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
             Resource.ReservationInfo reservationInfo = Resource.ReservationInfo.newBuilder()
                     .setPrincipal(principal.get())
-                    .setRole(role.get())
                     .setLabels(
                             Protos.Labels.newBuilder()
                                     .addLabels(Protos.Label.newBuilder()
                                             .setKey(MesosResource.RESOURCE_ID_KEY)
                                             .setValue(resId)))
                     .build();
-            builder.addReservations(reservationInfo);
+            builder.setRole(role.get());
+            builder.setReservation(reservationInfo);
         }
 
         if (diskContainerPath.isPresent()) {

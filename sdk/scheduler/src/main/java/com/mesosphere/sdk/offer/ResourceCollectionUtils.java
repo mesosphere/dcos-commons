@@ -55,13 +55,7 @@ public class ResourceCollectionUtils {
     }
 
     public static Optional<String> getRole(Resource resource) {
-        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
-
-        if (reservationInfo.isPresent()) {
-            return Optional.of(reservationInfo.get().getRole());
-        } else {
-            return Optional.empty();
-        }
+        return Optional.of(resource.getRole());
     }
 
     public static Optional<String> getPrincipal(Resource resource) {
@@ -75,11 +69,11 @@ public class ResourceCollectionUtils {
     }
 
     public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
-        if (resource.getReservationsCount() == 0) {
+        if (resource.hasReservation()) {
+            return Optional.of(resource.getReservation());
+        } else {
             return Optional.empty();
         }
-
-        return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
     }
 
     public static Optional<String> getResourceId(Resource resource) {

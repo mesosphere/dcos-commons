@@ -42,12 +42,6 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-            url "https://downloads.mesosphere.com/maven/"
-        }
-        maven {
-            url "https://downloads.mesosphere.com/maven-snapshot/"
-        }
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
@@ -90,7 +84,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = '1.4.0-reservation-refinement'
+    mesosVer = '1.3.0-rc1'
 }
 
 subprojects {

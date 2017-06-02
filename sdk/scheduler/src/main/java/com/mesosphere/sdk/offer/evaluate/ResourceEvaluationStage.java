@@ -61,7 +61,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return Optional.of(Resource.ReservationInfo
                 .newBuilder()
                 .setPrincipal(resourceSpec.getPrincipal())
-                .setRole(resourceSpec.getRole())
                 .setLabels(
                         Protos.Labels.newBuilder()
                                 .addLabels(

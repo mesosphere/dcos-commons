@@ -48,7 +48,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(Constants.ANY_ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
@@ -123,7 +122,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(Constants.ANY_ROLE, reserveResource.getRole());
         Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
@@ -163,7 +161,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(Constants.ANY_ROLE, unreserveResource.getRole());
         Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(unreserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));

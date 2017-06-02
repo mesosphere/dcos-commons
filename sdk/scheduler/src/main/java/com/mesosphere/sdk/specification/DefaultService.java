@@ -19,11 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -213,32 +209,10 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
-
         return fwkInfoBuilder.build();
     }
 
     private List<String> getRoles(ServiceSpec serviceSpec) {
-        List<String> roles = new ArrayList<>();
-        String role;
-        // Use provided role if specified, otherwise default to "<svcname>-role".
-        if (StringUtils.isEmpty(serviceSpec.getRole())) {
-            role = SchedulerUtils.nameToRole(serviceSpec.getName());
-        } else {
-            role = serviceSpec.getRole();
-        }
-
-        roles.add(role);
-        roles.addAll(
-                serviceSpec.getPods().stream()
-                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
-                .map(podSpec -> podSpec.getPreReservedRole() + "/" + role)
-                .collect(Collectors.toList()));
-
-        return roles;
+        return Arrays.asList(serviceSpec.getRole());
     }
 }
