@@ -188,7 +188,7 @@ func getDCOSURL() {
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
-	config.DcosUrl = strings.TrimRight(config.DcosUrl, "#/")
+	config.DcosUrl = strings.TrimSuffix(config.DcosUrl, "#/")
 }
 
 func createServiceURL(urlPath, urlQuery string) *url.URL {

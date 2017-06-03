@@ -68,6 +68,20 @@ public class DefaultService implements Service {
         this.schedulerBuilder = schedulerBuilder;
     }
 
+    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private void initService() {
 
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
@@ -140,30 +154,21 @@ public class DefaultService implements Service {
         // StateStoreUtils.isUninstalling().
 
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return (StateStoreUtils.isUninstalling(stateStore) ||
-                schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) &&
-                !stateStore.fetchFrameworkId().isPresent() &&
-                ResourceCollectionUtils.getResourceIds(
-                        ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
-                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+        return isUninstalling() && !stateStore.fetchFrameworkId().isPresent() && tasksNeedClearing();
+    }
+
+    private boolean tasksNeedClearing() {
+        return ResourceCollectionUtils.getResourceIds(
+                ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    }
+
+    private boolean isUninstalling() {
+        return StateStoreUtils.isUninstalling(stateStore) || schedulerBuilder.getSchedulerFlags().isUninstallEnabled();
     }
 
     protected ServiceSpec getServiceSpec() {
         return this.schedulerBuilder.getServiceSpec();
-    }
-
-    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
