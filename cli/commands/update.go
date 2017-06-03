@@ -28,7 +28,7 @@ func doDescribe() {
 	responseBytes := client.GetResponseBytes(response)
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
 	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
-	resolvedOptionsBytes, err := client.GetValueFromJSON(responseBytes, "resolvedOptions")
+	resolvedOptionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "resolvedOptions")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
@@ -65,23 +65,22 @@ type UpdateRequest struct {
 }
 
 func printPackageVersions() {
-	// TODO: write unit tests
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
-	packageBytes, err := client.GetValueFromJSON(responseBytes, "package")
+	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	currentVersionBytes, err := client.GetValueFromJSON(packageBytes, "version")
+	currentVersionBytes, err := client.GetValueFromJSONResponse(packageBytes, "version")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	downgradeVersionsBytes, err := client.GetValueFromJSON(responseBytes, "downgradesTo")
+	downgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "downgradesTo")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	upgradeVersionsBytes, err := client.GetValueFromJSON(responseBytes, "upgradesTo")
+	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
