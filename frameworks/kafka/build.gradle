@@ -1,5 +1,5 @@
 group 'com.mesosphere.sdk'
-version '1.0-SNAPSHOT'
+version '1.0.0'
 
 apply plugin: 'java'
 apply plugin: 'application'
@@ -20,8 +20,9 @@ ext {
 }
 
 dependencies {
-    compile project(":scheduler")
-    testCompile project(":testing")
+    compile "mesosphere:scheduler:0.16.0"
+    compile "mesosphere:executor:0.16.0"
+    testCompile "mesosphere:testing:0.16.0"
 }
 
 distZip.dependsOn ":executor:distZip"
