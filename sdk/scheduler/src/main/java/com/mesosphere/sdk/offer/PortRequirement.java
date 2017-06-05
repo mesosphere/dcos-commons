@@ -62,12 +62,5 @@ public class PortRequirement extends ResourceRequirement {
                     .filter(DcosConstants::networkSupportsPortMapping)
                     .count() > 0;
         }
-
-        //for (String networkName : networkNames) {
-        //    if (DcosConstants.networkSupportsPortMapping(networkName)) {
-        //        return true;
-        //    }
-        //}
-        //return false;
     }
 }
