@@ -7,6 +7,8 @@
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
 
+whoami
+
 PULLREQUEST="false"
 MERGE_FROM="master"
 while getopts 'pt:' opt; do
