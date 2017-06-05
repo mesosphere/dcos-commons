@@ -52,6 +52,7 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+        //TODO(arand) check that second discovery label is NOT added
     }
 
     @Test

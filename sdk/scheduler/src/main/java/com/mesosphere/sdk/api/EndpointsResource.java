@@ -159,16 +159,25 @@ public class EndpointsResource {
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
             List<String> ipAddresses = new ArrayList<>();
-            if (stateStore.fetchStatus(taskInfo.getName()).isPresent()) {
-                // try and get the network status IP
-                Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).get();
-                if (taskStatus.hasContainerStatus() && taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
-                    for (Protos.NetworkInfo networkInfo : taskStatus.getContainerStatus().getNetworkInfosList()) {
-                        String ipAddress = networkInfo.getIpAddresses(0).getIpAddress();
-                        ipAddresses.add(ipAddress);
-                    }
-                }
+
+            Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).orElse(null);
+            if (taskStatus != null && taskStatus.hasContainerStatus() &&
+                    taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+                taskStatus.getContainerStatus().getNetworkInfosList()
+                        .forEach(networkInfo -> networkInfo.getIpAddressesList()
+                                .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
             }
+
+            //if (stateStore.fetchStatus(taskInfo.getName()).isPresent()) {
+            //    // try and get the network status IP
+            //    Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).get();
+            //    if (taskStatus.hasContainerStatus() && taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+            //        for (Protos.NetworkInfo networkInfo : taskStatus.getContainerStatus().getNetworkInfosList()) {
+            //            String ipAddress = networkInfo.getIpAddresses(0).getIpAddress();
+            //            ipAddresses.add(ipAddress);
+            //        }
+            //    }
+            //}
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
                     LOGGER.info(
