@@ -116,7 +116,9 @@ public class ExecutorResourceMapper {
         return stages;
     }
 
-    private static Optional<VolumeLabels> findMatchingDiskSpec(Protos.Resource resource, Collection<VolumeSpec> volumeSpecs) {
+    private static Optional<VolumeLabels> findMatchingDiskSpec(
+            Protos.Resource resource,
+            Collection<VolumeSpec> volumeSpecs) {
         for (VolumeSpec volumeSpec : volumeSpecs) {
             if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
                 Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);

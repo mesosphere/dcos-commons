@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
@@ -72,11 +71,11 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, Constants.ROOT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, TestConstants.ROOT_DISK_TYPE);
     }
 
     private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, Constants.MOUNT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, TestConstants.MOUNT_DISK_TYPE);
     }
 
     private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {

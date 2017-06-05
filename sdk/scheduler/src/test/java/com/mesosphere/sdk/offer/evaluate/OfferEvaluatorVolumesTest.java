@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
@@ -272,8 +271,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(Constants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(Constants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addVolume(TestConstants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-A")
+                .addVolume(TestConstants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-B")
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
