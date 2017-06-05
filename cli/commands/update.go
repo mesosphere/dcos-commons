@@ -24,28 +24,13 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 	client.LogMessageAndExit(string(responseBytes))
 }
 
-func parseDescribeResponse(responseBytes []byte) ([]byte, error) {
-	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
-	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
-	responseJSONBytes, err := client.UnmarshalJSON(responseBytes)
-	if err != nil {
-		return nil, err
-	}
-	if resolvedOptions, present := responseJSONBytes["resolvedOptions"]; present {
-		resolvedOptionsBytes, err := json.Marshal(resolvedOptions)
-		if err != nil {
-			return nil, err
-		}
-		return resolvedOptionsBytes, nil
-	}
-	return nil, nil
-}
-
 func doDescribe() {
 	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
-	resolvedOptionsBytes, err := parseDescribeResponse(responseBytes)
+	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
+	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
+	resolvedOptionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "resolvedOptions")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
@@ -63,16 +48,47 @@ func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error
 }
 
 type UpdateHandler struct {
-	UpdateName     string
-	OptionsFile    string
-	PackageVersion string
-	Status         bool
+	UpdateName          string
+	OptionsFile         string
+	PackageVersion      string
+	ViewPackageVersions bool
+	ViewStatus          bool
 }
 
 type UpdateRequest struct {
 	AppID          string                 `json:"appId"`
 	PackageVersion string                 `json:"packageVersion,omitempty"`
 	OptionsJSON    map[string]interface{} `json:"options,omitempty"`
+}
+
+func printPackageVersions() {
+	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
+	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
+	responseBytes := client.GetResponseBytes(response)
+	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	currentVersionBytes, err := client.GetValueFromJSONResponse(packageBytes, "version")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	downgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "downgradesTo")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+	client.LogMessage("Current package version is: %s", currentVersionBytes)
+	if downgradeVersionsBytes != nil {
+		client.LogMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
+	}
+	if upgradeVersionsBytes != nil {
+		client.LogMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
+	}
+
 }
 
 func printStatus() {
@@ -121,7 +137,11 @@ func doUpdate(optionsFile, packageVersion string) {
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
-	if cmd.Status {
+	if cmd.ViewPackageVersions {
+		printPackageVersions()
+		return nil
+	}
+	if cmd.ViewStatus {
 		printStatus()
 		return nil
 	}
@@ -138,6 +158,7 @@ func HandleUpdate(app *kingpin.Application) {
 	updateCmd := &UpdateHandler{}
 	update := app.Command("update", "Update the package version or configuration for this DC/OS service").Action(updateCmd.UpdateConfiguration)
 	update.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
-	update.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
-	update.Flag("status", "View status of this update").BoolVar(&updateCmd.Status)
+	update.Flag("package-version", "The desired package version to update to").StringVar(&updateCmd.PackageVersion)
+	update.Flag("package-versions", "View a list of available package versions to downgrade or upgrade to").BoolVar(&updateCmd.ViewPackageVersions)
+	update.Flag("status", "View status of this update").BoolVar(&updateCmd.ViewStatus)
 }
