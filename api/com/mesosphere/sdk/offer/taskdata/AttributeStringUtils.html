@@ -173,8 +173,7 @@ extends java.lang.Object</pre>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-java.util.List-">toString</a></span>(java.util.List&lt;Attribute&gt;&nbsp;attributes)</code>
-<div class="block">Converts the provided list of zero or more attributes into a string suitable for parsing by
- <code>#parseString(String)</code>.</div>
+<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
@@ -233,8 +232,7 @@ extends java.lang.Object</pre>
 <h4>toString</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;toString(java.util.List&lt;Attribute&gt;&nbsp;attributes)
                                  throws java.lang.IllegalArgumentException</pre>
-<div class="block">Converts the provided list of zero or more attributes into a string suitable for parsing by
- <code>#parseString(String)</code>.</div>
+<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if some part of the provided attributes couldn't be
@@ -314,7 +312,7 @@ extends java.lang.Object</pre>
  NOTE that it is difficult if not impossible to consistently perform the inverse of this
  operation. For example, how can you tell if something is supposed to be a SCALAR value or a
  TEXT value? [0-9.]+ is valid in both cases! Your best hope is to consistently convert to
- string, and then convert strings...</div>
+ string, and then compare strings...</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if some part of the provided attributes couldn't be
