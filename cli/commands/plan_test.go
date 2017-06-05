@@ -90,7 +90,7 @@ func TestMultipleVariablesAreMarshaledToJSON(t *testing.T) {
 }
 
 func TestStatusTreeSinglePhase(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
@@ -123,14 +123,14 @@ func TestStatusTreeSinglePhase(t *testing.T) {
    └─ kafka-2:[broker] (PENDING)
 `
 
-	result := toStatusTree("deploy", []byte(inputJson))
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
 func TestStatusTreeSinglePhaseWithErrors(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
@@ -168,14 +168,14 @@ Errors:
 - baz
 `
 
-	result := toStatusTree("deploy", []byte(inputJson))
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
 func TestStatusTreeMultiPhase(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
@@ -232,7 +232,7 @@ func TestStatusTreeMultiPhase(t *testing.T) {
    └─ kafka-2:[reindex] (PENDING)
 `
 
-	result := toStatusTree("deploy", []byte(inputJson))
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
@@ -248,36 +248,40 @@ func TestStatusTreeEmptyJson(t *testing.T) {
 }
 
 func TestStatusTreeNoPhases(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ ],
   "errors" : [ ],
   "status" : "IN_PROGRESS"
 }`
+<<<<<<< HEAD
 	expectedOutput := `deploy (IN_PROGRESS)
 `
 	result := toStatusTree("deploy", []byte(inputJson))
+=======
+	expectedOutput := `deploy (IN_PROGRESS)`
+	result := toStatusTree("deploy", []byte(inputJSON))
+>>>>>>> Tidy up variable names to make warnings go away and reorder plan subcommands.
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
 func TestStatusTreeEmptyPhase(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ { } ],
   "errors" : [ ],
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ <UNKNOWN> (<UNKNOWN>)
-`
-	result := toStatusTree("deploy", []byte(inputJson))
+└─ <UNKNOWN> (<UNKNOWN>)`
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
 func TestStatusTreeNoSteps(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
@@ -288,16 +292,15 @@ func TestStatusTreeNoSteps(t *testing.T) {
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)
-`
-	result := toStatusTree("deploy", []byte(inputJson))
+└─ Deployment (IN_PROGRESS)`
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
 func TestStatusTreeEmptyStep(t *testing.T) {
-	inputJson := `{
+	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
@@ -309,9 +312,8 @@ func TestStatusTreeEmptyStep(t *testing.T) {
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ Deployment (IN_PROGRESS)
-   └─ <UNKNOWN> (<UNKNOWN>)
-`
-	result := toStatusTree("deploy", []byte(inputJson))
+   └─ <UNKNOWN> (<UNKNOWN>)`
+	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
 	}

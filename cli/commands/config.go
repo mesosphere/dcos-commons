@@ -8,7 +8,7 @@ import (
 )
 
 type ConfigHandler struct {
-	ShowId string
+	ShowID string
 }
 
 func (cmd *ConfigHandler) RunList(c *kingpin.ParseContext) error {
@@ -16,14 +16,14 @@ func (cmd *ConfigHandler) RunList(c *kingpin.ParseContext) error {
 	return nil
 }
 func (cmd *ConfigHandler) RunShow(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowId)))
+	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowID)))
 	return nil
 }
 func (cmd *ConfigHandler) RunTarget(c *kingpin.ParseContext) error {
 	client.PrintJSON(client.HTTPServiceGet("v1/configurations/target"))
 	return nil
 }
-func (cmd *ConfigHandler) RunTargetId(c *kingpin.ParseContext) error {
+func (cmd *ConfigHandler) RunTargetID(c *kingpin.ParseContext) error {
 	client.PrintJSON(client.HTTPServiceGet("v1/configurations/targetId"))
 	return nil
 }
@@ -36,9 +36,9 @@ func HandleConfigSection(app *kingpin.Application) {
 	config.Command("list", "List IDs of all available configurations").Action(cmd.RunList)
 
 	show := config.Command("show", "Display a specified configuration").Action(cmd.RunShow)
-	show.Arg("config_id", "ID of the configuration to display").Required().StringVar(&cmd.ShowId)
+	show.Arg("config_id", "ID of the configuration to display").Required().StringVar(&cmd.ShowID)
 
 	config.Command("target", "Display the target configuration").Action(cmd.RunTarget)
 
-	config.Command("target_id", "List ID of the target configuration").Action(cmd.RunTargetId)
+	config.Command("target_id", "List ID of the target configuration").Action(cmd.RunTargetID)
 }
