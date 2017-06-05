@@ -36,15 +36,19 @@ public class KafkaService extends DefaultService {
         RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(pathToYamlSpecification).build();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
 
-        // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
-        String zookeeperUri =
-                SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags)
-                + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
-        LOGGER.info("Running Kafka with zookeeper path: {}", zookeeperUri);
+        // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
+        String kafkaZookeeperUri = System.getenv("KAFKA_ZOOKEEPER_URI");
+        if (kafkaZookeeperUri == null) {
+            // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
+            kafkaZookeeperUri =
+                    SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags)
+                    + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
+        }
+        LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
 
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
                 new DefaultServiceSpecBuilder(rawServiceSpec, schedulerFlags)
-                        .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", zookeeperUri)
+                        .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", kafkaZookeeperUri)
                         .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
 
@@ -59,15 +63,11 @@ public class KafkaService extends DefaultService {
         schedulerBuilder.setStateStore(stateStore);
         /* Upgrade */
 
-        schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection() +
-                        CuratorUtils.getServiceRootPath(schedulerBuilder.getServiceSpec().getName())));
-
-        schedulerBuilder.setCustomResources(
-                getResources(
+        return schedulerBuilder
+                .setEndpointProducer("zookeeper", EndpointProducer.constant(kafkaZookeeperUri))
+                .setCustomResources(getResources(
                         schedulerBuilder.getServiceSpec().getZookeeperConnection(),
                         schedulerBuilder.getServiceSpec().getName()));
-        return schedulerBuilder;
     }
 
     private static Collection<Object> getResources(String zookeeperConnection, String serviceName) {
