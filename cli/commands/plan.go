@@ -151,11 +151,11 @@ func HandlePlanSection(app *kingpin.Application) {
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
 
-	continueCmd := plan.Command("continue", "Continue the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunContinue)
+	continueCmd := plan.Command("resume", "Continue the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.RunContinue)
 	continueCmd.Arg("plan", "Name of the plan to continue").StringVar(&cmd.PlanName)
 	continueCmd.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
-	interrupt := plan.Command("interrupt", "Interrupt the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunInterrupt)
+	interrupt := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.RunInterrupt)
 	interrupt.Arg("plan", "Name of the plan to interrupt").StringVar(&cmd.PlanName)
 	interrupt.Arg("phase", "Name or UUID of a specific phase to interrupt").StringVar(&cmd.Phase)
 
@@ -164,7 +164,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	restart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
 	restart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
-	force := plan.Command("force", "Force complete the plan with the provided name").Action(cmd.RunForce)
+	force := plan.Command("force-complete", "Force complete the plan with the provided name").Alias("force").Action(cmd.RunForce)
 	force.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
 	force.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
 	force.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
