@@ -394,7 +394,7 @@
         "auto_snapshot": {
           "type": "boolean",
           "description": "Take a snapshot of the data before truncating a keyspace or dropping a table",
-          "default": true
+          "default": false
         },
         "roles_update_interval_in_ms": {
           "type": "integer",
