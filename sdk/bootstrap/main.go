@@ -329,14 +329,15 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
-func GetLocalIP() string {
+func GetLocalIP() (addr string, err error) {
 	ip, err := mesos.ContainerIP()
 
 	if err != nil {
-		return ""
+		return
 	}
 
-	return ip.String()
+	addr = ip.String()
+	return
 }
 
 // main
@@ -344,23 +345,15 @@ func GetLocalIP() string {
 func main() {
 	args := parseArgs()
 
-	libprocess_ip, found := os.LookupEnv("LIBPROCESS_IP")
+	libprocess_ip, err := GetLocalIP()
 
-	if !found {
-		log.Fatalf("Cannot find LIBPROCESS_IP")
+	if err != nil {
+		log.Fatalf("Cannot find the container's IP address: ", err)
 	}
 
-	if libprocess_ip == "0.0.0.0" {
-		log.Printf("ILLEGAL you must be on the overlay network, getting you a new one!")
-		libprocess_ip = GetLocalIP()
-		if libprocess_ip == "" {
-			log.Fatalf("Failed to get new local IP")
-		}
-
-		err := os.Setenv("LIBPROCESS_IP", libprocess_ip)
-		if err != nil {
-			log.Fatalf("Failed to SET new LIBPROCESS_IP")
-		}
+	err = os.Setenv("LIBPROCESS_IP", libprocess_ip)
+	if err != nil {
+		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
 	}
 
 	if args.getTaskIp {
@@ -387,6 +380,6 @@ func main() {
 	if args.installCerts {
 		installDCOSCertIntoJRE()
 	}
-	log.Printf("Local IP --> %s", GetLocalIP())
+	log.Printf("Local IP --> %s", libprocess_ip)
 	log.Printf("SDK Bootstrap successful.")
 }
