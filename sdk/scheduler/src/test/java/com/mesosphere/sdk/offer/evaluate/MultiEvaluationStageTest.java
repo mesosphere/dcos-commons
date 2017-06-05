@@ -36,7 +36,8 @@ public class MultiEvaluationStageTest {
                     TestConstants.TASK_NAME,
                     "test-port" + i,
                     (int) desiredValue.getBegin(),
-                    envKey));
+                    envKey,
+                    true));
         }
 
         MultiEvaluationStage multiEvaluationStage = new MultiEvaluationStage(evaluationStages);

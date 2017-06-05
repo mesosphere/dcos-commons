@@ -54,27 +54,46 @@ def test_overlay_network():
     utils.out("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct
-    assert(len(deployment_plan['phases']) == 3)
-    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-deploy')
-    assert(deployment_plan['phases'][1]['name'] == 'hello-host-deploy')
-    assert(deployment_plan["phases"][2]["name"] == "getter-deploy")
+    assert(len(deployment_plan['phases']) == 5)
+    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-vip-deploy')
+    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-deploy')
+    assert(deployment_plan['phases'][2]['name'] == 'hello-host-vip-deploy')
+    assert(deployment_plan['phases'][3]['name'] == 'hello-host-deploy')
+    assert(deployment_plan["phases"][4]["name"] == "getter-deploy")
     assert(len(deployment_plan['phases'][0]['steps']) == 1)
     assert(len(deployment_plan["phases"][1]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][2]["steps"]) == 2)
+    assert(len(deployment_plan["phases"][2]["steps"]) == 1)
+    assert(len(deployment_plan["phases"][3]["steps"]) == 1)
+    assert(len(deployment_plan["phases"][4]["steps"]) == 4)
 
     # test that the tasks are all up, which tests the overlay DNS
-    framework_tasks = [task["name"] for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
-    expected_tasks = ['getter-0-get-host',
-                      'getter-0-get-overlay',
+    framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
+    framework_task_names = [t["name"] for t in framework_tasks]
+    expected_tasks = ['getter-0-get-Host',
+                      'getter-0-get-Overlay',
+                      'getter-0-get-Overlay-vip',
+                      'getter-0-get-Host-vip',
+                      'hello-host-vip-0-server',
+                      'hello-overlay-vip-0-server',
                       'hello-host-0-server',
                       'hello-overlay-0-server']
 
     for expected_task in expected_tasks:
-        assert(expected_task in framework_tasks), "Missing {expected}".format(expected=expected_task)
+        assert(expected_task in framework_task_names), "Missing {expected}".format(expected=expected_task)
 
-    check_task_network("getter-0-get-host", True)
-    check_task_network("getter-0-get-overlay", True)
+    for task in framework_tasks:
+        name = task["name"]
+        resources = task["resources"]
+        if "host" in name:
+            assert "ports" in resources.keys(), "Task {} should have port resources".format(name)
+        if "overlay" in name:
+            assert "ports" not in resources.keys(), "Task {} should NOT have port resources".format(name)
+
+    #check_task_network("getter-0-get-Host", True)
+    #check_task_network("getter-0-get-Overlay", True)
     check_task_network("hello-overlay-0-server", True)
+    check_task_network("hello-overlay-vip-0-server", True)
     check_task_network("hello-host-0-server", False)
+    check_task_network("hello-host-vip-0-server", False)
 
 

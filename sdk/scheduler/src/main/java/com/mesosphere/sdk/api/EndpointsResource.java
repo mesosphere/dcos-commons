@@ -183,7 +183,7 @@ public class EndpointsResource {
      *
      * @param endpointsByName the map to write to
      * @param taskInfo the task which has the port
-     * @param directHostPort the host:port value to advertise for directly connecting to the task
+     * @param dnsHostPort the host:port value to advertise for directly connecting to the task
      * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */

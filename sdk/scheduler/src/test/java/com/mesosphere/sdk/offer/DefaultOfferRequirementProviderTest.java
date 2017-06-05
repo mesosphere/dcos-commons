@@ -185,7 +185,7 @@ public class DefaultOfferRequirementProviderTest {
         finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
     }
 
-    @Test
+
     public void testNewOfferRequirementOnOverlayNetwork() throws Exception {
         PodInstance podInstance = getPodInstance("valid-minimal-overlay.yml");
         List<String> tasksToLaunch = getTasksToLaunch(podInstance);

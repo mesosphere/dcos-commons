@@ -4,10 +4,9 @@ import com.mesosphere.sdk.offer.ExecutorRequirement;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 /**
  * A {@link PodInfoBuilder} encompasses a mutable group of {@link org.apache.mesos.Protos.TaskInfo.Builder}s and,
@@ -19,6 +18,8 @@ public class PodInfoBuilder {
     private final OfferRequirement offerRequirement;
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders;
     private final Protos.ExecutorInfo.Builder executorBuilder;
+
+    private Set<Integer> assignedOverlayPorts = new HashSet<>();
 
     public PodInfoBuilder(OfferRequirement offerRequirement) {
         this.offerRequirement = offerRequirement;
@@ -55,6 +56,14 @@ public class PodInfoBuilder {
                 .map(t -> t.getResourcesBuilderList())
                 .flatMap(xs -> xs.stream())
                 .collect(Collectors.toList());
+    }
+
+    public boolean isAssignedOverlayPort(Integer candidatePort) {
+        return assignedOverlayPorts.contains(candidatePort);
+    }
+
+    public void addAssignedOverlayPort(int port) {
+        assignedOverlayPorts.add(port);
     }
 
     private static Protos.TaskInfo.Builder clearResources(Protos.TaskInfo.Builder builder) {

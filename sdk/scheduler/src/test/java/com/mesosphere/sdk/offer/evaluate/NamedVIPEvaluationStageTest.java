@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRequirement;
@@ -34,7 +35,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
@@ -50,6 +53,94 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
     }
+
+    @Test
+    public void testDiscoveryInfoWhenOnOverlayWithDynamicPortAssignment() throws Exception {
+        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+
+        PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
+                desiredPorts,
+                TestConstants.TASK_NAME,
+                "test-port",
+                0,
+                Optional.empty(),
+                "sctp",
+                DiscoveryInfo.Visibility.CLUSTER,
+                "test-vip",
+                80,
+                false,
+                true);
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Assert.assertEquals(0, taskBuilder.getResourcesCount());
+        Protos.Port port = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(port.getNumber(), 1000);
+        Assert.assertEquals(port.getProtocol(), "sctp");
+
+        Protos.Label vipLabel = port.getLabels().getLabels(0);
+        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
+        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
+        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+
+        vipLabel = port.getLabels().getLabels(1);
+        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
+        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
+        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+    }
+
+
+    @Test
+    public void testDiscoveryInfoWhenOnOverlay() throws Exception {
+        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+
+        PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
+                desiredPorts,
+                TestConstants.TASK_NAME,
+                "test-port",
+                80, // non-offered port
+                Optional.empty(),
+                "sctp",
+                DiscoveryInfo.Visibility.CLUSTER,
+                "test-vip",
+                80,
+                false,
+                true);
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Assert.assertEquals(0, taskBuilder.getResourcesCount());
+        Protos.Port port = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(port.getNumber(), 80);
+        Assert.assertEquals(port.getProtocol(), "sctp");
+
+        Protos.Label vipLabel = port.getLabels().getLabels(0);
+        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
+        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
+        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+
+        vipLabel = port.getLabels().getLabels(1);
+        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
+        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
+        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+    }
+
 
     @Test
     public void testVIPIsReused() throws InvalidRequirementException {
@@ -73,7 +164,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -115,7 +208,9 @@ public class NamedVIPEvaluationStageTest {
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
-                80);
+                80,
+                true,
+                false);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
