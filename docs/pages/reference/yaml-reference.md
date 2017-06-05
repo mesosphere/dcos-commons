@@ -18,7 +18,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `web-url`
 
-  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Proxylite](developer-guide.html#proxy) in your service so that the scheduler API endpoints are still available.
+  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](developer-guide.html#proxy-fallback) in your service so that the scheduler API endpoints are still available.
 
 * `scheduler`
 
