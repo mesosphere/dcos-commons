@@ -420,9 +420,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
         // Inject FRAMEWORK_TLD that gives the Navstar-based IP of the container
         environment.putIfAbsent(EnvConstants.FRAMEWORK_TLD_TASKENV, Constants.DNS_TLD);
-        // Inject MESOS_DNS_TLD that gives the mesos-dns IP of the host with the task, should be deprecated.
-        environment.putIfAbsent(EnvConstants.MESOS_TLD_TASKENV, Constants.MESOS_DNS);
-
 
         return EnvUtils.toProto(environment);
     }
