@@ -41,7 +41,7 @@ func (cmd *PodsHandler) RunReplace(c *kingpin.ParseContext) error {
 func HandlePodsSection(app *kingpin.Application) {
 	// pods [status [name], info <name>, restart <name>, replace <name>]
 	cmd := &PodsHandler{}
-	pods := app.Command("pods", "View Pod/Task state")
+	pods := app.Command("pods", "View Pod/Task state").Alias("pod")
 
 	pods.Command("list", "Display the list of known pod instances").Action(cmd.RunList)
 

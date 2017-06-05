@@ -70,7 +70,7 @@ func (cmd *PlanHandler) RunStatus(c *kingpin.ParseContext) error {
 	if cmd.RawJson {
 		client.PrintJSON(response)
 	} else {
-		client.LogMessage(toStatusTree(planName, client.GetResponseBytes(response)))
+		client.PrintMessage(toStatusTree(planName, client.GetResponseBytes(response)))
 	}
 	return nil
 }

@@ -106,16 +106,7 @@ func (suite *UpdateTestSuite) TestPrintStatusTree() {
 	printStatus(false)
 
 	// assert CLI output is what we expect
-	expectedOutput := `deploy (IN_PROGRESS)
-├─ Deployment (IN_PROGRESS)
-│  ├─ kafka-0:[broker] (COMPLETE)
-│  ├─ kafka-1:[broker] (IN_PROGRESS)
-│  └─ kafka-2:[broker] (PENDING)
-└─ Reindexing (PENDING)
-   ├─ kafka-0:[reindex] (PENDING)
-   ├─ kafka-1:[reindex] (PENDING)
-   └─ kafka-2:[reindex] (PENDING)
-`
+	expectedOutput := suite.loadFile("testdata/output/deploy-tree-twophase.txt")
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 

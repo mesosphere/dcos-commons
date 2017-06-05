@@ -77,6 +77,9 @@ type UpdateRequest struct {
 
 func doUpdate(optionsFile, packageVersion string) {
 	request := UpdateRequest{AppID: config.ServiceName}
+	if len(packageVersion) == 0 && len(optionsFile) == 0 {
+		client.LogMessageAndExit("Either --options and/or --package-version must be specified. See --help.")
+	}
 	if len(packageVersion) > 0 {
 		request.PackageVersion = packageVersion
 	}
@@ -116,7 +119,7 @@ func printStatus(rawJson bool) {
 	if rawJson {
 		client.PrintJSON(response)
 	} else {
-		client.LogMessage(toStatusTree(planName, client.GetResponseBytes(response)))
+		client.PrintMessage(toStatusTree(planName, client.GetResponseBytes(response)))
 	}
 }
 
@@ -127,15 +130,17 @@ func (cmd *UpdateHandler) PrintStatus(c *kingpin.ParseContext) error {
 
 func HandleDescribe(app *kingpin.Application) {
 	describeCmd := &DescribeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(describeCmd.DescribeConfiguration)
+	app.Command("describe", "Displays the current package configuration for this DC/OS service").Action(describeCmd.DescribeConfiguration)
 }
 
-func HandleUpdate(app *kingpin.Application) {
+func HandleUpdateSection(app *kingpin.Application) {
 	updateCmd := &UpdateHandler{}
-	update := app.Command("update", "Update the package version or configuration for this DC/OS service").Action(updateCmd.UpdateConfiguration)
-	update.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
-	update.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
+	update := app.Command("update", "Updates the package version or configuration for this DC/OS service")
 
-	status := update.Command("status", "View status of the current update").Alias("show").Action(updateCmd.PrintStatus)
+	start := update.Command("start", "Launches an update operation").Action(updateCmd.UpdateConfiguration)
+	start.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
+	start.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
+
+	status := update.Command("status", "Displays the status of a running update").Alias("show").PreAction(updateCmd.PrintStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&updateCmd.RawJson)
 }
