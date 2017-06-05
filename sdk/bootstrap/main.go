@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
 	"github.com/aryann/difflib"
 	"github.com/nickbp/mustache"
 	"io/ioutil"
