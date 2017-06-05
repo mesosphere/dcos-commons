@@ -93,23 +93,6 @@ func (suite *UpdateTestSuite) TestDescribeNoOptions() {
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-func (suite *UpdateTestSuite) TestPrintStatusRaw() {
-	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
-	printStatus(true)
-
-	// assert CLI output matches response json
-	assert.Equal(suite.T(), string(suite.responseBody) + "\n\n", suite.capturedOutput.String())
-}
-
-func (suite *UpdateTestSuite) TestPrintStatusTree() {
-	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
-	printStatus(false)
-
-	// assert CLI output is what we expect
-	expectedOutput := suite.loadFile("testdata/output/deploy-tree-twophase.txt")
-	assert.Equal(suite.T(), string(expectedOutput) + "\n", suite.capturedOutput.String())
-}
-
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/config.json", "")

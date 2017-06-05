@@ -1,60 +1,131 @@
 package commands
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/alecthomas/assert"
+	"github.com/mesosphere/dcos-commons/cli/client"
+	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestGetVariablePairParsesVariable(t *testing.T) {
+type PlanTestSuite struct {
+	suite.Suite
+	server         *httptest.Server
+	requestBody    []byte
+	responseBody   []byte
+	capturedOutput bytes.Buffer
+}
+
+func (suite *PlanTestSuite) logRecorder(format string, a ...interface{}) {
+	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
+}
+
+func (suite *PlanTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
+	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
+	return 0, nil // this is probably sub-optimal in the general sense
+}
+
+func (suite *PlanTestSuite) loadFile(filename string) []byte {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+	return data
+}
+
+func (suite *PlanTestSuite) exampleHandler(w http.ResponseWriter, r *http.Request) {
+	// write the request data to our suite's struct
+	requestBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		suite.T().Fatal("%s", err)
+	}
+	suite.requestBody = requestBody
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(suite.responseBody)
+}
+
+func (suite *PlanTestSuite) SetupSuite() {
+	config.ModuleName = "hello-world"
+	config.ServiceName = "hello-world"
+
+	// reassign logging and printing functions to allow us to check output
+	client.LogMessage = suite.logRecorder
+	client.LogMessageAndExit = suite.logRecorder
+	client.PrintMessage = suite.printRecorder
+}
+
+func (suite *PlanTestSuite) SetupTest() {
+	// set up test server
+	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
+	config.DcosUrl = suite.server.URL
+}
+
+func (suite *PlanTestSuite) TearDownTest() {
+	suite.capturedOutput.Reset()
+	suite.server.Close()
+}
+func TestPlanTestSuite(t *testing.T) {
+	suite.Run(t, new(UpdateTestSuite))
+}
+
+func (suite *PlanTestSuite) TestGetVariablePairParsesVariable() {
 	pairString := "var=value"
 	pair, err := GetVariablePair(pairString)
 
 	if err != nil {
-		t.Error("Got error: ", err)
+		suite.T().Error("Got error: ", err)
 	}
 
 	if !reflect.DeepEqual(pair, []string{"var", "value"}) {
-		t.Error("Expected [\"var\", \"value\"], got ", pair)
+		suite.T().Error("Expected [\"var\", \"value\"], got ", pair)
 	}
 }
 
-func TestGetVariablePairParsesVariableWithEqualsSign(t *testing.T) {
+func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithEqualsSign() {
 	pairString := "var=value=more"
 	pair, err := GetVariablePair(pairString)
 
 	if err != nil {
-		t.Error("Got error: ", err)
+		suite.T().Error("Got error: ", err)
 	}
 
 	if !reflect.DeepEqual(pair, []string{"var", "value=more"}) {
-		t.Error("Expected [\"var\", \"value=more\"], got ", pair)
+		suite.T().Error("Expected [\"var\", \"value=more\"], got ", pair)
 	}
 }
 
-func TestGetVariablePairParsesVariableWithSpace(t *testing.T) {
+func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithSpace() {
 	pairString := "var=value more"
 	pair, err := GetVariablePair(pairString)
 
 	if err != nil {
-		t.Error("Got error: ", err)
+		suite.T().Error("Got error: ", err)
 	}
 
 	if !reflect.DeepEqual(pair, []string{"var", "value more"}) {
-		t.Error("Expected [\"var\", \"value more\"], got ", pair)
+		suite.T().Error("Expected [\"var\", \"value more\"], got ", pair)
 	}
 }
 
-func TestGetVariablePairFailsWhenEqualsSignNotPresent(t *testing.T) {
+func (suite *PlanTestSuite) TestGetVariablePairFailsWhenEqualsSignNotPresent() {
 	pairString := "var value"
 	_, err := GetVariablePair(pairString)
 
 	if err == nil {
-		t.Error("Parsing for \"var value\" should have failed without an equals sign present")
+		suite.T().Error("Parsing for \"var value\" should have failed without an equals sign present")
 	}
 }
 
-func TestSingleVariableIsMarshaledToJSON(t *testing.T) {
+func (suite *PlanTestSuite) TestSingleVariableIsMarshaledToJSON() {
 	parameters := []string{"var=value"}
 	expectedParameters, _ := json.Marshal(map[string]string{
 		"var": "value",
@@ -63,15 +134,15 @@ func TestSingleVariableIsMarshaledToJSON(t *testing.T) {
 	result, err := GetPlanParameterPayload(parameters)
 
 	if err != nil {
-		t.Error("Got error: ", err)
+		suite.T().Error("Got error: ", err)
 	}
 
 	if string(expectedParameters) != result {
-		t.Error("Expected ", string(expectedParameters), ", got ", result)
+		suite.T().Error("Expected ", string(expectedParameters), ", got ", result)
 	}
 }
 
-func TestMultipleVariablesAreMarshaledToJSON(t *testing.T) {
+func (suite *PlanTestSuite) TestMultipleVariablesAreMarshaledToJSON() {
 	parameters := []string{"var=value", "var2=value2"}
 	expectedParameters, _ := json.Marshal(map[string]string{
 		"var":  "value",
@@ -81,15 +152,15 @@ func TestMultipleVariablesAreMarshaledToJSON(t *testing.T) {
 	result, err := GetPlanParameterPayload(parameters)
 
 	if err != nil {
-		t.Error("Got error: ", err)
+		suite.T().Error("Got error: ", err)
 	}
 
 	if string(expectedParameters) != result {
-		t.Error("Expected ", string(expectedParameters), ", got ", result)
+		suite.T().Error("Expected ", string(expectedParameters), ", got ", result)
 	}
 }
 
-func TestStatusTreeSinglePhase(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeSinglePhase() {
 	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -125,11 +196,11 @@ func TestStatusTreeSinglePhase(t *testing.T) {
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeSinglePhaseWithErrors(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeSinglePhaseWithErrors() {
 	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -170,11 +241,11 @@ Errors:
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeMultiPhase(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeMultiPhase() {
 	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -234,39 +305,32 @@ func TestStatusTreeMultiPhase(t *testing.T) {
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeEmptyJson(t *testing.T) {
-	expectedOutput := `deploy (<UNKNOWN>)
-`
+func (suite *PlanTestSuite) TestStatusTreeEmptyJson() {
+	expectedOutput := "deploy (<UNKNOWN>)"
 	result := toStatusTree("deploy", []byte("{ }"))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeNoPhases(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeNoPhases() {
 	inputJSON := `{
   "phases" : [ ],
   "errors" : [ ],
   "status" : "IN_PROGRESS"
 }`
-<<<<<<< HEAD
-	expectedOutput := `deploy (IN_PROGRESS)
-`
-	result := toStatusTree("deploy", []byte(inputJson))
-=======
 	expectedOutput := `deploy (IN_PROGRESS)`
 	result := toStatusTree("deploy", []byte(inputJSON))
->>>>>>> Tidy up variable names to make warnings go away and reorder plan subcommands.
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeEmptyPhase(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeEmptyPhase() {
 	inputJSON := `{
   "phases" : [ { } ],
   "errors" : [ ],
@@ -276,11 +340,11 @@ func TestStatusTreeEmptyPhase(t *testing.T) {
 └─ <UNKNOWN> (<UNKNOWN>)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeNoSteps(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeNoSteps() {
 	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -295,11 +359,11 @@ func TestStatusTreeNoSteps(t *testing.T) {
 └─ Deployment (IN_PROGRESS)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
 }
 
-func TestStatusTreeEmptyStep(t *testing.T) {
+func (suite *PlanTestSuite) TestStatusTreeEmptyStep() {
 	inputJSON := `{
   "phases" : [ {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -315,6 +379,32 @@ func TestStatusTreeEmptyStep(t *testing.T) {
    └─ <UNKNOWN> (<UNKNOWN>)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	if expectedOutput != result {
-		t.Error("Expected ", expectedOutput, ", got ", result)
+		suite.T().Error("Expected ", expectedOutput, ", got ", result)
 	}
+}
+
+func (suite *PlanTestSuite) TestPrintStatusRaw() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	printStatus("deploy", true)
+
+	// assert CLI output matches response json
+	assert.Equal(suite.T(), string(suite.responseBody)+"\n\n", suite.capturedOutput.String())
+}
+
+func (suite *PlanTestSuite) TestPrintStatusTree() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	printStatus("deploy", false)
+
+	// assert CLI output is what we expect
+	expectedOutput := `deploy (IN_PROGRESS)
+├─ Deployment (IN_PROGRESS)
+│  ├─ kafka-0:[broker] (COMPLETE)
+│  ├─ kafka-1:[broker] (IN_PROGRESS)
+│  └─ kafka-2:[broker] (PENDING)
+└─ Reindexing (PENDING)
+   ├─ kafka-0:[reindex] (PENDING)
+   ├─ kafka-1:[reindex] (PENDING)
+   └─ kafka-2:[reindex] (PENDING)
+`
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
