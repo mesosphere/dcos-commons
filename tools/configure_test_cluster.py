@@ -96,9 +96,9 @@ class ClusterInitializer(object):
 
     def configure_master_settings(self):
         logger.info("Live-customizing mesos master")
-        venv_path = venvutil.shared_tools_venv()
-        venvutil.create_dcoscommons_venv(venv_path)
-        venvutil.activate_venv(venv_path)
+        package_path = venvutil.shared_tools_packagedir()
+        venvutil.populate_dcoscommons_packagedir(package_path)
+        venvutil.activate_venv(package_path)
 
         # import delayed until dependencies exist
         import modify_master

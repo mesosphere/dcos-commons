@@ -3,6 +3,7 @@
 import logging
 import os
 import os.path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,9 +14,28 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def shared_tools_venv():
+pip3_binary = None
+def determine_pip3_binary():
+    global pip3_binary
+    pip3_binary = shutil.which('pip3')
+    if pip3_binary:
+        return
+    pip_binary = shutil.which('pip')
+    version_string = subprocess.check_output([pip_binary, '--version'])
+    if 'python 3' in version_string:
+        pip3_binary = pip_binary
+        return
+    raise Exception("could not find pip for python3")
+
+
+def get_pip3_binary():
+    if not pip3_binary:
+        determine_pip3_binary()
+    return pip3_binary
+
+def shared_tools_packagedir():
     tools_dir = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(tools_dir, "tools_venv")
+    return os.path.join(tools_dir, "tools_py")
 
 def venv_exists(path):
     return os.path.isfile(path, 'bin', 'python')
@@ -84,6 +104,11 @@ def activate_venv(path):
             sys.path.remove(item)
     sys.path[:0] = new_sys_path
 
+def pip_install_dir(path, requirements_filepath):
+    "Install python packages to a dir from a requirements file"
+    pip_cmd = [get_pip3_binary(), 'install', '--target', path, '-r', requirements_filepath]
+    subprocess.check_call(pip_cmd)
+
 def pip_install(path, requirements_filepath):
     "Populate a venv with given requirements"
     pip_bin = os.path.join(path, 'bin', 'pip')
@@ -114,15 +139,15 @@ def create_default_requirementsfile(filename):
     with open(filename, 'w') as reqfile:
         reqfile.write('''
 requests==2.10.0
-
--e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+dcos-cli==0.4.16
+dcos==0.4.16
+dcos-shakedown
 ''')
 
-def create_dcoscommons_venv(path):
-    create_venv(path)
+def populate_dcoscommons_packagedir(path):
     req_filename = os.path.join(path, 'requirements.txt')
     create_default_requirementsfile(req_filename)
-    pip_install(path, req_filename)
+    pip_install_dir(path, req_filename)
 
 
 
