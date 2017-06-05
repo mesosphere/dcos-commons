@@ -179,7 +179,10 @@ pods:
         resource-set: sidecar-resources
       restore-schema-local:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/${SNAPSHOT_NAME}/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        cmd: > 
+                echo POD_INSTANCE_INDEX is ${POD_INSTANCE_INDEX} ;
+                echo SERVICE_NAME is ${SERVICE_NAME} ;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/${SNAPSHOT_NAME}/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
         resource-set: sidecar-resources
       restore-snapshot-local:
         goal: FINISHED
