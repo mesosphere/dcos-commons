@@ -16,10 +16,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 5/31/17.
+ * Handles cross-referencing a preexisting {@link Protos.ExecutorInfo}'s current {@link Protos.Resource}s against a set
+ * of expected {@link VolumeSpec}s for that Executor.
  */
 public class ExecutorResourceMapper {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
     private final PodSpec podSpec;
     private final Protos.ExecutorInfo executorInfo;
     private final Collection<VolumeSpec> volumeSpecs;
@@ -27,7 +28,7 @@ public class ExecutorResourceMapper {
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
 
-    static class VolumeLabels {
+    private static class VolumeLabels {
         private final VolumeSpec volumeSpec;
         private final String resourceId;
         private final String persistenceId;
@@ -83,12 +84,12 @@ public class ExecutorResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            logger.info("Orphaned task resources no longer in VolumeSpec: {}",
+            LOGGER.info("Orphaned task resources no longer in VolumeSpec: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
         if (!matchingVolumes.isEmpty()) {
-            logger.info("Matching task/TaskSpec resources: {}", matchingVolumes);
+            LOGGER.info("Matching task/TaskSpec resources: {}", matchingVolumes);
             for (VolumeLabels volumeLabels : matchingVolumes) {
                 VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                         volumeLabels.volumeSpec,
@@ -101,7 +102,7 @@ public class ExecutorResourceMapper {
 
         // these are resourcespecs which weren't found in the taskinfo resources. likely need new reservations
         if (!remainingVolumeSpecs.isEmpty()) {
-            logger.info("Missing VolumeSpec resources not found in executor: {}", remainingVolumeSpecs);
+            LOGGER.info("Missing VolumeSpec resources not found in executor: {}", remainingVolumeSpecs);
             for (VolumeSpec missingVolume : remainingVolumeSpecs) {
                 VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                         missingVolume,
@@ -115,12 +116,12 @@ public class ExecutorResourceMapper {
         return stages;
     }
 
-    private Optional<VolumeLabels> findMatchingDiskSpec(Protos.Resource resource, Collection<VolumeSpec> volumeSpecs) {
+    private static Optional<VolumeLabels> findMatchingDiskSpec(Protos.Resource resource, Collection<VolumeSpec> volumeSpecs) {
         for (VolumeSpec volumeSpec : volumeSpecs) {
             if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
                 Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
                 if (!resourceId.isPresent()) {
-                    logger.error("Failed to find resource ID for resource: {}", resource);
+                    LOGGER.error("Failed to find resource ID for resource: {}", resource);
                     continue;
                 }
 

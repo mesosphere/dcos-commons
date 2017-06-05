@@ -178,10 +178,8 @@ public class MesosResourcePool {
     public void free(MesosResource mesosResource) {
         if (mesosResource.isAtomic()) {
             freeAtomicResource(mesosResource);
-            return;
         } else {
             freeMergedResource(mesosResource);
-            return;
         }
     }
 
@@ -191,12 +189,10 @@ public class MesosResourcePool {
         }
 
         Value currValue = unreservedMergedPool.get(mesosResource.getName());
+        Value updatedValue = (currValue == null)
+                ? mesosResource.getValue()
+                : ValueUtils.add(currValue, mesosResource.getValue());
 
-        if (currValue == null) {
-            currValue = ValueUtils.getZero(mesosResource.getType());
-        }
-
-        Value updatedValue = ValueUtils.add(currValue, mesosResource.getValue());
         unreservedMergedPool.put(mesosResource.getName(), updatedValue);
     }
 
@@ -212,14 +208,12 @@ public class MesosResourcePool {
             resBuilder.setDisk(diskBuilder.build());
         }
 
-        Resource releasedResource = resBuilder.build();
-
         List<MesosResource> resList = unreservedAtomicPool.get(mesosResource.getName());
         if (resList == null) {
             resList = new ArrayList<MesosResource>();
         }
 
-        resList.add(new MesosResource(releasedResource));
+        resList.add(new MesosResource(resBuilder.build()));
         unreservedAtomicPool.put(mesosResource.getName(), resList);
     }
 
