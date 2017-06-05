@@ -57,12 +57,10 @@ public class PortRequirement extends ResourceRequirement {
     private boolean requireHostPorts(Collection<String> networkNames) {
         if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
             return true;
+        } else {
+            return networkNames.stream()
+                    .filter(DcosConstants::networkSupportsPortMapping)
+                    .count() > 0;
         }
-        for (String networkName : networkNames) {
-            if (DcosConstants.networkSupportsPortMapping(networkName)) {
-                return true;
-            }
-        }
-        return false;
     }
 }
