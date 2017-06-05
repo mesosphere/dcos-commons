@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by gabriel on 5/30/17.
+ * Placement-related tests for {@link OfferEvaluator}.
  */
 public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
     @Test
