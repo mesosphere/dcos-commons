@@ -139,6 +139,6 @@ func HandleUpdateSection(app *kingpin.Application) {
 	start.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&updateCmd.OptionsFile)
 	start.Flag("package-version", "The desired package version").StringVar(&updateCmd.PackageVersion)
 
-	status := update.Command("status", "Displays the status of a running update").Alias("show").PreAction(updateCmd.PrintStatus)
+	status := update.Command("status", "Displays the status of a running update").Alias("show").Action(updateCmd.PrintStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&updateCmd.RawJson)
 }
