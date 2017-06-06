@@ -54,7 +54,7 @@ public class PortRequirement extends ResourceRequirement {
                 usingHostPorts());
     }
 
-    private boolean requireHostPorts(Collection<String> networkNames) {
+    private static boolean requireHostPorts(Collection<String> networkNames) {
         if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
             return true;
         } else {

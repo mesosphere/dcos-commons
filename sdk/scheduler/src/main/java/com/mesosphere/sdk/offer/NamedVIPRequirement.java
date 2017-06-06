@@ -17,6 +17,7 @@ public class NamedVIPRequirement extends PortRequirement {
     private final Protos.DiscoveryInfo.Visibility visibility;
     private final String vipName;
     private final int vipPort;
+    // if we're on the overlay network we need to add additional labels to the DiscoveryInfo.
     private boolean onOverlay;
 
     public NamedVIPRequirement(
@@ -34,7 +35,7 @@ public class NamedVIPRequirement extends PortRequirement {
         this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
-        this.onOverlay = useContainerNetwork(networkNames);
+        this.onOverlay = !networkNames.isEmpty();
     }
 
     public String getProtocol() {
@@ -55,10 +56,6 @@ public class NamedVIPRequirement extends PortRequirement {
 
     public boolean isOnOverlay() {
         return onOverlay;
-    }
-
-    private boolean useContainerNetwork(Collection<String> networkNames) {
-        return !networkNames.isEmpty();
     }
 
     @Override

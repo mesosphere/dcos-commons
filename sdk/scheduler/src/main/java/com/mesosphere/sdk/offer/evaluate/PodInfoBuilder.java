@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.ExecutorRequirement;
-import com.mesosphere.sdk.offer.OfferRequirement;
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.*;
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -23,6 +23,17 @@ public class PodInfoBuilder {
 
     public PodInfoBuilder(OfferRequirement offerRequirement) {
         this.offerRequirement = offerRequirement;
+
+        // add all of the port resource requirements to the assignedOverlayPorts to make sure that we don't dynamically
+        // assign an overlay port that we're going to explicitly request later.
+        offerRequirement.getTaskRequirements().forEach(taskRequirement ->
+            taskRequirement.getResourceRequirements().stream()
+                .filter(resourceRequirement -> resourceRequirement.getName().equals(Constants.PORTS_RESOURCE_TYPE))
+                .collect(Collectors.toList())
+                    .forEach(resourceRequirement ->
+                        assignedOverlayPorts.add((int) resourceRequirement.getValue()
+                            .getRanges().getRange(0).getBegin())));
+
         taskBuilders = offerRequirement.getTaskRequirements().stream()
                 .map(r -> r.getTaskInfo())
                 .collect(Collectors.toMap(t -> t.getName(), t -> clearResources(t.toBuilder())));
@@ -64,6 +75,11 @@ public class PodInfoBuilder {
 
     public void addAssignedOverlayPort(int port) {
         assignedOverlayPorts.add(port);
+    }
+
+    @VisibleForTesting
+    public Set<Integer> getAssignedOverlayPorts() {
+        return assignedOverlayPorts;
     }
 
     private static Protos.TaskInfo.Builder clearResources(Protos.TaskInfo.Builder builder) {

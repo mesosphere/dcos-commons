@@ -28,7 +28,10 @@ DEPLOY_STRATEGY_SERIAL_CANARY = {"service": {"deploy_strategy": "serial-canary"}
 def service_cli(cmd_str):
     full_cmd = '{} {}'.format(PACKAGE_NAME, cmd_str)
     ret_str = command.run_cli(full_cmd)
-    return json.loads(ret_str)
+    try:
+        return json.loads(ret_str)
+    except Exception:
+        return ret_str
 
 
 def broker_count_check(count):

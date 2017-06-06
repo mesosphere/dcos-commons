@@ -70,8 +70,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                             "No ports were available for dynamic claim in offer: %s",
                             mesosResourcePool.getOffer().toString());
                 }
-                LOGGER.info("assigned port dynamically {}", dynamicPort.get().toString());
                 assignedPort = dynamicPort.get();
+                LOGGER.info("Assigned dynamic port {}: {}", portName, assignedPort);
             }
         }
 
@@ -92,7 +92,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             return pass(
                     this,
                     Collections.emptyList(),
-                    "Not using host ports, ignoring port resource requirements, using port %s",
+                    "Not using host ports: ignoring port resource requirements, using port %s",
                     TextFormat.shortDebugString(resourceRequirement.getValue()));
         }
     }

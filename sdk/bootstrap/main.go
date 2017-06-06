@@ -23,9 +23,9 @@ import (
 
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
-	resolveRetryDelay    = time.Duration(1) * time.Second
-	dns_tld              = "autoip.dcos.thisdcos.directory"
-	mesos_dns            = "mesos"
+	resolveRetryDelay = time.Duration(1) * time.Second
+    	dns_tld = "autoip.dcos.thisdcos.directory"
+    	mesos_dns = "mesos"
 )
 
 var verbose = false

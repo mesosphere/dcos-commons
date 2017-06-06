@@ -107,7 +107,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
         Map<String, String> taskEnv = EnvUtils.toMap(taskCommand.getEnvironment());
-        Assert.assertEquals(taskEnv.toString(), 8, taskEnv.size());
+        Assert.assertEquals(taskEnv.toString(), 7, taskEnv.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, taskEnv.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
         Assert.assertEquals("true", taskEnv.get(taskInfo.getName()));
@@ -261,7 +261,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(taskInfo.getCommand().getUrisList().isEmpty());
 
         Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 6, envvars.size());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals(TestConstants.SERVICE_NAME, envvars.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
         Assert.assertEquals("true", envvars.get(taskInfo.getName()));
@@ -284,7 +284,7 @@ public class DefaultOfferRequirementProviderTest {
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
 
         Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 6, envvars.size());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals(null, envvars.get("PARAM0"));
 
         offerRequirement = provider.getNewOfferRequirement(
@@ -296,7 +296,7 @@ public class DefaultOfferRequirementProviderTest {
         taskInfo = taskRequirement.getTaskInfo();
 
         envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 7, envvars.size());
+        Assert.assertEquals(envvars.toString(), 6, envvars.size());
         Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
 

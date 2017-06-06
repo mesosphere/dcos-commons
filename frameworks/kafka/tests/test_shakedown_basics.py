@@ -5,6 +5,7 @@ import sdk_tasks as tasks
 import sdk_spin as spin
 import sdk_cmd as command
 import sdk_utils as utils
+import shakedown
 import dcos
 import dcos.config
 import dcos.http

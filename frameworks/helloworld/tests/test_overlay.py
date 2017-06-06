@@ -100,7 +100,6 @@ def test_overlay_network():
     assert rc == 0, "Getting endpoints failed"
     assert len(endpoints_result) == 2, "Wrong number of endpoints got {} should be 2".format(len(endpoints_result))
 
-
     overlay_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints overlay-vip".format(pkg=PACKAGE_NAME))
     assert rc == 0, "Getting overlay endpoints failed"
     overlay_endpoints_result = json.loads(overlay_endpoints_result)
@@ -113,7 +112,6 @@ def test_overlay_network():
     assert "dns" in overlay_endpoints_result.keys()
     assert len(overlay_endpoints_result["dns"]) == 1
     assert overlay_endpoints_result["dns"][0] == "hello-overlay-vip-0-server.hello-world.autoip.dcos.thisdcos.directory:4044"
-
 
     host_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints host-vip".format(pkg=PACKAGE_NAME))
     assert rc == 0, "Getting host endpoints failed"
