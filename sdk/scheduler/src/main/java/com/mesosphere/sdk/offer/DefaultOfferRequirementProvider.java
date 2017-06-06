@@ -722,7 +722,21 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
+        executorInfoBuilder.setLabels(executorInfoBuilder.getLabelsBuilder()
+                .addLabels(Protos.Label.newBuilder().setKey("DCOS_SPACE").setValue(getDcosSpaceLabel())));
+
         return executorInfoBuilder.build();
+    }
+
+    private static String getDcosSpaceLabel() {
+        String labelString = System.getenv("DCOS_SPACE");
+        if (labelString == null) {
+            labelString = System.getenv("MARATHON_APP_ID");
+        }
+        if (labelString == null) {
+            return "/"; // No Authorization for this framework
+        }
+        return labelString;
     }
 
     private static Protos.Secret getReferenceSecret(String secretPath) {
