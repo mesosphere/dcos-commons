@@ -188,6 +188,7 @@ public class PodInfoBuilder {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
         }
 
+        // Add SECRET type environment variables to command info
         executorCommandBuilder.getEnvironmentBuilder()
                 .addAllVariables(getExecutorInfoSecretVariables(podSpec.getSecrets()));
 

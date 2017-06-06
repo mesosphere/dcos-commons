@@ -79,12 +79,12 @@
           "secret1":{
             "description":"secret1",
             "type":"string",
-            "default":"hello-world/secret1"
+            "default":""
           },
           "secret2": {
             "description": "secret2",
             "type": "string",
-            "default": "hello-world/secret2"
+            "default": ""
           }
         },
         "required":[
