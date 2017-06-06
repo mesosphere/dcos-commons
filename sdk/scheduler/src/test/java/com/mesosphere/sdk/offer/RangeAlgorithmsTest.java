@@ -7,6 +7,7 @@ import org.apache.mesos.Protos.Value.Range;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -72,6 +73,25 @@ public class RangeAlgorithmsTest {
         List<Range> difference = RangeAlgorithms.subtractRanges(r1, r2);
 
         assertTrue(difference.isEmpty());
+    }
+
+    @Test
+    public void testRangeIsInAny() {
+        List<Range> r1 = Arrays.asList(getRange(1, 3), getRange(5, 7));
+        assertFalse(RangeAlgorithms.isInAny(r1, 0));
+        assertTrue(RangeAlgorithms.isInAny(r1, 1));
+        assertTrue(RangeAlgorithms.isInAny(r1, 2));
+        assertTrue(RangeAlgorithms.isInAny(r1, 3));
+        assertFalse(RangeAlgorithms.isInAny(r1, 4));
+        assertTrue(RangeAlgorithms.isInAny(r1, 5));
+        assertTrue(RangeAlgorithms.isInAny(r1, 6));
+        assertTrue(RangeAlgorithms.isInAny(r1, 7));
+        assertFalse(RangeAlgorithms.isInAny(r1, 8));
+
+        List<Range> r2 = Arrays.asList(getRange(2, 2));
+        assertFalse(RangeAlgorithms.isInAny(r2, 1));
+        assertTrue(RangeAlgorithms.isInAny(r2, 2));
+        assertFalse(RangeAlgorithms.isInAny(r2, 3));
     }
 
     private static Range getRange(int begin, int end) {

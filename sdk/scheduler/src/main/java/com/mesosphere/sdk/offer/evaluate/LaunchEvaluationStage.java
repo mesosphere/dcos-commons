@@ -1,24 +1,33 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo} in an {@link OfferRequirement}, ensuring
- * that this metadata is available in the task's environment and creating an {@link LaunchOfferRecommendation}.
+ * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
+ * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String taskName;
+    private final boolean shouldLaunch;
 
     public LaunchEvaluationStage(String taskName) {
+        this(taskName, true);
+    }
+    public LaunchEvaluationStage(String taskName, boolean shouldLaunch) {
         this.taskName = taskName;
+        this.shouldLaunch = shouldLaunch;
     }
 
     @Override
@@ -26,12 +35,13 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Optional<Protos.ExecutorInfo.Builder> executorBuilder = podInfoBuilder.getExecutorBuilder();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
             .setOfferAttributes(offer)
-            .setType(podInfoBuilder.getOfferRequirement().getType())
-            .setIndex(podInfoBuilder.getOfferRequirement().getIndex())
+            .setType(podInfoBuilder.getType())
+            .setIndex(podInfoBuilder.getIndex())
             .setHostname(offer)
             .toProto());
         if (executorBuilder.isPresent()) {
@@ -40,7 +50,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                Arrays.asList(new LaunchOfferRecommendation(offer, taskBuilder.build())),
+                Arrays.asList(new LaunchOfferRecommendation(offer, taskBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement");
     }
 }
