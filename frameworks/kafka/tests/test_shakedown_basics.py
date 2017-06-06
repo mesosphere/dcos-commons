@@ -60,7 +60,6 @@ def test_endpoints_address():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-@pytest.mark.runnow
 def test_endpoints_zookeeper():
     zookeeper = service_cli('endpoints zookeeper')
     assert zookeeper.rstrip() == (
