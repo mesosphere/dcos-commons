@@ -219,6 +219,10 @@ public class ResourceTestUtils {
         return ResourceCollectionUtils.getResourceId(resource).orElse(null);
     }
 
+    public static String getPersistenceId(Resource diskResource) {
+        return diskResource.getDisk().getPersistence().getId();
+    }
+
     private static ReservationInfo getExpectedReservationInfo(String resourceId, String principal) {
         return ReservationInfo.newBuilder()
                 .setPrincipal(principal)
@@ -314,10 +318,10 @@ public class ResourceTestUtils {
     }
 
     public static Resource getExpectedMountVolume(double diskSize) {
-        return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID);
+        return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
     }
 
-    public static Resource getExpectedMountVolume(double diskSize, String resourceId) {
+    public static Resource getExpectedMountVolume(double diskSize, String resourceId, String persistenceId) {
         return getExpectedMountVolume(
                 diskSize,
                 resourceId,
@@ -325,7 +329,7 @@ public class ResourceTestUtils {
                 TestConstants.PRINCIPAL,
                 TestConstants.MOUNT_ROOT,
                 TestConstants.CONTAINER_PATH,
-                TestConstants.PERSISTENCE_ID);
+                persistenceId);
     }
 
     public static Resource getExpectedRootVolume(double diskSize) {
@@ -333,13 +337,17 @@ public class ResourceTestUtils {
     }
 
     public static Resource getExpectedRootVolume(double diskSize, String resourceId) {
+        return getExpectedRootVolume(diskSize, resourceId, TestConstants.PERSISTENCE_ID);
+    }
+
+    public static Resource getExpectedRootVolume(double diskSize, String resourceId, String persistenceId) {
         return getExpectedRootVolume(
                 diskSize,
                 resourceId,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
-                TestConstants.PERSISTENCE_ID);
+                persistenceId);
     }
 
     private static Resource getDesiredScalar(String name, double value) {
@@ -413,5 +421,4 @@ public class ResourceTestUtils {
     public static Resource getDesiredMem(double mem) {
         return ResourceTestUtils.getDesiredScalar("mem", mem);
     }
-
 }

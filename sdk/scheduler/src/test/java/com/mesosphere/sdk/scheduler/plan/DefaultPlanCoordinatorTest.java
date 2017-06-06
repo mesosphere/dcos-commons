@@ -1,11 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -33,8 +31,6 @@ import static org.mockito.Mockito.spy;
  * Tests for {@code DefaultPlanCoordinator}.
  */
 public class DefaultPlanCoordinatorTest {
-
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
@@ -89,7 +85,6 @@ public class DefaultPlanCoordinatorTest {
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
-    private DefaultOfferRequirementProvider provider;
 
     @Before
     public void setupTest() throws Exception {
@@ -111,10 +106,15 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(
-                stateStore, serviceSpecification.getName(), UUID.randomUUID(), flags);
         planScheduler = new DefaultPlanScheduler(
-                offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
+                offerAccepter,
+                new OfferEvaluator(
+                        stateStore,
+                        TestConstants.SERVICE_NAME,
+                        UUID.randomUUID(),
+                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                stateStore,
+                taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)

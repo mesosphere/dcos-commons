@@ -94,16 +94,6 @@ class ClusterInitializer(object):
         subprocess.check_call(['dcos', 'config', 'show'])
         dcos_login.DCOSLogin(self.dcos_url).login()
 
-    def configure_master_settings(self):
-        logger.info("Live-customizing mesos master")
-        venv_path = venvutil.shared_tools_venv()
-        venvutil.create_dcoscommons_venv(venv_path)
-        venvutil.activate_venv(venv_path)
-
-        # import delayed until dependencies exist
-        import modify_master
-        modify_master.set_local_infinity_defaults()
-
     def apply_default_config(self, initmaster=True):
         saved_env = os.environ.copy()
         try:
@@ -135,7 +125,6 @@ class ClusterInitializer(object):
                         # expects after.
                         # in the shiny future, set up the CLI once for the whole run.
                         self._initialize_dcos_cli()
-                        self.configure_master_settings()
                 finally:
                     sys.stdout.flush()
                     os.dup2(stdout_back, stdout_fd)

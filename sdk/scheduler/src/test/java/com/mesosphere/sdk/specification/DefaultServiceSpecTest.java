@@ -12,9 +12,6 @@ import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.mesos.Protos;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -126,17 +123,22 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(1, portsResources.size());
+        Assert.assertEquals(3, portsResources.size());
 
-       PortsRequirement portsRequirement = (PortsRequirement) portsResources.get(0).getResourceRequirement(null);
-       List<ResourceRequirement> portReqList = (List<ResourceRequirement>) portsRequirement.getPortRequirements();
+        PortSpec portSpec = (PortSpec) portsResources.get(0);
+        Assert.assertEquals("name1", portSpec.getPortName());
+        Assert.assertEquals(8080, portSpec.getPort());
+        Assert.assertEquals("key1", portSpec.getEnvKey().get());
 
-       Assert.assertEquals(3, portReqList.size());
+        portSpec = (PortSpec) portsResources.get(1);
+        Assert.assertEquals("name2", portSpec.getPortName());
+        Assert.assertEquals(8088, portSpec.getPort());
+        Assert.assertFalse(portSpec.getEnvKey().isPresent());
 
-       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getCustomEnvKey().get());
-       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getCustomEnvKey().isPresent());
-       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getCustomEnvKey().isPresent());
-
+        portSpec = (PortSpec) portsResources.get(2);
+        Assert.assertEquals("name3", portSpec.getPortName());
+        Assert.assertEquals(8089, portSpec.getPort());
+        Assert.assertFalse(portSpec.getEnvKey().isPresent());
     }
 
     @Test
@@ -151,12 +153,14 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(1, portsResources.size());
+        Assert.assertEquals(2, portsResources.size());
 
-        Protos.Value.Ranges ports = portsResources.get(0).getValue().getRanges();
-        Assert.assertEquals(2, ports.getRangeCount());
-        Assert.assertEquals(8080, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
-        Assert.assertEquals(8088, ports.getRange(1).getBegin(), ports.getRange(1).getEnd());
+        Protos.Value.Ranges http = portsResources.get(0).getValue().getRanges();
+        Protos.Value.Ranges another = portsResources.get(1).getValue().getRanges();
+        Assert.assertEquals(1, http.getRangeCount());
+        Assert.assertEquals(1, another.getRangeCount());
+        Assert.assertEquals(8080, http.getRange(0).getBegin(), http.getRange(0).getEnd());
+        Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
     @Test
@@ -389,7 +393,13 @@ public class DefaultServiceSpecTest {
                         .stream()
                         .filter(r -> r.getName().equals("ports"))
                         .collect(Collectors.toList());
-                Assert.assertEquals(1, portsResources.size());
+
+                int portCount = 1;
+                if (podSpec.getType().equals("meta-data-with-port-mapping")) {
+                    portCount = 2;
+                }
+
+                Assert.assertEquals(portCount, portsResources.size());
             }
         }
     }
