@@ -1,0 +1,6 @@
+{
+"service": {
+  "spec_file": "examples/secrets.yml"
+    }
+}
+    
