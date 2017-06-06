@@ -23,9 +23,9 @@ import (
 
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
-	resolveRetryDelay = time.Duration(1) * time.Second
-    	dns_tld = "autoip.dcos.thisdcos.directory"
-    	mesos_dns = "mesos"
+	resolveRetryDelay    = time.Duration(1) * time.Second
+	dns_tld              = "autoip.dcos.thisdcos.directory"
+	mesos_dns            = "mesos"
 )
 
 var verbose = false
@@ -329,7 +329,7 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
-func GetLocalIP() string {
+func GetLocalIPold() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return ""
@@ -345,28 +345,31 @@ func GetLocalIP() string {
 	return ""
 }
 
+func GetLocalIP() (addr string, err error) {
+	ip, err := ContainerIP()
+
+	if err != nil {
+		return
+	}
+
+	addr = ip.String()
+	return
+}
+
 // main
 
 func main() {
 	args := parseArgs()
 
-	libprocess_ip, found := os.LookupEnv("LIBPROCESS_IP")
+	libprocess_ip, err := GetLocalIP()
 
-	if !found {
-		log.Fatalf("Cannot find LIBPROCESS_IP")
+	if err != nil {
+		log.Fatalf("Cannot find the container's IP address: ", err)
 	}
 
-	if libprocess_ip == "0.0.0.0" {
-		log.Printf("ILLEGAL you must be on the overlay network, getting you a new one!")
-		libprocess_ip = GetLocalIP()
-		if libprocess_ip == "" {
-			log.Fatalf("Failed to get new local IP")
-		}
-
-		err := os.Setenv("LIBPROCESS_IP", libprocess_ip)
-		if err != nil {
-			log.Fatalf("Failed to SET new LIBPROCESS_IP")
-		}
+	err = os.Setenv("LIBPROCESS_IP", libprocess_ip)
+	if err != nil {
+		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
 	}
 
 	if args.getTaskIp {
