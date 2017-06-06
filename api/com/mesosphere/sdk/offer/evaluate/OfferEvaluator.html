@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,11 +109,9 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">OfferEvaluator</span>
 extends java.lang.Object</pre>
-<div class="block">The OfferEvaluator processes <code>Offer</code>s and produces <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.
+<div class="block">The OfferEvaluator processes <code>Protos.Offer</code>s and produces <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.
  The determination of what <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s, if any should be made are made
- in reference to the OfferRequirement with which it was constructed.  In the
- case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
- are ever returned.</div>
+ in reference to <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>s.</div>
 </li>
 </ul>
 </div>
@@ -132,8 +130,10 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.offer.OfferRequirementProvider-">OfferEvaluator</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-              <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer">OfferRequirementProvider</a>&nbsp;offerRequirementProvider)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-">OfferEvaluator</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+              java.lang.String&nbsp;serviceName,
+              java.util.UUID&nbsp;targetConfigId,
+              <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -152,17 +152,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#evaluate-com.mesosphere.sdk.offer.OfferRequirement-java.util.List-">evaluate</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement,
-        java.util.List&lt;Offer&gt;&nbsp;offers)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#evaluate-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.List-">evaluate</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+        java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#evaluate-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.List-">evaluate</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-        java.util.List&lt;Offer&gt;&nbsp;offers)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.offer.OfferRequirement-">getEvaluationPipeline</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">getEvaluationPipeline</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+                     java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allTasks,
+                     java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
+                     java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -186,14 +184,16 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="OfferEvaluator-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.offer.OfferRequirementProvider-">
+<a name="OfferEvaluator-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>OfferEvaluator</h4>
 <pre>public&nbsp;OfferEvaluator(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                      <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer">OfferRequirementProvider</a>&nbsp;offerRequirementProvider)</pre>
+                      java.lang.String&nbsp;serviceName,
+                      java.util.UUID&nbsp;targetConfigId,
+                      <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</pre>
 </li>
 </ul>
 </li>
@@ -211,7 +211,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>evaluate</h4>
 <pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;evaluate(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-                                                    java.util.List&lt;Offer&gt;&nbsp;offers)
+                                                    java.util.List&lt;Protos.Offer&gt;&nbsp;offers)
                                              throws <a href="../../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a>,
                                                     <a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
 <dl>
@@ -221,30 +221,16 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="evaluate-com.mesosphere.sdk.offer.OfferRequirement-java.util.List-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>evaluate</h4>
-<pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;evaluate(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement,
-                                                    java.util.List&lt;Offer&gt;&nbsp;offers)
-                                             throws <a href="../../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a>,
-                                                    <a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
-<dd><code><a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getEvaluationPipeline-com.mesosphere.sdk.offer.OfferRequirement-">
+<a name="getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getEvaluationPipeline</h4>
-<pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;&nbsp;getEvaluationPipeline(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</pre>
+<pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;&nbsp;getEvaluationPipeline(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+                                                                  java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allTasks,
+                                                                  java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
+                                                                  java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)</pre>
 </li>
 </ul>
 </li>

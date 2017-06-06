@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -191,18 +191,14 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getContainerPath--">getContainerPath</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/VolumeRequirement.html" title="class in com.mesosphere.sdk.offer">VolumeRequirement</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getType--">getType</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -212,7 +208,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultResourceSpec-">newBuilder</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -319,28 +315,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#hashCode--">hashCode</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getResourceRequirement-Protos.Resource-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getResourceRequirement</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/VolumeRequirement.html" title="class in com.mesosphere.sdk.offer">VolumeRequirement</a>&nbsp;getResourceRequirement(Protos.Resource&nbsp;resource)</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
 </dl>
 </li>
 </ul>

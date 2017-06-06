@@ -156,8 +156,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">PortSpec</a></span>(java.lang.String&nbsp;name,
-        Protos.Value&nbsp;value,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">PortSpec</a></span>(Protos.Value&nbsp;value,
         java.lang.String&nbsp;role,
         java.lang.String&nbsp;principal,
         java.lang.String&nbsp;envKey,
@@ -187,12 +186,12 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getEnvKey--">getEnvKey</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getPortName--">getPortName</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getPort--">getPort</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getPortName--">getPortName</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
@@ -208,7 +207,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultResourceSpec-">newBuilder</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -231,14 +230,13 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PortSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<a name="PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>PortSpec</h4>
-<pre>public&nbsp;PortSpec(java.lang.String&nbsp;name,
-                Protos.Value&nbsp;value,
+<pre>public&nbsp;PortSpec(Protos.Value&nbsp;value,
                 java.lang.String&nbsp;role,
                 java.lang.String&nbsp;principal,
                 java.lang.String&nbsp;envKey,
@@ -277,19 +275,13 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 </dl>
 </li>
 </ul>
-<a name="getResourceRequirement-Protos.Resource-">
+<a name="getPort--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getResourceRequirement</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&nbsp;getResourceRequirement(Protos.Resource&nbsp;resource)</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getResourceRequirement-Protos.Resource-">getResourceRequirement</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
-</dl>
+<h4>getPort</h4>
+<pre>public&nbsp;long&nbsp;getPort()</pre>
 </li>
 </ul>
 <a name="toString--">

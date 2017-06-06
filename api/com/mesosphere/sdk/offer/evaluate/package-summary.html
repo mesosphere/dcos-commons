@@ -98,50 +98,64 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/DestroyEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">DestroyEvaluationStage</a></td>
+<td class="colLast">
+<div class="block">This class destroys volumes no longer needed by a Pod.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></td>
 <td class="colLast">
 <div class="block">The outcome of invoking an <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate"><code>OfferEvaluationStage</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring that executor IDs match between
- the two and setting the executor ID for a newly-launching pod.</div>
+<div class="block">This class evaluates an ensuring that the offered Executor ID matches the needed ID
+ and setting the executor ID for a newly-launching pod.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorResourceMapper</a></td>
+<td class="colLast">
+<div class="block">Handles cross-referencing a preexisting <code>Protos.ExecutorInfo</code>'s current <code>Protos.Resource</code>s against a set
+ of expected <a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a>s for that Executor.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/LaunchEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">LaunchEvaluationStage</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/IntermediateEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">IntermediateEvaluationOutcome</a></td>
 <td class="colLast">
-<div class="block">This class sets pod metadata on a <code>org.apache.mesos.Protos.TaskInfo</code> in an <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring
- that this metadata is available in the task's environment and creating an <a href="../../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>LaunchOfferRecommendation</code></a>.</div>
+<div class="block">Created by gabriel on 5/23/17.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/MultiEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">MultiEvaluationStage</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/LaunchEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">LaunchEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer across zero or more child evaluation stages for a single resource type.</div>
+<div class="block">This class sets pod metadata on a <code>org.apache.mesos.Protos.TaskInfo</code>, ensuring
+ that this metadata is available in the task's environment and creating a <a href="../../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>LaunchOfferRecommendation</code></a>.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">NamedVIPEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> for port resources as in
- <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>PortEvaluationStage</code></a>, additionally setting <code>org.apache.mesos.Protos.DiscoveryInfo</code> properly for
- DC/OS to pick up the specified named VIP mapping.</div>
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>
+ for port resources as in <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>PortEvaluationStage</code></a>, additionally setting
+ <code>org.apache.mesos.Protos.DiscoveryInfo</code> properly for DC/OS to pick up the specified named VIP mapping.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></td>
 <td class="colLast">
-<div class="block">The OfferEvaluator processes <code>Offer</code>s and produces <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.</div>
+<div class="block">The OfferEvaluator processes <code>Protos.Offer</code>s and produces <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PlacementRuleEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PlacementRuleEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring that its resources meet the
- constraints imposed by the supplied <a href="../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>.</div>
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+ ensuring that its resources meet the constraints imposed by the supplied
+ <a href="../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -154,40 +168,46 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer for a single port against an <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, finding a port dynamically
- in the offer where specified by the framework and modifying <code>org.apache.mesos.Protos.TaskInfo</code> and
+<div class="block">This class evaluates an offer for a single port against a
+ <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, finding a port dynamically in the offer where
+ specified by the framework and modifying <code>org.apache.mesos.Protos.TaskInfo</code> and
  <code>org.apache.mesos.Protos.ExecutorInfo</code> where appropriate so that the port is available in their respective
  environments.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortsRequirement.html" title="class in com.mesosphere.sdk.offer.evaluate">PortsRequirement</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">A <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortsRequirement.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>PortsRequirement</code></a> encapsulates a needed <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer"><code>MesosResource</code></a> representing multiple
- ports.</div>
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+ ensuring that it contains a sufficient amount or value of the supplied <code>Resource</code>, and creating a
+ <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ReservationEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ReservationEvaluationStage</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer for remaining reserved resources in the offer that have only been partially claimed by
- the given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, and creates an <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> for each so that they are
- freed for general consumption.</div>
+<div class="block">Handles cross-referencing a preexisting <code>Protos.TaskInfo</code>'s current <code>Protos.Resource</code>s against a set
+ of expected <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a>s for that task.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></td>
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper.ResourceLabels</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring that it contains a sufficient amount
- or value of the supplied <code>Resource</code>, and creating a <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or
- <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
+<div class="block">Pairs a <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a> definition with an existing task's labels associated with that resource.</div>
 </td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/UnreserveEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">UnreserveEvaluationStage</a></td>
+<td class="colLast">
+<div class="block">This class unreserves resources no longer needed by a Pod and makes them available for consumption again in the
+ <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer"><code>MesosResourcePool</code></a>.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring that it
- contains an appropriately-sized volume, and creating any necessary instances of
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+ ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> and
  <a href="../../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>CreateOfferRecommendation</code></a> as necessary.</div>
 </td>

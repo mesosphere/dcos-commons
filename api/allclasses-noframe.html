@@ -78,7 +78,6 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">DefaultObservable</a></li>
-<li><a href="com/mesosphere/sdk/offer/DefaultOfferRequirementProvider.html" title="class in com.mesosphere.sdk.offer">DefaultOfferRequirementProvider</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhaseBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhaseBuilder</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhaseFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhaseFactory</a></li>
@@ -125,6 +124,7 @@
 <li><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DeployPlanFactory</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/DestroyEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">DestroyEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></li>
 <li><a href="com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">DiscoverySpec</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="interfaceName">Element</span></a></li>
@@ -139,7 +139,7 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/taskdata/ExecutorLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">ExecutorLabelReader</a></li>
 <li><a href="com/mesosphere/sdk/offer/taskdata/ExecutorLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">ExecutorLabelWriter</a></li>
-<li><a href="com/mesosphere/sdk/offer/ExecutorRequirement.html" title="class in com.mesosphere.sdk.offer">ExecutorRequirement</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorResourceMapper</a></li>
 <li><a href="com/mesosphere/sdk/executor/ExecutorTask.html" title="interface in com.mesosphere.sdk.executor"><span class="interfaceName">ExecutorTask</span></a></li>
 <li><a href="com/mesosphere/sdk/executor/ExecutorTaskException.html" title="class in com.mesosphere.sdk.executor">ExecutorTaskException</a></li>
 <li><a href="com/mesosphere/sdk/executor/ExecutorTaskFactory.html" title="interface in com.mesosphere.sdk.executor"><span class="interfaceName">ExecutorTaskFactory</span></a></li>
@@ -148,6 +148,7 @@
 <li><a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></li>
 <li><a href="com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">HealthCheckSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/IntermediateEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">IntermediateEvaluationOutcome</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="interfaceName">Interruptible</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">InterruptibleStrategy</a></li>
 <li><a href="com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></li>
@@ -172,9 +173,7 @@
 <li><a href="com/mesosphere/sdk/executor/MesosExecutorDriverFactory.html" title="class in com.mesosphere.sdk.executor">MesosExecutorDriverFactory</a></li>
 <li><a href="com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a></li>
 <li><a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></li>
-<li><a href="com/mesosphere/sdk/offer/evaluate/MultiEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">MultiEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">NamedVIPEvaluationStage</a></li>
-<li><a href="com/mesosphere/sdk/offer/NamedVIPRequirement.html" title="class in com.mesosphere.sdk.offer">NamedVIPRequirement</a></li>
 <li><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">NetworkSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/monitor/NeverFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">NeverFailureMonitor</a></li>
@@ -185,9 +184,6 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate"><span class="interfaceName">OfferEvaluationStage</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></li>
 <li><a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="interfaceName">OfferRecommendation</span></a></li>
-<li><a href="com/mesosphere/sdk/offer/OfferRecommendationSlate.html" title="class in com.mesosphere.sdk.offer">OfferRecommendationSlate</a></li>
-<li><a href="com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></li>
-<li><a href="com/mesosphere/sdk/offer/OfferRequirementProvider.html" title="interface in com.mesosphere.sdk.offer"><span class="interfaceName">OfferRequirementProvider</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer">OfferUtils</a></li>
 <li><a href="com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer"><span class="interfaceName">OperationRecorder</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/OrRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">OrRule</a></li>
@@ -224,9 +220,7 @@
 <li><a href="com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotShrink</a></li>
 <li><a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></li>
-<li><a href="com/mesosphere/sdk/offer/PortRequirement.html" title="class in com.mesosphere.sdk.offer">PortRequirement</a></li>
 <li><a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></li>
-<li><a href="com/mesosphere/sdk/offer/evaluate/PortsRequirement.html" title="class in com.mesosphere.sdk.offer.evaluate">PortsRequirement</a></li>
 <li><a href="com/mesosphere/sdk/specification/PortsSpec.html" title="class in com.mesosphere.sdk.specification">PortsSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValue.html" title="annotation in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValue</a></li>
 <li><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></li>
@@ -265,15 +259,12 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegexMatcher</a></li>
 <li><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></li>
 <li><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></li>
-<li><a href="com/mesosphere/sdk/offer/RequirementUtils.html" title="class in com.mesosphere.sdk.offer">RequirementUtils</a></li>
-<li><a href="com/mesosphere/sdk/offer/evaluate/ReservationEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ReservationEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></li>
 <li><a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></li>
 <li><a href="com/mesosphere/sdk/offer/ResourceCleaner.html" title="interface in com.mesosphere.sdk.offer"><span class="interfaceName">ResourceCleaner</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer">ResourceCleanerScheduler</a></li>
 <li><a href="com/mesosphere/sdk/offer/ResourceCollectionUtils.html" title="class in com.mesosphere.sdk.offer">ResourceCollectionUtils</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></li>
-<li><a href="com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></li>
 <li><a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">ResourceSet</span></a></li>
 <li><a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">ResourceSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></li>
@@ -325,8 +316,9 @@
 <li><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><span class="interfaceName">TaskKiller</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/taskdata/TaskPackingUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskPackingUtils</a></li>
-<li><a href="com/mesosphere/sdk/offer/TaskRequirement.html" title="class in com.mesosphere.sdk.offer">TaskRequirement</a></li>
 <li><a href="com/mesosphere/sdk/api/TaskResource.html" title="class in com.mesosphere.sdk.api">TaskResource</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper.ResourceLabels</a></li>
 <li><a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">TaskSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/executor/TaskStatusUtils.html" title="class in com.mesosphere.sdk.executor">TaskStatusUtils</a></li>
 <li><a href="com/mesosphere/sdk/testutils/TaskTestUtils.html" title="class in com.mesosphere.sdk.testutils">TaskTestUtils</a></li>
@@ -351,12 +343,12 @@
 <li><a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniquePodTypeValidator</a></li>
 <li><a href="com/mesosphere/sdk/specification/validation/UniqueTaskName.html" title="annotation in com.mesosphere.sdk.specification.validation">UniqueTaskName</a></li>
 <li><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniqueTaskNameValidator</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/UnreserveEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">UnreserveEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></li>
 <li><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation">ValidationUtils</a></li>
 <li><a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer">ValueUtils</a></li>
 <li><a href="com/mesosphere/sdk/specification/VipSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">VipSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></li>
-<li><a href="com/mesosphere/sdk/offer/VolumeRequirement.html" title="class in com.mesosphere.sdk.offer">VolumeRequirement</a></li>
 <li><a href="com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">VolumeSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap</a></li>

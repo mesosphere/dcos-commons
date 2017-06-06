@@ -161,10 +161,10 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/OrRule.html#filter-Offer-com.mesosphere.sdk.offer.OfferRequirement-java.util.Collection-">filter</a></span>(Offer&nbsp;offer,
-      <a href="../../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/OrRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter</a></span>(Offer&nbsp;offer,
+      <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
       java.util.Collection&lt;TaskInfo&gt;&nbsp;tasks)</code>
-<div class="block">Returns whether the provided <code>Offer</code>, combined with the accompanying <a href="../../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> and
+<div class="block">Returns whether the provided <code>Offer</code>, combined with the accompanying
  <code>TaskInfo</code>s, passes or fails this placement constraint.</div>
 </td>
 </tr>
@@ -224,27 +224,26 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="filter-Offer-com.mesosphere.sdk.offer.OfferRequirement-java.util.Collection-">
+<a name="filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>filter</h4>
 <pre>public&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;filter(Offer&nbsp;offer,
-                                <a href="../../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement,
+                                <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
                                 java.util.Collection&lt;TaskInfo&gt;&nbsp;tasks)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#filter-Offer-com.mesosphere.sdk.offer.OfferRequirement-java.util.Collection-">PlacementRule</a></code></span></div>
-<div class="block">Returns whether the provided <code>Offer</code>, combined with the accompanying <a href="../../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> and
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">PlacementRule</a></code></span></div>
+<div class="block">Returns whether the provided <code>Offer</code>, combined with the accompanying
  <code>TaskInfo</code>s, passes or fails this placement constraint.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#filter-Offer-com.mesosphere.sdk.offer.OfferRequirement-java.util.Collection-">filter</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></dd>
+<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>offer</code> - the offer to be examined</dd>
-<dd><code>offerRequirement</code> - the offer requirement describing what's to be done with this offer</dd>
 <dd><code>tasks</code> - the currently deployed tasks in the system, possibly including a duplicate
               of the task being launched as represented in the offerRequirement. Use
-              <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.offer.OfferRequirement-"><code>PlacementUtils.areEquivalent(TaskInfo, OfferRequirement)</code></a> to detect
+              <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-"><code>PlacementUtils.areEquivalent(TaskInfo, PodInstance)</code></a> to detect
               duplicates</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> object describing whether the placement succeeded or failed and why</dd>

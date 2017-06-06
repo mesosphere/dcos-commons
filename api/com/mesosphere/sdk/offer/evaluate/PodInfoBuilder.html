@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -131,7 +131,11 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.offer.OfferRequirement-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+              java.lang.String&nbsp;serviceName,
+              java.util.UUID&nbsp;targetConfigId,
+              <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+              java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -153,16 +157,45 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExecutorBuilder--">getExecutorBuilder</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getOfferRequirement--">getOfferRequirement</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExecutorResourceBuilders--">getExecutorResourceBuilders</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getResourceBuilders--">getResourceBuilders</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getIndex--">getIndex</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getLastTaskEnv-java.lang.String-java.lang.String-">getLastTaskEnv</a></span>(java.lang.String&nbsp;taskSpecName,
+              java.lang.String&nbsp;envName)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getPodInstance--">getPodInstance</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>Protos.TaskInfo.Builder</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder</a></span>(java.lang.String&nbsp;taskSpecName)</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo.Builder&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilders--">getTaskBuilders</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskResourceBuilders--">getTaskResourceBuilders</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getType--">getType</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#setExecutorBuilder-Protos.ExecutorInfo.Builder-">setExecutorBuilder</a></span>(Protos.ExecutorInfo.Builder&nbsp;executorBuilder)</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -170,7 +203,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
-<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
+<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, wait, wait, wait</code></li>
 </ul>
 </li>
 </ul>
@@ -186,13 +219,22 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PodInfoBuilder-com.mesosphere.sdk.offer.OfferRequirement-">
+<a name="PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>PodInfoBuilder</h4>
-<pre>public&nbsp;PodInfoBuilder(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</pre>
+<pre>public&nbsp;PodInfoBuilder(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+                      java.lang.String&nbsp;serviceName,
+                      java.util.UUID&nbsp;targetConfigId,
+                      <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+                      java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks)
+               throws <a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></code></dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -203,13 +245,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getOfferRequirement--">
+<a name="getTaskBuilders--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getOfferRequirement</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;getOfferRequirement()</pre>
+<h4>getTaskBuilders</h4>
+<pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo.Builder&gt;&nbsp;getTaskBuilders()</pre>
 </li>
 </ul>
 <a name="getTaskBuilder-java.lang.String-">
@@ -218,7 +260,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskBuilder</h4>
-<pre>public&nbsp;Protos.TaskInfo.Builder&nbsp;getTaskBuilder(java.lang.String&nbsp;taskName)</pre>
+<pre>public&nbsp;Protos.TaskInfo.Builder&nbsp;getTaskBuilder(java.lang.String&nbsp;taskSpecName)</pre>
 </li>
 </ul>
 <a name="getExecutorBuilder--">
@@ -230,13 +272,81 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.util.Optional&lt;Protos.ExecutorInfo.Builder&gt;&nbsp;getExecutorBuilder()</pre>
 </li>
 </ul>
-<a name="getResourceBuilders--">
+<a name="setExecutorBuilder-Protos.ExecutorInfo.Builder-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setExecutorBuilder</h4>
+<pre>public&nbsp;void&nbsp;setExecutorBuilder(Protos.ExecutorInfo.Builder&nbsp;executorBuilder)</pre>
+</li>
+</ul>
+<a name="getLastTaskEnv-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getLastTaskEnv</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getLastTaskEnv(java.lang.String&nbsp;taskSpecName,
+                                                           java.lang.String&nbsp;envName)</pre>
+</li>
+</ul>
+<a name="getTaskResourceBuilders--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskResourceBuilders</h4>
+<pre>public&nbsp;java.util.Collection&lt;Protos.Resource.Builder&gt;&nbsp;getTaskResourceBuilders()</pre>
+</li>
+</ul>
+<a name="getExecutorResourceBuilders--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getExecutorResourceBuilders</h4>
+<pre>public&nbsp;java.util.Collection&lt;Protos.Resource.Builder&gt;&nbsp;getExecutorResourceBuilders()</pre>
+</li>
+</ul>
+<a name="getType--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getType</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getType()</pre>
+</li>
+</ul>
+<a name="getIndex--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getIndex</h4>
+<pre>public&nbsp;int&nbsp;getIndex()</pre>
+</li>
+</ul>
+<a name="getPodInstance--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPodInstance</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;getPodInstance()</pre>
+</li>
+</ul>
+<a name="toString--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getResourceBuilders</h4>
-<pre>public&nbsp;java.util.Collection&lt;Protos.Resource.Builder&gt;&nbsp;getResourceBuilders()</pre>
+<h4>toString</h4>
+<pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
 </li>
 </ul>
 </li>

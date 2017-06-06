@@ -133,8 +133,9 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Offer-TaskInfo-">LaunchOfferRecommendation</a></span>(Offer&nbsp;offer,
-                         TaskInfo&nbsp;originalTaskInfo)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Offer-TaskInfo-boolean-">LaunchOfferRecommendation</a></span>(Offer&nbsp;offer,
+                         TaskInfo&nbsp;originalTaskInfo,
+                         boolean&nbsp;shouldLaunch)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -173,7 +174,7 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#isTransient--">isTransient</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#shouldLaunch--">shouldLaunch</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
@@ -201,14 +202,15 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="LaunchOfferRecommendation-Offer-TaskInfo-">
+<a name="LaunchOfferRecommendation-Offer-TaskInfo-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>LaunchOfferRecommendation</h4>
 <pre>public&nbsp;LaunchOfferRecommendation(Offer&nbsp;offer,
-                                 TaskInfo&nbsp;originalTaskInfo)</pre>
+                                 TaskInfo&nbsp;originalTaskInfo,
+                                 boolean&nbsp;shouldLaunch)</pre>
 </li>
 </ul>
 </li>
@@ -251,13 +253,13 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 </dl>
 </li>
 </ul>
-<a name="isTransient--">
+<a name="shouldLaunch--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>isTransient</h4>
-<pre>public&nbsp;boolean&nbsp;isTransient()</pre>
+<h4>shouldLaunch</h4>
+<pre>public&nbsp;boolean&nbsp;shouldLaunch()</pre>
 </li>
 </ul>
 <a name="getTaskInfo--">

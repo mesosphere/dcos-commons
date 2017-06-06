@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -47,8 +47,8 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ReservationEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" target="_top">Frames</a></li>
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -118,15 +118,42 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">ResourceEvaluationStage</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></pre>
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a>, ensuring that it contains a sufficient amount
- or value of the supplied <code>Resource</code>, and creating a <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or
- <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+ ensuring that it contains a sufficient amount or value of the supplied <code>Resource</code>, and creating a
+ <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </li>
 </ul>
 </div>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceId">resourceId</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceSpec">resourceSpec</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#taskName">taskName</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -139,15 +166,9 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-Resource-">ResourceEvaluationStage</a></span>(Resource&nbsp;resource)</code>
-<div class="block">Instantiate this class to check incoming offers for sufficient presence of the supplied <code>Resource</code>.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-Resource-java.lang.String-">ResourceEvaluationStage</a></span>(Resource&nbsp;resource,
-                       java.lang.String&nbsp;taskName)</code>
-<div class="block">Instantiate this class to check incoming offers for sufficient presence of the supplied <code>Resource</code>.</div>
-</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.lang.String-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+                       java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -165,40 +186,47 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>protected java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#consume-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.offer.MesosResourcePool-">consume</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+       <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;pool)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;mesosResourcePool,
         <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder)</code>
 <div class="block">Evaluate the given offer (in the form of a <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer"><code>MesosResourcePool</code></a>, modifying the
- <code>org.apache.mesos.Protos.TaskInfo</code>s and <code>org.apache.mesos.Protos.ExecutorInfo</code> in the given
- <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> where appropriate to ensure they have necessary metadata (e.g.</div>
+ deducting used resources from the pool, and creating the appropriate <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a>.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getResourceRequirement--">getResourceRequirement</a></span>()</code>&nbsp;</td>
-</tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/offer/evaluate/IntermediateEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">IntermediateEvaluationOutcome</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#evaluateInternal-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluateInternal</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;mesosResourcePool,
+                <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>protected java.util.Optional&lt;Resource.ReservationInfo&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledReservationInfo--">getFulfilledReservationInfo</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>protected Resource</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledResource--">getFulfilledResource</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getSummary--">getSummary</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getTaskName--">getTaskName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#reservesResource--">reservesResource</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Resource-">setProtos</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
          Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setResourceRequirement-com.mesosphere.sdk.offer.ResourceRequirement-">setResourceRequirement</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&nbsp;resourceRequirement)</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected Resource</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#toFulfilledResource-Resource-">toFulfilledResource</a></span>(Resource&nbsp;resource)</code>
-<div class="block">Populates an offered Mesos Resource with additional metadata from the original Resource Requirement.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#validateRequirements-com.mesosphere.sdk.offer.OfferRequirement-">validateRequirements</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -216,44 +244,56 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="taskName">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>taskName</h4>
+<pre>protected final&nbsp;java.lang.String taskName</pre>
+</li>
+</ul>
+<a name="resourceId">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>resourceId</h4>
+<pre>protected final&nbsp;java.util.Optional&lt;java.lang.String&gt; resourceId</pre>
+</li>
+</ul>
+<a name="resourceSpec">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>resourceSpec</h4>
+<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a> resourceSpec</pre>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ResourceEvaluationStage-Resource-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>ResourceEvaluationStage</h4>
-<pre>public&nbsp;ResourceEvaluationStage(Resource&nbsp;resource,
-                               java.lang.String&nbsp;taskName)</pre>
-<div class="block">Instantiate this class to check incoming offers for sufficient presence of the supplied <code>Resource</code>. The
- supplied task name indicates which task in the <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> to update with any subsequent metadata.
- If it is null, this stage will modify the <code>org.apache.mesos.Protos.ExecutorInfo</code> instead.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>resource</code> - the resource to evaluate incoming offers against</dd>
-<dd><code>taskName</code> - the name of the task to modify with resource metadata</dd>
-</dl>
-</li>
-</ul>
-<a name="ResourceEvaluationStage-Resource-">
+<a name="ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ResourceEvaluationStage</h4>
-<pre>public&nbsp;ResourceEvaluationStage(Resource&nbsp;resource)</pre>
-<div class="block">Instantiate this class to check incoming offers for sufficient presence of the supplied <code>Resource</code>. The
- <code>org.apache.mesos.Protos.ExecutorInfo</code> on the <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> will be modified with any subsequent
- metadata.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>resource</code> - the resource to evaluate incoming offers against</dd>
-</dl>
+<pre>public&nbsp;ResourceEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+                               java.lang.String&nbsp;taskName)</pre>
 </li>
 </ul>
 </li>
@@ -264,24 +304,6 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setResourceRequirement-com.mesosphere.sdk.offer.ResourceRequirement-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setResourceRequirement</h4>
-<pre>protected&nbsp;void&nbsp;setResourceRequirement(<a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&nbsp;resourceRequirement)</pre>
-</li>
-</ul>
-<a name="getResourceRequirement--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResourceRequirement</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/ResourceRequirement.html" title="class in com.mesosphere.sdk.offer">ResourceRequirement</a>&nbsp;getResourceRequirement()</pre>
-</li>
-</ul>
 <a name="getTaskName--">
 <!--   -->
 </a>
@@ -289,6 +311,25 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <li class="blockList">
 <h4>getTaskName</h4>
 <pre>protected&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getTaskName()</pre>
+</li>
+</ul>
+<a name="consume-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.offer.MesosResourcePool-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>consume</h4>
+<pre>protected&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;consume(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                                                    <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;pool)</pre>
+</li>
+</ul>
+<a name="reservesResource--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>reservesResource</h4>
+<pre>protected&nbsp;boolean&nbsp;reservesResource()</pre>
 </li>
 </ul>
 <a name="evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">
@@ -301,10 +342,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
                                   <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">OfferEvaluationStage</a></code></span></div>
 <div class="block">Evaluate the given offer (in the form of a <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer"><code>MesosResourcePool</code></a>, modifying the
- <code>org.apache.mesos.Protos.TaskInfo</code>s and <code>org.apache.mesos.Protos.ExecutorInfo</code> in the given
- <a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer"><code>OfferRequirement</code></a> where appropriate to ensure they have necessary metadata (e.g. a populated environment
- variable), deducting used resources from the pool, and creating the appropriate
- <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> in the given <a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendationSlate.html" title="class in com.mesosphere.sdk.offer"><code>OfferRecommendationSlate</code></a> if relevant.</div>
+ deducting used resources from the pool, and creating the appropriate <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></code></dd>
@@ -316,34 +354,51 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </dl>
 </li>
 </ul>
-<a name="validateRequirements-com.mesosphere.sdk.offer.OfferRequirement-">
+<a name="evaluateInternal-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>validateRequirements</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;validateRequirements(<a href="../../../../../com/mesosphere/sdk/offer/OfferRequirement.html" title="class in com.mesosphere.sdk.offer">OfferRequirement</a>&nbsp;offerRequirement)</pre>
+<h4>evaluateInternal</h4>
+<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/IntermediateEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">IntermediateEvaluationOutcome</a>&nbsp;evaluateInternal(<a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;mesosResourcePool,
+                                                         <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder)</pre>
 </li>
 </ul>
-<a name="toFulfilledResource-Resource-">
+<a name="getFulfilledResource--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>toFulfilledResource</h4>
-<pre>protected&nbsp;Resource&nbsp;toFulfilledResource(Resource&nbsp;resource)</pre>
-<div class="block">Populates an offered Mesos Resource with additional metadata from the original Resource Requirement.
- This additional metadata is often required before e.g. sending back a reservation request to Mesos.</div>
+<h4>getFulfilledResource</h4>
+<pre>protected&nbsp;Resource&nbsp;getFulfilledResource()</pre>
+</li>
+</ul>
+<a name="getFulfilledReservationInfo--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getFulfilledReservationInfo</h4>
+<pre>protected&nbsp;java.util.Optional&lt;Resource.ReservationInfo&gt;&nbsp;getFulfilledReservationInfo()</pre>
 </li>
 </ul>
 <a name="setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Resource-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>setProtos</h4>
 <pre>protected&nbsp;void&nbsp;setProtos(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                          Resource&nbsp;resource)</pre>
+</li>
+</ul>
+<a name="getSummary--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getSummary</h4>
+<pre>protected&nbsp;java.lang.String&nbsp;getSummary()</pre>
 </li>
 </ul>
 </li>
@@ -373,8 +428,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ReservationEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" target="_top">Frames</a></li>
@@ -399,13 +454,13 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
