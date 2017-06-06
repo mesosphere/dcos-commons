@@ -42,6 +42,7 @@ func (suite *CosmosTestSuite) SetupSuite() {
 }
 
 func (suite *CosmosTestSuite) SetupTest() {
+	config.ModuleName = "hello-world"
 	config.ServiceName = "hello-world"
 }
 
@@ -70,6 +71,8 @@ func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename str
 }
 
 func (suite *CosmosTestSuite) Test404ErrorResponse() {
+	config.Command = "describe"
+
 	// fake 404 response
 	fourOhFourResponse := suite.createExampleResponse(http.StatusNotFound, "")
 

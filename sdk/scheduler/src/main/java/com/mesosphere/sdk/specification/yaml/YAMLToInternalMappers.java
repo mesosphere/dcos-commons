@@ -531,7 +531,6 @@ public class YAMLToInternalMappers {
                 portSpecs.add(namedVIPSpec);
             } else {
                 portSpecs.add(new PortSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
                         portValueBuilder.build(),
                         role,
                         principal,
