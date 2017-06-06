@@ -32,6 +32,5 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.runnow
 def test_install():
     plan.wait_for_completed_deployment(PACKAGE_NAME)
