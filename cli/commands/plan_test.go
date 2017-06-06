@@ -120,7 +120,8 @@ func TestStatusTreeSinglePhase(t *testing.T) {
 └─ Deployment (IN_PROGRESS)
    ├─ kafka-0:[broker] (COMPLETE)
    ├─ kafka-1:[broker] (PENDING)
-   └─ kafka-2:[broker] (PENDING)`
+   └─ kafka-2:[broker] (PENDING)
+`
 
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
@@ -164,7 +165,8 @@ func TestStatusTreeSinglePhaseWithErrors(t *testing.T) {
 Errors:
 - foo
 - bar
-- baz`
+- baz
+`
 
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
@@ -227,7 +229,8 @@ func TestStatusTreeMultiPhase(t *testing.T) {
 └─ Reindexing (PENDING)
    ├─ kafka-0:[reindex] (PENDING)
    ├─ kafka-1:[reindex] (PENDING)
-   └─ kafka-2:[reindex] (PENDING)`
+   └─ kafka-2:[reindex] (PENDING)
+`
 
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
@@ -236,7 +239,8 @@ func TestStatusTreeMultiPhase(t *testing.T) {
 }
 
 func TestStatusTreeEmptyJson(t *testing.T) {
-	expectedOutput := "deploy (<UNKNOWN>)"
+	expectedOutput := `deploy (<UNKNOWN>)
+`
 	result := toStatusTree("deploy", []byte("{ }"))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
@@ -249,7 +253,8 @@ func TestStatusTreeNoPhases(t *testing.T) {
   "errors" : [ ],
   "status" : "IN_PROGRESS"
 }`
-	expectedOutput := `deploy (IN_PROGRESS)`
+	expectedOutput := `deploy (IN_PROGRESS)
+`
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
@@ -263,7 +268,8 @@ func TestStatusTreeEmptyPhase(t *testing.T) {
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ <UNKNOWN> (<UNKNOWN>)`
+└─ <UNKNOWN> (<UNKNOWN>)
+`
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
@@ -282,7 +288,8 @@ func TestStatusTreeNoSteps(t *testing.T) {
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)`
+└─ Deployment (IN_PROGRESS)
+`
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)
@@ -302,7 +309,8 @@ func TestStatusTreeEmptyStep(t *testing.T) {
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ Deployment (IN_PROGRESS)
-   └─ <UNKNOWN> (<UNKNOWN>)`
+   └─ <UNKNOWN> (<UNKNOWN>)
+`
 	result := toStatusTree("deploy", []byte(inputJson))
 	if expectedOutput != result {
 		t.Error("Expected ", expectedOutput, ", got ", result)

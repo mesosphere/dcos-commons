@@ -107,7 +107,7 @@ func (suite *UpdateTestSuite) TestPrintStatusTree() {
 
 	// assert CLI output is what we expect
 	expectedOutput := suite.loadFile("testdata/output/deploy-tree-twophase.txt")
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(expectedOutput) + "\n", suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
