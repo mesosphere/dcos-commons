@@ -29,7 +29,7 @@ func printResponseErrorAndExit(response *http.Response) {
 func printServiceNameErrorAndExit(response *http.Response) {
 	printResponseError(response)
 	LogMessage("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-	LogMessageAndExit("- Was the service recently installed? It may still be initializing, wait a bit and try again.")
+	LogMessageAndExit("- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.")
 }
 
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {

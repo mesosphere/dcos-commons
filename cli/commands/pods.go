@@ -39,7 +39,7 @@ func (cmd *PodsHandler) RunReplace(c *kingpin.ParseContext) error {
 }
 
 func HandlePodsSection(app *kingpin.Application) {
-	// pods [status [name], info <name>, restart <name>, replace <name>]
+	// pod[s] [status [name], info <name>, restart <name>, replace <name>]
 	cmd := &PodsHandler{}
 	pods := app.Command("pods", "View Pod/Task state").Alias("pod")
 
