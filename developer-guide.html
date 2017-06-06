@@ -630,7 +630,7 @@ now, you must manually run the janitor script as shown above.</p>
 </code></pre>
 </div>
 
-<p>By default a the plan generated from such a service definition would only deploy the <code class="highlighter-rouge">main</code> task because when the <code class="highlighter-rouge">init</code> task should be run is undefined.  In order to run the init task and then the main task for each instance of the <code class="highlighter-rouge">hello</code> pod one could write a plan as follows:</p>
+<p>By default, the plan generated from such a service definition would only deploy the <code class="highlighter-rouge">main</code> task because when the <code class="highlighter-rouge">init</code> task should be run is undefined.  In order to run the init task and then the main task for each instance of the <code class="highlighter-rouge">hello</code> pod one could write a plan as follows:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
