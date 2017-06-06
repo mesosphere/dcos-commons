@@ -1,4 +1,4 @@
-Refer to the [top-level tutorial document](https://mesosphere.github.io/dcos-commons/developer-guide.html).
+Refer to the [top-level tutorial document](../../docs/pages/developer-guide.md).
 
 # Sample configuration files
 
