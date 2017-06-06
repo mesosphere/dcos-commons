@@ -7,8 +7,8 @@ pods:
     count: {{NODE_COUNT}}
     resource-sets:
       px-resources:
-        cpus: {{NODE_CPUS}}
-        memory: {{NODE_MEM}}
+        cpus: 0.3
+        memory: 512
     placement: {{NODE_PLACEMENT}}
     tasks:
       install:
@@ -67,6 +67,7 @@ pods:
                 systemctl daemon-reload &&
                 systemctl enable portworx && 
                 systemctl start portworx
+
         readiness-check:
           cmd: /opt/pwx/bin/pxctl status
           interval: 5
@@ -74,45 +75,28 @@ pods:
           timeout: 60
 
   etcd-cluster:
-    count: 1
+    count: 3
     image: mesosphere/etcd-mesos:latest
+    placement: {{ETCD_PLACEMENT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
     tasks:
-      start:
+      node:
         goal: RUNNING
-        memory: 1024
-        cpus: 0.5
+        memory: {{ETCD_MEM}}
+        cpus: {{ETCD_CPUS}}
+        # etcd doesn't like space before flags, so need to put this all on one line
         cmd: >
-            /work/bin/etcd-mesos-scheduler -alsologtostderr=true \
-                -address=${LIBPROCESS_IP} \
-                -framework-name=${FRAMEWORK_NAME} \
-                -failover-timeout-seconds=${FRAMEWORK_FAILOVER_TIMEOUT_SECONDS} \
-                -cluster-size={{ETCD_COUNT}} \
-                -master=${MESOS_MASTER} \
-                -zk-framework-persist=${ZK_PERSIST} \
-                -v=${VERBOSITY} \
-                -single-instance-per-slave=${SINGLE_INSTANCE_PER_SLAVE} \
-                -auto-reseed=${AUTO_RESEED} \
-                -reseed-timeout=${RESEED_TIMEOUT} \
-                -sandbox-disk-limit=${DISK_LIMIT} \
-                -sandbox-cpu-limit={{ETCD_CPUS}} \
-                -sandbox-mem-limit={{ETCD_MEM}} \
-                -admin-port=${PORT0} \
-                -driver-port=${PORT1} \
-                -artifact-port=${PORT2} \
-                -framework-weburi=${WEBURI}
-        env:
-          FRAMEWORK_NAME: portworx.etcd
-          FRAMEWORK_FAILOVER_TIMEOUT_SECONDS: 30
-          MESOS_MASTER: zk://master.mesos:2181/mesos
-          ZK_PERSIST: zk://master.mesos:2181/dcos-service-{{FRAMEWORK_NAME}}
-          VERBOSITY: 1
-          SINGLE_INSTANCE_PER_SLAVE: true
-          AUTO_RESEED: true
-          RESEED_TIMEOUT: 240
-          DISK_LIMIT: 4096
-          PORT0: 0
-          PORT1: 1
-          PORT2: 2
+             ${MESOS_SANDBOX}/bootstrap && /work/bin/etcd --name etcd${POD_INSTANCE_INDEX} --advertise-client-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1025,http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1026 --listen-client-urls http://0.0.0.0:1025,http://0.0.0.0:1026 --initial-advertise-peer-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1027 --listen-peer-urls http://0.0.0.0:1027 --initial-cluster-token etcd-cluster-${FRAMEWORK_NAME} --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:1027,etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:1027,etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:1027 --initial-cluster-state new --data-dir $MESOS_SANDBOX/etcd-data
+        volume:
+          path: "etcd-data"
+          type: {{ETCD_DISK_TYPE}}
+          size: {{ETCD_DISK_SIZE}}
+        readiness-check:
+          cmd: /work/bin/etcdctl --endpoint http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1025 cluster-health
+          interval: 5
+          delay: 0
+          timeout: 60
     
   etcd-proxy:
     count: 1
@@ -122,7 +106,7 @@ pods:
         goal: RUNNING
         memory: 512
         cpus: 0.3
-        cmd: /work/bin/etcd --proxy=on --discovery-srv=${FRAMEWORK_NAME}.mesos --listen-client-urls 'http://0.0.0.0:2379'
+        cmd: /work/bin/etcd --proxy=on --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:1027,etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:1027,etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:1027 --listen-client-urls 'http://0.0.0.0:2379'
         readiness-check:
           cmd: /work/bin/etcdctl cluster-health
           interval: 5
@@ -144,8 +128,13 @@ pods:
           influxd
         volume:
           path: "influxdb"
-          type: ROOT
-          size: 25
+          type: {{INFLUXDB_DISK_TYPE}}
+          size: {{INFLUXDB_DISK_SIZE}}
+        readiness-check:
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ping
+          interval: 5
+          delay: 0
+          timeout: 60
   lighthouse:
     count: 1
     image: portworx/px-lighthouse:latest
@@ -174,10 +163,10 @@ plans:
     phases:
       {{#ETCD_ENABLED}}
       etcd-cluster:
-        strategy: serial
+        strategy: parallel
         pod: etcd-cluster
         steps:
-          - default : [[start]]
+          - default : [[node]]
       etcd-proxy:
         strategy: serial
         pod: etcd-proxy

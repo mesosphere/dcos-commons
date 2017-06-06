@@ -64,24 +64,10 @@
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": "hostname:UNIQUE"
-          },
-          "cpus": {
-            "title": "CPU count",
-            "description": "CPU requirements",
-            "type": "number",
-            "default":1
-          },
-          "mem": {
-            "title": "Memory size (MB)",
-            "description": "Mem requirements (in MB)",
-            "type": "integer",
-            "default":4096
           }
         },
         "required":[
           "count",
-          "cpus",
-          "mem",
           "portworx_cluster",
           "portworx_image",
           "portworx_options"
@@ -93,21 +79,15 @@
         "properties": {
           "enabled": {
             "title": "Start etcd",
-            "description": "Start the etcd service. Required for Portworx if you don't have one already running. If disabled, please enter the external etcd server IP on the service tab.",
+            "description": "Start a 3 node etcd cluster. Required for Portworx if you don't have either etcd or consul already running. If disabled, please enter the external etcd server IP on the service tab.",
             "type": "boolean",
             "default":true
-          },
-          "count": {
-            "title": "Node count",
-            "description": "Number of etcd nodes to run",
-            "type": "integer",
-            "default":3
           },
           "placement_constraint": {
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
-            "default": ""
+            "default": "hostname:UNIQUE"
           },
           "cpus": {
             "title": "CPU count",
@@ -120,12 +100,24 @@
             "description": "Mem requirements (in MB)",
             "type": "integer",
             "default":1024
+          },
+          "disk_type": {
+            "title": "Type of disk to use for persisting data",
+            "description": "ROOT or MOUNT",
+            "type": "string",
+            "default": "ROOT"
+          },
+          "disk_size": {
+            "title": "Dize of disk (MB)",
+            "type": "integer",
+            "default": 5120
           }
         },
         "required":[
-          "count",
           "cpus",
-          "mem"
+          "mem",
+          "disk_type",
+          "disk_size"
         ]
       },
       "influxdb": {
@@ -149,11 +141,24 @@
             "description": "Mem requirements (in MB)",
             "type": "integer",
             "default": 1024
+          },
+          "disk_type": {
+            "title": "Type of disk to use for persisting data",
+            "description": "ROOT or MOUNT",
+            "type": "string",
+            "default": "ROOT"
+          },
+          "disk_size": {
+            "title": "Dize of disk (MB)",
+            "type": "integer",
+            "default": 1024
           }
         },
         "required":[
           "cpus",
-          "mem"
+          "mem",
+          "disk_type",
+          "disk_size"
         ]
       },
       "lighthouse": {
