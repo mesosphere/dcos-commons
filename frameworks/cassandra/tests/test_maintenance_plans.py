@@ -1,11 +1,11 @@
 import pytest
 
-from tests.config import *
 import sdk_install as install
 import sdk_plan as plan
 import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_utils as utils
+from tests.config import *
 
 
 def setup_module(module):
@@ -15,6 +15,8 @@ def setup_module(module):
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
 
+    # remove job definitions from metronome in case they happen to still be there.
+    remove_cassandra_jobs()
     install_cassandra_jobs()
     # Write data to Cassandra with a metronome job, then verify it was written
     launch_and_verify_job(WRITE_DATA_JOB)
