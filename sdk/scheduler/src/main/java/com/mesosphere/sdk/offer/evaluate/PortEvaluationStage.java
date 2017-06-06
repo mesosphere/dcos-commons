@@ -1,81 +1,82 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-
+import com.mesosphere.sdk.specification.DefaultResourceSpec;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
-
 /**
- * This class evaluates an offer for a single port against an {@link OfferRequirement}, finding a port dynamically
- * in the offer where specified by the framework and modifying {@link org.apache.mesos.Protos.TaskInfo} and
+ * This class evaluates an offer for a single port against a
+ * {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}, finding a port dynamically in the offer where
+ * specified by the framework and modifying {@link org.apache.mesos.Protos.TaskInfo} and
  * {@link org.apache.mesos.Protos.ExecutorInfo} where appropriate so that the port is available in their respective
  * environments.
  */
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
-    private final String portName;
-    private final int port;
-    private final Optional<String> customEnvKey;
+    protected final PortSpec portSpec;
 
-    private String resourceId;
+    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
+        super(portSpec, resourceId, taskName);
+        this.portSpec = portSpec;
+    }
 
-    public PortEvaluationStage(
-            Protos.Resource resource, String taskName, String portName, int port, Optional<String> customEnvKey) {
-        super(resource, taskName);
-        this.portName = portName;
-        this.port = port;
-        this.customEnvKey = customEnvKey;
+    protected long getPort() {
+        return portSpec.getValue().getRanges().getRange(0).getBegin();
     }
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-        Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
-                podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
-                podInfoBuilder.getExecutorBuilder().get().getCommand();
-        Optional<String> taskPort = EnvUtils.getEnvVar(commandInfo.getEnvironment(), getPortEnvironmentVariable());
-        int assignedPort = port;
+        Optional<String> taskPort =
+                podInfoBuilder.getLastTaskEnv(getTaskName().get(), getPortEnvironmentVariable(portSpec));
 
+        long assignedPort = getPort();
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
         } else if (assignedPort == 0) {
             Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
             if (!dynamicPort.isPresent()) {
-                return fail(this,
-                        "No ports were available for dynamic claim in offer: %s",
-                        mesosResourcePool.getOffer().toString());
+                return EvaluationOutcome.fail(this,
+                        "No ports were available for dynamic claim in offer," +
+                                " and no %s envvar was present in prior %s: %s %s",
+                        getPortEnvironmentVariable(portSpec),
+                        getTaskName().isPresent() ? "task " + getTaskName().get() : "executor",
+                        TextFormat.shortDebugString(mesosResourcePool.getOffer()),
+                        podInfoBuilder.toString());
             }
 
             assignedPort = dynamicPort.get();
         }
 
-        // If this is not the first port evaluation stage in this evaluation run, and this is a new pod being launched,
-        // we want to use the reservation ID we created for the first port in this cycle for all subsequent ports.
-        resourceId = getResourceId(getTaskName().isPresent()
-                ? podInfoBuilder.getTaskBuilder(getTaskName().get()).getResourcesList()
-                : podInfoBuilder.getExecutorBuilder().get().getResourcesList(),
-                Constants.PORTS_RESOURCE_TYPE).orElse("");
-        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
+        Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.RANGES);
+        valueBuilder.getRangesBuilder().addRangeBuilder()
+                .setBegin(assignedPort)
+                .setEnd(assignedPort);
+        this.resourceSpec = DefaultResourceSpec.newBuilder(this.resourceSpec)
+                .value(valueBuilder.build())
+                .build();
 
-        return super.evaluate(mesosResourcePool, podInfoBuilder);
+        EvaluationOutcome evaluationOutcome = super.evaluate(mesosResourcePool, podInfoBuilder);
+        if (!evaluationOutcome.isPassing()) {
+            return evaluationOutcome;
+        }
+        return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
     }
 
     @Override
@@ -99,70 +100,26 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             // Add port to the readiness check (if a readiness check is defined)
             try {
                 taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
-                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(), Long.toString(port))
+                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
                         .toProto());
             } catch (TaskException e) {
                 LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
 
-            Collection<Resource> updatedResourceList =
-                    updateOrAddRangedResource(taskBuilder.getResourcesList(), resource);
-            taskBuilder
-                    .clearResources()
-                    .addAllResources(updatedResourceList);
+            taskBuilder.addResources(resource);
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
-
-            Collection<Resource> updatedResourceList =
-                    updateOrAddRangedResource(executorBuilder.getResourcesList(), resource);
-            executorBuilder
-                    .clearResources()
-                    .addAllResources(updatedResourceList);
+            executorBuilder.addResources(resource);
         }
     }
 
-    private static Optional<String> getResourceId(List<Resource> resources, String resourceName) {
-        return resources.stream()
-                .filter(resource -> resource.getName().equals(resourceName))
-                .map(ResourceCollectionUtils::getResourceId)
-                .filter(resourceId -> resourceId.isPresent())
-                .map(resourceId -> resourceId.get())
-                .findFirst();
-    }
-
-    private static List<Resource> updateOrAddRangedResource(List<Resource> existingResources, Resource resource) {
-        List<Resource> updatedResources = new ArrayList<>();
-        boolean updateOccurred = false;
-        for (Resource existingResource : existingResources) {
-            if (existingResource.getName().equals(resource.getName())) {
-                // Merge onto matching resource
-                updateOccurred = true;
-                Value.Builder valueBuilder = Value.newBuilder().setType(Value.Type.RANGES);
-                valueBuilder.getRangesBuilder().addAllRange(
-                        RangeAlgorithms.mergeRanges(
-                                existingResource.getRanges().getRangeList(), resource.getRanges().getRangeList()));
-                updatedResources.add(ResourceBuilder.fromExistingResource(existingResource)
-                        .setValue(valueBuilder.build())
-                        .build());
-            } else {
-                updatedResources.add(existingResource);
-            }
-        }
-        if (!updateOccurred) {
-            // Match not found, add new resource to end
-            updatedResources.add(resource);
-        }
-        return updatedResources;
-    }
-
-    @Override
-    protected Protos.Resource toFulfilledResource(Protos.Resource resource) {
-        Protos.Resource reservedResource = super.toFulfilledResource(resource);
-        if (!StringUtils.isBlank(resourceId)) {
+    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
+        Protos.Resource reservedResource = super.getFulfilledResource();
+        if (resourceId.isPresent() && !StringUtils.isBlank(resourceId.get())) {
             reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
-                    .setResourceId(resourceId)
+                    .setResourceId(resourceId.get())
                     .build();
         }
         return reservedResource;
@@ -170,27 +127,27 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     private static Optional<Integer> selectDynamicPort(
             MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        // We don't want to dynamically consume a port that's explicitly claimed by this pod accidentally, so
-        // compile a list of those to check against the offered ports.
-        OfferRequirement offerRequirement = podInfoBuilder.getOfferRequirement();
         Set<Integer> consumedPorts = new HashSet<>();
-        for (Protos.Resource resource : offerRequirement.getResources()) {
-            if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
-                resource.getRanges().getRangeList().stream()
-                        .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-                        .filter(p -> p != 0)
-                        .forEach(consumedPorts::add);
+
+        // We don't want to accidentally dynamically consume a port that's explicitly claimed elsewhere in this pod, so
+        // compile a list of those to check against the offered ports.
+        for (TaskSpec task : podInfoBuilder.getPodInstance().getPod().getTasks()) {
+            for (ResourceSpec resourceSpec : task.getResourceSet().getResources()) {
+                if (resourceSpec instanceof PortSpec) {
+                    PortSpec portSpec = (PortSpec) resourceSpec;
+                    if (portSpec.getPort() != 0) {
+                        consumedPorts.add((int) portSpec.getPort());
+                    }
+                }
             }
         }
 
-        // Also check dynamically allocated ports.
-        for (Protos.Resource.Builder resourceBuilder : podInfoBuilder.getResourceBuilders()) {
-            if (resourceBuilder.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
-                resourceBuilder.getRanges().getRangeList().stream()
-                        .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-                        .filter(p -> p != 0)
-                        .forEach(consumedPorts::add);
-            }
+        // Also check other dynamically allocated ports which had been taken by earlier stages of this evaluation round.
+        for (Protos.Resource.Builder resourceBuilder : podInfoBuilder.getTaskResourceBuilders()) {
+            consumedPorts.addAll(getPortsInResource(resourceBuilder.build()));
+        }
+        for (Protos.Resource.Builder resourceBuilder : podInfoBuilder.getExecutorResourceBuilders()) {
+            consumedPorts.addAll(getPortsInResource(resourceBuilder.build()));
         }
 
         Protos.Value availablePorts = mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
@@ -205,26 +162,28 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         return dynamicPort;
     }
 
+    private static Set<Integer> getPortsInResource(Protos.Resource resource) {
+        if (!resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
+            return Collections.emptySet();
+        }
+        return resource.getRanges().getRangeList().stream()
+                .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+                .filter(p -> p != 0)
+                .collect(Collectors.toSet());
+    }
+
     private Protos.Environment withPortEnvironmentVariable(Protos.Environment environment, long port) {
-        return EnvUtils.withEnvVar(environment, getPortEnvironmentVariable(), Long.toString(port));
+        return EnvUtils.withEnvVar(environment, getPortEnvironmentVariable(portSpec), Long.toString(port));
     }
 
     /**
-     * Returns a environment variable-style rendering of the provided {@code envKey}.
-     * Invalid characters are replaced with underscores.
+     * Returns the appropriate environment variable to be used for the provided {@link PortSpec}.
      */
-    private String getPortEnvironmentVariable() {
-        String draftEnvName = customEnvKey.isPresent()
-                ? customEnvKey.get() // use custom name as-is
-                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
+    static String getPortEnvironmentVariable(PortSpec portSpec) {
+        String draftEnvName = portSpec.getEnvKey().isPresent()
+                ? portSpec.getEnvKey().get() // use custom name as-is
+                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return EnvUtils.toEnvName(draftEnvName);
-    }
-
-    private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {
-        Protos.Resource.Builder builder = resourceRequirement.getResource().toBuilder();
-        builder.clearRanges().getRangesBuilder().addRange(Protos.Value.Range.newBuilder().setBegin(port).setEnd(port));
-
-        return new ResourceRequirement(builder.build());
     }
 }

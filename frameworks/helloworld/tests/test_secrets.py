@@ -38,10 +38,6 @@ secret_options = {
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
-    # clean up and delete secrets
-    delete_secrets("{}/".format(PACKAGE_NAME))
-    # clean up and delete secrets
-    delete_secrets()
 
 
 @pytest.mark.sanity
@@ -237,7 +233,7 @@ ecret_options = {
 @pytest.mark.sanity
 @pytest.mark.secrets
 def test_secrets_dcos_space():
-    options_dcos_space_test = {
+     options_dcos_space_test = {
         "service": {
             "spec_file": "examples/secrets.yml"
         },
@@ -257,7 +253,7 @@ def test_secrets_dcos_space():
     install.uninstall(PACKAGE_NAME)
 
     create_secrets("{}/somePath/".format(PACKAGE_NAME))
-    install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=secret_options)
+    install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options_dcos_space_test)
 
     try:
         plan.wait_for_completed_deployment(PACKAGE_NAME)

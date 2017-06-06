@@ -5,7 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-Uninstalling a cluster is straightforward. Replace `hdfs` with the name of the HDFS instance to be uninstalled.
+Uninstalling the service is straightforward. Replace `hdfs` with the name of the HDFS instance to be uninstalled.
 
 ```
 $ dcos package uninstall --app-id=hdfs

@@ -20,11 +20,3 @@ source $TOOLS_DIR/init_paths.sh
 $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/$CLI_EXE_NAME windows
 $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/$CLI_EXE_NAME darwin
 $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/$CLI_EXE_NAME linux
-
-# ---
-
-# python (wraps above binaries for compatibility with DC/OS 1.7 and universe-2.x):
-echo "Building Python CLI wrapper (DC/OS 1.7 / universe-2.x compatibility)"
-cd $TOOLS_DIR/pythoncli
-rm -rf dist/ binaries/
-EXE_BUILD_DIR=$CLI_DIR/$CLI_EXE_NAME/ python setup.py -q bdist_wheel

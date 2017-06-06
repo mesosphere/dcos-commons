@@ -5,6 +5,7 @@ import shakedown
 
 import sdk_marathon as marathon
 import sdk_plan
+import sdk_spin
 import sdk_tasks as tasks
 import sdk_utils
 
@@ -96,8 +97,14 @@ def check_plugin_uninstalled(plugin_name):
 
 
 def get_elasticsearch_master():
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET", "coordinator")))
-    return output.split()[-1]
+    def get_master():
+        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET", "coordinator")))
+        if exit_status and len(output.split()) > 0:
+            return output.split()[-1]
+
+        return False
+
+    return sdk_spin.time_wait_return(get_master)
 
 
 def get_hosts_with_plugin(plugin_name):
