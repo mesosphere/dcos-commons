@@ -23,6 +23,8 @@ public class DcosConstants {
     // in general if the network does not support port-mapping, but the task maps the ports the behavior is
     // as expected.
     public static final Boolean DEFAULT_PORT_MAPPING_POLICY = true;
+    // These ports should be available to a container on the overlay regardless of it's permissions, it's unlikely
+    // that a pod will ever exceed 1000 ports.
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
 

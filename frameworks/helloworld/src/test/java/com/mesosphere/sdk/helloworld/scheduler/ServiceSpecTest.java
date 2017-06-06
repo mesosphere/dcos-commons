@@ -64,13 +64,18 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     @Test
-    public void testNetwork() throws Exception {
-        testYaml("examples/cni.yml");
+    public void testGpuResource() throws Exception {
+        testYaml("examples/gpu_resource.yml");
     }
 
     @Test
-    public void testGpuResource() throws Exception {
-        testYaml("examples/gpu_resource.yml");
+    public void testOverlayNetworks() throws Exception {
+        testYaml("examples/overlay.yml");
+    }
+
+    @Test
+    public void testOverlayNetworks2() throws Exception {
+        testYaml("examples/overlay_ports.yml");
     }
 
 }

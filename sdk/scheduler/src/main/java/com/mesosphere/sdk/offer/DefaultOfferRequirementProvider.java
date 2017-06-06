@@ -419,7 +419,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
         // Inject FRAMEWORK_TLD that gives the Navstar-based IP of the container
-        environment.putIfAbsent(EnvConstants.FRAMEWORK_TLD_TASKENV, Constants.DNS_TLD);
+        environment.put(EnvConstants.FRAMEWORK_TLD_TASKENV, Constants.DNS_TLD);
 
         return EnvUtils.toProto(environment);
     }

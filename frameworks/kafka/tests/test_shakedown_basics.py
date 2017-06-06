@@ -5,6 +5,7 @@ import sdk_tasks as tasks
 import sdk_spin as spin
 import sdk_cmd as command
 import sdk_utils as utils
+import shakedown
 import dcos
 import dcos.config
 import dcos.http
@@ -59,6 +60,7 @@ def test_endpoints_address():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
+@pytest.mark.runnow
 def test_endpoints_zookeeper():
     zookeeper = service_cli('endpoints zookeeper')
     assert zookeeper.rstrip() == (

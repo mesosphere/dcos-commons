@@ -81,9 +81,9 @@ public class NamedVIPSpec extends PortSpec {
                 ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build();
         return new NamedVIPRequirement(
                 portResource,
-                getPortName(),
-                (int) getValue().getRanges().getRange(0).getBegin(),
-                getEnvKey(),
+                super.getPortName(),
+                (int) super.getValue().getRanges().getRange(0).getBegin(),
+                super.getEnvKey(),
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

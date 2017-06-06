@@ -107,6 +107,37 @@ public class PortEvaluationStageTest {
         Assert.assertEquals(variable.getValue(), DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START.toString());
     }
 
+
+    @Test
+    public void testDynamicPortResourceOnOverlayWithRequestedPortToo() throws Exception {
+        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 1025,1025);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+        Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
+                        "should be 1, got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
+                podInfoBuilder.getAssignedOverlayPorts().size() == 1);
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                desiredPorts,
+                TestConstants.TASK_NAME,
+                "known-port-name",
+                0,
+                Optional.of("test-port"),false);
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(String.format("podInfoBuilder has incorrect number of assigned overlay ports, " +
+                        "should be 2 got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
+                podInfoBuilder.getAssignedOverlayPorts().size() == 2);
+        Assert.assertTrue(outcome.isPassing());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Assert.assertEquals(0, taskBuilder.getResourcesCount());
+        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(variable.getName(), "TEST_PORT");
+        Integer expected = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START + 1;
+        Assert.assertEquals(variable.getValue(), expected.toString());
+    }
+
     @Test
     public void testPortResourceIsIgnoredOnOverlay() throws Exception {
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 10000, 10000);
