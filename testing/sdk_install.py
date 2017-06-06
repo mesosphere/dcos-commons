@@ -1,17 +1,18 @@
 '''Utilities relating to installing services'''
 
 import collections
+
 import dcos.errors
 import dcos.marathon
+import os
+import shakedown
+import time
+
 import sdk_api
 import sdk_plan
 import sdk_spin
 import sdk_tasks
 import sdk_utils
-import shakedown
-
-import os
-import time
 
 
 def install(
@@ -109,16 +110,20 @@ def uninstall(service_name, package_name=None):
         sdk_utils.out('Uninstalling {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+            marathon_app_id = "/" + service_name
+            sdk_utils.out('Waiting for no deployments on {}'.format(marathon_app_id))
+            shakedown.deployment_wait(600, marathon_app_id)
+
             # wait for service to be gone according to marathon
-            def marathon_dropped_service(service_name=service_name):
+            def marathon_dropped_service():
                 client = shakedown.marathon.create_client()
                 app_list = client.get_apps()
-                marathon_app_id = "/" + service_name
                 matching_apps = [app for app in app_list if app['id'] == marathon_app_id]
                 if len(matching_apps) > 1:
                     msg = 'Error during uninstall, got more than one app in app list with mathching id to %s'
                     sdk_utils.out(msg % marathon_app_id)
                 return len(matching_apps) == 0
+            sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
             sdk_spin.time_wait_noisy(marathon_dropped_service)
 
         except (dcos.errors.DCOSException, ValueError) as e:
