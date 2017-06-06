@@ -1,11 +1,12 @@
 import json
-import os
 
+import dcos
+import os
 import shakedown
 
 import sdk_cmd as cmd
 import sdk_spin as spin
-
+import sdk_utils as utils
 
 PACKAGE_NAME = 'cassandra'
 DEFAULT_TASK_COUNT = 3
@@ -129,7 +130,10 @@ def remove_cassandra_jobs():
 
 
 def remove_job(job_name):
-    cmd.run_cli('job remove {}'.format(qualified_job_name(job_name)))
+    try:
+        cmd.run_cli('job remove {}'.format(qualified_job_name(job_name)))
+    except dcos.errors.DCOSException:
+        utils.out('Unable to remove job {}'.format(job_name))
 
 
 class EnvironmentContext(object):

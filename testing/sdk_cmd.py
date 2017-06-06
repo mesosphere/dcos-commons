@@ -1,9 +1,9 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.http
-import sdk_spin
-import sdk_utils
 import shakedown
+
+import sdk_utils
 
 
 def request(method, url, retry=True, **kwargs):
@@ -25,5 +25,5 @@ def run_cli(cmd):
         err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
             ret, cmd, stdout, stderr)
         sdk_utils.out(err)
-        raise Exception(err)
+        raise dcos.errors.DCOSException(err)
     return stdout

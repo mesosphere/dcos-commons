@@ -2,9 +2,7 @@ import pytest
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_tasks as tasks
-import sdk_utils as utils
 from tests.config import *
 
 
