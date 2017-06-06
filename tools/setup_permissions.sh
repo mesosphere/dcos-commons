@@ -46,6 +46,18 @@ function grant_task_execution() {
          -H "Authorization: token=${ACS_TOKEN}" \
          "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:task:user:${LINUX_USER}/users/${SERVICE_ACCOUNT_NAME}/create"
 
+    # XXX 1.10 curerrently requires this mesos:agent permission as well as
+    # mesos:task permission.  unclear if this will be ongoing requirement.
+    # See DCOS-15682
+    curl -k -L -X PUT \
+         -H "Authorization: token=${ACS_TOKEN}" \
+         "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:agent:task:user:${LINUX_USER}" \
+         -d '{"description":"Execute Mesos tasks as user=${LINUX_USER}"}' \
+         -H 'Content-Type: application/json'
+    curl -k -L -X PUT \
+         -H "Authorization: token=${ACS_TOKEN}" \
+         "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:agent:task:user:${LINUX_USER}/users/${SERVICE_ACCOUNT_NAME}/create"
+
     # In order for the Spark Dispatcher to register with Mesos as
     # root, we must launch the dispatcher task as root.  The other
     # frameworks are launched as nobody, but then register as
@@ -59,6 +71,15 @@ function grant_task_execution() {
     curl -k -L -X PUT \
          -H "Authorization: token=${ACS_TOKEN}" \
          "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:task:user:root/users/dcos_marathon/create"
+    # XXX see above
+    curl -k -L -X PUT \
+         -H "Authorization: token=${ACS_TOKEN}" \
+         "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:agent:task:user:root" \
+         -d '{"description":"Execute Mesos tasks as user=root"}' \
+         -H 'Content-Type: application/json'
+    curl -k -L -X PUT \
+         -H "Authorization: token=${ACS_TOKEN}" \
+         "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:agent:task:user:root/users/dcos_marathon/create"
 }
 
 function grant_resources {
