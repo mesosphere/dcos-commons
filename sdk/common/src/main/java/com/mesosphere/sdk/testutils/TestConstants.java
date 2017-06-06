@@ -38,6 +38,7 @@ public class TestConstants {
     public static final Integer PORT_API_VALUE = 8080;
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
+    public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
     // CNI port mapping constants
     public static final int HOST_PORT = 4040;
     public static final int CONTAINER_PORT = 8080;

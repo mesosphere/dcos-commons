@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -50,6 +51,7 @@ public class DefaultPodSpec implements PodSpec {
     private final Collection<URI> uris;
     @Valid
     private Collection<VolumeSpec> volumes;
+    private String preReservedRole;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -62,7 +64,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("volumes") Collection<VolumeSpec> volumes) {
+            @JsonProperty("volumes") Collection<VolumeSpec> volumes,
+            @JsonProperty("pre-reserved-role") String preReservedRole) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -73,13 +76,22 @@ public class DefaultPodSpec implements PodSpec {
         this.tasks = tasks;
         this.placementRule = placementRule;
         this.volumes = (volumes != null) ? volumes : Collections.emptyList();
+        this.preReservedRole = preReservedRole;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count,
-             builder.image, builder.networks, builder.rlimits,
-             builder.uris, builder.tasks, builder.placementRule,
-             builder.volumes);
+        this(
+                builder.type,
+                builder.user,
+                builder.count,
+                builder.image,
+                builder.networks,
+                builder.rlimits,
+                builder.uris,
+                builder.tasks,
+                builder.placementRule,
+                builder.volumes,
+                builder.preReservedRole);
         ValidationUtils.validate(this);
     }
 
@@ -154,6 +166,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public String getPreReservedRole() {
+        return preReservedRole;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -180,6 +197,7 @@ public class DefaultPodSpec implements PodSpec {
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
         private Collection<VolumeSpec> volumes;
+        public String preReservedRole = Constants.ANY_ROLE;
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -324,6 +342,18 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder volumes(Collection<VolumeSpec> volumes) {
             this.volumes = volumes;
+            return this;
+        }
+
+        /**
+         * Sets the {@code pre-reserved-role} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param preReservedRole the {@code preReservedRole} to set
+         * @return a reference to this Builder
+         */
+        public Builder preReservedRole(String preReservedRole) {
+            this.preReservedRole = preReservedRole;
             return this;
         }
 

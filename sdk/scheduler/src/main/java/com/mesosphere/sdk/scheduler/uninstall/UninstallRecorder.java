@@ -98,7 +98,7 @@ public class UninstallRecorder implements OperationRecorder {
             Optional<String> thisResourceId = ResourceCollectionUtils.getResourceId(resource);
             if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
                 updatedResources.add(ResourceBuilder.fromExistingResource(resource)
-                        .setResourceId(uninstalledResourceId)
+                        .setResourceId(Optional.of(uninstalledResourceId))
                         .build());
             } else {
                 updatedResources.add(resource);

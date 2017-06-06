@@ -2,15 +2,12 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.VolumeRequirement;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
-import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -32,9 +29,18 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             Type type,
             String containerPath,
             String role,
+            String preReservedRole,
             String principal,
             String envKey) {
-        this(type, containerPath, ResourceBuilder.DISK_RESOURCE_TYPE, scalarValue(diskSize), role, principal, envKey);
+        this(
+                type,
+                containerPath,
+                Constants.DISK_RESOURCE_TYPE,
+                scalarValue(diskSize),
+                role,
+                preReservedRole,
+                principal,
+                envKey);
     }
 
     @JsonCreator
@@ -44,9 +50,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal")  String principal,
             @JsonProperty("env-key")  String envKey) {
-        super(name, value, role, principal, envKey);
+        super(name, value, role, preReservedRole, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;
 
@@ -82,25 +89,5 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
         builder.getScalarBuilder().setValue(value);
         return builder.build();
-    }
-
-    @Override
-    public VolumeRequirement getResourceRequirement(Protos.Resource resource) {
-        if (resource != null) {
-            return new VolumeRequirement(resource);
-        }
-
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(this);
-        switch (getType()) {
-            case ROOT:
-                resourceBuilder.setRootVolume(getContainerPath(), Optional.empty());
-                break;
-            case MOUNT:
-                resourceBuilder.setMountVolume(getContainerPath(), Optional.empty(), Optional.empty());
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported volume type: " + getType());
-        }
-        return new VolumeRequirement(resourceBuilder.build());
     }
 }

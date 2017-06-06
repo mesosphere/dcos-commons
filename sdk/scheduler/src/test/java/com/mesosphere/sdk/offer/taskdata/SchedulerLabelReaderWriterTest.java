@@ -1,16 +1,15 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Tests for {@link SchedulerLabelReader} and {@link SchedulerLabelWriter}.

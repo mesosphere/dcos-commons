@@ -19,8 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -189,13 +188,7 @@ public class DefaultService implements Service {
                 .setUser(userString)
                 .setCheckpoint(true);
 
-        // Use provided role if specified, otherwise default to "<svcname>-role".
-        //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
-        if (StringUtils.isEmpty(serviceSpec.getRole())) {
-            fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
-        } else {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        }
+        getRoles(serviceSpec).forEach(role -> fwkInfoBuilder.addRoles(role));
 
         // Use provided principal if specified, otherwise default to "<svcname>-principal".
         if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
@@ -222,5 +215,9 @@ public class DefaultService implements Service {
         }
 
         return fwkInfoBuilder.build();
+    }
+
+    private List<String> getRoles(ServiceSpec serviceSpec) {
+        return Arrays.asList(serviceSpec.getRole());
     }
 }

@@ -7,7 +7,6 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
@@ -373,10 +372,9 @@ public class DefaultSchedulerTest {
 
         // Make offers sufficient to recover Task A-0 and launch Task B-0,
         // and also have some unused reserved resources for cleaning, and verify that only one of those three happens.
-        Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        cpus = ResourceTestUtils.setResourceId(cpus, UUID.randomUUID().toString());
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        mem = ResourceTestUtils.setResourceId(mem, UUID.randomUUID().toString());
+
+        Protos.Resource cpus = ResourceTestUtils.getExpectedScalar("cpus", 1.0, UUID.randomUUID().toString());
+        Protos.Resource mem = ResourceTestUtils.getExpectedScalar("mem", 1.0, UUID.randomUUID().toString());
 
         Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
                 .addAllResources(operations.stream()
@@ -634,9 +632,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(2, deployPlan.getChildren().size());
     }
 
-    /**
-     * Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
-     */
+    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
     private Collection<Plan> getDeployUpdatePlans() {
         Phase phase = mock(Phase.class);
         Plan deployPlan = mock(Plan.class);
@@ -782,9 +778,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
     }
 
-    /**
-     * Installs the service.
-     */
+    //Installs the service.
     private List<Protos.TaskID> install() {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
@@ -802,8 +796,7 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass");
         }
     }
@@ -818,8 +811,7 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass");
         }
 
@@ -850,7 +842,6 @@ public class DefaultSchedulerTest {
                     defaultScheduler.plans,
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
-                    defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
                     defaultScheduler.recoveryPlanOverriderFactory,
