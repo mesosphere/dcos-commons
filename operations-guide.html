@@ -230,7 +230,7 @@
           <li><a href="#logs-via-the-cli" id="markdown-toc-logs-via-the-cli">Logs via the CLI</a></li>
         </ul>
       </li>
-      <li><a href="#running-commands-within-containers" id="markdown-toc-running-commands-within-containers">Running Commands within containers</a>        <ul>
+      <li><a href="#running-commands-within-containers" id="markdown-toc-running-commands-within-containers">Running commands within containers</a>        <ul>
           <li><a href="#dcos--19" id="markdown-toc-dcos--19">DC/OS &gt;= 1.9</a>            <ul>
               <li><a href="#prerequisites" id="markdown-toc-prerequisites">Prerequisites</a></li>
               <li><a href="#using-dcos-task-exec" id="markdown-toc-using-dcos-task-exec">Using <code class="highlighter-rouge">dcos task exec</code></a></li>
@@ -743,7 +743,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
 
 <p><a href="img/ops-guide-task-sandbox.png"><img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
 
-<p>If the task is based on a Docker image, this list will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands-within-containers">Running Commands</a>.</p>
+<p>If the task is based on a Docker image, this list will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands-within-containers">Running commands within containers</a>.</p>
 
 <p>In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of <code class="highlighter-rouge">confluent-kafka</code> and they’re each running a <code class="highlighter-rouge">broker-0</code>. As the cluster grows, this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click “Frameworks” on the upper left to see a list of all the installed frameworks (mapping to our services):</p>
 
@@ -817,7 +817,7 @@ broker-2              10.0.3.60   root    R    broker-2__76f45cb0-4db9-41ad-835c
 </code></pre>
 </div>
 
-<h2 id="running-commands-within-containers">Running Commands within containers</h2>
+<h2 id="running-commands-within-containers">Running commands within containers</h2>
 
 <p>An extremely useful tool for diagnosing task state is the ability to run arbitrary commands <em>within</em> the task. The available tools for doing this depend on the version of DC/OS you’re using:</p>
 
