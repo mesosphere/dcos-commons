@@ -75,7 +75,7 @@ public class CuratorUtils {
     /**
      * Compares the service name to the previously stored name in zookeeper, or creates a new node containing this data
      * if it isn't already present. This is useful for two situations where foldered service names may be confused with
-     * literal dot-delimited names:
+     * literal double-underscore delimited names:
      *
      * <ul>
      * <li>Protecting against collisions if someone uses periods in their service names. For example, a foldered service

@@ -2,8 +2,10 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
@@ -18,7 +20,10 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,17 +40,27 @@ public class YAMLToInternalMappers {
     private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
+     * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
+     */
+    @VisibleForTesting
+    public static class FileReader {
+        public String read(String path) throws IOException {
+            return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
      * @param rawServiceSpec the raw service specification representing a YAML file
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
-    static DefaultServiceSpec from(
+    public static DefaultServiceSpec from(
             RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
             TaskEnvRouter taskEnvRouter,
-            DefaultServiceSpecBuilder.FileReader fileReader) throws Exception {
+            FileReader fileReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
@@ -130,7 +145,7 @@ public class YAMLToInternalMappers {
 
     private static PodSpec from(
             RawPod rawPod,
-            DefaultServiceSpecBuilder.FileReader fileReader,
+            FileReader fileReader,
             String podName,
             Map<String, String> additionalEnv,
             String role,
@@ -252,7 +267,7 @@ public class YAMLToInternalMappers {
 
     private static TaskSpec from(
             RawTask rawTask,
-            DefaultServiceSpecBuilder.FileReader fileReader,
+            FileReader fileReader,
             String taskName,
             Map<String, String> additionalEnv,
             Collection<ResourceSet> resourceSets,

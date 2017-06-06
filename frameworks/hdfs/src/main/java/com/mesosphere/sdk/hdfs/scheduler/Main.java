@@ -1,16 +1,14 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +32,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
-            new DefaultService(getBuilder(new RawServiceSpecBuilder(new File(args[0])).build())).run();
+            new DefaultService(getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
@@ -44,7 +42,7 @@ public class Main {
     private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, schedulerFlags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build();
         DefaultScheduler.Builder builder = DefaultScheduler
                 .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
@@ -73,7 +71,7 @@ public class Main {
             return error;
         }
 
-        Map<String, String> env = new HashMap<>(new DefaultTaskEnvRouter().getConfig("ALL"));
+        Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
 
         String fileStr = new String(bytes, Charset.defaultCharset());
         return TemplateUtils.applyEnvToMustache(fileStr, env);

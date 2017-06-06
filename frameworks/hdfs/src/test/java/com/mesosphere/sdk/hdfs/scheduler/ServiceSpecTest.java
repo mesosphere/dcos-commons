@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
@@ -97,7 +97,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         Path path = Paths.get(pathStr);
         byte[] bytes = Files.readAllBytes(path);
         String fileStr = new String(bytes, Charset.defaultCharset());
-        Map<String, String> updatedEnv = new HashMap<>(new DefaultTaskEnvRouter(envVars).getConfig("ALL"));
+        Map<String, String> updatedEnv = new HashMap<>(new TaskEnvRouter(envVars).getConfig("ALL"));
 
         String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(renderedFileStr, -1, renderedFileStr.indexOf("<value></value>"));

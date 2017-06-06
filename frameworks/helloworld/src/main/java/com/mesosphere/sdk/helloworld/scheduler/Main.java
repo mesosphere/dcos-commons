@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 
@@ -22,7 +22,7 @@ public class Main {
             new DefaultService(new File(args[0]), schedulerFlags).run();
         } else {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
-            DefaultTaskEnvRouter taskEnvRouter = new DefaultTaskEnvRouter();
+            TaskEnvRouter taskEnvRouter = new TaskEnvRouter();
             new DefaultService(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")

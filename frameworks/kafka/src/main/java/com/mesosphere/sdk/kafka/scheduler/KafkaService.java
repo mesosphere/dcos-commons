@@ -14,9 +14,8 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 
@@ -33,7 +32,7 @@ public class KafkaService extends DefaultService {
     }
 
     private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(pathToYamlSpecification).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
 
         // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
@@ -47,7 +46,7 @@ public class KafkaService extends DefaultService {
         LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
 
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                new DefaultServiceSpecBuilder(rawServiceSpec, schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
                         .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", kafkaZookeeperUri)
                         .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);

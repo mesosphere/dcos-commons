@@ -11,8 +11,7 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -105,7 +104,7 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore = new DefaultStateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
-        serviceSpec = new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(recoverySpecFile).build(), flags).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(recoverySpecFile).build(), flags).build();
 
         configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);

@@ -7,8 +7,6 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -36,8 +34,8 @@ public class DefaultPlanGeneratorTest {
     public void testCustomPhases() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("custom-phases.yml").getFile());
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).build();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, flags).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         Persister persister = new MemPersister();
         stateStore = new DefaultStateStore(persister);

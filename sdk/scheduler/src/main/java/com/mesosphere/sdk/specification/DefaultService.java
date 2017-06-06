@@ -9,8 +9,6 @@ import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,16 +43,16 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(new RawServiceSpecBuilder(yamlSpecification).build(), schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(new RawServiceSpecBuilder(pathToYamlSpecification).build(), schedulerFlags);
+        this(RawServiceSpec.newBuilder(pathToYamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this(DefaultScheduler.newBuilder(
-                new DefaultServiceSpecBuilder(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 

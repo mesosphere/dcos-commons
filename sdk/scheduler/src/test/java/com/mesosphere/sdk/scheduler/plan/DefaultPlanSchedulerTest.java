@@ -7,8 +7,7 @@ import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -60,7 +59,7 @@ public class DefaultPlanSchedulerTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec =
-                new DefaultServiceSpecBuilder(new RawServiceSpecBuilder(file).build(), flags).build();
+                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

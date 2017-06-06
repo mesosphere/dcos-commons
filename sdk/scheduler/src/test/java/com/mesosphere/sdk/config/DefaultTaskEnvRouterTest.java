@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link DefaultTaskEnvRouter}.
+ * Tests for {@link TaskEnvRouter}.
  */
 public class DefaultTaskEnvRouterTest {
     private static final Map<String, String> TEST_MAP = new HashMap<>();
@@ -26,7 +26,7 @@ public class DefaultTaskEnvRouterTest {
 
     @Test
     public void testEmptyConfig() {
-        TaskEnvRouter router = new DefaultTaskEnvRouter(new HashMap<>());
+        TaskEnvRouter router = new TaskEnvRouter(new HashMap<>());
         assertTrue(router.getConfig("a").isEmpty());
         assertTrue(router.getConfig("b").isEmpty());
         assertTrue(router.getConfig("c").isEmpty());
@@ -36,7 +36,7 @@ public class DefaultTaskEnvRouterTest {
 
     @Test
     public void testMixedConfig() {
-        TaskEnvRouter router = new DefaultTaskEnvRouter(TEST_MAP);
+        TaskEnvRouter router = new TaskEnvRouter(TEST_MAP);
         Map<String, String> values = router.getConfig("a");
         assertEquals(values, router.getConfig("A")); // case insensitive
         assertEquals(5, values.size());
@@ -71,7 +71,7 @@ public class DefaultTaskEnvRouterTest {
 
     @Test
     public void testTypeMapping() {
-        TaskEnvRouter router = new DefaultTaskEnvRouter(TEST_MAP);
+        TaskEnvRouter router = new TaskEnvRouter(TEST_MAP);
         Map<String, String> valuesUpperUnderscore = router.getConfig("A_B");
         assertEquals(3, valuesUpperUnderscore.size());
         assertEquals(valuesUpperUnderscore, router.getConfig("A-B"));
@@ -83,7 +83,7 @@ public class DefaultTaskEnvRouterTest {
 
     @Test
     public void testPriorities() {
-        DefaultTaskEnvRouter router = new DefaultTaskEnvRouter(TEST_MAP)
+        TaskEnvRouter router = new TaskEnvRouter(TEST_MAP)
                 .setGlobalTaskEnv("NOT_IGNORED", "VAL")
                 .setGlobalTaskEnv("ONE", "FOUR") // ignored in pod A, added in others
                 .setPodTaskEnv("A", "NOT_IGNORED", "VAL2") // overrides VAL in pod A

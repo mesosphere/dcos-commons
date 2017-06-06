@@ -16,8 +16,6 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -959,8 +957,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testLaunchSequencedTasksInPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).build();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, flags).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -1024,8 +1022,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testRelaunchFailedPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).build();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, flags).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -1096,8 +1094,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testReplaceDeployStep() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal-volume.yml").getFile());
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).build();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(rawServiceSpec, flags).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

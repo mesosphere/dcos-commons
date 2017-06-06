@@ -24,6 +24,7 @@ public class EndpointUtilsTest {
         assertEquals("task.svc.mesos:5", EndpointUtils.toMesosDnsEndpoint("svc", "task", 5));
         assertEquals("task.svc-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("/path/to/svc", "task", 5));
         assertEquals("task.svc-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("path/to/svc", "task", 5));
+        assertEquals("task.svc.with.dots-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("path/to/svc.with.dots", "task", 5));
     }
 
     @Test
@@ -31,10 +32,12 @@ public class EndpointUtilsTest {
         assertEquals("vip.svc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("svc", new VipInfo("vip", 5)));
         assertEquals("vip.pathtosvc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("/path/to/svc", new VipInfo("vip", 5)));
         assertEquals("vip.pathtosvc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("path/to/svc", new VipInfo("vip", 5)));
+        assertEquals("vip.pathtosvc.with.dots.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("path/to/svc.with.dots", new VipInfo("vip", 5)));
 
         assertEquals("vip.svc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("svc", new VipInfo("/vip", 5)));
         assertEquals("vip.pathtosvc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("/path/to/svc", new VipInfo("/vip", 5)));
         assertEquals("vip.pathtosvc.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("path/to/svc", new VipInfo("/vip", 5)));
+        assertEquals("vip.pathtosvc.with.dots.l4lb.thisdcos.directory:5", EndpointUtils.toVipEndpoint("path/to/svc.with.dots", new VipInfo("/vip", 5)));
     }
 
     @Test
@@ -42,6 +45,7 @@ public class EndpointUtilsTest {
         assertEquals("api.svc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("svc"));
         assertEquals("api.pathtosvc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("/path/to/svc"));
         assertEquals("api.pathtosvc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("path/to/svc"));
+        assertEquals("api.pathtosvc.with.dots.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("path/to/svc.with.dots"));
     }
 
     @Test

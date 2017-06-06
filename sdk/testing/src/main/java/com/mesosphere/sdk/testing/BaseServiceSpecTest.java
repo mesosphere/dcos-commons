@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.testing;
 
 import com.google.api.client.util.Joiner;
-import com.mesosphere.sdk.config.DefaultTaskEnvRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecBuilder;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -75,9 +73,9 @@ public class BaseServiceSpecTest {
         envVars.put("CONFIG_TEMPLATE_PATH", new File(yamlFile.getPath()).getParent());
         logger.info("Configured environment:\n{}", Joiner.on('\n').join(envVars.entrySet()));
 
-        RawServiceSpec rawServiceSpec = new RawServiceSpecBuilder(file).setEnv(envVars).build();
-        DefaultServiceSpec serviceSpec = new DefaultServiceSpecBuilder(
-                rawServiceSpec, mockFlags, new DefaultTaskEnvRouter(envVars)).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).setEnv(envVars).build();
+        DefaultServiceSpec serviceSpec =
+                DefaultServiceSpec.newGenerator(rawServiceSpec, mockFlags, new TaskEnvRouter(envVars)).build();
         Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);

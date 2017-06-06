@@ -9,6 +9,7 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
@@ -25,7 +26,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.specification.yaml.DefaultServiceSpecBuilder.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,7 +44,7 @@ public class DefaultOfferRequirementProviderTest {
     private DefaultOfferRequirementProvider provider;
 
     @Mock private StateStore stateStore;
-    @Mock private FileReader mockFileReader;
+    @Mock private YAMLToInternalMappers.FileReader mockFileReader;
     private UUID uuid;
     private PodInstance podInstance;
 
