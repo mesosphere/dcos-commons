@@ -1,17 +1,16 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.config.TaskEnvRouter;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
@@ -94,10 +93,11 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     private void renderTemplate(String pathStr) throws IOException {
-        Path path = Paths.get(pathStr);
-        byte[] bytes = Files.readAllBytes(path);
-        String fileStr = new String(bytes, Charset.defaultCharset());
-        Map<String, String> updatedEnv = new HashMap<>(new TaskEnvRouter(envVars).getConfig("ALL"));
+        String fileStr = new String(Files.readAllBytes(Paths.get(pathStr)), StandardCharsets.UTF_8);
+
+        // Reproduction of what's done in Main.java:
+        Map<String, String> updatedEnv = new TaskEnvRouter(envVars).getConfig("ALL");
+        updatedEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
         String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(renderedFileStr, -1, renderedFileStr.indexOf("<value></value>"));
