@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.scheduler.Observable;
 
 import java.util.Collection;
@@ -19,12 +18,12 @@ import java.util.Optional;
 public interface Step extends Element, Interruptible {
     /**
      * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. Returns an
-     * {@link OfferRequirement}, or an empty Optional if obtaining/updating resource requirements are not
+     * {@link PodInstanceRequirement}, or an empty Optional if obtaining/updating resource requirements are not
      * applicable to the Step. This will continue to be called for as long as {@link Element#isPending()} returns
      * true.
      *
      * @see {@link #updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
-     *      the {@link OfferRequirement}
+     *      the {@link PodInstanceRequirement}
      */
     Optional<PodInstanceRequirement> start();
 

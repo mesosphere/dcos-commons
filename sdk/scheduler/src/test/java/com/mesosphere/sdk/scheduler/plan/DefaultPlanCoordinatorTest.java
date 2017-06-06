@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
@@ -89,7 +88,6 @@ public class DefaultPlanCoordinatorTest {
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
-    private DefaultOfferRequirementProvider provider;
 
     @Before
     public void setupTest() throws Exception {
@@ -111,10 +109,15 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(
-                stateStore, serviceSpecification.getName(), UUID.randomUUID(), flags);
         planScheduler = new DefaultPlanScheduler(
-                offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
+                offerAccepter,
+                new OfferEvaluator(
+                        stateStore,
+                        TestConstants.SERVICE_NAME,
+                        UUID.randomUUID(),
+                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                stateStore,
+                taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)

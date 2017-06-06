@@ -45,8 +45,7 @@ public class AttributeStringUtils {
     }
 
     /**
-     * Converts the provided list of zero or more attributes into a string suitable for parsing by
-     * {@link #parseString(String)}.
+     * Converts the provided list of zero or more attributes into a string suitable for comparison.
      *
      * @throws IllegalArgumentException if some part of the provided attributes couldn't be
      * serialized
@@ -112,7 +111,7 @@ public class AttributeStringUtils {
      * NOTE that it is difficult if not impossible to consistently perform the inverse of this
      * operation. For example, how can you tell if something is supposed to be a SCALAR value or a
      * TEXT value? [0-9.]+ is valid in both cases! Your best hope is to consistently convert to
-     * string, and then convert strings...
+     * string, and then compare strings...
      *
      * @throws IllegalArgumentException if some part of the provided attributes couldn't be
      * serialized

@@ -5,7 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-To uninstall a cluster, replace `name` with the name of the Elastic instance to be uninstalled.
+To uninstall the service, replace `name` with the name of the Elastic instance to be uninstalled.
 
 ```bash
 dcos package uninstall --app-id=<name> elastic

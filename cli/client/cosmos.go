@@ -48,7 +48,7 @@ func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
 		printResponseError(response)
-		LogMessageAndExit("Package management commands require Enterprise DC/OS 1.10 or newer.")
+		LogMessageAndExit("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	case response.StatusCode == http.StatusBadRequest:
 		parseCosmosHTTPErrorResponse(response)
 	default:
