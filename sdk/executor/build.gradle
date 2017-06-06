@@ -68,7 +68,7 @@ distTar {
     archiveName "executor.tar"
 }
 
-check.finalizedBy jacocoTestReport
+//check.finalizedBy jacocoTestReport
 
 jacocoTestReport {
     reports {
