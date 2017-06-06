@@ -198,8 +198,7 @@ func toStatusTree(planName string, planJsonBytes []byte) string {
 		}
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
+	// Include extra newline at end:
 	return buf.String()
 }
 
