@@ -42,16 +42,6 @@ public class OfferEvaluator {
         this.schedulerFlags = schedulerFlags;
     }
 
-    private Optional<String> getPodRole(PodSpec podSpec) {
-        if (podSpec.getTasks().size() == 0) {
-            logger.error("PodSpec contains no tasks, cannot determine its role.");
-            return Optional.empty();
-        }
-
-        return Optional.of(
-                podSpec.getTasks().get(0).getResourceSet().getResources().stream().findAny().get().getRole());
-    }
-
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
             throws StateStoreException, InvalidRequirementException {
 
@@ -89,9 +79,7 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
-            MesosResourcePool resourcePool = new MesosResourcePool(
-                    offer,
-                    getPodRole(podInstanceRequirement.getPodInstance().getPod()));
+            MesosResourcePool resourcePool = new MesosResourcePool(offer);
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,
@@ -141,11 +129,6 @@ public class OfferEvaluator {
             Map<String, Protos.TaskInfo> thisPodTasks,
             Optional<Protos.ExecutorInfo> executorInfo) {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
-        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
-            evaluationPipeline.add(new PlacementRuleEvaluationStage(
-                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
-        }
-
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
@@ -175,10 +158,10 @@ public class OfferEvaluator {
 
         evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
         if (shouldGetNewRequirement) {
-            evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement));
+            evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks));
         } else {
             evaluationPipeline.addAll(
-                    getExistingEvaluationPipeline(podInstanceRequirement, thisPodTasks, executorInfo.get()));
+                    getExistingEvaluationPipeline(podInstanceRequirement, thisPodTasks, allTasks, executorInfo.get()));
         }
 
         return evaluationPipeline;
@@ -251,11 +234,17 @@ public class OfferEvaluator {
         return resourceSpecs;
     }
 
-
-    private static List<OfferEvaluationStage> getNewEvaluationPipeline(PodInstanceRequirement podInstanceRequirement) {
+    private static List<OfferEvaluationStage> getNewEvaluationPipeline(
+            PodInstanceRequirement podInstanceRequirement,
+            Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
+            evaluationStages.add(new PlacementRuleEvaluationStage(
+                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+        }
+
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
             evaluationStages.add(
                     new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty()));
@@ -290,6 +279,7 @@ public class OfferEvaluator {
     private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Map<String, Protos.TaskInfo> podTasks,
+            Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo) {
 
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
@@ -297,6 +287,12 @@ public class OfferEvaluator {
                 .collect(Collectors.toList());
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+
+        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent() &&
+                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+            evaluationStages.add(new PlacementRuleEvaluationStage(
+                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+        }
 
         if (executorInfo.getExecutorId().getValue().isEmpty()) {
             ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(

@@ -39,6 +39,9 @@ public class TestConstants {
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
     public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
+    public static final String ROOT_DISK_TYPE = "ROOT";
+    public static final String MOUNT_DISK_TYPE = "MOUNT";
+
     // CNI port mapping constants
     public static final int HOST_PORT = 4040;
     public static final int CONTAINER_PORT = 8080;

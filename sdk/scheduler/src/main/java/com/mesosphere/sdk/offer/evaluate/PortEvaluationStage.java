@@ -115,16 +115,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         }
     }
 
-    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
-        Protos.Resource reservedResource = super.getFulfilledResource();
-        if (resourceId.isPresent() && !StringUtils.isBlank(resourceId.get())) {
-            reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
-                    .setResourceId(resourceId)
-                    .build();
-        }
-        return reservedResource;
-    }
-
     private static Optional<Integer> selectDynamicPort(
             MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         Set<Integer> consumedPorts = new HashSet<>();

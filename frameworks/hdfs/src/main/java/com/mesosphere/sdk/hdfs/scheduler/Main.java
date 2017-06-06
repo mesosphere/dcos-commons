@@ -4,6 +4,7 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
@@ -72,7 +73,11 @@ public class Main {
             return error;
         }
 
+        // Simulate the envvars that would be passed to a task. We want to render the config as though it was being done
+        // in a task. Manually copy over FRAMEWORK_NAME which is included in tasks by default.
+        // TODO(nickbp): Consider switching to dedicated client xml templates instead of reusing these ones?
         Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
+        env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
         String fileStr = new String(bytes, Charset.defaultCharset());
         return TemplateUtils.applyEnvToMustache(fileStr, env);

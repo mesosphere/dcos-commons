@@ -37,19 +37,21 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
                     executorInfo.get().getExecutorId().getValue());
         }
 
-        Protos.ExecutorID newExecutorId;
-        String passMsgFormat;
         if (executorInfo.isPresent()) {
-            newExecutorId = executorInfo.get().getExecutorId();
-            passMsgFormat = "Offer contains the matching Executor ID: '%s'";
             podInfoBuilder.setExecutorBuilder(executorInfo.get().toBuilder());
+            return pass(
+                    this,
+                    "Offer contains the matching Executor ID: '%s'",
+                    executorInfo.get().getExecutorId().getValue());
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            newExecutorId = CommonIdUtils.toExecutorId(executorBuilder.getName());
-            passMsgFormat = "No Executor ID required, generated: '%s'";
-            executorBuilder.setExecutorId(newExecutorId);
+            Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(executorBuilder.getName());
+            executorBuilder.setExecutorId(executorID);
+            return pass(
+                    this,
+                    "No Executor ID required, generated: '%s'",
+                    executorID.getValue());
         }
-        return pass(this, passMsgFormat, newExecutorId.getValue());
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {

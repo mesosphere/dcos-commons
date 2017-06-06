@@ -51,26 +51,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         this.resourceId = resourceId;
     }
 
-    protected Resource getFulfilledResource() {
-       return ResourceBuilder.fromSpec(resourceSpec, this.resourceId).build();
-    }
-
-    protected Optional<Resource.ReservationInfo> getFulfilledReservationInfo() {
-        String resourceId = this.resourceId.isPresent() ? this.resourceId.get() : UUID.randomUUID().toString();
-
-        return Optional.of(Resource.ReservationInfo
-                .newBuilder()
-                .setPrincipal(resourceSpec.getPrincipal())
-                .setRole(resourceSpec.getRole())
-                .setLabels(
-                        Protos.Labels.newBuilder()
-                                .addLabels(
-                                        Protos.Label.newBuilder()
-                                                .setKey(MesosResource.RESOURCE_ID_KEY)
-                                                .setValue(resourceId)))
-                .build());
-    }
-
     protected void setProtos(PodInfoBuilder podInfoBuilder, Resource resource) {
         if (getTaskName().isPresent()) {
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
