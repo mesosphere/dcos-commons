@@ -2,6 +2,8 @@
   <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
 </p>
 
+[![Build Status](https://travis-ci.org/portworx/dcos-commons.svg?branch=master)](https://travis-ci.org/portworx/dcos-commons)
+
 [__Quick Start__](README.md#quick-start) |
 [__Developer Guide__](https://mesosphere.github.io/dcos-commons/developer-guide.html) |
 [__FAQ__](docs/pages/faq.md) |
