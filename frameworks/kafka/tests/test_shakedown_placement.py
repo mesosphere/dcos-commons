@@ -68,7 +68,7 @@ def test_placement_max_one_per_hostname():
 def test_marathon_rack_not_found():
     def fun():
         try:
-            return service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+            return service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
         except:
             return False
 
