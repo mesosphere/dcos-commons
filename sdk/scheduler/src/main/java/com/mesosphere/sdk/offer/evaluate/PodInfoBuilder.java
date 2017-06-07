@@ -145,6 +145,7 @@ public class PodInfoBuilder {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonIdUtils.emptyTaskId())
+                .setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS))
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         // create default labels:
