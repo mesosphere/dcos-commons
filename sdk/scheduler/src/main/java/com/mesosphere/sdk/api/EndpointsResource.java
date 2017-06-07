@@ -146,10 +146,9 @@ public class EndpointsResource {
             }
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
-            // Mesos DNS hostname:
-            String mesosDnsTaskName = (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
-                    ? taskInfo.getDiscovery().getName()
-                    : taskInfo.getName();
+
+            // Autoip hostname:
+            String autoIpTaskName = discoveryInfo.hasName() ? discoveryInfo.getName() : taskInfo.getName();
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
 
@@ -164,7 +163,7 @@ public class EndpointsResource {
                         serviceName,
                         endpointsByName,
                         taskInfo,
-                        EndpointUtils.toMesosDnsEndpoint(serviceName, mesosDnsTaskName, port.getNumber()),
+                        EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
                         EndpointUtils.toEndpoint(nativeHost, port.getNumber()),
                         port.getLabels().getLabelsList());
             }

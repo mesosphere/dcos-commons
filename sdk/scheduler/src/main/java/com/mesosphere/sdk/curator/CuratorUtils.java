@@ -6,9 +6,9 @@ import java.nio.charset.StandardCharsets;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
@@ -18,12 +18,6 @@ public class CuratorUtils {
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
-
-    /**
-     * Escape sequence to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
-     * confuse ZK with those.
-     */
-    private static final String FRAMEWORK_NAME_SLASH_ESCAPE = "__";
 
     /**
      * Name to use for storing a reverse mapping of the service name. This is lowercased as it's something that's being
@@ -51,18 +45,12 @@ public class CuratorUtils {
      *
      * <ul>
      * <li>"your-name-here" => /dcos-service-your-name-here</li>
-     * <li>"/path/to/your-name-here" => /dcos-service-path.to.your-name-here</li>
+     * <li>"/path/to/your-name-here" => /dcos-service-path__to__your-name-here</li>
      * </ul>
      */
     public static String getServiceRootPath(String frameworkName) {
-        if (frameworkName.startsWith(PersisterUtils.PATH_DELIM_STR)) {
-            // Trim any leading slash
-            frameworkName = frameworkName.substring(PersisterUtils.PATH_DELIM_STR.length());
-        }
-        // Replace any other slashes (e.g. from folder support) with double underscores:
-        frameworkName = frameworkName.replace(PersisterUtils.PATH_DELIM_STR, FRAMEWORK_NAME_SLASH_ESCAPE);
-        // dcos-service-<your.name.here>
-        return SERVICE_ROOT_PATH_PREFIX + frameworkName;
+        // dcos-service-<your__name__here>
+        return SERVICE_ROOT_PATH_PREFIX + SchedulerUtils.withEscapedSlashes(frameworkName);
     }
 
     /**

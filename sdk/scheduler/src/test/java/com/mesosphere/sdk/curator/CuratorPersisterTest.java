@@ -398,15 +398,19 @@ public class CuratorPersisterTest {
         Persister persister = CuratorPersister.newBuilder(mockServiceSpec).build();
         assertEquals(Collections.singleton("servicename"), persister.getChildren(""));
         assertArrayEquals(folderedName.getBytes(StandardCharsets.UTF_8), persister.get("servicename"));
+    }
 
-        // Now try changing the name to one that collides:
-        String collidingName = "/path/to__myservice";
-        when(mockServiceSpec.getName()).thenReturn(collidingName);
+    @Test
+    public void testServiceNameDoubleUnderscore() throws Exception {
+        CuratorTestUtils.clear(testZk);
+        String folderedName = "/path/to__myservice";
+        when(mockServiceSpec.getName()).thenReturn(folderedName);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         try {
             CuratorPersister.newBuilder(mockServiceSpec).build();
             fail("expected exception");
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("Collision"));
+            assertTrue(e.getMessage().contains("double underscore"));
         }
     }
 

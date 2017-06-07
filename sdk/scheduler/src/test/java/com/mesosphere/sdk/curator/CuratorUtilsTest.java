@@ -6,12 +6,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.fail;
 
 import java.nio.charset.StandardCharsets;
 
@@ -54,18 +54,18 @@ public class CuratorUtilsTest {
         String originalServiceName = "/folder/path/to/myservice";
         Persister persister = new CuratorPersister(originalServiceName, mockClient);
 
-        when(mockClient.getData()).thenReturn(mockGetDataBuilder);
-        when(mockGetDataBuilder.forPath(Mockito.anyString()))
+        Mockito.when(mockClient.getData()).thenReturn(mockGetDataBuilder);
+        Mockito.when(mockGetDataBuilder.forPath(Mockito.anyString()))
                 .thenThrow(new KeeperException.NoNodeException());
 
-        when(mockClient.create()).thenReturn(mockCreateBuilder);
-        when(mockCreateBuilder.creatingParentsIfNeeded()).thenReturn(mockCreateParentsBuilder);
+        Mockito.when(mockClient.create()).thenReturn(mockCreateBuilder);
+        Mockito.when(mockCreateBuilder.creatingParentsIfNeeded()).thenReturn(mockCreateParentsBuilder);
 
         CuratorUtils.initServiceName(persister, originalServiceName);
 
-        verify(mockGetDataBuilder).forPath(
+        Mockito.verify(mockGetDataBuilder).forPath(
                 Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
-        verify(mockCreateParentsBuilder).forPath(
+        Mockito.verify(mockCreateParentsBuilder).forPath(
                 Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"),
                 Mockito.eq(originalServiceName.getBytes(StandardCharsets.UTF_8)));
     }
@@ -75,13 +75,13 @@ public class CuratorUtilsTest {
         String originalServiceName = "/folder/path/to/myservice";
         Persister persister = new CuratorPersister(originalServiceName, mockClient);
 
-        when(mockClient.getData()).thenReturn(mockGetDataBuilder);
-        when(mockGetDataBuilder.forPath(Mockito.anyString()))
+        Mockito.when(mockClient.getData()).thenReturn(mockGetDataBuilder);
+        Mockito.when(mockGetDataBuilder.forPath(Mockito.anyString()))
                 .thenReturn(originalServiceName.getBytes(StandardCharsets.UTF_8));
 
         CuratorUtils.initServiceName(persister, originalServiceName);
 
-        verify(mockGetDataBuilder).forPath(
+        Mockito.verify(mockGetDataBuilder).forPath(
                 Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
     }
 
@@ -90,8 +90,8 @@ public class CuratorUtilsTest {
         String originalServiceName = "/folder/path/to/myservice";
         Persister persister = new CuratorPersister(originalServiceName, mockClient);
 
-        when(mockClient.getData()).thenReturn(mockGetDataBuilder);
-        when(mockGetDataBuilder.forPath(Mockito.anyString()))
+        Mockito.when(mockClient.getData()).thenReturn(mockGetDataBuilder);
+        Mockito.when(mockGetDataBuilder.forPath(Mockito.anyString()))
                 .thenReturn("othervalue".getBytes(StandardCharsets.UTF_8));
 
         try {
@@ -100,7 +100,19 @@ public class CuratorUtilsTest {
             assertTrue(e.getMessage().contains("Collision"));
         }
 
-        verify(mockGetDataBuilder).forPath(
+        Mockito.verify(mockGetDataBuilder).forPath(
                 Mockito.eq("/dcos-service-folder__path__to__myservice/servicename"));
+    }
+
+    @Test
+    public void testServiceNameCollision() {
+        Persister persister = new MemPersister();
+        CuratorUtils.initServiceName(persister, "/path/to/myservice");
+        try {
+            CuratorUtils.initServiceName(persister, "/path/to__myservice");
+            fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Collision"));
+        }
     }
 }

@@ -20,11 +20,11 @@ public class EndpointUtilsTest {
     }
 
     @Test
-    public void testToMesosDnsEndpoint() {
-        assertEquals("task.svc.mesos:5", EndpointUtils.toMesosDnsEndpoint("svc", "task", 5));
-        assertEquals("task.svc-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("/path/to/svc", "task", 5));
-        assertEquals("task.svc-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("path/to/svc", "task", 5));
-        assertEquals("task.svc.with.dots-to-path.mesos:5", EndpointUtils.toMesosDnsEndpoint("path/to/svc.with.dots", "task", 5));
+    public void testToAutoIpEndpoint() {
+        assertEquals("task.svc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5));
+        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5));
+        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc", "task", 5));
+        assertEquals("task.pathtosvc.with.dots.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc.with.dots", "task", 5));
     }
 
     @Test

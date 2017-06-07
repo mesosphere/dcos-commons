@@ -10,12 +10,11 @@ import java.util.*;
  */
 public class TaskVolumesCannotChange implements ConfigValidator<ServiceSpec> {
 
-
     @Override
-    public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
+    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
         List<ConfigValidationError> errors = new ArrayList<>();
         Map<String, TaskSpec> oldTasks =
-                (nullableOldConfig == null) ? new HashMap<>() : getAllTasksByName(nullableOldConfig, errors);
+                oldConfig.isPresent() ? getAllTasksByName(oldConfig.get(), errors) : Collections.emptyMap();
         Map<String, TaskSpec> newTasks = getAllTasksByName(newConfig, errors);
 
         // Note: We're itentionally just comparing cases where the tasks in both TaskSpecs.

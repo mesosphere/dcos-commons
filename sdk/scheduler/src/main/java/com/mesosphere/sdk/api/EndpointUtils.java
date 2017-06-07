@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
 /**
@@ -45,6 +42,8 @@ public class EndpointUtils {
     private static final String VIP_LABEL_PREFIX = "VIP_";
     /** TLD to be used for VIP-based hostnames. */
     private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
+    /** TLD to be used for 'autoip'-based hostnames (replacement for mesos-dns). */
+    private static final String AUTOIP_HOST_TLD = "autoip.dcos.thisdcos.directory";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointUtils.class);
 
@@ -62,8 +61,9 @@ public class EndpointUtils {
     /**
      * Returns the correct Mesos DNS endpoint for the provided task and port running within the provided service.
      */
-    public static String toMesosDnsEndpoint(String serviceName, String taskName, int port) {
-        String hostname = String.format("%s.%s.mesos", taskName, toMesosDnsFolderedService(serviceName));
+    public static String toAutoIpEndpoint(String serviceName, String taskName, int port) {
+        String hostname = String.format("%s.%s.%s",
+                removeSlashes(taskName), removeSlashes(serviceName), AUTOIP_HOST_TLD);
         return toEndpoint(hostname, port);
     }
 
@@ -131,20 +131,5 @@ public class EndpointUtils {
      */
     private static String removeSlashes(String serviceName) {
         return serviceName.replace("/", "");
-    }
-
-    /**
-     * "/group1/group2/group3/group4/group5/kafka" => "kafka-group5-group4-group3-group2-group1.marathon.mesos".
-     */
-    private static String toMesosDnsFolderedService(String serviceName) {
-        // Splitter returns an unmodifiable list:
-        List<String> elems = new ArrayList<>();
-        elems.addAll(Splitter.on('/').splitToList(serviceName));
-        // Remove empty entry at start, which may have been added due to a leading slash:
-        if (!elems.isEmpty() && elems.get(0).isEmpty()) {
-            elems.remove(0);
-        }
-        Collections.reverse(elems);
-        return Joiner.on('-').join(elems);
     }
 }
