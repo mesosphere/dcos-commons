@@ -400,7 +400,8 @@ public class YAMLToInternalMappers {
         }
 
         if (rawPorts != null) {
-            resourceSetBuilder.addResource(from(role, principal, rawPorts, networkNames));
+            from(role, principal, rawPorts, networkNames).getPortSpecs()
+                    .forEach(resourceSetBuilder::addResource);
         }
 
         return resourceSetBuilder
@@ -493,7 +494,7 @@ public class YAMLToInternalMappers {
         return networkNames.size() == 0;  // if we have no networks, we want to use port resources
     }
 
-    private static ResourceSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts,
+    private static PortsSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts,
                                      Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
@@ -517,7 +518,6 @@ public class YAMLToInternalMappers {
                         StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
                 NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
                         portValueBuilder.build(),
                         role,
                         principal,

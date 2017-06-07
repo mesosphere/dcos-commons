@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -30,13 +31,14 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  */
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
+    private final boolean useHostPorts;
 
     protected final PortSpec portSpec;
-    private final boolean useHostPorts;
 
     public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
         super(portSpec, resourceId, taskName);
         this.portSpec = portSpec;
+        this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
     }
 
     protected long getPort() {
@@ -48,6 +50,8 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
         Optional<String> taskPort =
                 podInfoBuilder.getLastTaskEnv(getTaskName().get(), getPortEnvironmentVariable(portSpec));
+
+        long assignedPort = getPort();
 
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
@@ -67,14 +71,15 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
             assignedPort = dynamicPort.get();
         }
-
         Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
-        .setType(Protos.Value.Type.RANGES);
+                .setType(Protos.Value.Type.RANGES);
+
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(assignedPort)
                 .setEnd(assignedPort);
-                this.resourceSpec = DefaultResourceSpec.newBuilder(this.resourceSpec)
-        .value(valueBuilder.build())
+
+        this.resourceSpec = DefaultResourceSpec.newBuilder(this.resourceSpec)
+                .value(valueBuilder.build())
                 .build();
 
         if (useHostPorts) {
@@ -84,13 +89,22 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
             return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
         } else {
-            ResourceRequirement resourceRequirement = getResourceRequirement();
-            setProtos(podInfoBuilder, resourceRequirement.getResource());
+            Protos.Resource portResource = Protos.Resource.newBuilder()
+                    .setRanges(
+                            Protos.Value.Ranges.newBuilder()
+                            .setRange(0,
+                                    Protos.Value.Range.newBuilder()
+                                    .setBegin(assignedPort)
+                                    .setEnd(assignedPort)
+                                    .build())
+                            .build())
+                    .build();
+            setProtos(podInfoBuilder, portResource);
             return EvaluationOutcome.pass(
                     this,
                     Collections.emptyList(),
-                    "Not using host ports: ignoring port resource requirements, using port %s",
-                    TextFormat.shortDebugString(resourceRequirement.getValue()))
+                    String.format("Not using host ports: ignoring port resource requirements, using port %s",
+                            assignedPort));
         }
 
     }
@@ -121,14 +135,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             } catch (TaskException e) {
                 LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
+
             if (useHostPorts) { // we only use the resource if we're using the host ports
-                taskBuilder.addResources(resource);;
-            }
-
-
-            if (useHostPorts) {
                 taskBuilder.addResources(resource);
             }
+
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.getCommandBuilder().setEnvironment(
@@ -224,5 +235,15 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return EnvUtils.toEnvName(draftEnvName);
+    }
+
+    private static boolean requireHostPorts(Collection<String> networkNames) {
+        if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
+            return true;
+        } else {
+            return networkNames.stream()
+                    .filter(DcosConstants::networkSupportsPortMapping)
+                    .count() > 0;
+        }
     }
 }

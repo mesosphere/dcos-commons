@@ -2,8 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.Constants;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
@@ -26,9 +25,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
     public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
                                    String taskName,
-                                   Optional<String> resourceId,
-                                   ) {
-        super(namedVIPSpec, taskName, resourceId, );
+                                   Optional<String> resourceId) {
+        super(namedVIPSpec, taskName, resourceId);
         this.protocol = namedVIPSpec.getProtocol();
         this.visibility = namedVIPSpec.getVisibility();
         this.vipName = namedVIPSpec.getVipName();
@@ -127,7 +125,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return discoveryInfoBuilder.build();
     }
 
-    private static Collection<Label> getVIPLabels(String vipName, Integer vipPort, boolean onOverlay) {
+    private static Collection<Label> getVIPLabels(String vipName, long vipPort, boolean onOverlay) {
         List<Label> labels = new ArrayList<>();
         labels.add(Label.newBuilder()
                 .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))

@@ -22,7 +22,6 @@ public class PortSpec extends DefaultResourceSpec {
     @Size(min = 1)
     private final String portName;
     private final String envKey;
-
     private final Collection<String> networkNames;
 
     @JsonCreator
@@ -68,5 +67,9 @@ public class PortSpec extends DefaultResourceSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    public Collection<String> getNetworkNames() {
+        return networkNames;
     }
 }
