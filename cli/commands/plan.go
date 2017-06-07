@@ -57,17 +57,65 @@ func (cmd *PlanHandler) getPlanName() string {
 	return plan
 }
 
+type PlansResponse struct {
+	Message string `json:"message"`
+}
+
+func parseJSONResponse(jsonBytes []byte) bool {
+	var response PlansResponse
+	err := json.Unmarshal(jsonBytes, &response)
+	if err != nil {
+		client.LogMessage("Could not decode response: %s", err)
+		return false
+	}
+	if len(response.Message) > 0 {
+		// we're just checking that we were able to set the message
+		// since json.Unmarshal will still work as long as the original
+		// []byte object is a well formed JSON string.
+		return true
+	}
+	return false
+}
+
+func getQueryWithPhaseAndStep(phase, step string) url.Values {
+	query := url.Values{}
+	if len(phase) > 0 {
+		query.Set("phase", phase)
+	}
+	if len(step) > 0 {
+		query.Set("step", step)
+	}
+	return query
+}
+
+func forceComplete(planName, phase, step string) {
+	query := getQueryWithPhaseAndStep(phase, step)
+	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", planName), query.Encode())
+	if parseJSONResponse(client.GetResponseBytes(response)) {
+		client.LogMessage("Step %s in phase %s in plan %s has been forced to complete.", step, phase, planName)
+	} else {
+		client.LogMessage("Step %s in phase %s in plan %s could not be forced to complete.", step, phase, planName)
+	}
+}
+
 func (cmd *PlanHandler) RunForceComplete(c *kingpin.ParseContext) error {
-	query := cmd.getQueryWithPhaseAndStep()
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", cmd.getPlanName()), query.Encode())
-	client.PrintJSON(response)
+	forceComplete(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
+func restart(planName, phase, step string) {
+	query := getQueryWithPhaseAndStep(phase, step)
+	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/restart", planName), query.Encode())
+	if parseJSONResponse(client.GetResponseBytes(response)) {
+		// TODO: the user doesn't always have to specify this down to plan level so we should output different messages
+		client.LogMessage("Step %s in phase %s in plan %s has been restarted.", step, phase, planName)
+	} else {
+		client.LogMessage("Step %s in phase %s in plan %s could not be restarted.", step, phase, planName)
+	}
+}
+
 func (cmd *PlanHandler) RunForceRestart(c *kingpin.ParseContext) error {
-	query := cmd.getQueryWithPhaseAndStep()
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/restart", cmd.getPlanName()), query.Encode())
-	client.PrintJSON(response)
+	restart(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
@@ -77,28 +125,33 @@ func (cmd *PlanHandler) RunList(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cmd *PlanHandler) getQueryWithPhaseAndStep() url.Values {
-	query := url.Values{}
-	if len(cmd.Phase) > 0 {
-		query.Set("phase", cmd.Phase)
+func pause(planName, phase string) {
+	query := getQueryWithPhaseAndStep(phase, "")
+	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/interrupt", planName), query.Encode())
+	if parseJSONResponse(client.GetResponseBytes(response)) {
+		client.LogMessage("Plan %s has been paused.", planName)
+	} else {
+		client.LogMessage("Plan %s could not be paused.", planName)
 	}
-	if len(cmd.Step) > 0 {
-		query.Set("step", cmd.Step)
-	}
-	return query
 }
 
 func (cmd *PlanHandler) RunPause(c *kingpin.ParseContext) error {
-	query := cmd.getQueryWithPhaseAndStep()
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/interrupt", cmd.getPlanName()), query.Encode())
-	client.PrintJSON(response)
+	pause(cmd.getPlanName(), cmd.Phase)
 	return nil
 }
 
+func resume(planName, phase string) {
+	query := getQueryWithPhaseAndStep(phase, "")
+	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/continue", planName), query.Encode())
+	if parseJSONResponse(client.GetResponseBytes(response)) {
+		client.LogMessage("Plan %s has been resumed.", planName)
+	} else {
+		client.LogMessage("Plan %s could not be resumed.", planName)
+	}
+}
+
 func (cmd *PlanHandler) RunResume(c *kingpin.ParseContext) error {
-	query := cmd.getQueryWithPhaseAndStep()
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/continue", cmd.getPlanName()), query.Encode())
-	client.PrintJSON(response)
+	resume(cmd.getPlanName(), cmd.Phase)
 	return nil
 }
 
