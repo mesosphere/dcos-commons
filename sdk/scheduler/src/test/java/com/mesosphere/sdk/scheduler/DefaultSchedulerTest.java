@@ -60,7 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the DefaultScheduler class.
  */
-@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
+@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked", "PMD.AvoidUsingHardCodedIP"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
@@ -605,7 +605,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testTaskIpIsStoredOnInstall() {
-        List<Protos.TaskID> taskIds = install();
+        install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
         Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
@@ -617,6 +617,7 @@ public class DefaultSchedulerTest {
     @Test
     public void testTaskIpIsUpdatedOnStatusUpdate() {
         List<Protos.TaskID> taskIds = install();
+        String updateIp = "1.1.1.1";
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
         Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
@@ -629,7 +630,7 @@ public class DefaultSchedulerTest {
                 .setContainerStatus(Protos.ContainerStatus.newBuilder()
                         .addNetworkInfos(Protos.NetworkInfo.newBuilder()
                             .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
-                                .setIpAddress("1.1.1.1"))))
+                                .setIpAddress(updateIp))))
                 .build();
         defaultScheduler.statusUpdate(mockSchedulerDriver, update);
 
@@ -643,7 +644,7 @@ public class DefaultSchedulerTest {
                     .getContainerStatus()
                     .getNetworkInfos(0)
                     .getIpAddresses(0)
-                    .getIpAddress().equals("1.1.1.1");
+                    .getIpAddress().equals(updateIp);
         });
     }
 

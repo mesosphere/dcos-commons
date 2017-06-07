@@ -810,16 +810,15 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
                 // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
                 if (status.hasContainerStatus() &&
-                        status.getContainerStatus().getNetworkInfosCount() > 0) {
-                    if (status.getContainerStatus().getNetworkInfosList().stream()
-                            .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                        Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTasks().stream().filter(
-                                info -> info.getTaskId().getValue().equals(status.getTaskId().getValue())).findFirst();
-                        // If there's no TaskInfo with matching TaskId, then we can discard the update
-                        // as it must be a stale TaskStatus.
-                        if (taskInfo.isPresent()) {
-                            StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.get().getName(), status);
-                        }
+                        status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                        status.getContainerStatus().getNetworkInfosList().stream()
+                                .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+                    Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTasks().stream().filter(
+                            info -> info.getTaskId().getValue().equals(status.getTaskId().getValue())).findFirst();
+                    // If there's no TaskInfo with matching TaskId, then we can discard the update
+                    // as it must be a stale TaskStatus.
+                    if (taskInfo.isPresent()) {
+                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.get().getName(), status);
                     }
                 }
             } catch (Exception e) {
