@@ -11,11 +11,9 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import com.twitter.jvm.Opt;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
@@ -49,39 +47,6 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
     }
-
-    @Ignore
-    public void testDiscoveryInfoWhenOnOverlayWithDynamicPortAssignment() throws Exception {
-        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
-        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
-        boolean onOverlay = false;
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(10000, Collections.emptyList(), onOverlay);
-        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(0, Optional.empty(), onOverlay);
-
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
-        Assert.assertTrue(outcome.isPassing());
-
-        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
-        Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        Assert.assertEquals(0, taskBuilder.getResourcesCount());
-        Protos.Port port = discoveryInfo.getPorts().getPorts(0);
-        Assert.assertEquals(port.getNumber(),1025);
-        Assert.assertEquals(port.getProtocol(), "sctp");
-
-        Protos.Label vipLabel = port.getLabels().getLabels(0);
-        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
-        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
-        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
-
-        vipLabel = port.getLabels().getLabels(1);
-        Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
-    }
-
 
     @Test
     public void testDiscoveryInfoWhenOnOverlay() throws Exception {

@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -20,7 +19,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class evaluates an offer for a single port against a

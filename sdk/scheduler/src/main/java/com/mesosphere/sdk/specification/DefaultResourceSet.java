@@ -205,7 +205,7 @@ public class DefaultResourceSet implements ResourceSet {
          * Adds a collection of {@code resource}s and returns a reference to this Builder so that the methods can be
          * chained together.
          *
-         * @param resource the {@code resource} to add
+         * @param resourceSpecCollection the {@code resource} to add
          * @return a reference to this Builder
          */
         public Builder addResource(Collection<ResourceSpec> resourceSpecCollection) {
