@@ -40,6 +40,7 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertEquals(port.getNumber(), 10000);
         Assert.assertEquals(port.getProtocol(), "sctp");
 
+        Assert.assertEquals(1, port.getLabels().getLabelsCount());
         Protos.Label vipLabel = port.getLabels().getLabels(0);
         Assert.assertEquals("pod-type-0-test-task-name", discoveryInfo.getName());
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
@@ -86,9 +87,11 @@ public class NamedVIPEvaluationStageTest {
 
         boolean onOverlay = true;
 
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(10000, Collections.emptyList(), onOverlay);
+        Integer containerPort = 10000;
 
-        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(10000, Optional.empty(), onOverlay);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(containerPort, Collections.emptyList(), onOverlay);
+
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(containerPort, Optional.empty(), onOverlay);
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -98,7 +101,7 @@ public class NamedVIPEvaluationStageTest {
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Assert.assertEquals(0, taskBuilder.getResourcesCount());
         Protos.Port port = discoveryInfo.getPorts().getPorts(0);
-        Assert.assertEquals(port.getNumber(), 80);
+        Assert.assertEquals(port.getNumber(), containerPort.toString());
         Assert.assertEquals(port.getProtocol(), "sctp");
 
         Protos.Label vipLabel = port.getLabels().getLabels(0);
