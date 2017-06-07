@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -232,12 +231,6 @@ public class DefaultService implements Service {
         }
 
         roles.add(role);
-        roles.addAll(
-                serviceSpec.getPods().stream()
-                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
-                .map(podSpec -> podSpec.getPreReservedRole() + "/" + role)
-                .collect(Collectors.toList()));
-
         return roles;
     }
 }

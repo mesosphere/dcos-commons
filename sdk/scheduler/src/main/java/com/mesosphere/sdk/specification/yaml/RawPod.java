@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
@@ -26,7 +25,6 @@ public class RawPod implements RawContainerInfoProvider {
     private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
     private final RawVolume volume;
     private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
-    private final String preReservedRole;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -41,8 +39,7 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
             @JsonProperty("user") String user,
             @JsonProperty("volume") RawVolume volume,
-            @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
-            @JsonProperty("pre-reserved-role") String preReservedRole) {
+            @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes) {
         this.placement = placement;
         this.count = count;
         this.container = container;
@@ -56,7 +53,6 @@ public class RawPod implements RawContainerInfoProvider {
         this.resourceSets = resourceSets;
         this.volume = volume;
         this.volumes = volumes == null ? new WriteOnceLinkedHashMap<>() : volumes;
-        this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
     }
 
     public String getPlacement() {
@@ -109,9 +105,5 @@ public class RawPod implements RawContainerInfoProvider {
 
     public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
         return volumes;
-    }
-
-    public String getPreReservedRole() {
-        return preReservedRole;
     }
 }

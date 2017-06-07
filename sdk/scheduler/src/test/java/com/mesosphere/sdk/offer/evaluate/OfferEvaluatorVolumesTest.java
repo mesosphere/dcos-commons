@@ -219,7 +219,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testCreateMultipleRootVolumes() throws Exception {
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
                 .addVolume(
@@ -270,7 +270,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testConsumeMultipleMountVolumesFailure() throws Exception {
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-        ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+        ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
                 .addVolume(Constants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-A")
@@ -320,7 +320,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
-                                Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL,
                                 "env-key")),
                 TestConstants.POD_TYPE,
@@ -369,7 +368,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
-                                Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL,
                                 "env-key")),
                 TestConstants.POD_TYPE,

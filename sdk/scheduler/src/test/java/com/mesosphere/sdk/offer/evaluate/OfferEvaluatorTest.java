@@ -229,11 +229,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testLaunchMultipleTasksPerExecutor() throws Exception {
         Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 3.0);
 
-        ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .cpus(1.0)
                 .id("resourceSetA")
                 .build();
-        ResourceSet resourceSetB = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSetB = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .cpus(2.0)
                 .id("resourceSetB")
                 .build();
@@ -510,58 +510,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         operation = recommendations.get(4).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
-
-    }
-
-    @Test
-    public void testResourceRefinementSucceeds() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertEquals("base-role", serviceSpec.getPods().get(0).getPreReservedRole());
-
-        Offer sufficientOffer = OfferTestUtils.getOffer(
-                Arrays.asList(
-                        ResourceTestUtils.getUnreservedScalar("cpus", 3.0).toBuilder()
-                                .setRole("base-role")
-                                .build()));
-
-        PodSpec podSpec = serviceSpec.getPods().get(0);
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch)
-                .build();
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(sufficientOffer));
-
-        Assert.assertEquals(2, recommendations.size());
-    }
-
-    @Test
-    public void testResourceRefinementFails() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertEquals("base-role", serviceSpec.getPods().get(0).getPreReservedRole());
-
-        Offer sufficientOffer = OfferTestUtils.getOffer(
-                Arrays.asList(ResourceTestUtils.getUnreservedScalar("cpus", 3.0)));
-
-        PodSpec podSpec = serviceSpec.getPods().get(0);
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch)
-                .build();
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(sufficientOffer));
-
-        Assert.assertEquals(0, recommendations.size());
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {

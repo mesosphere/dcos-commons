@@ -28,7 +28,7 @@ public class ResourceBuilder {
     private Optional<DiskInfo.Source> diskMountInfo;
 
     public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
-        return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
+        return new ResourceBuilder(spec.getName(), spec.getValue())
                 .setRole(Optional.of(spec.getRole()))
                 .setPrincipal(Optional.of(spec.getPrincipal()))
                 .setResourceId(resourceId);
@@ -69,7 +69,7 @@ public class ResourceBuilder {
     }
 
     public static ResourceBuilder fromUnreservedValue(String resourceName, Value value) {
-        return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
+        return new ResourceBuilder(resourceName, value);
     }
 
     private static ResourceSpec getResourceSpec(Resource resource) {
@@ -82,7 +82,6 @@ public class ResourceBuilder {
                 resource.getName(),
                 ValueUtils.getValue(resource),
                 ResourceCollectionUtils.getRole(resource).get(),
-                resource.getRole(),
                 ResourceCollectionUtils.getPrincipal(resource).get(),
                 ""); // env-key isn't used
     }
@@ -94,15 +93,14 @@ public class ResourceBuilder {
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
                 ResourceCollectionUtils.getRole(resource).get(),
-                resource.getRole(),
                 resource.getDisk().getPersistence().getPrincipal(),
                 ""); // env-key isn't used
     }
 
-    private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
+    private ResourceBuilder(String resourceName, Value value) {
         this.resourceName = resourceName;
         this.value = value;
-        this.preReservedRole = preReservedRole;
+        this.preReservedRole = Constants.ANY_ROLE;
         this.role = Optional.empty();
         this.principal = Optional.empty();
         this.resourceId = Optional.empty();

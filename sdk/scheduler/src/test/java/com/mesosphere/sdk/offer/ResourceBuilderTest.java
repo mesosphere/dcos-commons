@@ -63,7 +63,6 @@ public class ResourceBuilderTest {
                 "cpus",
                 value,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "CPUS_ENV_KEY");
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
@@ -82,7 +81,6 @@ public class ResourceBuilderTest {
                 "cpus",
                 value,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "CPUS_ENV_KEY");
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, resourceId);
@@ -128,7 +126,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -149,7 +146,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -210,7 +206,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -238,7 +233,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -271,7 +265,6 @@ public class ResourceBuilderTest {
                 "cpus",
                 value,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "CPUS_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -288,7 +281,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -311,7 +303,6 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
-                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());

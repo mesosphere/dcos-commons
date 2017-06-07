@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -119,7 +118,6 @@ public class ResourceTestUtils {
                 VolumeSpec.Type.ROOT,
                 containerPath,
                 role,
-                Constants.ANY_ROLE,
                 principal,
                 ""); // env-key isn't used
         return ResourceBuilder.fromSpec(

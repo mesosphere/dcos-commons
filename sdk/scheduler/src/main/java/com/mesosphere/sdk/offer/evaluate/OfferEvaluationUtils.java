@@ -16,7 +16,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * Created by gabriel on 6/2/17.
+ * This class encapsulates shared offer evaluation logic for evaluation stages.
  */
 public class OfferEvaluationUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferEvaluationUtils.class);
@@ -66,7 +66,7 @@ public class OfferEvaluationUtils {
                 mesosResourceOptional = mesosResourcePool.consumeReservableMerged(
                         requiredAdditionalResources.getName(),
                         requiredAdditionalResources.getValue(),
-                        resourceSpec.getPreReservedRole());
+                        Constants.ANY_ROLE);
 
                 if (!mesosResourceOptional.isPresent()) {
                     return fail(
@@ -124,7 +124,7 @@ public class OfferEvaluationUtils {
             return pool.consumeReservableMerged(
                     resourceSpec.getName(),
                     resourceSpec.getValue(),
-                    resourceSpec.getPreReservedRole());
+                    Constants.ANY_ROLE);
         } else {
             return pool.consumeReserved(resourceSpec.getName(), resourceSpec.getValue(), resourceId.get());
         }

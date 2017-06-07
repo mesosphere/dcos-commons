@@ -252,15 +252,9 @@ public class MesosResourcePool {
     }
 
     private static boolean consumableResource(Optional<String> podRole, Resource resource) {
-        if (!podRole.isPresent()) {
-            return true;
-        }
-
-        if (!resource.hasAllocationInfo()) {
-            return true;
-        }
-
-        if (!resource.getAllocationInfo().hasRole()) {
+        if (!podRole.isPresent()
+                || !resource.hasAllocationInfo()
+                || !resource.getAllocationInfo().hasRole()) {
             return true;
         }
 
