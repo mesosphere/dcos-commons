@@ -64,6 +64,7 @@ public class PodInfoBuilder {
 
             taskSpec.getResourceSet().getResources().stream()
                     .filter(resourceSpec -> resourceSpec.getName().equals(Constants.PORTS_RESOURCE_TYPE))
+                    .filter(resourceSpec -> resourceSpec.getValue().getRanges().getRange(0).getBegin() > 0)
                     .forEach(resourceSpec -> assignedOverlayPorts
                             .add(resourceSpec.getValue().getRanges().getRange(0).getBegin()));
 

@@ -15,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PortEvaluationStageTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
@@ -39,13 +40,15 @@ public class PortEvaluationStageTest {
                 Collections.emptyList());
     }
 
-    private PodInstanceRequirement getPodInstanceRequirement(PortSpec portSpec) {
+    private PodInstanceRequirement getPodInstanceRequirement(PortSpec... portSpecs) {
         // Build Pod
+
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
-                .addResource(portSpec)
+                .addResource(Arrays.asList(portSpecs))
                 .build();
+
         CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
                 .value("./cmd")
                 .build();
@@ -84,35 +87,70 @@ public class PortEvaluationStageTest {
     }
 
     @Test
-    public void testDynamicPortResourceOnOverlay() throws Exception {
+    public void testPortResourceIsIgnoredOnOverlay() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
-
+        Integer requestedPort = 80;  // request a port that's not available in the offer.
+        String expectedPortEnvVar = "PORT_TEST_IGNORED";
         PortSpec portSpec = new PortSpec(
-                getPort(0),
+                getPort(requestedPort),
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
-                "port?test.port",
-                "dyn-port-name",
+                "port?test.ignored",
+                "overlay-port-name",
                 getOverlayNetworkNames());
-
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 portSpec, TestConstants.TASK_NAME, Optional.empty());
-
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Assert.assertEquals(0, taskBuilder.getResourcesCount());
-        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "TEST_PORT");
-        Assert.assertEquals(variable.getValue(), DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START.toString());
+        List<Protos.Environment.Variable> portEnvVars = taskBuilder.getCommand().getEnvironment().getVariablesList()
+                .stream()
+                .filter(variable -> variable.getName().equals(expectedPortEnvVar))
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, portEnvVars.size());
+        Protos.Environment.Variable variable = portEnvVars.get(0);
+        Assert.assertEquals(variable.getName(), expectedPortEnvVar);
+        Assert.assertEquals(variable.getValue(), requestedPort.toString());
     }
 
+    @Test
+    public void testDynamicPortResourceOnOverlay() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        Integer expectedDynamicOverlayPort = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
+        String expectedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC_OVERLAY";
+        PortSpec portSpec = new PortSpec(
+                getPort(0),
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                "port?test.dynamic.overlay",
+                "dyn-port-name",
+                getOverlayNetworkNames());
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                portSpec, TestConstants.TASK_NAME, Optional.empty());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Assert.assertEquals(0, taskBuilder.getResourcesCount());
+        List<Protos.Environment.Variable> portEnvVars = taskBuilder.getCommand().getEnvironment().getVariablesList()
+                .stream()
+                .filter(variable -> variable.getName().equals(expectedDynamicOverlayPortEnvvar))
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, portEnvVars.size());
+        Protos.Environment.Variable variable = portEnvVars.get(0);
+        Assert.assertEquals(variable.getName(), expectedDynamicOverlayPortEnvvar);
+        Assert.assertEquals(variable.getValue(), expectedDynamicOverlayPort.toString());
+        Assert.assertEquals(variable.getName(), expectedDynamicOverlayPortEnvvar);
+        Assert.assertEquals(variable.getValue(), expectedDynamicOverlayPort.toString());
+    }
 
     @Test
     public void testDynamicPortResourceOnOverlayWithRequestedPortToo() throws Exception {
@@ -127,20 +165,20 @@ public class PortEvaluationStageTest {
                 "conflicts-with-dynamic",
                 getOverlayNetworkNames());
 
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
-        Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
-                        "should be 1, got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
-                podInfoBuilder.getAssignedOverlayPorts().size() == 1);
-
         PortSpec dynamPortSpec = new PortSpec(
                 getPort(0),
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
                 "port?test.port",
-                "conflicts-with-dynamic",
+                "conflicts-with-explicit",
                 getOverlayNetworkNames());
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec, dynamPortSpec);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
+
+        Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
+                        "should be 1, got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
+                podInfoBuilder.getAssignedOverlayPorts().size() == 1);
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 dynamPortSpec, TestConstants.TASK_NAME, Optional.empty());
@@ -159,34 +197,6 @@ public class PortEvaluationStageTest {
         Assert.assertEquals(variable.getValue(), expected.toString());
     }
 
-    @Test
-    public void testPortResourceIsIgnoredOnOverlay() throws Exception {
-        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
-        PortSpec portSpec = new PortSpec(
-                getPort(DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START),
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "port?test.port",
-                "conflicts-with-dynamic",
-                getOverlayNetworkNames());
-
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
-        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                portSpec, TestConstants.TASK_NAME, Optional.empty());
-
-        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
-        Assert.assertTrue(outcome.isPassing());
-        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        Assert.assertEquals(0, taskBuilder.getResourcesCount());
-        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "TEST_PORT");
-        Assert.assertEquals(variable.getValue(),"10");
-    }
 
     @Test
     public void testPortEnvCharConversion() throws Exception {
@@ -210,6 +220,7 @@ public class PortEvaluationStageTest {
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
+        Assert.assertEquals(1, podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getResourcesCount());
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals(
                 5000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());

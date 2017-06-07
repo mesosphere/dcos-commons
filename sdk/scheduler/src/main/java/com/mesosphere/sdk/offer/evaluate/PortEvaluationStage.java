@@ -89,17 +89,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
             return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
         } else {
-            Protos.Resource portResource = Protos.Resource.newBuilder()
-                    .setRanges(
-                            Protos.Value.Ranges.newBuilder()
-                            .setRange(0,
-                                    Protos.Value.Range.newBuilder()
-                                    .setBegin(assignedPort)
-                                    .setEnd(assignedPort)
-                                    .build())
-                            .build())
-                    .build();
-            setProtos(podInfoBuilder, portResource);
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(resourceSpec).build());
             return EvaluationOutcome.pass(
                     this,
                     Collections.emptyList(),
