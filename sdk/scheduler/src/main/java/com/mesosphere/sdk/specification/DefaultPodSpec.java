@@ -112,6 +112,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
         builder.volumes = copy.getVolumes();
+        builder.preReservedRole = copy.getPreReservedRole();
         return builder;
     }
 
