@@ -90,6 +90,21 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
 
+  * `secrets`
+
+    This section list the Secrets that will be made available to the pod. Secret content is exposed as a file or as a environment variable.
+
+     * `secret`
+        The path of a Secret
+
+     * `env-key`
+        Name of the environment variable
+
+     * `file`
+        File path in the container. Secret content is copied into this file. Secret file an in-memory file, disappears when executor exits.
+
+     If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
+     
   * `strategy`
 
     This field isn't used! TODO(nickbp) remove.
