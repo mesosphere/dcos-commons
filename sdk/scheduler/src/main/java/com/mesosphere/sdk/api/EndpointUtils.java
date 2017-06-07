@@ -62,8 +62,11 @@ public class EndpointUtils {
      * Returns the correct Mesos DNS endpoint for the provided task and port running within the provided service.
      */
     public static String toAutoIpEndpoint(String serviceName, String taskName, int port) {
+        // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
         String hostname = String.format("%s.%s.%s",
-                removeSlashes(taskName), removeSlashes(serviceName), AUTOIP_HOST_TLD);
+                removeSlashes(replaceDotsWithDashes(taskName)),
+                removeSlashes(replaceDotsWithDashes(serviceName)),
+                AUTOIP_HOST_TLD);
         return toEndpoint(hostname, port);
     }
 
@@ -72,7 +75,9 @@ public class EndpointUtils {
      */
     public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
         String hostname = String.format("%s.%s.%s",
-                removeSlashes(vipInfo.getVipName()), removeSlashes(serviceName), VIP_HOST_TLD);
+                removeSlashes(vipInfo.getVipName()),
+                removeSlashes(serviceName),
+                VIP_HOST_TLD);
         return toEndpoint(hostname, vipInfo.getVipPort());
     }
 
@@ -131,5 +136,12 @@ public class EndpointUtils {
      */
     private static String removeSlashes(String serviceName) {
         return serviceName.replace("/", "");
+    }
+
+    /**
+     * "hello.kafka" => "hello-kafka".
+     */
+    private static String replaceDotsWithDashes(String serviceName) {
+        return serviceName.replace(".", "-");
     }
 }
