@@ -151,7 +151,7 @@ func checkHTTPResponse(response *http.Response) *http.Response {
 	case response.StatusCode == http.StatusUnauthorized:
 		PrintMessage("Got 401 Unauthorized response from %s", response.Request.URL)
 		PrintMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
-	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusNotFound:
+	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
 		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		printResponseErrorAndExit(response)
