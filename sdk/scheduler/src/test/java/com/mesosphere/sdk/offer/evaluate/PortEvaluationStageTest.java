@@ -156,45 +156,57 @@ public class PortEvaluationStageTest {
     public void testDynamicPortResourceOnOverlayWithRequestedPortToo() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
+        Integer expectedExplicitOverlayPort = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
+        Integer expectedDynamicOverlayPort = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START + 1;
+        String expectedExplicitOverlayPortEnvvar = "PORT_TEST_EXPLICIT";
+        String expextedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC";
         PortSpec portSpec = new PortSpec(
                 getPort(DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START),
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
-                "port?test.port",
-                "conflicts-with-dynamic",
+                "port?test.explicit",
+                "explitic-port",
                 getOverlayNetworkNames());
-
         PortSpec dynamPortSpec = new PortSpec(
                 getPort(0),
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
-                "port?test.port",
-                "conflicts-with-explicit",
+                "port?test.dynamic",
+                "dynamic-port",
                 getOverlayNetworkNames());
-
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec, dynamPortSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
         Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
                         "should be 1, got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
                 podInfoBuilder.getAssignedOverlayPorts().size() == 1);
-
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        PortEvaluationStage portEvaluationStage_ = new PortEvaluationStage(
+                portSpec, TestConstants.TASK_NAME, Optional.empty());
+        EvaluationOutcome outcome0 = portEvaluationStage_.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertTrue(outcome0.isPassing());
+        Assert.assertEquals(0, outcome0.getOfferRecommendations().size());
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 dynamPortSpec, TestConstants.TASK_NAME, Optional.empty());
-
-        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome1 = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome1.isPassing());
+        Assert.assertEquals(0, outcome1.getOfferRecommendations().size());
         Assert.assertTrue(String.format("podInfoBuilder has incorrect number of assigned overlay ports, " +
                         "should be 2 got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
                 podInfoBuilder.getAssignedOverlayPorts().size() == 2);
-        Assert.assertTrue(outcome.isPassing());
-        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Assert.assertEquals(0, taskBuilder.getResourcesCount());
-        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "TEST_PORT");
-        Integer expected = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START + 1;
-        Assert.assertEquals(variable.getValue(), expected.toString());
+        Map<String, String> portEnvVarMap = taskBuilder.getCommand().getEnvironment().getVariablesList()
+                .stream()
+                .filter(variable -> variable.getName().equals(expectedExplicitOverlayPortEnvvar) ||
+                        variable.getName().equals(expextedDynamicOverlayPortEnvvar))
+                .collect(Collectors.toMap(Protos.Environment.Variable::getName, Protos.Environment.Variable::getValue));
+        Assert.assertEquals(2, portEnvVarMap.size());
+        Assert.assertTrue(portEnvVarMap.containsKey(expectedExplicitOverlayPortEnvvar));
+        Assert.assertTrue(portEnvVarMap.containsKey(expextedDynamicOverlayPortEnvvar));
+        Assert.assertTrue(portEnvVarMap.get(expectedExplicitOverlayPortEnvvar)
+                .equals(expectedExplicitOverlayPort.toString()));
+        Assert.assertTrue(portEnvVarMap.get(expextedDynamicOverlayPortEnvvar)
+                .equals(expectedDynamicOverlayPort.toString()));
     }
 
 
@@ -204,7 +216,7 @@ public class PortEvaluationStageTest {
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         PortSpec portSpec = new PortSpec(
-                getPort(0),
+                getPort(5000),
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
                 "port?test.port",

@@ -191,11 +191,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private static Optional<Integer> selectOverlayPort(PodInfoBuilder podInfoBuilder) {
         // take the next available port in the range.
         Optional<Integer> dynamicPort = Optional.empty();
-        for (int i = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
+        for (Integer i = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
              i <= DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_END; i++) {
-            if (!podInfoBuilder.isAssignedOverlayPort(i)) {
+            if (!podInfoBuilder.isAssignedOverlayPort(i.longValue())) {
                 dynamicPort = Optional.of(i);
-                podInfoBuilder.addAssignedOverlayPort(i);
+                podInfoBuilder.addAssignedOverlayPort(i.longValue());
                 break;
             }
         }

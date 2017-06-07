@@ -123,7 +123,7 @@ public class PodInfoBuilder {
         return new ArrayList<>(executorBuilder.getResourcesBuilderList());
     }
 
-    public boolean isAssignedOverlayPort(Integer candidatePort) {
+    public boolean isAssignedOverlayPort(long candidatePort) {
         return assignedOverlayPorts.contains(candidatePort);
     }
 
