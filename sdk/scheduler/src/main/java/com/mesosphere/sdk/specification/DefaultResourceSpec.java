@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -60,13 +58,13 @@ public class DefaultResourceSpec implements ResourceSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultResourceSpec copy) {
+    public static Builder newBuilder(ResourceSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.value = copy.value;
-        builder.role = copy.role;
-        builder.principal = copy.principal;
-        builder.envKey = copy.envKey;
+        builder.name = copy.getName();
+        builder.value = copy.getValue();
+        builder.role = copy.getRole();
+        builder.principal = copy.getPrincipal();
+        builder.envKey = copy.getEnvKey().isPresent() ? copy.getEnvKey().get() : null;
         return builder;
     }
 
@@ -83,11 +81,6 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Override
     public String getPrincipal() {
         return principal;
-    }
-
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new ResourceRequirement(resource == null ? ResourceBuilder.fromSpec(this).build() : resource);
     }
 
     @Override

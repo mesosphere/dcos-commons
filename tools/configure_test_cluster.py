@@ -11,7 +11,6 @@ import tempfile
 
 import cli_install
 import dcos_login
-import piputil
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
@@ -94,16 +93,6 @@ class ClusterInitializer(object):
         subprocess.check_call(['dcos', 'config', 'show'])
         dcos_login.DCOSLogin(self.dcos_url).login()
 
-    def configure_master_settings(self):
-        logger.info("Live-customizing mesos master")
-        package_path = piputil.shared_tools_packagedir()
-        piputil.populate_dcoscommons_packagedir(package_path)
-        piputil.activate_libdir(package_path)
-
-        # import delayed until dependencies exist
-        import modify_master
-        modify_master.set_local_infinity_defaults()
-
     def apply_default_config(self, initmaster=True):
         saved_env = os.environ.copy()
         try:
@@ -135,7 +124,6 @@ class ClusterInitializer(object):
                         # expects after.
                         # in the shiny future, set up the CLI once for the whole run.
                         self._initialize_dcos_cli()
-                        self.configure_master_settings()
                 finally:
                     sys.stdout.flush()
                     os.dup2(stdout_back, stdout_fd)

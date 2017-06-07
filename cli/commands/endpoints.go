@@ -36,8 +36,8 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 }
 
 func HandleEndpointsSection(app *kingpin.Application) {
-	// endpoints [type]
+	// endpoint[s] [type]
 	cmd := &EndpointsHandler{}
-	endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
+	endpoints := app.Command("endpoints", "View client endpoints").Alias("endpoint").Action(cmd.RunEndpoints)
 	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }

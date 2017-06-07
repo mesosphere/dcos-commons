@@ -224,7 +224,7 @@ def setup_constraint_switch():
 
 def get_task_host(task_name):
     out = cmd.run_cli('task {} --json'.format(task_name))
-    
+
     for label in json.loads(out)[0]['labels']:
         if label['key'] == 'offer_hostname':
             return label['value']
