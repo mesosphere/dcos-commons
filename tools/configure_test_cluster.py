@@ -11,7 +11,7 @@ import tempfile
 
 import cli_install
 import dcos_login
-import venvutil
+import piputil
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":
@@ -96,9 +96,9 @@ class ClusterInitializer(object):
 
     def configure_master_settings(self):
         logger.info("Live-customizing mesos master")
-        package_path = venvutil.shared_tools_packagedir()
-        venvutil.populate_dcoscommons_packagedir(package_path)
-        venvutil.activate_venv(package_path)
+        package_path = piputil.shared_tools_packagedir()
+        piputil.populate_dcoscommons_packagedir(package_path)
+        piputil.activate_libdir(package_path)
 
         # import delayed until dependencies exist
         import modify_master
