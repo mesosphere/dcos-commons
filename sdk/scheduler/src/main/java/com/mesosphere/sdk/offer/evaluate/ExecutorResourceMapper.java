@@ -77,7 +77,9 @@ public class ExecutorResourceMapper {
                 }
                 matchingVolumes.add(matchingVolume.get());
             } else {
-                orphanedResources.add(resource);
+                if (resource.hasDisk()) {
+                    orphanedResources.add(resource);
+                }
             }
         }
 
@@ -120,6 +122,10 @@ public class ExecutorResourceMapper {
             Protos.Resource resource,
             Collection<VolumeSpec> volumeSpecs) {
         for (VolumeSpec volumeSpec : volumeSpecs) {
+            if (!resource.hasDisk()) {
+                continue;
+            }
+
             if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
                 Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
                 if (!resourceId.isPresent()) {
