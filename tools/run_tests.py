@@ -121,7 +121,7 @@ class CITester(object):
                                                 requirements_txt)
         piputil.activate_libdir(package_path)
 
-        cmd = ['python3', '-m', 'pytest']
+        cmd = [sys.executable, '-m', 'pytest']
         if jenkins_args:
             cmd.append(jenkins_args)
         cmd.extend(['-vv', '--fulltrace', '-x', '-s', '-m', pytest_types, test_dirs])
