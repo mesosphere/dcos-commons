@@ -72,7 +72,7 @@ public class ResourceTestUtils {
                 .build();
         return Resource.newBuilder(getUnreservedResource("disk", diskValue))
                 .setDisk(mountVolumeDiskInfo)
-                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
+                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -158,7 +158,7 @@ public class ResourceTestUtils {
                 .setScalar(Value.Scalar.newBuilder().setValue(value))
                 .build();
         return Resource.newBuilder(getUnreservedResource(name, val))
-                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
+                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -192,7 +192,7 @@ public class ResourceTestUtils {
                 .setRanges(Value.Ranges.newBuilder().addAllRange(ranges))
                 .build();
         return Resource.newBuilder(getUnreservedResource(name, val))
-                .addReservations(getExpectedReservationInfo(resourceId, role, principal))
+                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
                 .build();
     }
 
@@ -221,7 +221,6 @@ public class ResourceTestUtils {
 
     private static ReservationInfo getExpectedReservationInfo(String resourceId, String role, String principal) {
         return ReservationInfo.newBuilder()
-                .setRole(role)
                 .setPrincipal(principal)
                 .setLabels(Labels.newBuilder()
                         .addLabels(Label.newBuilder()

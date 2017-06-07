@@ -63,11 +63,7 @@ public class MesosResource {
     }
 
     public String getPreviousRole() {
-        if (resource.getReservationsCount() <= 1) {
-            return resource.getRole();
-        } else {
-            return resource.getReservations(resource.getReservationsCount() - 2).getRole();
-        }
+        return Constants.ANY_ROLE;
     }
 
     public Optional<String> getPrincipal() {

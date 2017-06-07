@@ -9,7 +9,6 @@ import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
