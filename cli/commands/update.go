@@ -17,9 +17,9 @@ type DescribeRequest struct {
 }
 
 func reportErrorAndExit(err error, responseBytes []byte) {
-	client.LogMessage("Failed to unmarshal response. Error: %s", err)
-	client.LogMessage("Original data follows:")
-	client.LogMessageAndExit(string(responseBytes))
+	client.PrintMessage("Failed to unmarshal response. Error: %s", err)
+	client.PrintMessage("Original data follows:")
+	client.PrintMessageAndExit(string(responseBytes))
 }
 
 func doDescribe() {
@@ -35,8 +35,8 @@ func doDescribe() {
 	if resolvedOptionsBytes != nil {
 		client.PrintJSONBytes(resolvedOptionsBytes, nil)
 	} else {
-		client.LogMessage("Package configuration is not available for service %s.", config.ServiceName)
-		client.LogMessageAndExit("Only packages installed with Enterprise DC/OS 1.10 or newer will have configuration persisted.")
+		client.PrintMessage("Package configuration is not available for service %s.", config.ServiceName)
+		client.PrintMessage("dcos %s %s is only available for packages installed with Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	}
 }
 
@@ -84,12 +84,12 @@ func printPackageVersions() {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.LogMessage("Current package version is: %s", currentVersionBytes)
+	client.PrintMessage("Current package version is: %s", currentVersionBytes)
 	if downgradeVersionsBytes != nil {
-		client.LogMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
+		client.PrintMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
 	}
 	if upgradeVersionsBytes != nil {
-		client.LogMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
+		client.PrintMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
 	}
 
 }
@@ -119,7 +119,8 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 func doUpdate(optionsFile, packageVersion string) {
 	request := UpdateRequest{AppID: config.ServiceName}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
-		client.LogMessageAndExit("Either --options and/or --package-version must be specified. See --help.")
+		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
+		return
 	}
 	if len(packageVersion) > 0 {
 		request.PackageVersion = packageVersion
@@ -127,12 +128,12 @@ func doUpdate(optionsFile, packageVersion string) {
 	if len(optionsFile) > 0 {
 		fileBytes, err := ioutil.ReadFile(optionsFile)
 		if err != nil {
-			client.LogMessageAndExit("Failed to load specified options file %s: %s", optionsFile, err)
+			client.PrintMessage("Failed to load specified options file %s: %s", optionsFile, err)
 			return
 		}
 		optionsJSON, err := client.UnmarshalJSON(fileBytes)
 		if err != nil {
-			client.LogMessageAndExit("Failed to parse JSON in specified options file %s: %s", optionsFile, err)
+			client.PrintMessage("Failed to parse JSON in specified options file %s: %s", optionsFile, err)
 			return
 		}
 		request.OptionsJSON = optionsJSON
@@ -144,7 +145,7 @@ func doUpdate(optionsFile, packageVersion string) {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
-	client.LogMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update status` to view progress.", config.ModuleName, config.ServiceName))
+	client.PrintMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update status` to view progress.", config.ModuleName, config.ServiceName))
 }
 
 func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {

@@ -22,10 +22,6 @@ type UpdateTestSuite struct {
 	capturedOutput bytes.Buffer
 }
 
-func (suite *UpdateTestSuite) logRecorder(format string, a ...interface{}) {
-	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
-}
-
 func (suite *UpdateTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
 	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
 	return 0, nil // this is probably sub-optimal in the general sense
@@ -55,10 +51,9 @@ func (suite *UpdateTestSuite) SetupSuite() {
 	config.ModuleName = "hello-world"
 	config.ServiceName = "hello-world"
 
-	// reassign logging and printing functions to allow us to check output
-	client.LogMessage = suite.logRecorder
-	client.LogMessageAndExit = suite.logRecorder
+	// reassign printing functions to allow us to check output
 	client.PrintMessage = suite.printRecorder
+	client.PrintMessageAndExit = suite.printRecorder
 }
 
 func (suite *UpdateTestSuite) SetupTest() {
@@ -86,6 +81,7 @@ func (suite *UpdateTestSuite) TestDescribe() {
 }
 
 func (suite *UpdateTestSuite) TestDescribeNoOptions() {
+	config.Command = "describe"
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/open/describe.json")
 	doDescribe()
 	// assert that user receives an error message

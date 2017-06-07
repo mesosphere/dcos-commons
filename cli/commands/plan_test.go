@@ -24,10 +24,6 @@ type PlanTestSuite struct {
 	capturedOutput bytes.Buffer
 }
 
-func (suite *PlanTestSuite) logRecorder(format string, a ...interface{}) {
-	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
-}
-
 func (suite *PlanTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
 	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
 	return 0, nil // this is probably sub-optimal in the general sense
@@ -57,10 +53,9 @@ func (suite *PlanTestSuite) SetupSuite() {
 	config.ModuleName = "hello-world"
 	config.ServiceName = "hello-world"
 
-	// reassign logging and printing functions to allow us to check output
-	client.LogMessage = suite.logRecorder
-	client.LogMessageAndExit = suite.logRecorder
+	// reassign printing functions to allow us to check output
 	client.PrintMessage = suite.printRecorder
+	client.PrintMessageAndExit = suite.printRecorder
 }
 
 func (suite *PlanTestSuite) SetupTest() {
@@ -176,21 +171,21 @@ func (suite *PlanTestSuite) TestGetQuery() {
 func (suite *PlanTestSuite) TestForceComplete() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/force-complete.json")
 	forceComplete("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n"
+	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
 func (suite *PlanTestSuite) TestForceRestart() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/restart.json")
 	restart("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n"
+	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
 func (suite *PlanTestSuite) TestPause() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/interrupt.json")
 	pause("deploy", "hello")
-	expectedOutput := "Plan deploy has been paused.\n"
+	expectedOutput := "Plan deploy has been paused.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -201,7 +196,7 @@ func (suite *PlanTestSuite) TestPause() {
 func (suite *PlanTestSuite) TestResume() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/continue.json")
 	resume("deploy", "hello")
-	expectedOutput := "Plan deploy has been resumed.\n"
+	expectedOutput := "Plan deploy has been resumed.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 

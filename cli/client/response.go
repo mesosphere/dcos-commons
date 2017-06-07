@@ -5,31 +5,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"os"
 
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 // Fake functions that allow us to assert against output
-var LogMessage = log.Printf
-var LogMessageAndExit = log.Fatalf
-var PrintMessage = fmt.Printf
+var PrintMessage = printMessage
+var PrintMessageAndExit = printMessageAndExit
+
+func printMessage(format string, a ...interface{}) (int, error) {
+	message := fmt.Sprintf(format, a...)
+	return fmt.Println(message)
+}
+
+func printMessageAndExit(format string, a ...interface{}) (int, error) {
+	PrintMessage(format, a...)
+	os.Exit(1)
+	return 0, nil
+}
 
 func printResponseError(response *http.Response) {
-	LogMessage("HTTP %s Query for %s failed: %s",
+	PrintMessage("HTTP %s Query for %s failed: %s",
 		response.Request.Method, response.Request.URL, response.Status)
 }
 
 func printResponseErrorAndExit(response *http.Response) {
-	LogMessageAndExit("HTTP %s Query for %s failed: %s",
+	PrintMessageAndExit("HTTP %s Query for %s failed: %s",
 		response.Request.Method, response.Request.URL, response.Status)
 }
 
 func printServiceNameErrorAndExit(response *http.Response) {
-	printResponseError(response)
-	LogMessage("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
-	LogMessageAndExit("- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.")
+	if config.Verbose {
+		printResponseError(response)
+	}
+	PrintMessage("Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+	PrintMessageAndExit("Was the service recently installed or updated? It may still be initializing, wait a bit and try again.")
 }
 
 func PrintJSONBytes(responseBytes []byte, request *http.Request) {
@@ -39,13 +51,13 @@ func PrintJSONBytes(responseBytes []byte, request *http.Request) {
 		// Be permissive of malformed json, such as character codes in strings that are unknown to
 		// Go's json: Warn in stderr, then print original to stdout.
 		if request != nil {
-			LogMessage("Failed to prettify JSON response data from %s %s query: %s",
+			PrintMessage("Failed to prettify JSON response data from %s %s query: %s",
 				request.Method, request.URL, err)
 		} else {
-			LogMessage("Failed to prettify JSON response data: %s", err)
+			PrintMessage("Failed to prettify JSON response data: %s", err)
 		}
 
-		LogMessage("Original data follows:")
+		PrintMessage("Original data follows:")
 		outBuf = *bytes.NewBuffer(responseBytes)
 	}
 	PrintMessage("%s\n", outBuf.String())
@@ -67,7 +79,7 @@ func GetResponseBytes(response *http.Response) []byte {
 	defer response.Body.Close()
 	responseBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		LogMessageAndExit("Failed to read response data from %s %s query: %s",
+		PrintMessageAndExit("Failed to read response data from %s %s query: %s",
 			response.Request.Method, response.Request.URL, err)
 	}
 	return responseBytes

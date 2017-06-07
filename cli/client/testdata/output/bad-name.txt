@@ -1,3 +1,2 @@
-HTTP POST Query for https://my.dcos.url/cosmos/service/describe failed: 400 Bad Request
-- Did you provide the correct service name? Currently using 'hello-world-1', specify a different name with '--name=<name>'.
-- Was the service recently installed? It may still be initializing, wait a bit and try again.
+Did you provide the correct service name? Currently using 'hello-world-1', specify a different name with '--name=<name>'.
+Was the service recently installed or updated? It may still be initializing, wait a bit and try again.

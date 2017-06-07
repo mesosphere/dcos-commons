@@ -17,9 +17,11 @@ func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
 func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
 	requestedVersion, _ := GetValueFromJSON(data, "updateVersion")
 	validVersions, _ := GetValueFromJSON(data, "validVersions")
-	printResponseError(response)
-	LogMessage("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
-	LogMessageAndExit("- Valid versions are: %s", validVersions)
+	if config.Verbose {
+		printResponseError(response)
+	}
+	PrintMessage("Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
+	PrintMessageAndExit("Valid versions are: %s", validVersions)
 }
 
 func parseCosmosHTTPErrorResponse(response *http.Response) {
@@ -36,7 +38,7 @@ func parseCosmosHTTPErrorResponse(response *http.Response) {
 			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
 		default:
 			if config.Verbose {
-				LogMessage("Cosmos error: %s: %s", errorType, message)
+				PrintMessage("Cosmos error: %s: %s", errorType, message)
 			}
 			printResponseErrorAndExit(response)
 		}
@@ -46,8 +48,10 @@ func parseCosmosHTTPErrorResponse(response *http.Response) {
 func checkCosmosHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
-		printResponseError(response)
-		LogMessageAndExit("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		if config.Verbose {
+			printResponseError(response)
+		}
+		PrintMessageAndExit("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	case response.StatusCode == http.StatusBadRequest:
 		parseCosmosHTTPErrorResponse(response)
 	default:

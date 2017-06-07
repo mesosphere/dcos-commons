@@ -112,7 +112,7 @@ func httpQuery(request *http.Request) *http.Response {
 		// include custom CA cert as verified
 		cert, err := ioutil.ReadFile(config.TlsCACertPath)
 		if err != nil {
-			LogMessageAndExit("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
+			PrintMessageAndExit("Unable to read from CA certificate file %s: %s", config.TlsCACertPath, err)
 		}
 		certPool := x509.NewCertPool()
 		certPool.AppendCertsFromPEM(cert)
@@ -131,17 +131,17 @@ func httpQuery(request *http.Request) *http.Response {
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
-			LogMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			LogMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
-			LogMessageAndExit("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
+			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			PrintMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
+			PrintMessageAndExit("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
 		default:
-			LogMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			LogMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			LogMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
+			PrintMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
+			PrintMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
 	if config.Verbose {
-		LogMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
+		PrintMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
 	return response
 }
@@ -149,8 +149,8 @@ func httpQuery(request *http.Request) *http.Response {
 func checkHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == http.StatusUnauthorized:
-		LogMessage("Got 401 Unauthorized response from %s", response.Request.URL)
-		LogMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
+		PrintMessage("Got 401 Unauthorized response from %s", response.Request.URL)
+		PrintMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusNotFound:
 		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
@@ -200,7 +200,7 @@ func createServiceURL(urlPath, urlQuery string) *url.URL {
 func createURL(baseURL, urlPath, urlQuery string) *url.URL {
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
-		LogMessageAndExit("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
+		PrintMessageAndExit("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosUrl, err)
 	}
 	parsedURL.Path = urlPath
 	parsedURL.RawQuery = urlQuery
@@ -209,14 +209,14 @@ func createURL(baseURL, urlPath, urlQuery string) *url.URL {
 
 func createHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	if config.Verbose {
-		LogMessage("HTTP Query: %s %s", method, url)
+		PrintMessage("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
-			LogMessage("  Payload: %s", payload)
+			PrintMessage("  Payload: %s", payload)
 		}
 	}
 	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
-		LogMessageAndExit("Failed to create HTTP %s request for %s: %s", method, url, err)
+		PrintMessageAndExit("Failed to create HTTP %s request for %s: %s", method, url, err)
 	}
 	if len(config.DcosAuthToken) == 0 {
 		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.

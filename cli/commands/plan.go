@@ -65,7 +65,7 @@ func parseJSONResponse(jsonBytes []byte) bool {
 	var response PlansResponse
 	err := json.Unmarshal(jsonBytes, &response)
 	if err != nil {
-		client.LogMessage("Could not decode response: %s", err)
+		client.PrintMessage("Could not decode response: %s", err)
 		return false
 	}
 	if len(response.Message) > 0 {
@@ -92,9 +92,9 @@ func forceComplete(planName, phase, step string) {
 	query := getQueryWithPhaseAndStep(phase, step)
 	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", planName), query.Encode())
 	if parseJSONResponse(client.GetResponseBytes(response)) {
-		client.LogMessage("Step %s in phase %s in plan %s has been forced to complete.", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s has been forced to complete.\n", step, phase, planName)
 	} else {
-		client.LogMessage("Step %s in phase %s in plan %s could not be forced to complete.", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s could not be forced to complete.\n", step, phase, planName)
 	}
 }
 
@@ -108,9 +108,9 @@ func restart(planName, phase, step string) {
 	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/restart", planName), query.Encode())
 	if parseJSONResponse(client.GetResponseBytes(response)) {
 		// TODO: the user doesn't always have to specify this down to plan level so we should output different messages
-		client.LogMessage("Step %s in phase %s in plan %s has been restarted.", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s has been restarted.\n", step, phase, planName)
 	} else {
-		client.LogMessage("Step %s in phase %s in plan %s could not be restarted.", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s could not be restarted.\n", step, phase, planName)
 	}
 }
 
@@ -129,9 +129,9 @@ func pause(planName, phase string) {
 	query := getQueryWithPhaseAndStep(phase, "")
 	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/interrupt", planName), query.Encode())
 	if parseJSONResponse(client.GetResponseBytes(response)) {
-		client.LogMessage("Plan %s has been paused.", planName)
+		client.PrintMessage("Plan %s has been paused.\n", planName)
 	} else {
-		client.LogMessage("Plan %s could not be paused.", planName)
+		client.PrintMessage("Plan %s could not be paused.\n", planName)
 	}
 }
 
@@ -144,9 +144,9 @@ func resume(planName, phase string) {
 	query := getQueryWithPhaseAndStep(phase, "")
 	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/continue", planName), query.Encode())
 	if parseJSONResponse(client.GetResponseBytes(response)) {
-		client.LogMessage("Plan %s has been resumed.", planName)
+		client.PrintMessage("Plan %s has been resumed.\n", planName)
 	} else {
-		client.LogMessage("Plan %s could not be resumed.", planName)
+		client.PrintMessage("Plan %s could not be resumed.\n", planName)
 	}
 }
 
@@ -174,7 +174,7 @@ func printStatus(planName string, rawJSON bool) {
 	if rawJSON {
 		client.PrintJSON(response)
 	} else {
-		client.LogMessage(toStatusTree(planName, client.GetResponseBytes(response)))
+		client.PrintMessage(toStatusTree(planName, client.GetResponseBytes(response)))
 	}
 }
 
@@ -229,7 +229,7 @@ func HandlePlanSection(app *kingpin.Application) {
 func toStatusTree(planName string, planJSONBytes []byte) string {
 	optionsJSON, err := client.UnmarshalJSON(planJSONBytes)
 	if err != nil {
-		client.LogMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
+		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
 	}
 	var buf bytes.Buffer
 

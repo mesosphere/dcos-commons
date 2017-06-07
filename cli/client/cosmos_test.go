@@ -20,8 +20,9 @@ type CosmosTestSuite struct {
 	capturedOutput bytes.Buffer
 }
 
-func (suite *CosmosTestSuite) logRecorder(format string, a ...interface{}) {
+func (suite *CosmosTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
 	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
+	return 0, nil // this is probably sub-optimal in the general sense
 }
 
 func (suite *CosmosTestSuite) loadFile(filename string) []byte {
@@ -36,9 +37,9 @@ func (suite *CosmosTestSuite) SetupSuite() {
 	config.DcosUrl = "https://my.dcos.url/"
 	config.DcosAuthToken = "dummytoken"
 
-	// reassign logging functions to allow us to check output
-	LogMessage = suite.logRecorder
-	LogMessageAndExit = suite.logRecorder
+	// reassign printing functions to allow us to check output
+	PrintMessage = suite.printRecorder
+	PrintMessageAndExit = suite.printRecorder
 }
 
 func (suite *CosmosTestSuite) SetupTest() {

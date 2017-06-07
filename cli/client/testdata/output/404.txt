@@ -1,2 +1,1 @@
-HTTP POST Query for https://my.dcos.url/cosmos/service/describe failed: 404 Not Found
 dcos hello-world describe requires Enterprise DC/OS 1.10 or newer.
