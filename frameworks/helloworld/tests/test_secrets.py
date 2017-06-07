@@ -14,7 +14,6 @@ from tests.config import (
 )
 
 num_private_agents = len(shakedown.get_private_agents())
-num_private_agents = 1
 
 secret_content_default = "hello-world-secret-data"
 secret_content_alternative = "hello-world-secret-data-alternative"
@@ -65,6 +64,14 @@ def teardown_module(module):
 @pytest.mark.smoke
 @pytest.mark.secrets
 def test_secrets_basic():
+    # 1) create Secrets
+    # 2) install examples/secrets.yml
+    # 3) if secret file is not created, tasks will fail
+    # 4) wait till deployment finishes
+    # 5) do replace operation
+    # 6) ensure all tasks are running
+    # 7) delete Secrets
+
     install.uninstall(PACKAGE_NAME)
 
     create_secrets("{}/".format(PACKAGE_NAME))
@@ -92,17 +99,20 @@ def test_secrets_basic():
     delete_secrets("{}/".format(PACKAGE_NAME))
 
 
-@pytest.mark.sanity0
-@pytest.mark.secrets0
+@pytest.mark.sanity
+@pytest.mark.secrets
 def test_secrets_verify():
+    # 1) create Secrets
+    # 2) install examples/secrets.yml
+    # 3) verify Secrets content
+    # 4) delete Secrets
+
     install.uninstall(PACKAGE_NAME)
 
     create_secrets("{}/".format(PACKAGE_NAME))
 
     install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=secret_options)
-    world_task_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
 
-    print(world_task_0)
     # launch will fail if secrets are not available or not accessible
     plan.wait_for_completed_deployment(PACKAGE_NAME)
 
@@ -111,27 +121,53 @@ def test_secrets_verify():
 
     # Verify secret content, one from each pod type
 
-    # get task id
-    hello_task_0 = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_task_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
+    # get task id - only first pod
+    hello_tasks = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    world_tasks = tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
-    print(world_task_0)
-    assert secret_content_default == cmd.run_cli("task exec {} 'echo $WORLD_SECRET1_ENV' ".format(world_task_0))
-    assert secret_content_default == cmd.run_cli("task exec {} 'cat WORLD_SECRET2_FILE' ".format(world_task_0))
-    assert secret_content_default == cmd.run_cli("task exec {} 'cat hello-word/secret3' ".format(world_task_0))
 
-    # hello tasks has container image
-    assert secret_content_default == cmd.run_cli("task exec {} 'echo $HELLO_SECRET1_ENV' ".format(hello_task_0))
-    assert secret_content_default == cmd.run_cli("task exec {} 'cat HELLO_SECRET1_FILE' ".format(hello_task_0))
-    assert secret_content_default == cmd.run_cli("task exec {} 'cat HELLO_SECRET2_FILE' ".format(hello_task_0))
+    # first secret: environment variable name is given in yaml
+    assert secret_content_default == exec_cli(
+        "task exec {} bash -c 'echo $WORLD_SECRET1_ENV' ".format(world_tasks[0]))
+
+    # second secret: file path is given in yaml
+    assert secret_content_default == exec_cli(
+        "task exec {} cat WORLD_SECRET2_FILE ".format(world_tasks[0]))
+
+    # third secret : no file path is given in yaml
+    #            default file path is equal to secret path
+    assert secret_content_default == exec_cli(
+        "task exec {} cat hello-world/secret3 ".format(world_tasks[0]))
+
+
+    # hello tasks has container image, world tasks do not
+
+    # first secret : environment variable name is given in yaml
+    assert secret_content_default == exec_cli(
+        "task exec {} bash -c 'echo $HELLO_SECRET1_ENV' ".format(hello_tasks[0]))
+
+    # first secret : both environment variable name and file path are given in yaml
+    assert secret_content_default == exec_cli(
+        "task exec {} cat HELLO_SECRET1_FILE ".format(hello_tasks[0]))
+
+    # second secret : file path is given in yaml
+    assert secret_content_default == exec_cli(
+        "task exec {} cat HELLO_SECRET2_FILE ".format(hello_tasks[0]))
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
 
 
-@pytest.mark.sanity0
+@pytest.mark.sanity
 @pytest.mark.secrets
 def test_secrets_update():
+    # 1) create Secrets
+    # 2) install examples/secrets.yml
+    # 3) update Secrets
+    # 4) restart task
+    # 5) verify Secrets content (updated after restart)
+    # 6) delete Secrets
+
     install.uninstall(PACKAGE_NAME)
 
     create_secrets("{}/".format(PACKAGE_NAME))
@@ -150,36 +186,52 @@ def test_secrets_update():
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
-    # replace pods to retrieve new secret's content
-    cmd.run_cli('hello-world pods replace hello-0')
-    cmd.run_cli('hello-world pods replace world-0')
+    hello_tasks_old = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    world_tasks_old = tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
-    # get task id
-    world_task_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
+    # restart pods to retrieve new secret's content
+    cmd.run_cli('hello-world pods restart hello-0')
+    cmd.run_cli('hello-world pods restart world-0')
+
+    # wait pod restart to complete
+    tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_old)
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_old)
+
+    # wait till it is running
+    tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
+
+    # get new task ids - only first pod
+    hello_tasks = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    world_tasks = tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # make sure content is changed
-    assert secret_content_alternative == cmd.run_cli(
-        "task exec 'echo $WORLD_SECRET1_ENV' {}".format(world_task_0[0]))
-    assert secret_content_alternative == cmd.run_cli("task exec 'cat WORLD_SECRET2_FILE' {}".format(world_task_0[0]))
-    assert secret_content_alternative == cmd.run_cli(
-        "task exec 'cat {}/secret3' {}".format(PACKAGE_NAME, world_task_0[0]))
-
-    # get task id
-    hello_task_0 = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    assert secret_content_alternative == exec_cli(
+        "task exec {} bash -c 'echo $WORLD_SECRET1_ENV' ".format(world_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat WORLD_SECRET2_FILE ".format(world_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat {}/secret3 ".format(world_tasks[0], PACKAGE_NAME ))
 
     # make sure content is changed
-    assert secret_content_alternative == cmd.run_cli(
-        "task exec 'echo $HELLO_SECRET1_ENV' {}".format(hello_task_0[0]))
-    assert secret_content_alternative == cmd.run_cli("task exec {} 'cat HELLO_SECRET1_FILE' ".format(hello_task_0[0]))
-    assert secret_content_alternative == cmd.run_cli("task exec {} 'cat HELLO_SECRET2_FILE' ".format(hello_task_0[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} bash -c 'echo $HELLO_SECRET1_ENV' ".format(hello_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat HELLO_SECRET1_FILE ".format(hello_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat HELLO_SECRET2_FILE ".format(hello_tasks[0]))
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
 
 
-@pytest.mark.sanity0
+@pytest.mark.sanity
 @pytest.mark.secrets
 def test_secrets_config_update():
+    # 1) install examples/secrets.yml
+    # 2) create new Secrets, delete old Secrets
+    # 2) update configuration with new Secrets
+    # 4) verify secret content (using new Secrets after config update)
+
     install.uninstall(PACKAGE_NAME)
 
     create_secrets("{}/".format(PACKAGE_NAME))
@@ -193,19 +245,25 @@ def test_secrets_config_update():
     tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
 
     # Verify secret content, one from each pod type
-    # get tasks id
-    hello_task_0 = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    # get tasks ids - only first pods
+    hello_tasks = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    world_tasks = tasks.get_task_ids(PACKAGE_NAME, "world-0")
+
+    # make sure it has the default value
+    assert secret_content_default == exec_cli(
+        "task exec {} bash -c 'echo $WORLD_SECRET1_ENV' ".format(world_tasks[0]))
+    assert secret_content_default == exec_cli(
+        "task exec {} cat WORLD_SECRET2_FILE ".format(world_tasks[0]))
+    assert secret_content_default == exec_cli(
+        "task exec {} cat {}/secret3 ".format(world_tasks[0], PACKAGE_NAME))
 
     # hello tasks has container image
-    assert secret_content_default == cmd.run_cli("task exec 'echo $HELLO_SECRET1_ENV' {}".format(hello_task_0))
-    assert secret_content_default == cmd.run_cli("task exec 'cat HELLO_SECRET1_FILE' {}".format(hello_task_0))
-    assert secret_content_default == cmd.run_cli("task exec 'cat HELLO_SECRET2_FILE' {}".format(hello_task_0))
-
-    world_task_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
-    # make sure it has the default value
-    assert secret_content_default == cmd.run_cli("task exec 'echo $WORLD_SECRET1_ENV' {}".format(world_task_0))
-    assert secret_content_default == cmd.run_cli("task exec 'cat WORLD_SECRET2_FILE' {}".format(world_task_0))
-    assert secret_content_default == cmd.run_cli("task exec 'cat secret3' {}".format(world_task_0))
+    assert secret_content_default == exec_cli(
+        "task exec {} bash -c 'echo $HELLO_SECRET1_ENV' ".format(hello_tasks[0]))
+    assert secret_content_default == exec_cli(
+        "task exec {} cat HELLO_SECRET1_FILE ".format(hello_tasks[0]))
+    assert secret_content_default == exec_cli(
+        "task exec {} cat HELLO_SECRET2_FILE ".format(hello_tasks[0]))
 
     # clean up and delete secrets (defaults)
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -230,43 +288,54 @@ def test_secrets_config_update():
     tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
 
     # Verify secret content is changed
-    # get task id
-    hello_task_0 = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
 
-    assert secret_content_alternative == cmd.run_cli(
-        "dcos task exec 'echo $HELLO_SECRET1_ENV' {}".format(hello_task_0))
-    assert secret_content_alternative == cmd.run_cli("task exec 'cat HELLO_SECRET1_FILE' {}".format(hello_task_0))
-    assert secret_content_alternative == cmd.run_cli("task exec 'cat HELLO_SECRET2_FILE' {}".format(hello_task_0))
+    # get task ids - only first pod
+    hello_tasks = tasks.get_task_ids(PACKAGE_NAME, "hello-0")
+    world_tasks = tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
-    # get task id
-    world_task_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
+    assert secret_content_alternative == exec_cli(
+        "task exec {} bash -c 'echo $WORLD_SECRET1_ENV' ".format(world_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat WORLD_SECRET2_FILE ".format(world_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat secret3 ".format(world_tasks[0]))
 
-    assert secret_content_alternative == cmd.run_cli(
-        "dcos task exec 'echo $WORLD_SECRET1_ENV' {}".format(world_task_0))
-    assert secret_content_alternative == cmd.run_cli("task exec 'cat WORLD_SECRET2_FILE' {}".format(world_task_0))
-    assert secret_content_alternative == cmd.run_cli(
-        "dcos task exec 'cat secret3' {}".format(world_task_0))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} bash -c 'echo $HELLO_SECRET1_ENV' ".format(hello_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat HELLO_SECRET1_FILE ".format(hello_tasks[0]))
+    assert secret_content_alternative == exec_cli(
+        "task exec {} cat HELLO_SECRET2_FILE ".format(hello_tasks[0]))
 
     # clean up and delete secrets
     delete_secrets()
 
 
-@pytest.mark.sanity0
-@pytest.mark.secrets
+@pytest.mark.sanity
+@pytest.mark.secrets0
+@pytest.mark.skip(reason="DCOS_SPACE authorization is not working in testing/master. Enable this test later.")
 def test_secrets_dcos_space():
+    # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
+    # 2 ) Tasks with DCOS_SPACE hello-world/somePath
+    #       or some DCOS_SPACE path under hello-world/somePath
+    #               (for example hello-world/somePath/anotherPath/)
+    #     can access these Secrets
 
     install.uninstall(PACKAGE_NAME)
 
-    # dcos_space authorization, can not access these secrets
+    # can not access these secrets bec of DCOS_SPACE authorization
     create_secrets("{}/somePath/".format(PACKAGE_NAME))
 
-    install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options_dcos_space_test)
-
     try:
+        install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options_dcos_space_test)
+
         plan.wait_for_completed_deployment(PACKAGE_NAME)
+
         assert False, "Should have failed to install"
+
     except AssertionError as arg:
         raise arg
+
     except:
         pass  # expected to fail
 
@@ -306,3 +375,15 @@ def delete_secrets_all(path_prefix=""):
     except:
         pass
 
+
+def exec_cli(command_str):
+    str = cmd.run_cli(command_str)
+    list = str.split("\n")
+    print(list)
+    for i in list:
+        # ignore text starting with:
+        #    Overwriting Environment Variable ....
+        #    Overwriting PATH ......
+        if not i.isspace() and not i.startswith("Overwriting"):
+            return i
+    return ""
