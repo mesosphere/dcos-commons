@@ -132,15 +132,15 @@ For example, one could write a `ServiceSpec` that describes a DC/OS service that
 This simple YAML definition of a DC/OS service that prints "hello world" to stdout in a container sandbox every 1000 seconds.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 scheduler:
-  principal: "hello-world-principal"
+  principal: "helloworld-principal"
   api-port: {{PORT_API}}
 pods:
-  hello-world-pod:
+  helloworld-pod:
     count: 1
     tasks:
-      hello-world-task:
+      helloworld-task:
         goal: RUNNING
         cmd: "echo hello world && sleep 1000"
         cpus: 0.1
@@ -157,13 +157,13 @@ pods:
 
 * **Pods**: A pod is simply a set of tasks.
 
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
+* **helloworld-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `helloworld-pod`.
 
 * **count**: The number of instances of the pod.
 
 * **tasks**: The list of tasks in the pod.
 
-* **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
+* **helloworld-task**: In this example, the single pod definition is composed of a single task. The name of this task is "helloworld-task".
 
 * **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
@@ -188,8 +188,8 @@ In the example, we have only defined types of pods and tasks. When the service i
     <td>Task Status</td>
   </tr>
   <tr>
-    <td>hello-world-pod-0-hello-world-task</td>
-    <td>hello-world-pod-0-hello-world-task__c111c97e-7236-4fea-b06f-0216c93b853b</td>
+    <td>helloworld-pod-0-helloworld-task</td>
+    <td>helloworld-pod-0-helloworld-task__c111c97e-7236-4fea-b06f-0216c93b853b</td>
     <td>TASK_RUNNING</td>
   </tr>
 </table>
@@ -204,7 +204,7 @@ In the simple example above, it is obvious *how* to deploy this service.  It con
 The example below defines a service with two types of pods, each of which deploys two instances.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello-pod:
     count: 2
@@ -245,7 +245,7 @@ In this section we focus on using plans to define the initial deployment of a se
 As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a `RUNNING` state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello-pod:
     count: 2
@@ -307,7 +307,7 @@ The dependency of the `world-pod` phase on the `hello-pod` phase serializes thos
 More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 2
@@ -390,9 +390,9 @@ The SDK provides utilities for building a package definition and deploying it to
 $ ./build.sh aws
 <snip>
 Install your package using the following commands:
-dcos package repo remove hello-world-aws
-dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
-dcos package install --yes hello-world
+dcos package repo remove helloworld-aws
+dcos package repo add --index=0 helloworld-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/helloworld/20161212-160559-ATLFk70vPlo45X4a/stub-universe-helloworld.zip
+dcos package install --yes helloworld
 ```
 
 The build.sh script takes an optional argument of aws or local:
@@ -405,7 +405,7 @@ $ export S3_BUCKET=my_universe_s3_bucket
 
 * `./build.sh local`: The package definition and build artifacts are served by a local HTTP server.
 
-Executing the final command, `dcos package install --yes hello-world` deploys the service to a DC/OS cluster.
+Executing the final command, `dcos package install --yes helloworld` deploys the service to a DC/OS cluster.
 
 # Basic Operations
 
@@ -478,7 +478,7 @@ The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/framewo
                 "name" : {
                     "description":"The name of the service instance",
                     "type":"string",
-                    "default":"hello-world"
+                    "default":"helloworld"
                 },
                 "...": "..."
             }
@@ -510,7 +510,7 @@ The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frame
 {
   "assets": {
     "uris": {
-      "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
+      "scheduler-zip": "{{artifact-dir}}/helloworld-scheduler.zip",
       "...": "..."
     }
   },
@@ -546,7 +546,7 @@ The port definition in `marathon.json.mustache` makes the `PORT0` environment va
 The final rendered `ServiceSpec` is:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -618,7 +618,7 @@ In the marathon.json.mustache template we defined an environment variable named 
 
 ```
 {
-    "id": "/hello-world",
+    "id": "/helloworld",
     "env": {
         "HELLO_CPUS": "0.2",
         "HELLO_COUNT": "1",
@@ -632,7 +632,7 @@ In the marathon.json.mustache template we defined an environment variable named 
 This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below. Note that the value of `cpus` has changed to 0.2.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -676,7 +676,7 @@ In the previous example, the change in target configuration affected currently r
 
 ```
 {
-    "id": "/hello-world",
+    "id": "/helloworld",
     "env": {
         "HELLO_CPUS": "0.2",
         "HELLO_COUNT": "2",
@@ -729,7 +729,7 @@ Like rollback, a special software upgrade operation is not defined. To perform a
 You can view the deployment plan via a REST endpoint your scheduler provides. The plans shown in the examples above were accessed by:
 
 ```bash
-$ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy
+$ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/helloworld/v1/plans/deploy
 ```
 
 #### Interrupt
@@ -737,7 +737,7 @@ $ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-
 You can interrupt the execution of a plan by issuing a `POST` request to the appropriate endpoint:
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/helloworld/v1/plans/deploy/interrupt
 ```
 
 Interrupting a plan stops any steps that were not being processed from being processed in the future. Any steps that were actively being processed at the time of an interrupt call will continue.
@@ -745,7 +745,7 @@ Interrupting a plan stops any steps that were not being processed from being pro
 The interrupt may also be issued against a specific phase within the plan:
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt?phase=data-nodes
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/helloworld/v1/plans/deploy/interrupt?phase=data-nodes
 ```
 
 Interrupting a phase of a plan only stops the steps within that phase, without affecting other phases.
@@ -755,13 +755,13 @@ Interrupting a phase of a plan only stops the steps within that phase, without a
 Continue plan execution by issuing a `POST` request to the continue endpoint:
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/helloworld/v1/plans/deploy/continue
 ```
 
 Continue may also be issued on a per-phase basis:
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue?phase=data-nodes
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/helloworld/v1/plans/deploy/continue?phase=data-nodes
 ```
 
 # Service Discovery
@@ -779,7 +779,7 @@ All tasks launched in DC/OS receive a DNS address. It is of the form:
 So a service defined as follows:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -795,10 +795,10 @@ pods:
           size: 50
 ```
 
-would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.autoip.dcos.thisdcos.directory". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
+would generate a single task named "hello-0-server".  The framework’s name is "helloworld".  The Mesos-DNS address for this task would be "hello-0-server.helloworld.autoip.dcos.thisdcos.directory". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -825,7 +825,7 @@ pods:
           prefix: hello
 ```
 
-In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.autoip.dcos.thisdcos.directory", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
+In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.helloworld.autoip.dcos.thisdcos.directory", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
 
 **Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
 
@@ -834,7 +834,7 @@ In this case, while running, both the `init` and `server` tasks would be address
 You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -863,7 +863,7 @@ Defining a VIP is additional information that can be applied to a port. VIPs are
 In the example above, a server task can be accessed through the address:
 
 ```
-server-lb.hello-world.l4lb.thisdcos.directory:80
+server-lb.helloworld.l4lb.thisdcos.directory:80
 ```
 
 # Testing
@@ -872,9 +872,9 @@ The SDK provides assistance for writing both unit and integration tests.
 
 ## Unit tests
 
-Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceSpecTest.java).
+Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The helloworld framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceSpecTest.java).
 
-**Important:** In order to avoid unintentional execution of other framework tests, you must include [a test filter similar to the one defined by the hello-world framework](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45).
+**Important:** In order to avoid unintentional execution of other framework tests, you must include [a test filter similar to the one defined by the helloworld framework](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45).
 
 Unit tests that follow the pattern described above will be automatically run on all pull requests, and test failures will block merges. Unit tests can be manually executed either through standard IDE test integrations or through standard gradle commands.
 
@@ -884,7 +884,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The helloworld framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
 
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have
@@ -921,7 +921,7 @@ The example `ServiceSpec` below specifies:
 In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -952,7 +952,7 @@ Pods specifications may be configured with placement rules which describe where 
 We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 3
@@ -973,7 +973,7 @@ In this example your configuration would expose a `HELLO_PLACEMENT` configuratio
 A Mesos task is always a process that consumes some resources. In the example below, the server task is a command that prints "hello" to a file while consuming 1.0 CPUs, 256 MB of memory, and 50 MB of disk space for its volume.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -992,7 +992,7 @@ pods:
 An equivalent way to define the same task is as follows:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1016,7 +1016,7 @@ In this case, the resources are declared separately from the server task in a re
 Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on [Mesos Task Groups](https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md). Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1037,7 +1037,7 @@ pods:
 This alternative formulation of tasks is useful when several tasks should be sequenced in the same container and have a cumulative effect on data in a volume. For example, if you want to initialize something before running the long running server task, you could write the following:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1070,7 +1070,7 @@ hello
 Provide an ordering by specifying a custom deployment plan. The final YAML file would be:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1108,7 +1108,7 @@ The plan defined above, the instance of the hello pod with index 0 should first 
 You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to perform, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1145,7 +1145,7 @@ The command definition for the sidecar task includes environment variables, `PLA
 To initiate the plan, execute an HTTP POST request against the `/v1/plans/sidecar-example/start` endpoint with the header `Content-Type: application/json` set and a JSON body consisting of environment variable name/value pairs. For example:
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/hello-world/v1/plans/sidecar-example/start
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/helloworld/v1/plans/sidecar-example/start
 ```
 
 You can also use the DC/OS CLI:
@@ -1164,7 +1164,7 @@ Because the sidecar task is defined inside the hello pod, it will run inside the
 You can include an arbitrary list of URIs to download before launching a task or before launching a pod. The Mesos fetcher automatically extracts and caches the URIs. To attach URIs to the context of a task, modify the YAML as below:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1182,7 +1182,7 @@ pods:
 To add URIs to a pod, modify the YAML as below:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1204,7 +1204,7 @@ URIs included in a pod are accessible to all its tasks.
 It is common for a service to require configuration files to be present in the context of a task.  The SDK provides a method for defining and placing task-specific configuration files. A configuration file is template that can be dynamically rendered by environment variables. Add a configuration file to a task in the following way:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1258,7 +1258,7 @@ While some environment variables are included by default in each task as a conve
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1334,7 +1334,7 @@ Including `bootstrap` in your tasks is a manual but straightforward operation. F
 `svc.yml`:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1359,7 +1359,7 @@ Now the `bootstrap` executable will automatically be run at the start of `hello`
 If a task is unhealthy, the scheduler will kill and restart it.  You may define a health check for a task by adding a `health-check` parameter to its `TaskSpec`:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1385,7 +1385,7 @@ The interval, grace-period, delay, and timeout elements are denominated in secon
 Use a readiness check when a task must perform some initialization before subsequent steps run.  By default, a [step](#plans) will be `COMPLETE` when its task reaches its goal state (`RUNNING` or `COMPLETED`), but if the task has a **readiness check**, its step won't be `COMPLETE` until its readiness check passes.  You may define a readiness check for a task by adding a `readiness-check` parameter to its `TaskSpec`:
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 1
@@ -1409,7 +1409,7 @@ The interval, delay, and timeout elements are denominated in seconds.
 Persistent volumes allow data to be stored on disks and survive.
 
 ```yaml
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 3

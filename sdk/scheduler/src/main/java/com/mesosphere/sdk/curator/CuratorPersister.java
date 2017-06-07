@@ -193,7 +193,7 @@ public class CuratorPersister implements Persister {
              * : cdrwa
              *
              * Our service nodes have:
-             * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-hello-world
+             * [zk: localhost:2181(CONNECTED) 0] getAcl /dcos-service-helloworld
              * 'world,'anyone
              * : cdrwa
              *

@@ -25,8 +25,8 @@ public class Main {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
             TaskEnvRouter taskEnvRouter = new TaskEnvRouter();
             new DefaultService(DefaultServiceSpec.newBuilder()
-                    .name("hello-world")
-                    .principal("hello-world-principal")
+                    .name("helloworld")
+                    .principal("helloworld-principal")
                     .zookeeperConnection("master.mesos:2181")
                     .apiPort(8080)
                     .addPod(DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
@@ -39,7 +39,7 @@ public class Main {
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())
                                     .resourceSet(DefaultResourceSet
-                                            .newBuilder("hello-world-role", Constants.ANY_ROLE, "hello-world-principal")
+                                            .newBuilder("helloworld-role", Constants.ANY_ROLE, "helloworld-principal")
                                             .id("hello-resources")
                                             .cpus(CPUS)
                                             .memory(256.0)

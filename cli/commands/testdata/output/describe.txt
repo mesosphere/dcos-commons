@@ -9,7 +9,7 @@
   },
   "service": {
     "mesos_api_version": "V1",
-    "name": "hello-world",
+    "name": "helloworld",
     "principal": "",
     "secret_name": "",
     "sleep": 1000,

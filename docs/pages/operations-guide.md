@@ -533,11 +533,11 @@ The Scheduler exposes several HTTP endpoints that provide information on any cur
 - __Pods__: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
 - __State__: Access to other miscellaneous state information such as service-specific properties data.
 
-For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/swagger-api/). Here is an example of invoking one of these commands against a service named `hello-world` via `curl`:
+For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/swagger-api/). Here is an example of invoking one of these commands against a service named `helloworld` via `curl`:
 
 ```bash
 $ export AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
-$ curl -k -H "Authorization: token=$AUTH_TOKEN" https://<dcos_url>/service/hello-world/v1/plans/deploy
+$ curl -k -H "Authorization: token=$AUTH_TOKEN" https://<dcos_url>/service/helloworld/v1/plans/deploy
 ```
 
 These endpoints may also be conveniently accessed using the SDK CLI after installing a service. See `dcos <svcname> -h` for a list of all commands. These are wrappers around the above API.

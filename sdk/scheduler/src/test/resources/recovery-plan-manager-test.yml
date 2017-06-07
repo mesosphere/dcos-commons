@@ -1,4 +1,4 @@
-name: "hello-world"
+name: "helloworld"
 pods:
   test-task-type:
     count: 1

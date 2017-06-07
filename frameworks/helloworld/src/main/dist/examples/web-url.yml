@@ -1,10 +1,12 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
-web-url: http://hello-world.marathon.mesos:{{PORT_API}}
+  user: {{SERVICE_USER}}
+web-url: http://helloworld.marathon.mesos:{{PORT_API}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     tasks:
       server:
         goal: RUNNING

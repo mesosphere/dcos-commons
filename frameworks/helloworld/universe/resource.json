@@ -4,7 +4,7 @@
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
+      "scheduler-zip": "{{artifact-dir}}/helloworld-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
@@ -17,23 +17,23 @@
     "binaries":{
       "darwin":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-darwin}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-helloworld-darwin}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world-darwin"
+          "url":"{{artifact-dir}}/dcos-helloworld-darwin"
         }
       },
       "linux":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-linux}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-helloworld-linux}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world-linux"
+          "url":"{{artifact-dir}}/dcos-helloworld-linux"
         }
       },
       "windows":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world.exe}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-helloworld.exe}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world.exe"
+          "url":"{{artifact-dir}}/dcos-helloworld.exe"
         }
       }
     }

@@ -26,7 +26,12 @@
             "title": "Custom principal (optional)",
             "description": "The principal for the service instance, or empty to use the default.",
             "type": "string",
-            "default": ""
+            "default": "template-principal"
+          },
+          "mesos_api_version": {
+             "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
+             "type":"string",
+             "default":"V0"
           },
           "secret_name": {
             "title": "Credential secret name (optional)",

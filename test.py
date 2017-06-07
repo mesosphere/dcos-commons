@@ -505,7 +505,7 @@ def _setup_strict(framework, cluster, repo_root):
 
             # XXX helloworld is terrible and doesn't use its own name
             if role_base == 'helloworld':
-                role_arg = 'hello-world-role'
+                role_arg = 'helloworld-role'
 
             cmd_args = [perm_setup_script, 'root', role_arg]
 

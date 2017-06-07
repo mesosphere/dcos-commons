@@ -11,6 +11,7 @@ import com.mesosphere.sdk.storage.PersisterUtils;
 public class SchedulerUtils {
     private static final String DEFAULT_ROLE_SUFFIX = "-role";
     private static final String DEFAULT_PRINCIPAL_SUFFIX = "-principal";
+    private static final String DEFAULT_SERVICE_USER = "nobody";
 
     /** Reasonable zk host on DC/OS systems. */
     private static final String DEFAULT_ZK_HOST_PORT = "master.mesos:2181";
@@ -90,8 +91,21 @@ public class SchedulerUtils {
     }
 
     /**
+     * Returns the configured Mesos user to use for running the service.
+     */
+    public static String getServiceUser(RawServiceSpec rawServiceSpec) {
+        // If the svc.yml explicitly provided a user, use that
+        if (rawServiceSpec.getScheduler() != null
+                && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getUser())) {
+            return rawServiceSpec.getScheduler().getUser();
+        }
+        // Fallback: "nobody"
+        return DEFAULT_SERVICE_USER;
+    }
+    /**
      * Returns the configured API port to use for serving requests at the scheduler.
      */
+
     public static Integer getApiPort(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
         // If the svc.yml explicitly provided an api port, use that
         if (rawServiceSpec.getScheduler() != null

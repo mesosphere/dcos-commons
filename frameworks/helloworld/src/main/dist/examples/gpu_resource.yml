@@ -1,9 +1,11 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{HELLO_PLACEMENT}}
     container:
       networks:
@@ -30,6 +32,7 @@ pods:
           max-consecutive-failures: 3
   world:
     count: {{WORLD_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{WORLD_PLACEMENT}}
     tasks:
       server:

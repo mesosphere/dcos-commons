@@ -16,8 +16,8 @@ from tests.config import (
 NUM_HELLO = 2
 NUM_WORLD = 3
 
-secret_content_default = "hello-world-secret-data"
-secret_content_alternative = "hello-world-secret-data-alternative"
+secret_content_default = "helloworld-secret-data"
+secret_content_alternative = "helloworld-secret-data-alternative"
 
 secret_options = {
         "service": {
@@ -25,14 +25,14 @@ secret_options = {
         },
         "hello": {
             "count": NUM_HELLO,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2"
+            "secret1": "helloworld/secret1",
+            "secret2": "helloworld/secret2"
         },
         "world": {
             "count": NUM_WORLD,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2",
-            "secret3": "hello-world/secret3"
+            "secret1": "helloworld/secret1",
+            "secret2": "helloworld/secret2",
+            "secret3": "helloworld/secret3"
         }
     }
 
@@ -42,14 +42,14 @@ options_dcos_space_test = {
     },
     "hello": {
         "count": NUM_HELLO,
-        "secret1": "hello-world/somePath/secret1",
-        "secret2": "hello-world/somePath/secret2"
+        "secret1": "helloworld/somePath/secret1",
+        "secret2": "helloworld/somePath/secret2"
     },
     "world": {
         "count": NUM_WORLD,
-        "secret1": "hello-world/somePath/secret1",
-        "secret2": "hello-world/somePath/secret2",
-        "secret3": "hello-world/somePath/secret3"
+        "secret1": "helloworld/somePath/secret1",
+        "secret2": "helloworld/somePath/secret2",
+        "secret3": "helloworld/somePath/secret3"
     }
 }
 
@@ -95,8 +95,8 @@ def test_secrets_basic():
     world_tasks_0 = tasks.get_task_ids(PACKAGE_NAME, "word-0")
 
     # ensure that secrets work after replace
-    cmd.run_cli('hello-world pods replace hello-0')
-    cmd.run_cli('hello-world pods replace world-0')
+    cmd.run_cli('helloworld pods replace hello-0')
+    cmd.run_cli('helloworld pods replace world-0')
 
     tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_0)
     tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_0)
@@ -143,7 +143,7 @@ def test_secrets_verify():
 
     # third secret : no file path is given in yaml
     #            default file path is equal to secret path
-    assert secret_content_default == task_exec(world_tasks[0], "cat hello-world/secret3")
+    assert secret_content_default == task_exec(world_tasks[0], "cat helloworld/secret3")
 
 
     # hello tasks has container image, world tasks do not
@@ -193,8 +193,8 @@ def test_secrets_update():
     world_tasks_old = tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
-    cmd.run_cli('hello-world pods restart hello-0')
-    cmd.run_cli('hello-world pods restart world-0')
+    cmd.run_cli('helloworld pods restart hello-0')
+    cmd.run_cli('helloworld pods restart world-0')
 
     # wait pod restart to complete
     tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_old)
@@ -300,10 +300,10 @@ def test_secrets_config_update():
 @pytest.mark.secrets
 @pytest.mark.skip(reason="DCOS_SPACE authorization is not working in testing/master. Enable this test later.")
 def test_secrets_dcos_space():
-    # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
-    # 2) Tasks with DCOS_SPACE hello-world/somePath
-    #       or some DCOS_SPACE path under hello-world/somePath
-    #               (for example hello-world/somePath/anotherPath/)
+    # 1) create secrets in helloworld/somePath, i.e. helloworld/somePath/secret1 ...
+    # 2) Tasks with DCOS_SPACE helloworld/somePath
+    #       or some DCOS_SPACE path under helloworld/somePath
+    #               (for example helloworld/somePath/anotherPath/)
     #    can access these Secrets
 
     install.uninstall(PACKAGE_NAME)

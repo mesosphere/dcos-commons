@@ -1,9 +1,11 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{HELLO_PLACEMENT}}
     tasks:
       server:
@@ -17,6 +19,7 @@ pods:
           size: {{HELLO_DISK}}
   world:
     count: {{WORLD_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{WORLD_PLACEMENT}}
     tasks:
       server:

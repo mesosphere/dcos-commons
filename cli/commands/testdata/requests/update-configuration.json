@@ -1,5 +1,5 @@
 {
-    "appId": "hello-world",
+    "appId": "helloworld",
     "options": {
         "hello": {
             "count": 1,
@@ -11,7 +11,7 @@
         },
         "service": {
             "mesos_api_version": "V1",
-            "name": "hello-world",
+            "name": "helloworld",
             "principal": "",
             "secret_name": "",
             "sleep": 1000,

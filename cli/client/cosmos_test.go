@@ -42,8 +42,8 @@ func (suite *CosmosTestSuite) SetupSuite() {
 }
 
 func (suite *CosmosTestSuite) SetupTest() {
-	config.ModuleName = "hello-world"
-	config.ServiceName = "hello-world"
+	config.ModuleName = "helloworld"
+	config.ServiceName = "helloworld"
 }
 
 func (suite *CosmosTestSuite) TearDownTest() {
@@ -83,7 +83,7 @@ func (suite *CosmosTestSuite) Test404ErrorResponse() {
 }
 
 func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
-	config.ServiceName = "hello-world-1"
+	config.ServiceName = "helloworld-1"
 
 	// fake 400 response for MarathonAppNotFound
 	fourHundredResponse := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")

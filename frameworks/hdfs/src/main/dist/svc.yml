@@ -1,9 +1,11 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   journal:
     count: 3
+    user: {{SERVICE_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -51,6 +53,7 @@ pods:
           JOURNALNODE: true
   name:
     count: 2
+    user: {{SERVICE_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -204,6 +207,7 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    user: {{SERVICE_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
