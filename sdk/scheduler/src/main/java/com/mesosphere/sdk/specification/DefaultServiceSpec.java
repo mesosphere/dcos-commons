@@ -4,15 +4,21 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -21,6 +27,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -85,6 +92,17 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.zookeeperConnection,
                 builder.pods,
                 builder.replacementFailurePolicy);
+    }
+
+
+    public static Generator newGenerator(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
+        return newGenerator(rawServiceSpec, schedulerFlags, new TaskEnvRouter());
+    }
+
+    @VisibleForTesting
+    public static Generator newGenerator(
+            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
+        return new Generator(rawServiceSpec, schedulerFlags, taskEnvRouter);
     }
 
     public static Builder newBuilder() {
@@ -180,7 +198,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Returns a {@link ConfigurationFactory} which may be used to deserialize
+     * Returns a {@link ConfigFactory} which may be used to deserialize
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
@@ -193,7 +211,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Returns a {@link ConfigurationFactory} which may be used to deserialize
+     * Returns a {@link ConfigFactory} which may be used to deserialize
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
@@ -205,7 +223,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
-        ConfigurationFactory<ServiceSpec> factory = new Factory(additionalSubtypesToRegister);
+        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister);
         // Serialize and then deserialize:
         ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
         // Verify that equality works:
@@ -226,7 +244,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
      */
-    public static class Factory implements ConfigurationFactory<ServiceSpec> {
+    public static class ConfigFactory implements ConfigurationFactory<ServiceSpec> {
 
         /**
          * Subtypes to be registered by defaults. This list should include all
@@ -261,7 +279,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
          */
-        private Factory(Collection<Class<?>> additionalSubtypes) {
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
@@ -283,10 +301,65 @@ public class DefaultServiceSpec implements ServiceSpec {
             }
         }
 
+        @VisibleForTesting
         public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
             return defaultRegisteredSubtypes;
         }
     }
+
+    /**
+     * Generates a {@link ServiceSpec} from a given YAML definition in the form of a {@link RawServiceSpec}.
+     */
+    public static class Generator {
+
+        private final RawServiceSpec rawServiceSpec;
+        private final SchedulerFlags schedulerFlags;
+        private final TaskEnvRouter taskEnvRouter;
+        private YAMLToInternalMappers.FileReader fileReader;
+
+        private Generator(
+                RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
+            this.rawServiceSpec = rawServiceSpec;
+            this.schedulerFlags = schedulerFlags;
+            this.taskEnvRouter = taskEnvRouter;
+            this.fileReader = new YAMLToInternalMappers.FileReader();
+        }
+
+        /**
+         * Assigns an environment variable to be included in all service tasks. Note that this may be overridden via
+         * {@code TASKCFG_*} scheduler environment variables at runtime, and by pod-specific settings provided via
+         * {@link #setPodTaskEnv(String, String, String)}.
+         */
+        public Generator setGlobalTaskEnv(String key, String value) {
+            this.taskEnvRouter.setGlobalTaskEnv(key, value);
+            return this;
+        }
+
+        /**
+         * Assigns an environment variable to be included in tasks for the specified pod type. For example, all tasks
+         * running inside of "index" pods. Note that this may be overridden via {@code TASKCFG_*} scheduler environment
+         * variables at runtime.
+         */
+        public Generator setPodTaskEnv(String podType, String key, String value) {
+            this.taskEnvRouter.setPodTaskEnv(podType, key, value);
+            return this;
+        }
+
+        /**
+         * Assigns a custom {@link YAMLToInternalMappers.FileReader} implementation for reading config file templates.
+         * This is exposed to support mockery in tests.
+         */
+        @VisibleForTesting
+        public Generator setFileReader(YAMLToInternalMappers.FileReader fileReader) {
+            this.fileReader = fileReader;
+            return this;
+        }
+
+        public DefaultServiceSpec build() throws Exception {
+            return YAMLToInternalMappers.from(rawServiceSpec, schedulerFlags, taskEnvRouter, fileReader);
+        }
+    }
+
 
     /**
      * {@code DefaultServiceSpec} builder static inner class.

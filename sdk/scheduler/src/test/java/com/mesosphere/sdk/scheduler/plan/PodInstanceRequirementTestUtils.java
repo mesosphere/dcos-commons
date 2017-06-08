@@ -140,7 +140,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)
@@ -170,7 +170,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)

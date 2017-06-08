@@ -19,16 +19,21 @@ public class PersisterUtils {
     /**
      * The path delimiter used in all Persister implementations.
      */
-    public static final String PATH_DELIM = "/";
+    public static final char PATH_DELIM = '/';
+
+    /**
+     * String representation of {@link #PATH_DELIM}.
+     */
+    public static final String PATH_DELIM_STR = String.valueOf(PATH_DELIM);
 
     /**
      * Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.
      */
     public static String join(final String first, final String second) {
-        if (first.endsWith(PATH_DELIM) && second.startsWith(PATH_DELIM)) {
+        if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
             // "hello/" + "/world" => "hello/world"
             return new StringBuilder(first).deleteCharAt(first.length() - 1).append(second).toString();
-        } else if (first.endsWith(PATH_DELIM) || second.startsWith(PATH_DELIM)) {
+        } else if (first.endsWith(PATH_DELIM_STR) || second.startsWith(PATH_DELIM_STR)) {
             // "hello/" + "world", OR "hello" + "/world" => "hello/world"
             return new StringBuilder(first).append(second).toString();
         } else {
@@ -45,7 +50,7 @@ public class PersisterUtils {
     public static List<String> getParentPaths(final String path) {
         List<String> paths = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
-        String[] elements = path.split(PATH_DELIM);
+        String[] elements = path.split(PATH_DELIM_STR);
         for (int i = 0; i + 1 < elements.length; ++i) { // skip last element, if any
             if (elements[i].isEmpty()) { // Omit empty elements with eg "/" or "//" inputs
                 continue;
@@ -66,7 +71,7 @@ public class PersisterUtils {
      * @throws PersisterException if the underlying {@link Persister} couldn't be accessed
      */
     public static Map<String, byte[]> getAllData(Persister persister) throws PersisterException {
-        return getAllDataUnder(persister, PATH_DELIM);
+        return getAllDataUnder(persister, PATH_DELIM_STR);
     }
 
     /**
@@ -93,7 +98,7 @@ public class PersisterUtils {
      * @throws PersisterException if the underlying {@link Persister} couldn't be accessed
      */
     public static Collection<String> getAllKeys(Persister persister) throws PersisterException {
-        return getAllKeysUnder(persister, PATH_DELIM);
+        return getAllKeysUnder(persister, PATH_DELIM_STR);
     }
 
     /**

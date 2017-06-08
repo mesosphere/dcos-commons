@@ -57,7 +57,7 @@ public class TestPlacementUtils {
     public static final ObjectMapper OBJECT_MAPPER;
     static {
         OBJECT_MAPPER = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        for (Class<?> c : DefaultServiceSpec.Factory.getDefaultRegisteredSubtypes()) {
+        for (Class<?> c : DefaultServiceSpec.ConfigFactory.getDefaultRegisteredSubtypes()) {
             OBJECT_MAPPER.registerSubtypes(c);
         }
         OBJECT_MAPPER.registerSubtypes(PassTestRule.class);

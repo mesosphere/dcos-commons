@@ -16,7 +16,11 @@ import org.junit.Test;
 
 import java.util.*;
 
+/**
+ * Tests for {@link NamedVIPEvaluationStage}.
+ */
 public class NamedVIPEvaluationStageTest {
+
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
@@ -48,7 +52,6 @@ public class NamedVIPEvaluationStageTest {
         Protos.Resource offeredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        String vipLabelKey = "VIP_LABEL_KEY";
         Collection<Protos.TaskInfo> taskInfos = Arrays.asList(
                 Protos.TaskInfo.newBuilder()
                         .setName("pod-type-0-test-task-name")
@@ -81,7 +84,6 @@ public class NamedVIPEvaluationStageTest {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedPorts(8000, 8000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        String vipLabelKey = "VIP_LABEL_KEY";
         Collection<Protos.TaskInfo> taskInfos = Arrays.asList(
                 Protos.TaskInfo.newBuilder()
                         .setName("pod-type-0-test-task-name")
@@ -145,7 +147,7 @@ public class NamedVIPEvaluationStageTest {
                 .cpus(1.0)
                 .addResource(getNamedVIPSpec(taskPort))
                 .build();
-        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
                 .build();
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
