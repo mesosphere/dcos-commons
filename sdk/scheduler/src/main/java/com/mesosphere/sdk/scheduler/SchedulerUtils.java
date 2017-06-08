@@ -105,7 +105,6 @@ public class SchedulerUtils {
     /**
      * Returns the configured API port to use for serving requests at the scheduler.
      */
-
     public static Integer getApiPort(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
         // If the svc.yml explicitly provided an api port, use that
         if (rawServiceSpec.getScheduler() != null

@@ -195,7 +195,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.domain.socket.path</name>
-        <value>/var/lib/hadoop-hdfs/dn_socket</value>
+        <value>dn_socket</value>
     </property>
     <property>
         <name>dfs.permissions.enabled</name>
