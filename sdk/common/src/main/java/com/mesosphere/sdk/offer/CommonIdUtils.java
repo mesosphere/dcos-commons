@@ -13,7 +13,7 @@ import org.apache.mesos.Protos.TaskID;
 public class CommonIdUtils {
 
     /** Used in task and executor IDs to separate the task/executor name from a UUID. */
-    private static final String NAME_ID_DELIM = "__";
+    public static final String NAME_ID_DELIM = "__";
 
     private CommonIdUtils() {
         // do not instantiate

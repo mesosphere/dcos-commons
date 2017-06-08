@@ -1,4 +1,4 @@
-name: "hello-world"
+name: {{FRAMEWORK_NAME}}
 pods:
   hello-overlay:
     count: {{HELLO_COUNT}}
