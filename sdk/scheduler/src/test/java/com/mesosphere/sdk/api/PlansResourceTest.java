@@ -251,9 +251,6 @@ public class PlansResourceTest {
         Response response = resource.restartCommand("bad-plan", null, null);
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
 
-        response = resource.restartCommand(planName, "non-null", null);
-        assertTrue(response.getStatusInfo().equals(Response.Status.BAD_REQUEST));
-
         response = resource.restartCommand(planName, null, "non-null");
         assertTrue(response.getStatusInfo().equals(Response.Status.BAD_REQUEST));
     }

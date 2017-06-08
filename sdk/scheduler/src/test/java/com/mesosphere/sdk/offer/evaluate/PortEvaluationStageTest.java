@@ -42,7 +42,7 @@ public class PortEvaluationStageTest {
                 .cpus(1.0)
                 .addResource(portSpec)
                 .build();
-        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
                 .build();
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
@@ -124,7 +124,6 @@ public class PortEvaluationStageTest {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        String taskName = "pod-type-0-" + TestConstants.TASK_NAME;
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
@@ -175,7 +174,6 @@ public class PortEvaluationStageTest {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        String taskName = "pod-type-0-" + TestConstants.TASK_NAME;
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,

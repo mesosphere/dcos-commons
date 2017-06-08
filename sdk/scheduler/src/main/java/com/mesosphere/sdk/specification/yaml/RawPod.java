@@ -18,7 +18,6 @@ public class RawPod implements RawContainerInfoProvider {
     private final String image;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
-    private final String strategy;
     private final String user;
     private final Collection<String> uris;
     private final WriteOnceLinkedHashMap<String, RawTask> tasks;
@@ -35,7 +34,6 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("image") String image,
             @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
             @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
-            @JsonProperty("strategy") String strategy,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
             @JsonProperty("user") String user,
@@ -48,7 +46,6 @@ public class RawPod implements RawContainerInfoProvider {
         this.image = image;
         this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
         this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
-        this.strategy = strategy;
         this.user = user;
         this.uris = uris;
         this.tasks = tasks;
@@ -70,7 +67,7 @@ public class RawPod implements RawContainerInfoProvider {
     public RawContainer getContainer() {
         return container;
     }
-    
+
     public String getImage() {
         return image;
     }
@@ -81,10 +78,6 @@ public class RawPod implements RawContainerInfoProvider {
 
     public WriteOnceLinkedHashMap<String, RawRLimit> getRLimits() {
         return rlimits;
-    }
-
-    public String getStrategy() {
-        return strategy;
     }
 
     public LinkedHashMap<String, RawTask> getTasks() {
