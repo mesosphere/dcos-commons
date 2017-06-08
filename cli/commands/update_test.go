@@ -93,11 +93,23 @@ func (suite *UpdateTestSuite) TestDescribeNoOptions() {
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-func (suite *UpdateTestSuite) TestPrintStatus() {
-	printStatus()
-	expectedOutput := "Status has not been implemented yet. Please use `dcos hello-world --name=hello-world plan show` to view progress.\n"
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+func (suite *UpdateTestSuite) TestPrintStatusRaw() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	printStatus(true)
+
+	// assert CLI output matches response json
+	assert.Equal(suite.T(), string(suite.responseBody) + "\n\n", suite.capturedOutput.String())
 }
+
+func (suite *UpdateTestSuite) TestPrintStatusTree() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	printStatus(false)
+
+	// assert CLI output is what we expect
+	expectedOutput := suite.loadFile("testdata/output/deploy-tree-twophase.txt")
+	assert.Equal(suite.T(), string(expectedOutput) + "\n", suite.capturedOutput.String())
+}
+
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/config.json", "")
@@ -107,7 +119,7 @@ func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -120,7 +132,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update status` to view progress.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -133,20 +145,24 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
 
 	// assert CLI output is what we expect
-	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update --status` to view progress.\n"
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update status` to view progress.\n"
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
+func (suite *UpdateTestSuite) TestUpdateWithWrongPath() {
+	doUpdate("testdata/input/emptyASDF.json", "")
+	expectedOutput := "Failed to load specified options file testdata/input/emptyASDF.json: open testdata/input/emptyASDF.json: no such file or directory\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithEmptyFile() {
-	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/empty.json", "")
-	expectedOutput := "Failed to load specified options file testdata/input/empty.json: unexpected end of JSON input\n"
+	expectedOutput := "Failed to parse JSON in specified options file testdata/input/empty.json: unexpected end of JSON input\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
-	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/malformed.json", "")
-	expectedOutput := "Failed to load specified options file testdata/input/malformed.json: unexpected end of JSON input\n"
+	expectedOutput := "Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }

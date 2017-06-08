@@ -26,6 +26,13 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("WORLD_MEM", "1024");
         ENV_VARS.set("WORLD_FAILS", "3");
         ENV_VARS.set("WORLD_DISK", "5000");
+
+        ENV_VARS.set("HELLO_SECRET1", "hello-world/secret1");
+        ENV_VARS.set("HELLO_SECRET2", "hello-world/secret2");
+        ENV_VARS.set("WORLD_SECRET1", "hello-world/secret1");
+        ENV_VARS.set("WORLD_SECRET2", "hello-world/secret2");
+        ENV_VARS.set("WORLD_SECRET3", "hello-world/secret3");
+
     }
 
     @Test
@@ -73,4 +80,8 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         testYaml("examples/gpu_resource.yml");
     }
 
+    @Test
+    public void testSecrets() throws Exception {
+        testYaml("examples/secrets.yml");
+    }
 }
