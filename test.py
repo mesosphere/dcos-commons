@@ -592,7 +592,8 @@ def main():
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
-    fwinfo.set_buildtypes(branch_changes.get_branch_changetypes())
+    if 'PULL_REQUEST' in os.environ:
+        fwinfo.set_buildtypes(branch_changes.get_branch_changetypes())
 
     setup_frameworks(run_attrs)
 
