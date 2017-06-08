@@ -32,7 +32,7 @@ public class StateStoreUtils {
     private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
-    private static final String PROPERTY_TASK_INFO_APPENDIX = ":taskStatus";
+    private static final String PROPERTY_TASK_INFO_SUFFIX = ":taskStatus";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -262,8 +262,9 @@ public class StateStoreUtils {
      * @param taskName Name of the task
      * @param taskInfo TaskInfo to store.
      */
-    public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskInfo) {
-        stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_APPENDIX, taskInfo.toByteArray());
+    public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskInfo)
+            throws StateStoreException{
+        stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskInfo.toByteArray());
     }
 
     /**
@@ -272,11 +273,12 @@ public class StateStoreUtils {
      * @param taskName
      * @return
      */
-    public static Optional<TaskStatus> getTaskInfoFromProperty(StateStore stateStore, String taskName) {
-        if (stateStore.fetchPropertyKeys().contains(taskName + PROPERTY_TASK_INFO_APPENDIX)) {
+    public static Optional<TaskStatus> getTaskInfoFromProperty(StateStore stateStore, String taskName)
+            throws StateStoreException {
+        if (stateStore.fetchPropertyKeys().contains(taskName + PROPERTY_TASK_INFO_SUFFIX)) {
             try {
                 return Optional.of(TaskStatus.parseFrom(
-                        stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_APPENDIX)));
+                        stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
             } catch (Exception e) {
                 LOGGER.error("Unable to decode TaskInfo for taskName={}", taskName);
                 return Optional.empty();

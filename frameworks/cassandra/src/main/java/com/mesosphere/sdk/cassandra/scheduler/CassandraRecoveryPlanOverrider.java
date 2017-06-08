@@ -69,10 +69,15 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         CommandSpec command = taskSpec.getCommand().get();
 
         // Get IP address for the pre-existing node.
-        Protos.TaskStatus status = StateStoreUtils.getTaskInfoFromProperty(
-                stateStore, TaskSpec.getInstanceName(podInstance, taskSpec)).get();
 
-        String replaceIp = status.getContainerStatus()
+        Optional<Protos.TaskStatus> status = StateStoreUtils.getTaskInfoFromProperty(
+                stateStore, TaskSpec.getInstanceName(podInstance, taskSpec));
+        if (!status.isPresent()) {
+            logger.error("No previously stored TaskStatus to pull IP address from in Cassandra recovery");
+            throw new RuntimeException("Cassandra Recovery Failure");
+        }
+
+        String replaceIp = status.get().getContainerStatus()
                 .getNetworkInfos(0)
                 .getIpAddresses(0)
                 .getIpAddress();

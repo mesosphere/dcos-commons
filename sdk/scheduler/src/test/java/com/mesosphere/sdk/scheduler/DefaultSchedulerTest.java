@@ -77,7 +77,7 @@ public class DefaultSchedulerTest {
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
     public static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
-    private static final String TASK_IP = "0.0.0.0";
+    private static final String TASK_IP = "9.9.9.9";
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;

@@ -818,7 +818,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     // If there's no TaskInfo with matching TaskId, then we can discard the update
                     // as it must be a stale TaskStatus.
                     if (taskInfo.isPresent()) {
-                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.get().getName(), status);
+                        try {
+                            StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.get().getName(), status);
+                        } catch (StateStoreException e) {
+                            LOGGER.warn("Unable to store network info for status update: " + status, e);
+                        }
                     }
                 }
             } catch (Exception e) {
