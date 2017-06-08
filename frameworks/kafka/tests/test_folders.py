@@ -6,7 +6,8 @@ import sdk_tasks as tasks
 from tests.test_utils import (
     DEFAULT_BROKER_COUNT,
     PACKAGE_NAME,
-    SERVICE_NAME
+    SERVICE_NAME,
+    service_cli
 )
 
 FOLDERED_SERVICE_NAME = "/path/to/" + SERVICE_NAME
@@ -40,3 +41,8 @@ def test_install_foldered():
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
     tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_BROKER_COUNT)
+
+    # test that we can access the scheduler as well:
+    stdout = service_cli('--name={} pods list'.format(FOLDERED_SERVICE_NAME))
+    jsonobj = json.loads(stdout)
+    broker_count_check(len(jsonobj), service_name=FOLDERED_SERVICE_NAME)

@@ -1,10 +1,12 @@
 import pytest
 import shakedown
 
+import sdk_cmd as cmd
 import sdk_install as install
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
+    configured_task_count,
     check_running
 )
 
@@ -38,3 +40,8 @@ def test_install_foldered():
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
     check_running(FOLDERED_SERVICE_NAME)
+
+    # test that we can access the scheduler as well:
+    stdout = cmd.run_cli('{} --name={} pods list'.format(PACKAGE_NAME, FOLDERED_SERVICE_NAME))
+    jsonobj = json.loads(stdout)
+    assert len(jsonobj) == configured_task_count(FOLDERED_SERVICE_NAME)
