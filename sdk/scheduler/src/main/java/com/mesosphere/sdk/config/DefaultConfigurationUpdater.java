@@ -60,11 +60,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             targetConfigId = null;
         }
 
-        ServiceSpec targetConfig;
+        Optional<ServiceSpec> targetConfig;
         if (targetConfigId != null) {
-            targetConfig = configStore.fetch(targetConfigId);
+            targetConfig = Optional.of(configStore.fetch(targetConfigId));
         } else {
-            targetConfig = null;
+            targetConfig = Optional.empty();
         }
 
         // Log the config state (with diff of changes vs prior state) before proceeding with checks.
@@ -82,13 +82,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                     String.format("Unable to serialize new config to JSON for logging: %s", e.getMessage())));
         }
 
-        if (targetConfig == null) {
+        if (!targetConfig.isPresent()) {
             LOGGER.info("Skipping config diff: There is no old config target to diff against");
         } else if (candidateConfigJson == null) {
             LOGGER.info("Skipping config diff: New target couldn't be represented as JSON");
         } else {
-            LOGGER.info("Prior target config:\n{}", targetConfig.toJsonString());
-            printConfigDiff(targetConfig, targetConfigId, candidateConfigJson);
+            LOGGER.info("Prior target config:\n{}", targetConfig.get().toJsonString());
+            printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
         // Check for any validation errors (including against the prior config, if one is available)
@@ -110,19 +110,19 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.warn("New configuration failed validation against current target " +
                             "configuration {}, with {} errors across {} validators:\n{}",
                     targetConfigId, errors.size(), validators.size(), sj.toString());
-            if (targetConfig == null) {
+            if (!targetConfig.isPresent()) {
                 throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
                         "Configuration failed validation without any prior target configuration" +
                                 "available for fallback. Initial launch with invalid configuration? " +
                                 "%d Errors: %s", errors.size(), sj.toString()));
             }
-        } else if (targetConfig == null || !configComparator.equals(targetConfig, candidateConfig)) {
+        } else if (!targetConfig.isPresent() || !configComparator.equals(targetConfig.get(), candidateConfig)) {
             LOGGER.info("Changes detected between current target configuration '{}' and new " +
                             "configuration. Setting target to new configuration.",
                     targetConfigId);
 
             targetConfigId = configStore.store(candidateConfig);
-            targetConfig = candidateConfig;
+            targetConfig = Optional.of(candidateConfig);
             configStore.setTargetConfig(targetConfigId);
         } else {
             LOGGER.info("No changes detected between current target configuration '{}' and new " +
@@ -132,7 +132,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         // Update config IDs on tasks whose config contents match the current target, then clean up
         // leftover configs which are not the target and which are not referenced by any tasks.
-        cleanupDuplicateAndUnusedConfigs(targetConfig, targetConfigId);
+        cleanupDuplicateAndUnusedConfigs(targetConfig.get(), targetConfigId);
 
         UpdateResult.DeploymentType updateType =
                 lastUpdateType.equals(UpdateResult.DeploymentType.NONE) ?

@@ -2,7 +2,7 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.kafka.api.BrokerResource;
 import com.mesosphere.sdk.kafka.api.KafkaZKClient;
 import com.mesosphere.sdk.kafka.api.TopicResource;
@@ -12,9 +12,10 @@ import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 
@@ -30,13 +31,24 @@ public class KafkaService extends DefaultService {
         super(createSchedulerBuilder(pathToYamlSpecification));
     }
 
-    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
-            throws Exception {
-
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
+    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+
+        // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
+        String kafkaZookeeperUri = System.getenv("KAFKA_ZOOKEEPER_URI");
+        if (kafkaZookeeperUri == null) {
+            // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
+            kafkaZookeeperUri =
+                    SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags)
+                    + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
+        }
+        LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
+
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                        .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", kafkaZookeeperUri)
+                        .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
 
         /* Upgrade */
@@ -50,28 +62,21 @@ public class KafkaService extends DefaultService {
         schedulerBuilder.setStateStore(stateStore);
         /* Upgrade */
 
-        schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
-                schedulerBuilder.getServiceSpec().getZookeeperConnection() +
-                        DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
-
-        schedulerBuilder.setCustomResources(
-                getResources(
+        return schedulerBuilder
+                .setEndpointProducer("zookeeper", EndpointProducer.constant(kafkaZookeeperUri))
+                .setCustomResources(getResources(
                         schedulerBuilder.getServiceSpec().getZookeeperConnection(),
                         schedulerBuilder.getServiceSpec().getName()));
-        return schedulerBuilder;
     }
 
     private static Collection<Object> getResources(String zookeeperConnection, String serviceName) {
-        KafkaZKClient kafkaZKClient = new KafkaZKClient(
-                zookeeperConnection,
-                DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceName);
+        KafkaZKClient kafkaZKClient =
+                new KafkaZKClient(zookeeperConnection, CuratorUtils.getServiceRootPath(serviceName));
 
         final Collection<Object> apiResources = new ArrayList<>();
         apiResources.add(new BrokerResource(kafkaZKClient));
-        apiResources.add(new TopicResource(
-                new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
-                kafkaZKClient));
-
+        apiResources.add(
+                new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")), kafkaZKClient));
         return apiResources;
     }
 }

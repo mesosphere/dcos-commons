@@ -14,8 +14,10 @@ def get_config(app_name):
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
     # submit a partial config with only the desired fields changed.
-    del config['uris']
-    del config['version']
+    if "uris" in config:
+        del config['uris']
+    if "version" in config:
+        del config['version']
 
     return config
 

@@ -61,7 +61,7 @@ def test_endpoints_address():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper():
-    zookeeper = service_cli('endpoints zookeeper')
+    zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == (
         'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
     )
@@ -252,7 +252,7 @@ def test_config_cli():
 @pytest.mark.sanity
 def test_plan_cli():
     assert service_cli('plan list')
-    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False)
     assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
     assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME))
     assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))

@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,16 +43,16 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(pathToYamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this(DefaultScheduler.newBuilder(
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 
@@ -181,32 +180,13 @@ public class DefaultService implements Service {
             StateStore stateStore,
             String userString,
             int failoverTimeoutSec) {
-        final String serviceName = serviceSpec.getName();
-
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
+                .setName(serviceSpec.getName())
+                .setPrincipal(serviceSpec.getPrincipal())
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
-                .setCheckpoint(true);
-
-        // Use provided role if specified, otherwise default to "<svcname>-role".
-        //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
-        if (StringUtils.isEmpty(serviceSpec.getRole())) {
-            fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
-        } else {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        }
-
-        // Use provided principal if specified, otherwise default to "<svcname>-principal".
-        if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
-            fwkInfoBuilder.setPrincipal(SchedulerUtils.nameToPrincipal(serviceName));
-        } else {
-            fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
-        }
-
-        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
-            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
-        }
+                .setCheckpoint(true)
+                .setRole(serviceSpec.getRole());
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();

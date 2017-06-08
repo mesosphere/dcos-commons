@@ -18,7 +18,11 @@ import org.junit.Test;
 
 import java.util.*;
 
+/**
+ * Tests for {@link NamedVIPEvaluationStage}.
+ */
 public class NamedVIPEvaluationStageTest {
+
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
@@ -235,7 +239,7 @@ public class NamedVIPEvaluationStageTest {
                 .cpus(1.0)
                 .addResource(getNamedVIPSpec(taskPort, onOverlay))
                 .build();
-        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
                 .build();
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
