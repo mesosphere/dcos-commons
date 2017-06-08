@@ -44,3 +44,5 @@ else
     echo "Failed to create new project"
     exit 1
 fi
+
+rm -rf $1/cli/dcos-$PROJECT_NAME/vendor/gopkg.in/alecthomas
