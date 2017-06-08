@@ -217,6 +217,9 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
+        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+
         return fwkInfoBuilder.build();
     }
 
