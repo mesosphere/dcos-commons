@@ -188,6 +188,10 @@ public class PodInfoBuilder {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
         }
 
+        // Add SECRET type environment variables to command info
+        executorCommandBuilder.getEnvironmentBuilder()
+                .addAllVariables(getExecutorInfoSecretVariables(podSpec.getSecrets()));
+
         // Finally any URIs for config templates defined in TaskSpecs.
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -202,6 +206,23 @@ public class PodInfoBuilder {
                         .setExtract(false);
             }
         }
+
+        // Add SECRET volumes to container info
+        for (Protos.Volume secretVolume : getExecutorInfoSecretVolumes(podSpec.getSecrets())) {
+            if (!executorInfoBuilder.hasContainer()) {
+                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
+                        .setType(Protos.ContainerInfo.Type.MESOS)
+                        .addVolumes(secretVolume).build());
+            } else {
+                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
+                        .addVolumes(secretVolume)
+                        .build());
+            }
+        }
+
+        executorInfoBuilder.setLabels(executorInfoBuilder.getLabelsBuilder()
+                .addLabels(Protos.Label.newBuilder().setKey("DCOS_SPACE").setValue(getDcosSpaceLabel())));
+
 
         return executorInfoBuilder.build();
     }
@@ -467,6 +488,58 @@ public class PodInfoBuilder {
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
+    }
+
+    private static Protos.Secret getReferenceSecret(String secretPath) {
+        return Protos.Secret.newBuilder()
+                .setType(Protos.Secret.Type.REFERENCE)
+                .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
+                .build();
+    }
+
+    private static Collection<Protos.Environment.Variable> getExecutorInfoSecretVariables(
+            Collection<SecretSpec> secretSpecs) {
+        Collection<Protos.Environment.Variable> variables = new ArrayList<>();
+
+        for (SecretSpec secretSpec : secretSpecs) {
+            if (secretSpec.getEnvKey().isPresent()) {
+                variables.add(Protos.Environment.Variable.newBuilder()
+                        .setName(secretSpec.getEnvKey().get())
+                        .setType(Protos.Environment.Variable.Type.SECRET)
+                        .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
+                        .build());
+            }
+        }
+        return variables;
+    }
+
+    private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
+        Collection<Protos.Volume> volumes = new ArrayList<>();
+
+        for (SecretSpec secretSpec: secretSpecs) {
+            if (secretSpec.getFilePath().isPresent()) {
+                volumes.add(Protos.Volume.newBuilder()
+                        .setSource(Protos.Volume.Source.newBuilder()
+                                .setType(Protos.Volume.Source.Type.SECRET)
+                                .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
+                                .build())
+                        .setContainerPath(secretSpec.getFilePath().get())
+                        .setMode(Protos.Volume.Mode.RO)
+                        .build());
+            }
+        }
+        return volumes;
+    }
+
+    private static String getDcosSpaceLabel() {
+        String labelString = System.getenv("DCOS_SPACE");
+        if (labelString == null) {
+            labelString = System.getenv("MARATHON_APP_ID");
+        }
+        if (labelString == null) {
+            return "/"; // No Authorization for this framework
+        }
+        return labelString;
     }
 
     @Override
