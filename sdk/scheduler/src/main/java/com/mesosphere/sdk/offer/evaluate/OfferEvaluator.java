@@ -79,7 +79,9 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
-            MesosResourcePool resourcePool = new MesosResourcePool(offer);
+            MesosResourcePool resourcePool = new MesosResourcePool(
+                    offer,
+                    OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,

@@ -42,6 +42,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
 
         Resource resource;
+        MesosResource mesosResource;
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             EvaluationOutcome evaluationOutcome = OfferEvaluationUtils.evaluateSimpleResource(
                     this,
@@ -53,7 +54,10 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
             }
 
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
-            resource = ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, Optional.empty()).build();
+            mesosResource = evaluationOutcome.getMesosResource().get();
+            resource = ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, Optional.empty())
+                    .setMesosResource(mesosResource)
+                    .build();
         } else {
             Optional<MesosResource> mesosResourceOptional = Optional.empty();
             if (!resourceId.isPresent()) {
@@ -68,13 +72,14 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
                 return fail(this, "Failed to find MOUNT volume for '%s'.", getSummary());
             }
 
-            MesosResource mesosResource = mesosResourceOptional.get();
+            mesosResource = mesosResourceOptional.get();
             resource = ResourceBuilder.fromSpec(
                     volumeSpec,
                     resourceId,
                     persistenceId,
                     Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
                     .setValue(mesosResource.getValue())
+                    .setMesosResource(mesosResource)
                     .build();
 
             if (!resourceId.isPresent()) {
@@ -97,6 +102,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
         return pass(
                 this,
+                mesosResource,
                 offerRecommendations,
                 "Satisfied requirements for %s volume '%s'",
                 volumeSpec.getType(),

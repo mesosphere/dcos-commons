@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
@@ -43,7 +42,11 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             return evaluationOutcome;
         }
 
-        setProtos(podInfoBuilder, ResourceBuilder.fromSpec(resourceSpec, resourceId).build());
+        Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
+                .setMesosResource(evaluationOutcome.getMesosResource().get())
+                .build();
+        setProtos(podInfoBuilder, resource);
+
         return evaluationOutcome;
     }
 

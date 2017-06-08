@@ -25,7 +25,7 @@ public class VolumeEvaluationStageTest {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
 
@@ -76,7 +76,7 @@ public class VolumeEvaluationStageTest {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
 

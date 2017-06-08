@@ -26,6 +26,7 @@ public class ResourceBuilder {
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
     private Optional<DiskInfo.Source> diskMountInfo;
+    private MesosResource mesosResource;
 
     public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
         return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
@@ -180,16 +181,23 @@ public class ResourceBuilder {
         return this;
     }
 
-    public Resource build() {
-        Resource.Builder builder = Resource.newBuilder()
-                .setName(resourceName)
-                .setRole(preReservedRole);
+    public ResourceBuilder setMesosResource(MesosResource mesosResource) {
+        this.mesosResource = mesosResource;
+        return this;
+    }
 
-        if (role.isPresent()) {
+    public Resource build() {
+        Resource.Builder builder =
+                mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
+        builder.setName(resourceName).setRole(preReservedRole);
+        builder.setType(value.getType());
+
+        if (role.isPresent() && !ResourceCollectionUtils.hasResourceId(builder.build())) {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
             Resource.ReservationInfo reservationInfo = Resource.ReservationInfo.newBuilder()
                     .setPrincipal(principal.get())
                     .setRole(role.get())
+                    .setType(Resource.ReservationInfo.Type.DYNAMIC)
                     .setLabels(
                             Protos.Labels.newBuilder()
                                     .addLabels(Protos.Label.newBuilder()
@@ -213,22 +221,6 @@ public class ResourceBuilder {
         }
 
         return setValue(builder, value).build();
-    }
-
-    private static Value getValue(Resource resource) {
-        Value.Builder builder = Value.newBuilder()
-                .setType(resource.getType());
-        switch (resource.getType()) {
-        case SCALAR:
-            return builder.setScalar(resource.getScalar()).build();
-        case RANGES:
-            return builder.setRanges(resource.getRanges()).build();
-        case SET:
-            return builder.setSet(resource.getSet()).build();
-        default:
-            throw new IllegalArgumentException(
-                    String.format("Unsupported resource value type: %s", resource.getType()));
-        }
     }
 
     private static Resource.Builder setValue(Resource.Builder builder, Value value) {

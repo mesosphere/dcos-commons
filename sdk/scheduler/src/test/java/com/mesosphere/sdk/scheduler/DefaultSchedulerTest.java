@@ -797,7 +797,7 @@ public class DefaultSchedulerTest {
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
     }
 
@@ -812,7 +812,7 @@ public class DefaultSchedulerTest {
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
 
         @JsonProperty("message")

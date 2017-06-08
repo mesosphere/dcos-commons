@@ -1,11 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * The outcome of invoking an {@link OfferEvaluationStage}. Describes whether the evaluation passed or failed, and the
@@ -24,6 +22,7 @@ public class EvaluationOutcome {
 
     private final Type type;
     private final String source;
+    private final MesosResource mesosResource;
     private final Collection<OfferRecommendation> offerRecommendations;
     private final Collection<EvaluationOutcome> children;
     private final String reason;
@@ -35,8 +34,12 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the pass reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome pass(Object source, String reasonFormat, Object... reasonArgs) {
-        return pass(source, Collections.emptyList(), reasonFormat, reasonArgs);
+    public static EvaluationOutcome pass(
+            Object source,
+            MesosResource mesosResource,
+            String reasonFormat,
+            Object... reasonArgs) {
+        return pass(source, mesosResource, Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
@@ -49,10 +52,18 @@ public class EvaluationOutcome {
      */
     public static EvaluationOutcome pass(
             Object source,
+            MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             String reasonFormat,
             Object... reasonArgs) {
-        return create(true, source, offerRecommendations, Collections.emptyList(), reasonFormat, reasonArgs);
+        return create(
+                true,
+                source,
+                mesosResource,
+                offerRecommendations,
+                Collections.emptyList(),
+                reasonFormat,
+                reasonArgs);
     }
 
     /**
@@ -62,8 +73,18 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the fail reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome fail(Object source, String reasonFormat, Object... reasonArgs) {
-        return create(false, source, Collections.emptyList(), Collections.emptyList(), reasonFormat, reasonArgs);
+    public static EvaluationOutcome fail(
+            Object source,
+            String reasonFormat,
+            Object... reasonArgs) {
+        return create(
+                false,
+                source,
+                null,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                reasonFormat,
+                reasonArgs);
     }
 
     /**
@@ -73,23 +94,32 @@ public class EvaluationOutcome {
     public static EvaluationOutcome create(
             boolean isPassing,
             Object source,
+            MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             Collection<EvaluationOutcome> children,
             String reasonFormat,
             Object... reasonArgs) {
         return new EvaluationOutcome(
-                isPassing ? Type.PASS : Type.FAIL, source, offerRecommendations, children, reasonFormat, reasonArgs);
+                isPassing ? Type.PASS : Type.FAIL,
+                source,
+                mesosResource,
+                offerRecommendations,
+                children,
+                reasonFormat,
+                reasonArgs);
     }
 
     private EvaluationOutcome(
             Type type,
             Object source,
+            MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             Collection<EvaluationOutcome> children,
             String reasonFormat,
             Object... reasonArgs) {
         this.type = type;
         this.source = source.getClass().getSimpleName();
+        this.mesosResource = mesosResource;
         this.offerRecommendations = offerRecommendations;
         this.children = children;
         this.reason = String.format(reasonFormat, reasonArgs);
@@ -121,6 +151,10 @@ public class EvaluationOutcome {
      */
     public Collection<EvaluationOutcome> getChildren() {
         return children;
+    }
+
+    public Optional<MesosResource> getMesosResource() {
+        return Optional.ofNullable(mesosResource);
     }
 
     public List<OfferRecommendation> getOfferRecommendations() {

@@ -70,7 +70,7 @@ public class TestPlacementUtils {
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
 
         @Override

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -69,7 +70,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
 
         for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
             if (!expectedIds.contains(entry.getKey())) {
-                logger.info("Unexpected reserved resource found: {}", entry);
+                logger.info("Unexpected reserved resource found: {}", TextFormat.shortDebugString(entry.getValue()));
                 unexpectedResources.add(entry.getValue());
             }
         }

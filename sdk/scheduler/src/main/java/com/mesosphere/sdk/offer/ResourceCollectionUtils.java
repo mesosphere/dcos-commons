@@ -97,6 +97,10 @@ public class ResourceCollectionUtils {
         return Optional.empty();
     }
 
+    public static boolean hasResourceId(Resource resource) {
+        return ResourceCollectionUtils.getResourceId(resource).isPresent();
+    }
+
     public static Optional<String> getPersistenceId(Resource resource) {
         if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
             return Optional.of(resource.getDisk().getPersistence().getId());

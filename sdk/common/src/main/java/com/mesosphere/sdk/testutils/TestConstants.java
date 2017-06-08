@@ -18,6 +18,7 @@ public class TestConstants {
     public static final String PERSISTENCE_ID = "test-persistence-id";
     public static final String PRINCIPAL = "test-principal";
     public static final String ROLE = "test-role";
+    public static final String PRE_RESERVED_ROLE = "base-role";
     public static final Protos.SlaveID AGENT_ID = Protos.SlaveID.newBuilder().setValue("test-slave-id").build();
     public static final String TASK_NAME = "test-task-name";
     public static final String TASK_TYPE = "test-task-type";

@@ -31,6 +31,7 @@ public class NotRule implements PlacementRule {
         return EvaluationOutcome.create(
                 !child.isPassing(),
                 this,
+                null,
                 Collections.emptyList(),
                 Arrays.asList(child),
                 "Returning opposite of child rule:");

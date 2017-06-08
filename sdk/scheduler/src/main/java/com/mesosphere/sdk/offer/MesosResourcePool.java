@@ -32,10 +32,6 @@ public class MesosResourcePool {
         this.reservableMergedPool = getReservableMergedPool(mesosResources);
     }
 
-    public MesosResourcePool(Offer offer) {
-        this(offer, Optional.empty());
-    }
-
     /**
      * Returns the underlying offer which this resource pool represents.
      */
@@ -162,9 +158,16 @@ public class MesosResourcePool {
         if (sufficientValue(desiredValue, availableValue)) {
             pool.put(name, ValueUtils.subtract(availableValue, desiredValue));
             reservableMergedPool.put(preReservedRole, pool);
-            Resource resource = ResourceBuilder.fromUnreservedValue(name, desiredValue)
-                    .build();
-            return Optional.of(new MesosResource(resource));
+
+            Resource.Builder builder = ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
+            if (!preReservedRole.equals(Constants.ANY_ROLE)) {
+                builder.addReservations(
+                        Resource.ReservationInfo.newBuilder()
+                                .setRole(preReservedRole)
+                                .setType(Resource.ReservationInfo.Type.STATIC));
+            }
+
+            return Optional.of(new MesosResource(builder.build()));
         } else {
             if (availableValue == null) {
                 logger.info("Offer lacks any unreserved resources named {}", name);

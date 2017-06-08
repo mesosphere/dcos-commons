@@ -522,12 +522,16 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertEquals("base-role", serviceSpec.getPods().get(0).getPreReservedRole());
+        Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
         Offer sufficientOffer = OfferTestUtils.getOffer(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedScalar("cpus", 3.0).toBuilder()
-                                .setRole("base-role")
+                                .setRole(Constants.ANY_ROLE)
+                                .addReservations(
+                                        Resource.ReservationInfo.newBuilder()
+                                        .setRole(TestConstants.PRE_RESERVED_ROLE)
+                                        .setType(Resource.ReservationInfo.Type.STATIC))
                                 .build()));
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
@@ -539,19 +543,32 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(sufficientOffer));
-
         Assert.assertEquals(2, recommendations.size());
+
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
+        Assert.assertEquals(2, reserveResource.getReservationsCount());
+
+        Resource.ReservationInfo preReservation = reserveResource.getReservations(0);
+        Assert.assertEquals(Resource.ReservationInfo.Type.STATIC, preReservation.getType());
+        Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, preReservation.getRole());
+        Assert.assertFalse(preReservation.hasLabels());
+
+        Resource.ReservationInfo dynamicReservation = reserveResource.getReservations(1);
+        Assert.assertEquals(Resource.ReservationInfo.Type.DYNAMIC, dynamicReservation.getType());
+        Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE + "/hello-world-role", dynamicReservation.getRole());
+        Assert.assertTrue(dynamicReservation.hasLabels());
     }
 
     @Test
-    public void testResourceRefinementFails() throws Exception {
+    public void testResourceRefinementFailsForMissingPreReservation() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertEquals("base-role", serviceSpec.getPods().get(0).getPreReservedRole());
+        Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-        Offer sufficientOffer = OfferTestUtils.getOffer(
+        Offer badOffer = OfferTestUtils.getOffer(
                 Arrays.asList(ResourceTestUtils.getUnreservedScalar("cpus", 3.0)));
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
@@ -562,7 +579,38 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(sufficientOffer));
+                Arrays.asList(badOffer));
+
+        Assert.assertEquals(0, recommendations.size());
+    }
+
+    @Test
+    public void testResourceRefinementFailsForDifferentPreReservation() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+        Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
+
+        Offer badOffer = OfferTestUtils.getOffer(
+                Arrays.asList(
+                        ResourceTestUtils.getUnreservedScalar("cpus", 3.0).toBuilder()
+                                .setRole(Constants.ANY_ROLE)
+                                .addReservations(
+                                        Resource.ReservationInfo.newBuilder()
+                                                .setRole("different-role")
+                                                .setType(Resource.ReservationInfo.Type.STATIC))
+                                .build()));
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch)
+                .build();
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(badOffer));
 
         Assert.assertEquals(0, recommendations.size());
     }

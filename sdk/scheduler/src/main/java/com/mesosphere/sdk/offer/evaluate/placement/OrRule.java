@@ -44,6 +44,7 @@ public class OrRule implements PlacementRule {
         return EvaluationOutcome.create(
                 passingCount != 0,
                 this,
+                null,
                 Collections.emptyList(),
                 children,
                 "%d of %d rules are passing:", passingCount, rules.size());
