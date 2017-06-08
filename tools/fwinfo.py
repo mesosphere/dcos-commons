@@ -27,6 +27,12 @@ def init_repo_root(repo_root):
     _repo_root=repo_root
 
 
+pr_build_change_types = None
+def set_buildtypes(build_set):
+    global pr_build_change_types
+    pr_build_change_types = build_set
+    logging.debug("build_types set to %s", build_set)
+
 def add_framework(framework_name, repo_root=None, dcos_version=None):
     if not repo_root:
         repo_root=_repo_root
@@ -38,6 +44,20 @@ def add_framework(framework_name, repo_root=None, dcos_version=None):
         logger.info("Skipping framework %s, which does not support dcos version %s",
                 framework_name, dcos_version)
         return None
+    if pr_build_change_types:
+        if "DOC" in pr_build_change_types:
+            logger.info("Skipping framework %s, docs-only branch", framework_name)
+            return None
+        if not "SDK" in pr_build_change_types:
+            if not framework_name in pr_build_change_types:
+                msg = "Skipping framework %s, no changes for this framework."
+                msg += " Changes for %s frameworks and not SDK itself."
+                logger.info(msg, framework_name, pr_build_change_types)
+                return None
+            else:
+                logging.info("adding framework %s to run, since PR has framework in list.", framework_name)
+        else:
+            logging.info("adding framework %s to run, since there are SDK changes.", framework_name)
     _framework_infos.append(fwobj)
     return fwobj
 
