@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":18};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
+var methods = {"i0":6};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -103,7 +103,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotChangeNetworkRegime</a>, <a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotShrink</a>, <a href="../../../../../com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskVolumesCannotChange</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotChangeNetworkRegime</a>, <a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotShrink</a>, <a href="../../../../../com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate">ServiceNameCannotContainDoubleUnderscores</a>, <a href="../../../../../com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskVolumesCannotChange</a></dd>
 </dl>
 <hr>
 <br>
@@ -123,23 +123,18 @@ var activeTableTab = "activeTableTab";
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-C-C-">validate</a></span>(<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&nbsp;nullableOldConfig,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></span>(java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&gt;&nbsp;oldConfig,
         <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&nbsp;newConfig)</code>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.</div>
 </td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>default &lt;any&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validateInitialConfigs-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">validateInitialConfigs</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;nullableOldConfig,
-                      <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;newConfig)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -156,15 +151,15 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="validate-com.mesosphere.sdk.config.Configuration-com.mesosphere.sdk.config.Configuration-">
+<a name="validate-java.util.Optional-com.mesosphere.sdk.config.Configuration-">
 <!--   -->
-</a><a name="validate-C-C-">
+</a><a name="validate-java.util.Optional-C-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>validate</h4>
-<pre>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;validate(<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&nbsp;nullableOldConfig,
+<pre>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;validate(java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&gt;&nbsp;oldConfig,
                                                      <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="type parameter in ConfigValidator">C</a>&nbsp;newConfig)</pre>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
@@ -175,22 +170,12 @@ var activeTableTab = "activeTableTab";
  2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>nullableOldConfig</code> - Currently persisted Configuration, or <code>null</code> if none is
-                          available (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
+     (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>
 </dl>
-</li>
-</ul>
-<a name="validateInitialConfigs-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>validateInitialConfigs</h4>
-<pre>default&nbsp;&lt;any&gt;&nbsp;validateInitialConfigs(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;nullableOldConfig,
-                                     <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;newConfig)</pre>
 </li>
 </ul>
 </li>

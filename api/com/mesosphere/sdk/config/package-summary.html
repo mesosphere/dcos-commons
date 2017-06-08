@@ -119,13 +119,6 @@
 <div class="block">Handles the validation and update of a new configuration against a prior configuration, if any.</div>
 </td>
 </tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/TaskConfigRouter.html" title="interface in com.mesosphere.sdk.config">TaskConfigRouter</a></td>
-<td class="colLast">
-<div class="block">Interface which maps configuration settings to task types, returning <a href="../../../../com/mesosphere/sdk/config/ConfigNamespace.html" title="class in com.mesosphere.sdk.config"><code>ConfigNamespace</code></a>s on
- a per-task-type basis.</div>
-</td>
-</tr>
 </tbody>
 </table>
 </li>
@@ -138,23 +131,9 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/ConfigNamespace.html" title="class in com.mesosphere.sdk.config">ConfigNamespace</a></td>
-<td class="colLast">
-<div class="block">A grouping of settings which all share a given namespace, which is defined as a prefix on the
- setting keys.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a></td>
 <td class="colLast">
 <div class="block">The result of an <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.html#updateConfiguration-C-"><code>ConfigurationUpdater.updateConfiguration(Configuration)</code></a> call.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/ConfigValue.html" title="class in com.mesosphere.sdk.config">ConfigValue</a></td>
-<td class="colLast">
-<div class="block">Wrapper around a string value, providing convenience functions for converting the string to
- various types.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -164,42 +143,46 @@
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/DefaultTaskConfigRouter.html" title="class in com.mesosphere.sdk.config">DefaultTaskConfigRouter</a></td>
-<td class="colLast">
-<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/config/TaskConfigRouter.html" title="interface in com.mesosphere.sdk.config"><code>TaskConfigRouter</code></a> which interprets the system environment,
- searches for environment variables that start with <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code> and/or
- <code>"TASKCFG_ALL_"</code>, and returns appropriate <a href="../../../../com/mesosphere/sdk/config/ConfigNamespace.html" title="class in com.mesosphere.sdk.config"><code>ConfigNamespace</code></a>s for task types based
- on that environment.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></td>
 <td class="colLast">
 <div class="block">Represents the recovery configuration in JSON.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></td>
 <td class="colLast">
 <div class="block">Contains static object serialization utilities for JSON and YAML.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></td>
 <td class="colLast">
 <div class="block">This class implements the Configuration interface for configurations stored as Strings.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/StringConfiguration.Comparator.html" title="class in com.mesosphere.sdk.config">StringConfiguration.Comparator</a></td>
 <td class="colLast">
 <div class="block">Compares two StringConfigurations for equality.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/StringConfiguration.Factory.html" title="class in com.mesosphere.sdk.config">StringConfiguration.Factory</a></td>
 <td class="colLast">
 <div class="block">Factory which performs the inverse of <a href="../../../../com/mesosphere/sdk/config/StringConfiguration.html#getBytes--"><code>StringConfiguration.getBytes()</code></a>.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></td>
+<td class="colLast">
+<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config"><code>TaskEnvRouter</code></a> which handles forwarding environment variables from two sources:
+ 
+ Scheduler's system environment: searches for environment variables that start with <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code>
+ and/or <code>"TASKCFG_ALL_"</code>, and returns appropriate <code>ConfigNamespace</code>s for task types based on that
+ environment.
+ Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks
+ as needed.
+ </div>
 </td>
 </tr>
 <tr class="altColor">

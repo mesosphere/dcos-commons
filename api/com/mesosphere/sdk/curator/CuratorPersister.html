@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":9,"i6":10,"i7":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -205,13 +205,6 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-java.lang.String-">newBuilder</a></span>(java.lang.String&nbsp;serviceName,
-          java.lang.String&nbsp;zookeeperConnection)</code>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;unprefixedPath,
    byte[]&nbsp;bytes)</code>
@@ -219,7 +212,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;unprefixedPathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -276,22 +269,6 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>serviceSpec</code> - the service for which data will be stored</dd>
-</dl>
-</li>
-</ul>
-<a name="newBuilder-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>newBuilder</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;newBuilder(java.lang.String&nbsp;serviceName,
-                                                  java.lang.String&nbsp;zookeeperConnection)</pre>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>serviceName</code> - the service/framework name for namespacing data on the ZK server</dd>
-<dd><code>zookeeperConnection</code> - the zookeeper connection information to use (format: <code>host:port</code>)</dd>
 </dl>
 </li>
 </ul>

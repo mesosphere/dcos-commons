@@ -153,7 +153,7 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html#validate-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">validate</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;nullableOldConfig,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate</a></span>(java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;oldConfig,
         <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;newConfig)</code>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.</div>
@@ -166,13 +166,6 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.config.validate.ConfigValidator">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.config.validate.<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validateInitialConfigs-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">validateInitialConfigs</a></code></li>
 </ul>
 </li>
 </ul>
@@ -205,15 +198,15 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="validate-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">
+<a name="validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>validate</h4>
-<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;validate(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;nullableOldConfig,
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;validate(java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;oldConfig,
                                                             <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;newConfig)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-C-C-">ConfigValidator</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">ConfigValidator</a></code></span></div>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
 
@@ -223,10 +216,10 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
  2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-C-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>nullableOldConfig</code> - Currently persisted Configuration, or <code>null</code> if none is
-                          available (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
+     (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>

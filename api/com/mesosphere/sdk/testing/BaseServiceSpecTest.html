@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -129,8 +129,8 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static EnvironmentVariables</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#ENV_VARS">ENV_VARS</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>protected java.util.Map&lt;java.lang.String,java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#envVars">envVars</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -144,10 +144,18 @@ extends java.lang.Object</pre>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
 <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
-<th class="colOne" scope="col">Constructor and Description</th>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#BaseServiceSpecTest--">BaseServiceSpecTest</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#BaseServiceSpecTest-java.util.Map-">BaseServiceSpecTest</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;envVars)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#BaseServiceSpecTest-java.lang.String...-">BaseServiceSpecTest</a></span>(java.lang.String...&nbsp;keyVals)</code>
+<div class="block">Invoke as: <code>super("key1", "val1", "key2", "val2", ...)</code>.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -170,15 +178,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#deserializeServiceSpec-java.lang.String-">deserializeServiceSpec</a></span>(java.lang.String&nbsp;fileName)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#testYaml-java.lang.String-">testYaml</a></span>(java.lang.String&nbsp;fileName)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/BaseServiceSpecTest.html#validateServiceSpec-java.lang.String-">validateServiceSpec</a></span>(java.lang.String&nbsp;fileName)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -202,13 +202,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a name="ENV_VARS">
+<a name="envVars">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>ENV_VARS</h4>
-<pre>public static final&nbsp;EnvironmentVariables ENV_VARS</pre>
+<h4>envVars</h4>
+<pre>protected final&nbsp;java.util.Map&lt;java.lang.String,java.lang.String&gt; envVars</pre>
 </li>
 </ul>
 </li>
@@ -219,13 +219,23 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="BaseServiceSpecTest--">
+<a name="BaseServiceSpecTest-java.util.Map-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>BaseServiceSpecTest</h4>
+<pre>protected&nbsp;BaseServiceSpecTest(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;envVars)</pre>
+</li>
+</ul>
+<a name="BaseServiceSpecTest-java.lang.String...-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>BaseServiceSpecTest</h4>
-<pre>public&nbsp;BaseServiceSpecTest()</pre>
+<pre>protected&nbsp;BaseServiceSpecTest(java.lang.String...&nbsp;keyVals)</pre>
+<div class="block">Invoke as: <code>super("key1", "val1", "key2", "val2", ...)</code>.</div>
 </li>
 </ul>
 </li>
@@ -248,39 +258,11 @@ extends java.lang.Object</pre>
 <a name="testYaml-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>testYaml</h4>
 <pre>protected&nbsp;void&nbsp;testYaml(java.lang.String&nbsp;fileName)
                  throws java.lang.Exception</pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
-</dl>
-</li>
-</ul>
-<a name="deserializeServiceSpec-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>deserializeServiceSpec</h4>
-<pre>protected&nbsp;void&nbsp;deserializeServiceSpec(java.lang.String&nbsp;fileName)
-                               throws java.lang.Exception</pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.Exception</code></dd>
-</dl>
-</li>
-</ul>
-<a name="validateServiceSpec-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>validateServiceSpec</h4>
-<pre>protected&nbsp;void&nbsp;validateServiceSpec(java.lang.String&nbsp;fileName)
-                            throws java.lang.Exception</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code></dd>

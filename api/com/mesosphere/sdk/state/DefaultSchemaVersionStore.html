@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -121,34 +121,6 @@ implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>(package private) static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#CURRENT_SCHEMA_VERSION">CURRENT_SCHEMA_VERSION</a></span></code>
-<div class="block">Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
- requires explicit migration.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#SCHEMA_VERSION_NAME">SCHEMA_VERSION_NAME</a></span></code>
-<div class="block">This name/path must remain the same forever.</div>
-</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -216,53 +188,6 @@ implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="CURRENT_SCHEMA_VERSION">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>CURRENT_SCHEMA_VERSION</h4>
-<pre>static final&nbsp;int CURRENT_SCHEMA_VERSION</pre>
-<div class="block">Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
- requires explicit migration.
-
- The migration implementation itself is not yet defined (let's wait until we need to actually
- do it..)</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html#MIN_SUPPORTED_SCHEMA_VERSION"><code>DefaultConfigStore.MIN_SUPPORTED_SCHEMA_VERSION</code></a>, 
-<a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html#MAX_SUPPORTED_SCHEMA_VERSION"><code>DefaultConfigStore.MAX_SUPPORTED_SCHEMA_VERSION</code></a>, 
-<a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html#MIN_SUPPORTED_SCHEMA_VERSION"><code>DefaultStateStore.MIN_SUPPORTED_SCHEMA_VERSION</code></a>, 
-<a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html#MAX_SUPPORTED_SCHEMA_VERSION"><code>DefaultStateStore.MAX_SUPPORTED_SCHEMA_VERSION</code></a>, 
-<a href="../../../../constant-values.html#com.mesosphere.sdk.state.DefaultSchemaVersionStore.CURRENT_SCHEMA_VERSION">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="SCHEMA_VERSION_NAME">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>SCHEMA_VERSION_NAME</h4>
-<pre>static final&nbsp;java.lang.String SCHEMA_VERSION_NAME</pre>
-<div class="block">This name/path must remain the same forever. It's the basis of all other migrations.
- If it's not present, it's automatically created and initialized to the value of
- <code>CURRENT_SCHEMA_VERSION</code>, on the assumption that the framework is being launched for
- the first time.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.state.DefaultSchemaVersionStore.SCHEMA_VERSION_NAME">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
@@ -386,13 +311,13 @@ implements <a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
