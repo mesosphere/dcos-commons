@@ -813,16 +813,13 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         status.getContainerStatus().getNetworkInfosCount() > 0 &&
                         status.getContainerStatus().getNetworkInfosList().stream()
                                 .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                    Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTasks().stream().filter(
-                            info -> info.getTaskId().getValue().equals(status.getTaskId().getValue())).findFirst();
-                    // If there's no TaskInfo with matching TaskId, then we can discard the update
-                    // as it must be a stale TaskStatus.
-                    if (taskInfo.isPresent()) {
-                        try {
-                            StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.get().getName(), status);
-                        } catch (StateStoreException e) {
-                            LOGGER.warn("Unable to store network info for status update: " + status, e);
-                        }
+                    // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
+                    // TaskInfo exists.
+                    try {
+                        Protos.TaskInfo taskInfo = StateStoreUtils.mapTaskStatusToTaskInfo(stateStore, status);
+                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                    } catch (StateStoreException e) {
+                        LOGGER.warn("Unable to store network info for status update: " + status, e);
                     }
                 }
             } catch (Exception e) {

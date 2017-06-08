@@ -138,6 +138,39 @@ public class StateStoreUtils {
     }
 
     /**
+     * Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
+     * TaskInfo.
+     *
+     * @return The singular TaskInfo if it is present
+     * @throws StateStoreException if no corresponding TaskInfo is found.
+     * @throws StateStoreException if multiple corresponding TaskInfo's are found.
+     */
+    public static TaskInfo mapTaskStatusToTaskInfo(StateStore stateStore, TaskStatus taskStatus)
+            throws StateStoreException {
+        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            if (taskInfo.getTaskId().getValue().equals(taskStatus.getTaskId().getValue())) {
+                if (taskInfoOptional.isPresent()) {
+                    LOGGER.error("Found duplicate TaskIDs in Task{} and Task {}",
+                            taskInfoOptional.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with TaskID: %s", taskStatus));
+                } else {
+                    taskInfoOptional = Optional.of(taskInfo);
+                }
+            }
+        }
+
+        if (!taskInfoOptional.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with TaskID: %s", taskStatus));
+        }
+
+        return taskInfoOptional.get();
+    }
+
+    /**
      * Shared implementation for validating property value limits, for use by all StateStore
      * implementations.
      *
@@ -257,30 +290,25 @@ public class StateStoreUtils {
     }
 
     /**
-     * Stores a TaskInfo as a Property in the state store.
-     * @param stateStore StateStore to store in.
-     * @param taskName Name of the task
-     * @param taskInfo TaskInfo to store.
+     * Stores a TaskStatus as a Property in the provided state store.
      */
     public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskInfo)
-            throws StateStoreException{
+            throws StateStoreException {
         stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskInfo.toByteArray());
     }
 
     /**
-     * Stores a TaskInfo in the StateStore as property.
-     * @param stateStore
-     * @param taskName
-     * @return
+     * Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
+     * task name.
      */
-    public static Optional<TaskStatus> getTaskInfoFromProperty(StateStore stateStore, String taskName)
+    public static Optional<TaskStatus> getTaskStatusFromProperty(StateStore stateStore, String taskName)
             throws StateStoreException {
         if (stateStore.fetchPropertyKeys().contains(taskName + PROPERTY_TASK_INFO_SUFFIX)) {
             try {
                 return Optional.of(TaskStatus.parseFrom(
                         stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
             } catch (Exception e) {
-                LOGGER.error("Unable to decode TaskInfo for taskName={}", taskName);
+                LOGGER.error("Unable to decode TaskStatus for taskName={}", taskName);
                 return Optional.empty();
             }
         } else {

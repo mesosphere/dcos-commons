@@ -60,7 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the DefaultScheduler class.
  */
-@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked", "PMD.AvoidUsingHardCodedIP"})
+@SuppressWarnings({"PMD.TooManyStaticImports", "PMD.AvoidUsingHardCodedIP"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
@@ -608,9 +608,9 @@ public class DefaultSchedulerTest {
         install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
     }
 
@@ -620,9 +620,9 @@ public class DefaultSchedulerTest {
         String updateIp = "1.1.1.1";
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
 
         Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
@@ -635,11 +635,11 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, update);
 
         // Verify the TaskStatus was update.
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
 
         Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
-            return StateStoreUtils.getTaskInfoFromProperty(
+            return StateStoreUtils.getTaskStatusFromProperty(
                     stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
                     .getContainerStatus()
                     .getNetworkInfos(0)
@@ -653,9 +653,9 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
 
         Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
@@ -666,11 +666,11 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, update);
 
         // Verify the TaskStatus was NOT updated.
-        Assert.assertTrue(StateStoreUtils.getTaskInfoFromProperty(
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
                 stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
 
         Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
-            return StateStoreUtils.getTaskInfoFromProperty(
+            return StateStoreUtils.getTaskStatusFromProperty(
                     stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
                     .getContainerStatus()
                     .getNetworkInfos(0)
