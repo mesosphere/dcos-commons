@@ -1,3 +1,4 @@
+import json
 import pytest
 import shakedown
 
@@ -7,6 +8,7 @@ from tests.test_utils import (
     DEFAULT_BROKER_COUNT,
     PACKAGE_NAME,
     SERVICE_NAME,
+    broker_count_check,
     service_cli
 )
 
@@ -14,12 +16,7 @@ FOLDERED_SERVICE_NAME = "/path/to/" + SERVICE_NAME
 
 
 def uninstall_foldered():
-    install.uninstall(
-        FOLDERED_SERVICE_NAME,
-        package_name=PACKAGE_NAME,
-        role=FOLDERED_SERVICE_NAME.lstrip('/') + '-role',
-        principal=FOLDERED_SERVICE_NAME + '-principal',
-        zk='dcos-service-' + FOLDERED_SERVICE_NAME.lstrip('/').replace('/', '__'))
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 def setup_module(module):
@@ -43,6 +40,5 @@ def test_install_foldered():
     tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
     # test that we can access the scheduler as well:
-    stdout = service_cli('--name={} pods list'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = service_cli('pods list', service_name=FOLDERED_SERVICE_NAME)
     broker_count_check(len(jsonobj), service_name=FOLDERED_SERVICE_NAME)

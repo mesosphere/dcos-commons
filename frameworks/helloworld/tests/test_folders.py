@@ -1,3 +1,4 @@
+import json
 import pytest
 import shakedown
 
@@ -14,12 +15,7 @@ FOLDERED_SERVICE_NAME = "/path/to/" + PACKAGE_NAME
 
 
 def uninstall_foldered():
-    install.uninstall(
-        FOLDERED_SERVICE_NAME,
-        package_name=PACKAGE_NAME,
-        role=FOLDERED_SERVICE_NAME.lstrip('/') + '-role',
-        principal=FOLDERED_SERVICE_NAME + '-principal',
-        zk='dcos-service-' + FOLDERED_SERVICE_NAME.lstrip('/').replace('/', '__'))
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 def setup_module(module):

@@ -90,12 +90,14 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
 
     janitor_start = time.time()
 
+    # leading slash removed, other slashes converted to double underscores:
+    deslashed_service_name = service_name.lstrip('/').replace('/', '__')
     if role is None:
-        role = service_name + '-role'
+        role = deslashed_service_name + '-role'
     if principal is None:
         principal = service_name + '-principal'
     if zk is None:
-        zk = 'dcos-service-' + service_name
+        zk = 'dcos-service-' + deslashed_service_name
     janitor_cmd = (
         'docker run mesosphere/janitor /janitor.py '
         '-r {role} -p {principal} -z {zk} --auth_token={auth}')

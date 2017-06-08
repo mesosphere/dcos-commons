@@ -249,7 +249,9 @@ def test_config_cli():
 @pytest.mark.sanity
 def test_plan_cli():
     assert service_cli('plan list')
-    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False)
+    assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME))
     assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
     assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
 
