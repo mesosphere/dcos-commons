@@ -10,7 +10,6 @@ import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Ports;
 import org.apache.mesos.Protos.TaskInfo;
