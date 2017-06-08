@@ -59,7 +59,6 @@ pods:
         cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
-
         ports:
           broker-port:
             port: 9092
