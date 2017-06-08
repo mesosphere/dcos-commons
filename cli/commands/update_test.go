@@ -59,7 +59,7 @@ func (suite *UpdateTestSuite) SetupSuite() {
 func (suite *UpdateTestSuite) SetupTest() {
 	// set up test server
 	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
-	config.DcosUrl = suite.server.URL
+	config.DcosURL = suite.server.URL
 }
 
 func (suite *UpdateTestSuite) TearDownTest() {
@@ -72,7 +72,7 @@ func TestUpdateTestSuite(t *testing.T) {
 
 func (suite *UpdateTestSuite) TestDescribe() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
-	doDescribe()
+	describe()
 	// assert that request contains our app-id
 	// TODO
 	// assert that printed output is the resolvedOptions field from the JSON
@@ -83,7 +83,7 @@ func (suite *UpdateTestSuite) TestDescribe() {
 func (suite *UpdateTestSuite) TestDescribeNoOptions() {
 	config.Command = "describe"
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/open/describe.json")
-	doDescribe()
+	describe()
 	// assert that user receives an error message
 	expectedOutput := suite.loadFile("testdata/output/no-stored-options.txt")
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())

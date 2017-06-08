@@ -11,9 +11,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-// Plan section
-
-type PlanHandler struct {
+type planHandler struct {
 	PlanName   string
 	Parameters []string
 	Phase      string
@@ -21,7 +19,7 @@ type PlanHandler struct {
 	RawJSON    bool
 }
 
-func GetVariablePair(pairString string) ([]string, error) {
+func getVariablePair(pairString string) ([]string, error) {
 	elements := strings.Split(pairString, "=")
 	if len(elements) < 2 {
 		return nil, fmt.Errorf(
@@ -31,10 +29,10 @@ func GetVariablePair(pairString string) ([]string, error) {
 	return []string{elements[0], strings.Join(elements[1:], "=")}, nil
 }
 
-func GetPlanParameterPayload(parameters []string) (string, error) {
+func getPlanParameterPayload(parameters []string) (string, error) {
 	envPairs := make(map[string]string)
 	for _, pairString := range parameters {
-		pair, err := GetVariablePair(pairString)
+		pair, err := getVariablePair(pairString)
 		if err != nil {
 			return "", err
 		}
@@ -49,7 +47,7 @@ func GetPlanParameterPayload(parameters []string) (string, error) {
 	return string(jsonVal), nil
 }
 
-func (cmd *PlanHandler) getPlanName() string {
+func (cmd *planHandler) getPlanName() string {
 	plan := "deploy"
 	if len(cmd.PlanName) > 0 {
 		plan = cmd.PlanName
@@ -57,12 +55,12 @@ func (cmd *PlanHandler) getPlanName() string {
 	return plan
 }
 
-type PlansResponse struct {
+type plansResponse struct {
 	Message string `json:"message"`
 }
 
 func parseJSONResponse(jsonBytes []byte) bool {
-	var response PlansResponse
+	var response plansResponse
 	err := json.Unmarshal(jsonBytes, &response)
 	if err != nil {
 		client.PrintMessage("Could not decode response: %s", err)
@@ -98,7 +96,7 @@ func forceComplete(planName, phase, step string) {
 	}
 }
 
-func (cmd *PlanHandler) RunForceComplete(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleForceComplete(c *kingpin.ParseContext) error {
 	forceComplete(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
@@ -114,12 +112,12 @@ func restart(planName, phase, step string) {
 	}
 }
 
-func (cmd *PlanHandler) RunForceRestart(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleForceRestart(c *kingpin.ParseContext) error {
 	restart(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
-func (cmd *PlanHandler) RunList(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleList(c *kingpin.ParseContext) error {
 	response := client.HTTPServiceGet("v1/plans")
 	client.PrintJSON(response)
 	return nil
@@ -135,7 +133,7 @@ func pause(planName, phase string) {
 	}
 }
 
-func (cmd *PlanHandler) RunPause(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handlePause(c *kingpin.ParseContext) error {
 	pause(cmd.getPlanName(), cmd.Phase)
 	return nil
 }
@@ -150,15 +148,15 @@ func resume(planName, phase string) {
 	}
 }
 
-func (cmd *PlanHandler) RunResume(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleResume(c *kingpin.ParseContext) error {
 	resume(cmd.getPlanName(), cmd.Phase)
 	return nil
 }
 
-func (cmd *PlanHandler) RunStart(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStart(c *kingpin.ParseContext) error {
 	payload := "{}"
 	if len(cmd.Parameters) > 0 {
-		parameterPayload, err := GetPlanParameterPayload(cmd.Parameters)
+		parameterPayload, err := getPlanParameterPayload(cmd.Parameters)
 		if err != nil {
 			return err
 		}
@@ -178,51 +176,52 @@ func printStatus(planName string, rawJSON bool) {
 	}
 }
 
-func (cmd *PlanHandler) RunStatus(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStatus(c *kingpin.ParseContext) error {
 	printStatus(cmd.getPlanName(), cmd.RawJSON)
 	return nil
 }
 
-func (cmd *PlanHandler) RunStop(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStop(c *kingpin.ParseContext) error {
 	response := client.HTTPServicePost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
 	client.PrintJSON(response)
 	return nil
 }
 
+// HandlePlanSection adds plan subcommands to the passed in kingpin.Application.
 func HandlePlanSection(app *kingpin.Application) {
 	// plan <active, continue, force, interrupt, restart, status/show>
-	cmd := &PlanHandler{}
+	cmd := &planHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(cmd.RunForceComplete)
+	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(cmd.handleForceComplete)
 	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
 	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 
-	forceRestart := plan.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(cmd.RunForceRestart)
+	forceRestart := plan.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(cmd.handleForceRestart)
 	forceRestart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
-	plan.Command("list", "Show all plans for this service").Action(cmd.RunList)
+	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
 
-	pause := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.RunPause)
+	pause := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.handlePause)
 	pause.Arg("plan", "Name of the plan to pause").StringVar(&cmd.PlanName)
 	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
 
-	resume := plan.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.RunResume)
+	resume := plan.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.handleResume)
 	resume.Arg("plan", "Name of the plan to resume").StringVar(&cmd.PlanName)
 	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
-	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.RunStart)
+	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.handleStart)
 	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
 	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
 
-	status := plan.Command("status", "Display the deploy plan or the plan with the provided name").Alias("show").Action(cmd.RunStatus)
+	status := plan.Command("status", "Display the deploy plan or the plan with the provided name").Alias("show").Action(cmd.handleStatus)
 	status.Arg("plan", "Name of the plan to show").StringVar(&cmd.PlanName)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
 
-	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
+	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.handleStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
 }
 
@@ -242,7 +241,7 @@ func toStatusTree(planName string, planJSONBytes []byte) string {
 	phases, ok := optionsJSON["phases"].([]interface{})
 	if ok {
 		for i, rawPhase := range phases {
-			appendPhase(&buf, rawPhase, i == len(phases) - 1)
+			appendPhase(&buf, rawPhase, i == len(phases)-1)
 		}
 	}
 
@@ -278,7 +277,7 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		return
 	}
 	for i, rawStep := range steps {
-		appendStep(buf, rawStep, lastPhase, i == len(steps) - 1)
+		appendStep(buf, rawStep, lastPhase, i == len(steps)-1)
 	}
 }
 

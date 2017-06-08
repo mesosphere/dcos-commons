@@ -10,9 +10,9 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type DescribeHandler struct{}
+type describeHandler struct{}
 
-type DescribeRequest struct {
+type describeRequest struct {
 	AppID string `json:"appId"`
 }
 
@@ -22,8 +22,8 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 	client.PrintMessageAndExit(string(responseBytes))
 }
 
-func doDescribe() {
-	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
+func describe() {
+	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
@@ -40,32 +40,33 @@ func doDescribe() {
 	}
 }
 
-func (cmd *DescribeHandler) DescribeConfiguration(c *kingpin.ParseContext) error {
+func (cmd *describeHandler) handleDescribe(c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
-	doDescribe()
+	describe()
 	return nil
 }
 
+// HandleDescribe adds the describe subcommand to the passed in kingpin.Application.
 func HandleDescribe(app *kingpin.Application) {
-	cmd := &DescribeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(cmd.DescribeConfiguration)
+	cmd := &describeHandler{}
+	app.Command("describe", "View the package configuration for this DC/OS service").Action(cmd.handleDescribe)
 }
 
-type UpdateHandler struct {
+type updateHandler struct {
 	UpdateName     string
 	OptionsFile    string
 	PackageVersion string
 	ViewStatus     bool
 }
 
-type UpdateRequest struct {
+type updateRequest struct {
 	AppID          string                 `json:"appId"`
 	PackageVersion string                 `json:"packageVersion,omitempty"`
 	OptionsJSON    map[string]interface{} `json:"options,omitempty"`
 }
 
 func printPackageVersions() {
-	requestContent, _ := json.Marshal(DescribeRequest{config.ServiceName})
+	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
 	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	responseBytes := client.GetResponseBytes(response)
 	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
@@ -94,7 +95,7 @@ func printPackageVersions() {
 
 }
 
-func (cmd *UpdateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {
+func (cmd *updateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	printPackageVersions()
 	return nil
@@ -117,7 +118,7 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 }
 
 func doUpdate(optionsFile, packageVersion string) {
-	request := UpdateRequest{AppID: config.ServiceName}
+	request := updateRequest{AppID: config.ServiceName}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
 		return
@@ -148,42 +149,43 @@ func doUpdate(optionsFile, packageVersion string) {
 	client.PrintMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update status` to view progress.", config.ModuleName, config.ServiceName))
 }
 
-func (cmd *UpdateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
+func (cmd *updateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
 	return nil
 }
 
+// HandleUpdateSection adds the update subcommand to the passed in kingpin.Application.
 func HandleUpdateSection(app *kingpin.Application) {
-	cmd := &UpdateHandler{}
+	cmd := &updateHandler{}
 	update := app.Command("update", "Updates the package version or configuration for this DC/OS service")
 
 	start := update.Command("start", "Launches an update operation").Action(cmd.UpdateConfiguration)
 	start.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&cmd.OptionsFile)
 	start.Flag("package-version", "The desired package version").StringVar(&cmd.PackageVersion)
 
-	planCmd := &PlanHandler{}
+	planCmd := &planHandler{}
 
-	forceComplete := update.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(planCmd.RunForceComplete)
+	forceComplete := update.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(planCmd.handleForceComplete)
 	// TODO: it'd be nice if this was optional (but there is no way to make this optional and have required arguments after it).
 	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&planCmd.PlanName)
 	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&planCmd.Phase)
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&planCmd.Step)
 
-	forceRestart := update.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(planCmd.RunForceRestart)
+	forceRestart := update.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(planCmd.handleForceRestart)
 	forceRestart.Arg("plan", "Name of the plan to restart").StringVar(&planCmd.PlanName)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&planCmd.Phase)
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&planCmd.Step)
 
 	update.Command("package-versions", "View a list of available package versions to downgrade or upgrade to").Action(cmd.ViewPackageVersions)
 
-	pause := update.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.RunPause)
+	pause := update.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.handlePause)
 	pause.Arg("plan", "Name of the plan to pause").StringVar(&planCmd.PlanName)
 
-	resume := update.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(planCmd.RunResume)
+	resume := update.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(planCmd.handleResume)
 	resume.Arg("plan", "Name of the plan to resume").StringVar(&planCmd.PlanName)
 
-	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.RunStatus)
+	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
 	status.Arg("plan", "Name of the plan to show").StringVar(&planCmd.PlanName)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)
 }

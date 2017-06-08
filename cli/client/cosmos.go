@@ -10,6 +10,8 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
+// HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
+// https://dcos.cluster/cosmos/service/<urlPath>
 func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
 	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
@@ -71,16 +73,16 @@ func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Requ
 
 func createCosmosURL(urlPath string) *url.URL {
 	// Try to fetch the Cosmos URL from the system configuration
-	if len(config.CosmosUrl) == 0 {
-		config.CosmosUrl = OptionalCLIConfigValue("package.cosmos_url")
+	if len(config.CosmosURL) == 0 {
+		config.CosmosURL = OptionalCLIConfigValue("package.cosmos_url")
 	}
 
 	// Use Cosmos URL if we have it specified
-	if len(config.CosmosUrl) > 0 {
+	if len(config.CosmosURL) > 0 {
 		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
-		return createURL(config.CosmosUrl, joinedURLPath, "")
+		return createURL(config.CosmosURL, joinedURLPath, "")
 	}
 	getDCOSURL()
 	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
-	return createURL(config.DcosUrl, joinedURLPath, "")
+	return createURL(config.DcosURL, joinedURLPath, "")
 }

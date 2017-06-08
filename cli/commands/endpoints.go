@@ -7,14 +7,12 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-// Endpoints section
-
-type EndpointsHandler struct {
+type endpointsHandler struct {
 	Name                  string
 	PrintDeprecatedNotice bool
 }
 
-func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
+func (cmd *endpointsHandler) handleEndpoints(c *kingpin.ParseContext) error {
 	// TODO(nickbp): Remove this after April 2017
 	if cmd.PrintDeprecatedNotice {
 		log.Fatalf("--native is no longer supported. Use 'native' entries in endpoint listing.")
@@ -35,9 +33,10 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// HandleEndpointsSection adds endpoint subcommands to the passed in kingpin.Application.
 func HandleEndpointsSection(app *kingpin.Application) {
 	// endpoint[s] [type]
-	cmd := &EndpointsHandler{}
-	endpoints := app.Command("endpoints", "View client endpoints").Alias("endpoint").Action(cmd.RunEndpoints)
+	cmd := &endpointsHandler{}
+	endpoints := app.Command("endpoints", "View client endpoints").Alias("endpoint").Action(cmd.handleEndpoints)
 	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }

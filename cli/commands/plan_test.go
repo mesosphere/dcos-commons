@@ -41,7 +41,7 @@ func (suite *PlanTestSuite) exampleHandler(w http.ResponseWriter, r *http.Reques
 	// write the request data to our suite's struct
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		suite.T().Fatal("%s", err)
+		suite.T().Fatalf("%s", err)
 	}
 	suite.requestBody = requestBody
 
@@ -61,7 +61,7 @@ func (suite *PlanTestSuite) SetupSuite() {
 func (suite *PlanTestSuite) SetupTest() {
 	// set up test server
 	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
-	config.DcosUrl = suite.server.URL
+	config.DcosURL = suite.server.URL
 }
 
 func (suite *PlanTestSuite) TearDownTest() {
@@ -74,7 +74,7 @@ func TestPlanTestSuite(t *testing.T) {
 
 func (suite *PlanTestSuite) TestGetVariablePairParsesVariable() {
 	pairString := "var=value"
-	pair, err := GetVariablePair(pairString)
+	pair, err := getVariablePair(pairString)
 
 	if err != nil {
 		suite.T().Error("Got error: ", err)
@@ -87,7 +87,7 @@ func (suite *PlanTestSuite) TestGetVariablePairParsesVariable() {
 
 func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithEqualsSign() {
 	pairString := "var=value=more"
-	pair, err := GetVariablePair(pairString)
+	pair, err := getVariablePair(pairString)
 
 	if err != nil {
 		suite.T().Error("Got error: ", err)
@@ -100,7 +100,7 @@ func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithEqualsSign() {
 
 func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithSpace() {
 	pairString := "var=value more"
-	pair, err := GetVariablePair(pairString)
+	pair, err := getVariablePair(pairString)
 
 	if err != nil {
 		suite.T().Error("Got error: ", err)
@@ -113,7 +113,7 @@ func (suite *PlanTestSuite) TestGetVariablePairParsesVariableWithSpace() {
 
 func (suite *PlanTestSuite) TestGetVariablePairFailsWhenEqualsSignNotPresent() {
 	pairString := "var value"
-	_, err := GetVariablePair(pairString)
+	_, err := getVariablePair(pairString)
 
 	if err == nil {
 		suite.T().Error("Parsing for \"var value\" should have failed without an equals sign present")
@@ -126,7 +126,7 @@ func (suite *PlanTestSuite) TestSingleVariableIsMarshaledToJSON() {
 		"var": "value",
 	})
 
-	result, err := GetPlanParameterPayload(parameters)
+	result, err := getPlanParameterPayload(parameters)
 
 	if err != nil {
 		suite.T().Error("Got error: ", err)
@@ -141,7 +141,7 @@ func (suite *PlanTestSuite) TestMultipleVariablesAreMarshaledToJSON() {
 		"var2": "value2",
 	})
 
-	result, err := GetPlanParameterPayload(parameters)
+	result, err := getPlanParameterPayload(parameters)
 
 	if err != nil {
 		suite.T().Error("Got error: ", err)

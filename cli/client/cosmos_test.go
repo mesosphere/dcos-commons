@@ -34,7 +34,7 @@ func (suite *CosmosTestSuite) loadFile(filename string) []byte {
 }
 
 func (suite *CosmosTestSuite) SetupSuite() {
-	config.DcosUrl = "https://my.dcos.url/"
+	config.DcosURL = "https://my.dcos.url/"
 	config.DcosAuthToken = "dummytoken"
 
 	// reassign printing functions to allow us to check output
@@ -122,7 +122,7 @@ func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 
 func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
 	// create a URL where the user has manually specified a URL to Cosmos
-	config.CosmosUrl = "https://my.local.cosmos/"
+	config.CosmosURL = "https://my.local.cosmos/"
 
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
@@ -130,7 +130,7 @@ func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
 	assert.Equal(suite.T(), "https://my.local.cosmos/service/describe", describeURL.String())
 	assert.Equal(suite.T(), "https://my.local.cosmos/service/update", updateURL.String())
 
-	config.CosmosUrl = ""
+	config.CosmosURL = ""
 }
 
 func (suite *CosmosTestSuite) TestCosmosUrl() {
