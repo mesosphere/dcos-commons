@@ -246,13 +246,13 @@ As an example, let’s consider the scenario where we wish to deploy the hello-p
 name: "hello-world"
 pods:
   hello-pod:
-  count: 2
-  tasks:
-    hello-task:
-      goal: RUNNING
-      cmd: "echo hello && sleep 1000"
-      cpus: 0.1
-      memory: 512
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
   world-pod:
     count: 2
     tasks:
