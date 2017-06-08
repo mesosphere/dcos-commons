@@ -4,7 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -157,8 +157,8 @@ public class DefaultService implements Service {
     }
 
     private boolean tasksNeedClearing() {
-        return ResourceCollectionUtils.getResourceIds(
-                ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                 .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
@@ -182,11 +182,10 @@ public class DefaultService implements Service {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
+                .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
                 .setCheckpoint(true);
-
-        getRoles(serviceSpec).forEach(role -> fwkInfoBuilder.addRoles(role));
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();

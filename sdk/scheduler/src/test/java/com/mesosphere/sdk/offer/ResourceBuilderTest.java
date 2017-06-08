@@ -16,6 +16,8 @@ import java.util.UUID;
  * Test construction of Resource protobufs.
  */
 public class ResourceBuilderTest {
+    private static final String MOUNT_SOURCE_ROOT = "/mnt/src";
+
     /*
         name: "cpus"
         type: SCALAR
@@ -212,7 +214,7 @@ public class ResourceBuilderTest {
                 volumeSpec,
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
+                Optional.of(MOUNT_SOURCE_ROOT));
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
@@ -223,7 +225,7 @@ public class ResourceBuilderTest {
         Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
         Assert.assertEquals("MOUNT", source.getType().toString());
         Assert.assertTrue(source.hasMount());
-        Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
+        Assert.assertEquals(MOUNT_SOURCE_ROOT, source.getMount().getRoot());
     }
 
     @Test
@@ -241,7 +243,7 @@ public class ResourceBuilderTest {
                 volumeSpec,
                 resourceId,
                 persistenceId,
-                Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
+                Optional.of(MOUNT_SOURCE_ROOT));
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
@@ -252,7 +254,7 @@ public class ResourceBuilderTest {
         Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
         Assert.assertEquals("MOUNT", source.getType().toString());
         Assert.assertTrue(source.hasMount());
-        Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
+        Assert.assertEquals(MOUNT_SOURCE_ROOT, source.getMount().getRoot());
 
         Protos.Label label = resource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
@@ -307,7 +309,7 @@ public class ResourceBuilderTest {
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
-        Optional<String> sourceRoot = Optional.of(TestConstants.MOUNT_SOURCE_ROOT);
+        Optional<String> sourceRoot = Optional.of(MOUNT_SOURCE_ROOT);
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
                 volumeSpec,
                 resourceId,

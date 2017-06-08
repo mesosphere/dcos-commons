@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.ResourceSpec;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,40 +26,30 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         this.taskName = taskName;
     }
 
-    protected Optional<String> getTaskName() {
-        return Optional.ofNullable(taskName);
-    }
-
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        EvaluationOutcome evaluationOutcome = OfferEvaluationUtils.evaluateSimpleResource(
-                this,
-                resourceSpec,
-                resourceId,
-                mesosResourcePool);
+        OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
+                OfferEvaluationUtils.evaluateSimpleResource(
+                        this,
+                        resourceSpec,
+                        resourceId,
+                        mesosResourcePool);
+
+        EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
         if (!evaluationOutcome.isPassing()) {
             return evaluationOutcome;
         }
 
-        setProtos(podInfoBuilder, ResourceBuilder.fromSpec(resourceSpec, resourceId).build());
+        resourceId = reserveEvaluationOutcome.getResourceId();
+        OfferEvaluationUtils.setProtos(
+                podInfoBuilder,
+                ResourceBuilder.fromSpec(resourceSpec, resourceId).build(),
+                getTaskName());
+
         return evaluationOutcome;
     }
 
-    public void setResourceId(Optional<String> resourceId) {
-        this.resourceId = resourceId;
-    }
-
-    protected void setProtos(PodInfoBuilder podInfoBuilder, Resource resource) {
-        if (getTaskName().isPresent()) {
-            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
-            taskBuilder.addResources(resource);
-        } else {
-            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            executorBuilder.addResources(resource);
-        }
-    }
-
-    protected String getSummary() {
+    private String getSummary() {
         return String.format(
                 "name: '%s', value: '%s', role: '%s', principal: '%s', resourceId: '%s'",
                 resourceSpec.getName(),
@@ -68,5 +57,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 resourceSpec.getRole(),
                 resourceSpec.getPrincipal(),
                 resourceId);
+    }
+
+    private Optional<String> getTaskName() {
+        return Optional.ofNullable(taskName);
     }
 }

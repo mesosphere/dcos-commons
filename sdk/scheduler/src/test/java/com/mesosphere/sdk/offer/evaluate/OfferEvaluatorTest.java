@@ -44,10 +44,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -118,10 +118,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
 
@@ -157,10 +157,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation unreserveOperation = recommendations.get(0).getOperation();
         Resource unreserveResource = unreserveOperation.getUnreserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(unreserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(unreserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));
 

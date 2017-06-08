@@ -55,15 +55,15 @@ public class ResourceBuilder {
     }
 
     public static ResourceBuilder fromExistingResource(Resource resource) {
-        Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+        Optional<String> resourceId = ResourceUtils.getResourceId(resource);
 
         if (!resource.hasDisk()) {
             ResourceSpec resourceSpec = getResourceSpec(resource);
             return fromSpec(resourceSpec, resourceId);
         } else {
             VolumeSpec volumeSpec = getVolumeSpec(resource);
-            Optional<String> persistenceId = ResourceCollectionUtils.getPersistenceId(resource);
-            Optional<String> sourceRoot = ResourceCollectionUtils.getSourceRoot(resource);
+            Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource);
+            Optional<String> sourceRoot = ResourceUtils.getSourceRoot(resource);
             return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
         }
     }
@@ -81,8 +81,8 @@ public class ResourceBuilder {
         return new DefaultResourceSpec(
                 resource.getName(),
                 ValueUtils.getValue(resource),
-                ResourceCollectionUtils.getRole(resource).get(),
-                ResourceCollectionUtils.getPrincipal(resource).get(),
+                ResourceUtils.getRole(resource).get(),
+                ResourceUtils.getPrincipal(resource).get(),
                 ""); // env-key isn't used
     }
 
@@ -92,7 +92,7 @@ public class ResourceBuilder {
                 resource.getScalar().getValue(),
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
-                ResourceCollectionUtils.getRole(resource).get(),
+                ResourceUtils.getRole(resource).get(),
                 resource.getDisk().getPersistence().getPrincipal(),
                 ""); // env-key isn't used
     }
@@ -114,6 +114,22 @@ public class ResourceBuilder {
      */
     public ResourceBuilder setValue(Value value) {
         this.value = value;
+        return this;
+    }
+
+    /**
+     * Sets the role for this resource.
+     */
+    public ResourceBuilder setRole(Optional<String> role) {
+        this.role = role;
+        return this;
+    }
+
+    /**
+     * Sets the principal for this resource.
+     */
+    public ResourceBuilder setPrincipal(Optional<String> principal) {
+        this.principal = principal;
         return this;
     }
 
@@ -249,15 +265,5 @@ public class ResourceBuilder {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
-
-    public ResourceBuilder setRole(Optional<String> role) {
-        this.role = role;
-        return this;
-    }
-
-    public ResourceBuilder setPrincipal(Optional<String> principal) {
-        this.principal = principal;
-        return this;
     }
 }

@@ -15,7 +15,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value.Range;
 
 import com.mesosphere.sdk.offer.MesosResource;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -210,11 +210,11 @@ public class ResourceTestUtils {
     }
 
     public static String getResourceId(Resource resource) {
-        return ResourceCollectionUtils.getResourceId(resource).orElse(null);
+        return ResourceUtils.getResourceId(resource).orElse(null);
     }
 
     public static String getPersistenceId(Resource diskResource) {
-        return ResourceCollectionUtils.getPersistenceId(diskResource).get();
+        return ResourceUtils.getPersistenceId(diskResource).get();
     }
 
     private static ReservationInfo getExpectedReservationInfo(String resourceId, String role, String principal) {

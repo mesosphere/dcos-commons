@@ -1,8 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
@@ -40,10 +39,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -52,10 +51,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         reserveOperation = recommendations.get(1).getOperation();
         reserveResource = reserveOperation.getReserve().getResources(0);
 
-        reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
 
@@ -116,10 +115,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(recommendations.toString(), 2, launchOperation.getLaunch().getTaskInfos(0).getResourcesCount());
         Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(launchResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(launchResource).get();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(launchResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource).get());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
@@ -140,7 +139,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(1).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
@@ -209,7 +208,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(launchResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource).get());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
@@ -273,8 +272,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(Constants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(Constants.MOUNT_DISK_TYPE, 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
@@ -335,7 +334,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource).get());
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());

@@ -14,6 +14,8 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
     private final Operation operation;
 
     public ReserveOfferRecommendation(Offer offer, Resource resource) {
+        // The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
+        // information which is not appropriate for the RESERVE operation.  It is filtered out here.
         if (resource.hasDisk()) {
             DiskInfo diskInfo = resource.getDisk().toBuilder()
                     .clearVolume()

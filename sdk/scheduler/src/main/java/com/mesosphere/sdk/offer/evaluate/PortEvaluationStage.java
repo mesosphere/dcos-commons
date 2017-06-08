@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -24,13 +23,16 @@ import java.util.stream.IntStream;
  * {@link org.apache.mesos.Protos.ExecutorInfo} where appropriate so that the port is available in their respective
  * environments.
  */
-public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+public class PortEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
-    protected final PortSpec portSpec;
+    protected PortSpec portSpec;
+    private final String taskName;
+    private Optional<String> resourceId;
 
     public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
-        super(portSpec, resourceId, taskName);
+        this.taskName = taskName;
+        this.resourceId = resourceId;
         this.portSpec = portSpec;
     }
 
@@ -67,18 +69,32 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(assignedPort)
                 .setEnd(assignedPort);
-        this.resourceSpec = DefaultResourceSpec.newBuilder(this.resourceSpec)
-                .value(valueBuilder.build())
-                .build();
 
-        EvaluationOutcome evaluationOutcome = super.evaluate(mesosResourcePool, podInfoBuilder);
+        portSpec = new PortSpec(
+                valueBuilder.build(),
+                portSpec.getRole(),
+                portSpec.getPrincipal(),
+                portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
+                portSpec.getPortName());
+
+        OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
+                OfferEvaluationUtils.evaluateSimpleResource(
+                        this,
+                        portSpec,
+                        resourceId,
+                        mesosResourcePool);
+
+        EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
         if (!evaluationOutcome.isPassing()) {
             return evaluationOutcome;
         }
-        return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
+
+        resourceId = reserveEvaluationOutcome.getResourceId();
+        setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
+
+        return evaluationOutcome;
     }
 
-    @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
@@ -174,5 +190,9 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return EnvUtils.toEnvName(draftEnvName);
+    }
+
+    protected Optional<String> getTaskName() {
+        return Optional.ofNullable(taskName);
     }
 }
