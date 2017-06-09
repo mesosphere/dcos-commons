@@ -29,7 +29,6 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 @pytest.mark.overlay
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
@@ -84,6 +83,8 @@ def test_overlay_network():
 
     for task in framework_tasks:
         name = task["name"]
+        if "getter" in name:  # don't check the "getter" tasks because they don't use ports
+            continue
         resources = task["resources"]
         if "host" in name:
             assert "ports" in resources.keys(), "Task {} should have port resources".format(name)
