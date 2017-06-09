@@ -33,8 +33,8 @@ enterprise: 'no'
                 "10.0.2.88:1027"
             ],
             "dns": [
-                "coordinator-0-node.elastic.mesos:1026",
-                "coordinator-0-node.elastic.mesos:1027"
+                "coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1026",
+                "coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1027"
             ],
         }
 

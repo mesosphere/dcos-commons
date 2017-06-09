@@ -41,16 +41,16 @@ def teardown_module(module):
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
-    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
 
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
 
-    tasks.kill_task_with_pattern("DataNode", 'data-0-node.hdfs.mesos')
-    tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.mesos')
+    tasks.kill_task_with_pattern("DataNode", 'data-0-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.autoip.dcos.thisdcos.directory')
     time.sleep(1)  # give DataNode a chance to die
 
-    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
 
@@ -63,12 +63,12 @@ def test_integrity_on_name_node_failure():
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
     This test checks that it is possible to write and read data after the first name node fails.
     """
-    tasks.kill_task_with_pattern("NameNode", 'name-0-node.hdfs.mesos')
+    tasks.kill_task_with_pattern("NameNode", 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
     time.sleep(1)  # give NameNode a chance to die
 
-    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
 
-    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
 
@@ -79,7 +79,7 @@ def test_kill_journal_node():
     name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.hdfs.mesos')
+    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.hdfs.autoip.dcos.thisdcos.directory')
     check_healthy()
     tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
@@ -93,7 +93,7 @@ def test_kill_name_node():
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('namenode', 'name-0-node.hdfs.mesos')
+    tasks.kill_task_with_pattern('namenode', 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
     check_healthy()
     tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
@@ -107,7 +107,7 @@ def test_kill_data_node():
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
 
-    tasks.kill_task_with_pattern('datanode', 'data-0-node.hdfs.mesos')
+    tasks.kill_task_with_pattern('datanode', 'data-0-node.hdfs.autoip.dcos.thisdcos.directory')
     check_healthy()
     tasks.check_tasks_updated(PACKAGE_NAME, 'data', data_ids)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)

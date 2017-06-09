@@ -1,0 +1,51 @@
+name: "hello-world"
+pods:
+  hello-overlay:
+    count: 1
+    uris:
+      # this python script starts a basic HTTP server, it responds on a specific port with a given message
+      # USAGE: python3 http_py3responder.py <port> <message>
+      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+    # join the 'dcos' overlay network
+    networks:
+      dcos:
+    image: ubuntu:14.04
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        ports:
+          dummy:
+            port: 1025
+          usethis:
+            port: 0
+        cmd: "python3 http_py3responder.py 1026 hello from the overlay network with dynamic port!"
+  getter:
+    count: {{HELLO_COUNT}}
+    networks:
+      dcos:
+    tasks:
+      get-Overlay:
+        goal: RUNNING
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-overlay:
+        strategy: serial
+        pod: hello-overlay
+        steps:
+          - default: [[server]]
+      getter-deploy:
+        strategy: serial
+        pod: getter
+        steps:
+          - default: [[get-Overlay]]
+
