@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -82,7 +82,7 @@ public class AgentRule implements PlacementRule {
     }
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         if (offer.getSlaveId().getValue().equals(agentId)) {
             return EvaluationOutcome.pass(this, "Offer matches required Agent ID '%s'", agentId);
         } else {

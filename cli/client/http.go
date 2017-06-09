@@ -151,7 +151,7 @@ func checkHTTPResponse(response *http.Response) *http.Response {
 	case response.StatusCode == http.StatusUnauthorized:
 		LogMessage("Got 401 Unauthorized response from %s", response.Request.URL)
 		LogMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
-	case response.StatusCode == http.StatusInternalServerError:
+	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusNotFound:
 		printServiceNameErrorAndExit(response)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		printResponseErrorAndExit(response)
@@ -188,7 +188,7 @@ func getDCOSURL() {
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
-	config.DcosUrl = strings.TrimSuffix(config.DcosUrl, "#/")
+	config.DcosUrl = strings.TrimRight(config.DcosUrl, "#/")
 }
 
 func createServiceURL(urlPath, urlQuery string) *url.URL {

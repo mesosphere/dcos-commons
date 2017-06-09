@@ -42,6 +42,12 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            url "http://downloads.mesosphere.com/maven/"
+        }
+        maven {
+            url "http://downloads.mesosphere.com/maven-snapshot/"
+        }
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

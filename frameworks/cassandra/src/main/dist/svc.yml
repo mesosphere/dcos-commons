@@ -1,7 +1,6 @@
 name: {{SERVICE_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
-  user: {{SERVICE_USER}}
 pods:
   node:
     count: {{NODES}}

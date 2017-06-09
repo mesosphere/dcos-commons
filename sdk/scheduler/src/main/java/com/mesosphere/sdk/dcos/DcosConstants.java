@@ -28,14 +28,6 @@ public class DcosConstants {
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
 
-    /**
-     * This must never change, as it affects the path to the SchemaVersion object for a given
-     * framework name.
-     *
-     * @see com.mesosphere.sdk.state.DefaultSchemaVersionStore
-     */
-    public static final String SERVICE_ROOT_PATH_PREFIX = "/dcos-service-";
-
     public static boolean networkSupportsPortMapping(String networkName) {
         boolean supportsPortMapping;
         switch (networkName) {

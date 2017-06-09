@@ -2,9 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.NamedVIPRequirement;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -33,7 +30,6 @@ public class NamedVIPSpec extends PortSpec {
 
     @JsonCreator
     public NamedVIPSpec(
-            @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
@@ -45,7 +41,7 @@ public class NamedVIPSpec extends PortSpec {
             @JsonProperty("vip-port") Integer vipPort,
             @JsonProperty("network-names") Collection<String> networkNames) {
 
-        super(name, value, role, principal, envKey, portName, networkNames);
+        super(value, role, principal, envKey, portName, networkNames);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -72,23 +68,6 @@ public class NamedVIPSpec extends PortSpec {
     @JsonProperty("vip-port")
     public Integer getVipPort() {
         return vipPort;
-    }
-
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        Protos.Resource portResource = resource == null ?
-                ResourceBuilder.fromSpec(this).build() :
-                ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build();
-        return new NamedVIPRequirement(
-                portResource,
-                super.getPortName(),
-                (int) super.getValue().getRanges().getRange(0).getBegin(),
-                super.getEnvKey(),
-                getProtocol(),
-                getVisibility(),
-                getVipName(),
-                getVipPort(),
-                super.getNetworkNames());
     }
 
     @Override

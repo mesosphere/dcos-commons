@@ -186,7 +186,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof LaunchOfferRecommendation)  {
                 LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
-                if (launchOfferRecommendation.isTransient()) {
+                if (!launchOfferRecommendation.shouldLaunch()) {
                     continue;
                 }
             }

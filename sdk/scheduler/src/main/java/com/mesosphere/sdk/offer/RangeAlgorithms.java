@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Value.Range;
 
 import java.util.ArrayList;
@@ -42,6 +43,22 @@ public final class RangeAlgorithms {
         IntervalSet i1 = intervalsToIntervalSet(rangesToIntervals(list1));
         IntervalSet i2 = intervalsToIntervalSet(rangesToIntervals(list2));
         return i1.equals(i2);
+    }
+
+    /**
+     * Returns whether the provided value is encompassed by any of the provided ranges.
+     */
+    public static boolean isInAny(List<Range> ranges, long value) {
+        for (Interval interval : rangesToIntervals(ranges)) {
+            if (interval.a <= value && value <= interval.b) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Protos.Value.Ranges fromRangeList(List<Range> ranges) {
+        return Protos.Value.Ranges.newBuilder().addAllRange(ranges).build();
     }
 
     private static Interval rangeToInterval(Range range) {
