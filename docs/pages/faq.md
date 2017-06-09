@@ -52,7 +52,7 @@ title: Frequently Asked Questions
 
 #### __Can I contribute to the DC/OS SDK?__
 
-  Yes, contributions are welcome. See [CONTRIBUTING](CONTRIBUTING.md).
+  Yes, contributions are welcome. See [CONTRIBUTING](../../CONTRIBUTING.md).
 
 #### __Will the DC/OS SDK work with Apache Mesos (without DC/OS)?__
 
