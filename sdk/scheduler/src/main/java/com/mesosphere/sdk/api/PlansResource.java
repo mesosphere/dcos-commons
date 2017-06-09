@@ -25,6 +25,7 @@ import static com.mesosphere.sdk.api.ResponseUtils.*;
 public class PlansResource extends PrettyJsonResource {
 
     static final Response ELEMENT_NOT_FOUND_RESPONSE = plainResponse("Element not found", Response.Status.NOT_FOUND);
+    static final Response ALREADY_REPORTED_RESPONSE = plainResponse("Command has already been reported or completed", 208);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -130,16 +131,19 @@ public class PlansResource extends PrettyJsonResource {
             boolean allInProgress = phases.stream()
                     .filter(phz -> phz.isInProgress())
                     .count()  == phases.size();
+            
+            boolean allComplete = phases.stream()
+                .filter(phz -> phz.isComplete()).count() == phases.size();
 
-            if (allInProgress) {
-                return Response.status(208).build();
+            if (allInProgress || allComplete) {
+                return ALREADY_REPORTED_RESPONSE;
             } 
 
             phases.forEach(ParentElement::proceed);
         } else {
             Plan plan = planManagerOptional.get().getPlan();
-            if (plan.isInProgress()) {
-                return Response.status(208).build();
+            if (plan.isInProgress() || plan.isComplete()) {
+                return ALREADY_REPORTED_RESPONSE;
             }
             plan.proceed();
         }
@@ -166,15 +170,18 @@ public class PlansResource extends PrettyJsonResource {
             boolean allInterrupted = phases.stream()
                 .filter(phz -> phz.isInterrupted()).count() == phases.size();
             
-            if (allInterrupted) {
-                return Response.status(208).build();
+            boolean allComplete = phases.stream()
+                .filter(phz -> phz.isComplete()).count() == phases.size();
+            
+            if (allInterrupted || allComplete) {
+                return ALREADY_REPORTED_RESPONSE;
             }
 
             phases.forEach(p -> p.getStrategy().interrupt());
         } else {
             Plan plan = planManagerOptional.get().getPlan();
-            if (plan.isInterrupted()) {
-                return Response.status(208).build();
+            if (plan.isInterrupted() || plan.isComplete()) {
+                return ALREADY_REPORTED_RESPONSE;
             }
             plan.interrupt();
         }
