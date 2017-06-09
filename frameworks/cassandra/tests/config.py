@@ -69,7 +69,7 @@ def install_job(job_name, jobs_folder, **replacements):
 def get_default_replacements():
     return {
         'NODE_ADDRESS': os.getenv(
-            'CASSANDRA_NODE_ADDRESS', 'node-0-server.cassandra.mesos'
+            'CASSANDRA_NODE_ADDRESS', 'node-0-server.cassandra.autoip.dcos.thisdcos.directory'
         ),
         'NODE_PORT': os.getenv('CASSANDRA_NODE_PORT', '9042'),
     }

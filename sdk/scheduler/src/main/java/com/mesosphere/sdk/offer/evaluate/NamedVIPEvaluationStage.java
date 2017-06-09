@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.api.EndpointUtils;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 
 
@@ -18,17 +16,22 @@ import org.apache.mesos.Protos.Resource;
  * {@link org.apache.mesos.Protos.DiscoveryInfo} properly for DC/OS to pick up the specified named VIP mapping.
  */
 public class NamedVIPEvaluationStage extends PortEvaluationStage {
+
+    private final String taskName;
     private final String protocol;
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
     private final long vipPort;
+    private final boolean onNamedNetwork;
 
     public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
         super(namedVIPSpec, taskName, resourceId);
+        this.taskName = taskName;
         this.protocol = namedVIPSpec.getProtocol();
         this.visibility = namedVIPSpec.getVisibility();
         this.vipName = namedVIPSpec.getVipName();
         this.vipPort = namedVIPSpec.getVipPort();
+        this.onNamedNetwork = !namedVIPSpec.getNetworkNames().isEmpty();
     }
 
     @Override
@@ -67,8 +70,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
         for (Protos.Port.Builder portBuilder : builder.getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList()) {
             for (Protos.Label l : portBuilder.getLabels().getLabelsList()) {
-                if (l.getKey().startsWith(Constants.VIP_PREFIX) &&
-                        l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
+                Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskName, l);
+                if (vipInfo.isPresent()
+                        && vipInfo.get().getVipName().equals(vipName)
+                        && vipInfo.get().getVipPort() == vipPort) {
                     portBuilder
                         .setNumber((int) getPort())
                         .setVisibility(visibility)
@@ -77,10 +82,11 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 }
             }
         }
+
         return false;
     }
 
-    private static DiscoveryInfo.Builder addVIP(
+    private DiscoveryInfo.Builder addVIP(
             DiscoveryInfo.Builder builder,
             String vipName,
             String protocol,
@@ -93,7 +99,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
 
         // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
@@ -101,7 +107,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return builder;
     }
 
-    private static DiscoveryInfo getVIPDiscoveryInfo(
+    private DiscoveryInfo getVIPDiscoveryInfo(
             String taskName,
             String vipName,
             long vipPort,
@@ -117,15 +123,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(getVIPLabel(vipName, vipPort));
+                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
 
         return discoveryInfoBuilder.build();
-    }
-
-    private static Label getVIPLabel(String vipName, long vipPort) {
-        return Label.newBuilder()
-                .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))
-                .setValue(String.format("%s:%d", vipName, vipPort))
-                .build();
     }
 }

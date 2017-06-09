@@ -76,7 +76,7 @@ def install(
     sdk_utils.out('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
 
 
-def uninstall(service_name, package_name=None):
+def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
     start = time.time()
 
     if package_name is None:
@@ -90,11 +90,21 @@ def uninstall(service_name, package_name=None):
 
     janitor_start = time.time()
 
+    # leading slash removed, other slashes converted to double underscores:
+    deslashed_service_name = service_name.lstrip('/').replace('/', '__')
+    if role is None:
+        role = deslashed_service_name + '-role'
+    if principal is None:
+        principal = service_name + '-principal'
+    if zk is None:
+        zk = 'dcos-service-' + deslashed_service_name
     janitor_cmd = (
         'docker run mesosphere/janitor /janitor.py '
-        '-r {svc}-role -p {svc}-principal -z dcos-service-{svc} --auth_token={auth}')
+        '-r {role} -p {principal} -z {zk} --auth_token={auth}')
     shakedown.run_command_on_master(janitor_cmd.format(
-        svc=service_name,
+        role=role,
+        principal=principal,
+        zk=zk,
         auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
 
     finish = time.time()

@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -61,12 +62,11 @@ public class PodSpecsCannotShrinkTest {
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
                 .apiPort(8080)
                 .build();
-        VALIDATOR.validate(serviceSpec1, serviceSpec2);
 
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
     @Test
@@ -87,10 +87,10 @@ public class PodSpecsCannotShrinkTest {
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
     @Test
@@ -111,10 +111,10 @@ public class PodSpecsCannotShrinkTest {
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
     @Test
@@ -135,10 +135,10 @@ public class PodSpecsCannotShrinkTest {
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
 
@@ -160,10 +160,10 @@ public class PodSpecsCannotShrinkTest {
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
 
@@ -186,9 +186,9 @@ public class PodSpecsCannotShrinkTest {
                 .build();
 
         // only checked against new config
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 }

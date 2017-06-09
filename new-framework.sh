@@ -32,7 +32,7 @@ fi
 UPPER_CASE_PROJECT_NAME=$(echo $PROJECT_NAME | awk '{print toupper($0)}')
 
 find $1 -type f -exec sed -i.bak "s/template/$PROJECT_NAME/g; s/TEMPLATE/$UPPER_CASE_PROJECT_NAME/g; s/template/$PROJECT_NAME/g" {} \;
-sed -i.bak -e '21,$ d' $1/src/main/dist/svc.yml
+sed -i.bak -e '25,$ d' $1/src/main/dist/svc.yml
 find $1 -type f -name *.bak -exec rm {} \;
 
 if [ $? -eq 0 ]; then

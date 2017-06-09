@@ -5,16 +5,6 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-
-
-
-
-
-
-
-
-
-
 1. Install a Kafka cluster. If you are using open source DC/OS, install a Kafka cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
         dcos package install kafka
@@ -33,14 +23,14 @@ enterprise: 'no'
         dcos kafka endpoints broker
         {
           "address": [
-            "10.0.3.226:1025",
-            "10.0.3.98:1025",
-            "10.0.0.120:1025"
+            "10.0.3.226:1000",
+            "10.0.3.98:1000",
+            "10.0.0.120:1000"
           ],
           "dns": [
-            "kafka-2-broker.kafka.mesos:1025",
-            "kafka-0-broker.kafka.mesos:1025",
-            "kafka-1-broker.kafka.mesos:1025"
+            "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1000",
+            "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000",
+            "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000"
           ],
           "vips": [
             "broker.kafka.l4lb.thisdcos.directory:9092"
@@ -53,7 +43,7 @@ enterprise: 'no'
 
         core@ip-10-0-6-153 ~ docker run -it mesosphere/kafka-client
 
-        root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list kafka-0-broker.kafka.mesos:1025, kafka-1-broker.kafka.mesos:1025, kafka-2-broker.kafka.mesos:1025 --topic topic1
+        root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000, kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000, kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1000 --topic topic1
 
         root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning
         Hello, World.

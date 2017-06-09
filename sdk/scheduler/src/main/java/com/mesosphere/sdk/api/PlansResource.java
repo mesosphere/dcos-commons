@@ -195,17 +195,31 @@ public class PlansResource extends PrettyJsonResource {
             Plan plan = planManagerOptional.get().getPlan();
             plan.restart();
             plan.proceed();
-        } else if (phase == null || step == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        } else {
+            return jsonOkResponse(getCommandResult("restart"));
+        }
+
+        if (phase != null && step == null) {
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
+            if (phases.isEmpty()) {
+                return ELEMENT_NOT_FOUND_RESPONSE;
+            }
+
+            phases.forEach(phz -> phz.restart());
+            phases.forEach(phz -> phz.proceed());
+            return jsonOkResponse(getCommandResult("restart"));
+        }
+
+        if (phase != null && step != null) {
             Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
             if (!stepOptional.isPresent()) {
                 return ELEMENT_NOT_FOUND_RESPONSE;
             }
             stepOptional.get().restart();
+            stepOptional.get().proceed();
+            return jsonOkResponse(getCommandResult("restart"));
         }
 
-        return jsonOkResponse(getCommandResult("restart"));
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     @GET
