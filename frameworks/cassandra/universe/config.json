@@ -89,7 +89,7 @@
         "placement_constraint": {
           "type": "string",
           "description": "The Marathon-style placement constraint string controlling node placement",
-          "default": ""
+          "default": "hostname:MAX_PER:1"
         },
         "virtual_network":{
           "description": "Enable DC/OS Virtual Network",

@@ -83,7 +83,7 @@ func parseArgs() args {
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
-	if args.resolveEnabled && rawHosts == defaultHostString {
+	if args.resolveEnabled && rawHosts == defaultHostString && !args.getTaskIp {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
@@ -362,7 +362,6 @@ func main() {
 	args := parseArgs()
 
 	pod_ip, err := GetLocalIP()
-	log.Printf("Local IP --> %s", pod_ip)
 	if err != nil {
 		log.Fatalf("Cannot find the container's IP address: ", err)
 	}
@@ -375,6 +374,7 @@ func main() {
 	if args.getTaskIp {
 		log.Printf("exporting new task IP %s", pod_ip)
 		fmt.Printf("%s", pod_ip)
+		os.Exit(0)
 	}
 
 	if args.printEnvEnabled {
