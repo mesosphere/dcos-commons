@@ -88,28 +88,28 @@ pods:
     networks:
       dcos:
     tasks:
-      get-Overlay:
+      get-overlay:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Overlay-vip:
+      get-overlay-vip:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: "curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Host-vip:
+      get-host-vip:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: "curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-Host:
+      get-host:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
@@ -145,6 +145,6 @@ plans:
         strategy: serial
         pod: getter
         steps:
-          - default: [[get-Overlay], [get-Host], [get-Overlay-vip], [get-Host-vip]]
+          - default: [[get-overlay], [get-host], [get-overlay-vip], [get-host-vip]]
 
 

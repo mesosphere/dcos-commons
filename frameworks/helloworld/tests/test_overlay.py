@@ -69,10 +69,10 @@ def test_overlay_network():
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
     framework_task_names = [t["name"] for t in framework_tasks]
-    expected_tasks = ['getter-0-get-Host',
-                      'getter-0-get-Overlay',
-                      'getter-0-get-Overlay-vip',
-                      'getter-0-get-Host-vip',
+    expected_tasks = ['getter-0-get-host',
+                      'getter-0-get-overlay',
+                      'getter-0-get-overlay-vip',
+                      'getter-0-get-host-vip',
                       'hello-host-vip-0-server',
                       'hello-overlay-vip-0-server',
                       'hello-host-0-server',
