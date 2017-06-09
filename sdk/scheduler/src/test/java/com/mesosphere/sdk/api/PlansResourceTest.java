@@ -118,6 +118,19 @@ public class PlansResourceTest {
     }
 
     @Test
+    public void testContinueAlreadyInProgress() {
+        when(mockPlan.isInProgress()).thenReturn(true);
+        when(mockPhase.isInProgress()).thenReturn(true);
+        when(mockStep.isInProgress()).thenReturn(true);
+
+        Response response = resource.continueCommand(planName, null);
+        assertEquals(208, response.getStatus());
+
+        response = resource.continueCommand(planName, phaseName);
+        assertEquals(208, response.getStatus());
+    }
+
+    @Test
     public void testInterrupt() {
         Response response = resource.interruptCommand(planName, null);
         validateCommandResult(response, "interrupt");
@@ -142,6 +155,20 @@ public class PlansResourceTest {
 
         response = resource.interruptCommand("bad-name", phaseName);
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
+    }
+
+    @Test
+    public void testInterruptAlreadyInterrupted() {
+        when(mockPlan.isInterrupted()).thenReturn(true);
+        when(mockPhase.isInterrupted()).thenReturn(false);
+        
+        Response response = resource.interruptCommand(planName, null);
+        assertEquals(208, response.getStatus());
+
+        when(mockPlan.isInterrupted()).thenReturn(false);
+        when(mockPhase.isInterrupted()).thenReturn(true);
+        response = resource.interruptCommand(planName, phaseName);
+        assertEquals(208, response.getStatus());
     }
 
     @Test

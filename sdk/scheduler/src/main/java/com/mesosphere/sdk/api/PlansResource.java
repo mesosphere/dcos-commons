@@ -127,9 +127,21 @@ public class PlansResource extends PrettyJsonResource {
                 return ELEMENT_NOT_FOUND_RESPONSE;
             }
 
+            boolean allInProgress = phases.stream()
+                    .filter(phz -> phz.isInProgress())
+                    .count()  == phases.size();
+
+            if (allInProgress) {
+                return Response.status(208).build();
+            } 
+
             phases.forEach(ParentElement::proceed);
         } else {
-            planManagerOptional.get().getPlan().proceed();
+            Plan plan = planManagerOptional.get().getPlan();
+            if (plan.isInProgress()) {
+                return Response.status(208).build();
+            }
+            plan.proceed();
         }
 
         return jsonOkResponse(getCommandResult("continue"));
@@ -151,9 +163,20 @@ public class PlansResource extends PrettyJsonResource {
                 return ELEMENT_NOT_FOUND_RESPONSE;
             }
 
+            boolean allInterrupted = phases.stream()
+                .filter(phz -> phz.isInterrupted()).count() == phases.size();
+            
+            if (allInterrupted) {
+                return Response.status(208).build();
+            }
+
             phases.forEach(p -> p.getStrategy().interrupt());
         } else {
-            planManagerOptional.get().getPlan().interrupt();
+            Plan plan = planManagerOptional.get().getPlan();
+            if (plan.isInterrupted()) {
+                return Response.status(208).build();
+            }
+            plan.interrupt();
         }
 
         return jsonOkResponse(getCommandResult("interrupt"));
