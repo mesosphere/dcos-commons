@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -153,47 +153,59 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#addAssignedOverlayPort-long-">addAssignedOverlayPort</a></span>(long&nbsp;port)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.util.Set&lt;java.lang.Long&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getAssignedOverlayPorts--">getAssignedOverlayPorts</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.ExecutorInfo.Builder&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExecutorBuilder--">getExecutorBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExecutorResourceBuilders--">getExecutorResourceBuilders</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getIndex--">getIndex</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getLastTaskEnv-java.lang.String-java.lang.String-">getLastTaskEnv</a></span>(java.lang.String&nbsp;taskSpecName,
               java.lang.String&nbsp;envName)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getPodInstance--">getPodInstance</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>Protos.TaskInfo.Builder</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder</a></span>(java.lang.String&nbsp;taskSpecName)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo.Builder&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilders--">getTaskBuilders</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskResourceBuilders--">getTaskResourceBuilders</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getType--">getType</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#isAssignedOverlayPort-long-">isAssignedOverlayPort</a></span>(long&nbsp;candidatePort)</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#setExecutorBuilder-Protos.ExecutorInfo.Builder-">setExecutorBuilder</a></span>(Protos.ExecutorInfo.Builder&nbsp;executorBuilder)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -307,6 +319,33 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getExecutorResourceBuilders</h4>
 <pre>public&nbsp;java.util.Collection&lt;Protos.Resource.Builder&gt;&nbsp;getExecutorResourceBuilders()</pre>
+</li>
+</ul>
+<a name="isAssignedOverlayPort-long-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isAssignedOverlayPort</h4>
+<pre>public&nbsp;boolean&nbsp;isAssignedOverlayPort(long&nbsp;candidatePort)</pre>
+</li>
+</ul>
+<a name="addAssignedOverlayPort-long-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addAssignedOverlayPort</h4>
+<pre>public&nbsp;void&nbsp;addAssignedOverlayPort(long&nbsp;port)</pre>
+</li>
+</ul>
+<a name="getAssignedOverlayPorts--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getAssignedOverlayPorts</h4>
+<pre>public&nbsp;java.util.Set&lt;java.lang.Long&gt;&nbsp;getAssignedOverlayPorts()</pre>
 </li>
 </ul>
 <a name="getType--">

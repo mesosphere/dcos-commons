@@ -227,7 +227,7 @@ $ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
     <span class="c">&lt;!-- namenode --&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.shared.edits.dir<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>qjournal://journal-0-node.hdfs.mesos:8485;journal-1-node.hdfs.mesos:8485;journal-2-node.hdfs.mesos:8485/hdfs<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;value&gt;</span>qjournal://journal-0-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-1-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-2-node.hdfs.autoip.dcos.thisdcos.directory:8485/hdfs<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.name.dir<span class="nt">&lt;/name&gt;</span>
@@ -262,7 +262,7 @@ $ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
     <span class="c">&lt;!-- name-0-node --&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.mesos:9001<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9001<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
@@ -270,7 +270,7 @@ $ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.mesos:9002<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9002<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
@@ -281,7 +281,7 @@ $ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
     <span class="c">&lt;!-- name-1-node --&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.mesos:9001<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9001<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
@@ -289,7 +289,7 @@ $ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.mesos:9002<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9002<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>

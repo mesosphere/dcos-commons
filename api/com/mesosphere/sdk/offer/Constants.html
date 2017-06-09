@@ -147,20 +147,48 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#DNS_TLD">DNS_TLD</a></span></code>
+<div class="block">TLD for navstar-based DNS, resolves to the IP of the host iff the container
+ if on the host network and the IP of the container iff the container is on the
+ overlay network.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#PORTS_RESOURCE_TYPE">PORTS_RESOURCE_TYPE</a></span></code>
 <div class="block">The name used for reserved network port resources.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#TOMBSTONE_MARKER">TOMBSTONE_MARKER</a></span></code>
 <div class="block">The string prepended to reserved resources to indicate that they are uninstalled.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#UPDATE_PLAN_NAME">UPDATE_PLAN_NAME</a></span></code>
 <div class="block">The name used for the update plan.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#VIP_HOST_TLD">VIP_HOST_TLD</a></span></code>
+<div class="block">TLD to be used for VIP-based hostnames.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#VIP_OVERLAY_FLAG_KEY">VIP_OVERLAY_FLAG_KEY</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#VIP_OVERLAY_FLAG_VALUE">VIP_OVERLAY_FLAG_VALUE</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#VIP_PREFIX">VIP_PREFIX</a></span></code>
+<div class="block">Prefix to use for VIP labels in DiscoveryInfos.</div>
 </td>
 </tr>
 </table>
@@ -283,7 +311,7 @@ extends java.lang.Object</pre>
 <a name="TOMBSTONE_MARKER">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>TOMBSTONE_MARKER</h4>
 <pre>public static final&nbsp;java.lang.String TOMBSTONE_MARKER</pre>
@@ -291,6 +319,77 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="VIP_PREFIX">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>VIP_PREFIX</h4>
+<pre>public static final&nbsp;java.lang.String VIP_PREFIX</pre>
+<div class="block">Prefix to use for VIP labels in DiscoveryInfos.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.VIP_PREFIX">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="VIP_HOST_TLD">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>VIP_HOST_TLD</h4>
+<pre>public static final&nbsp;java.lang.String VIP_HOST_TLD</pre>
+<div class="block">TLD to be used for VIP-based hostnames.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.VIP_HOST_TLD">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="DNS_TLD">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>DNS_TLD</h4>
+<pre>public static final&nbsp;java.lang.String DNS_TLD</pre>
+<div class="block">TLD for navstar-based DNS, resolves to the IP of the host iff the container
+ if on the host network and the IP of the container iff the container is on the
+ overlay network. If the container is on muliple virtual networks or experimenting with
+ different DNS providers this TLD may have unexpected behavior.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.DNS_TLD">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="VIP_OVERLAY_FLAG_KEY">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>VIP_OVERLAY_FLAG_KEY</h4>
+<pre>public static final&nbsp;java.lang.String VIP_OVERLAY_FLAG_KEY</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.VIP_OVERLAY_FLAG_KEY">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="VIP_OVERLAY_FLAG_VALUE">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>VIP_OVERLAY_FLAG_VALUE</h4>
+<pre>public static final&nbsp;java.lang.String VIP_OVERLAY_FLAG_VALUE</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.VIP_OVERLAY_FLAG_VALUE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>

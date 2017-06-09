@@ -1094,7 +1094,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
 <p>All tasks launched in DC/OS receive a DNS address. It is of the form:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>&lt;task-name&gt;.&lt;framework-name&gt;.mesos
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;task-name&gt;.&lt;framework-name&gt;.autoip.dcos.thisdcos.directory
 </code></pre>
 </div>
 
@@ -1117,7 +1117,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </code></pre>
 </div>
 
-<p>would generate a single task named “hello-0-server”.  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.mesos”. Tasks may also specify their own prefixes for the first component of their mesos-dns names using the <code class="highlighter-rouge">discovery</code> section in each task definition. In the following example, two tasks within the same pod share a prefix:</p>
+<p>would generate a single task named “hello-0-server”.  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.autoip.dcos.thisdcos.directory”. Tasks may also specify their own prefixes for the first component of their mesos-dns names using the <code class="highlighter-rouge">discovery</code> section in each task definition. In the following example, two tasks within the same pod share a prefix:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1147,7 +1147,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </code></pre>
 </div>
 
-<p>In this case, while running, both the <code class="highlighter-rouge">init</code> and <code class="highlighter-rouge">server</code> tasks would be addressable at “hello-0.hello-world.mesos”, with the “-0” being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.</p>
+<p>In this case, while running, both the <code class="highlighter-rouge">init</code> and <code class="highlighter-rouge">server</code> tasks would be addressable at “hello-0.hello-world.autoip.dcos.thisdcos.directory”, with the “-0” being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.</p>
 
 <p><strong>Important:</strong> As with resource sets, only a single process at point in time may use a given prefix, meaning that <code class="highlighter-rouge">init</code> may not run at the same time as <code class="highlighter-rouge">server</code>. A complete service definition would have a deploy plan that ensures this.</p>
 

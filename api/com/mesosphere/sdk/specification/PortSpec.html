@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -156,11 +156,12 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">PortSpec</a></span>(Protos.Value&nbsp;value,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">PortSpec</a></span>(Protos.Value&nbsp;value,
         java.lang.String&nbsp;role,
         java.lang.String&nbsp;principal,
         java.lang.String&nbsp;envKey,
-        java.lang.String&nbsp;portName)</code>&nbsp;</td>
+        java.lang.String&nbsp;portName,
+        java.util.Collection&lt;java.lang.String&gt;&nbsp;networkNames)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -186,18 +187,22 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getEnvKey--">getEnvKey</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getNetworkNames--">getNetworkNames</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getPort--">getPort</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#getPortName--">getPortName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -230,7 +235,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<a name="PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -240,7 +245,8 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
                 java.lang.String&nbsp;role,
                 java.lang.String&nbsp;principal,
                 java.lang.String&nbsp;envKey,
-                java.lang.String&nbsp;portName)</pre>
+                java.lang.String&nbsp;portName,
+                java.util.Collection&lt;java.lang.String&gt;&nbsp;networkNames)</pre>
 </li>
 </ul>
 </li>
@@ -313,7 +319,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
@@ -321,6 +327,15 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#hashCode--">hashCode</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
 </dl>
+</li>
+</ul>
+<a name="getNetworkNames--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getNetworkNames</h4>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getNetworkNames()</pre>
 </li>
 </ul>
 </li>
