@@ -23,4 +23,19 @@ public class Constants {
 
     /** The string prepended to reserved resources to indicate that they are uninstalled. */
     public static final String TOMBSTONE_MARKER = "uninstalled_";
+
+    /** Prefix to use for VIP labels in DiscoveryInfos. */
+    public static final String VIP_PREFIX = "VIP_";
+    /** TLD to be used for VIP-based hostnames. */
+    public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
+
+    /** TLD for navstar-based DNS, resolves to the IP of the host iff the container
+     * if on the host network and the IP of the container iff the container is on the
+     * overlay network. If the container is on muliple virtual networks or experimenting with
+     * different DNS providers this TLD may have unexpected behavior.
+     */
+    public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
+
+    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
+    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
 }

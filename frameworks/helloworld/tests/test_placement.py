@@ -50,7 +50,7 @@ def test_rack_not_found():
     except:
         pass # expected to fail
 
-    pl = json.loads(service_plan_wait())
+    pl = plan.get_deployment_plan(PACKAGE_NAME)
 
     # check that everything is still stuck looking for a match:
     assert pl['status'] == 'IN_PROGRESS'
@@ -193,11 +193,11 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['HELLO_COUNT'] = '2'
     marathon.update_app(PACKAGE_NAME, config)
-    service_plan_wait()
 
     # Now, an additional hello-server task will launch
     # where the _new_ constraint will tell it to be.
     tasks.check_running(PACKAGE_NAME, 2)
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     assert get_task_host('hello-0-server') == some_agent
     assert get_task_host('hello-1-server') == other_agent
@@ -266,8 +266,8 @@ def setup_constraint_switch():
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
     marathon.update_app(PACKAGE_NAME, config)
-    # Wait for the scheduler to be up before advancing.
-    service_plan_wait()
+    # Wait for the scheduler to be up and settled before advancing.
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     return some_agent, other_agent, hello_ids
 
@@ -280,14 +280,3 @@ def get_task_host(task_name):
             return label['value']
 
     raise Exception("offer_hostname label is not present!")
-
-
-def service_plan_wait():
-    def fun():
-        try:
-            return cmd.run_cli('hello-world plan show --json deploy')
-        except:
-            traceback.print_exc()
-            return False
-
-    return shakedown.wait_for(fun, noisy=True)

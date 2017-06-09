@@ -46,8 +46,8 @@ Kafka comes with many useful tools of its own that often require either Zookeepe
         "10.0.1.249:1030"
       ],
       "dns": [
-        "kafka-0-broker.kafka.mesos:1028",
-        "kafka-1-broker.kafka.mesos:1030"
+        "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
+        "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
       ],
     }
 
@@ -63,8 +63,8 @@ The same information can be retrieved through the DC/OS CLI:
         "10.0.1.249:1030"
       ],
       "dns": [
-        "kafka-0-broker.kafka.mesos:1028",
-        "kafka-1-broker.kafka.mesos:1030"
+        "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
+        "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
       ],
     }
 

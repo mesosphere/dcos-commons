@@ -13,6 +13,7 @@ import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
@@ -134,7 +135,7 @@ public class EndpointsResource {
     /**
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
-    private static Map<String, JSONObject> getDiscoveryEndpoints(
+    private Map<String, JSONObject> getDiscoveryEndpoints(
             String serviceName,
             Collection<TaskInfo> taskInfos) throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
@@ -151,7 +152,16 @@ public class EndpointsResource {
             String autoIpTaskName = discoveryInfo.hasName() ? discoveryInfo.getName() : taskInfo.getName();
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
-
+            // get IP address(es) from container status on the TaskStatus, gives overlay
+            // network IP (IP-per-container) or host iff on host network.
+            List<String> ipAddresses = new ArrayList<>();
+            Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).orElse(null);
+            if (taskStatus != null && taskStatus.hasContainerStatus() &&
+                    taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+                taskStatus.getContainerStatus().getNetworkInfosList()
+                        .forEach(networkInfo -> networkInfo.getIpAddressesList()
+                                .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
+            }
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
                     LOGGER.info(
@@ -159,12 +169,14 @@ public class EndpointsResource {
                             port.getVisibility(), YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
                     continue;
                 }
+                String hostIpString = ipAddresses.isEmpty() ? nativeHost :
+                        (ipAddresses.size() == 1 ? ipAddresses.get(0) : ipAddresses.toString());
                 addPortToEndpoints(
                         serviceName,
                         endpointsByName,
                         taskInfo,
                         EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
-                        EndpointUtils.toEndpoint(nativeHost, port.getNumber()),
+                        EndpointUtils.toEndpoint(hostIpString, port.getNumber()),
                         port.getLabels().getLabelsList());
             }
         }
@@ -178,7 +190,7 @@ public class EndpointsResource {
      *
      * @param endpointsByName the map to write to
      * @param taskInfo the task which has the port
-     * @param directHostPort the host:port value to advertise for directly connecting to the task
+     * @param dnsHostPort the host:port value to advertise for directly connecting to the task
      * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */

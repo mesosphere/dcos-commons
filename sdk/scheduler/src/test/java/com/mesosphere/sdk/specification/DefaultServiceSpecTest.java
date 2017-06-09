@@ -375,7 +375,7 @@ public class DefaultServiceSpecTest {
                 .stream()
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
-        Assert.assertEquals(0, portsResources.size());
+        Assert.assertEquals(2, portsResources.size());
     }
 
     @Test

@@ -25,6 +25,11 @@
           "type": "string",
           "default": ""
         },
+        "virtual_network": {
+          "description": "Enable DC/OS Virtual Network",
+          "type": "boolean",
+          "default": false
+        },
         "deploy_strategy": {
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",

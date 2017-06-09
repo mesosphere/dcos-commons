@@ -4,6 +4,7 @@ import urllib
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_utils as utils
+import shakedown
 import dcos
 import dcos.config
 import dcos.http
@@ -52,6 +53,8 @@ def test_endpoints_address():
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
+    for dns_endpoint in endpoints['dns']:
+        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
 
 
 @pytest.mark.smoke
