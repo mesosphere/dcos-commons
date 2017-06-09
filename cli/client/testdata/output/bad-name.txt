@@ -1,2 +1,3 @@
-Did you provide the correct service name? Currently using 'hello-world-1', specify a different name with '--name=<name>'.
+Could not reach the service scheduler with name 'hello-world-1'.
+Did you provide the correct service name? Specify a different name with '--name=<name>'.
 Was the service recently installed or updated? It may still be initializing, wait a bit and try again.

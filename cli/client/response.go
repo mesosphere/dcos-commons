@@ -40,10 +40,12 @@ func printResponseErrorAndExit(response *http.Response) {
 }
 
 func printServiceNameErrorAndExit(response *http.Response) {
+	// TODO: check to see what the actual service state is
 	if config.Verbose {
 		printResponseError(response)
 	}
-	PrintMessage("Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", config.ServiceName)
+	PrintMessage("Could not reach the service scheduler with name '%s'.", config.ServiceName)
+	PrintMessage("Did you provide the correct service name? Specify a different name with '--name=<name>'.")
 	PrintMessageAndExit("Was the service recently installed or updated? It may still be initializing, wait a bit and try again.")
 }
 
