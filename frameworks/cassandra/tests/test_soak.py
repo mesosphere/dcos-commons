@@ -27,17 +27,8 @@ from tests.config import (
 from tests.test_backup import run_backup_and_restore
 import sdk_api as api
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_test_upgrade
 import sdk_utils as utils
-
-
-def get_dcos_cassandra_plan(service_name):
-    utils.out('Waiting for {} plan to complete...'.format(service_name))
-
-    def fn():
-        return api.get(service_name, '/v1/plan')
-    return spin.time_wait_return(fn)
 
 
 @pytest.mark.soak_backup
@@ -112,11 +103,7 @@ def test_cassandra_migration():
             ),
             json=backup_parameters
         )
-        spin.time_wait_noisy(
-            lambda: get_dcos_cassandra_plan(
-                backup_service_name
-            ).json()['status'] == 'COMPLETE'
-        )
+        plan.wait_for_completed_deployment(backup_service_name)
 
     env = EnvironmentContext(
         CASSANDRA_NODE_ADDRESS=os.getenv(
@@ -132,10 +119,4 @@ def test_cassandra_migration():
         plan.start_plan(
             restore_service_name, 'restore-s3', parameters=plan_parameters
         )
-        spin.time_wait_noisy(
-            lambda: (
-                plan.get_plan(
-                    restore_service_name, 'restore-s3'
-                ).json()['status'] == 'COMPLETE'
-            )
-        )
+        plan.wait_for_completed_plan(restore_service_name, 'restore-s3')

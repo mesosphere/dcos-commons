@@ -1,8 +1,8 @@
 import pytest
 
+import shakedown
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_utils as utils
 
 from tests.config import (
@@ -32,7 +32,7 @@ def teardown_module(module):
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
     plan.wait_for_completed_deployment(PACKAGE_NAME)
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
+    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
     utils.out("deployment_plan: " + str(deployment_plan))
 
     # deploy two pods serially

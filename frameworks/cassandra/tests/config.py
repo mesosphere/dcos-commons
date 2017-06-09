@@ -1,10 +1,12 @@
 import json
 import os
+import tempfile
+import traceback
 
 import shakedown
 
 import sdk_cmd as cmd
-import sdk_spin as spin
+import sdk_utils
 
 
 PACKAGE_NAME = 'cassandra'
@@ -43,27 +45,35 @@ def get_jobs_folder():
 
 
 def install_cassandra_jobs():
+    tmp_folder = tempfile.mkdtemp(prefix='cassandra-test')
     for job in TEST_JOBS:
-        install_job(job, get_jobs_folder())
+        install_job(job, get_jobs_folder(), tmp_folder)
 
 
-def install_job(job_name, jobs_folder, **replacements):
+def install_job(job_name, jobs_folder, tmp_folder, **replacements):
     replacements.update(get_default_replacements())
 
     template_filename = os.path.join(
         jobs_folder, '{}.json.template'.format(job_name)
     )
-    with open(template_filename) as f:
+    with open(template_filename, 'r') as f:
         job_contents = f.read()
 
     for name, value in replacements.items():
         job_contents = job_contents.replace('{{%s}}' % name, value)
+    sdk_utils.out('Job: {}'.format(job_contents))
+    job_id = json.loads(job_contents)['id']
 
-    job_filename = os.path.join(jobs_folder, '{}.json'.format(job_name))
-    with open(job_filename, 'w') as f:
+    out_filename = os.path.join(tmp_folder, '{}.json'.format(job_name))
+    sdk_utils.out('Writing job file to: {}'.format(out_filename))
+    with open(out_filename, 'w') as f:
         f.write(job_contents)
 
-    cmd.run_cli('job add {}'.format(job_filename))
+    try:
+        cmd.run_cli('job remove {}'.format(job_id))
+    except:
+        sdk_utils.out(traceback.format_exc())
+    cmd.run_cli('job add {}'.format(out_filename))
 
 
 def get_default_replacements():
@@ -94,7 +104,7 @@ def launch_job(job_name):
 
 def verify_job_succeeded(job_name, run_id):
     # Verify that our most recent run succeeded
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         run_id in [
             r['id'] for r in
             json.loads(cmd.run_cli(
@@ -105,7 +115,7 @@ def verify_job_succeeded(job_name, run_id):
 
 
 def verify_job_finished(job_name, run_id):
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         run_id in [
             r['id'] for r in
             get_runs(job_name)['history']['successfulFinishedRuns']
@@ -119,7 +129,7 @@ def verify_job_finished(job_name, run_id):
 
 def get_runs(job_name):
     return json.loads(cmd.run_cli(
-        'job history --show-failures --json {}'.format(job_name)
+        'job history --show-failures --json {}'.format(job_name), print_output=False
     ))
 
 
@@ -164,8 +174,9 @@ class JobContext(object):
         self.replacements = replacements
 
     def __enter__(self):
+        tmp_folder = tempfile.mkdtemp(prefix='cassandra-test')
         for j in self.job_names:
-            install_job(j, get_jobs_folder(), **self.replacements)
+            install_job(j, get_jobs_folder(), tmp_folder, **self.replacements)
 
     def __exit__(self, *args):
         for j in self.job_names:

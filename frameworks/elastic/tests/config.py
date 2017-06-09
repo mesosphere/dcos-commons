@@ -5,7 +5,6 @@ import shakedown
 
 import sdk_marathon as marathon
 import sdk_plan
-import sdk_spin
 import sdk_tasks as tasks
 import sdk_utils
 
@@ -104,7 +103,7 @@ def get_elasticsearch_master():
 
         return False
 
-    return sdk_spin.time_wait_return(get_master)
+    return shakedown.wait_for(get_master)
 
 
 def get_hosts_with_plugin(plugin_name):

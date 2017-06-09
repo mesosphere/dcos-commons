@@ -2,7 +2,6 @@
 
 import dcos
 import sdk_api
-import sdk_spin
 import sdk_utils
 import shakedown
 
@@ -11,12 +10,14 @@ def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
 
 
-def get_sidecar_plan(service_name):
-    return get_plan(service_name, "sidecar")
-
-
-def start_sidecar_plan(service_name, parameters=None):
-    start_plan(service_name, "sidecar", parameters)
+def get_plan(service_name, plan):
+    def fn():
+        output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
+        try:
+            return output.json()
+        except:
+            return False
+    return shakedown.wait_for(fn)
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -24,44 +25,70 @@ def start_plan(service_name, plan, parameters=None):
                           json=parameters if parameters is not None else {})
 
 
-def get_plan(service_name, plan):
-    sdk_utils.out("Waiting for {} plan to complete...".format(service_name))
+def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
+    return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
 
+
+def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
+    return wait_for_completed_plan(service_name, 'deploy', timeout_seconds)
+
+
+def wait_for_completed_plan(service_name, plan_name, timeout_seconds=15 * 60):
+    return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds)
+
+
+def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=15 * 60):
+    return wait_for_phase_status(service_name, plan_name, phase_name, 'COMPLETE', timeout_seconds)
+
+
+def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=15 * 60):
+    return wait_for_step_status(service_name, plan_name, phase_name, step_name, 'COMPLETE', timeout_seconds)
+
+
+def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
     def fn():
-        return sdk_api.get(service_name, "/v1/plans/{}".format(plan))
-    return sdk_spin.time_wait_return(fn)
+        plan = get_plan(service_name, plan_name)
+        if plan['status'] == status:
+            return plan
+        else:
+            return False
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_completed_deployment(service_name, timeout_seconds=None):
+def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=15 * 60):
     def fn():
-        return deployment_plan_is_finished(service_name)
-    if timeout_seconds:
-        return sdk_spin.time_wait_return(fn, timeout_seconds=timeout_seconds)
-    else:
-        return sdk_spin.time_wait_return(fn)
+        plan = get_plan(service_name, plan_name)
+        phase = get_phase(plan, phase_name)
+        if phase is not None and phase['status'] == status:
+            return plan
+        else:
+            return False
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_completed_recovery(service_name, timeout_seconds=None):
+def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=15 * 60):
     def fn():
-        return recovery_plan_is_finished(service_name)
-    if timeout_seconds:
-        return sdk_spin.time_wait_return(fn, timeout_seconds=timeout_seconds)
-    else:
-        return sdk_spin.time_wait_return(fn)
+        plan = get_plan(service_name, plan_name)
+        step = get_step(get_phase(plan, phase_name), step_name)
+        if step is not None and step['status'] == status:
+            return plan
+        else:
+            return False
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def deployment_plan_is_finished(service_name):
-    finished = plan_is_finished(service_name, 'deploy')
-    sdk_utils.out("Deployment plan for {} is finished: {}".format(service_name, finished))
-    return finished
+def get_phase(plan, name):
+    return get_child(plan, 'phases', name)
 
 
-def recovery_plan_is_finished(service_name):
-    finished = plan_is_finished(service_name, 'recovery')
-    sdk_utils.out("Recovery plan for {} is finished: {}".format(service_name, finished))
-    return finished
+def get_step(phase, name):
+    return get_child(phase, 'steps', name)
 
 
-def plan_is_finished(service_name, plan):
-    plan = get_plan(service_name, plan).json()
-    return plan['status'] == 'COMPLETE'
+def get_child(parent, children_field, name):
+    if parent is None:
+        return None
+    for child in parent[children_field]:
+        if child['name'] == name:
+            return child
+    return None

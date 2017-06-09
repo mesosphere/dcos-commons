@@ -5,7 +5,6 @@ import dcos.errors
 import dcos.marathon
 import sdk_api
 import sdk_plan
-import sdk_spin
 import sdk_tasks
 import sdk_utils
 import shakedown
@@ -20,7 +19,8 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None,
-        check_suppression=True):
+        check_suppression=True,
+        timeout_seconds=15 * 60):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -29,39 +29,17 @@ def install(
     sdk_utils.out('Installing {} with options={} version={}'.format(
         package_name, merged_options, package_version))
 
-    # install_package_and_wait silently waits for all marathon deployments to clear.
-    # to give some visibility, install in the following order:
-    # 1. install package
+    # 1. Install package, wait for tasks, wait for marathon deployment
     shakedown.install_package(
         package_name,
         package_version=package_version,
-        options_json=merged_options)
+        service_name=service_name,
+        options_json=merged_options,
+        wait_for_completion=True,
+        timeout_sec=timeout_seconds,
+        expected_running_tasks=running_task_count)
 
-    # 2. wait for expected tasks to come up
-    sdk_utils.out("Waiting for expected tasks to come up...")
-    sdk_tasks.check_running(service_name, running_task_count)
-    sdk_plan.wait_for_completed_deployment(service_name)
-
-    # 3. check service health
-    marathon_client = dcos.marathon.create_client()
-    def is_deployment_finished():
-        # TODO(nickbp): upstream fix to shakedown, which currently checks for ANY deployments rather
-        #               than the one we care about
-        deploying_apps = set([])
-        sdk_utils.out("Getting deployments")
-        deployments = marathon_client.get_deployments()
-        sdk_utils.out("Found {} deployments".format(len(deployments)))
-        for deployment in deployments:
-            sdk_utils.out("Deployment: {}".format(deployment))
-            for app in deployment.get('affectedApps', []):
-                sdk_utils.out("Adding {}".format(app))
-                deploying_apps.add(app)
-        sdk_utils.out('Checking that deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
-        return not '/{}'.format(service_name) in deploying_apps
-    sdk_utils.out("Waiting for marathon deployment to finish...")
-    sdk_spin.time_wait_noisy(is_deployment_finished)
-
-    # 4. Ensure the framework is suppressed.
+    # 2. Ensure the framework is suppressed.
     #
     # This is only configurable in order to support installs from
     # Universe during the upgrade_downgrade tests, because currently
@@ -70,10 +48,10 @@ def install(
     # dcos-commons >= 0.13.
     if check_suppression:
         sdk_utils.out("Waiting for framework to be suppressed...")
-        sdk_spin.time_wait_noisy(
-            lambda: sdk_api.is_suppressed(service_name))
+        shakedown.wait_for(
+            lambda: sdk_api.is_suppressed(service_name), noisy=True, timeout_seconds=5 * 60)
 
-    sdk_utils.out('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
+    sdk_utils.out('Install done after {}'.format(shakedown.pretty_duration(time.time() - start)))
 
 
 def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
@@ -110,9 +88,9 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
     finish = time.time()
 
     sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-        sdk_spin.pretty_time(janitor_start - start),
-        sdk_spin.pretty_time(finish - janitor_start),
-        sdk_spin.pretty_time(finish - start)))
+        shakedown.pretty_duration(janitor_start - start),
+        shakedown.pretty_duration(finish - janitor_start),
+        shakedown.pretty_duration(finish - start)))
 
 
 def get_package_options(additional_options={}):

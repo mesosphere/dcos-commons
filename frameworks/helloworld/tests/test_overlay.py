@@ -5,7 +5,6 @@ import dcos
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_utils as utils
 
 from tests.config import (
@@ -50,7 +49,7 @@ def test_overlay_network():
                             .format(task=task_name, status=status)
 
     plan.wait_for_completed_deployment(PACKAGE_NAME)
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
+    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
     utils.out("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct

@@ -1,14 +1,9 @@
-import os
-import sys
+import pytest
 import uuid
 
-import pytest
-
 from tests.config import *
-import sdk_cmd as cmd
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_utils as utils
 
@@ -17,10 +12,13 @@ def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
 
-    install_cassandra_jobs()
-
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
+
+    install_cassandra_jobs()
+    # Write data to Cassandra with a metronome job, then verify it was written
+    launch_and_verify_job(WRITE_DATA_JOB)
+    launch_and_verify_job(VERIFY_DATA_JOB)
 
 
 def setup_function(function):
@@ -30,7 +28,30 @@ def setup_function(function):
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
+    # remove job definitions from metronome
     remove_cassandra_jobs()
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_service_health():
+    check_dcos_service_health()
+
+
+@pytest.mark.sanity
+def test_cleanup_plan_completes():
+    cleanup_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+
+    plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=cleanup_parameters)
+    plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
+
+
+@pytest.mark.sanity
+def test_repair_plan_completes():
+    repair_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+
+    plan.start_plan(PACKAGE_NAME, 'repair', parameters=repair_parameters)
+    plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
 
 
 @pytest.mark.sanity
@@ -72,14 +93,9 @@ def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
     # Verify that the data was written
     launch_and_verify_job(VERIFY_DATA_JOB)
 
-    # Run backup plan, uploading snapshots and schema to S3 
+    # Run backup plan, uploading snapshots and schema to S3
     plan.start_plan(PACKAGE_NAME, backup_plan, parameters=plan_parameters)
-    spin.time_wait_noisy(
-        lambda: (
-            plan.get_plan(PACKAGE_NAME, backup_plan).json()['status'] ==
-            'COMPLETE'
-        )
-    )
+    plan.wait_for_completed_plan(PACKAGE_NAME, backup_plan)
 
     # Delete all keyspaces and tables with a metronome job
     launch_and_verify_job(DELETE_DATA_JOB)
@@ -89,12 +105,7 @@ def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
 
     # Run restore plan, retrieving snapshots and schema from S3
     plan.start_plan(PACKAGE_NAME, restore_plan, parameters=plan_parameters)
-    spin.time_wait_noisy(
-        lambda: (
-            plan.get_plan(PACKAGE_NAME, restore_plan).json()['status'] ==
-            'COMPLETE'
-        )
-    )
+    plan.wait_for_completed_plan(PACKAGE_NAME, restore_plan)
 
     # Verify that the data we wrote and then deleted has been restored
     launch_and_verify_job(VERIFY_DATA_JOB)
