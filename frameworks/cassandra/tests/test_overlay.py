@@ -55,7 +55,7 @@ def test_write_read_delete_data():
     launch_and_verify_job(DELETE_DATA_JOB)
     # Verify that the keyspaces and tables were deleted
     launch_and_verify_job(VERIFY_DELETION_JOB)
-    
+
 
 @pytest.mark.sanity
 @pytest.mark.overlay
