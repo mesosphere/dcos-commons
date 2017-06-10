@@ -24,7 +24,7 @@ from tests.config import (
     remove_cassandra_jobs,
     remove_job,
 )
-from tests.test_backup import run_backup_and_restore
+from tests.test_plans import run_backup_and_restore
 import sdk_api as api
 import sdk_plan as plan
 import sdk_test_upgrade
