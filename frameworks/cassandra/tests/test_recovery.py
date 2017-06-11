@@ -42,7 +42,6 @@ def try_job(job_name):
 
 
 @pytest.mark.sanity
-@pytest.mark.runnow
 def test_node_replace_replaces_node():
     tasks = cmd.run_cli('task')
     node_ip = [
