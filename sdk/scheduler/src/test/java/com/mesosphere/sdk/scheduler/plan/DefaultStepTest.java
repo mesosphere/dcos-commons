@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.when;
 public class DefaultStepTest {
     private static final String TEST_STEP_NAME = "test-step";
 
-    @Mock private OfferRequirement mockOfferRequirement;
     @Mock private PodSpec podSpec;
     @Mock private PodInstance podInstance;
     @Mock private TaskSpec taskSpec;
@@ -57,10 +55,11 @@ public class DefaultStepTest {
         LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
-                    .setTaskId(taskID)
-                    .setName(taskName)
-                    .setSlaveId(TestConstants.AGENT_ID)
-                    .build());
+                        .setTaskId(taskID)
+                        .setName(taskName)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                true);
         step.updateOfferStatus(Arrays.asList(launchRec));
 
         Assert.assertTrue(step.isStarting());

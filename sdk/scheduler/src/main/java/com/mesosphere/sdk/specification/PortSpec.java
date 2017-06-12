@@ -1,10 +1,9 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -12,6 +11,7 @@ import org.apache.mesos.Protos;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -22,18 +22,20 @@ public class PortSpec extends DefaultResourceSpec {
     @Size(min = 1)
     private final String portName;
     private final String envKey;
+    private final Collection<String> networkNames;
 
     @JsonCreator
     public PortSpec(
-            @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
-            @JsonProperty("port-name") String portName) {
-        super(name, value, role, principal, envKey);
+            @JsonProperty("port-name") String portName,
+            @JsonProperty("network-names") Collection<String> networkNames) {
+        super(Constants.PORTS_RESOURCE_TYPE, value, role, principal, envKey);
         this.portName = portName;
         this.envKey = envKey;
+        this.networkNames = networkNames;
     }
 
     @JsonProperty("port-name")
@@ -47,15 +49,9 @@ public class PortSpec extends DefaultResourceSpec {
         return Optional.ofNullable(envKey);
     }
 
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new PortRequirement(
-                resource == null ?
-                        ResourceBuilder.fromSpec(this).build() :
-                        ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build(),
-                getPortName(),
-                (int) getValue().getRanges().getRange(0).getBegin(),
-                getEnvKey());
+    @JsonIgnore
+    public long getPort() {
+        return getValue().getRanges().getRange(0).getBegin();
     }
 
     @Override
@@ -71,5 +67,9 @@ public class PortSpec extends DefaultResourceSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    public Collection<String> getNetworkNames() {
+        return networkNames;
     }
 }

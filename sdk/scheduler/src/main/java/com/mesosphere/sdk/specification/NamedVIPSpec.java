@@ -2,9 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.NamedVIPRequirement;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -14,6 +11,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 
 /**
  * This class represents a port mapped to a DC/OS named VIP.
@@ -32,7 +30,6 @@ public class NamedVIPSpec extends PortSpec {
 
     @JsonCreator
     public NamedVIPSpec(
-            @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
@@ -41,8 +38,10 @@ public class NamedVIPSpec extends PortSpec {
             @JsonProperty("protocol") String protocol,
             @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
             @JsonProperty("vip-name") String vipName,
-            @JsonProperty("vip-port") Integer vipPort) {
-        super(name, value, role, principal, envKey, portName);
+            @JsonProperty("vip-port") Integer vipPort,
+            @JsonProperty("network-names") Collection<String> networkNames) {
+
+        super(value, role, principal, envKey, portName, networkNames);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -69,22 +68,6 @@ public class NamedVIPSpec extends PortSpec {
     @JsonProperty("vip-port")
     public Integer getVipPort() {
         return vipPort;
-    }
-
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        Protos.Resource portResource = resource == null ?
-                ResourceBuilder.fromSpec(this).build() :
-                ResourceBuilder.fromExistingResource(resource).setValue(getValue()).build();
-        return new NamedVIPRequirement(
-                portResource,
-                getPortName(),
-                (int) getValue().getRanges().getRange(0).getBegin(),
-                getEnvKey(),
-                getProtocol(),
-                getVisibility(),
-                getVipName(),
-                getVipPort());
     }
 
     @Override

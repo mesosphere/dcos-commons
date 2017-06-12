@@ -174,7 +174,7 @@ def test_state_properties_get():
     assert stdout == "true\n"
 
 
-@pytest.mark.speedy
+@pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     check_running()
@@ -208,6 +208,7 @@ def test_state_refresh_disable_cache():
 
     tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
     check_running()
+    shakedown.deployment_wait() # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():

@@ -68,17 +68,12 @@ public class MemPersisterTest {
     }
 
     @Test
-    public void testGetMissingRoot() throws Exception {
-        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
-        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        CuratorTestUtils.clear(testZk);
-        testGetMissingRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
-        testGetMissingRootForPersister(persister);
-    }
-
-    private static void testGetMissingRootForPersister(Persister persister) throws PersisterException {
+    public void testMissingRootBehavior() throws Exception {
+        // Matches what CuratorPersister would do, except CuratorPersister is now initialized with a 'servicename' node
+        // for internal accounting:
         assertArrayEquals(null, persister.get(""));
+        assertTrue(persister.getChildren("").isEmpty());
+        assertTrue(persister.getChildren("/").isEmpty());
     }
 
     @Test(expected = PersisterException.class)
@@ -131,21 +126,6 @@ public class MemPersisterTest {
     }
 
     @Test
-    public void testGetChildrenMissingRoot() throws Exception {
-        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
-        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
-        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        CuratorTestUtils.clear(testZk);
-        testGetChildrenEmptyRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
-        testGetChildrenEmptyRootForPersister(persister);
-    }
-
-    private static void testGetChildrenEmptyRootForPersister(Persister persister) throws PersisterException {
-        assertTrue(persister.getChildren("").isEmpty());
-        assertTrue(persister.getChildren("/").isEmpty());
-    }
-
-    @Test
     public void testDeleteChildren() throws Exception {
         // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
@@ -195,9 +175,6 @@ public class MemPersisterTest {
     }
 
     private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {
-        assertEquals(null, persister.get(""));
-        assertTrue(persister.getChildren("").isEmpty());
-
         persister.set("/a", VAL);
         persister.set("/a/1", VAL);
         persister.set("/a/2/a", VAL);
@@ -274,6 +251,10 @@ public class MemPersisterTest {
     private static void checkChildren(Collection<String> expected, Persister persister, String path)
             throws PersisterException {
         expected = new TreeSet<>(expected); // ensure types match for assert calls
+        if ((path.isEmpty() || path.equals("/")) && persister instanceof CuratorPersister) {
+            // CuratorPersister automatically includes a "servicename" node at the root:
+            expected.add("servicename");
+        }
         assertEquals(path, expected, persister.getChildren(path));
         assertEquals("/" + path, expected, persister.getChildren("/" + path));
         assertEquals(path + "/", expected, persister.getChildren(path + "/"));

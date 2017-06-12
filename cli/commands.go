@@ -36,7 +36,7 @@ func HandleDefaultSections(app *kingpin.Application) {
 	commands.HandlePlanSection(app)
 	commands.HandlePodsSection(app)
 	commands.HandleStateSection(app)
-	commands.HandleUpdate(app)
+	commands.HandleUpdateSection(app)
 }
 
 func New() *kingpin.Application {

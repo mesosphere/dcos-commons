@@ -5,6 +5,7 @@ import sdk_tasks as tasks
 import sdk_spin as spin
 import sdk_cmd as command
 import sdk_utils as utils
+import shakedown
 import dcos
 import dcos.config
 import dcos.http
@@ -53,12 +54,14 @@ def test_endpoints_address():
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
+    for dns_endpoint in endpoints['dns']:
+        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper():
-    zookeeper = command.run_cli('{} endpoints zookeeper'.format(PACKAGE_NAME))
+    zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == (
         'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
     )
@@ -249,7 +252,9 @@ def test_config_cli():
 @pytest.mark.sanity
 def test_plan_cli():
     assert service_cli('plan list')
-    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False)
+    assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME))
     assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
     assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
 

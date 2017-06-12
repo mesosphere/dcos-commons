@@ -30,6 +30,7 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.skip(reason="PR 1071")
 def test_upgrade():
 
     test_version = upgrade.get_pkg_version(PACKAGE_NAME)
@@ -76,7 +77,7 @@ def test_upgrade():
     utils.out('All task are restarted')
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-     
+
     address = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
     assert len(address) == 4
     assert len(address['dns']) == DEFAULT_BROKER_COUNT
