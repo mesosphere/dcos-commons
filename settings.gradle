@@ -30,3 +30,5 @@ project(":frameworks/template").name = "template"
 include 'frameworks/cassandra'
 project(":frameworks/cassandra").name = "cassandra"
 
+include 'frameworks/cockroachdb'
+project(":frameworks/cockroachdb").name = "cockroachdb"
