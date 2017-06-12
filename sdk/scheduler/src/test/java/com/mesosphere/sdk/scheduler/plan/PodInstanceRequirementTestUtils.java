@@ -101,7 +101,8 @@ public class PodInstanceRequirementTestUtils {
                     TestConstants.ROLE,
                     TestConstants.PRINCIPAL,
                     envPort.getKey(),
-                    String.format("test-port-%s", envPort.getKey())));
+                    String.format("test-port-%s", envPort.getKey()),
+                    Collections.emptyList()));
         }
         return builder.build();
     }
@@ -126,7 +127,8 @@ public class PodInstanceRequirementTestUtils {
                     "tcp",
                     DiscoveryInfo.Visibility.EXTERNAL,
                     TestConstants.VIP_NAME + "-" + taskPort,
-                    entry.getKey()));
+                    entry.getKey(),
+                    Collections.emptyList()));
         }
         return builder.build();
 

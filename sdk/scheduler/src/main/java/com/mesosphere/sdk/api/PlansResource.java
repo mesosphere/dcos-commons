@@ -199,8 +199,13 @@ public class PlansResource extends PrettyJsonResource {
         }
 
         if (phase != null && step == null) {
-            getPhases(planManagerOptional.get(), phase).forEach(phz -> phz.restart());
-            getPhases(planManagerOptional.get(), phase).forEach(phz -> phz.proceed());
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
+            if (phases.isEmpty()) {
+                return ELEMENT_NOT_FOUND_RESPONSE;
+            }
+
+            phases.forEach(phz -> phz.restart());
+            phases.forEach(phz -> phz.proceed());
             return jsonOkResponse(getCommandResult("restart"));
         }
 

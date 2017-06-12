@@ -196,6 +196,13 @@ Each component's ports may be customized in the following configuration sections
 - _LIST PORT OPTIONS AND WHERE THEY ARE LOCATED IN THE CONFIG HERE_
 
 <a name="storage-volumes"></a>
+
+### Networks
+You can specify that a pod should join the `dcos` overlay network, a [Virtual Network](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns) that supports having one IP address per pod.  When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining dcos we ignore the ports resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <task_name>.<framework_name>.autoip.dcos.thisdcos.directory. 
+
+**Note** that this DNS will also work for pods on the host network. **Because the ports resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the dcos overlay to the host network or vice-versa.** This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
+
+
 ### Storage Volumes
 
 The service supports two volume types:

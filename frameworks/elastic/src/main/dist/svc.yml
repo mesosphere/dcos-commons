@@ -4,6 +4,10 @@ scheduler:
 pods:
   master:
     count: 3
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
@@ -11,11 +15,10 @@ pods:
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_PLUGIN}}
-    container:
-      rlimits:
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
     placement: {{MASTER_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -65,6 +68,10 @@ pods:
           timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
@@ -72,11 +79,10 @@ pods:
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_PLUGIN}}
-    container:
-      rlimits:
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
     placement: {{DATA_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -126,6 +132,10 @@ pods:
           timeout: 10
   ingest:
     count: {{INGEST_NODE_COUNT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
@@ -133,11 +143,10 @@ pods:
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_PLUGIN}}
-    container:
-      rlimits:
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
     placement: {{INGEST_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -187,6 +196,10 @@ pods:
           timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
@@ -194,11 +207,10 @@ pods:
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_PLUGIN}}
-    container:
-      rlimits:
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
     placement: {{COORDINATOR_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:

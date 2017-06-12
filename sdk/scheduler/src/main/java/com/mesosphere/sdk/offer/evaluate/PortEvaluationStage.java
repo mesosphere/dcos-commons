@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -16,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
 /**
  * This class evaluates an offer for a single port against a
  * {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}, finding a port dynamically in the offer where
@@ -25,6 +27,7 @@ import java.util.stream.IntStream;
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
+    private final boolean useHostPorts;
 
     protected PortSpec portSpec;
     private final String taskName;
@@ -34,6 +37,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.portSpec = portSpec;
+        this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
     }
 
     protected long getPort() {
@@ -47,10 +51,13 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 podInfoBuilder.getLastTaskEnv(getTaskName().get(), getPortEnvironmentVariable(portSpec));
 
         long assignedPort = getPort();
+
         if (assignedPort == 0 && taskPort.isPresent()) {
             assignedPort = Integer.parseInt(taskPort.get());
         } else if (assignedPort == 0) {
-            Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, podInfoBuilder);
+            Optional<Integer> dynamicPort = useHostPorts ?
+                    selectDynamicPort(mesosResourcePool, podInfoBuilder) :
+                    selectOverlayPort(podInfoBuilder);
             if (!dynamicPort.isPresent()) {
                 return EvaluationOutcome.fail(this,
                         "No ports were available for dynamic claim in offer," +
@@ -63,9 +70,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
             assignedPort = dynamicPort.get();
         }
-
         Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
                 .setType(Protos.Value.Type.RANGES);
+
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(assignedPort)
                 .setEnd(assignedPort);
@@ -75,24 +82,34 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 portSpec.getRole(),
                 portSpec.getPrincipal(),
                 portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
-                portSpec.getPortName());
+                portSpec.getPortName(),
+                portSpec.getNetworkNames());
 
-        OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                OfferEvaluationUtils.evaluateSimpleResource(
-                        this,
-                        portSpec,
-                        resourceId,
-                        mesosResourcePool);
+        if (useHostPorts) {
+            OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
+                    OfferEvaluationUtils.evaluateSimpleResource(
+                            this,
+                            portSpec,
+                            resourceId,
+                            mesosResourcePool);
+            EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
 
-        EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
-        if (!evaluationOutcome.isPassing()) {
-            return evaluationOutcome;
+            if (!evaluationOutcome.isPassing()) {
+                return evaluationOutcome;
+            }
+
+            resourceId = reserveEvaluationOutcome.getResourceId();
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
+            return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
+        } else {
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
+            return EvaluationOutcome.pass(
+                    this,
+                    Collections.emptyList(),
+                    String.format("Not using host ports: ignoring port resource requirements, using port %s",
+                            assignedPort));
         }
 
-        resourceId = reserveEvaluationOutcome.getResourceId();
-        setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
-
-        return evaluationOutcome;
     }
 
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
@@ -121,12 +138,18 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
             }
 
-            taskBuilder.addResources(resource);
+            if (useHostPorts) { // we only use the resource if we're using the host ports
+                taskBuilder.addResources(resource);
+            }
+
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             executorBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
-            executorBuilder.addResources(resource);
+            if (useHostPorts) {
+                executorBuilder.addResources(resource);
+            }
+
         }
     }
 
@@ -167,6 +190,20 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         return dynamicPort;
     }
 
+    private static Optional<Integer> selectOverlayPort(PodInfoBuilder podInfoBuilder) {
+        // take the next available port in the range.
+        Optional<Integer> dynamicPort = Optional.empty();
+        for (Integer i = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
+             i <= DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_END; i++) {
+            if (!podInfoBuilder.isAssignedOverlayPort(i.longValue())) {
+                dynamicPort = Optional.of(i);
+                podInfoBuilder.addAssignedOverlayPort(i.longValue());
+                break;
+            }
+        }
+        return dynamicPort;
+    }
+
     private static Set<Integer> getPortsInResource(Protos.Resource resource) {
         if (!resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
             return Collections.emptySet();
@@ -190,6 +227,16 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 : EnvConstants.PORT_NAME_TASKENV_PREFIX + portSpec.getPortName(); // PORT_[name]
         // Envvar should be uppercased with invalid characters replaced with underscores:
         return EnvUtils.toEnvName(draftEnvName);
+    }
+
+    private static boolean requireHostPorts(Collection<String> networkNames) {
+        if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
+            return true;
+        } else {
+            return networkNames.stream()
+                    .filter(DcosConstants::networkSupportsPortMapping)
+                    .count() > 0;
+        }
     }
 
     protected Optional<String> getTaskName() {

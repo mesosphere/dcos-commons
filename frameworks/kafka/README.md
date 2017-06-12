@@ -55,9 +55,9 @@ dcos kafka endpoints _ENDPOINT_
     "10.0.3.205:1025"
   ],
   "dns": [
-    "kafka-2-broker.kafka.mesos:1025",
-    "kafka-0-broker.kafka.mesos:1025",
-    "kafka-1-broker.kafka.mesos:1025"
+    "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
   ],
   "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
 }
@@ -70,7 +70,7 @@ The default Kafka installation provides reasonable defaults for trying out the s
 
 ## Prerequisities
 - Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account.
-	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.  
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
 - Your cluster must have at least three private nodes.
@@ -142,11 +142,11 @@ The service supports two volume types:
 - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
 - `MOUNT` volumes are a dedicated device or partition on a separate volume, with dedicated IO/spindles.
 
-Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://docs.mesosphere.com/1.9/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default. 
+Using `MOUNT` volumes requires [additional configuration on each DC/OS agent system](https://docs.mesosphere.com/1.9/administration/storage/mount-disk-resources/), so the service currently uses `ROOT` volumes by default.
 
 ### Placement Constraints
 
-Placement constraints allow you to customize where the service is deployed in the DC/OS cluster. 
+Placement constraints allow you to customize where the service is deployed in the DC/OS cluster.
 
 Placement constraints support all [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
 
@@ -194,11 +194,11 @@ Once the service is running, you can view information about its endpoints using 
   - View endpoints for an endpoint type: `https://<dcos-url>/service/kafka/v1/endpoints/<endpoint>`
 
 Returned endpoints will include the following:
-- `.mesos` hostnames for each instance, which will follow them if they're moved within the DC/OS cluster.
+- `.autoip.dcos.thisdcos.directory` hostnames for each instance, which will follow them if they're moved within the DC/OS cluster.
 - A HA-enabled VIP hostname for accessing any of the instances (optional).
-- A direct IP address for accesssing the service if `.mesos` hostnames are not resolvable.
+- A direct IP address for accesssing the service if `.autoip.dcos.thisdcos.directory` hostnames are not resolvable.
 
-In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your Apache Kafka instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
+In general, the `.autoip.dcos.thisdcos.directory` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your Apache Kafka instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
 
 
 <a name="managing"></a>
@@ -230,7 +230,7 @@ The service deploys `BROKER_COUNT` tasks by default. This may be customized at i
 ### Resizing a Node
 The CPU and Memory requirements of each broker may be increased or decreased as follows:
 - CPU (1.0 = 1 core): `BROKER_CPUS`
-- Memory (in MB): `BROKER_MEM` 
+- Memory (in MB): `BROKER_MEM`
 
 **Note:** Volume requirements (type and/or size) cannot be changed after initial deployment.
 
@@ -269,7 +269,7 @@ This operation will restart a broker while keeping it at its current location an
 
 ## Replacing brokers
 
-This operation will move a broker to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined. 
+This operation will move a broker to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined.
 
 **Note:** Brokers are not moved automatically. You must manually perform the following steps to move tasks to new systems. You can build your own automation to perform broker replacement automatically according to your own preferences.
 
@@ -286,7 +286,7 @@ For example, let's say `kafka-0`'s host system has died and `kafka-0` needs to b
 
 ## Backup/Restore
 DC/OS Apache Kafka does not natively support any backup or restore functionality.  For more information on Apache Kafka backup/restore, please see its [documentation](http://kafka.apache.org/documentation.html)
-  
+
 <a name="troubleshooting"></a>
 # Troubleshooting
 

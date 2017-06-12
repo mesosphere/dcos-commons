@@ -200,8 +200,6 @@ public class YAMLToInternalMappers {
 
         }
 
-        boolean usePortResources = maybeUsePortResources(networkNames);
-
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
@@ -220,7 +218,7 @@ public class YAMLToInternalMappers {
                                 rawResourceSet.getVolumes(),
                                 role,
                                 principal,
-                                usePortResources);
+                                networkNames);
                     })
                     .collect(Collectors.toList()));
         }
@@ -257,7 +255,7 @@ public class YAMLToInternalMappers {
                     resourceSets,
                     role,
                     principal,
-                    usePortResources));
+                    networkNames));
         }
         builder.tasks(taskSpecs);
 
@@ -283,7 +281,7 @@ public class YAMLToInternalMappers {
             Collection<ResourceSet> resourceSets,
             String role,
             String principal,
-            boolean usePortResources) throws Exception {
+            Collection<String> networkNames) throws Exception {
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(additionalEnv)
                 .environment(rawTask.getEnv())
@@ -349,7 +347,7 @@ public class YAMLToInternalMappers {
                     rawTask.getVolumes(),
                     role,
                     principal,
-                    usePortResources));
+                    networkNames));
         }
 
         return builder.build();
@@ -365,7 +363,7 @@ public class YAMLToInternalMappers {
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
             String principal,
-            boolean usePortResources) {
+            Collection<String> networkNames) {
 
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
@@ -401,9 +399,9 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
-        if (rawPorts != null && usePortResources) {
-            from(role, principal, rawPorts).getPortSpecs()
-                    .forEach(portSpec -> resourceSetBuilder.addResource(portSpec));
+        if (rawPorts != null) {
+            from(role, principal, rawPorts, networkNames).getPortSpecs()
+                    .forEach(resourceSetBuilder::addResource);
         }
 
         return resourceSetBuilder
@@ -506,7 +504,8 @@ public class YAMLToInternalMappers {
         return networkNames.size() == 0;  // if we have no networks, we want to use port resources
     }
 
-    private static PortsSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts) {
+    private static PortsSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts,
+                                     Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
         String envKey = null;
@@ -528,7 +527,7 @@ public class YAMLToInternalMappers {
                 final String protocol =
                         StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
-                portSpecs.add(new NamedVIPSpec(
+                NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,
                         principal,
@@ -537,14 +536,17 @@ public class YAMLToInternalMappers {
                         protocol,
                         toVisibility(rawVip.isAdvertised()),
                         vipName,
-                        rawVip.getPort()));
+                        rawVip.getPort(),
+                        networkNames);
+                portSpecs.add(namedVIPSpec);
             } else {
                 portSpecs.add(new PortSpec(
                         portValueBuilder.build(),
                         role,
                         principal,
                         rawPort.getEnvKey(),
-                        name));
+                        name,
+                        networkNames));
             }
         }
         return new PortsSpec(

@@ -65,4 +65,4 @@ def test_node_replace_replaces_node():
     # that the expected number of peers is present, meaning that the node was
     # replaced from Cassandra's perspective)
     with JobContext([VERIFY_REPLACE_JOB], NODE_IP=node_ip):
-        spin.time_wait_noisy(lambda: try_job(VERIFY_REPLACE_JOB))
+        spin.time_wait_noisy(lambda: try_job(VERIFY_REPLACE_JOB), timeout_seconds=(30*60))
