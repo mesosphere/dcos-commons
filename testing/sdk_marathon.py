@@ -30,6 +30,7 @@ def update_app(app_name, config):
             sdk_utils.out("  {}={}".format(k, config["env"][k]))
     response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), log_args=False, json=config)
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+    shakedown.deployment_wait(app_id=app_name)
 
 
 def destroy_app(app_name):
