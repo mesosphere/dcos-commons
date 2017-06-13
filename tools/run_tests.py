@@ -150,6 +150,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
+{venv_path}/bin/python3 {venv_path}/bin/pip install six
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
 py.test {jenkins_args} -vv {fail_arg} --exitfirst --capture=no -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,

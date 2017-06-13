@@ -106,6 +106,26 @@ pods:
         goal: FINISHED
         cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
+      backup-schema-local:
+        goal: FINISHED
+        cmd: >
+                mkdir container-path/${SNAPSHOT_NAME} ;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/${SNAPSHOT_NAME}/schema.cql
+        resource-set: sidecar-resources
+      snapshot-local:
+        goal: FINISHED
+        cmd: >
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
+
+                for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
+                    qualified_table="$(echo "$f" | sed -E 's/[^\/]+\/[^\/]+\/([^\/]+)\/([^-]+)-.*/\1 \2/g')" ;
+                    keyspace=$(echo "$qualified_table" | cut -d ' ' -f 1) ;
+                    table=$(echo "$qualified_table" | cut -d ' ' -f 2) ;
+
+                    mkdir -p container-path/${SNAPSHOT_NAME}/"$keyspace" ;
+                    (cd container-path/${SNAPSHOT_NAME}/"$keyspace" && cp -r ../../../"$f" "$table") ;
+                done
+        resource-set: sidecar-resources
       upload-azure:
         goal: FINISHED
         cmd: >
@@ -135,6 +155,20 @@ pods:
                 (cd container-path && tar xvzf snapshot.tar.gz)
 
                 rm container-path/snapshot.tar.gz
+        resource-set: sidecar-resources
+      restore-schema-local:
+        goal: FINISHED
+        cmd: > 
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/${SNAPSHOT_NAME}/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        resource-set: sidecar-resources
+      restore-snapshot-local:
+        goal: FINISHED
+        cmd: >
+                for f in $(find container-path/${SNAPSHOT_NAME}/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
+                    for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -f apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml -d {{TASKCFG_ALL_LOCAL_SEEDS}} -p {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} "$t" ;
+                    done
+                done
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
@@ -225,6 +259,32 @@ plans:
         pod: node
         steps:
           - default: [[restore-snapshot]]
+  backup-local: 
+    strategy: serial
+    phases: 
+      backup-schema-local: 
+        strategy: serial
+        pod: node
+        steps: 
+          - default: [[backup-schema-local]]
+      create-snapshots-local: 
+        strategy: parallel
+        pod: node
+        steps: 
+          - default: [[snapshot-local]]
+  restore-local: 
+    strategy: serial
+    phases: 
+      restore-schema-local: 
+        strategy: serial
+        pod: node
+        steps: 
+          - default: [[restore-schema-local]]
+      restore-snapshots-local: 
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps: 
+          - default: [[restore-snapshot-local]]
   backup-azure:
     strategy: serial
     phases:
