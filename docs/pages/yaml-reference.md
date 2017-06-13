@@ -93,13 +93,9 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         Name of the environment variable
 
      * `file`
-        File path in the container. Secret content is copied into this file. Secret file an in-memory file, disappears when executor exits.
+        File path in the container. Secret content is copied into this file. Secret file is a tmpfs file, it disappears when executor exits.
 
      If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
-     
-  * `strategy`
-
-    This field isn't used! TODO(nickbp) remove.
    
 
   * `networks`
