@@ -4,13 +4,15 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import org.antlr.v4.runtime.misc.Pair;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -19,18 +21,24 @@ import java.util.stream.Collectors;
  */
 public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<ServiceSpec> {
     @Override
-    public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
-        Pair<List<ConfigValidationError>, Map<String, PodSpec>> pair = validateInitialConfigs(
-                nullableOldConfig, newConfig);
-        List<ConfigValidationError> errors = pair.a;
-        Map<String, PodSpec> newPods = pair.b;
-        if (newPods.isEmpty()) {
-            return errors;
+    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
+        if (!oldConfig.isPresent()) {
+            return Collections.emptyList();
+        }
+
+        Map<String, PodSpec> newPods;
+        try {
+            newPods = newConfig.getPods().stream()
+                    .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+        } catch (IllegalStateException e) {
+            return Arrays.asList(
+                    ConfigValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
         }
 
         // check the PodSpecs to make sure none of them make a transition from a state where they use host ports
         // to one where they don't (or vice versa).
-        Map<String, PodSpec> oldPods = nullableOldConfig.getPods().stream()
+        Collection<ConfigValidationError> errors = new ArrayList<>();
+        Map<String, PodSpec> oldPods = oldConfig.get().getPods().stream()
                 .collect(Collectors.toMap(PodSpec::getType, podSpec -> podSpec));
         for (Map.Entry<String, PodSpec> kv: newPods.entrySet()) {
             PodSpec newPod = kv.getValue();

@@ -30,5 +30,3 @@ project(":frameworks/template").name = "template"
 include 'frameworks/cassandra'
 project(":frameworks/cassandra").name = "cassandra"
 
-include 'examples/cniexample'
-project(":examples/cniexample").name = "cniexample"

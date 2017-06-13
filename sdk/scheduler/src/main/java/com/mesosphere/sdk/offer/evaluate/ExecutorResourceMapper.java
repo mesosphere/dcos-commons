@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
  */
 public class ExecutorResourceMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
-    private final PodSpec podSpec;
-    private final Protos.ExecutorInfo executorInfo;
     private final Collection<VolumeSpec> volumeSpecs;
     private final List<Protos.Resource> resources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
@@ -46,8 +44,6 @@ public class ExecutorResourceMapper {
     }
 
     public ExecutorResourceMapper(PodSpec podSpec, Protos.ExecutorInfo executorInfo) {
-        this.podSpec = podSpec;
-        this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
         this.resources = executorInfo.getResourcesList();
         this.evaluationStages = getEvaluationStagesInternal();

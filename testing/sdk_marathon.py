@@ -14,8 +14,11 @@ def get_config(app_name):
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
     # submit a partial config with only the desired fields changed.
-    del config['uris']
-    del config['version']
+    if 'uris' in config:
+        del config['uris']
+
+    if 'version' in config:
+        del config['version']
 
     return config
 
@@ -23,6 +26,7 @@ def get_config(app_name):
 def update_app(app_name, config):
     response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), json=config)
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+    shakedown.deployment_wait(app_id=app_name)
 
 
 def destroy_app(app_name):

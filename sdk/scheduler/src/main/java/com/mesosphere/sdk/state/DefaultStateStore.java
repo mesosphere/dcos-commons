@@ -198,7 +198,7 @@ public class DefaultStateStore implements StateStore {
     @Override
     public void clearAllData() throws StateStoreException {
         try {
-            persister.deleteAll(PersisterUtils.PATH_DELIM);
+            persister.deleteAll(PersisterUtils.PATH_DELIM_STR);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Nothing to delete, apparently. Treat as a no-op

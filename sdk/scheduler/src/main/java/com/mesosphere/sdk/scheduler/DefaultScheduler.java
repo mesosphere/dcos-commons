@@ -94,7 +94,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
-        private Optional<Collection<ConfigValidator<ServiceSpec>>> configValidatorsOptional = Optional.empty();
         private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
@@ -102,7 +101,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
-        private Collection<Object> resources = new ArrayList<>();
+        private Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
+        private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
@@ -194,8 +194,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          * Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
          * to the defaults.
          */
-        public Builder setCustomResources(Collection<Object> resources) {
-            this.resources = resources;
+        public Builder setCustomResources(Collection<Object> customResources) {
+            this.customResources = customResources;
             return this;
         }
 
@@ -203,8 +203,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
          * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
          */
-        public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
-            this.configValidatorsOptional = Optional.ofNullable(configValidators);
+        public Builder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
+            this.customConfigValidators = customConfigValidators;
             return this;
         }
 
@@ -303,11 +303,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             final ConfigStore<ServiceSpec> configStore = getConfigStore();
 
             // Update/validate config as needed to reflect the new service spec:
-            final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
-                    serviceSpec,
-                    stateStore,
-                    configStore,
-                    configValidatorsOptional.orElse(defaultConfigValidators()));
+            Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
+            configValidators.addAll(defaultConfigValidators());
+            configValidators.addAll(customConfigValidators);
+            final ConfigurationUpdater.UpdateResult configUpdateResult =
+                    updateConfig(serviceSpec, stateStore, configStore, configValidators);
             if (!configUpdateResult.getErrors().isEmpty()) {
                 LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
                         configUpdateResult.getTargetId(), configUpdateResult.getErrors());
@@ -352,7 +352,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             return new DefaultScheduler(
                     serviceSpec,
                     getSchedulerFlags(),
-                    resources,
+                    customResources,
                     plans,
                     stateStore,
                     configStore,
@@ -463,16 +463,13 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     /**
-     * Returns the default configuration validators:
-     * - Task sets cannot shrink (each set's task count must stay the same or increase).
-     * - Task volumes cannot be changed.
-     * <p>
-     * This function may be used to get the default validators and add more to the list when
-     * constructing the {@link DefaultScheduler}.
+     * Returns the default configuration validators used by {@link DefaultScheduler} instances. Additional custom
+     * validators may be added to this list using {@link Builder#setCustomConfigValidators(Collection)}.
      */
     public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
+                new ServiceNameCannotContainDoubleUnderscores(),
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange(),
                 new PodSpecsCannotChangeNetworkRegime());

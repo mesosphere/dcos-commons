@@ -11,6 +11,7 @@ import org.apache.mesos.Protos;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -21,6 +22,7 @@ public class PortSpec extends DefaultResourceSpec {
     @Size(min = 1)
     private final String portName;
     private final String envKey;
+    private final Collection<String> networkNames;
 
     @JsonCreator
     public PortSpec(
@@ -28,10 +30,12 @@ public class PortSpec extends DefaultResourceSpec {
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
-            @JsonProperty("port-name") String portName) {
+            @JsonProperty("port-name") String portName,
+            @JsonProperty("network-names") Collection<String> networkNames) {
         super(Constants.PORTS_RESOURCE_TYPE, value, role, principal, envKey);
         this.portName = portName;
         this.envKey = envKey;
+        this.networkNames = networkNames;
     }
 
     @JsonProperty("port-name")
@@ -63,5 +67,9 @@ public class PortSpec extends DefaultResourceSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    public Collection<String> getNetworkNames() {
+        return networkNames;
     }
 }

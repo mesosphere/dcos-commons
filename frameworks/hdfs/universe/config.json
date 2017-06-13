@@ -18,7 +18,7 @@
         "principal" : {
           "description":"The principal for the HDFS service instance.",
           "type":"string",
-          "default":"hdfs-principal"
+          "default":""
         },
         "secret_name": {
           "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -81,6 +81,11 @@
             }
           }
         }
+      },
+      "virtual_network": {
+        "description": "Enable DC/OS Virtual Network",
+        "type": "boolean",
+        "default": false
       }
     },
     "journal_node":{

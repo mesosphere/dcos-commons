@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -10,7 +10,6 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
-            new DefaultService(getBuilder(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(args[0])))).run();
+            new DefaultService(getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
@@ -44,7 +43,7 @@ public class Main {
     private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build();
         DefaultScheduler.Builder builder = DefaultScheduler
                 .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
@@ -76,7 +75,7 @@ public class Main {
         // Simulate the envvars that would be passed to a task. We want to render the config as though it was being done
         // in a task. Manually copy over FRAMEWORK_NAME which is included in tasks by default.
         // TODO(nickbp): Consider switching to dedicated client xml templates instead of reusing these ones?
-        Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
+        Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
 
         String fileStr = new String(bytes, Charset.defaultCharset());

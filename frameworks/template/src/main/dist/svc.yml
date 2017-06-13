@@ -1,11 +1,15 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
-  user: {{FRAMEWORK_USER}}
 pods:
   template:
     count: {{NODE_COUNT}}
     placement: {{NODE_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:
         goal: RUNNING

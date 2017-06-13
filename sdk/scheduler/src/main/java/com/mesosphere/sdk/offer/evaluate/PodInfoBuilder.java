@@ -1,8 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -23,6 +25,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 /**
  * A {@link PodInfoBuilder} encompasses a mutable group of {@link org.apache.mesos.Protos.TaskInfo.Builder}s and,
  * optionally, a {@link org.apache.mesos.Protos.ExecutorInfo.Builder}. This supports the modification of task infos
@@ -33,7 +36,7 @@ public class PodInfoBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
-
+    private Set<Long> assignedOverlayPorts = new HashSet<>();
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
@@ -58,6 +61,13 @@ public class PodInfoBuilder {
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
+
+            taskSpec.getResourceSet().getResources().stream()
+                    .filter(resourceSpec -> resourceSpec.getName().equals(Constants.PORTS_RESOURCE_TYPE))
+                    .filter(resourceSpec -> resourceSpec.getValue().getRanges().getRange(0).getBegin() > 0)
+                    .forEach(resourceSpec -> assignedOverlayPorts
+                            .add(resourceSpec.getValue().getRanges().getRange(0).getBegin()));
+
         }
 
         this.executorBuilder =
@@ -110,8 +120,20 @@ public class PodInfoBuilder {
     }
 
     public Collection<Protos.Resource.Builder> getExecutorResourceBuilders() {
-        return executorBuilder.getResourcesBuilderList().stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(executorBuilder.getResourcesBuilderList());
+    }
+
+    public boolean isAssignedOverlayPort(long candidatePort) {
+        return assignedOverlayPorts.contains(candidatePort);
+    }
+
+    public void addAssignedOverlayPort(long port) {
+        assignedOverlayPorts.add(port);
+    }
+
+    @VisibleForTesting
+    public Set<Long> getAssignedOverlayPorts() {
+        return assignedOverlayPorts;
     }
 
     private static Protos.TaskInfo getTaskInfo(
@@ -123,6 +145,7 @@ public class PodInfoBuilder {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonIdUtils.emptyTaskId())
+                .setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS))
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         // create default labels:
