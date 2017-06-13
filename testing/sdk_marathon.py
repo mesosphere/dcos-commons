@@ -28,6 +28,7 @@ def update_app(app_name, config):
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
     shakedown.deployment_wait(app_id=app_name)
 
+
 def destroy_app(app_name):
     shakedown.delete_app_wait(app_name)
 
