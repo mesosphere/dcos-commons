@@ -1,10 +1,9 @@
 import pytest
+
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
-import time
-
 from tests.config import *
 
 DEFAULT_NUMBER_OF_SHARDS = 1
@@ -57,7 +56,6 @@ def test_indexing(default_populated_index):
     assert doc["_source"]["name"] == "Loren"
 
 
-@pytest.mark.focus
 @pytest.mark.sanity
 def test_xpack_toggle(default_populated_index):
     # Verify disabled by default
@@ -90,8 +88,7 @@ def test_master_reelection():
     initial_master = get_elasticsearch_master()
     shakedown.kill_process_on_host("{}.{}.autoip.dcos.thisdcos.directory".format(initial_master, PACKAGE_NAME),
                                    "master__.*Elasticsearch")
-    # Master re-election can take up to 3 seconds by default
-    time.sleep(3)
+    wait_for_expected_nodes_to_exist()
     new_master = get_elasticsearch_master()
     assert new_master.startswith("master") and new_master != initial_master
 

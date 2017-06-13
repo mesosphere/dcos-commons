@@ -26,6 +26,7 @@ def get_config(app_name):
 def update_app(app_name, config):
     response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), json=config)
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+    shakedown.deployment_wait(app_id=app_name)
 
 
 def destroy_app(app_name):
