@@ -19,7 +19,7 @@ public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
         List<ConfigValidationError> errors = pair.a;
         Map<String, PodSpec> newPods = pair.b;
 
-        if (newPods.isEmpty()) {
+        if (newPods.isEmpty() || nullableOldConfig == null) {
             return errors;
         }
 

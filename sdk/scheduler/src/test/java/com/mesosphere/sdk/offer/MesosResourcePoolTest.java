@@ -54,13 +54,12 @@ public class MesosResourcePoolTest {
     @Test
     public void testConsumeUnreservedAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
-        Resource resource = ResourceTestUtils.getDesiredMountVolume(1000);
-        Protos.Value resourceValue = ValueUtils.getValue(resource);
+        Protos.Value resourceValue = ValueUtils.getValue(offerResource);
         Offer offer = OfferTestUtils.getOffer(offerResource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
-        MesosResource resourceToConsume = pool.consumeAtomic(resource.getName(), resourceValue).get();
+        MesosResource resourceToConsume = pool.consumeAtomic(offerResource.getName(), resourceValue).get();
         Assert.assertEquals(offerResource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
     }

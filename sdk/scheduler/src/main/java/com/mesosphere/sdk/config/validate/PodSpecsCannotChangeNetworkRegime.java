@@ -28,7 +28,11 @@ public class PodSpecsCannotChangeNetworkRegime implements ConfigValidator<Servic
             return errors;
         }
 
-        // check the PodSpecs to make sure none of them make a transition from a state where they use host ports
+        if (nullableOldConfig == null) {
+            return errors;
+        }
+
+        // Check the PodSpecs to make sure none of them make a transition from a state where they use host ports
         // to one where they don't (or vice versa).
         Map<String, PodSpec> oldPods = nullableOldConfig.getPods().stream()
                 .collect(Collectors.toMap(PodSpec::getType, podSpec -> podSpec));

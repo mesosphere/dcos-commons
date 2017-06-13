@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.offer;
 
-import java.util.Optional;
-
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value;
+
+import java.util.Optional;
 
 /**
  * Wrapper around a Mesos {@link Resource}, combined with a resource ID string which should be present in the
@@ -55,6 +56,14 @@ public class MesosResource {
     }
 
     public String getRole() {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            return getRefinedRole();
+        } else {
+            return getLegacyRole();
+        }
+    }
+
+    private String getRefinedRole() {
         if (resource.getReservationsCount() > 0) {
             return resource.getReservations(resource.getReservationsCount() - 1).getRole();
         }
@@ -62,12 +71,28 @@ public class MesosResource {
         return Constants.ANY_ROLE;
     }
 
+    private String getLegacyRole() {
+        return resource.getRole();
+    }
+
     public String getPreviousRole() {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            return getRefinedPreviousRole();
+        } else {
+            return getLegacyPreviousRole();
+        }
+    }
+
+    private String getRefinedPreviousRole() {
         if (resource.getReservationsCount() <= 1) {
             return resource.getRole();
         } else {
             return resource.getReservations(resource.getReservationsCount() - 2).getRole();
         }
+    }
+
+    private String getLegacyPreviousRole() {
+        return Constants.ANY_ROLE;
     }
 
     public Optional<String> getPrincipal() {

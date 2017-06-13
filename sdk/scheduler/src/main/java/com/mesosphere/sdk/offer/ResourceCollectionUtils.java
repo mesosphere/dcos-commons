@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
@@ -54,14 +55,8 @@ public class ResourceCollectionUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Optional<String> getRole(Resource resource) {
-        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
-
-        if (reservationInfo.isPresent()) {
-            return Optional.of(reservationInfo.get().getRole());
-        } else {
-            return Optional.empty();
-        }
+    public static String getRole(Resource resource) {
+        return new MesosResource(resource).getRole();
     }
 
     public static Optional<String> getPrincipal(Resource resource) {
@@ -75,11 +70,27 @@ public class ResourceCollectionUtils {
     }
 
     public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            return getRefinedReservation(resource);
+        } else {
+            return getLegacyReservation(resource);
+        }
+    }
+
+    private static Optional<Resource.ReservationInfo> getRefinedReservation(Resource resource) {
         if (resource.getReservationsCount() == 0) {
             return Optional.empty();
         }
 
         return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
+    }
+
+    private static Optional<Resource.ReservationInfo> getLegacyReservation(Resource resource) {
+        if (resource.hasReservation()) {
+            return Optional.of(resource.getReservation());
+        } else {
+            return Optional.empty();
+        }
     }
 
     public static Optional<String> getResourceId(Resource resource) {

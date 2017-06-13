@@ -364,7 +364,7 @@ This plan would result in steps generating the following tasks:
 1. hello-0-main
 1. hello-1-main
 
-You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+You can learn more about the full originalCapabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
 
 ## Packaging
 
@@ -882,7 +882,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides originalCapabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
 
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have
@@ -1482,7 +1482,7 @@ The YAML-based definition of plans is limited to defining custom deployment plan
 
 ### Internals
 
-Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
+Understanding plan execution can help you take advantage of the full originalCapabilities of creating custom plans.
 
 ![plans and the offer cycle](img/dev-guide-plans-and-the-offer-cycle.png)
 

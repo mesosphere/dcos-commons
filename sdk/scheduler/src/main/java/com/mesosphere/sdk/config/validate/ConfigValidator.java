@@ -34,11 +34,6 @@ public interface ConfigValidator<C extends Configuration> {
     default Pair<List<ConfigValidationError>, Map<String, PodSpec>> validateInitialConfigs(
             ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
         List<ConfigValidationError> errors = new ArrayList<>();
-        if (nullableOldConfig == null) {
-            // No sizes to compare.
-
-            return new Pair<>(errors, Collections.emptyMap());
-        }
 
         Map<String, PodSpec> newPods;
         try {

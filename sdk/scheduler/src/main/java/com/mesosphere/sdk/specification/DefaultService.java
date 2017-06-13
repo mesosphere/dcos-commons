@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceCollectionUtils;
@@ -218,11 +219,13 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
 
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
 
         return fwkInfoBuilder.build();
     }

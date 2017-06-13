@@ -33,7 +33,8 @@ public class CapabilityValidatorTest {
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
@@ -46,7 +47,8 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
@@ -62,7 +64,8 @@ public class CapabilityValidatorTest {
     public void testSpecFailsWithRLimitsButWithoutCapability() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
@@ -78,7 +81,8 @@ public class CapabilityValidatorTest {
     @Test(expected = CapabilityValidator.CapabilityValidationException.class)
     public void testSpecFailsWhenGpuResourceNotSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(false);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
@@ -98,7 +102,8 @@ public class CapabilityValidatorTest {
     @Test
     public void testSpecSucceedsWhenGpuResourceIsSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
@@ -122,7 +127,8 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
 
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");

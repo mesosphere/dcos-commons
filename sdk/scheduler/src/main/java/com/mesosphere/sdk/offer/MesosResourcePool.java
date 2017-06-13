@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -160,7 +161,8 @@ public class MesosResourcePool {
             reservableMergedPool.put(preReservedRole, pool);
 
             Resource.Builder builder = ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
-            if (!preReservedRole.equals(Constants.ANY_ROLE)) {
+            if (Capabilities.getInstance().supportsPreReservedResources() &&
+                    !preReservedRole.equals(Constants.ANY_ROLE)) {
                 builder.addReservations(
                         Resource.ReservationInfo.newBuilder()
                                 .setRole(preReservedRole)

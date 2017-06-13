@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -74,7 +75,7 @@ public class ResourceBuilder {
     }
 
     private static ResourceSpec getResourceSpec(Resource resource) {
-        if (resource.getReservationsCount() == 0) {
+        if (!ResourceCollectionUtils.hasResourceId(resource)) {
             throw new IllegalStateException(
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
         }
@@ -82,7 +83,7 @@ public class ResourceBuilder {
         return new DefaultResourceSpec(
                 resource.getName(),
                 ValueUtils.getValue(resource),
-                ResourceCollectionUtils.getRole(resource).get(),
+                ResourceCollectionUtils.getRole(resource),
                 resource.getRole(),
                 ResourceCollectionUtils.getPrincipal(resource).get(),
                 ""); // env-key isn't used
@@ -94,7 +95,7 @@ public class ResourceBuilder {
                 resource.getScalar().getValue(),
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
-                ResourceCollectionUtils.getRole(resource).get(),
+                ResourceCollectionUtils.getRole(resource),
                 resource.getRole(),
                 resource.getDisk().getPersistence().getPrincipal(),
                 ""); // env-key isn't used
@@ -192,19 +193,19 @@ public class ResourceBuilder {
         builder.setName(resourceName).setRole(preReservedRole);
         builder.setType(value.getType());
 
+        if (role.isPresent() && !Capabilities.getInstance().supportsPreReservedResources()) {
+            builder.setRole(role.get());
+        }
+
         if (role.isPresent() && !ResourceCollectionUtils.hasResourceId(builder.build())) {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
-            Resource.ReservationInfo reservationInfo = Resource.ReservationInfo.newBuilder()
-                    .setPrincipal(principal.get())
-                    .setRole(role.get())
-                    .setType(Resource.ReservationInfo.Type.DYNAMIC)
-                    .setLabels(
-                            Protos.Labels.newBuilder()
-                                    .addLabels(Protos.Label.newBuilder()
-                                            .setKey(MesosResource.RESOURCE_ID_KEY)
-                                            .setValue(resId)))
-                    .build();
-            builder.addReservations(reservationInfo);
+            Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
+
+            if (Capabilities.getInstance().supportsPreReservedResources()) {
+                builder.addReservations(reservationInfo);
+            } else {
+                builder.setReservation(reservationInfo);
+            }
         }
 
         if (diskContainerPath.isPresent()) {
@@ -221,6 +222,38 @@ public class ResourceBuilder {
         }
 
         return setValue(builder, value).build();
+    }
+
+    private Resource.ReservationInfo getReservationInfo(String role, String resId) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            return getRefinedReservationInfo(role, resId);
+        } else {
+            return getLegacyReservationInfo(resId);
+        }
+    }
+
+    private Resource.ReservationInfo getRefinedReservationInfo(String role, String resId) {
+        return Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get())
+                .setRole(role)
+                .setType(Resource.ReservationInfo.Type.DYNAMIC)
+                .setLabels(
+                        Protos.Labels.newBuilder()
+                                .addLabels(Protos.Label.newBuilder()
+                                        .setKey(MesosResource.RESOURCE_ID_KEY)
+                                        .setValue(resId)))
+                .build();
+    }
+
+    private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
+        return Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get())
+                .setLabels(
+                        Protos.Labels.newBuilder()
+                                .addLabels(Protos.Label.newBuilder()
+                                        .setKey(MesosResource.RESOURCE_ID_KEY)
+                                        .setValue(resId)))
+                .build();
     }
 
     private static Resource.Builder setValue(Resource.Builder builder, Value value) {

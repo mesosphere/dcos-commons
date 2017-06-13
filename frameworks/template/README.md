@@ -72,10 +72,10 @@ _BRIEF OVERVIEW OF YOUR PRODUCT_
 - Placement constraints for fine-grained instance placement
 - Vertical and horizontal for managing capacity
 - Rolling software and configuration updates for runtime maintainence
-- Integrated with Enterprise DC/OS Storage capabilities
-- Integrated with Enterprise DC/OS Networking capabilities
-- Integrated with Enterprise DC/OS Monitoring and Troubleshooting capabilities
-- Integrated with Enterprise DC/OS Security capabilities
+- Integrated with Enterprise DC/OS Storage originalCapabilities
+- Integrated with Enterprise DC/OS Networking originalCapabilities
+- Integrated with Enterprise DC/OS Monitoring and Troubleshooting originalCapabilities
+- Integrated with Enterprise DC/OS Security originalCapabilities
 - _OTHER BENEFITS YOUR PRODUCT WITH DC/OS_
 
 
