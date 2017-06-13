@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
+import static com.mesosphere.sdk.api.ResponseUtils.*;
 
 public class PlansResourceTest {
     @Mock private Plan mockPlan;
@@ -119,28 +121,32 @@ public class PlansResourceTest {
 
     @Test
     public void testContinueAlreadyInProgress() {
+        StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
+
         when(mockPlan.isInProgress()).thenReturn(true);
         when(mockPhase.isInProgress()).thenReturn(true);
         when(mockStep.isInProgress()).thenReturn(true);
 
         Response response = resource.continueCommand(planName, null);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
 
         response = resource.continueCommand(planName, phaseName);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
     }
 
     @Test
     public void testContinueAlreadyCompleted() {
+        StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
+
         when(mockPlan.isComplete()).thenReturn(true);
         when(mockPhase.isComplete()).thenReturn(true);
         when(mockStep.isComplete()).thenReturn(true);
 
         Response response = resource.continueCommand(planName, null);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
 
         response = resource.continueCommand(planName, phaseName);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
     }
 
     @Test
@@ -172,29 +178,33 @@ public class PlansResourceTest {
 
     @Test
     public void testInterruptAlreadyInterrupted() {
+        StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
+
         when(mockPlan.isInterrupted()).thenReturn(true);
         when(mockPhase.isInterrupted()).thenReturn(false);
         
         Response response = resource.interruptCommand(planName, null);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
 
         when(mockPlan.isInterrupted()).thenReturn(false);
         when(mockPhase.isInterrupted()).thenReturn(true);
         response = resource.interruptCommand(planName, phaseName);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
     }
 
     @Test
     public void testInterruptAlreadyCompleted() {
+        StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
+
         when(mockPlan.isComplete()).thenReturn(true);
         
         Response response = resource.interruptCommand(planName, null);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
 
         when(mockPlan.isComplete()).thenReturn(false);
         when(mockPhase.isComplete()).thenReturn(true);
         response = resource.interruptCommand(planName, phaseName);
-        assertEquals(208, response.getStatus());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
     }
 
     @Test
@@ -211,15 +221,15 @@ public class PlansResourceTest {
     @Test
     public void testForceCompleteUnknownId() {
         Response response = resource.forceCompleteCommand("bad-name", phaseName, stepName);
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
 
         response = resource.forceCompleteCommand(planName, UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
 
         response = resource.forceCompleteCommand(planName, unknownPhaseName, unknownStepName);
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
     }
 
@@ -237,15 +247,15 @@ public class PlansResourceTest {
     @Test
     public void testRestartUnknownId() {
         Response response = resource.restartCommand("bad-name", phaseName, stepName);
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
 
         response = resource.restartCommand(planName, UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
 
         response = resource.restartCommand(planName, unknownPhaseName, unknownStepName);
-        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
         verifyZeroInteractions(mockStep);
     }
 

@@ -91,4 +91,19 @@ public class ResponseUtils {
     public static Response plainResponse(String plaintext, int statusCode) {
         return Response.status(statusCode).entity(plaintext).type(MediaType.TEXT_PLAIN_TYPE).build();
     }
+
+    /**
+     * Returns a "404 Element not found" response.
+     */
+    public static Response elementNotFoundResponse() {
+        return plainResponse("Element not found", Response.Status.NOT_FOUND);
+    }
+
+    /**
+     * Returns a "208 Already reported" response.
+     */
+    public static Response alreadyReportedResponse() {
+        return plainResponse("Command has already been reported or completed", 208);
+    }
+
 }

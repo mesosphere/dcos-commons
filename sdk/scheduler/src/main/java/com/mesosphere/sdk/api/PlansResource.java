@@ -24,12 +24,11 @@ import static com.mesosphere.sdk.api.ResponseUtils.*;
 @Path("/v1")
 public class PlansResource extends PrettyJsonResource {
 
-    static final Response ELEMENT_NOT_FOUND_RESPONSE = plainResponse("Element not found", Response.Status.NOT_FOUND);
-    static final Response ALREADY_REPORTED_RESPONSE = plainResponse("Command has already been reported or completed", 208);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Collection<PlanManager> planManagers;
+
 
     public PlansResource(final PlanCoordinator planCoordinator) {
         this.planManagers = planCoordinator.getPlanManagers();
@@ -61,7 +60,7 @@ public class PlansResource extends PrettyJsonResource {
                     PlanInfo.forPlan(plan),
                     plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
         } else {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
     }
 
@@ -90,7 +89,7 @@ public class PlansResource extends PrettyJsonResource {
             plan.proceed();
             return jsonOkResponse(getCommandResult("start"));
         } else {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
     }
 
@@ -108,7 +107,7 @@ public class PlansResource extends PrettyJsonResource {
             plan.restart();
             return jsonOkResponse(getCommandResult("stop"));
         } else {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
     }
 
@@ -119,13 +118,13 @@ public class PlansResource extends PrettyJsonResource {
             @QueryParam("phase") String phase) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
 
         if (phase != null) {
             List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
-                return ELEMENT_NOT_FOUND_RESPONSE;
+                return elementNotFoundResponse();
             }
 
             boolean allInProgress = phases.stream()
@@ -136,14 +135,14 @@ public class PlansResource extends PrettyJsonResource {
                 .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInProgress || allComplete) {
-                return ALREADY_REPORTED_RESPONSE;
+                return alreadyReportedResponse();
             } 
 
             phases.forEach(ParentElement::proceed);
         } else {
             Plan plan = planManagerOptional.get().getPlan();
             if (plan.isInProgress() || plan.isComplete()) {
-                return ALREADY_REPORTED_RESPONSE;
+                return alreadyReportedResponse();
             }
             plan.proceed();
         }
@@ -158,13 +157,13 @@ public class PlansResource extends PrettyJsonResource {
             @QueryParam("phase") String phase) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
 
         if (phase != null) {
-            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);   
             if (phases.isEmpty()) {
-                return ELEMENT_NOT_FOUND_RESPONSE;
+                return elementNotFoundResponse();
             }
 
             boolean allInterrupted = phases.stream()
@@ -174,14 +173,14 @@ public class PlansResource extends PrettyJsonResource {
                 .filter(phz -> phz.isComplete()).count() == phases.size();
             
             if (allInterrupted || allComplete) {
-                return ALREADY_REPORTED_RESPONSE;
+                return alreadyReportedResponse();
             }
 
             phases.forEach(p -> p.getStrategy().interrupt());
         } else {
             Plan plan = planManagerOptional.get().getPlan();
             if (plan.isInterrupted() || plan.isComplete()) {
-                return ALREADY_REPORTED_RESPONSE;
+                return alreadyReportedResponse();
             }
             plan.interrupt();
         }
@@ -197,12 +196,12 @@ public class PlansResource extends PrettyJsonResource {
             @QueryParam("step") String step) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
 
         Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
         if (!stepOptional.isPresent()) {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
 
         stepOptional.get().forceComplete();
@@ -218,7 +217,7 @@ public class PlansResource extends PrettyJsonResource {
             @QueryParam("step") String step) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
-            return ELEMENT_NOT_FOUND_RESPONSE;
+            return elementNotFoundResponse();
         }
 
         if (phase == null && step == null) {
@@ -231,7 +230,7 @@ public class PlansResource extends PrettyJsonResource {
         if (phase != null && step == null) {
             List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
-                return ELEMENT_NOT_FOUND_RESPONSE;
+                return elementNotFoundResponse();
             }
 
             phases.forEach(phz -> phz.restart());
@@ -242,7 +241,7 @@ public class PlansResource extends PrettyJsonResource {
         if (phase != null && step != null) {
             Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
             if (!stepOptional.isPresent()) {
-                return ELEMENT_NOT_FOUND_RESPONSE;
+                return elementNotFoundResponse();
             }
             stepOptional.get().restart();
             stepOptional.get().proceed();
