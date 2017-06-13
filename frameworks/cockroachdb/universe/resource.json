@@ -6,9 +6,10 @@
       "scheduler-zip": "{{artifact-dir}}/cockroachdb-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "cockroach-tgz": "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
+      "cockroach-binary": "https://binaries.cockroachdb.com"
     }
   },
+
   "images": {
     "icon-small": "http://i.imgur.com/FsEREZI.png",
     "icon-medium": "http://i.imgur.com/1DvX5di.png?1",
