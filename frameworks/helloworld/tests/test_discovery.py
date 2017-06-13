@@ -22,6 +22,10 @@ def setup_module(module):
     install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.sanity
 def test_task_dns_prefix_points_to_all_tasks():
     pod_info = dcos.http.get(
