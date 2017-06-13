@@ -141,7 +141,7 @@ public class DefaultStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName = StateStoreUtils.mapTaskStatusToTaskInfo(this, status).getName();
+        String taskName = StateStoreUtils.getTaskInfo(this, status).getName();
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()

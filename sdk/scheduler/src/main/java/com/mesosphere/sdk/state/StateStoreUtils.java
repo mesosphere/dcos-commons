@@ -32,7 +32,7 @@ public class StateStoreUtils {
     private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
-    private static final String PROPERTY_TASK_INFO_SUFFIX = ":taskStatus";
+    private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -145,7 +145,7 @@ public class StateStoreUtils {
      * @throws StateStoreException if no corresponding TaskInfo is found.
      * @throws StateStoreException if multiple corresponding TaskInfo's are found.
      */
-    public static TaskInfo mapTaskStatusToTaskInfo(StateStore stateStore, TaskStatus taskStatus)
+    public static TaskInfo getTaskInfo(StateStore stateStore, TaskStatus taskStatus)
             throws StateStoreException {
         Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
 
@@ -292,26 +292,24 @@ public class StateStoreUtils {
     /**
      * Stores a TaskStatus as a Property in the provided state store.
      */
-    public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskInfo)
+    public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskStatus)
             throws StateStoreException {
-        stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskInfo.toByteArray());
+        stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskStatus.toByteArray());
     }
 
     /**
      * Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
      * task name.
      */
-    public static Optional<TaskStatus> getTaskStatusFromProperty(StateStore stateStore, String taskName)
-            throws StateStoreException {
-        if (stateStore.fetchPropertyKeys().contains(taskName + PROPERTY_TASK_INFO_SUFFIX)) {
-            try {
-                return Optional.of(TaskStatus.parseFrom(
-                        stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
-            } catch (Exception e) {
-                LOGGER.error("Unable to decode TaskStatus for taskName={}", taskName);
-                return Optional.empty();
-            }
-        } else {
+    public static Optional<TaskStatus> getTaskStatusFromProperty(StateStore stateStore, String taskName) {
+        try {
+            return Optional.of(TaskStatus.parseFrom(
+                    stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
+        } catch (Exception e) {
+            // Broadly catch exceptions to handle:
+            // Invalid TaskStatuses
+            // StateStoreExceptions
+            LOGGER.error("Unable to decode TaskStatus for taskName=" + taskName, e);
             return Optional.empty();
         }
     }
