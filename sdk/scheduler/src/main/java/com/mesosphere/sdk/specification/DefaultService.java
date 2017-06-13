@@ -193,7 +193,16 @@ public class DefaultService implements Service {
                 .setUser(userString)
                 .setCheckpoint(true);
 
-        getRoles(serviceSpec).forEach(role -> fwkInfoBuilder.addRoles(role));
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addAllRoles(getRoles(serviceSpec));
+        } else {
+            List<String> roles = getRoles(serviceSpec);
+            if (roles.size() != 1) {
+                throw new IllegalStateException(String.format("Multiple roles are not supported: %s", roles));
+            }
+
+            fwkInfoBuilder.setRole(getRoles(serviceSpec).get(0));
+        }
 
         // Use provided principal if specified, otherwise default to "<svcname>-principal".
         if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
