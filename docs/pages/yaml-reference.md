@@ -84,7 +84,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `secrets`
 
-    This section list the Secrets that will be made available to the pod. Secret content is exposed as a file or as a environment variable.
+    This section list the Secrets that will be made available to the pod. Secret content is exposed as a file and/or as a environment variable.
 
      * `secret`
         The path of a Secret
