@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":9,"i4":9,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":9,"i4":9,"i5":9,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -116,33 +116,6 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#DISK_RESOURCE_TYPE">DISK_RESOURCE_TYPE</a></span></code>
-<div class="block">The name used for reserved storage/disk resources.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#PORTS_RESOURCE_TYPE">PORTS_RESOURCE_TYPE</a></span></code>
-<div class="block">The name used for reserved network port resources.</div>
-</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -177,14 +150,22 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.ResourceSpec-">fromSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;spec)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-">fromSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;spec,
+        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-">fromSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;spec,
+        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+        java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
+        java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#fromUnreservedValue-java.lang.String-Value-">fromUnreservedValue</a></span>(java.lang.String&nbsp;resourceName,
                    Value&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setMountVolume-java.lang.String-java.util.Optional-java.util.Optional-">setMountVolume</a></span>(java.lang.String&nbsp;containerPath,
               java.util.Optional&lt;java.lang.String&gt;&nbsp;existingPersistenceId,
@@ -192,39 +173,39 @@ extends java.lang.Object</pre>
 <div class="block">Assigns information relating to <code>MOUNT</code> disk volumes for this resource.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setPrincipal-java.lang.String-">setPrincipal</a></span>(java.lang.String&nbsp;principal)</code>
-<div class="block">Sets the principal for reserving this resource.</div>
-</td>
-</tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setResourceId-java.lang.String-">setResourceId</a></span>(java.lang.String&nbsp;resourceId)</code>
-<div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
- runs.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setPrincipal-java.util.Optional-">setPrincipal</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</code>
+<div class="block">Sets the principal for this resource.</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRole-java.lang.String-">setRole</a></span>(java.lang.String&nbsp;role)</code>
-<div class="block">Sets the role for this resource.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setResourceId-java.util.Optional-">setResourceId</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</code>
+<div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
+ runs.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRole-java.util.Optional-">setRole</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</code>
+<div class="block">Sets the role for this resource.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRootVolume-java.lang.String-java.util.Optional-">setRootVolume</a></span>(java.lang.String&nbsp;containerPath,
              java.util.Optional&lt;java.lang.String&gt;&nbsp;existingPersistenceId)</code>
 <div class="block">Assigns information relating to <code>ROOT</code> disk volumes for this resource.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setValue-Value-">setValue</a></span>(Value&nbsp;value)</code>
 <div class="block">Sets the value for this resource.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -244,55 +225,32 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="PORTS_RESOURCE_TYPE">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>PORTS_RESOURCE_TYPE</h4>
-<pre>public static final&nbsp;java.lang.String PORTS_RESOURCE_TYPE</pre>
-<div class="block">The name used for reserved network port resources.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.ResourceBuilder.PORTS_RESOURCE_TYPE">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="DISK_RESOURCE_TYPE">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>DISK_RESOURCE_TYPE</h4>
-<pre>public static final&nbsp;java.lang.String DISK_RESOURCE_TYPE</pre>
-<div class="block">The name used for reserved storage/disk resources.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.ResourceBuilder.DISK_RESOURCE_TYPE">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="fromSpec-com.mesosphere.sdk.specification.ResourceSpec-">
+<a name="fromSpec-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromSpec</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;fromSpec(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;spec)</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;fromSpec(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;spec,
+                                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</pre>
+</li>
+</ul>
+<a name="fromSpec-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>fromSpec</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;fromSpec(<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;spec,
+                                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+                                       java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
+                                       java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</pre>
 </li>
 </ul>
 <a name="fromExistingResource-Resource-">
@@ -314,30 +272,6 @@ extends java.lang.Object</pre>
                                                   Value&nbsp;value)</pre>
 </li>
 </ul>
-<a name="setRole-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setRole</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setRole(java.lang.String&nbsp;role)</pre>
-<div class="block">Sets the role for this resource. This may initially be the role under which a resource was offered, e.g. "*".
- When resource reservation information is being configured, this should be populated with the resource role being
- used by the service.</div>
-</li>
-</ul>
-<a name="setPrincipal-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setPrincipal</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setPrincipal(java.lang.String&nbsp;principal)</pre>
-<div class="block">Sets the principal for reserving this resource. This may initially be unset when a resource was offered.
- When resource reservation information is being configured, this should be populated with the principal being
- used by the service.</div>
-</li>
-</ul>
 <a name="setValue-Value-">
 <!--   -->
 </a>
@@ -348,13 +282,33 @@ extends java.lang.Object</pre>
 <div class="block">Sets the value for this resource. Supported types are <code>SCALAR</code>, <code>RANGES</code>, and <code>SET</code>.</div>
 </li>
 </ul>
-<a name="setResourceId-java.lang.String-">
+<a name="setRole-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setRole</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setRole(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</pre>
+<div class="block">Sets the role for this resource.</div>
+</li>
+</ul>
+<a name="setPrincipal-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setPrincipal</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setPrincipal(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</pre>
+<div class="block">Sets the principal for this resource.</div>
+</li>
+</ul>
+<a name="setResourceId-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setResourceId</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setResourceId(java.lang.String&nbsp;resourceId)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setResourceId(java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</pre>
 <div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
  runs. This may be used with e.g. restarting a task at its prior location.</div>
 </li>
@@ -490,13 +444,13 @@ extends java.lang.Object</pre>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

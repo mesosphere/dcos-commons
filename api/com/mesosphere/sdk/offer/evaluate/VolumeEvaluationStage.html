@@ -73,7 +73,7 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
@@ -98,12 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage</a></li>
-<li>
-<ul class="inheritance">
 <li>com.mesosphere.sdk.offer.evaluate.VolumeEvaluationStage</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -117,7 +112,8 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">VolumeEvaluationStage</span>
-extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></pre>
+extends java.lang.Object
+implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></pre>
 <div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
  ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> and
@@ -128,21 +124,6 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvalua
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<ul class="blockList">
-<li class="blockList"><a name="fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage">
-<!--   -->
-</a>
-<h3>Fields inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.<a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceId">resourceId</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceSpec">resourceSpec</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#taskName">taskName</a></code></li>
-</ul>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -184,17 +165,10 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvalua
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected Resource</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getFulfilledResource-Resource-">getFulfilledResource</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getSummary--">getSummary</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage">
-<!--   -->
-</a>
-<h3>Methods inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.<a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#consume-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.offer.MesosResourcePool-">consume</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#evaluateInternal-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluateInternal</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledReservationInfo--">getFulfilledReservationInfo</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getFulfilledResource--">getFulfilledResource</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getSummary--">getSummary</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#getTaskName--">getTaskName</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#reservesResource--">reservesResource</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Resource-">setProtos</a></code></li>
-</ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
@@ -250,8 +224,6 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvalua
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>mesosResourcePool</code> - the available resources left available for this stage to consume</dd>
 <dd><code>podInfoBuilder</code> - the grouping of all task and executor builders for the pod</dd>
@@ -260,13 +232,13 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvalua
 </dl>
 </li>
 </ul>
-<a name="getFulfilledResource-Resource-">
+<a name="getSummary--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getFulfilledResource</h4>
-<pre>protected&nbsp;Resource&nbsp;getFulfilledResource(Resource&nbsp;resource)</pre>
+<h4>getSummary</h4>
+<pre>protected&nbsp;java.lang.String&nbsp;getSummary()</pre>
 </li>
 </ul>
 </li>
@@ -322,7 +294,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvalua
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>

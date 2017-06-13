@@ -110,8 +110,7 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">MesosResourcePool</span>
 extends java.lang.Object</pre>
 <div class="block">A representation of the pool of resources available in a single <code>Offer</code>. Tracks the
- consumption of the <code>Offer</code>'s resources, as they are matched with
- <code>ResourceRequirement</code>s.</div>
+ consumption of the <code>Offer</code>'s resources.</div>
 </li>
 </ul>
 </div>
@@ -130,7 +129,11 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#MesosResourcePool-Offer-">MesosResourcePool</a></span>(Offer&nbsp;offer)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#MesosResourcePool-Offer-">MesosResourcePool</a></span>(Offer&nbsp;offer)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#MesosResourcePool-Offer-java.util.Optional-">MesosResourcePool</a></span>(Offer&nbsp;offer,
+                 java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</code>
 <div class="block">Creates a new pool of resources based on what's available in the provided <code>Offer</code>.</div>
 </td>
 </tr>
@@ -156,54 +159,53 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#consumeReserved-java.lang.String-Value-java.lang.String-">consumeReserved</a></span>(java.lang.String&nbsp;name,
-               Value&nbsp;value,
-               java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#consumeReservableMerged-java.lang.String-Value-java.lang.String-">consumeReservableMerged</a></span>(java.lang.String&nbsp;name,
+                       Value&nbsp;desiredValue,
+                       java.lang.String&nbsp;preReservedRole)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#consumeUnreservedMerged-java.lang.String-Value-">consumeUnreservedMerged</a></span>(java.lang.String&nbsp;name,
-                       Value&nbsp;desiredValue)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#consumeReserved-java.lang.String-Value-java.lang.String-">consumeReserved</a></span>(java.lang.String&nbsp;name,
+               Value&nbsp;value,
+               java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#free-com.mesosphere.sdk.offer.MesosResource-">free</a></span>(<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getDynamicallyReservedPool--">getDynamicallyReservedPool</a></span>()</code>
+<div class="block">Returns the resources which were dynamically reserved.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>Offer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getOffer--">getOffer</a></span>()</code>
 <div class="block">Returns the underlying offer which this resource pool represents.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code>java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getReservedPool--">getReservedPool</a></span>()</code>
-<div class="block">Returns the resources which are reserved.</div>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.String,Value&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getReservableMergedPoolByRole--">getReservableMergedPoolByRole</a></span>()</code>
+<div class="block">Returns the resources which are reservable.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getReservedResourceById-java.lang.String-">getReservedResourceById</a></span>(java.lang.String&nbsp;resourceId)</code>
 <div class="block">Returns the reserved resource, if present.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getUnreservedAtomicPool--">getUnreservedAtomicPool</a></span>()</code>
 <div class="block">Returns the unreserved resources which cannot be partially consumed from an Offer.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>java.util.Map&lt;java.lang.String,Value&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getUnreservedMergedPool--">getUnreservedMergedPool</a></span>()</code>
-<div class="block">Returns the unreserved resources of which a subset can be consumed from an Offer.</div>
-</td>
-</tr>
 <tr id="i9" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#update-Offer-">update</a></span>(Offer&nbsp;offer)</code>
-<div class="block">Update the offer this pool represents, re-calculating available unreserved, reserved and atomic resources.</div>
-</td>
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,Value&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getUnreservedMergedPool--">getUnreservedMergedPool</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -227,6 +229,17 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
+<a name="MesosResourcePool-Offer-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>MesosResourcePool</h4>
+<pre>public&nbsp;MesosResourcePool(Offer&nbsp;offer,
+                         java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</pre>
+<div class="block">Creates a new pool of resources based on what's available in the provided <code>Offer</code>.</div>
+</li>
+</ul>
 <a name="MesosResourcePool-Offer-">
 <!--   -->
 </a>
@@ -234,7 +247,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>MesosResourcePool</h4>
 <pre>public&nbsp;MesosResourcePool(Offer&nbsp;offer)</pre>
-<div class="block">Creates a new pool of resources based on what's available in the provided <code>Offer</code>.</div>
 </li>
 </ul>
 </li>
@@ -266,6 +278,27 @@ extends java.lang.Object</pre>
  example, a MOUNT volume cannot be partially consumed, it's all-or-nothing.</div>
 </li>
 </ul>
+<a name="getDynamicallyReservedPool--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDynamicallyReservedPool</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;getDynamicallyReservedPool()</pre>
+<div class="block">Returns the resources which were dynamically reserved.</div>
+</li>
+</ul>
+<a name="getReservableMergedPoolByRole--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getReservableMergedPoolByRole</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.String,Value&gt;&gt;&nbsp;getReservableMergedPoolByRole()</pre>
+<div class="block">Returns the resources which are reservable.  These may have been pre-reserved (dynamically or statically) or
+ never reserved.</div>
+</li>
+</ul>
 <a name="getUnreservedMergedPool--">
 <!--   -->
 </a>
@@ -273,18 +306,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getUnreservedMergedPool</h4>
 <pre>public&nbsp;java.util.Map&lt;java.lang.String,Value&gt;&nbsp;getUnreservedMergedPool()</pre>
-<div class="block">Returns the unreserved resources of which a subset can be consumed from an Offer. For
- example, an offer may contain 4.0 CPUs and 2.4 of those CPUs can be reserved.</div>
-</li>
-</ul>
-<a name="getReservedPool--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getReservedPool</h4>
-<pre>public&nbsp;java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;getReservedPool()</pre>
-<div class="block">Returns the resources which are reserved.</div>
 </li>
 </ul>
 <a name="getReservedResourceById-java.lang.String-">
@@ -295,20 +316,6 @@ extends java.lang.Object</pre>
 <h4>getReservedResourceById</h4>
 <pre>public&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;getReservedResourceById(java.lang.String&nbsp;resourceId)</pre>
 <div class="block">Returns the reserved resource, if present.</div>
-</li>
-</ul>
-<a name="update-Offer-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>update</h4>
-<pre>public&nbsp;void&nbsp;update(Offer&nbsp;offer)</pre>
-<div class="block">Update the offer this pool represents, re-calculating available unreserved, reserved and atomic resources.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>offer</code> - the offer to encapsulate</dd>
-</dl>
 </li>
 </ul>
 <a name="consumeReserved-java.lang.String-Value-java.lang.String-">
@@ -332,14 +339,15 @@ extends java.lang.Object</pre>
                                                        Value&nbsp;value)</pre>
 </li>
 </ul>
-<a name="consumeUnreservedMerged-java.lang.String-Value-">
+<a name="consumeReservableMerged-java.lang.String-Value-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>consumeUnreservedMerged</h4>
-<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;consumeUnreservedMerged(java.lang.String&nbsp;name,
-                                                                 Value&nbsp;desiredValue)</pre>
+<h4>consumeReservableMerged</h4>
+<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;consumeReservableMerged(java.lang.String&nbsp;name,
+                                                                 Value&nbsp;desiredValue,
+                                                                 java.lang.String&nbsp;preReservedRole)</pre>
 </li>
 </ul>
 <a name="free-com.mesosphere.sdk.offer.MesosResource-">
