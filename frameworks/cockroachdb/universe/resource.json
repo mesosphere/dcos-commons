@@ -1,0 +1,41 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "{{jre-url}}",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
+      "scheduler-zip": "{{artifact-dir}}/cockroachdb-scheduler.zip",
+      "executor-zip": "{{artifact-dir}}/executor.zip",
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
+    }
+  },
+  "images": {
+    "icon-small": "http://i.imgur.com/FsEREZI.png",
+    "icon-medium": "http://i.imgur.com/1DvX5di.png?1",
+    "icon-large": "http://i.imgur.com/P1mjjGK.png"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-cockroachdb-darwin}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-cockroachdb-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-cockroachdb-linux}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-cockroachdb-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-cockroachdb.exe}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-cockroachdb.exe"
+        }
+      }
+    }
+  }
+}
