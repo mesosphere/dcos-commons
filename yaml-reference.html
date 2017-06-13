@@ -293,6 +293,28 @@
         <p>These values are respectively equivalent to <code class="highlighter-rouge">image-name</code>, <code class="highlighter-rouge">networks</code>, and <code class="highlighter-rouge">rlimits</code> under <code class="highlighter-rouge">container</code>. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)</p>
       </li>
       <li>
+        <p><code class="highlighter-rouge">secrets</code></p>
+
+        <p>This section list the Secrets that will be made available to the pod. Secret content is exposed as a file and/or as a environment variable.</p>
+
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">secret</code>
+ The path of a Secret</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">env-key</code>
+ Name of the environment variable</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">file</code>
+ File path in the container. Secret content is copied into this file. Secret file is a tmpfs file, it disappears when executor exits.</p>
+          </li>
+        </ul>
+
+        <p>If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.</p>
+      </li>
+      <li>
         <p><code class="highlighter-rouge">networks</code></p>
 
         <p>Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the <code class="highlighter-rouge">dcos</code> overlay network. To have the pod join the overlay add the following:</p>
