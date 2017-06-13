@@ -17,6 +17,7 @@ logger = logging.getLogger("dcos-commons-test")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
 sys.path.append(os.path.join(get_repo_root(), 'tools'))
+import branch_changes
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
@@ -591,6 +592,8 @@ def main():
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
+    if 'PULL_REQUEST' in os.environ:
+        fwinfo.set_buildtypes(branch_changes.get_branch_changetypes())
 
     setup_frameworks(run_attrs)
 

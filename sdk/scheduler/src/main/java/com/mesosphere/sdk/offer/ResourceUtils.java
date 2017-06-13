@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * This class encapsulates common methods for scanning collections of Resources.
  */
-public class ResourceCollectionUtils {
+public class ResourceUtils {
 
     /**
      * Returns a list of all the resources associated with one or more tasks, including {@link Executor} resources.
@@ -18,7 +18,7 @@ public class ResourceCollectionUtils {
      */
     public static List<Protos.Resource> getAllResources(Collection<TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(ResourceCollectionUtils::getAllResources)
+                .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -47,17 +47,63 @@ public class ResourceCollectionUtils {
      */
     public static List<String> getResourceIds(Collection<Resource> resources) {
         return resources.stream()
-                .map(ResourceCollectionUtils::getResourceId)
+                .map(ResourceUtils::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .distinct()
                 .collect(Collectors.toList());
     }
 
+    public static Optional<String> getRole(Resource resource) {
+        return Optional.of(resource.getRole());
+    }
+
+    public static Optional<String> getPrincipal(Resource resource) {
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+
+        if (reservationInfo.isPresent()) {
+            return Optional.of(reservationInfo.get().getPrincipal());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
+        if (resource.hasReservation()) {
+            return Optional.of(resource.getReservation());
+        } else {
+            return Optional.empty();
+        }
+    }
+
     public static Optional<String> getResourceId(Resource resource) {
-        return resource.getReservation().getLabels().getLabelsList().stream()
-                .filter(label -> label.getKey().equals(MesosResource.RESOURCE_ID_KEY))
-                .map(label -> label.getValue())
-                .findFirst();
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+        if (!reservationInfo.isPresent()) {
+            return Optional.empty();
+        }
+
+        for (Label label : reservationInfo.get().getLabels().getLabelsList()) {
+            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
+                return Optional.of(label.getValue());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<String> getPersistenceId(Resource resource) {
+        if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+            return Optional.of(resource.getDisk().getPersistence().getId());
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<String> getSourceRoot(Resource resource) {
+        if (resource.hasDisk() && resource.getDisk().hasSource()) {
+            return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+        }
+
+        return Optional.empty();
     }
 }

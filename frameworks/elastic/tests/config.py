@@ -3,6 +3,7 @@ from functools import wraps
 
 import shakedown
 
+import sdk_cmd
 import sdk_marathon as marathon
 import sdk_plan
 import sdk_spin
@@ -226,5 +227,25 @@ def get_document(index_name, index_type, doc_id):
 
 
 def curl_api(method, role="master"):
-    vip = "http://{}.{}.l4lb.thisdcos.directory:9200".format(role, PACKAGE_NAME)
+    vip = "http://{}-0-node.{}.autoip.dcos.thisdcos.directory:{}".format(role, PACKAGE_NAME, master_zero_http_port())
     return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
+
+
+def master_zero_http_port():
+    ret_str = sdk_cmd.run_cli('{} endpoints master'.format(PACKAGE_NAME))
+    result = json.loads(ret_str)
+    dns = result['dns']
+    # array will initially look something like this in CCM, with some 9300 ports and some lower ones [
+    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025",
+    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:1025",
+    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:1025"
+    # ]
+
+    # sort will bubble up "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025", the HTTP server host:port
+    dns.sort()
+    port = dns[0].split(':')[-1]
+    sdk_utils.out("Extracted {} as port for {}".format(port, dns[0]))
+    return port

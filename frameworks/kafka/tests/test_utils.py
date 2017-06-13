@@ -25,8 +25,8 @@ DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 DEPLOY_STRATEGY_SERIAL_CANARY = {"service": {"deploy_strategy": "serial-canary"}}
 
 
-def service_cli(cmd_str, get_json=True):
-    full_cmd = '{} {}'.format(PACKAGE_NAME, cmd_str)
+def service_cli(cmd_str, get_json=True, service_name=SERVICE_NAME):
+    full_cmd = '{} --name={} {}'.format(PACKAGE_NAME, service_name, cmd_str)
     ret_str = command.run_cli(full_cmd)
     if get_json:
         return json.loads(ret_str)
@@ -34,10 +34,10 @@ def service_cli(cmd_str, get_json=True):
         return ret_str
 
 
-def broker_count_check(count):
+def broker_count_check(count, service_name=SERVICE_NAME):
     def fun():
         try:
-            if len(service_cli('broker list')) == count:
+            if len(service_cli('broker list', service_name=service_name)) == count:
                 return True
         except:
             pass
