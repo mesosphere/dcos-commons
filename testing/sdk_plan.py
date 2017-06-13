@@ -21,8 +21,9 @@ def get_plan(service_name, plan):
 
 
 def start_plan(service_name, plan, parameters=None):
-    return dcos.http.post("{}/v1/plans/{}/start".format(shakedown.dcos_service_url(service_name), plan),
-                          json=parameters if parameters is not None else {})
+    return dcos.http.post(
+        "{}/v1/plans/{}/start".format(shakedown.dcos_service_url(service_name), plan),
+        json=parameters if parameters is not None else {})
 
 
 def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
@@ -48,7 +49,9 @@ def wait_for_completed_step(service_name, plan_name, phase_name, step_name, time
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
     def fn():
         plan = get_plan(service_name, plan_name)
-        if plan['status'] == status:
+        sdk_utils.out('Waiting for {} plan to have {} status:\n{}'.format(
+            plan_name, status, plan_string(plan_name, plan)))
+        if plan and plan['status'] == status:
             return plan
         else:
             return False
@@ -59,7 +62,9 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
     def fn():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
-        if phase is not None and phase['status'] == status:
+        sdk_utils.out('Waiting for {}.{} phase to have {} status:\n{}'.format(
+            plan_name, phase_name, status, plan_string(plan_name, plan)))
+        if phase and phase['status'] == status:
             return plan
         else:
             return False
@@ -70,7 +75,9 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
     def fn():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)
-        if step is not None and step['status'] == status:
+        sdk_utils.out('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
+            plan_name, phase_name, step_name, status, plan_string(plan_name, plan)))
+        if step and step['status'] == status:
             return plan
         else:
             return False
@@ -92,3 +99,24 @@ def get_child(parent, children_field, name):
         if child['name'] == name:
             return child
     return None
+
+
+def plan_string(plan_name, plan):
+    if plan is None:
+        return '{}=NULL!'.format(plan_name)
+    # deploy STARTING:
+    # - node-deploy STARTING: node-0:[server]: STARTING, node-1:[server]: PENDING, node-2:[server]: PENDING
+    # - node-other PENDING: somestep: PENDING
+    # - errors: foo, bar
+    def phase_string(phase):
+        return '\n- {} {}: {}'.format(
+            phase['name'],
+            phase['status'],
+            ', '.join('{}: {}'.format(step['name'], step['status']) for step in phase['steps']))
+    plan_str = '{} {}:{}'.format(
+        plan_name,
+        plan['status'],
+        ''.join(phase_string(phase) for phase in plan['phases']))
+    if plan.get('errors', []):
+        plan_str += '\n- errors: {}'.format(', '.join(plan['errors']))
+    return plan_str

@@ -29,10 +29,6 @@ def as_json(fn):
     return wrapper
 
 
-def check_dcos_service_health():
-    return shakedown.service_healthy(PACKAGE_NAME)
-
-
 def index_health_success_predicate(index_name, color):
     result = get_elasticsearch_index_health(index_name)
     return result and result["status"] == color
