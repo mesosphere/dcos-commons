@@ -5,8 +5,6 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -18,7 +16,6 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String taskName;
     private final boolean shouldLaunch;
 

@@ -2,28 +2,25 @@ package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 6/12/17.
+ * Validates that the pre-reserved-role of a Pod cannot change.
  */
 public class PreReservationCannotChange implements ConfigValidator<ServiceSpec> {
     @Override
-    public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
-
-        Pair<List<ConfigValidationError>, Map<String, PodSpec>> pair = validateInitialConfigs(nullableOldConfig,
-                newConfig);
-        List<ConfigValidationError> errors = pair.a;
-        Map<String, PodSpec> newPods = pair.b;
-
-
-        if (nullableOldConfig == null) {
-            return errors;
+    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
+        if (!oldConfig.isPresent()) {
+            return Collections.emptyList();
         }
 
-        for (PodSpec oldPod : nullableOldConfig.getPods()) {
+        Map<String, PodSpec> newPods = newConfig.getPods().stream()
+                .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+
+        List<ConfigValidationError> errors = new ArrayList<>();
+        for (PodSpec oldPod : oldConfig.get().getPods()) {
             PodSpec newPod = newPods.get(oldPod.getType());
             if (!newPod.getPreReservedRole().equals(oldPod.getPreReservedRole())) {
                 errors.add(ConfigValidationError.transitionError(

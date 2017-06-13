@@ -51,6 +51,8 @@ public class DefaultPodSpec implements PodSpec {
     private final Collection<URI> uris;
     @Valid
     private Collection<VolumeSpec> volumes;
+    @Valid
+    private Collection<SecretSpec> secrets;
     private String preReservedRole;
 
     @JsonCreator
@@ -65,7 +67,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
-            @JsonProperty("pre-reserved-role") String preReservedRole) {
+            @JsonProperty("pre-reserved-role") String preReservedRole,
+            @JsonProperty("secrets") Collection<SecretSpec> secrets) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -77,6 +80,7 @@ public class DefaultPodSpec implements PodSpec {
         this.placementRule = placementRule;
         this.volumes = (volumes != null) ? volumes : Collections.emptyList();
         this.preReservedRole = preReservedRole;
+        this.secrets = (secrets != null) ? secrets : Collections.emptyList();
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -91,7 +95,8 @@ public class DefaultPodSpec implements PodSpec {
                 builder.tasks,
                 builder.placementRule,
                 builder.volumes,
-                builder.preReservedRole);
+                builder.preReservedRole,
+                builder.secrets);
         ValidationUtils.validate(this);
     }
 
@@ -113,6 +118,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
         builder.volumes = copy.getVolumes();
         builder.preReservedRole = copy.getPreReservedRole();
+        builder.secrets = copy.getSecrets();
         return builder;
     }
 
@@ -172,6 +178,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<SecretSpec> getSecrets() {
+        return secrets;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -199,6 +210,7 @@ public class DefaultPodSpec implements PodSpec {
         private PlacementRule placementRule;
         private Collection<VolumeSpec> volumes;
         public String preReservedRole = Constants.ANY_ROLE;
+        private Collection<SecretSpec> secrets;
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -355,6 +367,19 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder preReservedRole(String preReservedRole) {
             this.preReservedRole = preReservedRole;
+            return this;
+        }
+
+
+        /**
+         * Sets the {@code secrets} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param secrets the {@code secrets} to set
+         * @return a reference to this Builder
+         */
+        public Builder secrets(Collection<SecretSpec> secrets) {
+            this.secrets = secrets;
             return this;
         }
 

@@ -84,7 +84,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
         return stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !FailureUtils.isLabeledAsFailed(taskInfo))
-                .map(ResourceCollectionUtils::getAllResources)
+                .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -109,7 +109,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Set<String> getReservedResourceIds(Collection<Resource> resources) {
         Set<String> resourceIds = new HashSet<>();
-        resourceIds.addAll(ResourceCollectionUtils.getResourceIds(resources));
+        resourceIds.addAll(ResourceUtils.getResourceIds(resources));
         return resourceIds;
     }
 
@@ -136,7 +136,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     private static Map<String, Resource> getReservedResourcesById(Offer offer) {
         Map<String, Resource> reservedResources = new HashMap<>();
         for (Resource resource : offer.getResourcesList()) {
-            Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+            Optional<String> resourceId = ResourceUtils.getResourceId(resource);
             if (resourceId.isPresent()) {
                 reservedResources.put(resourceId.get(), resource);
             }

@@ -13,6 +13,7 @@ public class TestConstants {
     public static final String CONTAINER_PATH_LABEL = "container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
     public static final String HOSTNAME = "test-hostname";
+    public static final String OVERLAY_HOSTNAME = "overlay-hostname";
     public static final String MOUNT_ROOT = "test-mount-root";
     public static final Protos.OfferID OFFER_ID = Protos.OfferID.newBuilder().setValue("test-offer-id").build();
     public static final String PERSISTENCE_ID = "test-persistence-id";
@@ -40,8 +41,6 @@ public class TestConstants {
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
     public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
-    public static final String ROOT_DISK_TYPE = "ROOT";
-    public static final String MOUNT_DISK_TYPE = "MOUNT";
 
     // CNI port mapping constants
     public static final int HOST_PORT = 4040;

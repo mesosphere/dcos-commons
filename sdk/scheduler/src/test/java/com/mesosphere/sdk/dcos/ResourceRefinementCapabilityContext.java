@@ -1,13 +1,23 @@
 package com.mesosphere.sdk.dcos;
 
 /**
- * Created by gabriel on 6/12/17.
+ * This class allows temporarily setting the global Capabilities object to support PreReservedResources
+ * for testing purposes.
+ *
+ * e.g.
+ *
+ * ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+ * try {
+ *     // Do something requiring the pre-reserved resources
+ * } finally {
+ *     context.reset();
+ * }
  */
-public class ResourceRefinmentCapabilityContext {
+public class ResourceRefinementCapabilityContext {
     private final Capabilities originalCapabilities;
     private final ResourceRefinementCapabilities testCapabilities;
 
-    public ResourceRefinmentCapabilityContext(Capabilities originalCapabilities) {
+    public ResourceRefinementCapabilityContext(Capabilities originalCapabilities) {
         this.originalCapabilities = originalCapabilities;
         this.testCapabilities = new ResourceRefinementCapabilities(originalCapabilities);
         Capabilities.overrideCapabilities(testCapabilities);

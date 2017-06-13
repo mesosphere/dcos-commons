@@ -57,15 +57,15 @@ public class ResourceBuilder {
     }
 
     public static ResourceBuilder fromExistingResource(Resource resource) {
-        Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+        Optional<String> resourceId = ResourceUtils.getResourceId(resource);
 
         if (!resource.hasDisk()) {
             ResourceSpec resourceSpec = getResourceSpec(resource);
             return fromSpec(resourceSpec, resourceId);
         } else {
             VolumeSpec volumeSpec = getVolumeSpec(resource);
-            Optional<String> persistenceId = ResourceCollectionUtils.getPersistenceId(resource);
-            Optional<String> sourceRoot = ResourceCollectionUtils.getSourceRoot(resource);
+            Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource);
+            Optional<String> sourceRoot = ResourceUtils.getSourceRoot(resource);
             return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
         }
     }
@@ -75,7 +75,7 @@ public class ResourceBuilder {
     }
 
     private static ResourceSpec getResourceSpec(Resource resource) {
-        if (!ResourceCollectionUtils.hasResourceId(resource)) {
+        if (!ResourceUtils.hasResourceId(resource)) {
             throw new IllegalStateException(
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
         }
@@ -83,9 +83,9 @@ public class ResourceBuilder {
         return new DefaultResourceSpec(
                 resource.getName(),
                 ValueUtils.getValue(resource),
-                ResourceCollectionUtils.getRole(resource),
+                ResourceUtils.getRole(resource),
                 resource.getRole(),
-                ResourceCollectionUtils.getPrincipal(resource).get(),
+                ResourceUtils.getPrincipal(resource).get(),
                 ""); // env-key isn't used
     }
 
@@ -95,7 +95,7 @@ public class ResourceBuilder {
                 resource.getScalar().getValue(),
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
-                ResourceCollectionUtils.getRole(resource),
+                ResourceUtils.getRole(resource),
                 resource.getRole(),
                 resource.getDisk().getPersistence().getPrincipal(),
                 ""); // env-key isn't used
@@ -197,7 +197,7 @@ public class ResourceBuilder {
             builder.setRole(role.get());
         }
 
-        if (role.isPresent() && !ResourceCollectionUtils.hasResourceId(builder.build())) {
+        if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
             Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
 

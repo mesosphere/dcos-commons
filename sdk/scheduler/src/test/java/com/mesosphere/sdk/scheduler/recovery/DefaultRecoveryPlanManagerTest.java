@@ -13,7 +13,7 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -98,9 +98,8 @@ public class DefaultRecoveryPlanManagerTest {
         Persister persister = new MemPersister();
         stateStore = new DefaultStateStore(persister);
 
-        serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
-                        .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
+        File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
+        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(recoverySpecFile).build(), flags).build();
 
         configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
@@ -195,8 +194,8 @@ public class DefaultRecoveryPlanManagerTest {
         reset(mockDeployManager);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    @SuppressWarnings("unchecked")
     public void stepWithDifferentNameLaunches() throws Exception {
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);

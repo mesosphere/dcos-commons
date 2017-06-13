@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.mesosphere.sdk.config.ConfigNamespace;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import javax.validation.constraints.NotNull;
+
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -34,25 +34,15 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     /**
-     * Creates a new builder instance which will automatically include any routable environment variables targeted to
-     * the provided pod type.
-     *
-     * @see PodSpec#getType()
-     */
-    public static Builder newBuilder(String podType) {
-        return newBuilder(new DefaultTaskConfigRouter().getConfig(podType));
-    }
-
-    /**
      * Creates a new builder instance using the provided {@link ConfigNamespace} for any additional config overrides.
      */
-    public static Builder newBuilder(ConfigNamespace envOverride) {
+    public static Builder newBuilder(Map<String, String> envOverride) {
         return new Builder(envOverride);
     }
 
     public static Builder newBuilder(CommandSpec copy) {
         // Skip env override: Any overrides should already be merged into the CommandSpec's main env.
-        Builder builder = newBuilder(ConfigNamespace.emptyInstance());
+        Builder builder = newBuilder(Collections.emptyMap());
         builder.value = copy.getValue();
         builder.environment = copy.getEnvironment();
         return builder;
@@ -85,7 +75,7 @@ public class DefaultCommandSpec implements CommandSpec {
      * {@link DefaultCommandSpec} builder.
      */
     public static final class Builder {
-        private final ConfigNamespace envOverride;
+        private final Map<String, String> envOverride;
 
         private String value;
         private Map<String, String> environment;
@@ -93,7 +83,7 @@ public class DefaultCommandSpec implements CommandSpec {
         /**
          * Creates a new {@link Builder} with the provided {@link ConfigNamespace} containing override envvars.
          */
-        private Builder(ConfigNamespace envOverride) {
+        private Builder(Map<String, String> envOverride) {
             this.envOverride = envOverride;
         }
 
@@ -108,7 +98,7 @@ public class DefaultCommandSpec implements CommandSpec {
             if (environment != null) {
                 combinedEnv.putAll(environment);
             }
-            combinedEnv.putAll(envOverride.getAllEnv());
+            combinedEnv.putAll(envOverride);
             return combinedEnv;
         }
 

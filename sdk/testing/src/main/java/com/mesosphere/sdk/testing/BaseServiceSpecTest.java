@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.testing;
 
+import com.google.api.client.util.Joiner;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -12,14 +14,15 @@ import com.mesosphere.sdk.storage.Persister;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Map;
+import java.util.TreeMap;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,8 +30,10 @@ import static org.mockito.Mockito.when;
  * This class encapsulates common features needed for the validation of YAML ServiceSpec files.
  */
 public class BaseServiceSpecTest {
-    @ClassRule
-    public static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected final Map<String, String> envVars = new TreeMap<>();
+
     @Mock
     private SchedulerFlags mockFlags;
 
@@ -39,31 +44,39 @@ public class BaseServiceSpecTest {
         when(mockFlags.getApiServerPort()).thenReturn(8080);
     }
 
-    protected void testYaml(String fileName) throws Exception {
-        File yamlFile = new File(System.getProperty("user.dir") + "/src/main/dist/" + fileName);
-        ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(yamlFile.getPath()).getParent());
-        deserializeServiceSpec(fileName);
-        validateServiceSpec(fileName);
+    protected BaseServiceSpecTest(Map<String, String> envVars) {
+        this.envVars.putAll(envVars);
     }
 
-    protected void deserializeServiceSpec(String fileName) throws Exception {
+    /**
+     * Invoke as: {@code super("key1", "val1", "key2", "val2", ...)}.
+     */
+    protected BaseServiceSpecTest(String... keyVals) {
+        Assert.assertTrue("keyVals.length must be a multiple of two for key=>val mapping", keyVals.length % 2 == 0);
+        for (int i = 0; i < keyVals.length; i += 2) {
+            this.envVars.put(keyVals[i], keyVals[i + 1]);
+        }
+    }
+
+    protected void testYaml(String fileName) throws Exception {
+        File yamlFile = new File(System.getProperty("user.dir") + "/src/main/dist/" + fileName);
         File file;
         try {
             file = new File(getClass().getClassLoader().getResource(fileName).getFile());
         } catch (NullPointerException e) {
-            throw new Exception("Did not find file: " + fileName + " perhaps you forgot to link it in the Resources" +
-                    "folder?");
+            throw new Exception(
+                    "Did not find file: " + fileName + " perhaps you forgot to link it in the Resources folder?");
         }
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFlags);
-        Assert.assertNotNull(serviceSpec);
-        Assert.assertEquals(8080, serviceSpec.getApiPort());
-        DefaultServiceSpec.getConfigurationFactory(serviceSpec);
-    }
 
-    protected void validateServiceSpec(String fileName) throws Exception {
-        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, mockFlags);
+        Map<String, String> envVars = new TreeMap<>();
+        envVars.putAll(this.envVars);
+        envVars.put("CONFIG_TEMPLATE_PATH", new File(yamlFile.getPath()).getParent());
+        logger.info("Configured environment:\n{}", Joiner.on('\n').join(envVars.entrySet()));
+
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).setEnv(envVars).build();
+        DefaultServiceSpec serviceSpec =
+                DefaultServiceSpec.newGenerator(rawServiceSpec, mockFlags, new TaskEnvRouter(envVars)).build();
+        Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);

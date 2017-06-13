@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.ResourceRefinmentCapabilityContext;
+import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -77,7 +77,7 @@ public class ResourceBuilderTest {
     */
     @Test
     public void testNewFromResourceSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testNewFromResourceSpec();
         } finally {
@@ -109,7 +109,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testExistingFromResourceSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testExistingFromResourceSpec();
         } finally {
@@ -168,7 +168,7 @@ public class ResourceBuilderTest {
     */
     @Test
     public void testNewFromRootVolumeSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testNewFromRootVolumeSpec();
         } finally {
@@ -208,7 +208,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testExistingFromRootVolumeSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testExistingFromRootVolumeSpec();
         } finally {
@@ -280,7 +280,7 @@ public class ResourceBuilderTest {
     */
     @Test
     public void testNewFromMountVolumeSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testNewFromMountVolumeSpec();
         } finally {
@@ -327,7 +327,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testExistingFromMountVolumeSpecRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testExistingFromMountVolumeSpec();
         } finally {
@@ -353,7 +353,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testFromExistingScalarResourceRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testFromExistingScalarResource();
         } finally {
@@ -386,7 +386,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testFromExistingRootVolumeRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testFromExistingRootVolume();
         } finally {
@@ -420,7 +420,7 @@ public class ResourceBuilderTest {
 
     @Test
     public void testFromExistingMountVolumeRefined() {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testFromExistingMountVolume();
         } finally {

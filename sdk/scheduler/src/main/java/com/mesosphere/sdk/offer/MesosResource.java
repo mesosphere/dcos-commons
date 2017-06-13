@@ -44,11 +44,11 @@ public class MesosResource {
     }
 
     public Optional<String> getResourceId() {
-        return ResourceCollectionUtils.getResourceId(resource);
+        return ResourceUtils.getResourceId(resource);
     }
 
     public boolean hasResourceId() {
-        return ResourceCollectionUtils.hasResourceId(resource);
+        return ResourceUtils.hasResourceId(resource);
     }
 
     public Value getValue() {

@@ -18,18 +18,21 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
-public class VolumeEvaluationStage extends ResourceEvaluationStage {
+public class VolumeEvaluationStage implements OfferEvaluationStage {
     private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
     private final VolumeSpec volumeSpec;
     private final Optional<String> persistenceId;
+    private final String taskName;
+    private Optional<String> resourceId;
 
     public VolumeEvaluationStage(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
             Optional<String> persistenceId) {
-        super(volumeSpec, resourceId, taskName);
         this.volumeSpec = volumeSpec;
+        this.taskName = taskName;
+        this.resourceId = resourceId;
         this.persistenceId = persistenceId;
     }
 
@@ -42,16 +45,20 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
 
         Resource resource;
-        MesosResource mesosResource;
+        final MesosResource mesosResource;
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
-            EvaluationOutcome evaluationOutcome = OfferEvaluationUtils.evaluateSimpleResource(
-                    this,
-                    resourceSpec,
-                    resourceId,
-                    mesosResourcePool);
+            OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
+                    OfferEvaluationUtils.evaluateSimpleResource(
+                            this,
+                            volumeSpec,
+                            resourceId,
+                            mesosResourcePool);
+            EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
+
+            resourceId = reserveEvaluationOutcome.getResourceId();
 
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
             mesosResource = evaluationOutcome.getMesosResource().get();
@@ -84,7 +91,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
             if (!resourceId.isPresent()) {
                 // Initial reservation of resources
-                logger.info("    Resource '{}' requires a RESERVE operation", resourceSpec.getName());
+                logger.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
                 offerRecommendations.add(new ReserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
                         resource));
@@ -98,7 +105,7 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
 
         logger.info("  Generated '{}' resource for task: [{}]",
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
-        super.setProtos(podInfoBuilder, resource);
+        OfferEvaluationUtils.setProtos(podInfoBuilder, resource, getTaskName());
 
         return pass(
                 this,
@@ -107,5 +114,20 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage {
                 "Satisfied requirements for %s volume '%s'",
                 volumeSpec.getType(),
                 volumeSpec.getContainerPath());
+    }
+
+    private Optional<String> getTaskName() {
+        return Optional.ofNullable(taskName);
+    }
+
+    protected String getSummary() {
+        return String.format(
+                "name: '%s', value: '%s', role: '%s', principal: '%s', resourceId: '%s', persistenceId: '%s'",
+                volumeSpec.getName(),
+                TextFormat.shortDebugString(volumeSpec.getValue()),
+                volumeSpec.getRole(),
+                volumeSpec.getPrincipal(),
+                resourceId,
+                persistenceId);
     }
 }

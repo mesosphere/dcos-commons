@@ -35,7 +35,7 @@ public class OfferEvaluatorTestBase {
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {
-        return ResourceCollectionUtils.getResourceId(resources.get(0)).get();
+        return ResourceUtils.getResourceId(resources.get(0)).get();
     }
 
     protected List<Resource> recordLaunchWithOfferedResources(
@@ -58,10 +58,10 @@ public class OfferEvaluatorTestBase {
     }
 
     protected String getResourceId(Resource resource) {
-        return ResourceCollectionUtils.getResourceId(resource).get();
+        return ResourceUtils.getResourceId(resource).get();
     }
 
     protected String getPrincipal(Resource resource) {
-        return ResourceCollectionUtils.getPrincipal(resource).get();
+        return ResourceUtils.getPrincipal(resource).get();
     }
 }

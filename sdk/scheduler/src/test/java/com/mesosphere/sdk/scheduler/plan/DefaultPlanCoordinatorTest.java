@@ -4,7 +4,6 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -32,8 +31,6 @@ import static org.mockito.Mockito.spy;
  * Tests for {@code DefaultPlanCoordinator}.
  */
 public class DefaultPlanCoordinatorTest {
-
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;

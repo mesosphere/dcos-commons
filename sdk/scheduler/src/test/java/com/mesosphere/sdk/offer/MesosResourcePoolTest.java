@@ -37,8 +37,8 @@ public class MesosResourcePoolTest {
         String resourceId = new MesosResource(resource).getResourceId().get();
 
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
-        Assert.assertEquals(1, pool.getDynamicallyReservedPool().size());
-        Assert.assertEquals(resource, pool.getDynamicallyReservedPool().get(resourceId).getResource());
+        Assert.assertEquals(1, pool.getDynamicallyReservedPoolByResourceId().size());
+        Assert.assertEquals(resource, pool.getDynamicallyReservedPoolByResourceId().get(resourceId).getResource());
     }
 
     @Test
@@ -72,10 +72,10 @@ public class MesosResourcePoolTest {
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
-        Assert.assertEquals(1, pool.getDynamicallyReservedPool().size());
+        Assert.assertEquals(1, pool.getDynamicallyReservedPoolByResourceId().size());
         MesosResource resourceToConsume = pool.consumeReserved(resource.getName(), resourceValue, resourceId).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
-        Assert.assertEquals(0, pool.getDynamicallyReservedPool().size());
+        Assert.assertEquals(0, pool.getDynamicallyReservedPoolByResourceId().size());
     }
 
     @Test

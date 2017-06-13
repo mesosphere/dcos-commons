@@ -49,6 +49,9 @@ public interface PodSpec {
     @JsonProperty("pre-reserved-role")
     String getPreReservedRole();
 
+    @JsonProperty("secrets")
+    Collection<SecretSpec> getSecrets();
+
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {
         return podSpec.getType() + "-" + index;

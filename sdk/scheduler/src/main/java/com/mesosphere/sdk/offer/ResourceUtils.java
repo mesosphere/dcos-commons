@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * This class encapsulates common methods for scanning collections of Resources.
  */
-public class ResourceCollectionUtils {
+public class ResourceUtils {
 
     /**
      * Returns a list of all the resources associated with one or more tasks, including {@link Executor} resources.
@@ -19,7 +19,7 @@ public class ResourceCollectionUtils {
      */
     public static List<Protos.Resource> getAllResources(Collection<TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(ResourceCollectionUtils::getAllResources)
+                .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -48,7 +48,7 @@ public class ResourceCollectionUtils {
      */
     public static List<String> getResourceIds(Collection<Resource> resources) {
         return resources.stream()
-                .map(ResourceCollectionUtils::getResourceId)
+                .map(ResourceUtils::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
                 .map(resourceId -> resourceId.get())
                 .distinct()
@@ -109,7 +109,7 @@ public class ResourceCollectionUtils {
     }
 
     public static boolean hasResourceId(Resource resource) {
-        return ResourceCollectionUtils.getResourceId(resource).isPresent();
+        return ResourceUtils.getResourceId(resource).isPresent();
     }
 
     public static Optional<String> getPersistenceId(Resource resource) {

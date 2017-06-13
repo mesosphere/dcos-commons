@@ -77,7 +77,7 @@ def test_cassandra_migration():
 
     env = EnvironmentContext(
         CASSANDRA_NODE_ADDRESS=os.getenv(
-            'BACKUP_NODE_ADDRESS', 'node-0.cassandra.mesos'
+            'BACKUP_NODE_ADDRESS', 'node-0.cassandra.autoip.dcos.thisdcos.directory'
         ),
         CASSANDRA_NODE_PORT=os.getenv('BACKUP_NODE_PORT', '9042')
     )
@@ -120,7 +120,7 @@ def test_cassandra_migration():
 
     env = EnvironmentContext(
         CASSANDRA_NODE_ADDRESS=os.getenv(
-            'RESTORE_NODE_ADDRESS', 'node-0-server.sdk-cassandra.mesos'
+            'RESTORE_NODE_ADDRESS', 'node-0-server.sdk-cassandra.autoip.dcos.thisdcos.directory'
         ),
         CASSANDRA_NODE_PORT=os.getenv('RESTORE_NODE_PORT', '9052')
     )

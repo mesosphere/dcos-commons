@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.ResourceRefinmentCapabilityContext;
+import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -47,11 +46,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource));
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -76,7 +75,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveLaunchScalarRefined() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testReserveLaunchScalar();
         } finally {
@@ -132,11 +131,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(reserveResource));
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
 
@@ -151,7 +150,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testIncreaseReservationScalarRefined() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testIncreaseReservationScalar();
         } finally {
@@ -182,11 +181,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation unreserveOperation = recommendations.get(0).getOperation();
         Resource unreserveResource = unreserveOperation.getUnreserve().getResources(0);
 
-        Resource.ReservationInfo reservation = ResourceCollectionUtils.getReservation(reserveResource).get();
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
         validateRole(unreserveResource);
-        Assert.assertEquals(TestConstants.ROLE, ResourceCollectionUtils.getRole(unreserveResource));
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(unreserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));
 
@@ -201,7 +200,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testDecreaseReservationScalarRefined() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             testDecreaseReservationScalar();
         } finally {
@@ -273,7 +272,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .id("resourceSetB")
                 .build();
 
-        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+        CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
                 .build();
 
@@ -344,8 +343,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testLaunchSequencedTasksInPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -414,8 +413,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testRelaunchFailedPod() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -486,8 +485,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testReplaceDeployStep() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal-volume.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -550,12 +549,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testResourceRefinementSucceeds() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-            DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer sufficientOffer = OfferTestUtils.getOffer(
@@ -599,12 +598,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testResourceRefinementFailsForMissingPreReservation() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-            DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer badOffer = OfferTestUtils.getOffer(
@@ -628,12 +627,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testResourceRefinementFailsForDifferentPreReservation() throws Exception {
-        ResourceRefinmentCapabilityContext context = new ResourceRefinmentCapabilityContext(Capabilities.getInstance());
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-            DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, flags);
+            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer badOffer = OfferTestUtils.getOffer(
