@@ -6,7 +6,7 @@ pods:
   cockroachdb:
     count: {{NODE_COUNT}}
     uris:
-      - "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
+      - {{COCKROACH_URI}}
       - {{BOOTSTRAP_URI}}
     placement: {{NODE_PLACEMENT}}
     tasks:
@@ -17,7 +17,7 @@ pods:
         configs:
           start:
             template: "{{CONFIG_TEMPLATE_PATH}}/start.sh.mustache"
-            dest: "start.sh" 
+            dest: "start.sh"
         cmd: "./bootstrap && chmod +x $MESOS_SANDBOX/start.sh && $MESOS_SANDBOX/start.sh"
         ports:
           gui:
@@ -51,5 +51,5 @@ plans:
     strategy: serial
     phases:
       host:
-        strategy: serial 
+        strategy: serial
         pod: cockroachdb

@@ -5,7 +5,8 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cockroachdb-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "cockroach-tgz": "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
     }
   },
   "images": {
