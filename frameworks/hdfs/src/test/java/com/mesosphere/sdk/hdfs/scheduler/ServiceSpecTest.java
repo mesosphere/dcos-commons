@@ -4,7 +4,6 @@ import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -95,12 +94,13 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     private void renderTemplate(String pathStr) throws IOException {
         String fileStr = new String(Files.readAllBytes(Paths.get(pathStr)), StandardCharsets.UTF_8);
 
-        // Reproduction of what's done in Main.java:
+        // Reproduction of what's added to tasks automatically, and in Main.java:
         Map<String, String> updatedEnv = new TaskEnvRouter(envVars).getConfig("ALL");
-        updatedEnv.put(EnvConstants.FRAMEWORK_NAME_TASKENV, System.getenv(EnvConstants.FRAMEWORK_NAME_TASKENV));
+        updatedEnv.put(EnvConstants.FRAMEWORK_HOST_TASKENV, "hdfs.on.some.cluster");
+        updatedEnv.put("MESOS_SANDBOX", "/mnt/sandbox");
+        updatedEnv.put("SERVICE_ZK_ROOT", "/dcos-service-path__to__hdfs");
 
-        String renderedFileStr = TemplateUtils.applyEnvToMustache(fileStr, updatedEnv);
-        Assert.assertEquals(renderedFileStr, -1, renderedFileStr.indexOf("<value></value>"));
-        Assert.assertTrue(TemplateUtils.isMustacheFullyRendered(renderedFileStr));
+        // Throw when a value is missing:
+        TemplateUtils.applyEnvToMustache(pathStr, fileStr, updatedEnv, TemplateUtils.MissingBehavior.EXCEPTION);
     }
 }

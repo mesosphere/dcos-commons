@@ -57,7 +57,10 @@ public class RawServiceSpec {
          * the provided environment map.
          */
         public RawServiceSpec build() throws Exception {
-            String yamlWithEnv = TemplateUtils.applyEnvToMustache(yamlTemplate, env);
+            // We allow missing values. For example, the service principal may be left empty, in which case we use a
+            // reasonable default principal.
+            String yamlWithEnv = TemplateUtils.applyEnvToMustache(
+                    "rawServiceSpec", yamlTemplate, env, TemplateUtils.MissingBehavior.EMPTY_STRING);
             LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
             if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
                 throw new IllegalStateException("YAML contains unsubstitued variables.");

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
@@ -265,6 +266,8 @@ public class PodInfoBuilder {
         environment.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
         environment.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        // Inject Framework host domain
+        environment.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
         // Inject TASK_NAME as KEY:VALUE
         environment.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating

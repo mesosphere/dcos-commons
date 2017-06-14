@@ -58,15 +58,26 @@ public class EndpointUtils {
     }
 
     /**
-     * Returns the correct Mesos DNS endpoint for the provided task and port running within the provided service.
+     * Returns the correct DNS domain for tasks within the service.
+     */
+    public static String toAutoIpDomain(String serviceName) {
+        // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), AUTOIP_HOST_TLD);
+    }
+
+    /**
+     * Returns the correct DNS hostname for the provided task running within the service.
+     */
+    public static String toAutoIpHostname(String serviceName, String taskName) {
+        // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(taskName)), toAutoIpDomain(serviceName));
+    }
+
+    /**
+     * Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.
      */
     public static String toAutoIpEndpoint(String serviceName, String taskName, int port) {
-        // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        String hostname = String.format("%s.%s.%s",
-                removeSlashes(replaceDotsWithDashes(taskName)),
-                removeSlashes(replaceDotsWithDashes(serviceName)),
-                AUTOIP_HOST_TLD);
-        return toEndpoint(hostname, port);
+        return toEndpoint(toAutoIpHostname(serviceName, taskName), port);
     }
 
     /**
@@ -142,14 +153,15 @@ public class EndpointUtils {
     /**
      * "/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".
      */
-    private static String removeSlashes(String serviceName) {
-        return serviceName.replace("/", "");
+    private static String removeSlashes(String name) {
+        return name.replace("/", "");
     }
 
     /**
-     * "hello.kafka" => "hello-kafka".
+     * "hello.kafka" => "hello-kafka". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
+     * dots are converted to dashes with autoip hostnames. See DCOS-16086.
      */
-    private static String replaceDotsWithDashes(String serviceName) {
-        return serviceName.replace(".", "-");
+    private static String replaceDotsWithDashes(String name) {
+        return name.replace(".", "-");
     }
 }

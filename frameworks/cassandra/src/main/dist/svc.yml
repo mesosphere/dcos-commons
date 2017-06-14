@@ -54,8 +54,6 @@ pods:
                 fi
 
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
-        env:
-          SERVICE_NAME: {{SERVICE_NAME}}
         configs:
           cassandra:
             template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
@@ -86,7 +84,7 @@ pods:
         goal: FINISHED
         cmd: >
                 mkdir container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.autoip.dcos.thisdcos.directory" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{FRAMEWORK_HOST}}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
       snapshot:
         goal: FINISHED
@@ -138,7 +136,7 @@ pods:
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.autoip.dcos.thisdcos.directory {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{FRAMEWORK_HOST}} {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
         resource-set: sidecar-resources
       restore-snapshot:
         goal: FINISHED
