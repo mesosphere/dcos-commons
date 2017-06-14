@@ -41,7 +41,9 @@ def teardown_module(module):
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
-    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(
+        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
@@ -50,7 +52,9 @@ def test_integrity_on_data_node_failure():
     tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.autoip.dcos.thisdcos.directory')
     time.sleep(1)  # give DataNode a chance to die
 
-    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(
+        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
 
@@ -66,9 +70,13 @@ def test_integrity_on_name_node_failure():
     tasks.kill_task_with_pattern("NameNode", 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
     time.sleep(1)  # give NameNode a chance to die
 
-    shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(
+        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME),
+        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
-    shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(
+        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME),
+        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
 
@@ -313,11 +321,11 @@ def replace_name_node(index):
 
 
 def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
 
 def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
 
 def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):

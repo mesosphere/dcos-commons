@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.testutils.TestConstants;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
