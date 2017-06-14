@@ -1,2 +1,5 @@
 PACKAGE_NAME = 'cockroachdb'
-DEFAULT_TASK_COUNT = 1
+SERVICE_NAME = 'cockroachdb'
+DEFAULT_TASK_COUNT = 2
+DEFAULT_POD_TYPE = 'cockroachdb'
+DEFAULT_TASK_NAME = 'node'
