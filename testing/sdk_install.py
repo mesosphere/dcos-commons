@@ -112,7 +112,7 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
                     sdk_utils.out(msg % marathon_app_id)
                 return len(matching_apps) == 0
             sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
-            sdk_spin.time_wait_noisy(marathon_dropped_service)
+            shakedown.time_wait(marathon_dropped_service)
 
         except (dcos.errors.DCOSException, ValueError) as e:
             sdk_utils.out('Got exception when uninstalling package: {}'.format(e))
