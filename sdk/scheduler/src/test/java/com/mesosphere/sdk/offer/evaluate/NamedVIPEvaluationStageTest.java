@@ -234,7 +234,9 @@ public class NamedVIPEvaluationStageTest {
 
     private PodInstanceRequirement getPodInstanceRequirement(int taskPort, boolean onOverlay) {
         // Build Pod
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
                 .addResource(getNamedVIPSpec(taskPort, onOverlay))

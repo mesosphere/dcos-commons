@@ -74,8 +74,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
         // create one UninstallStep per unique Resource, including Executor resources
         List<Step> taskSteps = new ArrayList<>();
-        for (Protos.Resource resource : ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())) {
-            Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+        for (Protos.Resource resource : ResourceUtils.getAllResources(stateStore.fetchTasks())) {
+            Optional<String> resourceId = ResourceUtils.getResourceId(resource);
             if (!resourceId.isPresent()) {
                 continue;
             }

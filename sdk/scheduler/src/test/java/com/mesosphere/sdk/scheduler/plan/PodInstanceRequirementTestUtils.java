@@ -71,11 +71,11 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.ROOT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name());
     }
 
     private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.MOUNT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
     }
 
     private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {

@@ -132,7 +132,7 @@ public class OfferEvaluator {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
-                .map(resource -> ResourceCollectionUtils.getResourceId(resource))
+                .map(resource -> ResourceUtils.getResourceId(resource))
                 .filter(resourceId -> resourceId.isPresent())
                 .map(Optional::get)
                 .filter(resourceId -> !resourceId.isEmpty())
