@@ -164,10 +164,14 @@ def test_state_properties_get():
 
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == 2
+    assert len(jsonobj) == 6
     # alphabetical ordering:
-    assert jsonobj[0] == "last-completed-update-type"
-    assert jsonobj[1] == "suppressed"
+    assert jsonobj[0] == "hello-0-server:task-status"
+    assert jsonobj[1] == "hello-1-server:task-status"
+    assert jsonobj[2] == "last-completed-update-type"
+    assert jsonobj[3] == "suppressed"
+    assert jsonobj[4] == "world-0-server:task-status"
+    assert jsonobj[5] == "world-1-server:task-status"
 
     stdout = cmd.run_cli('hello-world state property suppressed')
     assert stdout == "true\n"
