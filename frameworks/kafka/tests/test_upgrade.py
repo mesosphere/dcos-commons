@@ -19,6 +19,7 @@ def teardown_module(module):
     install.uninstall(SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="INFINITY-1734")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 @pytest.mark.smoke
@@ -33,6 +34,7 @@ def test_upgrade_downgrade():
                                        additional_options=options)
 
 
+@pytest.mark.skip(reason="INFINITY-1734")
 @pytest.mark.soak_upgrade
 def test_upgrade():
     # akin to elastic soak_test_upgrade_downgrade
