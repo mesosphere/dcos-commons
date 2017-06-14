@@ -59,15 +59,28 @@ public class TemplateUtilsTest {
 
     @Test
     public void testApplyMissingExceptionValueThrows() throws IOException {
+        Map<String, String> env = new HashMap<>();
+        env.put("foo", "bar");
+        env.put("bar", "baz");
+        env.put("baz", "foo");
         try {
             TemplateUtils.applyEnvToMustache(
                     "testTemplate",
                     "hello this is a {{missing_parameter}}. thanks for reading bye",
-                    Collections.emptyMap(),
+                    env,
                     TemplateUtils.MissingBehavior.EXCEPTION);
             Assert.fail("expected exception");
         } catch (MustacheException e) {
-            Assert.assertTrue(e.getMessage().contains("Failed to get value for missing_parameter @[testTemplate:1]"));
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("Failed to get value for missing_parameter @[testTemplate:1]"));
+            String causeMessage = "Template param missing_parameter was not found at template line 1:\n"
+                    + "- env:\n"
+                    + " bar=baz\n"
+                    + " baz=foo\n"
+                    + " foo=bar\n"
+                    + "- template:\n"
+                    + "hello this is a {{missing_parameter}}. thanks for reading bye\n"
+                    + "- code: com.github.mustachejava.codes.ValueCode";
+            Assert.assertTrue(e.getCause().getMessage(), e.getCause().getMessage().startsWith(causeMessage));
         }
     }
 

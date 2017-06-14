@@ -162,6 +162,6 @@ public class EndpointUtils {
      * dots are converted to dashes with autoip hostnames. See DCOS-16086.
      */
     private static String replaceDotsWithDashes(String name) {
-        return name.replace(".", "-");
+        return name.replace('.', '-');
     }
 }

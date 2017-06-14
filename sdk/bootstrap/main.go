@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
-	"github.com/nickbp/mustache"
 	"github.com/aryann/difflib"
+	"github.com/nickbp/mustache"
 	"io/ioutil"
 	"log"
 	"net"
@@ -23,9 +23,8 @@ import (
 
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
-	resolveRetryDelay = time.Duration(1) * time.Second
-    	dns_tld = "autoip.dcos.thisdcos.directory"
-    	mesos_dns = "mesos"
+	resolveRetryDelay    = time.Duration(1) * time.Second
+	mesos_dns            = "mesos"
 )
 
 var verbose = false
@@ -58,19 +57,19 @@ func parseArgs() args {
 		"Whether to print the process environment.")
 
 	flag.BoolVar(&args.resolveEnabled, "resolve", true,
-		"Whether to enable the step of waiting for hosts to resolve. " +
-		"May be disabled for faster startup when not needed.")
+		"Whether to enable the step of waiting for hosts to resolve. "+
+			"May be disabled for faster startup when not needed.")
 	var rawHosts string
-	defaultHostString := "<TASK_NAME>.<FRAMEWORK_NAME>.mesos"
+	defaultHostString := "<TASK_NAME>.<FRAMEWORK_HOST>"
 	flag.StringVar(&rawHosts, "resolve-hosts", defaultHostString,
 		"Comma-separated list of hosts to resolve. Defaults to the hostname of the task itself.")
-	flag.DurationVar(&args.resolveTimeout, "resolve-timeout", time.Duration(5) * time.Minute,
+	flag.DurationVar(&args.resolveTimeout, "resolve-timeout", time.Duration(5)*time.Minute,
 		"Duration to wait for all host resolutions to complete, or zero to wait indefinitely.")
 
 	flag.BoolVar(&args.templateEnabled, "template", true,
-		fmt.Sprintf("Whether to enable processing of configuration templates advertised by %s* " +
+		fmt.Sprintf("Whether to enable processing of configuration templates advertised by %s* "+
 			"env vars.", configTemplatePrefix))
-	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024 * 1024,
+	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024*1024,
 		"Largest template file that may be processed, or zero for no limit.")
 	flag.BoolVar(&args.installCerts, "install-certs", true,
 		"Whether to install certs from .ssl to the JRE.")
@@ -78,18 +77,17 @@ func parseArgs() args {
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
-	if (args.resolveEnabled && rawHosts == defaultHostString) {
+	if args.resolveEnabled && rawHosts == defaultHostString {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
-		frameworkName, frameworkNameOk := os.LookupEnv("FRAMEWORK_NAME")
-		if !taskNameOk || !frameworkNameOk {
+		frameworkHost, frameworkHostOk := os.LookupEnv("FRAMEWORK_HOST")
+		if !taskNameOk || !frameworkHostOk {
 			printEnv()
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
-				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
+				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_HOST.")
 		}
-		args.resolveHosts = []string{ fmt.Sprintf("%s.%s.%s", taskName, frameworkName, dns_tld),
-                                      fmt.Sprintf("%s.%s.%s", taskName, frameworkName, mesos_dns)}
+		args.resolveHosts = []string{fmt.Sprintf("%s.%s", taskName, frameworkHost)}
 	} else {
 		args.resolveHosts = splitAndClean(rawHosts, ",")
 	}
@@ -148,9 +146,9 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 			// Check timeout:
 			if timer != nil {
 				select {
-				case _, ok := <- timer.C:
+				case _, ok := <-timer.C:
 					if ok {
-						log.Fatalf("Time ran out while resolving '%s'. " +
+						log.Fatalf("Time ran out while resolving '%s'. "+
 							"Customize timeout with -resolve-timeout, or use -verbose to see attempts.", host)
 					} else {
 						log.Fatalf("Internal error: Channel closed")
@@ -171,7 +169,7 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 
 	// Clean up:
 	if !timer.Stop() {
-		<- timer.C
+		<-timer.C
 	}
 }
 
@@ -242,7 +240,7 @@ func renderTemplates(templateMaxBytes int64) {
 			continue
 		}
 
-		envKeyVal := strings.SplitN(entry, "=", 2) // entry: "CONFIG_TEMPLATE_<name>=<src-path>,<dest-path>"
+		envKeyVal := strings.SplitN(entry, "=", 2)      // entry: "CONFIG_TEMPLATE_<name>=<src-path>,<dest-path>"
 		srcDest := strings.SplitN(envKeyVal[1], ",", 2) // value: "<src-path>,<dest-path>"
 		if len(srcDest) != 2 {
 			log.Fatalf("Provided value for %s is invalid: Should be two strings separated by a comma, got: %s",
@@ -345,7 +343,7 @@ func main() {
 		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
 	}
 
-	if (args.installCerts) {
+	if args.installCerts {
 		installDCOSCertIntoJRE()
 	}
 

@@ -2,9 +2,9 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -21,6 +21,7 @@ import com.github.mustachejava.reflect.GuardedBinding;
 import com.github.mustachejava.reflect.MissingWrapper;
 import com.github.mustachejava.reflect.ReflectionObjectHandler;
 import com.github.mustachejava.util.Wrapper;
+import com.google.common.base.Joiner;
 
 /**
  * Utility methods relating to rendering mustache templates.
@@ -114,11 +115,14 @@ public class TemplateUtils {
             // - "{{^hello}}{{/hello}}" = NotIterableCode
             // - etc... {{> partial}}, {{! comment}}
             if (code instanceof ValueCode && wrapper instanceof MissingWrapper) {
+                Map<String, String> sortedEnv = new TreeMap<>();
+                sortedEnv.putAll(env);
                 throw new MustacheException(String.format(
-                        "Template param %s was not found at template line %s:%n- env: %s%n- template:%n%s%n- code: %s",
+                        "Template param %s was not found at template line %s:"
+                                + "%n- env:%n %s%n- template:%n%s%n- code: %s",
                         name,
                         tc.line(),
-                        Arrays.toString(env.entrySet().toArray()),
+                        Joiner.on("\n ").join(sortedEnv.entrySet()),
                         templateContent,
                         ReflectionToStringBuilder.toString(code)));
             }

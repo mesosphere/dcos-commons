@@ -39,15 +39,14 @@ public class Main {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         List<String> localSeeds = getLocalSeeds(rawServiceSpec.getName());
-        DefaultScheduler.Builder schedulerBuilder =
-                DefaultScheduler.newBuilder(
-                        DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
-                                .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
-                                .build(),
-                        schedulerFlags)
-                        .setPlansFrom(rawServiceSpec)
-                        .setCustomResources(getResources(localSeeds))
-                        .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                        .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
+                        .build(),
+                schedulerFlags)
+                .setPlansFrom(rawServiceSpec)
+                .setCustomResources(getResources(localSeeds))
+                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
         return schedulerBuilder;
     }
 

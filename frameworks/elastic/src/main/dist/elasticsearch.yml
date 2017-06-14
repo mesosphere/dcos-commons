@@ -11,7 +11,7 @@ network.bind_host:
 network.publish_host:
   - {{LIBPROCESS_IP}}
   - _local_
-cluster.name: {{FRAMEWORK_NAME}}
+cluster.name: {{CLUSTER_NAME}}
 node.name: {{TASK_NAME}}
 path.data: "container-path/data"
 path.logs: "container-path/logs"

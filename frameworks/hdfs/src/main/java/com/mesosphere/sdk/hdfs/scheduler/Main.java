@@ -81,6 +81,7 @@ public class Main {
         Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
         env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
