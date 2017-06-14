@@ -4,48 +4,36 @@ echo "--------------------"
 echo "STARTING COCKROACHDB"
 echo "--------------------"
 
-if [ "$POD_INSTANCE_INDEX" -ne "0" ]; then
-    echo "Looks like there's already at least one other CockroachDB node running, connecting new node to the cluster..."
+echo "Looks like there are no CockroachDB nodes running, starting first node..."
 
-    # Start CockroachDB server (join existing cluster)
-    $MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach start \
-        --insecure \
-        --http-port=$PORT_GUI \
-        --port=$PORT_INTERNAL \
-        --join="internal.cockroachdb.l4lb.thisdcos.directory:26257"
+echo "-----------------------"
+echo "GENERATING CERTIFICATES"
+echo "-----------------------"
 
-else
-    echo "Looks like there are no CockroachDB nodes running, starting first node..."
+# Create directories for certificates
+mkdir certs
+mkdir my-safe-directory
 
-    echo "-----------------------"
-    echo "GENERATING CERTIFICATES"
-    echo "-----------------------"
+# Create the CA key pair
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-ca \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
 
-    # Create directories for certificates
-    mkdir certs
-    mkdir my-safe-directory
+# Create a client key pair for the root user
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-client root \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
 
-    # Create the CA key pair
-    $MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach cert create-ca \
-        --certs-dir=certs \
-        --ca-key=my-safe-directory/ca.key
+# Create a key pair for the nodes
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-node \
+    localhost \
+    $(hostname) \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
 
-    # Create a client key pair for the root user
-    $MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach cert create-client root \
-        --certs-dir=certs \
-        --ca-key=my-safe-directory/ca.key
+# Start CockroachDB server
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach start \
+    --insecure \
+    --http-port=$PORT_GUI \
+    --port=$PORT_INTERNAL
 
-    # Create a key pair for the nodes
-    $MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach cert create-node \
-        localhost \
-        $(hostname) \
-        --certs-dir=certs \
-        --ca-key=my-safe-directory/ca.key
-
-    # Start CockroachDB server
-    $MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach start \
-        --insecure \
-        --http-port=$PORT_GUI \
-        --port=$PORT_INTERNAL
-
-fi

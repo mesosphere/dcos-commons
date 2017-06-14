@@ -33,6 +33,12 @@
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",
             "default": ""
+          },
+          "version":{
+            "title": "CockroachDB version",
+            "description": "Production release version of CockroachDB",
+            "type": "string",
+            "default": "1.0.1"
           }
         },
         "required":[

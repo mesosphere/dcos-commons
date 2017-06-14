@@ -2,7 +2,7 @@
   "packagingVersion": "2.0",
   "minDcosReleaseVersion": "1.9",
   "name": "cockroachdb",
-  "version": "{{package-version}}",
+  "version": "1.0.1",
   "maintainer": "alex@cockroachlabs.com",
   "description": "CockroachDB on DC/OS",
   "selected": false,

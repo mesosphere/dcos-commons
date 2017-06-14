@@ -6,19 +6,13 @@ pods:
   cockroachdb:
     count: {{NODE_COUNT}}
     uris:
-      - "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
+      - {{COCKROACH_URI}}
       - {{BOOTSTRAP_URI}}
     placement: {{NODE_PLACEMENT}}
-    tasks:
-      node:
-        goal: RUNNING
+    resource-sets:
+      server-resources:
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
-        configs:
-          start:
-            template: "{{CONFIG_TEMPLATE_PATH}}/start.sh.mustache"
-            dest: "start.sh" 
-        cmd: "./bootstrap && chmod +x $MESOS_SANDBOX/start.sh && $MESOS_SANDBOX/start.sh"
         ports:
           gui:
             port: 0
@@ -34,22 +28,68 @@ pods:
           path: "test-cockroach-data"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
+      
+    tasks:
+      node-init:
+        goal: RUNNING
+        resource-set: server-resources
+        configs:
+          start:
+            template: "{{CONFIG_TEMPLATE_PATH}}/start.sh.mustache"
+            dest: "start.sh"
+        cmd: "./bootstrap && chmod +x $MESOS_SANDBOX/start.sh && $MESOS_SANDBOX/start.sh"
         readiness-check:
-          cmd: "$MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
           interval: 10
           delay: 5
           timeout: 300
         health-check:
-          cmd: "$MESOS_SANDBOX/cockroach-latest.linux-amd64/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
           interval: 120
           grace-period: 30
           max-consecutive-failures: 3
           timeout: 10
           delay: 0
+        env:
+          COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      node-join:
+        goal: RUNNING
+        resource-set: server-resources
+        configs:
+          join:
+            template: "{{CONFIG_TEMPLATE_PATH}}/join.sh.mustache"
+            dest: "join.sh"
+        cmd: "./bootstrap && chmod +x $MESOS_SANDBOX/join.sh && $MESOS_SANDBOX/join.sh"
+        readiness-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 10
+          delay: 5
+          timeout: 300
+        health-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 120
+          grace-period: 30
+          max-consecutive-failures: 3
+          timeout: 10
+          delay: 0
+        env:
+          COCKROACH_VERSION: {{COCKROACH_VERSION}}
 plans:
   deploy:
     strategy: serial
     phases:
-      host:
-        strategy: serial 
+      node-deploy:
+        strategy: serial
         pod: cockroachdb
+        steps: 
+          - 0: [[node-init]]
+          - default: [[node-join]]
+  replace:
+    strategy: serial
+    phases:
+      node-deploy: 
+        strategy: serial
+        pod: cockroachdb
+        steps: 
+          - default: [[node-join]]
+      

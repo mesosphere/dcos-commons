@@ -5,9 +5,11 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cockroachdb-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "cockroach-binary": "https://binaries.cockroachdb.com"
     }
   },
+
   "images": {
     "icon-small": "http://i.imgur.com/FsEREZI.png",
     "icon-medium": "http://i.imgur.com/1DvX5di.png?1",
