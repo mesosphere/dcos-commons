@@ -3141,6 +3141,11 @@
 <dd>
 <div class="block">Returns the original, unpacked <code>TaskInfo</code> to be launched.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">getTaskInfo(StateStore, TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>
+<div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
+ TaskInfo.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TaskTestUtils.html#getTaskInfo-Protos.Resource-">getTaskInfo(Protos.Resource)</a></span> - Static method in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TaskTestUtils.html" title="class in com.mesosphere.sdk.testutils">TaskTestUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TaskTestUtils.html#getTaskInfo-java.util.List-java.lang.Integer-">getTaskInfo(List&lt;Protos.Resource&gt;, Integer)</a></span> - Static method in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TaskTestUtils.html" title="class in com.mesosphere.sdk.testutils">TaskTestUtils</a></dt>
@@ -3181,6 +3186,11 @@
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block">Produces the TaskStatus for the provided task name, or returns an error if that data doesn't
  exist or the data couldn't be read.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>
+<div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
+ task name.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
 <dd>&nbsp;</dd>
@@ -5801,6 +5811,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks(Collection&lt;TaskInfo&gt;)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">storeTaskStatusAsProperty(StateStore, String, TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>
+<div class="block">Stores a TaskStatus as a Property in the provided state store.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Strategy</span></a>&lt;<a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="type parameter in Strategy">C</a> extends <a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt; - Interface in <a href="com/mesosphere/sdk/scheduler/plan/strategy/package-summary.html">com.mesosphere.sdk.scheduler.plan.strategy</a></dt>
 <dd>
