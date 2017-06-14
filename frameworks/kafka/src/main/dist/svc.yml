@@ -39,6 +39,27 @@ pods:
           server-properties:
             template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
             dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
+        readiness-check:
+          cmd: |
+            # since the server is just started, the starting and started log lines
+            # should be present in the server.log file, independent of whether or
+            # not the server.log file is being logrotated.
+            kafka_dir=$(ls -d kafka_* |head -n 1)
+            kafka_server_log_file=$(kafka_dir)/log/server.log
+            now_date=$(date +%s)
+            starting_date_s=$(awk '/.*starting.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file)
+            starting_date=$(date -d $starting_date_s +%s)
+            started_date_s=$(awk '/.*started.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file)
+            started_date=$(date -d $started_date_s +%s)
+            [ ! -z $started_date_s ] && \
+                [ ! -z $starting_date_s ] && \
+                [ $starting_date -gt $now_date ] && \
+                [ $starting_date -le $started_date ]
+            is_ready=$?
+            exit $is_ready
+          interval: 5
+          delay: 0
+          timeout: 10
 plans:
   deploy:
     strategy: serial
