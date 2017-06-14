@@ -79,7 +79,7 @@ public class DefaultPodSpec implements PodSpec {
         this.tasks = tasks;
         this.placementRule = placementRule;
         this.volumes = (volumes != null) ? volumes : Collections.emptyList();
-        this.preReservedRole = preReservedRole;
+        this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.secrets = (secrets != null) ? secrets : Collections.emptyList();
     }
 
