@@ -16,6 +16,7 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,20 +59,6 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
     }
 
     private Phase getNodeRecoveryPhase(Plan inputPlan, int index) {
-        // Get IP address for replacement node.
-        Optional<Protos.TaskStatus> statusOptional = stateStore.fetchStatus(String.format("node-%d-server", index));
-
-        if (!statusOptional.isPresent()) {
-            logger.error("Task {} scheduled for recovery, but doesn't exist");
-            return null;
-        }
-
-        Protos.TaskStatus status = statusOptional.get();
-        String replaceIp = status.getContainerStatus()
-                .getNetworkInfosList().get(0)
-                .getIpAddressesList().get(0)
-                .getIpAddress();
-
         Phase inputPhase = inputPlan.getChildren().get(0);
         Step inputLaunchStep = inputPhase.getChildren().get(index);
 
@@ -80,6 +67,20 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         PodSpec podSpec = podInstance.getPod();
         TaskSpec taskSpec = podSpec.getTasks().stream().filter(t -> t.getName().equals("server")).findFirst().get();
         CommandSpec command = taskSpec.getCommand().get();
+
+        // Get IP address for the pre-existing node.
+
+        Optional<Protos.TaskStatus> status = StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TaskSpec.getInstanceName(podInstance, taskSpec));
+        if (!status.isPresent()) {
+            logger.error("No previously stored TaskStatus to pull IP address from in Cassandra recovery");
+            return null;
+        }
+
+        String replaceIp = status.get().getContainerStatus()
+                .getNetworkInfos(0)
+                .getIpAddresses(0)
+                .getIpAddress();
 
         DefaultCommandSpec.Builder builder = DefaultCommandSpec.newBuilder(command);
         builder.value(String.format(

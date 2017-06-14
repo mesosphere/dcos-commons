@@ -32,6 +32,7 @@ public class StateStoreUtils {
     private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
+    private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -134,6 +135,39 @@ public class StateStoreUtils {
         if (key.contains("/")) {
             throw new StateStoreException(Reason.LOGIC_ERROR, "Key cannot contain '/'");
         }
+    }
+
+    /**
+     * Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
+     * TaskInfo.
+     *
+     * @return The singular TaskInfo if it is present
+     * @throws StateStoreException if no corresponding TaskInfo is found.
+     * @throws StateStoreException if multiple corresponding TaskInfo's are found.
+     */
+    public static TaskInfo getTaskInfo(StateStore stateStore, TaskStatus taskStatus)
+            throws StateStoreException {
+        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            if (taskInfo.getTaskId().getValue().equals(taskStatus.getTaskId().getValue())) {
+                if (taskInfoOptional.isPresent()) {
+                    LOGGER.error("Found duplicate TaskIDs in Task{} and Task {}",
+                            taskInfoOptional.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with TaskID: %s", taskStatus));
+                } else {
+                    taskInfoOptional = Optional.of(taskInfo);
+                }
+            }
+        }
+
+        if (!taskInfoOptional.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with TaskID: %s", taskStatus));
+        }
+
+        return taskInfoOptional.get();
     }
 
     /**
@@ -253,6 +287,31 @@ public class StateStoreUtils {
 
     private static void setBooleanProperty(StateStore stateStore, String propertyName, boolean value) {
         stateStore.storeProperty(propertyName, new JsonSerializer().serialize(value));
+    }
+
+    /**
+     * Stores a TaskStatus as a Property in the provided state store.
+     */
+    public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, TaskStatus taskStatus)
+            throws StateStoreException {
+        stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskStatus.toByteArray());
+    }
+
+    /**
+     * Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
+     * task name.
+     */
+    public static Optional<TaskStatus> getTaskStatusFromProperty(StateStore stateStore, String taskName) {
+        try {
+            return Optional.of(TaskStatus.parseFrom(
+                    stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
+        } catch (Exception e) {
+            // Broadly catch exceptions to handle:
+            // Invalid TaskStatuses
+            // StateStoreExceptions
+            LOGGER.error("Unable to decode TaskStatus for taskName=" + taskName, e);
+            return Optional.empty();
+        }
     }
 
     /**

@@ -33,7 +33,10 @@ import org.awaitility.Awaitility;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
@@ -57,7 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the DefaultScheduler class.
  */
-@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
+@SuppressWarnings({"PMD.TooManyStaticImports", "PMD.AvoidUsingHardCodedIP"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
@@ -73,6 +76,8 @@ public class DefaultSchedulerTest {
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
     public static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+
+    private static final String TASK_IP = "9.9.9.9";
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -598,6 +603,82 @@ public class DefaultSchedulerTest {
     }
 
     @Test
+    public void testTaskIpIsStoredOnInstall() {
+        install();
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+    }
+
+    @Test
+    public void testTaskIpIsUpdatedOnStatusUpdate() {
+        List<Protos.TaskID> taskIds = install();
+        String updateIp = "1.1.1.1";
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+
+        Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
+                getTaskStatus(taskIds.get(0), Protos.TaskState.TASK_STAGING))
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                        .addNetworkInfos(Protos.NetworkInfo.newBuilder()
+                            .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
+                                .setIpAddress(updateIp))))
+                .build();
+        defaultScheduler.statusUpdate(mockSchedulerDriver, update);
+
+        // Verify the TaskStatus was update.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
+            return StateStoreUtils.getTaskStatusFromProperty(
+                    stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
+                    .getContainerStatus()
+                    .getNetworkInfos(0)
+                    .getIpAddresses(0)
+                    .getIpAddress().equals(updateIp);
+        });
+    }
+
+    @Test
+    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() {
+        List<Protos.TaskID> taskIds = install();
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+
+        Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
+                getTaskStatus(taskIds.get(0), Protos.TaskState.TASK_STAGING))
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                        .addNetworkInfos(Protos.NetworkInfo.newBuilder()))
+                .build();
+        defaultScheduler.statusUpdate(mockSchedulerDriver, update);
+
+        // Verify the TaskStatus was NOT updated.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
+            return StateStoreUtils.getTaskStatusFromProperty(
+                    stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
+                    .getContainerStatus()
+                    .getNetworkInfos(0)
+                    .getIpAddresses(0)
+                    .getIpAddress().equals(TASK_IP);
+        });
+    }
+
+    @Test
     public void testApiServerNotReadyDecline() {
         TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
         testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
@@ -674,6 +755,10 @@ public class DefaultSchedulerTest {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
                 .setState(state)
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                    .addNetworkInfos(Protos.NetworkInfo.newBuilder()
+                        .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
+                            .setIpAddress(TASK_IP))))
                 .build();
     }
 
