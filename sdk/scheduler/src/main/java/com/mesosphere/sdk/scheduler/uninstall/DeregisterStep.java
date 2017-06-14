@@ -44,7 +44,8 @@ public class DeregisterStep extends AbstractStep {
         // Remove the framework ID before unregistering
         stateStore.clearFrameworkId();
         // Unregisters the framework in addition to stopping the SchedulerDriver thread:
-        schedulerDriver.stop(true);
+        // Calling with failover == false causes Mesos to teardown the framework.
+        schedulerDriver.stop(false);
         logger.info("Deleting service root path for framework...");
         stateStore.clearAllData();
         logger.info("Finished deleting service root path for framework");
