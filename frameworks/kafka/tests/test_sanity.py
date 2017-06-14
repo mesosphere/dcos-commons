@@ -1,16 +1,14 @@
 import pytest
+import urllib
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_spin as spin
-import sdk_cmd as command
 import sdk_utils as utils
 import shakedown
 import dcos
 import dcos.config
 import dcos.http
-
-import urllib
+import shakedown
 
 from tests.test_utils import (
     DEFAULT_PARTITION_COUNT,
@@ -18,8 +16,6 @@ from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_BROKER_COUNT,
-    DEFAULT_TOPIC_NAME,
-    EPHEMERAL_TOPIC_NAME,
     DEFAULT_POD_TYPE,
     DEFAULT_PHASE_NAME,
     DEFAULT_PLAN_NAME,
@@ -27,6 +23,9 @@ from tests.test_utils import (
     service_cli,
     broker_count_check
 )
+
+DEFAULT_TOPIC_NAME = 'topic1'
+EPHEMERAL_TOPIC_NAME = 'topic_2'
 
 
 def setup_module(module):
@@ -50,7 +49,7 @@ def test_endpoints_address():
         if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
-    endpoints = spin.time_wait_return(fun)
+    endpoints = shakedown.wait_for(fun)
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
@@ -81,7 +80,7 @@ def test_broker_list():
 @pytest.mark.sanity
 def test_broker_invalid():
     try:
-        command.run_cli('{} broker get {}'.format(PACKAGE_NAME, DEFAULT_BROKER_COUNT + 1))
+        service_cli('broker get {}'.format(DEFAULT_BROKER_COUNT + 1))
         assert False, "Should have failed"
     except AssertionError as arg:
         raise arg
@@ -228,13 +227,13 @@ def test_no_unavailable_partitions_exist():
     assert partition_info['message'] == ''
 
 
-# --------- Cli -------------
+# --------- CLI -------------
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_help_cli():
-    command.run_cli('help')
+    service_cli('help', get_json=False)
 
 
 @pytest.mark.smoke
@@ -243,7 +242,7 @@ def test_config_cli():
     configs = service_cli('config list')
     assert len(configs) == 1
 
-    assert service_cli('config show {}'.format(configs[0]))
+    assert service_cli('config show {}'.format(configs[0]), print_output=False) # noisy output
     assert service_cli('config target')
     assert service_cli('config target_id')
 
@@ -273,7 +272,7 @@ def test_state_cli():
 def test_pods_cli():
     assert service_cli('pods list')
     assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE))
-    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE))
+    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), print_output=False) # noisy output
 
 # --------- Suppressed -------------
 
@@ -282,14 +281,14 @@ def test_pods_cli():
 @pytest.mark.sanity
 def test_suppress():
     dcos_url = dcos.config.get_config_val('core.dcos_url')
-    suppressed_url = urllib.parse.urljoin(dcos_url,
-                                          'service/{}/v1/state/properties/suppressed'.format(PACKAGE_NAME))
+    suppressed_url = urllib.parse.urljoin(
+        dcos_url, 'service/{}/v1/state/properties/suppressed'.format(PACKAGE_NAME))
 
     def fun():
         response = dcos.http.get(suppressed_url)
         response.raise_for_status()
         return response.text == "true"
 
-    spin.time_wait_noisy(fun)
+    shakedown.wait_for(fun)
 
 

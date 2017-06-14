@@ -6,11 +6,9 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
-import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +25,17 @@ import java.util.stream.IntStream;
  * {@link org.apache.mesos.Protos.ExecutorInfo} where appropriate so that the port is available in their respective
  * environments.
  */
-public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+public class PortEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
     private final boolean useHostPorts;
 
-    protected final PortSpec portSpec;
+    protected PortSpec portSpec;
+    private final String taskName;
+    private Optional<String> resourceId;
 
     public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
-        super(portSpec, resourceId, taskName);
+        this.taskName = taskName;
+        this.resourceId = resourceId;
         this.portSpec = portSpec;
         this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
     }
@@ -76,18 +77,32 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 .setBegin(assignedPort)
                 .setEnd(assignedPort);
 
-        this.resourceSpec = DefaultResourceSpec.newBuilder(this.resourceSpec)
-                .value(valueBuilder.build())
-                .build();
+        portSpec = new PortSpec(
+                valueBuilder.build(),
+                portSpec.getRole(),
+                portSpec.getPrincipal(),
+                portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
+                portSpec.getPortName(),
+                portSpec.getNetworkNames());
 
         if (useHostPorts) {
-            EvaluationOutcome evaluationOutcome = super.evaluate(mesosResourcePool, podInfoBuilder);
+            OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
+                    OfferEvaluationUtils.evaluateSimpleResource(
+                            this,
+                            portSpec,
+                            resourceId,
+                            mesosResourcePool);
+            EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
+
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
+
+            resourceId = reserveEvaluationOutcome.getResourceId();
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
         } else {
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(resourceSpec).build());
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
                     Collections.emptyList(),
@@ -97,7 +112,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
     }
 
-    @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
@@ -137,16 +151,6 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
 
         }
-    }
-
-    protected Protos.Resource getFulfilledResource(Protos.Resource resource) {
-        Protos.Resource reservedResource = super.getFulfilledResource();
-        if (resourceId.isPresent() && !StringUtils.isBlank(resourceId.get())) {
-            reservedResource = ResourceBuilder.fromExistingResource(reservedResource)
-                    .setResourceId(resourceId.get())
-                    .build();
-        }
-        return reservedResource;
     }
 
     private static Optional<Integer> selectDynamicPort(
@@ -233,5 +237,9 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                     .filter(DcosConstants::networkSupportsPortMapping)
                     .count() > 0;
         }
+    }
+
+    protected Optional<String> getTaskName() {
+        return Optional.ofNullable(taskName);
     }
 }

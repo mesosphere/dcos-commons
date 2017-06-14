@@ -130,10 +130,10 @@ class AWSPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
         num_artifacts = len(self._artifact_paths)
-        if num_artifacts > 1:
-            suffix = 's'
-        else:
+        if num_artifacts == 1:
             suffix = ''
+        else:
+            suffix = 's'
         self._github_updater.update(
             'success',
             'Uploaded stub universe and {} artifact{}'.format(num_artifacts, suffix),

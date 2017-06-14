@@ -8,7 +8,6 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_test_upgrade
 import sdk_utils
@@ -161,7 +160,7 @@ def test_state_properties_get():
         stdout = cmd.run_cli('hello-world state properties')
         return len(json.loads(stdout)) > 0
 
-    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30)
+    shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30)
 
     stdout = cmd.run_cli('hello-world state properties')
     jsonobj = json.loads(stdout)
@@ -186,7 +185,7 @@ def test_state_refresh_disable_cache():
 
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
     check_running()
@@ -200,11 +199,11 @@ def test_state_refresh_disable_cache():
                 return True
         return False
 
-    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
+    shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
     config = marathon.get_config(PACKAGE_NAME)
     del config['env']['DISABLE_STATE_CACHE']
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
     check_running()
@@ -214,7 +213,7 @@ def test_state_refresh_disable_cache():
     def check_cache_refresh():
         return cmd.run_cli('hello-world state refresh_cache')
 
-    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
+    stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout
 
 
@@ -249,7 +248,7 @@ def test_lock():
         timestamp = marathon_client.get_app(app_id).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
-    spin.time_wait_noisy(lambda: fn())
+    shakedown.wait_for(lambda: fn())
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
