@@ -3,14 +3,14 @@
 import shakedown
 
 import sdk_cmd
-import sdk_spin
+import sdk_utils
 
 
 def get_config(app_name):
+    # Be permissive of flakes when fetching the app content:
     def fn():
-        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False)
-
-    config = sdk_spin.time_wait_return(lambda: fn()).json()['app']
+        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
+    config = shakedown.wait_for(lambda: fn()).json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
@@ -25,9 +25,16 @@ def get_config(app_name):
 
 
 def update_app(app_name, config):
-    response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), json=config)
+    if "env" in config:
+        sdk_utils.out("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
+        for k in sorted(config["env"]):
+            sdk_utils.out("  {}={}".format(k, config["env"][k]))
+    response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), log_args=False, json=config)
+
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
-    shakedown.deployment_wait(app_id=app_name)
+
+    sdk_utils.out("Waiting for Marathon deployment of {} to complete...".format(app_name))
+    shakedown.deployment_wait(app_id=app_name, timeout=600)
 
 
 def destroy_app(app_name):

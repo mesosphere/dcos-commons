@@ -2,7 +2,6 @@ import pytest
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_spin as spin
 import sdk_utils as utils
 import shakedown
 
@@ -20,6 +19,12 @@ def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
     utils.gc_frameworks()
 
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_BROKER_COUNT,
+        service_name=SERVICE_NAME,
+        additional_options = {'service':{'virtual_network':True}})
+
 
 # gc_frameworks to make sure after each uninstall
 def teardown_module(module):
@@ -29,23 +34,14 @@ def teardown_module(module):
 # --------- Placement -------------
 
 
-#@pytest.mark.smoke
-#@pytest.mark.sanity
-#@pytest.mark.speedy
+@pytest.mark.smoke
+@pytest.mark.sanity
+@pytest.mark.speedy
 @pytest.mark.skip("https://jira.mesosphere.com/browse/INFINITY-1656 LIBPROCESS_IP will be 0.0.0.0")
 def test_cni_deployment():
-    install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=SERVICE_NAME,
-        additional_options = {'service':{'virtual_network':True}}
-    )
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-
-    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
-    assert pl['status'] == 'COMPLETE'
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    plan.wait_for_completed_deployment(SERVICE_NAME)
 
     # test endpoints output
     def fun():
@@ -53,11 +49,11 @@ def test_cni_deployment():
         if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
-    endpoints = spin.time_wait_return(fun)
+    endpoints = shakedown.wait_for(fun, noisy=True, timeout_seconds=5 * 60)
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
     for dns_endpoint in endpoints['dns']:
         assert "autoip.dcos.thisdcos.directory" in dns_endpoint
 
-    zookeeper = service_cli('endpoints zookeeper')
+    zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)

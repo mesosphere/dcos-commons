@@ -14,17 +14,13 @@ from tests.config import (
 FOLDERED_SERVICE_NAME = "/path/to/" + PACKAGE_NAME
 
 
-def uninstall_foldered():
+def setup_module(module):
+    install.uninstall(PACKAGE_NAME)
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    uninstall_foldered()
-
-
 def teardown_module(module):
-    uninstall_foldered()
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 @pytest.mark.sanity

@@ -2,7 +2,7 @@
   "description": "Cassandra node replace test verification",
   "id": "test.cassandra.verify-node-replace",
   "run": {
-    "cmd": "! cqlsh --no-color -e 'select peer from system.peers;' node-0-server.cassandra.autoip.dcos.thisdcos.directory 9042 | grep '{{NODE_IP}}' && [ 2 = $(cqlsh --no-color -e 'select peer from system.peers;' node-0-server.cassandra.autoip.dcos.thisdcos.directory 9042 | grep -E '^\\s+[0-9]' | wc -l | awk '{print $1}') ]",
+    "cmd": "cqlsh --no-color -e 'select peer from system.peers;' node-0-server.cassandra.autoip.dcos.thisdcos.directory 9042 > peers.txt; cat peers.txt; echo CHECKING FOR LACK OF {{NODE_ADDRESS}}; [ 0 = $(grep '{{NODE_ADDRESS}}' peers.txt | wc -l) ] && [ 2 = $(grep -E '[0-9.]+$' peers.txt | wc -l) ]",
     "docker": {
       "image": "cassandra:3.0.13"
     },
@@ -10,7 +10,7 @@
     "mem": 512,
     "user": "root",
     "restart": {
-      "policy": "NEVER"
+      "policy": "ON_FAILURE"
     }
   }
 }

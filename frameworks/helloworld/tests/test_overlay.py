@@ -49,8 +49,7 @@ def test_overlay_network():
                             "Task {task} has network name when it shouldn't has status:{status}"\
                             .format(task=task_name, status=status)
 
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
+    deployment_plan = plan.wait_for_completed_deployment(PACKAGE_NAME)
     utils.out("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct
