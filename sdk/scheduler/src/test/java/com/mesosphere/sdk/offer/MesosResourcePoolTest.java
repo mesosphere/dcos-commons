@@ -38,8 +38,8 @@ public class MesosResourcePoolTest {
         String resourceId = new MesosResource(resource).getResourceId().get();
 
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
-        Assert.assertEquals(1, pool.getReservedPool().size());
-        Assert.assertEquals(resource, pool.getReservedPool().get(resourceId).getResource());
+        Assert.assertEquals(1, pool.getDynamicallyReservedPool().size());
+        Assert.assertEquals(resource, pool.getDynamicallyReservedPool().get(resourceId).getResource());
     }
 
     @Test
@@ -74,10 +74,10 @@ public class MesosResourcePoolTest {
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
-        Assert.assertEquals(1, pool.getReservedPool().size());
+        Assert.assertEquals(1, pool.getDynamicallyReservedPool().size());
         MesosResource resourceToConsume = pool.consumeReserved(resource.getName(), resourceValue, resourceId).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
-        Assert.assertEquals(0, pool.getReservedPool().size());
+        Assert.assertEquals(0, pool.getDynamicallyReservedPool().size());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class MesosResourcePoolTest {
         Assert.assertEquals(1, pool.getUnreservedMergedPool().size());
         Assert.assertEquals(resource.getScalar().getValue(),
                 pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
-        MesosResource resourceToConsume = pool.consumeUnreservedMerged(resource.getName(), resourceValue).get();
+        MesosResource resourceToConsume = pool.consumeReservableMerged(resource.getName(), resourceValue, Constants.ANY_ROLE).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
         Assert.assertEquals(ValueUtils.getZero(Protos.Value.Type.SCALAR),
                 pool.getUnreservedMergedPool().get("cpus"));
@@ -105,9 +105,7 @@ public class MesosResourcePoolTest {
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertFalse(
-                pool.consumeUnreservedMerged(
-                        desiredUnreservedResource.getName(),
-                        resourceValue)
+                pool.consumeReservableMerged(desiredUnreservedResource.getName(), resourceValue, Constants.ANY_ROLE)
                         .isPresent());
     }
 }

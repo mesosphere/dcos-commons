@@ -21,7 +21,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final String protocol;
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
-    private final int vipPort;
+    private final long vipPort;
+    private final boolean onNamedNetwork;
 
     public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
         super(namedVIPSpec, taskName, resourceId);
@@ -30,6 +31,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         this.visibility = namedVIPSpec.getVisibility();
         this.vipName = namedVIPSpec.getVipName();
         this.vipPort = namedVIPSpec.getVipPort();
+        this.onNamedNetwork = !namedVIPSpec.getNetworkNames().isEmpty();
     }
 
     @Override
@@ -80,15 +82,16 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 }
             }
         }
+
         return false;
     }
 
-    private static DiscoveryInfo.Builder addVIP(
+    private DiscoveryInfo.Builder addVIP(
             DiscoveryInfo.Builder builder,
             String vipName,
             String protocol,
             DiscoveryInfo.Visibility visibility,
-            int vipPort,
+            long vipPort,
             int destPort) {
         builder.getPortsBuilder()
                 .addPortsBuilder()
@@ -96,7 +99,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(EndpointUtils.createVipLabel(vipName, vipPort));
+                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
 
         // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
         // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
@@ -104,10 +107,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         return builder;
     }
 
-    private static DiscoveryInfo getVIPDiscoveryInfo(
+    private DiscoveryInfo getVIPDiscoveryInfo(
             String taskName,
             String vipName,
-            int vipPort,
+            long vipPort,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             Resource r) {
@@ -120,7 +123,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
-                .addLabels(EndpointUtils.createVipLabel(vipName, vipPort));
+                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
 
         return discoveryInfoBuilder.build();
     }

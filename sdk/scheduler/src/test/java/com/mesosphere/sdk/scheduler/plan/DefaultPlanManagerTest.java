@@ -84,6 +84,10 @@ public class DefaultPlanManagerTest {
         firstStep.setStatus(Status.PREPARED);
         Assert.assertEquals(Status.IN_PROGRESS, planManager.getPlan().getStatus());
 
+        firstStep.forceComplete();
+        secondStep.setStatus(Status.STARTING);
+        Assert.assertEquals(Status.IN_PROGRESS, planManager.getPlan().getStatus());
+
         completePhase(plan.getChildren().get(0));
         Assert.assertEquals(Status.IN_PROGRESS, planManager.getPlan().getStatus());
 

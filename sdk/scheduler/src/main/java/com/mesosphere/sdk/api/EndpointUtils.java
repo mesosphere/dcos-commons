@@ -1,9 +1,8 @@
 package com.mesosphere.sdk.api;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,19 +88,28 @@ public class EndpointUtils {
     }
 
     /**
-     * Returns a {@link Label} which can be included in the {@code org.apache.mesos.Protos.DiscoveryInfo} for a VIP.
-     * This is the inverse of {@link #parseVipLabel(String, Label)}
+     * Returns a collection of {@link Label} which can be included in the {@code org.apache.mesos.Protos.DiscoveryInfo}
+     * for a VIP. This is the inverse of {@link #parseVipLabel(String, Label)}
      */
-    public static Label createVipLabel(String vipName, int vipPort) {
-        return Label.newBuilder()
-                .setKey(String.format("%s%s", VIP_LABEL_PREFIX, UUID.randomUUID().toString()))
+    public static Collection<Label> createVipLabels(String vipName, long vipPort, boolean onNamedNetwork) {
+        List<Label> labels = new ArrayList<>();
+        labels.add(Label.newBuilder()
+                .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))
                 .setValue(String.format("%s:%d", vipName, vipPort))
-                .build();
+                .build());
+        if (onNamedNetwork) {
+            labels.add(Label.newBuilder()
+                    .setKey(String.format("%s", Constants.VIP_OVERLAY_FLAG_KEY))
+                    .setValue(String.format("%s", Constants.VIP_OVERLAY_FLAG_VALUE))
+                    .build());
+        }
+        return labels;
+
     }
 
     /**
      * Extracts VIP information from the provided VIP label.
-     * This is the inverse of {@link #createVipLabel(String, int)}.
+     * This is the inverse of {@link #createVipLabels(String, long, boolean)}.
      *
      * @param taskName task name for use in logs if there's a problem
      * @param label a label from a {@code org.apache.mesos.Protos.DiscoveryInfo}

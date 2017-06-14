@@ -35,6 +35,11 @@
             "type":"string",
             "default":"hostname:MAX_PER:1"
           },
+          "virtual_network":{
+            "description": "Enable DC/OS Virtual Network",
+            "type": "boolean",
+            "default": false
+          },
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",
@@ -83,7 +88,7 @@
             "type": "string",
             "description": "Disk type to be used for storing broker data. See documentation. [ROOT, MOUNT]",
             "default": "ROOT"
-          },          
+          },
           "disk_path": {
             "type": "string",
             "description": "Relative path of consistent disk",
