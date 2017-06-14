@@ -4,7 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -18,8 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -158,8 +157,8 @@ public class DefaultService implements Service {
     }
 
     private boolean tasksNeedClearing() {
-        return ResourceCollectionUtils.getResourceIds(
-                ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                 .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
@@ -183,10 +182,10 @@ public class DefaultService implements Service {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
+                .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
-                .setCheckpoint(true)
-                .setRole(serviceSpec.getRole());
+                .setCheckpoint(true);
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
@@ -201,6 +200,13 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
+        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+
         return fwkInfoBuilder.build();
+    }
+
+    private List<String> getRoles(ServiceSpec serviceSpec) {
+        return Arrays.asList(serviceSpec.getRole());
     }
 }

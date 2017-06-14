@@ -43,7 +43,11 @@ public class MesosResource {
     }
 
     public Optional<String> getResourceId() {
-        return ResourceCollectionUtils.getResourceId(resource);
+        return ResourceUtils.getResourceId(resource);
+    }
+
+    public boolean hasResourceId() {
+        return getResourceId().isPresent();
     }
 
     public boolean hasReservation() {
@@ -56,6 +60,10 @@ public class MesosResource {
 
     public String getRole() {
         return resource.getRole();
+    }
+
+    public String getPreviousRole() {
+        return Constants.ANY_ROLE;
     }
 
     public Optional<String> getPrincipal() {

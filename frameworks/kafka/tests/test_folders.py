@@ -30,7 +30,6 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.speedy
 def test_install_foldered():
     install.install(
         PACKAGE_NAME,
