@@ -16,14 +16,12 @@ import java.util.*;
  */
 public class MesosResourcePool {
     private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
-
     private Offer offer;
 
     /**
      * In practice this is always unreserved MOUNT volumes.
      */
     private Map<String, List<MesosResource>> unreservedAtomicPool;
-
 
     /**
      * Maps resource IDs to Resources.
@@ -33,12 +31,12 @@ public class MesosResourcePool {
     private Map<String, MesosResource> dynamicallyReservedPoolByResourceId;
 
     /**
-      * Maps pre-reserved roles to maps of resource name and value.
-      *            "*" --> cpus: 4.0
-      *                     mem: 256
-      * "slave_public" --> cpus: 1.0
-      *                     mem: 128
-      */
+     * Maps pre-reserved roles to maps of resource name and value.
+     *            "*" --> cpus: 4.0
+     *                     mem: 256
+     * "slave_public" --> cpus: 1.0
+     *                     mem: 128
+     */
     private Map<String, Map<String, Value>> reservableMergedPoolByRole;
 
     /**
@@ -276,9 +274,9 @@ public class MesosResourcePool {
     }
 
     private static boolean consumableResource(Optional<String> podRole, Resource resource) {
-        if (!podRole.isPresent() ||
-                !resource.hasAllocationInfo() ||
-                !resource.getAllocationInfo().hasRole()) {
+        if (!podRole.isPresent()
+                || !resource.hasAllocationInfo()
+                || !resource.getAllocationInfo().hasRole()) {
             return true;
         }
 

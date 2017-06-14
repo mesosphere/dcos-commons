@@ -87,7 +87,6 @@ public abstract class AbstractScheduler implements Scheduler {
     @Override
     public void disconnected(SchedulerDriver driver) {
         LOGGER.error("Disconnected from Master.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
     @Override

@@ -87,7 +87,7 @@ public class ExecutorResourceMapper {
         }
 
         if (!matchingVolumes.isEmpty()) {
-            LOGGER.info("Matching task/TaskSpec resources: {}", matchingVolumes);
+            LOGGER.info("Matching volume/VolumeSpec volumes: {}", matchingVolumes);
             for (VolumeLabels volumeLabels : matchingVolumes) {
                 VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                         volumeLabels.volumeSpec,
