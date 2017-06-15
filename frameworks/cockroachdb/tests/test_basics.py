@@ -113,7 +113,7 @@ def test_tasks_updated():
         shakedown.kill_process_on_host(service_ip, "cockroach start")                                # Kill CockroachDB node
         tasks.check_running(SERVICE_NAME, DEFAULT_TASK_COUNT, 5*60)                                  # Wait for new CockroachDB node to run
         shakedown.wait_for(lambda: cockroach_nodes_healthy(), noisy=True, timeout_seconds=5*60)      # Wait for healthy CockroachDB cluster
-    assert tasks.check_tasks_updated(SERVICE_NAME, 'cockroach', old_task_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, 'cockroach', old_task_ids)
 
 @pytest.mark.smoke
 @pytest.mark.sanity
