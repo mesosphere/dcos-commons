@@ -11,9 +11,9 @@ import java.util.List;
 /**
  * A utility class for commonly needed algorithms for Mesos frameworks.
  */
-public final class RangeAlgorithms {
+public final class RangeUtils {
 
-    private RangeAlgorithms() {
+    private RangeUtils() {
         // do not instantiate
     }
 
