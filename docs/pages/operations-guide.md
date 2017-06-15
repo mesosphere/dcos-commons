@@ -274,7 +274,7 @@ pods:
 When a pod is on the `dcos` overlay network:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
-  * Pod IP addresses can be resolved with the DNS: `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
 Specifying that pod join the `dcos` overlay network has the following indirect effects:
   * The `ports` resource requirements in the service spec will ignored as resource requirements. 

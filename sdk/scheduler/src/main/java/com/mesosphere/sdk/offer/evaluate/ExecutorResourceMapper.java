@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
  */
 public class ExecutorResourceMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
-    private final PodSpec podSpec;
-    private final Protos.ExecutorInfo executorInfo;
     private final Collection<VolumeSpec> volumeSpecs;
     private final List<Protos.Resource> resources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
@@ -46,8 +44,6 @@ public class ExecutorResourceMapper {
     }
 
     public ExecutorResourceMapper(PodSpec podSpec, Protos.ExecutorInfo executorInfo) {
-        this.podSpec = podSpec;
-        this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
         this.resources = executorInfo.getResourcesList();
         this.evaluationStages = getEvaluationStagesInternal();
@@ -127,7 +123,7 @@ public class ExecutorResourceMapper {
             }
 
             if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(resource);
                 if (!resourceId.isPresent()) {
                     LOGGER.error("Failed to find resource ID for resource: {}", resource);
                     continue;

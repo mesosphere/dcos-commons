@@ -16,7 +16,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.when;
 
 public class YAMLServiceSpecFactoryTest {
@@ -26,7 +25,7 @@ public class YAMLServiceSpecFactoryTest {
     }
 
     @Mock private SchedulerFlags mockFlags;
-    @Mock private FileReader mockFileReader;
+    @Mock private YAMLToInternalMappers.FileReader mockFileReader;
 
     @Before
     public void beforeEach() {
@@ -44,7 +43,9 @@ public class YAMLServiceSpecFactoryTest {
         when(mockFlags.getApiServerPort()).thenReturn(123);
         when(mockFlags.getExecutorURI()).thenReturn("test-executor-uri");
 
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFlags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), mockFlags)
+                .setFileReader(mockFileReader)
+                .build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(Integer.valueOf(123), Integer.valueOf(serviceSpec.getApiPort()));
     }
@@ -53,7 +54,7 @@ public class YAMLServiceSpecFactoryTest {
     public void testGenerateRawSpecFromYAMLFile() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file, YAML_ENV_MAP);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).setEnv(YAML_ENV_MAP).build();
         Assert.assertNotNull(rawServiceSpec);
         Assert.assertEquals(TestConstants.PORT_API_VALUE, rawServiceSpec.getScheduler().getApiPort());
     }
@@ -63,7 +64,7 @@ public class YAMLServiceSpecFactoryTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(yaml, YAML_ENV_MAP);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yaml).setEnv(YAML_ENV_MAP).build();
         Assert.assertNotNull(rawServiceSpec);
         Assert.assertEquals(TestConstants.PORT_API_VALUE, rawServiceSpec.getScheduler().getApiPort());
     }

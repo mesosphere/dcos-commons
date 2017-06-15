@@ -29,5 +29,7 @@ public class RawSecret {
         return envKey;
     }
 
-    public String getFilePath() { return filePath; }
+    public String getFilePath() {
+        return filePath;
+    }
 }

@@ -75,7 +75,7 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
 
     }
 
-    private void testConfigTransition(List<PodSpec> oldPodSpecs, List<PodSpec> newPodSpecs, 
+    private void testConfigTransition(List<PodSpec> oldPodSpecs, List<PodSpec> newPodSpecs,
                                       int expectedHomoTransitionErrors, int expectedHeteroTransitionErrors)
             throws InvalidRequirementException {
         ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
@@ -93,10 +93,10 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
-        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
+        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(expectedHomoTransitionErrors, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
     @Test

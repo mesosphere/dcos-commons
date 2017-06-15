@@ -71,11 +71,11 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.ROOT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name());
     }
 
     private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.MOUNT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
     }
 
     private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {
@@ -101,7 +101,8 @@ public class PodInstanceRequirementTestUtils {
                     TestConstants.ROLE,
                     TestConstants.PRINCIPAL,
                     envPort.getKey(),
-                    String.format("test-port-%s", envPort.getKey())));
+                    String.format("test-port-%s", envPort.getKey()),
+                    Collections.emptyList()));
         }
         return builder.build();
     }
@@ -126,7 +127,8 @@ public class PodInstanceRequirementTestUtils {
                     "tcp",
                     DiscoveryInfo.Visibility.EXTERNAL,
                     TestConstants.VIP_NAME + "-" + taskPort,
-                    entry.getKey()));
+                    entry.getKey(),
+                    Collections.emptyList()));
         }
         return builder.build();
 
@@ -140,7 +142,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)
@@ -170,7 +172,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)

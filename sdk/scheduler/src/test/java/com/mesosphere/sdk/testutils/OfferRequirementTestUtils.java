@@ -22,10 +22,6 @@ public class OfferRequirementTestUtils {
         }.getReadinessCheck();
     }
 
-    private static String getIndexedName(String baseName, int index) {
-        return index == 0 ? baseName : baseName + index;
-    }
-
     public static SchedulerFlags getTestSchedulerFlags() {
         Map<String, String> map = new HashMap<>();
         map.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
