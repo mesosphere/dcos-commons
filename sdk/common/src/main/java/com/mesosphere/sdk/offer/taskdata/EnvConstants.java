@@ -23,5 +23,4 @@ public class EnvConstants {
     public static final String FRAMEWORK_HOST_TASKENV = "FRAMEWORK_HOST";
     /** Provides top-level-domain suffix for Mesos-DNS (only reflects task IP when the task is on the host network). */
     public static final String MESOS_TLD_TASKENV = "MESOS_DNS_TLD";
-
 }
