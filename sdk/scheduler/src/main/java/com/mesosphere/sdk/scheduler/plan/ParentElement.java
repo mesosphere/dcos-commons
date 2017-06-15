@@ -135,10 +135,15 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
             LOGGER.debug("({} status={}) At least one phase has status: {}",
                     getName(), result, Status.IN_PROGRESS);
         } else if (anyHaveStatus(Status.COMPLETE, children) &&
-                (anyHaveStatus(Status.PENDING, candidateChildren))) {
+                anyHaveStatus(Status.PENDING, candidateChildren)) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
                     getName(), result, Status.COMPLETE, Status.PENDING);
+        } else if (anyHaveStatus(Status.COMPLETE, children) &&
+                anyHaveStatus(Status.STARTING, candidateChildren)) {
+            result = Status.IN_PROGRESS;
+            LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
+                    getName(), result, Status.COMPLETE, Status.STARTING);
         } else if (!candidateChildren.isEmpty() && anyHaveStatus(Status.PENDING, candidateChildren)) {
             result = Status.PENDING;
             LOGGER.debug("({} status={}) At least one element has status: {}",

@@ -1,10 +1,9 @@
 import pytest
+
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
-import time
-
 from tests.config import *
 
 DEFAULT_NUMBER_OF_SHARDS = 1
@@ -46,7 +45,7 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_service_health():
-    check_dcos_service_health()
+    assert shakedown.service_healthy(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -57,7 +56,6 @@ def test_indexing(default_populated_index):
     assert doc["_source"]["name"] == "Loren"
 
 
-@pytest.mark.focus
 @pytest.mark.sanity
 def test_xpack_toggle(default_populated_index):
     # Verify disabled by default
@@ -78,8 +76,9 @@ def test_xpack_toggle(default_populated_index):
 @pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
-    shakedown.kill_process_on_host("data-0-node.{}.autoip.dcos.thisdcos.directory".format(PACKAGE_NAME),
-                                   "data__.*Elasticsearch")
+    shakedown.kill_process_on_host(
+        "data-0-node.{}.autoip.dcos.thisdcos.directory".format(PACKAGE_NAME),
+        "data__.*Elasticsearch")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 
@@ -88,10 +87,10 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.sanity
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
-    shakedown.kill_process_on_host("{}.{}.autoip.dcos.thisdcos.directory".format(initial_master, PACKAGE_NAME),
-                                   "master__.*Elasticsearch")
-    # Master re-election can take up to 3 seconds by default
-    time.sleep(3)
+    shakedown.kill_process_on_host(
+        "{}.{}.autoip.dcos.thisdcos.directory".format(initial_master, PACKAGE_NAME),
+        "master__.*Elasticsearch")
+    wait_for_expected_nodes_to_exist()
     new_master = get_elasticsearch_master()
     assert new_master.startswith("master") and new_master != initial_master
 
@@ -128,7 +127,6 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
 
 
-@pytest.mark.skip(reason="Removing Kibana/proxylite is a breaking change (ELASTIC-74)")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
