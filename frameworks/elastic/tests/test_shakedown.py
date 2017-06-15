@@ -127,7 +127,6 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
 
 
-@pytest.mark.skip(reason="Removing Kibana/proxylite is a breaking change (ELASTIC-74)")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
