@@ -87,18 +87,29 @@ func printPackageVersions() {
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
+	downgradeVersions, err := client.ConvertJSONToStringArray(downgradeVersionsBytes)
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
 	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}
+	upgradeVersions, err := client.ConvertJSONToStringArray(upgradeVersionsBytes)
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
 	client.PrintMessage("Current package version is: %s", currentVersionBytes)
-	if downgradeVersionsBytes != nil {
+	if len(downgradeVersions) == 0 {
+		client.PrintMessage("No valid package downgrade versions")
+	} else {
 		client.PrintMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
 	}
-	if upgradeVersionsBytes != nil {
+	if len(upgradeVersions) == 0 {
+		client.PrintMessage("No valid package upgrade versions")
+	} else {
 		client.PrintMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
 	}
-
 }
 
 func (cmd *updateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {

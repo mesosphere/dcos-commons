@@ -77,7 +77,7 @@ func GetValueFromJSONResponse(responseBytes []byte, field string) ([]byte, error
 	return GetValueFromJSON(responseJSONBytes, field)
 }
 
-// GetValueFromJSON retrieves the value of a specific field from an umarshaled map[string]interface
+// GetValueFromJSON retrieves the value of a specific field from an unmarshaled map[string]interface
 // of JSON. If the field does not exist, this returns nil.
 func GetValueFromJSON(jsonBytes map[string]interface{}, field string) ([]byte, error) {
 	if valueJSON, present := jsonBytes[field]; present {
@@ -88,4 +88,14 @@ func GetValueFromJSON(jsonBytes map[string]interface{}, field string) ([]byte, e
 		return valueBytes, nil
 	}
 	return nil, nil
+}
+
+// ConvertToStringArray unmarshals a byte array of JSON into a string array
+func ConvertJSONToStringArray(bytes []byte) ([]string, error) {
+	var convertedArray []string
+	err := json.Unmarshal(bytes, &convertedArray)
+	if err != nil {
+		return nil, err
+	}
+	return convertedArray, nil
 }

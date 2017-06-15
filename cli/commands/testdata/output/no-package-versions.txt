@@ -1,0 +1,3 @@
+Current package version is: "v1.0"
+No valid package downgrade versions
+No valid package upgrade versions

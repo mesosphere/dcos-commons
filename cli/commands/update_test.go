@@ -100,6 +100,13 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersions() {
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
+func (suite *UpdateTestSuite) TestUpdatePackageVersionsNoPackageVersions() {
+	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe-no-package-versions.json")
+	printPackageVersions()
+	expectedOutput := suite.loadFile("testdata/output/no-package-versions.txt")
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
 	doUpdate("testdata/input/config.json", "")
