@@ -58,8 +58,7 @@ public class UninstallStepTest {
 
     @Test
     public void testMixedUpdateOfferStatus() throws Exception {
-        OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceTestUtils.getDesiredRootVolume(
-                TestConstants.ROLE, TestConstants.PRINCIPAL, 999.0, "container-path"));
+        OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceTestUtils.getExpectedRootVolume(999.0));
         OfferRecommendation rec2 = new UnreserveOfferRecommendation(null,
                 ResourceTestUtils.getExpectedScalar("cpus", 1.0, RESOURCE_ID, TestConstants.ROLE, TestConstants.PRINCIPAL));
         uninstallStep.start();

@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -16,8 +18,6 @@ import java.util.UUID;
  * Test construction of Resource protobufs.
  */
 public class ResourceBuilderTest {
-    private static final String MOUNT_SOURCE_ROOT = "/mnt/src";
-
     /*
         name: "cpus"
         type: SCALAR
@@ -39,6 +39,22 @@ public class ResourceBuilderTest {
         Assert.assertEquals(1.0, resource.getScalar().getValue(), 0.0);
         Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
         Assert.assertFalse(resource.hasReservation());
+        Assert.assertEquals(0, resource.getReservationsCount());
+    }
+
+    @Test
+    public void testNewFromResourceSpec() {
+        ResourceSpec resourceSpec = new DefaultResourceSpec(
+                "cpus",
+                value,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL,
+                "CPUS_ENV_KEY");
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
+
+        Protos.Resource resource = resourceBuilder.build();
+        validateScalarResoure(resource);
     }
 
     /*
@@ -60,20 +76,13 @@ public class ResourceBuilderTest {
         }
     */
     @Test
-    public void testNewFromResourceSpec() {
-        ResourceSpec resourceSpec = new DefaultResourceSpec(
-                "cpus",
-                value,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
-
-        Protos.Resource resource = resourceBuilder.build();
-        validateScalarResoure(resource);
-
-        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals(36, label.getValue().length());
+    public void testNewFromResourceSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testNewFromResourceSpec();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -83,14 +92,50 @@ public class ResourceBuilderTest {
                 "cpus",
                 value,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "CPUS_ENV_KEY");
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, resourceId);
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
-        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
+
+        Protos.Resource.ReservationInfo reservationInfo = Capabilities.getInstance().supportsPreReservedResources() ?
+                resource.getReservations(0) :
+                resource.getReservation();
+        Protos.Label label = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
+    }
+
+    @Test
+    public void testExistingFromResourceSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testExistingFromResourceSpec();
+        } finally {
+            context.reset();
+        }
+    }
+
+    @Test
+    public void testNewFromRootVolumeSpec() {
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+                10,
+                VolumeSpec.Type.ROOT,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL,
+                "VOL_ENV_KEY");
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        Protos.Resource resource = resourceBuilder.build();
+        validateScalarResoure(resource);
+        validateDisk(resource);
     }
 
     /*
@@ -122,23 +167,13 @@ public class ResourceBuilderTest {
         }
     */
     @Test
-    public void testNewFromRootVolumeSpec() {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
-                10,
-                VolumeSpec.Type.ROOT,
-                TestConstants.CONTAINER_PATH,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                volumeSpec,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
-
-        Protos.Resource resource = resourceBuilder.build();
-        validateScalarResoure(resource);
-        validateDisk(resource);
+    public void testNewFromRootVolumeSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testNewFromRootVolumeSpec();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -148,6 +183,7 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -162,9 +198,50 @@ public class ResourceBuilderTest {
         validateScalarResoure(resource);
         validateDisk(resource);
 
-        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
+        Protos.Resource.ReservationInfo reservationInfo = Capabilities.getInstance().supportsPreReservedResources() ?
+                resource.getReservations(0) :
+                resource.getReservation();
+        Protos.Label label = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
         Assert.assertEquals(persistenceId.get(), resource.getDisk().getPersistence().getId());
+    }
+
+    @Test
+    public void testExistingFromRootVolumeSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testExistingFromRootVolumeSpec();
+        } finally {
+            context.reset();
+        }
+    }
+
+    @Test
+    public void testNewFromMountVolumeSpec() {
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+                10,
+                VolumeSpec.Type.MOUNT,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL,
+                "VOL_ENV_KEY");
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
+
+        Protos.Resource resource = resourceBuilder.build();
+        validateScalarResoure(resource);
+        validateDisk(resource);
+
+        Protos.Resource.DiskInfo diskInfo = resource.getDisk();
+        Assert.assertTrue(diskInfo.hasSource());
+        Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
+        Assert.assertEquals("MOUNT", source.getType().toString());
+        Assert.assertTrue(source.hasMount());
+        Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
     }
 
     /*
@@ -202,30 +279,13 @@ public class ResourceBuilderTest {
         }
     */
     @Test
-    public void testNewFromMountVolumeSpec() {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
-                10,
-                VolumeSpec.Type.MOUNT,
-                TestConstants.CONTAINER_PATH,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                volumeSpec,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(MOUNT_SOURCE_ROOT));
-
-        Protos.Resource resource = resourceBuilder.build();
-        validateScalarResoure(resource);
-        validateDisk(resource);
-
-        Protos.Resource.DiskInfo diskInfo = resource.getDisk();
-        Assert.assertTrue(diskInfo.hasSource());
-        Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
-        Assert.assertEquals("MOUNT", source.getType().toString());
-        Assert.assertTrue(source.hasMount());
-        Assert.assertEquals(MOUNT_SOURCE_ROOT, source.getMount().getRoot());
+    public void testNewFromMountVolumeSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testNewFromMountVolumeSpec();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -235,6 +295,7 @@ public class ResourceBuilderTest {
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -243,7 +304,7 @@ public class ResourceBuilderTest {
                 volumeSpec,
                 resourceId,
                 persistenceId,
-                Optional.of(MOUNT_SOURCE_ROOT));
+                Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
@@ -254,11 +315,24 @@ public class ResourceBuilderTest {
         Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
         Assert.assertEquals("MOUNT", source.getType().toString());
         Assert.assertTrue(source.hasMount());
-        Assert.assertEquals(MOUNT_SOURCE_ROOT, source.getMount().getRoot());
+        Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
 
-        Protos.Label label = resource.getReservation().getLabels().getLabels(0);
+        Protos.Resource.ReservationInfo reservationInfo = Capabilities.getInstance().supportsPreReservedResources() ?
+                resource.getReservations(0) :
+                resource.getReservation();
+        Protos.Label label = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(resourceId.get(), label.getValue());
         Assert.assertEquals(persistenceId.get(), resource.getDisk().getPersistence().getId());
+    }
+
+    @Test
+    public void testExistingFromMountVolumeSpecRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testExistingFromMountVolumeSpec();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -267,6 +341,7 @@ public class ResourceBuilderTest {
                 "cpus",
                 value,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "CPUS_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -277,12 +352,23 @@ public class ResourceBuilderTest {
     }
 
     @Test
+    public void testFromExistingScalarResourceRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testFromExistingScalarResource();
+        } finally {
+            context.reset();
+        }
+    }
+
+    @Test
     public void testFromExistingRootVolume() {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -299,17 +385,28 @@ public class ResourceBuilderTest {
     }
 
     @Test
+    public void testFromExistingRootVolumeRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testFromExistingRootVolume();
+        } finally {
+            context.reset();
+        }
+    }
+
+    @Test
     public void testFromExistingMountVolume() {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 "VOL_ENV_KEY");
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
-        Optional<String> sourceRoot = Optional.of(MOUNT_SOURCE_ROOT);
+        Optional<String> sourceRoot = Optional.of(TestConstants.MOUNT_SOURCE_ROOT);
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
                 volumeSpec,
                 resourceId,
@@ -321,14 +418,48 @@ public class ResourceBuilderTest {
         Assert.assertEquals(originalResource, reconstructedResource);
     }
 
+    @Test
+    public void testFromExistingMountVolumeRefined() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testFromExistingMountVolume();
+        } finally {
+            context.reset();
+        }
+    }
+
     private void validateScalarResoure(Protos.Resource resource) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            validateScalarResourceRefined(resource);
+        } else {
+            validateScalarResourceLegacy(resource);
+        }
+    }
+
+    private void validateScalarResourceRefined(Protos.Resource resource) {
+        Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
+        Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
+        Assert.assertFalse(resource.hasReservation());
+        Assert.assertEquals(1, resource.getReservationsCount());
+
+        Protos.Resource.ReservationInfo reservationInfo = resource.getReservations(0);
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
+        Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
+
+        Protos.Label label = reservationInfo.getLabels().getLabels(0);
+        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, label.getKey());
+        Assert.assertEquals(36, label.getValue().length());
+    }
+
+    private void validateScalarResourceLegacy(Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
         Assert.assertEquals(TestConstants.ROLE, resource.getRole());
         Assert.assertTrue(resource.hasReservation());
+        Assert.assertEquals(0, resource.getReservationsCount());
 
         Protos.Resource.ReservationInfo reservationInfo = resource.getReservation();
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
-        Assert.assertEquals(TestConstants.ROLE, resource.getRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
 
         Protos.Label label = reservationInfo.getLabels().getLabels(0);
@@ -349,5 +480,13 @@ public class ResourceBuilderTest {
         Protos.Volume volume = diskInfo.getVolume();
         Assert.assertEquals(TestConstants.CONTAINER_PATH, volume.getContainerPath());
         Assert.assertEquals(Protos.Volume.Mode.RW, volume.getMode());
+    }
+
+    private void validateRole(Protos.Resource resource) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
+        } else {
+            Assert.assertEquals(TestConstants.ROLE, resource.getRole());
+        }
     }
 }

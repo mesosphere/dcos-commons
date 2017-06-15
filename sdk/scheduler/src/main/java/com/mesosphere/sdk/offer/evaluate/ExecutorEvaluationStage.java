@@ -28,7 +28,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         if (!podInfoBuilder.getExecutorBuilder().isPresent()) {
-            return pass(this, "No executor requirement defined");
+            return pass(this, null, "No executor requirement defined");
         }
 
         if (!hasExpectedExecutorId(mesosResourcePool.getOffer())) {
@@ -41,6 +41,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             podInfoBuilder.setExecutorBuilder(executorInfo.get().toBuilder());
             return pass(
                     this,
+                    null,
                     "Offer contains the matching Executor ID: '%s'",
                     executorInfo.get().getExecutorId().getValue());
         } else {
@@ -49,6 +50,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             executorBuilder.setExecutorId(executorID);
             return pass(
                     this,
+                    null,
                     "No Executor ID required, generated: '%s'",
                     executorID.getValue());
         }

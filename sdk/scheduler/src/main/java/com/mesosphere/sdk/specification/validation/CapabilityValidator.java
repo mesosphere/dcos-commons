@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.specification.validation;
 
-import java.io.IOException;
-
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.collections.MapUtils;
+
+import java.io.IOException;
 
 
 /**
@@ -12,14 +13,9 @@ import org.apache.commons.collections.MapUtils;
  * cluster being run on.
  */
 public class CapabilityValidator {
-    private final Capabilities capabilities;
-
-    public CapabilityValidator(Capabilities capabilities) {
-        this.capabilities = capabilities;
-    }
-
     public void validate(ServiceSpec serviceSpec) throws CapabilityValidationException {
         validateGpuPolicy(serviceSpec);
+        validateResourceRefinement(serviceSpec);
         for (PodSpec podSpec : serviceSpec.getPods()) {
             validate(podSpec);
         }
@@ -28,7 +24,7 @@ public class CapabilityValidator {
     private void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
         try {
             if (DefaultService.serviceSpecRequestsGpuResources(serviceSpec)
-                    && !capabilities.supportsGpuResource()) {
+                    && !Capabilities.getInstance().supportsGpuResource()) {
                 throw new CapabilityValidationException(
                         "This cluster's DC/OS version does not support setting GPU_RESOURCE");
             }
@@ -37,9 +33,23 @@ public class CapabilityValidator {
         }
     }
 
+    private void validateResourceRefinement(ServiceSpec serviceSpec) throws CapabilityValidationException {
+        // All pre-reserved-roles should be "*" if the capability is not supported
+        if (!Capabilities.getInstance().supportsPreReservedResources()) {
+            boolean hasPreReservedRoles = serviceSpec.getPods().stream()
+                    .map(podSpec -> podSpec.getPreReservedRole())
+                    .anyMatch(preReservedRole -> !preReservedRole.equals(Constants.ANY_ROLE));
+
+            if (hasPreReservedRoles) {
+                throw new CapabilityValidationException(
+                        "This cluster's DC/OS version does not support consuming pre-reserved resources.");
+            }
+        }
+    }
+
     private void validate(PodSpec podSpec) throws CapabilityValidationException {
         try {
-            if (!podSpec.getRLimits().isEmpty() && !capabilities.supportsRLimits()) {
+            if (!podSpec.getRLimits().isEmpty() && !Capabilities.getInstance().supportsRLimits()) {
                 throw new CapabilityValidationException(
                         "This cluster's DC/OS version does not support setting rlimits");
             }
@@ -50,7 +60,8 @@ public class CapabilityValidator {
             if (!podSpec.getNetworks().isEmpty()) {
                 String cniNotSupportedMessage = "This cluster's DC/OS version does not support CNI port mapping";
                 for (NetworkSpec networkSpec : podSpec.getNetworks()) {
-                    if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) && !capabilities.supportsCNINetworking()) {
+                    if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) &&
+                            !Capabilities.getInstance().supportsCNINetworking()) {
                         // ask for port mapping but not supported
                         throw new CapabilityValidationException(cniNotSupportedMessage);
                     }
@@ -58,7 +69,8 @@ public class CapabilityValidator {
 
                 for (TaskSpec taskSpec : podSpec.getTasks()) {
                     for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                        if (resourceSpec.getName().equals("ports") && !capabilities.supportsCNINetworking()) {
+                        if (resourceSpec.getName().equals("ports") &&
+                                !Capabilities.getInstance().supportsCNINetworking()) {
                             throw new CapabilityValidationException(cniNotSupportedMessage);
                         }
                     }

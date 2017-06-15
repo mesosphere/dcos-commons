@@ -256,7 +256,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             PodSpec targetSpec = targetSpecOptional.get();
             PodSpec taskSpec = taskSpecOptional.get();
             boolean updateNeeded = !areMatching(targetSpec, taskSpec);
-            LOGGER.info("Compared target: {} to current: {}, update needed: {}", targetSpec, taskSpec, updateNeeded);
+            LOGGER.info("Update needed: {}, compared target: {} to current: {}", updateNeeded, targetSpec, taskSpec);
             return updateNeeded;
         } else {
             LOGGER.info("Configuration update is needed for: {}", taskInfo.getName());

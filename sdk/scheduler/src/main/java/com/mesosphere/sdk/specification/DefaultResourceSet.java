@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -19,6 +20,7 @@ import java.util.Objects;
  */
 public class DefaultResourceSet implements ResourceSet {
 
+    private final String preReservedRole;
     @NotNull
     @Size(min = 1)
     private String id;
@@ -41,11 +43,13 @@ public class DefaultResourceSet implements ResourceSet {
             @JsonProperty("resource-specifications") Collection<ResourceSpec> resources,
             @JsonProperty("volume-specifications") Collection<VolumeSpec> volumes,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal) {
         this.id = id;
         this.resources = resources;
         this.volumes = volumes;
         this.role = role;
+        this.preReservedRole = preReservedRole;
         this.principal = principal;
     }
 
@@ -55,15 +59,16 @@ public class DefaultResourceSet implements ResourceSet {
                 builder.resources,
                 builder.volumes,
                 builder.role,
+                builder.preReservedRole,
                 builder.principal);
     }
 
-    public static Builder newBuilder(String role, String principal) {
-        return new Builder(role, principal);
+    public static Builder newBuilder(String role, String preReservedRole, String principal) {
+        return new Builder(role, preReservedRole, principal);
     }
 
     public static Builder newBuilder(DefaultResourceSet copy) {
-        Builder builder = new Builder(copy.role, copy.principal);
+        Builder builder = new Builder(copy.role, copy.preReservedRole, copy.principal);
         builder.resources = copy.resources;
         builder.volumes = copy.volumes;
         return builder;
@@ -111,18 +116,29 @@ public class DefaultResourceSet implements ResourceSet {
         private Collection<VolumeSpec> volumes;
         private String role;
         private String principal;
+        public String preReservedRole;
 
-        private Builder(String role, String principal) {
-            this.role = role;
+        private Builder(String role, String preReservedRole, String principal) {
+            this.role = getRole(preReservedRole, role);
+            this.preReservedRole = preReservedRole;
             this.principal = principal;
             resources = new LinkedList<>();
             volumes = new LinkedList<>();
+        }
+
+        private String getRole(String preReservedRole, String role) {
+            if (preReservedRole.equals(Constants.ANY_ROLE)) {
+                return role;
+            } else {
+                return preReservedRole + "/" + role;
+            }
         }
 
         private Builder addScalarResource(Double r, String resourceId) {
             DefaultResourceSpec resource = DefaultResourceSpec.newBuilder()
                     .name(resourceId)
                     .role(role)
+                    .preReservedRole(preReservedRole)
                     .principal(principal)
                     .value(Protos.Value.newBuilder()
                             .setType(Protos.Value.Type.SCALAR)
@@ -179,6 +195,7 @@ public class DefaultResourceSet implements ResourceSet {
                     volumeTypeEnum,
                     containerPath,
                     role,
+                    preReservedRole,
                     principal,
                     "DISK_SIZE");
             if (volumes.stream()
