@@ -103,7 +103,7 @@ class TaskResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            logger.info("Orphaned task resources no longer in TaskSpec: {}",
+            logger.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
@@ -151,6 +151,14 @@ class TaskResourceMapper {
 
     private Optional<ResourceLabels> findMatchingPortSpec(
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs, Map<String, String> taskEnv) {
+        Protos.Value.Ranges ranges = taskResource.getRanges();
+        boolean hasMultiplePorts = ranges.getRangeCount() != 1
+                || ranges.getRange(0).getEnd() - ranges.getRange(0).getBegin() != 0;
+
+        if (hasMultiplePorts) {
+            return Optional.empty();
+        }
+
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof PortSpec)) {
                 continue;
