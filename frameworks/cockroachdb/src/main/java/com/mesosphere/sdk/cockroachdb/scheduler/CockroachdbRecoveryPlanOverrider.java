@@ -3,10 +3,10 @@ package com.mesosphere.sdk.cockroachdb.scheduler;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-//import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-//import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+//import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 //import com.mesosphere.sdk.specification.CommandSpec;
 //import com.mesosphere.sdk.specification.DefaultCommandSpec;
 //import com.mesosphere.sdk.specification.DefaultPodSpec;
@@ -46,9 +46,8 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
     @Override
     public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
-        if (!stoppedPod.getPodInstance().getPod().getType().equals("node")
-                || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
-            logger.info("No overrides necessary. Pod is not a node or it isn't a permanent failure.");
+        if (!stoppedPod.getPodInstance().getPod().getType().equals("cockroachdb")) {
+            logger.info("No overrides necessary. Pod is not a cockroachdb.");
             return Optional.empty();
         }
 
@@ -62,7 +61,39 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Phase inputPhase = inputPlan.getChildren().get(0);
         Step inputLaunchStep = inputPhase.getChildren().get(index);
 
+        // Dig all the way down into the command, so we can append the replace_address option to it.
+        PodInstance podInstance = inputLaunchStep.start().get().getPodInstance();
+        PodSpec podSpec = podInstance.getPod();
+        TaskSpec taskSpec = podSpec.getTasks().stream().filter(t -> t.getName().equals("node-join")).findFirst().get();
+        CommandSpec command = taskSpec.getCommand().get();
+
+        // Rebuild a new PodSpec with the modified command, and add it to the phase we return.
+        TaskSpec newTaskSpec = DefaultTaskSpec.newBuilder(taskSpec).commandSpec(command).build();
+        List<TaskSpec> tasks = podSpec.getTasks().stream()
+                .map(t -> {
+                    if (t.getName().equals(newTaskSpec.getName())) {
+                        return newTaskSpec;
+                    }
+                    return t;
+                })
+                .collect(Collectors.toList());
+        PodSpec newPodSpec = DefaultPodSpec.newBuilder(podSpec).tasks(tasks).build();
+        PodInstance newPodInstance = new DefaultPodInstance(newPodSpec, index);
+
+        PodInstanceRequirement replacePodInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                    newPodInstance, inputLaunchStep.start().get().getTasksToLaunch())
+                .recoveryType(RecoveryType.PERMANENT)
+                .build();
+		
+        Step replaceStep = new DefaultRecoveryStep(
+                inputLaunchStep.getName(),
+                Status.PENDING,
+                replacePodInstanceRequirement,
+                new UnconstrainedLaunchConstrainer(),
+                stateStore);
+
         return new DefaultPhase(
-                RECOVERY_PHASE_NAME, Arrays.asList(inputLaunchStep), new SerialStrategy<>(), Collections.emptyList());
+                RECOVERY_PHASE_NAME, Arrays.asList(replaceStep), new SerialStrategy<>(), Collections.emptyList());
     }
 }
