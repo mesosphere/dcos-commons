@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Why does this need to exist at all?
 
 # exit immediately on failure
 set -e

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # exit immediately on failure
-set -e
+set -e -x
 
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 EXE_FILENAME=$(basename $CUR_DIR)
