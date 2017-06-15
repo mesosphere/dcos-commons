@@ -173,7 +173,7 @@ func (suite *PlanTestSuite) TestForceComplete() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/force-complete.json")
 	suite.responseStatus = http.StatusOK
 	forceComplete("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n\n"
+	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -181,7 +181,7 @@ func (suite *PlanTestSuite) TestForceRestart() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/restart.json")
 	suite.responseStatus = http.StatusOK
 	restart("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n\n"
+	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -191,7 +191,7 @@ func (suite *PlanTestSuite) TestPause() {
 	config.Command = "plan pause"
 
 	pause("deploy", "hello")
-	expectedOutput := "Plan deploy has been paused.\n\n"
+	expectedOutput := "Plan deploy has been paused.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -202,7 +202,7 @@ func (suite *PlanTestSuite) TestPauseBadName() {
 
 	err := pause("bad-name", "")
 
-	expectedOutput := suite.loadFile("testdata/output/bad-name-pause.txt")
+	expectedOutput := "Plan, phase and/or step does not exist."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -213,7 +213,7 @@ func (suite *PlanTestSuite) TestPauseBadPhase() {
 
 	err := pause("deploy", "bad-phase")
 
-	expectedOutput := suite.loadFile("testdata/output/bad-name-pause.txt")
+	expectedOutput := "Plan, phase and/or step does not exist."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -224,7 +224,7 @@ func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 
 	err := pause("deploy", "hello")
 
-	expectedOutput := suite.loadFile("testdata/output/cannot-pause.txt")
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -235,7 +235,7 @@ func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 
 	err := pause("deploy", "hello")
 
-	expectedOutput := suite.loadFile("testdata/output/cannot-pause.txt")
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -246,7 +246,7 @@ func (suite *PlanTestSuite) TestResume() {
 
 	resume("deploy", "hello")
 
-	expectedOutput := "Plan deploy has been resumed.\n\n"
+	expectedOutput := "Plan deploy has been resumed.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -257,7 +257,7 @@ func (suite *PlanTestSuite) TestResumeBadPlan() {
 
 	err := resume("bad-name", "")
 
-	expectedOutput := suite.loadFile("testdata/output/bad-name-resume.txt")
+	expectedOutput := "Plan, phase and/or step does not exist."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -268,7 +268,7 @@ func (suite *PlanTestSuite) TestResumeBadPhase() {
 
 	err := resume("deploy", "bad-phase")
 
-	expectedOutput := suite.loadFile("testdata/output/bad-name-resume.txt")
+	expectedOutput := "Plan, phase and/or step does not exist."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -279,7 +279,7 @@ func (suite *PlanTestSuite) TestResumeInProgress() {
 
 	err := resume("deploy", "hello")
 
-	expectedOutput := suite.loadFile("testdata/output/cannot-resume.txt")
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -290,7 +290,7 @@ func (suite *PlanTestSuite) TestResumeAlreadyCompleted() {
 
 	err := resume("deploy", "hello")
 
-	expectedOutput := suite.loadFile("testdata/output/cannot-resume.txt")
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -325,8 +325,7 @@ func (suite *PlanTestSuite) TestStatusTreeSinglePhase() {
 └─ Deployment (IN_PROGRESS)
    ├─ kafka-0:[broker] (COMPLETE)
    ├─ kafka-1:[broker] (PENDING)
-   └─ kafka-2:[broker] (PENDING)
-`
+   └─ kafka-2:[broker] (PENDING)`
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
@@ -368,8 +367,7 @@ func (suite *PlanTestSuite) TestStatusTreeSinglePhaseWithErrors() {
 Errors:
 - foo
 - bar
-- baz
-`
+- baz`
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
@@ -430,15 +428,14 @@ func (suite *PlanTestSuite) TestStatusTreeMultiPhase() {
 └─ Reindexing (PENDING)
    ├─ kafka-0:[reindex] (PENDING)
    ├─ kafka-1:[reindex] (PENDING)
-   └─ kafka-2:[reindex] (PENDING)
-`
+   └─ kafka-2:[reindex] (PENDING)`
 
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
 func (suite *PlanTestSuite) TestStatusTreeEmptyJson() {
-	expectedOutput := "deploy (<UNKNOWN>)\n"
+	expectedOutput := "deploy (<UNKNOWN>)"
 	result := toStatusTree("deploy", []byte("{ }"))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
@@ -449,7 +446,7 @@ func (suite *PlanTestSuite) TestStatusTreeNoPhases() {
   "errors" : [ ],
   "status" : "IN_PROGRESS"
 }`
-	expectedOutput := "deploy (IN_PROGRESS)\n"
+	expectedOutput := "deploy (IN_PROGRESS)"
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
@@ -459,11 +456,9 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyPhase() {
   "phases" : [ { } ],
   "errors" : [ ],
   "status" : "IN_PROGRESS"
-}
-`
+}`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ <UNKNOWN> (<UNKNOWN>)
-`
+└─ <UNKNOWN> (<UNKNOWN>)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
@@ -480,8 +475,7 @@ func (suite *PlanTestSuite) TestStatusTreeNoSteps() {
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)
-`
+└─ Deployment (IN_PROGRESS)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
@@ -499,8 +493,7 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyStep() {
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ Deployment (IN_PROGRESS)
-   └─ <UNKNOWN> (<UNKNOWN>)
-`
+   └─ <UNKNOWN> (<UNKNOWN>)`
 	result := toStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }

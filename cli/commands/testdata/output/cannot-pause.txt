@@ -1,2 +1,0 @@
-dcos hello-world plan pause cannot be executed.
-Command has already been reported or completed.

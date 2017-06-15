@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -83,12 +84,10 @@ func checkPlansResponse(response *http.Response, body []byte) error {
 	case response.StatusCode == http.StatusNotFound:
 		if string(body) == "Element not found" {
 			// The scheduler itself is returning the 404 (otherwise we fall through to the default Adminrouter case)
-			return fmt.Errorf("dcos %s %s cannot be executed.\nPlan, phase and/or step does not exist.",
-				config.ModuleName, config.Command)
+			return errors.New("Plan, phase and/or step does not exist.")
 		}
 	case response.StatusCode == http.StatusAlreadyReported:
-		return fmt.Errorf("dcos %s %s cannot be executed.\nCommand has already been reported or completed.",
-			config.ModuleName, config.Command)
+		return errors.New("Cannot execute command. Command has already been issued or the plan has completed.")
 	}
 	return nil
 }
@@ -112,9 +111,9 @@ func forceComplete(planName, phase, step string) {
 		client.PrintMessageAndExit(err.Error())
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Step %s in phase %s in plan %s has been forced to complete.\n", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s has been forced to complete.", step, phase, planName)
 	} else {
-		client.PrintMessage("Step %s in phase %s in plan %s could not be forced to complete.\n", step, phase, planName)
+		client.PrintMessage("Step %s in phase %s in plan %s could not be forced to complete.", step, phase, planName)
 	}
 }
 
@@ -133,9 +132,17 @@ func restart(planName, phase, step string) {
 	}
 	if parseJSONResponse(responseBytes) {
 		// TODO: the user doesn't always have to specify this down to plan level so we should output different messages
-		client.PrintMessage("Step %s in phase %s in plan %s has been restarted.\n", step, phase, planName)
+		if step == "" && phase == "" {
+			client.PrintMessage("Plan %s has been restarted.", planName)
+		} else {
+			client.PrintMessage("Step %s in phase %s in plan %s has been restarted.", step, phase, planName)
+		}
 	} else {
-		client.PrintMessage("Step %s in phase %s in plan %s could not be restarted.\n", step, phase, planName)
+		if step == "" && phase == "" {
+			client.PrintMessage("Plan %s could not be restarted.", planName)
+		} else {
+			client.PrintMessage("Step %s in phase %s in plan %s could not be restarted.", step, phase, planName)
+		}
 	}
 }
 
@@ -163,9 +170,9 @@ func pause(planName, phase string) error {
 		return err
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Plan %s has been paused.\n", planName)
+		client.PrintMessage("Plan %s has been paused.", planName)
 	} else {
-		client.PrintMessage("Plan %s could not be paused.\n", planName)
+		client.PrintMessage("Plan %s could not be paused.", planName)
 	}
 	return nil
 }
@@ -187,9 +194,9 @@ func resume(planName, phase string) error {
 		return err
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Plan %s has been resumed.\n", planName)
+		client.PrintMessage("Plan %s has been resumed.", planName)
 	} else {
-		client.PrintMessage("Plan %s could not be resumed.\n", planName)
+		client.PrintMessage("Plan %s could not be resumed.", planName)
 	}
 	return nil
 }
@@ -318,7 +325,9 @@ func toStatusTree(planName string, planJSONBytes []byte) string {
 		}
 	}
 
-	// Include extra newline at end:
+	// Trim extra newline from end:
+	buf.Truncate(buf.Len() - 1)
+
 	return buf.String()
 }
 

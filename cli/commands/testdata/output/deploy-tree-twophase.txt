@@ -7,4 +7,3 @@ deploy (IN_PROGRESS)
    ├─ kafka-0:[reindex] (PENDING)
    ├─ kafka-1:[reindex] (PENDING)
    └─ kafka-2:[reindex] (PENDING)
-
