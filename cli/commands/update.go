@@ -23,9 +23,12 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 }
 
 func describe() {
+	// TODO: figure out KingPin's error handling
 	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
-	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
-	responseBytes := client.GetResponseBytes(response)
+	responseBytes, err := client.HTTPCosmosPostJSON("describe", string(requestContent))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
 	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
 	resolvedOptionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "resolvedOptions")
@@ -33,7 +36,7 @@ func describe() {
 		reportErrorAndExit(err, responseBytes)
 	}
 	if resolvedOptionsBytes != nil {
-		client.PrintJSONBytes(resolvedOptionsBytes, nil)
+		client.PrintJSONBytes(resolvedOptionsBytes)
 	} else {
 		client.PrintMessage("Package configuration is not available for service %s.", config.ServiceName)
 		client.PrintMessage("dcos %s %s is only available for packages installed with Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
@@ -66,9 +69,12 @@ type updateRequest struct {
 }
 
 func printPackageVersions() {
+	// TODO: figure out KingPin's error handling
 	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
-	response := client.HTTPCosmosPostJSON("describe", string(requestContent))
-	responseBytes := client.GetResponseBytes(response)
+	responseBytes, err := client.HTTPCosmosPostJSON("describe", string(requestContent))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
@@ -118,6 +124,7 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 }
 
 func doUpdate(optionsFile, packageVersion string) {
+	// TODO: figure out KingPin's error handling
 	request := updateRequest{AppID: config.ServiceName}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
@@ -140,9 +147,11 @@ func doUpdate(optionsFile, packageVersion string) {
 		request.OptionsJSON = optionsJSON
 	}
 	requestContent, _ := json.Marshal(request)
-	response := client.HTTPCosmosPostJSON("update", string(requestContent))
-	responseBytes := client.GetResponseBytes(response)
-	_, err := client.UnmarshalJSON(responseBytes)
+	responseBytes, err := client.HTTPCosmosPostJSON("update", string(requestContent))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	_, err = client.UnmarshalJSON(responseBytes)
 	if err != nil {
 		reportErrorAndExit(err, responseBytes)
 	}

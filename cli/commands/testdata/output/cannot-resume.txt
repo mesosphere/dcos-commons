@@ -1,0 +1,2 @@
+dcos hello-world plan resume cannot be executed.
+Command has already been reported or completed.

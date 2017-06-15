@@ -12,19 +12,40 @@ type stateHandler struct {
 }
 
 func (cmd *stateHandler) handleFrameworkID(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/state/frameworkId"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/state/frameworkId")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 func (cmd *stateHandler) handleProperties(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/state/properties"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/state/properties")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
+
 	return nil
 }
 func (cmd *stateHandler) handleProperty(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 func (cmd *stateHandler) handleRefreshCache(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServicePut("v1/state/refresh"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServicePut("v1/state/refresh")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 

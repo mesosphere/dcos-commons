@@ -1,34 +1,29 @@
 package commands
 
 import (
-	"log"
-
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 type endpointsHandler struct {
-	Name                  string
-	PrintDeprecatedNotice bool
+	Name string
 }
 
 func (cmd *endpointsHandler) handleEndpoints(c *kingpin.ParseContext) error {
-	// TODO(nickbp): Remove this after April 2017
-	if cmd.PrintDeprecatedNotice {
-		log.Fatalf("--native is no longer supported. Use 'native' entries in endpoint listing.")
-	}
-
 	path := "v1/endpoints"
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
 	}
-	response := client.HTTPServiceGet(path)
+	responseBytes, err := client.HTTPServiceGet(path)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	if len(cmd.Name) == 0 {
 		// Root endpoint: Always produce JSON
-		client.PrintJSON(response)
+		client.PrintJSONBytes(responseBytes)
 	} else {
 		// Any specific endpoints: May be any format, so just print the raw text
-		client.PrintResponseText(response)
+		client.PrintResponseText(responseBytes)
 	}
 	return nil
 }

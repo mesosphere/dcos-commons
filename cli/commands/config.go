@@ -12,22 +12,42 @@ type configHandler struct {
 }
 
 func (cmd *configHandler) handleList(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/configurations"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/configurations")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 
 func (cmd *configHandler) handleShow(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowID)))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowID))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 
 func (cmd *configHandler) handleTarget(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/configurations/target"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/configurations/target")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 
 func (cmd *configHandler) handleTargetID(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/configurations/targetId"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/configurations/targetId")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 

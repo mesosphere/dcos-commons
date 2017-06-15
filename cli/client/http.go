@@ -23,95 +23,95 @@ import (
 
 // HTTPServiceGet triggers a HTTP GET request to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceGet(urlPath string) *http.Response {
+func HTTPServiceGet(urlPath string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
 }
 
 // HTTPServiceGetQuery triggers a HTTP GET request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
-func HTTPServiceGetQuery(urlPath, urlQuery string) *http.Response {
+func HTTPServiceGetQuery(urlPath, urlQuery string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
 // HTTPServiceGetData triggers a HTTP GET request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceGetData(urlPath, payload, contentType string) *http.Response {
+func HTTPServiceGetData(urlPath, payload, contentType string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
 // HTTPServiceGetJSON triggers a HTTP GET request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceGetJSON(urlPath, jsonPayload string) *http.Response {
+func HTTPServiceGetJSON(urlPath, jsonPayload string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
 // HTTPServiceDelete triggers a HTTP DELETE request to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceDelete(urlPath string) *http.Response {
+func HTTPServiceDelete(urlPath string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
 }
 
 // HTTPServiceDeleteQuery triggers a HTTP DELETE request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>?<urlQuery>
-func HTTPServiceDeleteQuery(urlPath, urlQuery string) *http.Response {
+func HTTPServiceDeleteQuery(urlPath, urlQuery string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 
 // HTTPServiceDeleteData triggers a HTTP DELETE request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceDeleteData(urlPath, payload, contentType string) *http.Response {
+func HTTPServiceDeleteData(urlPath, payload, contentType string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
 }
 
 // HTTPServiceDeleteJSON triggers a HTTP DELETE request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServiceDeleteJSON(urlPath, jsonPayload string) *http.Response {
+func HTTPServiceDeleteJSON(urlPath, jsonPayload string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
 }
 
 // HTTPServicePost triggers a HTTP POST request to: <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePost(urlPath string) *http.Response {
+func HTTPServicePost(urlPath string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
 }
 
 // HTTPServicePostQuery triggers a HTTP POST request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
-func HTTPServicePostQuery(urlPath, urlQuery string) *http.Response {
+func HTTPServicePostQuery(urlPath, urlQuery string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
 }
 
 // HTTPServicePostData triggers a HTTP POST request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePostData(urlPath, payload, contentType string) *http.Response {
+func HTTPServicePostData(urlPath, payload, contentType string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
 
 // HTTPServicePostJSON triggers a HTTP POST request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePostJSON(urlPath, jsonPayload string) *http.Response {
+func HTTPServicePostJSON(urlPath, jsonPayload string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 // HTTPServicePut triggers a HTTP PUT request to: <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePut(urlPath string) *http.Response {
+func HTTPServicePut(urlPath string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
 }
 
 // HTTPServicePutQuery triggers a HTTP PUT request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
-func HTTPServicePutQuery(urlPath, urlQuery string) *http.Response {
+func HTTPServicePutQuery(urlPath, urlQuery string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 
 // HTTPServicePutData triggers a HTTP PUT request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePutData(urlPath, payload, contentType string) *http.Response {
+func HTTPServicePutData(urlPath, payload, contentType string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
 }
 
 // HTTPServicePutJSON triggers a HTTP PUT request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
-func HTTPServicePutJSON(urlPath, jsonPayload string) *http.Response {
+func HTTPServicePutJSON(urlPath, jsonPayload string) ([]byte, error) {
 	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
@@ -179,19 +179,6 @@ func httpQuery(request *http.Request) *http.Response {
 	}
 	if config.Verbose {
 		PrintMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
-	}
-	return response
-}
-
-func checkHTTPResponse(response *http.Response) *http.Response {
-	switch {
-	case response.StatusCode == http.StatusUnauthorized:
-		PrintMessage("Got 401 Unauthorized response from %s", response.Request.URL)
-		PrintMessageAndExit("- Bad auth token? Run 'dcos auth login' to log in.")
-	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
-		printServiceNameErrorAndExit(response)
-	case response.StatusCode < 200 || response.StatusCode >= 300:
-		printResponseErrorAndExit(response)
 	}
 	return response
 }

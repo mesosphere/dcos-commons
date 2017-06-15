@@ -7,7 +7,10 @@ import (
 	"net/url"
 	"strings"
 
+	"net/http"
+
 	"github.com/mesosphere/dcos-commons/cli/client"
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -75,6 +78,21 @@ func parseJSONResponse(jsonBytes []byte) bool {
 	return false
 }
 
+func checkPlansResponse(response *http.Response, body []byte) error {
+	switch {
+	case response.StatusCode == http.StatusNotFound:
+		if string(body) == "Element not found" {
+			// The scheduler itself is returning the 404 (otherwise we fall through to the default Adminrouter case)
+			return fmt.Errorf("dcos %s %s cannot be executed.\nPlan, phase and/or step does not exist.",
+				config.ModuleName, config.Command)
+		}
+	case response.StatusCode == http.StatusAlreadyReported:
+		return fmt.Errorf("dcos %s %s cannot be executed.\nCommand has already been reported or completed.",
+			config.ModuleName, config.Command)
+	}
+	return nil
+}
+
 func getQueryWithPhaseAndStep(phase, step string) url.Values {
 	query := url.Values{}
 	if len(phase) > 0 {
@@ -88,8 +106,12 @@ func getQueryWithPhaseAndStep(phase, step string) url.Values {
 
 func forceComplete(planName, phase, step string) {
 	query := getQueryWithPhaseAndStep(phase, step)
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", planName), query.Encode())
-	if parseJSONResponse(client.GetResponseBytes(response)) {
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", planName), query.Encode())
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	if parseJSONResponse(responseBytes) {
 		client.PrintMessage("Step %s in phase %s in plan %s has been forced to complete.\n", step, phase, planName)
 	} else {
 		client.PrintMessage("Step %s in phase %s in plan %s could not be forced to complete.\n", step, phase, planName)
@@ -97,14 +119,19 @@ func forceComplete(planName, phase, step string) {
 }
 
 func (cmd *planHandler) handleForceComplete(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	forceComplete(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
 func restart(planName, phase, step string) {
 	query := getQueryWithPhaseAndStep(phase, step)
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/restart", planName), query.Encode())
-	if parseJSONResponse(client.GetResponseBytes(response)) {
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/restart", planName), query.Encode())
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	if parseJSONResponse(responseBytes) {
 		// TODO: the user doesn't always have to specify this down to plan level so we should output different messages
 		client.PrintMessage("Step %s in phase %s in plan %s has been restarted.\n", step, phase, planName)
 	} else {
@@ -113,47 +140,71 @@ func restart(planName, phase, step string) {
 }
 
 func (cmd *planHandler) handleForceRestart(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	restart(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
 func (cmd *planHandler) handleList(c *kingpin.ParseContext) error {
-	response := client.HTTPServiceGet("v1/plans")
-	client.PrintJSON(response)
+	config.Command = c.SelectedCommand.FullCommand()
+	responseBytes, err := client.HTTPServiceGet("v1/plans")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 
-func pause(planName, phase string) {
+func pause(planName, phase string) error {
 	query := getQueryWithPhaseAndStep(phase, "")
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/interrupt", planName), query.Encode())
-	if parseJSONResponse(client.GetResponseBytes(response)) {
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/interrupt", planName), query.Encode())
+	if err != nil {
+		return err
+	}
+	if parseJSONResponse(responseBytes) {
 		client.PrintMessage("Plan %s has been paused.\n", planName)
 	} else {
 		client.PrintMessage("Plan %s could not be paused.\n", planName)
 	}
-}
-
-func (cmd *planHandler) handlePause(c *kingpin.ParseContext) error {
-	pause(cmd.getPlanName(), cmd.Phase)
 	return nil
 }
 
-func resume(planName, phase string) {
+func (cmd *planHandler) handlePause(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
+	err := pause(cmd.getPlanName(), cmd.Phase)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	return nil
+}
+
+func resume(planName, phase string) error {
 	query := getQueryWithPhaseAndStep(phase, "")
-	response := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/continue", planName), query.Encode())
-	if parseJSONResponse(client.GetResponseBytes(response)) {
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePostQuery(fmt.Sprintf("v1/plans/%s/continue", planName), query.Encode())
+	if err != nil {
+		return err
+	}
+	if parseJSONResponse(responseBytes) {
 		client.PrintMessage("Plan %s has been resumed.\n", planName)
 	} else {
 		client.PrintMessage("Plan %s could not be resumed.\n", planName)
 	}
+	return nil
 }
 
 func (cmd *planHandler) handleResume(c *kingpin.ParseContext) error {
-	resume(cmd.getPlanName(), cmd.Phase)
+	config.Command = c.SelectedCommand.FullCommand()
+	err := resume(cmd.getPlanName(), cmd.Phase)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	return nil
 }
 
 func (cmd *planHandler) handleStart(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	payload := "{}"
 	if len(cmd.Parameters) > 0 {
 		parameterPayload, err := getPlanParameterPayload(cmd.Parameters)
@@ -162,28 +213,42 @@ func (cmd *planHandler) handleStart(c *kingpin.ParseContext) error {
 		}
 		payload = parameterPayload
 	}
-	response := client.HTTPServicePostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
-	client.PrintJSON(response)
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 
 func printStatus(planName string, rawJSON bool) {
-	response := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	if rawJSON {
-		client.PrintJSON(response)
+		client.PrintJSONBytes(responseBytes)
 	} else {
-		client.PrintMessage(toStatusTree(planName, client.GetResponseBytes(response)))
+		client.PrintMessage(toStatusTree(planName, responseBytes))
 	}
 }
 
 func (cmd *planHandler) handleStatus(c *kingpin.ParseContext) error {
+	config.Command = c.SelectedCommand.FullCommand()
 	printStatus(cmd.getPlanName(), cmd.RawJSON)
 	return nil
 }
 
 func (cmd *planHandler) handleStop(c *kingpin.ParseContext) error {
-	response := client.HTTPServicePost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
-	client.PrintJSON(response)
+	config.Command = c.SelectedCommand.FullCommand()
+	client.SetCustomResponseCheck(checkPlansResponse)
+	responseBytes, err := client.HTTPServicePost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 

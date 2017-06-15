@@ -12,54 +12,56 @@ import (
 
 // HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
 // https://dcos.cluster/cosmos/service/<urlPath>
-func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
+func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
+	SetCustomResponseCheck(checkCosmosHTTPResponse)
+	return checkHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
-func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
+func createBadVersionError(response *http.Response, data map[string]interface{}) error {
 	requestedVersion, _ := GetValueFromJSON(data, "updateVersion")
 	validVersions, _ := GetValueFromJSON(data, "validVersions")
 	if config.Verbose {
 		printResponseError(response)
 	}
-	PrintMessage("Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
-	PrintMessageAndExit("Valid versions are: %s", validVersions)
+
+	errorString := `Unable to update %s to requested version: %s
+Valid versions are: %s`
+
+	return fmt.Errorf(errorString, config.ServiceName, requestedVersion, validVersions)
 }
 
-func parseCosmosHTTPErrorResponse(response *http.Response) {
-	responseJSON, err := UnmarshalJSON(GetResponseBytes(response))
+func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
+	responseJSON, err := UnmarshalJSON(body)
 	if err != nil {
-		printResponseErrorAndExit(response)
+		return createResponseError(response)
 	}
 	if errorType, present := responseJSON["type"]; present {
 		message := responseJSON["message"]
 		switch errorType {
 		case "MarathonAppNotFound":
-			printServiceNameErrorAndExit(response)
+			return createServiceNameError(response)
 		case "BadVersionUpdate":
-			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
+			return createBadVersionError(response, responseJSON["data"].(map[string]interface{}))
 		default:
 			if config.Verbose {
 				PrintMessage("Cosmos error: %s: %s", errorType, message)
 			}
-			printResponseErrorAndExit(response)
 		}
 	}
+	return createResponseError(response)
 }
 
-func checkCosmosHTTPResponse(response *http.Response) *http.Response {
+func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
 		if config.Verbose {
 			printResponseError(response)
 		}
-		PrintMessageAndExit("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		return fmt.Errorf("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	case response.StatusCode == http.StatusBadRequest:
-		parseCosmosHTTPErrorResponse(response)
-	default:
-		return checkHTTPResponse(response)
+		return parseCosmosHTTPErrorResponse(response, body)
 	}
-	return response
+	return nil
 }
 
 func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {

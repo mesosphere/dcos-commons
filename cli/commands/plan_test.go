@@ -10,9 +10,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/alecthomas/assert"
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -21,6 +21,7 @@ type PlanTestSuite struct {
 	server         *httptest.Server
 	requestBody    []byte
 	responseBody   []byte
+	responseStatus int
 	capturedOutput bytes.Buffer
 }
 
@@ -45,7 +46,7 @@ func (suite *PlanTestSuite) exampleHandler(w http.ResponseWriter, r *http.Reques
 	}
 	suite.requestBody = requestBody
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(suite.responseStatus)
 	w.Write(suite.responseBody)
 }
 
@@ -170,6 +171,7 @@ func (suite *PlanTestSuite) TestGetQuery() {
 
 func (suite *PlanTestSuite) TestForceComplete() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/force-complete.json")
+	suite.responseStatus = http.StatusOK
 	forceComplete("deploy", "hello", "hello-0:[server]")
 	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
@@ -177,6 +179,7 @@ func (suite *PlanTestSuite) TestForceComplete() {
 
 func (suite *PlanTestSuite) TestForceRestart() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/restart.json")
+	suite.responseStatus = http.StatusOK
 	restart("deploy", "hello", "hello-0:[server]")
 	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
@@ -184,25 +187,112 @@ func (suite *PlanTestSuite) TestForceRestart() {
 
 func (suite *PlanTestSuite) TestPause() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/interrupt.json")
+	suite.responseStatus = http.StatusOK
+	config.Command = "plan pause"
+
 	pause("deploy", "hello")
 	expectedOutput := "Plan deploy has been paused.\n\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
-// TODO:
-// Test pause where name doesn't exist -> 404 + error
-// Test pause where plan is complete -> should emit error message
+func (suite *PlanTestSuite) TestPauseBadName() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
+	suite.responseStatus = http.StatusNotFound
+	config.Command = "plan pause"
+
+	err := pause("bad-name", "")
+
+	expectedOutput := suite.loadFile("testdata/output/bad-name-pause.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestPauseBadPhase() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
+	suite.responseStatus = http.StatusNotFound
+	config.Command = "plan pause"
+
+	err := pause("deploy", "bad-phase")
+
+	expectedOutput := suite.loadFile("testdata/output/bad-name-pause.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
+	suite.responseStatus = http.StatusAlreadyReported
+	config.Command = "plan pause"
+
+	err := pause("deploy", "hello")
+
+	expectedOutput := suite.loadFile("testdata/output/cannot-pause.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
+	suite.responseStatus = http.StatusAlreadyReported
+	config.Command = "plan pause"
+
+	err := pause("deploy", "hello")
+
+	expectedOutput := suite.loadFile("testdata/output/cannot-pause.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
 
 func (suite *PlanTestSuite) TestResume() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/continue.json")
+	suite.responseStatus = http.StatusOK
+	config.Command = "plan resume"
+
 	resume("deploy", "hello")
+
 	expectedOutput := "Plan deploy has been resumed.\n\n"
-	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-// Test resume where name doesn't exist
-// Test resume where plan is complete -> should emit error message
-// Test resume where plan is in_progress -> should emit error message
+func (suite *PlanTestSuite) TestResumeBadPlan() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
+	suite.responseStatus = http.StatusNotFound
+	config.Command = "plan resume"
+
+	err := resume("bad-name", "")
+
+	expectedOutput := suite.loadFile("testdata/output/bad-name-resume.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestResumeBadPhase() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
+	suite.responseStatus = http.StatusNotFound
+	config.Command = "plan resume"
+
+	err := resume("deploy", "bad-phase")
+
+	expectedOutput := suite.loadFile("testdata/output/bad-name-resume.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestResumeInProgress() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
+	suite.responseStatus = http.StatusAlreadyReported
+	config.Command = "plan resume"
+
+	err := resume("deploy", "hello")
+
+	expectedOutput := suite.loadFile("testdata/output/cannot-resume.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *PlanTestSuite) TestResumeAlreadyCompleted() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
+	suite.responseStatus = http.StatusAlreadyReported
+	config.Command = "plan resume"
+
+	err := resume("deploy", "hello")
+
+	expectedOutput := suite.loadFile("testdata/output/cannot-resume.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
 
 func (suite *PlanTestSuite) TestStatusTreeSinglePhase() {
 	inputJSON := `{
@@ -417,6 +507,7 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyStep() {
 
 func (suite *PlanTestSuite) TestPrintStatusRaw() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	suite.responseStatus = http.StatusOK
 	printStatus("deploy", true)
 
 	// assert CLI output matches response json
@@ -425,6 +516,7 @@ func (suite *PlanTestSuite) TestPrintStatusRaw() {
 
 func (suite *PlanTestSuite) TestPrintStatusTree() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plan-status.json")
+	suite.responseStatus = http.StatusOK
 	printStatus("deploy", false)
 
 	// assert CLI output is what we expect

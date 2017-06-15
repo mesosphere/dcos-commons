@@ -59,50 +59,52 @@ func (suite *CosmosTestSuite) createExampleRequest() (*http.Request, []byte) {
 	return createCosmosHTTPJSONRequest("POST", "describe", string(requestBody)), requestBody
 }
 
-func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) http.Response {
+func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) (http.Response, []byte) {
 	request, _ := suite.createExampleRequest()
 	status := fmt.Sprintf("%v %s", statusCode, http.StatusText(statusCode))
 
 	var responseBody io.ReadCloser
+	var fileBytes []byte
 	if filename != "" {
-		responseBody = ioutil.NopCloser(bytes.NewBuffer(suite.loadFile(filename)))
+		fileBytes = suite.loadFile(filename)
+		responseBody = ioutil.NopCloser(bytes.NewBuffer(fileBytes))
 	}
 
-	return http.Response{StatusCode: statusCode, Status: status, Request: request, Body: responseBody}
+	return http.Response{StatusCode: statusCode, Status: status, Request: request, Body: responseBody}, fileBytes
 }
 
 func (suite *CosmosTestSuite) Test404ErrorResponse() {
 	config.Command = "describe"
 
 	// fake 404 response
-	fourOhFourResponse := suite.createExampleResponse(http.StatusNotFound, "")
+	fourOhFourResponse, body := suite.createExampleResponse(http.StatusNotFound, "")
 
-	checkCosmosHTTPResponse(&fourOhFourResponse)
+	err := checkCosmosHTTPResponse(&fourOhFourResponse, body)
 
 	expectedOutput := suite.loadFile("testdata/output/404.txt")
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
 func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
 	config.ServiceName = "hello-world-1"
 
 	// fake 400 response for MarathonAppNotFound
-	fourHundredResponse := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
+	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
 
-	checkCosmosHTTPResponse(&fourHundredResponse)
+	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
 
 	expectedOutput := suite.loadFile("testdata/output/bad-name.txt")
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	// create 400 response for BadVersionUpdate
-	fourHundredResponse := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
+	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
 
-	checkCosmosHTTPResponse(&fourHundredResponse)
+	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
 
 	expectedOutput := suite.loadFile("testdata/output/bad-version.txt")
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	// create a request

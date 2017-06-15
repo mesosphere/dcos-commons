@@ -12,27 +12,53 @@ type podsHandler struct {
 }
 
 func (cmd *podsHandler) handleList(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet("v1/pods"))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet("v1/pods")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 func (cmd *podsHandler) handleStatus(c *kingpin.ParseContext) error {
-	if len(cmd.PodName) == 0 {
-		client.PrintJSON(client.HTTPServiceGet("v1/pods/status"))
-	} else {
-		client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/pods/%s/status", cmd.PodName)))
+	// TODO: figure out KingPin's error handling
+	endpointPath := "v1/pods/status"
+	if len(cmd.PodName) > 0 {
+		endpointPath = fmt.Sprintf("v1/pods/%s/status", cmd.PodName)
 	}
+	body, err := client.HTTPServiceGet(endpointPath)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 func (cmd *podsHandler) handleInfo(c *kingpin.ParseContext) error {
-	client.PrintJSON(client.HTTPServiceGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName)))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintJSONBytes(body)
 	return nil
 }
 func (cmd *podsHandler) handleRestart(c *kingpin.ParseContext) error {
-	client.PrintResponseText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName)))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintResponseText(body)
+
 	return nil
 }
 func (cmd *podsHandler) handleReplace(c *kingpin.ParseContext) error {
-	client.PrintResponseText(client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName)))
+	// TODO: figure out KingPin's error handling
+	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintResponseText(body)
 	return nil
 }
 

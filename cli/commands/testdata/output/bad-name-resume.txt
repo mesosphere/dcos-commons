@@ -1,0 +1,2 @@
+dcos hello-world plan resume cannot be executed.
+Plan, phase and/or step does not exist.

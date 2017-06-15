@@ -39,7 +39,7 @@ func (suite *UpdateTestSuite) exampleHandler(w http.ResponseWriter, r *http.Requ
 	// write the request data to our suite's struct
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		suite.T().Fatal("%s", err)
+		suite.T().Fatalf("%s", err)
 	}
 	suite.requestBody = requestBody
 
@@ -73,8 +73,12 @@ func TestUpdateTestSuite(t *testing.T) {
 func (suite *UpdateTestSuite) TestDescribe() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
 	describe()
-	// assert that request contains our app-id
-	// TODO
+	// assert that request contains our appId
+	requestBody, err := client.UnmarshalJSON(suite.requestBody)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
+	assert.Equal(suite.T(), config.ServiceName, requestBody["appId"].(string))
 	// assert that printed output is the resolvedOptions field from the JSON
 	expectedOutput := suite.loadFile("testdata/output/describe.txt")
 	assert.JSONEq(suite.T(), string(expectedOutput), suite.capturedOutput.String())
