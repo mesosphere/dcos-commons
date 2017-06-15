@@ -57,6 +57,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
+        Assert.assertFalse(reserveResource.hasDisk());
 
         // Validate CREATE Operation
         String resourceId = getResourceId(reserveResource);
@@ -145,6 +146,9 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
+        Assert.assertTrue(reserveResource.hasDisk());
+        Assert.assertFalse(reserveResource.getDisk().hasPersistence());
+        Assert.assertFalse(reserveResource.getDisk().hasVolume());
 
         // Validate CREATE Operation
         String resourceId = getResourceId(reserveResource);
