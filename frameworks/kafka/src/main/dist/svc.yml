@@ -52,7 +52,7 @@ pods:
             # [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)
 
             kafka_dir=$(ls -d kafka_* |head -n 1)
-            kafka_server_log_file=${kafka_dir}/log/server.log
+            kafka_server_log_file=${kafka_dir}/logs/server.log
             starting_date_s=$(awk '/.*starting.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
             starting_date=$(date -d $starting_date_s +%s)
             started_date_s=$(awk '/.*started.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
