@@ -6,6 +6,7 @@ import shakedown
 import sdk_install as install
 import sdk_plan as plan
 import sdk_utils as utils
+import sdk_networks as networks
 
 from tests.config import (
     PACKAGE_NAME
@@ -32,22 +33,6 @@ def teardown_module(module):
 @pytest.mark.overlay
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
-    def check_task_network(task_name, on_overlay, expected_network_name="dcos"):
-        _task = shakedown.get_task(task_id=task_name, completed=False)
-        for status in _task["statuses"]:
-            if status["state"] == "TASK_RUNNING":
-                for network_info in status["container_status"]["network_infos"]:
-                    if on_overlay:
-                        assert "name" in network_info, \
-                            "Didn't find network name in NetworkInfo for task {task} with "\
-                            "status:{status}".format(task=task_name, status=status)
-                        assert network_info["name"] == expected_network_name, \
-                            "Expected network name:{expected} found:{observed}"\
-                            .format(expected=expected_network_name, observed=network_info["name"])
-                    else:
-                        assert "name" not in network_info, \
-                            "Task {task} has network name when it shouldn't has status:{status}"\
-                            .format(task=task_name, status=status)
 
     deployment_plan = plan.wait_for_completed_deployment(PACKAGE_NAME)
     utils.out("deployment_plan: " + str(deployment_plan))
@@ -90,10 +75,10 @@ def test_overlay_network():
         if "overlay" in name:
             assert "ports" not in resources.keys(), "Task {} should NOT have port resources".format(name)
 
-    check_task_network("hello-overlay-0-server", True)
-    check_task_network("hello-overlay-vip-0-server", True)
-    check_task_network("hello-host-0-server", False)
-    check_task_network("hello-host-vip-0-server", False)
+    networks.check_task_network("hello-overlay-0-server")
+    networks.check_task_network("hello-overlay-vip-0-server")
+    networks.check_task_network("hello-host-0-server", expected_network_name=None)
+    networks.check_task_network("hello-host-vip-0-server", expected_network_name=None)
 
     endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints".format(pkg=PACKAGE_NAME))
     endpoints_result = json.loads(endpoints_result)

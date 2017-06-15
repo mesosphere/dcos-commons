@@ -210,7 +210,6 @@ public class PortEvaluationStageTest {
     public void testPortEnvCharConversion() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(5000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
         PortSpec portSpec = new PortSpec(
                 getPort(5000),
                 TestConstants.ROLE,
@@ -224,7 +223,6 @@ public class PortEvaluationStageTest {
                 portSpec,
                 TestConstants.TASK_NAME,
                 Optional.empty());
-
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
@@ -232,7 +230,6 @@ public class PortEvaluationStageTest {
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals(
                 5000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
-
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(2);
         Assert.assertEquals(variable.getName(), "PORT_TEST_PORT");
@@ -247,16 +244,14 @@ public class PortEvaluationStageTest {
     }
 
     @Test
-    public void testPortOnHealthCheck() throws Exception {
+    public void testPortEnvvarOnHealthCheck() throws Exception {
         DefaultPodInstance podInstance = getPodInstance("valid-port-healthcheck.yml");
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
@@ -264,16 +259,12 @@ public class PortEvaluationStageTest {
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
-
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
-
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
-
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals(
                 10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
-
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
         boolean portInTaskEnv = false;
         for (int i = 0; i < taskBuilder.getCommand().getEnvironment().getVariablesCount(); i++) {
@@ -284,7 +275,6 @@ public class PortEvaluationStageTest {
             }
         }
         Assert.assertTrue(portInTaskEnv);
-
         boolean portInHealthEnv = false;
         for (int i = 0; i < taskBuilder.getHealthCheck().getCommand().getEnvironment().getVariablesCount(); i++) {
             Protos.Environment.Variable variable = taskBuilder.getHealthCheck().getCommand().getEnvironment().getVariables(i);
@@ -297,16 +287,67 @@ public class PortEvaluationStageTest {
     }
 
     @Test
-    public void testPortOnReadinessCheck() throws Exception {
+    public void testHealthCheckPortEnvvarIsCorrectOnOverlay() throws Exception {
+        DefaultPodInstance podInstance = getPodInstance("valid-port-healthcheck-overlay.yml");
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
+                        .build();
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                getPortSpec(podInstance),
+                TestConstants.TASK_NAME,
+                Optional.empty());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
+        Assert.assertTrue(taskBuilder.getCommand().getEnvironment().getVariablesList().stream()
+                .filter(variable -> variable.getName().equals("PORT_TEST_PORT") && variable.getValue().equals("10000"))
+                .count() == 1);
+        Assert.assertTrue(taskBuilder.getHealthCheck().getCommand().getEnvironment().getVariablesList().stream()
+                .filter(variable -> variable.getName().equals("PORT_TEST_PORT") && variable.getValue().equals("10000"))
+                .count() == 1);
+    }
+
+    @Test
+    public void testReadinessCheckPortEnvvarIsCorrectOnOverlay() throws Exception {
+        DefaultPodInstance podInstance = getPodInstance("valid-port-readinesscheck-overlay.yml");
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
+                        .build();
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+                getPortSpec(podInstance),
+                TestConstants.TASK_NAME,
+                Optional.empty());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
+        Assert.assertTrue(taskBuilder.getCommand().getEnvironment().getVariablesList().stream()
+                .filter(variable -> variable.getName().equals("PORT_TEST_PORT") && variable.getValue().equals("10000"))
+                .count() == 1);
+
+        Optional<Protos.HealthCheck> readinessCheck = OfferRequirementTestUtils.getReadinessCheck(taskBuilder.build());
+        Assert.assertTrue(readinessCheck.isPresent());
+        Assert.assertTrue(readinessCheck.get().getCommand().getEnvironment().getVariablesList().stream()
+                .filter(variable -> variable.getName().equals("PORT_TEST_PORT") && variable.getValue().equals("10000"))
+                .count() == 1);
+    }
+
+    @Test
+    public void testPortEnvvarOnReadinessCheck() throws Exception {
         DefaultPodInstance podInstance = getPodInstance("valid-port-readinesscheck.yml");
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
-
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
@@ -314,16 +355,12 @@ public class PortEvaluationStageTest {
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
-
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
-
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
-
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals(
                 10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
-
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
         boolean portInTaskEnv = false;
         for (int i = 0; i < taskBuilder.getCommand().getEnvironment().getVariablesCount(); i++) {
@@ -334,7 +371,6 @@ public class PortEvaluationStageTest {
             }
         }
         Assert.assertTrue(portInTaskEnv);
-
         boolean portInHealthEnv = false;
         Optional<Protos.HealthCheck> readinessCheck = OfferRequirementTestUtils.getReadinessCheck(taskBuilder.build());
         for (int i = 0; i < readinessCheck.get().getCommand().getEnvironment().getVariablesCount(); i++) {
