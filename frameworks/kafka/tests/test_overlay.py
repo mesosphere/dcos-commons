@@ -1,19 +1,28 @@
 import pytest
 
+import shakedown
+
 import sdk_install as install
 import sdk_tasks as tasks
+import sdk_plan as plan
+import sdk_networks as networks
 import sdk_utils as utils
-import shakedown
+
 
 
 from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_BROKER_COUNT,
-    DEFAULT_PLAN_NAME,
     service_cli
 )
 
+from tests.test_sanity import (
+    test_topic_create,
+    test_topic_delete,
+    test_pods_replace,
+    test_pods_restart
+)
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
@@ -24,36 +33,57 @@ def setup_module(module):
         DEFAULT_BROKER_COUNT,
         service_name=SERVICE_NAME,
         additional_options = {'service':{'virtual_network':True}})
+    plan.wait_for_completed_deployment(PACKAGE_NAME)
 
 
-# gc_frameworks to make sure after each uninstall
 def teardown_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
-# --------- Placement -------------
+@pytest.mark.overlay
+@pytest.mark.smoke
+@pytest.mark.sanity
+def test_service_overlay_health():
+    shakedown.service_healthy(PACKAGE_NAME)
+    broker_tasks = (
+        "kafka-0-broker",
+        "kafka-1-broker",
+        "kafka-2-broker"
+    )
+    for task in broker_tasks:
+        networks.check_task_network(task)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-@pytest.mark.speedy
-@pytest.mark.skip("https://jira.mesosphere.com/browse/INFINITY-1656 LIBPROCESS_IP will be 0.0.0.0")
-def test_cni_deployment():
+@pytest.mark.overlay
+def test_overlay_network_deployment_and_endpoints():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-    plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # test endpoints output
-    def fun():
-        ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
-        if len(ret['address']) == DEFAULT_BROKER_COUNT:
-            return ret
-        return False
-    endpoints = shakedown.wait_for(fun, noisy=True, timeout_seconds=5 * 60)
-    assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
-    assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
-    for dns_endpoint in endpoints['dns']:
-        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
+    endpoints = networks.get_endpoints("", PACKAGE_NAME, 2)
+    assert "broker" in endpoints, "broker is missing from endpoints {}".format(endpoints)
+    assert "zookeeper" in endpoints, "zookeeper missing from endpoints {}".format(endpoints)
+    broker_endpoints = networks.get_endpoints("broker", PACKAGE_NAME, 4)
+    networks.check_endpoints_on_overlay(broker_endpoints)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
+
+
+@pytest.mark.sanity
+def test_topic_create_and_delete():
+    test_topic_create()
+    test_topic_delete()
+
+
+@pytest.mark.sanity
+def test_pods_replace_on_overlay():
+    test_pods_replace()
+    test_overlay_network_deployment_and_endpoints()
+
+
+@pytest.mark.sanity
+def test_pods_restart_on_overlay():
+    test_pods_restart()
+    test_overlay_network_deployment_and_endpoints()
+

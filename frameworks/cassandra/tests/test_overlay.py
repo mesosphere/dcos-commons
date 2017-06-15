@@ -1,4 +1,3 @@
-import json
 import tempfile
 import pytest
 
@@ -12,7 +11,6 @@ from tests.test_plans import (
 
 
 import sdk_install as install
-import sdk_tasks as tasks
 import sdk_plan as plan
 import sdk_jobs as jobs
 import sdk_utils as utils
@@ -46,7 +44,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-def test_service_health():
+def test_service_overlay_health():
     shakedown.service_healthy(PACKAGE_NAME)
     node_tasks = (
         "node-0-server",
@@ -74,26 +72,9 @@ def test_functionality():
 @pytest.mark.sanity
 @pytest.mark.overlay
 def test_endpoints():
-    def get_endpoints(endpoint_to_get, correct_length):
-        endpoints, _, rc = shakedown.run_dcos_command("{} endpoints {}".format(PACKAGE_NAME, endpoint_to_get))
-        assert rc == 0, "Failed to get endpoints on overlay network"
-        endpoints = json.loads(endpoints)
-        assert len(endpoints) == correct_length, "Wrong number of endpoints, got {} should be {}"\
-                                                 .format(len(endpoints), correct_length)
-        return endpoints
-
-    endpoints = get_endpoints("", 1)  # tests that the correct number of endpoints are found, should just be "node"
+    endpoints = networks.get_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
-    endpoints = get_endpoints("node", 4)
+    endpoints = networks.get_endpoints("node", PACKAGE_NAME, 4)
     assert "address" in endpoints, "Endpoints missing address key"
-
-    ip_addresses = [e.split(":")[0] for e in endpoints["address"]]
-    assert len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0, \
-        "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
-
-    assert "dns" in endpoints, "Endpoints missing DNS key"
-    for dns in endpoints["dns"]:
-        assert "autoip.dcos.thisdcos.directory" in dns, "DNS {} is incorrect should have autoip.dcos.thisdcos."\
-                "directory".format(dns)
-
+    networks.check_endpoints_on_overlay(endpoints)
 
