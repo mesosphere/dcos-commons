@@ -11,16 +11,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link RangeAlgorithms}.
+ * Tests for {@link RangeUtils}.
  */
-public class RangeAlgorithmsTest {
+public class RangeUtilsTest {
 
     @Test
     public void testMergingOverlappingRanges() {
         List<Range> r1 = Arrays.asList(getRange(1, 3));
         List<Range> r2 = Arrays.asList(getRange(2, 4));
 
-        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeUtils.mergeRanges(r1, r2);
 
         assertEquals(1, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -32,7 +32,7 @@ public class RangeAlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 3));
         List<Range> r2 = Arrays.asList(getRange(5, 7));
 
-        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeUtils.mergeRanges(r1, r2);
 
         assertEquals(2, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -46,7 +46,7 @@ public class RangeAlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 5));
         List<Range> r2 = Arrays.asList(getRange(2, 4));
 
-        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeUtils.mergeRanges(r1, r2);
 
         assertEquals(1, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -58,7 +58,7 @@ public class RangeAlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 3), getRange(5, 7));
         List<Range> r2 = Arrays.asList(getRange(1, 3));
 
-        List<Range> difference = RangeAlgorithms.subtractRanges(r1, r2);
+        List<Range> difference = RangeUtils.subtractRanges(r1, r2);
 
         assertEquals(1, difference.size());
         assertEquals(5, difference.get(0).getBegin());
@@ -70,7 +70,7 @@ public class RangeAlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(2, 3));
         List<Range> r2 = Arrays.asList(getRange(1, 5));
 
-        List<Range> difference = RangeAlgorithms.subtractRanges(r1, r2);
+        List<Range> difference = RangeUtils.subtractRanges(r1, r2);
 
         assertTrue(difference.isEmpty());
     }
@@ -78,20 +78,20 @@ public class RangeAlgorithmsTest {
     @Test
     public void testRangeIsInAny() {
         List<Range> r1 = Arrays.asList(getRange(1, 3), getRange(5, 7));
-        assertFalse(RangeAlgorithms.isInAny(r1, 0));
-        assertTrue(RangeAlgorithms.isInAny(r1, 1));
-        assertTrue(RangeAlgorithms.isInAny(r1, 2));
-        assertTrue(RangeAlgorithms.isInAny(r1, 3));
-        assertFalse(RangeAlgorithms.isInAny(r1, 4));
-        assertTrue(RangeAlgorithms.isInAny(r1, 5));
-        assertTrue(RangeAlgorithms.isInAny(r1, 6));
-        assertTrue(RangeAlgorithms.isInAny(r1, 7));
-        assertFalse(RangeAlgorithms.isInAny(r1, 8));
+        assertFalse(RangeUtils.isInAny(r1, 0));
+        assertTrue(RangeUtils.isInAny(r1, 1));
+        assertTrue(RangeUtils.isInAny(r1, 2));
+        assertTrue(RangeUtils.isInAny(r1, 3));
+        assertFalse(RangeUtils.isInAny(r1, 4));
+        assertTrue(RangeUtils.isInAny(r1, 5));
+        assertTrue(RangeUtils.isInAny(r1, 6));
+        assertTrue(RangeUtils.isInAny(r1, 7));
+        assertFalse(RangeUtils.isInAny(r1, 8));
 
         List<Range> r2 = Arrays.asList(getRange(2, 2));
-        assertFalse(RangeAlgorithms.isInAny(r2, 1));
-        assertTrue(RangeAlgorithms.isInAny(r2, 2));
-        assertFalse(RangeAlgorithms.isInAny(r2, 3));
+        assertFalse(RangeUtils.isInAny(r2, 1));
+        assertTrue(RangeUtils.isInAny(r2, 2));
+        assertFalse(RangeUtils.isInAny(r2, 3));
     }
 
     private static Range getRange(int begin, int end) {

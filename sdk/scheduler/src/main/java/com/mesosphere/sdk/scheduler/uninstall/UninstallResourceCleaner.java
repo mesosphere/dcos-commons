@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.ResourceCleaner;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -29,7 +29,7 @@ public class UninstallResourceCleaner implements ResourceCleaner {
     @Override
     public Collection<Resource> getReservedResourcesToBeUnreserved(Offer offer) {
         List<Resource> resources = offer.getResourcesList().stream()
-                .filter(resource -> ResourceCollectionUtils.getResourceId(resource).isPresent())
+                .filter(resource -> ResourceUtils.getResourceId(resource).isPresent())
                 .collect(Collectors.toList());
         logger.info("Reserved resources to be unreserved: {}", resources);
         return resources;

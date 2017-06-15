@@ -3,7 +3,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.state.StateStore;
@@ -40,8 +40,8 @@ public class UninstallRecorder implements OperationRecorder {
     }
 
     private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
-        return ResourceCollectionUtils.getResourceId(resource)
-                .equals(ResourceCollectionUtils.getResourceId(taskInfoResource));
+        return ResourceUtils.getResourceId(resource)
+                .equals(ResourceUtils.getResourceId(taskInfoResource));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class UninstallRecorder implements OperationRecorder {
     private Collection<Protos.TaskInfo> updateResources(
             Protos.Resource resource, List<Protos.TaskInfo> tasksToUpdate) {
         // create new copies of taskinfos with updated resources
-        Optional<String> initialResourceId = ResourceCollectionUtils.getResourceId(resource);
+        Optional<String> initialResourceId = ResourceUtils.getResourceId(resource);
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
         if (!initialResourceId.isPresent()) {
             return updatedTaskInfos;
@@ -95,10 +95,10 @@ public class UninstallRecorder implements OperationRecorder {
         String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
         List<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource resource : resourcesList) {
-            Optional<String> thisResourceId = ResourceCollectionUtils.getResourceId(resource);
+            Optional<String> thisResourceId = ResourceUtils.getResourceId(resource);
             if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
                 updatedResources.add(ResourceBuilder.fromExistingResource(resource)
-                        .setResourceId(uninstalledResourceId)
+                        .setResourceId(Optional.of(uninstalledResourceId))
                         .build());
             } else {
                 updatedResources.add(resource);

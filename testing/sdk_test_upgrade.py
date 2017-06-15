@@ -6,7 +6,6 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_tasks as tasks
 import sdk_utils
 
@@ -133,4 +132,4 @@ def add_last_repo(repo_name, repo_url, prev_version, default_repo_package_name):
 
 
 def new_default_version_available(prev_version, default_repo_package_name):
-    spin.time_wait_noisy(lambda: get_pkg_version(default_repo_package_name) != prev_version)
+    shakedown.wait_for(lambda: get_pkg_version(default_repo_package_name) != prev_version, noisy=True)

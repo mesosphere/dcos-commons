@@ -246,13 +246,13 @@ As an example, let’s consider the scenario where we wish to deploy the hello-p
 name: "hello-world"
 pods:
   hello-pod:
-  count: 2
-  tasks:
-    hello-task:
-      goal: RUNNING
-      cmd: "echo hello && sleep 1000"
-      cpus: 0.1
-      memory: 512
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
   world-pod:
     count: 2
     tasks:
@@ -1367,13 +1367,13 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      health-check:
-        cmd: "./check-up"
-        interval: 5
-        grace-period: 30
-        max-consecutive-failures: 3
-        delay: 0
-        timeout: 10
+        health-check:
+          cmd: "./check-up"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
 ```
 
 The interval, grace-period, delay, and timeout elements are denominated in seconds. If the maximum consecutive number of failures is exceeded, the task will be killed.
@@ -1393,11 +1393,11 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10
+        readiness-check:
+          cmd: "./readiness-check"
+          interval: 5
+          delay: 0
+          timeout: 10
 ```
 
 The interval, delay, and timeout elements are denominated in seconds.

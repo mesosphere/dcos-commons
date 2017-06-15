@@ -34,8 +34,7 @@ def teardown_module(module):
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
+    deployment_plan = plan.wait_for_completed_deployment(PACKAGE_NAME)
     utils.out("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct

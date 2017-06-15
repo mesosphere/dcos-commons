@@ -17,7 +17,7 @@ def get_changed_files():
 def categorize_file(filename):
     if filename.endswith(b".md"):
         return "DOC"
-    if filename.startswith(b"doc/"):
+    if filename.startswith(b"docs/"):
         return "DOC"
     if filename.startswith(b"frameworks/"):
         literal, specific_framework, rest = filename.split(b'/', 2)

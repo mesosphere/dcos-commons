@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -123,7 +123,7 @@ public class ExecutorResourceMapper {
             }
 
             if (resource.getDisk().getVolume().getContainerPath().equals(volumeSpec.getContainerPath())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(resource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(resource);
                 if (!resourceId.isPresent()) {
                     LOGGER.error("Failed to find resource ID for resource: {}", resource);
                     continue;

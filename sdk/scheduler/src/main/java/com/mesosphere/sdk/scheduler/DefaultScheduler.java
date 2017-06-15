@@ -804,6 +804,24 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
                     revive();
                 }
+
+                // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+                // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
+                // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
+                // on TASK_RUNNINGs
+                if (status.hasContainerStatus() &&
+                        status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                        status.getContainerStatus().getNetworkInfosList().stream()
+                                .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+                    // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
+                    // TaskInfo exists.
+                    try {
+                        Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
+                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                    } catch (StateStoreException e) {
+                        LOGGER.warn("Unable to store network info for status update: " + status, e);
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);

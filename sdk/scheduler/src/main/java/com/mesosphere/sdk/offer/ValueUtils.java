@@ -57,7 +57,7 @@ public class ValueUtils {
     private static Value.Ranges add(Value.Ranges ranges1, Value.Ranges ranges2) {
         List<Range> list1 = ranges1.getRangeList();
         List<Range> list2 = ranges2.getRangeList();
-        List<Range> list = RangeAlgorithms.mergeRanges(list1, list2);
+        List<Range> list = RangeUtils.mergeRanges(list1, list2);
         return Value.Ranges.newBuilder().addAllRange(list).build();
     }
 
@@ -89,7 +89,7 @@ public class ValueUtils {
     private static Value.Ranges subtract(Value.Ranges ranges1, Value.Ranges ranges2) {
         List<Range> list1 = ranges1.getRangeList();
         List<Range> list2 = ranges2.getRangeList();
-        List<Range> list = RangeAlgorithms.subtractRanges(list1, list2);
+        List<Range> list = RangeUtils.subtractRanges(list1, list2);
         return Value.Ranges.newBuilder().addAllRange(list).build();
     }
 
@@ -132,9 +132,9 @@ public class ValueUtils {
         List<Range> list1 = ranges1.getRangeList();
         List<Range> list2 = ranges2.getRangeList();
 
-        if (RangeAlgorithms.rangesEqual(list1, list2)) {
+        if (RangeUtils.rangesEqual(list1, list2)) {
             return 0;
-        } else if (RangeAlgorithms.subtractRanges(list1, list2).size() == 0) {
+        } else if (RangeUtils.subtractRanges(list1, list2).size() == 0) {
             return -1;
         } else {
             return 1;
