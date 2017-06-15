@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
-set +e
+set -x
 
 if [ $# -lt 2 ]; then
     echo "Syntax: $0 <framework-name> </path/to/framework> [local|aws]"
@@ -44,20 +44,12 @@ fi
 
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
-if [ $? -ne 0 ]; then
-  _notify_github failure "Gradle build failed"
-  exit 1
-fi
 
 INCLUDE_BOOTSTRAP=""
 if [ "$BUILD_BOOTSTRAP" == "yes" ]; then
     # Executor Bootstrap (Go):
     BOOTSTRAP_DIR=${TOOLS_DIR}/../sdk/bootstrap
     ${BOOTSTRAP_DIR}/build.sh
-    if [ $? -ne 0 ]; then
-        _notify_github failure "Bootstrap build failed"
-        exit 1
-    fi
     INCLUDE_BOOTSTRAP="${BOOTSTRAP_DIR}/bootstrap.zip"
 fi
 
@@ -65,12 +57,6 @@ fi
 # /home/user/dcos-commons/frameworks/helloworld/cli => frameworks/helloworld/cli
 REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
 ${TOOLS_DIR}/build_cli.sh ${CLI_EXE_NAME} ${CLI_DIR} ${REPO_CLI_RELATIVE_PATH}
-if [ $? -ne 0 ]; then
-    _notify_github failure "CLI build failed"
-    exit 1
-fi
-
-_notify_github success "Build succeeded"
 
 case "$PUBLISH_STEP" in
     local)
