@@ -1902,7 +1902,7 @@
 <dd>
 <div class="block">Returns a new <a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerFlags</code></a> instance which is based off the provided custom environment map.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html#fromRangeList-java.util.List-">fromRangeList(List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer">RangeAlgorithms</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#fromRangeList-java.util.List-">fromRangeList(List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-">fromSpec(ResourceSpec, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -3705,7 +3705,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html#isInAny-java.util.List-long-">isInAny(List&lt;Range&gt;, long)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer">RangeAlgorithms</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#isInAny-java.util.List-long-">isInAny(List&lt;Range&gt;, long)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided value is encompassed by any of the provided ranges.</div>
 </dd>
@@ -4122,7 +4122,7 @@
 <dd>
 <div class="block">Whether to enable or disable thread-safe locking.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html#mergeRanges-java.util.List-java.util.List-">mergeRanges(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer">RangeAlgorithms</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#mergeRanges-java.util.List-java.util.List-">mergeRanges(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Combines and flattens the provided sets of ranges into a unified set.</div>
 </dd>
@@ -4832,13 +4832,13 @@
 <dd>
 <div class="block">This class generates Strategy objects of the appropriate type.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">RangeAlgorithms</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
-<dd>
-<div class="block">A utility class for commonly needed algorithms for Mesos frameworks.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html#rangesEqual-java.util.List-java.util.List-">rangesEqual(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer">RangeAlgorithms</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#rangesEqual-java.util.List-java.util.List-">rangesEqual(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided sets of ranges are equivalent when any overlaps are flattened.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">RangeUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
+<dd>
+<div class="block">A utility class for commonly needed algorithms for Mesos frameworks.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/yaml/RawConfig.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">RawConfig</span></a> - Class in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
 <dd>
@@ -5862,7 +5862,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ValueUtils.html#subtract-Value-Value-">subtract(Value, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer">ValueUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeAlgorithms.html#subtractRanges-java.util.List-java.util.List-">subtractRanges(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeAlgorithms.html" title="class in com.mesosphere.sdk.offer">RangeAlgorithms</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#subtractRanges-java.util.List-java.util.List-">subtractRanges(List&lt;Range&gt;, List&lt;Range&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Removes the range intervals listed in <code>subtrahend</code> from <code>minuend</code>.</div>
 </dd>
