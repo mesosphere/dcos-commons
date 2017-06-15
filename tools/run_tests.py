@@ -21,11 +21,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 class CITester(object):
 
-    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None):
+    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None,
+                 fail_fast=False):
         self._dcos_url = dcos_url
         self._sandbox_path = sandbox_path
         self._cli_path = cli_path
         self._github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
+        self._fail_fast = fail_fast
 
 
     def _configure_cli_sandbox(self):
@@ -125,6 +127,10 @@ dcos==0.4.16
 ''')
             requirements_file.flush()
             requirements_file.close()
+        if self._fail_fast:
+            fail_arg = '--exitfirst'
+        else:
+            fail_arg = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
@@ -145,11 +151,12 @@ echo "REQUIREMENTS INSTALL: {reqs_file}"
 echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args} -vv {fail_arg} --exitfirst --capture=no -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
+           fail_arg=fail_arg,
            pytest_types=pytest_types,
            test_dirs=test_dirs))
         script_file.flush()
@@ -193,7 +200,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
-SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv -s -m "{pytest_types}" {test_dirs}
+SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv --capture=no -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
            dcos_tests_dir=dcos_tests_dir,
@@ -249,6 +256,12 @@ def handle_stub_options(argv):
         del argv_copy[flag_pos:flag_pos+2]
     return argv_copy, stub_universes
 
+def handle_failfast_option(argv):
+    fail_flag = '--fail-fast'
+    fail_fast = False
+    if fail_flag in argv:
+        fail_fast = True
+    return [ent for ent in argv if ent != fail_flag], fail_fast
 
 def main(argv):
     if len(argv) < 3:
@@ -261,6 +274,9 @@ def main(argv):
     # messy arg parsing
     argv, stub_universes = handle_stub_options(argv)
 
+    # and again; really need to implement an arg parser when this gets turned
+    # into a module.
+    argv, fail_fast = handle_failfast_option(argv)
 
     cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
     if cluster_url:
@@ -277,7 +293,8 @@ def main(argv):
             print_help(argv)
             return 1
 
-    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
+    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type),
+                      fail_fast=fail_fast)
 
     if not stub_universes:
         stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')

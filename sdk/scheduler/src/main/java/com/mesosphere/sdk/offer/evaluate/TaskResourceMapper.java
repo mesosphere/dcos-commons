@@ -2,8 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.RangeAlgorithms;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.RangeUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -133,7 +133,7 @@ class TaskResourceMapper {
 
             if (taskResource.getDisk().getVolume().getContainerPath().equals(
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
                     logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
@@ -162,12 +162,12 @@ class TaskResourceMapper {
                 //               We should then only check env as a fallback when the label isn't present.
                 String portEnvVal = taskEnv.get(PortEvaluationStage.getPortEnvironmentVariable(portSpec));
                 if (portEnvVal != null
-                        && RangeAlgorithms.isInAny(
+                        && RangeUtils.isInAny(
                                 taskResource.getRanges().getRangeList(),
                                 Integer.parseInt(portEnvVal))) {
 
                     // The advertised port value is present in this resource. Resource must match!
-                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
                         logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
@@ -177,8 +177,8 @@ class TaskResourceMapper {
                 }
             } else {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
-                if (RangeAlgorithms.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
-                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                if (RangeUtils.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
+                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
                         logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
@@ -195,7 +195,7 @@ class TaskResourceMapper {
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (resourceSpec.getName().equals(taskResource.getName())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
                     logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
