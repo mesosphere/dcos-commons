@@ -156,8 +156,9 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">PortSpec</a></span>(Protos.Value&nbsp;value,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">PortSpec</a></span>(Protos.Value&nbsp;value,
         java.lang.String&nbsp;role,
+        java.lang.String&nbsp;preReservedRole,
         java.lang.String&nbsp;principal,
         java.lang.String&nbsp;envKey,
         java.lang.String&nbsp;portName,
@@ -212,7 +213,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPreReservedRole--">getPreReservedRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -235,7 +236,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">
+<a name="PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -243,6 +244,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <h4>PortSpec</h4>
 <pre>public&nbsp;PortSpec(Protos.Value&nbsp;value,
                 java.lang.String&nbsp;role,
+                java.lang.String&nbsp;preReservedRole,
                 java.lang.String&nbsp;principal,
                 java.lang.String&nbsp;envKey,
                 java.lang.String&nbsp;portName,

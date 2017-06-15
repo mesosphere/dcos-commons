@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":9,"i4":9,"i5":9,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":9,"i4":9,"i5":9,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -167,45 +167,45 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setMesosResource-com.mesosphere.sdk.offer.MesosResource-">setMesosResource</a></span>(<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource)</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setMountVolume-java.lang.String-java.util.Optional-java.util.Optional-">setMountVolume</a></span>(java.lang.String&nbsp;containerPath,
               java.util.Optional&lt;java.lang.String&gt;&nbsp;existingPersistenceId,
               java.util.Optional&lt;java.lang.String&gt;&nbsp;existingMountRoot)</code>
 <div class="block">Assigns information relating to <code>MOUNT</code> disk volumes for this resource.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setPrincipal-java.util.Optional-">setPrincipal</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</code>
-<div class="block">Sets the principal for this resource.</div>
-</td>
-</tr>
 <tr id="i9" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setPrincipal-java.util.Optional-">setPrincipal</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setResourceId-java.util.Optional-">setResourceId</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</code>
 <div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
  runs.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRole-java.util.Optional-">setRole</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</code>
-<div class="block">Sets the role for this resource.</div>
-</td>
-</tr>
 <tr id="i11" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRole-java.util.Optional-">setRole</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setRootVolume-java.lang.String-java.util.Optional-">setRootVolume</a></span>(java.lang.String&nbsp;containerPath,
              java.util.Optional&lt;java.lang.String&gt;&nbsp;existingPersistenceId)</code>
 <div class="block">Assigns information relating to <code>ROOT</code> disk volumes for this resource.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#setValue-Value-">setValue</a></span>(Value&nbsp;value)</code>
 <div class="block">Sets the value for this resource.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -282,26 +282,6 @@ extends java.lang.Object</pre>
 <div class="block">Sets the value for this resource. Supported types are <code>SCALAR</code>, <code>RANGES</code>, and <code>SET</code>.</div>
 </li>
 </ul>
-<a name="setRole-java.util.Optional-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setRole</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setRole(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</pre>
-<div class="block">Sets the role for this resource.</div>
-</li>
-</ul>
-<a name="setPrincipal-java.util.Optional-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setPrincipal</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setPrincipal(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</pre>
-<div class="block">Sets the principal for this resource.</div>
-</li>
-</ul>
 <a name="setResourceId-java.util.Optional-">
 <!--   -->
 </a>
@@ -369,6 +349,15 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="setMesosResource-com.mesosphere.sdk.offer.MesosResource-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setMesosResource</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setMesosResource(<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource)</pre>
+</li>
+</ul>
 <a name="build--">
 <!--   -->
 </a>
@@ -381,7 +370,7 @@ extends java.lang.Object</pre>
 <a name="toString--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
 <pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
@@ -389,6 +378,24 @@ extends java.lang.Object</pre>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
+</li>
+</ul>
+<a name="setRole-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setRole</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setRole(java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</pre>
+</li>
+</ul>
+<a name="setPrincipal-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setPrincipal</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a>&nbsp;setPrincipal(java.util.Optional&lt;java.lang.String&gt;&nbsp;principal)</pre>
 </li>
 </ul>
 </li>

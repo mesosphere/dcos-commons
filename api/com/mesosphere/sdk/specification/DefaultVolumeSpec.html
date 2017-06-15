@@ -160,10 +160,11 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">DefaultVolumeSpec</a></span>(double&nbsp;diskSize,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">DefaultVolumeSpec</a></span>(double&nbsp;diskSize,
                  <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a>&nbsp;type,
                  java.lang.String&nbsp;containerPath,
                  java.lang.String&nbsp;role,
+                 java.lang.String&nbsp;preReservedRole,
                  java.lang.String&nbsp;principal,
                  java.lang.String&nbsp;envKey)</code>&nbsp;</td>
 </tr>
@@ -208,7 +209,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPreReservedRole--">getPreReservedRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a>, <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -222,7 +223,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getValue--">getValue</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getEnvKey--">getEnvKey</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getName--">getName</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPreReservedRole--">getPreReservedRole</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPrincipal--">getPrincipal</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getRole--">getRole</a>, <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getValue--">getValue</a></code></li>
 </ul>
 </li>
 </ul>
@@ -238,7 +239,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<a name="DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -248,6 +249,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
                          <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a>&nbsp;type,
                          java.lang.String&nbsp;containerPath,
                          java.lang.String&nbsp;role,
+                         java.lang.String&nbsp;preReservedRole,
                          java.lang.String&nbsp;principal,
                          java.lang.String&nbsp;envKey)</pre>
 </li>
@@ -286,19 +288,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 </dl>
 </li>
 </ul>
-<a name="toString--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>toString</h4>
-<pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
-</dl>
-</li>
-</ul>
 <a name="equals-java.lang.Object-">
 <!--   -->
 </a>
@@ -315,13 +304,26 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#hashCode--">hashCode</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="toString--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>toString</h4>
+<pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></code></dd>
 </dl>
 </li>
 </ul>

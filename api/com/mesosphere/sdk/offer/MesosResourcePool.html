@@ -129,9 +129,6 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#MesosResourcePool-Offer-">MesosResourcePool</a></span>(Offer&nbsp;offer)</code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#MesosResourcePool-Offer-java.util.Optional-">MesosResourcePool</a></span>(Offer&nbsp;offer,
                  java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</code>
 <div class="block">Creates a new pool of resources based on what's available in the provided <code>Offer</code>.</div>
@@ -175,7 +172,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getDynamicallyReservedPool--">getDynamicallyReservedPool</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/MesosResourcePool.html#getDynamicallyReservedPoolByResourceId--">getDynamicallyReservedPoolByResourceId</a></span>()</code>
 <div class="block">Returns the resources which were dynamically reserved.</div>
 </td>
 </tr>
@@ -232,21 +229,12 @@ extends java.lang.Object</pre>
 <a name="MesosResourcePool-Offer-java.util.Optional-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>MesosResourcePool</h4>
 <pre>public&nbsp;MesosResourcePool(Offer&nbsp;offer,
                          java.util.Optional&lt;java.lang.String&gt;&nbsp;role)</pre>
 <div class="block">Creates a new pool of resources based on what's available in the provided <code>Offer</code>.</div>
-</li>
-</ul>
-<a name="MesosResourcePool-Offer-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>MesosResourcePool</h4>
-<pre>public&nbsp;MesosResourcePool(Offer&nbsp;offer)</pre>
 </li>
 </ul>
 </li>
@@ -278,13 +266,13 @@ extends java.lang.Object</pre>
  example, a MOUNT volume cannot be partially consumed, it's all-or-nothing.</div>
 </li>
 </ul>
-<a name="getDynamicallyReservedPool--">
+<a name="getDynamicallyReservedPoolByResourceId--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getDynamicallyReservedPool</h4>
-<pre>public&nbsp;java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;getDynamicallyReservedPool()</pre>
+<h4>getDynamicallyReservedPoolByResourceId</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;&nbsp;getDynamicallyReservedPoolByResourceId()</pre>
 <div class="block">Returns the resources which were dynamically reserved.</div>
 </li>
 </ul>
