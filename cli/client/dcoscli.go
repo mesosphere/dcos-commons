@@ -8,11 +8,7 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-// TODO(nick): Consider breaking this config retrieval out into a separate independent library?
-
-// RunCLICommand is used to run generic commands against the DC/OS CLI.
-// It attempts to run the `dcos` executable contained within the user's PATH.
-func RunCLICommand(arg ...string) (string, error) {
+func runCLICommand(arg ...string) (string, error) {
 	if config.Verbose {
 		PrintMessage("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
 	}
@@ -33,10 +29,8 @@ func RunCLICommand(arg ...string) (string, error) {
 	return strings.TrimSpace(string(outBytes)), nil
 }
 
-// RequiredCLIConfigValue retrieves the CLI configuration property for name. If no value can
-// be retrieved, this terminates with a fatal error.
-func RequiredCLIConfigValue(name string, description string, errorInstruction string) string {
-	output, err := RunCLICommand("config", "show", name)
+func requiredCLIConfigValue(name string, description string, errorInstruction string) string {
+	output, err := runCLICommand("config", "show", name)
 	if err != nil {
 		PrintMessage("Unable to retrieve configuration value %s (%s) from CLI. %s:",
 			name, description, errorInstruction)
@@ -53,7 +47,7 @@ func RequiredCLIConfigValue(name string, description string, errorInstruction st
 // OptionalCLIConfigValue retrieves the CLI configuration for name. If no value can
 // be retrieved, this returns an empty string.
 func OptionalCLIConfigValue(name string) string {
-	output, err := RunCLICommand("config", "show", name)
+	output, err := runCLICommand("config", "show", name)
 	if err != nil {
 		// CLI returns an error code when value isn't known
 		return ""

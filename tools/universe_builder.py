@@ -35,7 +35,7 @@ _expected_package_filenames = [
 
 class UniversePackageBuilder(object):
 
-    def __init__(self, package_name, package_version, input_dir_path, upload_dir_url, artifact_paths, packaging_version=3):
+    def __init__(self, package_name, package_version, input_dir_path, upload_dir_url, artifact_paths, packaging_version=4):
         self._cosmos_packaging_version = packaging_version
         self._pkg_name = package_name
         self._pkg_version = package_version

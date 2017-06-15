@@ -57,7 +57,7 @@ func getResponseBytes(response *http.Response) ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals a []byte of JSON into a map[string]interface{}
-// for easy handling of JSON responses that have variable field.
+// for easy handling of JSON responses that have variable fields.
 func UnmarshalJSON(jsonBytes []byte) (map[string]interface{}, error) {
 	var responseJSON map[string]interface{}
 	err := json.Unmarshal(jsonBytes, &responseJSON)
@@ -90,7 +90,7 @@ func GetValueFromJSON(jsonBytes map[string]interface{}, field string) ([]byte, e
 	return nil, nil
 }
 
-// ConvertToStringArray unmarshals a byte array of JSON into a string array
+// ConvertJSONToStringArray unmarshals a byte array of JSON into a string array
 func ConvertJSONToStringArray(bytes []byte) ([]string, error) {
 	var convertedArray []string
 	err := json.Unmarshal(bytes, &convertedArray)

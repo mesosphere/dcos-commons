@@ -10,6 +10,12 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
+const (
+	cosmosURLConfigKey  = "package.cosmos_url"
+	marathonAppNotFound = "MarathonAppNotFound"
+	badVersionUpdate    = "BadVersionUpdate"
+)
+
 // HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
 // https://dcos.cluster/cosmos/service/<urlPath>
 func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
@@ -18,8 +24,14 @@ func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
 }
 
 func createBadVersionError(response *http.Response, data map[string]interface{}) error {
-	requestedVersion, _ := GetValueFromJSON(data, "updateVersion")
-	validVersions, _ := GetValueFromJSON(data, "validVersions")
+	requestedVersion, err := GetValueFromJSON(data, "updateVersion")
+	if err != nil {
+		return err
+	}
+	validVersions, err := GetValueFromJSON(data, "validVersions")
+	if err != nil {
+		return err
+	}
 	if config.Verbose {
 		printResponseError(response)
 	}
@@ -38,9 +50,9 @@ func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	if errorType, present := responseJSON["type"]; present {
 		message := responseJSON["message"]
 		switch errorType {
-		case "MarathonAppNotFound":
+		case marathonAppNotFound:
 			return createServiceNameError(response)
-		case "BadVersionUpdate":
+		case badVersionUpdate:
 			return createBadVersionError(response, responseJSON["data"].(map[string]interface{}))
 		default:
 			if config.Verbose {
@@ -76,7 +88,7 @@ func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Requ
 func createCosmosURL(urlPath string) *url.URL {
 	// Try to fetch the Cosmos URL from the system configuration
 	if len(config.CosmosURL) == 0 {
-		config.CosmosURL = OptionalCLIConfigValue("package.cosmos_url")
+		config.CosmosURL = OptionalCLIConfigValue(cosmosURLConfigKey)
 	}
 
 	// Use Cosmos URL if we have it specified

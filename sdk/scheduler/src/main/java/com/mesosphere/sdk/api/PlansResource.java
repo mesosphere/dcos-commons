@@ -29,7 +29,6 @@ public class PlansResource extends PrettyJsonResource {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Collection<PlanManager> planManagers;
 
-
     public PlansResource(final PlanCoordinator planCoordinator) {
         this.planManagers = planCoordinator.getPlanManagers();
     }

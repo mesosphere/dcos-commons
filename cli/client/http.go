@@ -206,7 +206,7 @@ func createHTTPRawRequest(method string, url *url.URL, payload, accept, contentT
 func getDCOSURL() {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosURL) == 0 {
-		config.DcosURL = RequiredCLIConfigValue(
+		config.DcosURL = requiredCLIConfigValue(
 			"core.dcos_url",
 			"DC/OS Cluster URL",
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")

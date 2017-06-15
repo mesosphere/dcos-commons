@@ -1,8 +1,8 @@
 {
-  "packagingVersion": "2.0",
-  "minDcosReleaseVersion": "1.9",
+  "packagingVersion": "4.0",
+  "minDcosReleaseVersion": "1.10",
   "name": "hello-world",
-  "version": "{{package-version}}",
+  "version": "1.0",
   "maintainer": "support@mesosphere.io",
   "description": "An example implementation of a stateful service using the DC/OS SDK",
   "selected": false,
@@ -10,5 +10,7 @@
   "tags": ["example", "reference", "hello-world"],
   "preInstallNotes": "This DC/OS Service is currently in preview.",
   "postInstallNotes": "DC/OS hello-world is being installed!\n\n\tDocumentation: https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld\n\tIssues: https://docs.mesosphere.com/support/",
-  "postUninstallNotes": "DC/OS hello-world is being uninstalled."
+  "postUninstallNotes": "DC/OS hello-world is being uninstalled.",
+  "upgradesFrom": ["*"],
+  "downgradesTo": ["*"]
 }
