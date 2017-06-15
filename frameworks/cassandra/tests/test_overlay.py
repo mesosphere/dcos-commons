@@ -88,11 +88,8 @@ def test_endpoints():
     assert "address" in endpoints, "Endpoints missing address key"
 
     ip_addresses = [e.split(":")[0] for e in endpoints["address"]]
-    assert len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0
-
-    for address in endpoints["address"]:
-        assert address.startswith("9."), "IP address {} is incorrect, should start with a 9".format(address)
-        assert address.endswith(":9042"), "Port incorrect, should be 9042, got {}".format(address)
+    assert len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0, \
+        "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
     assert "dns" in endpoints, "Endpoints missing DNS key"
     for dns in endpoints["dns"]:
