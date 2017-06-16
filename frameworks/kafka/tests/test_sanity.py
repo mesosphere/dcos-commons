@@ -15,6 +15,8 @@ from tests.test_utils import (
     DEFAULT_REPLICATION_FACTOR,
     PACKAGE_NAME,
     FOLDERED_SERVICE_NAME,
+    FOLDERED_SERVICE_AUTOIP_HOST,
+    FOLDERED_SERVICE_VIP_HOST,
     DEFAULT_BROKER_COUNT,
     DEFAULT_POD_TYPE,
     DEFAULT_PHASE_NAME,
@@ -58,8 +60,8 @@ def test_endpoints_address():
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
     for i in range(len(endpoints['dns'])):
-        assert 'kafka-{}-broker.pathtokafka.autoip.dcos.thisdcos.directory:'.format(i) in endpoints['dns'][i]
-    assert endpoints['vips'][0] == 'broker.pathtokafka.l4lb.thisdcos.directory:9092'
+        assert 'kafka-{}-broker.'.format(i) + FOLDERED_SERVICE_AUTOIP_HOST + ':' in endpoints['dns'][i]
+    assert endpoints['vips'][0] == 'broker.' + FOLDERED_SERVICE_VIP_HOST + ':9092'
 
 
 @pytest.mark.smoke

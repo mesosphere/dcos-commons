@@ -9,10 +9,12 @@ import sdk_utils as utils
 
 PACKAGE_NAME = 'cassandra'
 FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
+FOLDERED_SERVICE_AUTOIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.autoip.dcos.thisdcos.directory'
+FOLDERED_SERVICE_VIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.l4lb.thisdcos.directory'
 DEFAULT_TASK_COUNT = 3
 
 DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', 'node-0-server.cassandra.autoip.dcos.thisdcos.directory')
-FOLDERED_NODE_ADDRESS = 'node-0-server.' + FOLDERED_SERVICE_NAME.replace('/', '') + '.autoip.dcos.thisdcos.directory'
+FOLDERED_NODE_ADDRESS = 'node-0-server.' + FOLDERED_SERVICE_AUTOIP_HOST
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 

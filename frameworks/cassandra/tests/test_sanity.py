@@ -20,17 +20,16 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 
 
 def setup_module(module):
-    #install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    #utils.gc_frameworks()
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    utils.gc_frameworks()
 
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-    #install.install(
-    #    PACKAGE_NAME,
-    #    DEFAULT_TASK_COUNT,
-    #    service_name=FOLDERED_SERVICE_NAME,
-    #    additional_options={"service": { "name": FOLDERED_SERVICE_NAME } },
-    #    check_suppression=False)
-    cmd.run_cli('package install --cli cassandra')
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } },
+        check_suppression=False)
     plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
     tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
@@ -56,8 +55,8 @@ def test_service_health():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(FOLDERED_SERVICE_NAME)))
-    assert endpoints['dns'][0] == 'node-0-server.pathtocassandra.autoip.dcos.thisdcos.directory:9042'
-    assert endpoints['vips'][0] == 'node.pathtocassandra.l4lb.thisdcos.directory:9042'
+    assert endpoints['dns'][0] == 'node-0-server.' + FOLDERED_SERVICE_AUTOIP_HOST + ':9042'
+    assert endpoints['vips'][0] == 'node.' + FOLDERED_SERVICE_VIP_HOST + ':9042'
 
 
 @pytest.mark.sanity
