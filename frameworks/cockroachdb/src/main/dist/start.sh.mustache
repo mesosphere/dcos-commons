@@ -33,6 +33,7 @@ $MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-node \
 
 # Start CockroachDB server
 $MESOS_SANDBOX/$COCKROACH_VERSION/cockroach start \
+    --logtostderr \
     --insecure \
     --http-port=$PORT_GUI \
     --port=$PORT_INTERNAL
