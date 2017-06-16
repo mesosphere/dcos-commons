@@ -22,6 +22,18 @@ def install(
         package_version=None,
         check_suppression=True,
         timeout_seconds=15 * 60):
+    sdk_utils.try_throws_n_times(lambda: _install(package_name, running_task_count,
+        service_name, additional_options, package_version, check_suppression, timeout_seconds), 5, 1000)
+
+
+def install(
+        package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        package_version=None,
+        check_suppression=True,
+        timeout_seconds=15 * 60):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -36,7 +48,7 @@ def install(
         package_version=package_version,
         service_name=service_name,
         options_json=merged_options,
-        wait_for_completion=True,
+    wait_for_completion=True,
         timeout_sec=timeout_seconds,
         expected_running_tasks=running_task_count)
 
@@ -56,6 +68,11 @@ def install(
 
 
 def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
+    sdk_utils.try_throws_n_times(lambda: _uninstall(service_name, package_name, role, principal, zk),
+        5, 1000)
+
+
+def _uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
     start = time.time()
 
     if package_name is None:
