@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -105,10 +105,15 @@ var activeTableTab = "activeTableTab";
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
+<dl>
+<dt>All Implemented Interfaces:</dt>
+<dd><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></dd>
+</dl>
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">PortsSpec</span>
-extends java.lang.Object</pre>
+extends java.lang.Object
+implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></pre>
 <div class="block">This class represents a ports resource with multiple ports.</div>
 </li>
 </ul>
@@ -155,14 +160,34 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getName--">getName</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getPortSpecs--">getPortSpecs</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getPreReservedRole--">getPreReservedRole</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getPrincipal--">getPrincipal</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getRole--">getRole</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>Protos.Value</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#getValue--">getValue</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortsSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -173,6 +198,13 @@ extends java.lang.Object</pre>
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
 <code>clone, finalize, getClass, notify, notifyAll, wait, wait, wait</code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.specification.ResourceSpec">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.specification.<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></h3>
+<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getEnvKey--">getEnvKey</a></code></li>
 </ul>
 </li>
 </ul>
@@ -248,13 +280,78 @@ extends java.lang.Object</pre>
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
+</li>
+</ul>
+<a name="getValue--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getValue</h4>
+<pre>public&nbsp;Protos.Value&nbsp;getValue()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getValue--">getValue</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getName</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getName()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getName--">getName</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getRole--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRole</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getRole()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getRole--">getRole</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getPreReservedRole--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPreReservedRole</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getPreReservedRole()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPreReservedRole--">getPreReservedRole</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getPrincipal--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getPrincipal</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getPrincipal()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPrincipal--">getPrincipal</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
 </dl>
 </li>
 </ul>
