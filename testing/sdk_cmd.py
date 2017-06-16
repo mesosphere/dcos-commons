@@ -28,5 +28,5 @@ def run_cli(cmd, print_output=True):
         err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
             ret, cmd, stdout, stderr)
         sdk_utils.out(err)
-        raise Exception(err)
+        raise dcos.errors.DCOSException(err)
     return stdout
