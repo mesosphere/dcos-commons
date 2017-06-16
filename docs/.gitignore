@@ -1,3 +1,8 @@
 dcos-commons-gh-pages/
+# TODO: specifically exclude from ignoring (not ignore) the documentation files
+# that are known/expected to be manually created.
+#
+# the vast majority of documentation w/i pages/services are auto-generated, BUT
+# some files are manually created, i.e. limitations.md.
 pages/services/
 swagger-codegen-cli-*.jar
