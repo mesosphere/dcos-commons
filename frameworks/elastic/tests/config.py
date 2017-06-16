@@ -35,8 +35,8 @@ def as_json(fn):
 
 
 def check_kibana_adminrouter_integration(path):
-    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}{}".format(
-        DCOS_TOKEN, shakedown.dcos_url(), path)
+    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
+        DCOS_TOKEN, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
     def fun():
         exit_status, output = shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
