@@ -192,10 +192,10 @@ public class DefaultSchedulerTest {
         stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
         configStore = new DefaultConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
@@ -296,10 +296,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -313,10 +313,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -331,10 +331,10 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -503,10 +503,10 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         // Perform Configuration Update
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
@@ -556,10 +556,10 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, invalidPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
 
         // Ensure prior target configuration is still intact
@@ -882,7 +882,7 @@ public class DefaultSchedulerTest {
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
     }
 
@@ -897,7 +897,7 @@ public class DefaultSchedulerTest {
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
 
         @JsonProperty("message")

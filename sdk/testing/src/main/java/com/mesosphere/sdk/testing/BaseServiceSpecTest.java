@@ -83,13 +83,14 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsCNINetworking()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
+        when(capabilities.supportsPreReservedResources()).thenReturn(true);
 
         Persister persister = new MemPersister();
+        Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
-                .setCapabilities(capabilities)
                 .setPlansFrom(rawServiceSpec)
                 .build();
     }

@@ -56,8 +56,8 @@ public class DefaultRecoveryPlanManagerTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final List<Resource> resources = Arrays.asList(
-            ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
-            ResourceTestUtils.getDesiredMem(TestPodFactory.MEM));
+            ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getUnreservedMem(TestPodFactory.MEM));
 
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
     private Collection<TaskInfo> taskInfos = Collections.singletonList(taskInfo);

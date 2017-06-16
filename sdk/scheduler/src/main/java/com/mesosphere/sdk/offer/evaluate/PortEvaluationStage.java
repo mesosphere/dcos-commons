@@ -80,6 +80,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         portSpec = new PortSpec(
                 valueBuilder.build(),
                 portSpec.getRole(),
+                portSpec.getPreReservedRole(),
                 portSpec.getPrincipal(),
                 portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
                 portSpec.getPortName(),
@@ -100,14 +101,26 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
             resourceId = reserveEvaluationOutcome.getResourceId();
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
-            return EvaluationOutcome.pass(this, evaluationOutcome.getOfferRecommendations(), "Found port");
+            return EvaluationOutcome.pass(
+                this,
+                evaluationOutcome.getMesosResource().get(),
+                evaluationOutcome.getOfferRecommendations(),
+                "Offer contains sufficient '%s': for resource: '%s' with resourceId: '%s'",
+                portSpec.getName(),
+                portSpec,
+                resourceId);
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
+                    null,
                     Collections.emptyList(),
-                    String.format("Not using host ports: ignoring port resource requirements, using port %s",
-                            assignedPort));
+                    String.format(
+                            "Not using host ports: ignoring port resource requirements, using port %s",
+                            assignedPort),
+                    portSpec.getName(),
+                    portSpec,
+                    resourceId);
         }
 
     }
