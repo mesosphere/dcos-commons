@@ -20,7 +20,7 @@ func main() {
 }
 
 type CockroachHandler struct {
-	sql_command string
+	command string
 }
 
 func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
@@ -32,7 +32,7 @@ func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
 			"--insecure",
 			"--host=internal.cockroachdb.l4lb.thisdcos.directory",
 			"-e",
-			fmt.Sprintf("%s", cmd.sql_command))
+			fmt.Sprintf("%s", cmd.command))
 	fmt.Printf("%s\n", outBytes)
 	if err != nil {
 		if strings.Contains(err.Error(), "Cannot find a task with ID") ||
@@ -50,5 +50,5 @@ func handleCockroachSection(app *kingpin.Application) {
 	cockroach := app.Command("cockroach", "CockroachDB CLI")
 
 	sql := cockroach.Command("sql", "Equivalent to running `cockroach sql <command>` on task.").Action(cmd.sql)
-	sql.Arg("command", "CockroachDB SQL command to run.").StringVar(&cmd.sql_command)
+	sql.Arg("command", "CockroachDB sql command to run.").StringVar(&cmd.command)
 }
