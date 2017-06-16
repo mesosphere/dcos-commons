@@ -127,6 +127,9 @@ def detect_requirements(run_attrs):
             else:
                 logger.info("ssh-agent .. does not have ec2 key.  FAIL")
                 return False
+        except AttributeError as e:
+            logger.info("python3.5+ required.  FAIL")
+            return False
         except:
             logger.info("ssh-add invocation failed.  FAIL")
             return False
