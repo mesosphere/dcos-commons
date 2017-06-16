@@ -1,7 +1,5 @@
 import pytest
 
-import shakedown
-
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_plan as plan
@@ -9,20 +7,8 @@ import sdk_networks as networks
 import sdk_utils as utils
 
 
+from tests.test_utils import  *
 
-from tests.test_utils import (
-    PACKAGE_NAME,
-    SERVICE_NAME,
-    DEFAULT_BROKER_COUNT,
-    service_cli
-)
-
-from tests.test_sanity import (
-    test_topic_create,
-    test_topic_delete,
-    test_pods_replace,
-    test_pods_restart
-)
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
@@ -71,19 +57,32 @@ def test_overlay_network_deployment_and_endpoints():
 
 
 @pytest.mark.sanity
-def test_topic_create_and_delete():
-    test_topic_create()
-    test_topic_delete()
-
-
-@pytest.mark.sanity
-def test_pods_replace_on_overlay():
-    test_pods_replace()
-    test_overlay_network_deployment_and_endpoints()
-
-
-@pytest.mark.sanity
+@pytest.mark.overlay
 def test_pods_restart_on_overlay():
-    test_pods_restart()
+    restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_pods_replace_on_overlay():
+    replace_broker_pod()
+    test_overlay_network_deployment_and_endpoints()
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_topic_create_overlay():
+    create_topic()
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_topic_delete_overlay():
+    delete_topic()
+
+
+
+
+
 

@@ -7,6 +7,12 @@ def check_task_network(task_name, expected_network_name="dcos"):
     """Tests whether a task (and it's parent pod) is on a given network
     """
     _task = shakedown.get_task(task_id=task_name, completed=False)
+
+    if type(_task) == list:
+        assert len(_task) == 1, "Found too many tasks matching {}, got {}"\
+            .format(task_name, _task)
+        _task = _task[0]
+
     for status in _task["statuses"]:
         if status["state"] == "TASK_RUNNING":
             for network_info in status["container_status"]["network_infos"]:
