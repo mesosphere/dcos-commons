@@ -105,7 +105,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         }
         if (offerAttributeStrings.isEmpty()) {
             // shortcut: offer has no attributes to enforce. offer accepted!
-            return EvaluationOutcome.pass(this, "Offer has no attributes to enforce");
+            return EvaluationOutcome.pass(this, null, "Offer has no attributes to enforce");
         }
 
         // map: enforced attribute in offer => # other tasks which were launched against attribute
@@ -150,6 +150,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
+                null,
                 "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
                 maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
     }

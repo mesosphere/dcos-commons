@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.dcos;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +11,28 @@ import java.io.IOException;
  */
 public class Capabilities {
     private static final Logger LOGGER = LoggerFactory.getLogger(Capabilities.class);
+    private static final Object lock = new Object();
+    private static Capabilities capabilities;
+    DcosCluster dcosCluster;
 
-    private DcosCluster dcosCluster;
+    public static Capabilities getInstance() {
+        synchronized (lock) {
+            if (capabilities == null) {
+                capabilities = new Capabilities(new DcosCluster());
+            }
 
-    public Capabilities(DcosCluster dcosCluster) {
+            return capabilities;
+        }
+    }
+
+    public static void overrideCapabilities(Capabilities overrides) {
+        synchronized (lock) {
+            capabilities = overrides;
+        }
+    }
+
+    @VisibleForTesting
+    Capabilities(DcosCluster dcosCluster) {
         this.dcosCluster = dcosCluster;
     }
 
@@ -35,6 +54,10 @@ public class Capabilities {
     public boolean supportsCNINetworking() throws IOException {
         // CNI port-mapping is supported by DC/OS 1.10 upwards
         return hasOrExceedsVersion(1, 9);
+    }
+
+    public boolean supportsPreReservedResources() {
+        return false;
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) throws IOException {

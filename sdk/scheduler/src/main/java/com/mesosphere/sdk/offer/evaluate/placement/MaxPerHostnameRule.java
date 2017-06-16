@@ -111,6 +111,7 @@ public class MaxPerHostnameRule implements PlacementRule {
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
+                null,
                 "%d/%d tasks matching filter '%s' are present on this host",
                 offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
     }

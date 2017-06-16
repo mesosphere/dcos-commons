@@ -3,7 +3,9 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
+import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,11 +74,14 @@ class OfferEvaluationUtils {
             if (!resourceId.isPresent()) {
                 // Initial reservation of resources
                 LOGGER.info("    Resource '{}' requires a RESERVE operation", resourceSpec.getName());
-                Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId).build();
+                Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
+                        .setMesosResource(mesosResource)
+                        .build();
                 offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
+                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Offer contains sufficient '%s': for resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
@@ -87,6 +92,7 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
+                                mesosResource,
                                 Collections.emptyList(),
                                 "Offer contains sufficient previously reserved '%s':" +
                                         " for resource: '%s' with resourceId: '%s'",
@@ -132,6 +138,7 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
+                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Offer contains sufficient '%s': for increasing resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
@@ -155,6 +162,7 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
+                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Decreased '%s': for resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
@@ -163,6 +171,14 @@ class OfferEvaluationUtils {
                         ResourceUtils.getResourceId(resource).get());
             }
         }
+    }
+
+    public static Optional<String> getRole(PodSpec podSpec) {
+        return podSpec.getTasks().stream()
+                .map(TaskSpec::getResourceSet)
+                .flatMap(resourceSet -> resourceSet.getResources().stream())
+                .map(ResourceSpec::getRole)
+                .findFirst();
     }
 
     static void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource, Optional<String> taskName) {
@@ -185,7 +201,7 @@ class OfferEvaluationUtils {
             return pool.consumeReservableMerged(
                     resourceSpec.getName(),
                     resourceSpec.getValue(),
-                    Constants.ANY_ROLE);
+                    resourceSpec.getPreReservedRole());
         } else {
             return pool.consumeReserved(resourceSpec.getName(), resourceSpec.getValue(), resourceId.get());
         }

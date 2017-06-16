@@ -190,7 +190,7 @@ _ANY CUSTOMIZATIONS RELATING TO MEMORY THAT SHOULD BE ADJUSTED AS WELL (E.G. HEA
 <a name="ports"></a>
 ### Ports
 
-You can customize the ports exposed by the service via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise.
+You can customize the ports exposed by the service via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise. If your pod is on the overlay network (see below) then the port resources will be ignored allowing a pod to share a machine with another one using the same ports. 
 
 Each component's ports may be customized in the following configuration sections:
 - _LIST PORT OPTIONS AND WHERE THEY ARE LOCATED IN THE CONFIG HERE_
@@ -442,6 +442,9 @@ Neither volume type nor volume size requirements may be changed after initial de
 ## Rack-aware Replication
 
 Rack placement and awareness are not supported at this time.
+
+## Overlay network configuration updates
+When a pod from your service uses the overlay network, it does not use the port resources on the agent machine, and thus does not have them reserved. For this reason, we do not allow a pod deployed on the overlay network to be updated (moved) to the host network, because we cannot guarantee that the machine with the reserved volumes will have ports available. To make the reasoning simpler, we also do not allow for pods to be moved from the host network to the overlay. Once you pick a networking paradigm for your service the service is bound to that networking paradigm. 
 
 ## _OTHER CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
