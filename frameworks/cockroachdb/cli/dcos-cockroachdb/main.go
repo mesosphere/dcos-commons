@@ -23,6 +23,26 @@ type CockroachHandler struct {
 	command string
 }
 
+func (cmd *CockroachHandler) node(c *kingpin.ParseContext) error {
+	outBytes, err := client.RunCLICommand("task",
+			"exec",
+			"cockroachdb-0-node-init",
+			"./cockroach",
+			"node",
+			"--insecure",
+			"--host=internal.cockroachdb.l4lb.thisdcos.directory",
+			fmt.Sprintf("%s", cmd.command))
+	fmt.Printf("%s\n", outBytes)
+	if err != nil {
+		if strings.Contains(err.Error(), "Cannot find a task with ID") {
+			fmt.Printf("Failed to locate CockroachDB binary. Has the package finished installing yet?\n")
+		} else {
+			fmt.Printf("Error: %s\n", err)
+		}
+	}
+	return nil
+}
+
 func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
 	outBytes, err := client.RunCLICommand("task",
 			"exec",
@@ -51,4 +71,7 @@ func handleCockroachSection(app *kingpin.Application) {
 
 	sql := cockroach.Command("sql", "Equivalent to running `cockroach sql <command>` on task.").Action(cmd.sql)
 	sql.Arg("command", "CockroachDB sql command to run.").StringVar(&cmd.command)
+
+	node := cockroach.Command("node", "Equivalent to running `cockroach node <command>` on task.").Action(cmd.node)
+	node.Arg("command", "CockroachDB node command to run.").StringVar(&cmd.command)
 }
