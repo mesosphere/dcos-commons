@@ -93,9 +93,9 @@ def _get_hosts_with_plugin(curl_api, plugin_name):
 
 
 def get_elasticsearch_master(service_name=PACKAGE_NAME):
-    curl_api = _curl_api(service_name, "GET", "coordinator")
+    # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
     def get_master():
-        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api))
+        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(_curl_api(service_name, "GET"))
         if exit_status and len(output.split()) > 0:
             return output.split()[-1]
 

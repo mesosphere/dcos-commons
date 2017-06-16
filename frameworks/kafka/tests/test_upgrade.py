@@ -30,7 +30,6 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.skip(reason="PR 1071")
 def test_upgrade():
 
     test_version = upgrade.get_pkg_version(PACKAGE_NAME)

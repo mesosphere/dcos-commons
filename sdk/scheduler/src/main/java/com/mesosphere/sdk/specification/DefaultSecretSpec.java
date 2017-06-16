@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.*;
 
@@ -18,7 +19,14 @@ public class DefaultSecretSpec implements SecretSpec {
     @NotNull
     @Size(min = 1)
     private final String secretPath;
+
     private final String envKey;
+
+    /** Regexp in @Pattern:
+     *      sub-pattern = [a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*
+     *      (sub-pattern)?  = either NULL, or sub-pattern.  So It can be Null.
+     */
+    @Pattern(regexp = "([a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*)?")
     private final String filePath;
 
     @JsonCreator
@@ -29,6 +37,7 @@ public class DefaultSecretSpec implements SecretSpec {
         this.secretPath = secretPath;
         this.envKey = envKey;
         this.filePath = filePath;
+        ValidationUtils.validate(this);
     }
 
     private DefaultSecretSpec(Builder builder) {
