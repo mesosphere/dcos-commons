@@ -8,10 +8,9 @@ enterprise: 'no'
 * Seed Node Replace
 
 While the Cassandra service supports a node replace operation via the command
-`dcos cassandra pods replace ≤node_id≥`, the node replace operation does not
-currently inform the underlying Cassandra cluster of the change, so effectively
-leaves a dead seed node in the cluster and does not provide the new, replacement
-node as a seed node.
+`dcos cassandra pods replace ≤node_id≥`, the node replace operation performs a
+`replace_address`, which is sufficient for non-seed nodes, but is insufficient
+with regard to a seed node.
 
 For more information and a comparable procedure for "Replacing a dead node or
 dead seed node" from DataStax, see the following:
@@ -270,7 +269,7 @@ nodetool_ $SEED_NODE removenode ${cassandra_id}
 ```
 
 6.b. Perform a rolling restart of the non-seed nodes in the Cassandra cluster
-by issueing the following commands:
+by issuing the following commands:
 
 ```shell
 for node in $(dcos cassandra pods list \
