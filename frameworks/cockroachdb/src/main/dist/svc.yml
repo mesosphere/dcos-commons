@@ -28,6 +28,10 @@ pods:
           path: "cockroach-data"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
+      sidecar-resources:
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+
     tasks:
       node-init:
         goal: RUNNING
@@ -79,6 +83,10 @@ pods:
           delay: 0
         env:
           COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      backup:
+        goal: FINISHED
+        cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach dump $DATABASE_NAME --dump-mode=$DUMP_MODE > cockroach-data/$DATABASE_NAME.sql"
+        resource-set: sidecar-resources
 plans:
   deploy:
     strategy: serial
@@ -97,4 +105,13 @@ plans:
         pod: cockroachdb
         steps: 
           - default: [[node-join]]
-      
+  backup:
+    strategy: serial
+    phases:
+      backup-test:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - default: [[backup]]
+
+
