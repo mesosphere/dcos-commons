@@ -5,23 +5,23 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
-//import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-//import com.mesosphere.sdk.specification.CommandSpec;
-//import com.mesosphere.sdk.specification.DefaultCommandSpec;
-//import com.mesosphere.sdk.specification.DefaultPodSpec;
-//import com.mesosphere.sdk.specification.DefaultTaskSpec;
-//import com.mesosphere.sdk.specification.PodInstance;
-//import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.CommandSpec;
+import com.mesosphere.sdk.specification.DefaultCommandSpec;
+import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.DefaultTaskSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-//import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 //import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-//import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 /**
  * The CockroachdbRecoveryPlanManager handles failure scenarios unique to Cockroachdb. 
@@ -46,8 +46,9 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
     @Override
     public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
-        if (!stoppedPod.getPodInstance().getPod().getType().equals("cockroachdb")) {
-            logger.info("No overrides necessary. Pod is not a cockroachdb.");
+        if (!stoppedPod.getPodInstance().getPod().getType().equals("cockroachdb") 
+            || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
+            logger.info("No overrides necessary. Pod is not a cockroachdb or it is not a permanent failure.");
             return Optional.empty();
         }
 
@@ -67,8 +68,12 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
         TaskSpec taskSpec = podSpec.getTasks().stream().filter(t -> t.getName().equals("node-join")).findFirst().get();
         CommandSpec command = taskSpec.getCommand().get();
 
+        DefaultCommandSpec.Builder builder = DefaultCommandSpec.newBuilder(command);
+        builder.value(String.format(
+                "%s",
+                command.getValue().trim()));
         // Rebuild a new PodSpec with the modified command, and add it to the phase we return.
-        TaskSpec newTaskSpec = DefaultTaskSpec.newBuilder(taskSpec).commandSpec(command).build();
+        TaskSpec newTaskSpec = DefaultTaskSpec.newBuilder(taskSpec).commandSpec(builder.build()).build();
         List<TaskSpec> tasks = podSpec.getTasks().stream()
                 .map(t -> {
                     if (t.getName().equals(newTaskSpec.getName())) {
@@ -85,7 +90,7 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
                     newPodInstance, inputLaunchStep.start().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
-		
+
         Step replaceStep = new DefaultRecoveryStep(
                 inputLaunchStep.getName(),
                 Status.PENDING,

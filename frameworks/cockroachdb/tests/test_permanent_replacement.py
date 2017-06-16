@@ -1,4 +1,5 @@
 import pytest
+import time
 import shakedown
 
 from tests.config import *
@@ -14,6 +15,29 @@ def setup_module(module):
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
+
+def cockroach_cmd(sql_command, database='', task='cockroachdb-0-node-init'):
+    ''' Generates dcos command that can be passed
+    to sdk_cmd.run_cli for testing. '''
+    dcos_command = """task exec {} \
+        ./cockroach sql \
+        -e "{}" --insecure \
+        --host=internal.cockroachdb.l4lb.thisdcos.directory""".format(task, sql_command)
+    if database:
+        dcos_command += ' -d {}'.format(database)
+    return dcos_command
+
+def cockroach_nodes_healthy(task='cockroachdb-0-node-init'):
+    ''' Executes `cockroach node ls` on the
+    first CockroachDB node to confirm that
+    the number of active, connected nodes
+    matches the DEFAULT_TASK_COUNT. '''
+    cmd_node_ls = "task exec {} \
+        ./cockroach node ls \
+        --host='internal.cockroachdb.l4lb.thisdcos.directory' \
+        --insecure".format(task)
+    out_node_ls = cmd.run_cli(cmd_node_ls)
+    return '{} row'.format(DEFAULT_TASK_COUNT) in out_node_ls
 
 @pytest.mark.recovery
 def test_permanent_replacement():
@@ -33,38 +57,14 @@ def test_permanent_replacement():
     # Kill All CockroachDB Nodes (one at a time)
     service_ips = shakedown.get_service_ips(SERVICE_NAME)
     for service_ip in service_ips:
-        shakedown.kill_process_on_host(service_ip, "cockroach start")                              # Kill CockroachDB node
-        tasks.check_running(SERVICE_NAME, DEFAULT_TASK_COUNT, 120)                                 # Wait for new CockroachDB node to run
-        shakedown.wait_for(lambda: cockroach_nodes_healthy(), noisy=True, timeout_seconds=5*60)    # Wait for healthy CockroachDB cluster
-        time.sleep(30)
+        shakedown.kill_process_on_host(service_ip, "cockroach start")                                # Kill CockroachDB node
+        tasks.check_running(SERVICE_NAME, DEFAULT_TASK_COUNT, 5*60)                                  # Wait for new CockroachDB node to run
+        shakedown.wait_for(lambda: cockroach_nodes_healthy(), noisy=True, timeout_seconds=5*60)      # Wait for healthy CockroachDB cluster
+        time.sleep(30)                                                                               # Give CockroachDB time to replicate data
 
     # Run cmd_select
     out_select = cmd.run_cli(cmd_select)
 
     # Confirm Output
     assert '2 rows' in out_select
-	
-
-def cockroach_cmd(sql_command, database='', task='cockroachdb-0-node-init'):
-    ''' Generates dcos command that can be passed
-    to sdk_cmd.run_cli for testing. '''
-    dcos_command = "task exec {} \
-        ./cockroach sql \
-        -e '{}' --insecure \
-        --host=internal.cockroachdb.l4lb.thisdcos.directory".format(task, sql_command)
-    if database:
-        dcos_command += ' -d {}'.format(database)
-    return dcos_command
-
-def cockroach_nodes_healthy(task='cockroachdb-1-node-join'):
-    ''' Executes `cockroach node ls` on the
-    first CockroachDB node to confirm that
-    the number of active, connected nodes
-    matches the DEFAULT_TASK_COUNT. '''
-    cmd_node_ls = "task exec {} \
-        ./cockroach node ls \
-        --host='internal.cockroachdb.l4lb.thisdcos.directory' \
-        --insecure".format(task)
-    out_node_ls = cmd.run_cli(cmd_node_ls)
-    return '{} row'.format(DEFAULT_TASK_COUNT) in out_node_ls
 
