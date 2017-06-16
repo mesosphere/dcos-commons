@@ -1,8 +1,9 @@
 import json
-
 import pytest
-import shakedown
 import time
+import xml.etree.ElementTree as etree
+
+import shakedown
 
 import sdk_cmd as cmd
 import sdk_install as install
@@ -12,6 +13,8 @@ import sdk_tasks as tasks
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
+    FOLDERED_SERVICE_NAME,
+    FOLDERED_SERVICE_AUTOIP_HOST,
     DEFAULT_TASK_COUNT
 )
 
@@ -24,9 +27,14 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
     sdk_utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
 
 def setup_function(function):
@@ -34,7 +42,34 @@ def setup_function(function):
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+
+@pytest.mark.sanity
+def test_endpoints():
+    # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
+    core_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints core-site.xml'.format(FOLDERED_SERVICE_NAME)))
+    check_properties(core_site, {
+        'ha.zookeeper.parent-znode': '/dcos-service-path__to__hdfs/hadoop-ha'
+    })
+
+    hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
+    expect = {
+        'dfs.namenode.shared.edits.dir': 'qjournal://' + ';'.join(['journal-{}-node.{}:8485'.format(i, FOLDERED_SERVICE_AUTOIP_HOST) for i in range(3)]) + '/hdfs',
+    }
+    for i in range(2):
+        expect['dfs.namenode.rpc-address.hdfs.name-{}-node'.format(i)] = 'name-{}-node.{}:9001'.format(i, FOLDERED_SERVICE_AUTOIP_HOST)
+        expect['dfs.namenode.http-address.hdfs.name-{}-node'.format(i)] = 'name-{}-node.{}:9002'.format(i, FOLDERED_SERVICE_AUTOIP_HOST)
+    check_properties(hdfs_site, expect)
+
+
+def check_properties(xml, expect):
+    found = {}
+    for prop in xml.findall('property'):
+        name = prop.find('name').text
+        if name in expect:
+            found[name] = prop.find('value').text
+    utils.out('expect: {}\nfound:  {}'.format(expect, found))
+    assert expect == found
 
 
 @pytest.mark.skip(reason="HDFS-451")
@@ -42,18 +77,18 @@ def teardown_module(module):
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
     shakedown.wait_for(
-        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: write_data_to_hdfs('data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
 
-    tasks.kill_task_with_pattern("DataNode", 'data-0-node.hdfs.autoip.dcos.thisdcos.directory')
-    tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern("DataNode", 'data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern("DataNode", 'data-1-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
     time.sleep(1)  # give DataNode a chance to die
 
     shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: read_data_from_hdfs("data-2-node.{}".format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
@@ -67,15 +102,15 @@ def test_integrity_on_name_node_failure():
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
     This test checks that it is possible to write and read data after the first name node fails.
     """
-    tasks.kill_task_with_pattern("NameNode", 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern("NameNode", 'name-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
     time.sleep(1)  # give NameNode a chance to die
 
     shakedown.wait_for(
-        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME),
+        lambda: write_data_to_hdfs('data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_2_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME),
+        lambda: read_data_from_hdfs('data-2-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_2_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
@@ -83,43 +118,43 @@ def test_integrity_on_name_node_failure():
 
 @pytest.mark.recovery
 def test_kill_journal_node():
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal-0')
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal-0')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_name_node():
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name-0')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('namenode', 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern('namenode', 'name-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_data_node():
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data-0')
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data-0')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
-    tasks.kill_task_with_pattern('datanode', 'data-0-node.hdfs.autoip.dcos.thisdcos.directory')
+    tasks.kill_task_with_pattern('datanode', 'data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'data', data_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
 
 
 @pytest.mark.sanity
@@ -132,48 +167,48 @@ def test_kill_scheduler():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_all_journalnodes():
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
+    for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         tasks.kill_task_with_pattern('journalnode', host)
 
     check_healthy()
     # name nodes fail and restart, so don't check those
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_all_namenodes():
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
+    for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         tasks.kill_task_with_pattern('namenode', host)
 
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_all_datanodes():
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
+    for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         tasks.kill_task_with_pattern('datanode', host)
 
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'data', data_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
 
 
 @pytest.mark.sanity
@@ -188,37 +223,37 @@ def test_permanently_replace_namenodes():
 @pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_0_1():
     check_healthy()
-    name_0_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
-    name_1_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-1')
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    name_0_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name-0')
+    name_1_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name-1')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs pods replace name-0')
-    cmd.run_cli('hdfs pods restart name-1')
+    cmd.run_cli('hdfs --name={} pods replace name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pods restart name-1'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name-0', name_0_ids)
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name-1', name_1_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-1', name_1_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_1_0():
     check_healthy()
-    name_0_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
-    name_1_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-1')
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    name_0_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name-0')
+    name_1_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name-1')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs pods replace name-1')
-    cmd.run_cli('hdfs pods restart name-0')
+    cmd.run_cli('hdfs --name={} pods replace name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pods restart name-0'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name-0', name_0_ids)
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name-1', name_1_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-1', name_1_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.smoke
@@ -228,96 +263,96 @@ def test_install():
 
 @pytest.mark.sanity
 def test_bump_journal_cpus():
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     sdk_utils.out('journal ids: ' + str(journal_ids))
 
-    marathon.bump_cpu_count_config(PACKAGE_NAME, 'JOURNAL_CPUS')
+    marathon.bump_cpu_count_config(FOLDERED_SERVICE_NAME, 'JOURNAL_CPUS')
 
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     check_healthy()
 
 
 @pytest.mark.sanity
 def test_bump_data_nodes():
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
     sdk_utils.out('data ids: ' + str(data_ids))
 
-    marathon.bump_task_count_config(PACKAGE_NAME, 'DATA_COUNT')
+    marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
     check_healthy(DEFAULT_TASK_COUNT + 1)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 def test_modify_app_config():
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
 
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
-    config = marathon.get_config(PACKAGE_NAME)
+    config = marathon.get_config(FOLDERED_SERVICE_NAME)
     sdk_utils.out('marathon config: ')
     sdk_utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
     config['env'][app_config_field] = str(expiry_ms + 1)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
     # All tasks should be updated because hdfs-site.xml has changed
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
-    tasks.check_tasks_updated(PACKAGE_NAME, 'data', journal_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
 
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    old_config = marathon.get_config(PACKAGE_NAME)
-    config = marathon.get_config(PACKAGE_NAME)
+    old_config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    config = marathon.get_config(FOLDERED_SERVICE_NAME)
     sdk_utils.out('marathon config: ')
     sdk_utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
     sdk_utils.out('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
-    marathon.update_app(PACKAGE_NAME, config)
+    marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
     # Wait for journal nodes to be affected by the change
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
 
     sdk_utils.out('old config: ')
     sdk_utils.out(old_config)
     # Put the old config back (rollback)
-    marathon.update_app(PACKAGE_NAME, old_config)
+    marathon.update_app(FOLDERED_SERVICE_NAME, old_config)
 
     # Wait for the journal nodes to return to their old configuration
-    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     check_healthy()
 
-    config = marathon.get_config(PACKAGE_NAME)
+    config = marathon.get_config(FOLDERED_SERVICE_NAME)
     assert int(config['env'][app_config_field]) == expiry_ms
 
     # Data tasks should not have been affected
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 def replace_name_node(index):
     check_healthy()
     name_node_name = 'name-' + str(index)
-    name_id = tasks.get_task_ids(PACKAGE_NAME, name_node_name)
-    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
-    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+    name_id = tasks.get_task_ids(FOLDERED_SERVICE_NAME, name_node_name)
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs pods replace ' + name_node_name)
+    cmd.run_cli('hdfs --name={} pods replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
 
     check_healthy()
-    tasks.check_tasks_updated(PACKAGE_NAME, name_node_name, name_id)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, name_node_name, name_id)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 def write_some_data(data_node_host, file_name):
@@ -374,6 +409,6 @@ def find_java_home(host):
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=20 * 60)
-    tasks.check_running(PACKAGE_NAME, count)
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME, timeout_seconds=20 * 60)
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME, timeout_seconds=20 * 60)
+    tasks.check_running(FOLDERED_SERVICE_NAME, count)

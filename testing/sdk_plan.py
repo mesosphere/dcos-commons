@@ -105,14 +105,14 @@ def plan_string(plan_name, plan):
     if plan is None:
         return '{}=NULL!'.format(plan_name)
     # deploy STARTING:
-    # - node-deploy STARTING: node-0:[server]: STARTING, node-1:[server]: PENDING, node-2:[server]: PENDING
-    # - node-other PENDING: somestep: PENDING
+    # - node-deploy STARTING: node-0:[server]=STARTING, node-1:[server]=PENDING, node-2:[server]=PENDING
+    # - node-other PENDING: somestep=PENDING
     # - errors: foo, bar
     def phase_string(phase):
         return '\n- {} {}: {}'.format(
             phase['name'],
             phase['status'],
-            ', '.join('{}: {}'.format(step['name'], step['status']) for step in phase['steps']))
+            ', '.join('{}={}'.format(step['name'], step['status']) for step in phase['steps']))
     plan_str = '{} {}:{}'.format(
         plan_name,
         plan['status'],

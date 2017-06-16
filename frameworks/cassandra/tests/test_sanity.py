@@ -1,27 +1,37 @@
+import json
 import pytest
 import shakedown
 import tempfile
 import uuid
 
 from tests.config import *
+import sdk_cmd as cmd
 import sdk_install as install
 import sdk_jobs as jobs
 import sdk_plan as plan
 import sdk_utils as utils
 
 
-TEST_JOBS = (
-    WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB
-)
+WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
+VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)
+DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
+VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
+TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+    #install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    #utils.gc_frameworks()
 
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    #install.install(
+    #    PACKAGE_NAME,
+    #    DEFAULT_TASK_COUNT,
+    #    service_name=FOLDERED_SERVICE_NAME,
+    #    additional_options={"service": { "name": FOLDERED_SERVICE_NAME } },
+    #    check_suppression=False)
+    cmd.run_cli('package install --cli cassandra')
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
     tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
     for job in TEST_JOBS:
@@ -29,7 +39,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    #install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
     # remove job definitions from metronome
     for job in TEST_JOBS:
@@ -39,7 +49,15 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_service_health():
-    assert shakedown.service_healthy(PACKAGE_NAME)
+    assert shakedown.service_healthy(FOLDERED_SERVICE_NAME)
+
+
+@pytest.mark.sanity
+def test_endpoints():
+    # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
+    endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(FOLDERED_SERVICE_NAME)))
+    assert endpoints['dns'][0] == 'node-0-server.pathtocassandra.autoip.dcos.thisdcos.directory:9042'
+    assert endpoints['vips'][0] == 'node.pathtocassandra.l4lb.thisdcos.directory:9042'
 
 
 @pytest.mark.sanity
@@ -50,8 +68,8 @@ def test_cleanup_plan_completes():
     with jobs.RunJobContext(
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
-        plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=cleanup_parameters)
-        plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
+        plan.start_plan(FOLDERED_SERVICE_NAME, 'cleanup', parameters=cleanup_parameters)
+        plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'cleanup')
 
 
 @pytest.mark.sanity
@@ -62,12 +80,12 @@ def test_repair_plan_completes():
     with jobs.RunJobContext(
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
-        plan.start_plan(PACKAGE_NAME, 'repair', parameters=repair_parameters)
-        plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
+        plan.start_plan(FOLDERED_SERVICE_NAME, 'repair', parameters=repair_parameters)
+        plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'repair')
 
 
 # To disable these tests in local runs where you may lack the necessary credentials,
-# use e.g. "TEST_TYPES=sanity and not aws and not azure":
+# use e.g. "TEST_TYPES=speedy and not aws and not azure":
 
 
 @pytest.mark.aws
@@ -75,7 +93,7 @@ def test_repair_plan_completes():
 def test_backup_and_restore_to_s3():
     key_id = os.getenv('AWS_ACCESS_KEY_ID')
     if not key_id:
-        assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+        assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="speedy and not aws"'
     plan_parameters = {
         'AWS_ACCESS_KEY_ID': key_id,
         'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
@@ -85,7 +103,15 @@ def test_backup_and_restore_to_s3():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore('backup-s3', 'restore-s3', plan_parameters)
+    run_backup_and_restore(
+        FOLDERED_SERVICE_NAME,
+        'backup-s3',
+        'restore-s3',
+        plan_parameters,
+        WRITE_DATA_JOB,
+        VERIFY_DATA_JOB,
+        DELETE_DATA_JOB,
+        VERIFY_DELETION_JOB)
 
 
 @pytest.mark.azure
@@ -93,7 +119,7 @@ def test_backup_and_restore_to_s3():
 def test_backup_and_restore_to_azure():
     client_id = os.getenv('AZURE_CLIENT_ID')
     if not client_id:
-        assert False, 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not azure"'
+        assert False, 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="speedy and not azure"'
     plan_parameters = {
         'AZURE_CLIENT_ID': client_id,
         'AZURE_CLIENT_SECRET': os.getenv('AZURE_CLIENT_SECRET'),
@@ -105,32 +131,12 @@ def test_backup_and_restore_to_azure():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore('backup-azure', 'restore-azure', plan_parameters)
-
-
-def run_backup_and_restore(backup_plan, restore_plan, plan_parameters):
-    # Write data to Cassandra with a metronome job, then verify it was written
-    # Note: Write job will fail if data already exists
-    jobs.run_job(WRITE_DATA_JOB)
-    jobs.run_job(VERIFY_DATA_JOB)
-
-    # Run backup plan, uploading snapshots and schema to the cloudddd
-    plan.start_plan(PACKAGE_NAME, backup_plan, parameters=plan_parameters)
-    plan.wait_for_completed_plan(PACKAGE_NAME, backup_plan)
-
-    # Delete all keyspaces and tables with a metronome job
-    jobs.run_job(DELETE_DATA_JOB)
-
-    # Verify that the keyspaces and tables were deleted
-    jobs.run_job(VERIFY_DELETION_JOB)
-
-    # Run restore plan, retrieving snapshots and schema from S3
-    plan.start_plan(PACKAGE_NAME, restore_plan, parameters=plan_parameters)
-    plan.wait_for_completed_plan(PACKAGE_NAME, restore_plan)
-
-    # Verify that the data we wrote and then deleted has been restored
-    jobs.run_job(VERIFY_DATA_JOB)
-
-    # Delete data in preparation for any other backup tests
-    jobs.run_job(DELETE_DATA_JOB)
-    jobs.run_job(VERIFY_DELETION_JOB)
+    run_backup_and_restore(
+        FOLDERED_SERVICE_NAME,
+        'backup-azure',
+        'restore-azure',
+        plan_parameters,
+        WRITE_DATA_JOB,
+        VERIFY_DATA_JOB,
+        DELETE_DATA_JOB,
+        VERIFY_DELETION_JOB)
