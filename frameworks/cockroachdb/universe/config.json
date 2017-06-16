@@ -67,19 +67,19 @@
             "title": "CPU count",
             "description": "Template pod CPU requirements",
             "type": "number",
-            "default":0.1
+            "default":1.0
           },
           "mem": {
             "title": "Memory size (MB)",
             "description": "Template pod mem requirements (in MB)",
             "type": "integer",
-            "default":252
+            "default":1000
           },
           "disk": {
             "title": "Disk size (MB)",
             "description": "Template pod persistent disk requirements (in MB)",
             "type": "integer",
-            "default":25
+            "default":5000
           },
           "disk_type": {
             "title": "Disk type [ROOT, MOUNT]",

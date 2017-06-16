@@ -26,7 +26,7 @@ type CockroachHandler struct {
 func (cmd *CockroachHandler) node(c *kingpin.ParseContext) error {
 	outBytes, err := client.RunCLICommand("task",
 			"exec",
-			"cockroachdb-0-node-init",
+			"cockroachdb-1-node-join",
 			"./cockroach",
 			"node",
 			"--insecure",
@@ -46,7 +46,7 @@ func (cmd *CockroachHandler) node(c *kingpin.ParseContext) error {
 func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
 	outBytes, err := client.RunCLICommand("task",
 			"exec",
-			"cockroachdb-0-node-init",
+			"cockroachdb-1-node-join",
 			"./cockroach",
 			"sql",
 			"--insecure",
