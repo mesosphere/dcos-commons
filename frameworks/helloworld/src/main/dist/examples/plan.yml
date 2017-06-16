@@ -1,4 +1,6 @@
-name: "hello-world"
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
 pods:
   hello:
     count: {{HELLO_COUNT}}

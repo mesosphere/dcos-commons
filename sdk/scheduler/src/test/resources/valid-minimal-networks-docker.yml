@@ -5,15 +5,15 @@ pods:
     image: group/image
     networks:
       dcos:
-        ip-addresses: ["172.16.254.1"]
-        host-ports: [4040]
-        container-ports: [8080]
     tasks:
       meta-data-task:
         goal: RUNNING
         cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
+        ports:
+          test:
+            port: 4040
         discovery:
           prefix: meta-data
         health-check:

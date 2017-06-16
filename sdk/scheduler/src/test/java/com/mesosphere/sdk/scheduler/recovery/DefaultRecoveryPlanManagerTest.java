@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.OfferAccepter;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
@@ -11,18 +13,13 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
-
+import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -59,8 +56,8 @@ public class DefaultRecoveryPlanManagerTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final List<Resource> resources = Arrays.asList(
-            ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
-            ResourceTestUtils.getDesiredMem(TestPodFactory.MEM));
+            ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getUnreservedMem(TestPodFactory.MEM));
 
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
     private Collection<TaskInfo> taskInfos = Collections.singletonList(taskInfo);
@@ -76,8 +73,6 @@ public class DefaultRecoveryPlanManagerTest {
     private PlanManager mockDeployManager;
     private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
-
-    private DefaultOfferRequirementProvider offerRequirementProvider;
 
     private static List<Offer> getOffers() {
         return getOffers(TestPodFactory.CPU, TestPodFactory.MEM);
@@ -103,9 +98,8 @@ public class DefaultRecoveryPlanManagerTest {
         Persister persister = new MemPersister();
         stateStore = new DefaultStateStore(persister);
 
-        serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(new File(getClass()
-                        .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())), flags);
+        File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
+        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(recoverySpecFile).build(), flags).build();
 
         configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
@@ -130,11 +124,13 @@ public class DefaultRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        offerRequirementProvider = new DefaultOfferRequirementProvider(
-                stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
-                new OfferEvaluator(stateStore, offerRequirementProvider),
+                new OfferEvaluator(
+                        stateStore,
+                        serviceSpec.getName(),
+                        configTarget,
+                        OfferRequirementTestUtils.getTestSchedulerFlags()),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
@@ -175,8 +171,9 @@ public class DefaultRecoveryPlanManagerTest {
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedDoRelaunch() throws Exception {
         final List<Offer> offers = getOffers();
-
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_FAILED);
 
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(status);
@@ -197,8 +194,8 @@ public class DefaultRecoveryPlanManagerTest {
         reset(mockDeployManager);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
-    @SuppressWarnings("unchecked")
     public void stepWithDifferentNameLaunches() throws Exception {
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);

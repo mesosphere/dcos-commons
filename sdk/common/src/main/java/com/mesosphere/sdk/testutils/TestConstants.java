@@ -13,11 +13,13 @@ public class TestConstants {
     public static final String CONTAINER_PATH_LABEL = "container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
     public static final String HOSTNAME = "test-hostname";
+    public static final String OVERLAY_HOSTNAME = "overlay-hostname";
     public static final String MOUNT_ROOT = "test-mount-root";
     public static final Protos.OfferID OFFER_ID = Protos.OfferID.newBuilder().setValue("test-offer-id").build();
     public static final String PERSISTENCE_ID = "test-persistence-id";
     public static final String PRINCIPAL = "test-principal";
     public static final String ROLE = "test-role";
+    public static final String PRE_RESERVED_ROLE = "base-role";
     public static final Protos.SlaveID AGENT_ID = Protos.SlaveID.newBuilder().setValue("test-slave-id").build();
     public static final String TASK_NAME = "test-task-name";
     public static final String TASK_TYPE = "test-task-type";
@@ -38,16 +40,12 @@ public class TestConstants {
     public static final Integer PORT_API_VALUE = 8080;
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
+    public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
+
     // CNI port mapping constants
-    public static final String OVERLAY_NETWORK_NAME = "dcos";
     public static final int HOST_PORT = 4040;
     public static final int CONTAINER_PORT = 8080;
     public static final int NUMBER_OF_PORT_MAPPINGS = 1;
-    public static final String NETGROUP1 = "mygroup";
-    public static final String NETGROUP2 = "hellogroup";
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    public static final String IPADDRESS1 = "172.16.254.1";
-
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

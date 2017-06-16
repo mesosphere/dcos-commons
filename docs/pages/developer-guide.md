@@ -246,13 +246,13 @@ As an example, let’s consider the scenario where we wish to deploy the hello-p
 name: "hello-world"
 pods:
   hello-pod:
-  count: 2
-  tasks:
-    hello-task:
-      goal: RUNNING
-      cmd: "echo hello && sleep 1000"
-      cpus: 0.1
-      memory: 512
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
   world-pod:
     count: 2
     tasks:
@@ -328,7 +328,7 @@ pods:
         resource-set: hello-resources
 ```
 
-By default a the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
+By default, the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
 
 ```yaml
 plans:
@@ -771,7 +771,7 @@ There are two service discovery options that are relevant to the SDK: mesos-dns 
 All tasks launched in DC/OS receive a DNS address. It is of the form:
 
 ```
-<task-name>.<framework-name>.mesos
+<task-name>.<framework-name>.autoip.dcos.thisdcos.directory
 ```
 
 So a service defined as follows:
@@ -793,7 +793,7 @@ pods:
           size: 50
 ```
 
-would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.mesos". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
+would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.autoip.dcos.thisdcos.directory". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
 
 ```yaml
 name: "hello-world"
@@ -823,7 +823,7 @@ pods:
           prefix: hello
 ```
 
-In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.mesos", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
+In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.autoip.dcos.thisdcos.directory", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
 
 **Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
 
@@ -870,7 +870,7 @@ The SDK provides assistance for writing both unit and integration tests.
 
 ## Unit tests
 
-Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/HelloWorldServiceSpecTest.java).
+Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceSpecTest.java).
 
 **Important:** In order to avoid unintentional execution of other framework tests, you must include [a test filter similar to the one defined by the hello-world framework](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45).
 
@@ -882,7 +882,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
 
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have
@@ -905,7 +905,18 @@ The most basic set of features present in the YAML representation of the `Servic
 
 ### Containers
 
-Each pod runs inside a single container. The `ServiceSpec` specifies the Docker image to run for that container, the virtual network memberships, and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
+Each pod runs inside a single container. The `ServiceSpec` specifies the following: 
+  * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
+  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.  
+  * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
+
+The example `ServiceSpec` below specifies: 
+  * The `ubuntu` container image.
+  * The soft limit for number of open file descriptors for any task in the `hello` pod as 1024, and the hard limit to 2048.
+  * That the pod should join the `dcos` virtual network.
+  
+
+In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
 
 ```yaml
 name: "hello-world"
@@ -914,7 +925,7 @@ pods:
     count: 1
     image: ubuntu
     networks:
-      dcos: {}
+      dcos: 
     rlimits:
       RLIMIT_NOFILE:
         soft: 1024
@@ -927,9 +938,10 @@ pods:
         memory: 256
 ```
 
-Currently an empty YAML dictionary is passed as the body for each network definition under `networks`, since we only support joining virtual networks by name, but in the future it will be possible to specify port mappings and other information in a network definition.
+For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
-**Note:** Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
+**Overlay networks**
+The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task. 
 
 ### Placement Rules
 
@@ -1355,13 +1367,13 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      health-check:
-        cmd: "./check-up"
-        interval: 5
-        grace-period: 30
-        max-consecutive-failures: 3
-        delay: 0
-        timeout: 10
+        health-check:
+          cmd: "./check-up"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
 ```
 
 The interval, grace-period, delay, and timeout elements are denominated in seconds. If the maximum consecutive number of failures is exceeded, the task will be killed.
@@ -1381,11 +1393,11 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10
+        readiness-check:
+          cmd: "./readiness-check"
+          interval: 5
+          delay: 0
+          timeout: 10
 ```
 
 The interval, delay, and timeout elements are denominated in seconds.
@@ -1412,63 +1424,6 @@ pods:
 ```
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
-
-### Proxy
-
-The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.
-
-**Important:** Read through all these instructions before you begin.
-
-```yaml
-web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
-pods:
-  proxylite:
-    image: mesosphere/proxylite:2.1.0
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "/proxylite/run.sh"
-        cpus: {{PROXYLITE_CPUS}}
-        memory: {{PROXYLITE_MEM}}
-        ports:
-          proxylite:
-            env-key: PORT_PROXYLITE
-            port: {{PROXYLITE_PORT}}
-        env:
-          ROOT_REDIRECT: "/example"
-          EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: "http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"
-```
-
-
-1. Delete these 3 labels from your Marathon application definition:
-    * `DCOS_FRAMEWORK_NAME`
-    * `DCOS_SERVICE_PORT_INDEX`
-    * `DCOS_SERVICE_SCHEME`
-
-1. Add `ROOT_REDIRECT` to your service definition.
-
-    * `ROOT_REDIRECT` sets a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{FRAMEWORK_NAME}}` to `<adminrouter>/service/{{FRAMEWORK_NAME}}/example`
-
-1. Add `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` to your service definition.
-
-    * The `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` have a 1:1 mapping (they are both comma-separated lists).
-
-    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
-
-1. Things to watch out for:
-    *  No trailing slashes in `EXTERNAL_ROUTES` or `INTERNAL_ROUTES`.
-    * The external route is *replaced* with the internal route.
-        - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
-        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
-
-      You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
-
-      ```yaml
-      cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
-      ```
 
 ### Proxy Fallback
 

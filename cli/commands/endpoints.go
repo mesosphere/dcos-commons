@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"log"
+
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"log"
 )
 
 // Endpoints section
@@ -23,20 +24,20 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
 	}
-	response := client.HTTPGet(path)
+	response := client.HTTPServiceGet(path)
 	if len(cmd.Name) == 0 {
 		// Root endpoint: Always produce JSON
 		client.PrintJSON(response)
 	} else {
 		// Any specific endpoints: May be any format, so just print the raw text
-		client.PrintText(response)
+		client.PrintResponseText(response)
 	}
 	return nil
 }
 
 func HandleEndpointsSection(app *kingpin.Application) {
-	// endpoints [type]
+	// endpoint[s] [type]
 	cmd := &EndpointsHandler{}
-	endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
+	endpoints := app.Command("endpoints", "View client endpoints").Alias("endpoint").Action(cmd.RunEndpoints)
 	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }

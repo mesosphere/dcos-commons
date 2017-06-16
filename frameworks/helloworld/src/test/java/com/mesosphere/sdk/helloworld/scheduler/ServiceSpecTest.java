@@ -1,31 +1,37 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
 
-    @BeforeClass
-    public static void beforeAll() {
-        ENV_VARS.set("EXECUTOR_URI", "");
-        ENV_VARS.set("LIBMESOS_URI", "");
-        ENV_VARS.set("PORT_API", "8080");
+    public ServiceSpecTest() {
+        super(
+                "FRAMEWORK_NAME", "hello-world",
+                "EXECUTOR_URI", "",
+                "LIBMESOS_URI", "",
+                "PORT_API", "8080",
 
-        ENV_VARS.set("SLEEP_DURATION", "1000");
-        ENV_VARS.set("HELLO_COUNT", "2");
-        ENV_VARS.set("HELLO_PORT", "4444");
-        ENV_VARS.set("HELLO_VIP_NAME", "helloworld");
-        ENV_VARS.set("HELLO_VIP_PORT", "9999");
-        ENV_VARS.set("HELLO_CPUS", "0.1");
-        ENV_VARS.set("HELLO_MEM", "512");
-        ENV_VARS.set("HELLO_DISK", "5000");
+                "SLEEP_DURATION", "1000",
+                "HELLO_COUNT", "2",
+                "HELLO_PORT", "4444",
+                "HELLO_VIP_NAME", "helloworld",
+                "HELLO_VIP_PORT", "9999",
+                "HELLO_CPUS", "0.1",
+                "HELLO_MEM", "512",
+                "HELLO_DISK", "5000",
 
-        ENV_VARS.set("WORLD_COUNT", "3");
-        ENV_VARS.set("WORLD_CPUS", "0.2");
-        ENV_VARS.set("WORLD_MEM", "1024");
-        ENV_VARS.set("WORLD_FAILS", "3");
-        ENV_VARS.set("WORLD_DISK", "5000");
+                "WORLD_COUNT", "3",
+                "WORLD_CPUS", "0.2",
+                "WORLD_MEM", "1024",
+                "WORLD_FAILS", "3",
+                "WORLD_DISK", "5000",
+
+                "HELLO_SECRET1", "hello-world/secret1",
+                "HELLO_SECRET2", "hello-world/secret2",
+                "WORLD_SECRET1", "hello-world/secret1",
+                "WORLD_SECRET2", "hello-world/secret2",
+                "WORLD_SECRET3", "hello-world/secret3");
     }
 
     @Test
@@ -64,12 +70,27 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     @Test
-    public void testNetwork() throws Exception {
-        testYaml("examples/cni.yml");
+    public void testGpuResource() throws Exception {
+        testYaml("examples/gpu_resource.yml");
     }
 
     @Test
-    public void testGpuResource() throws Exception {
-        testYaml("examples/gpu_resource.yml");
+    public void testOverlayNetworks() throws Exception {
+        testYaml("examples/overlay.yml");
+    }
+
+    @Test
+    public void testOverlayNetworks2() throws Exception {
+        testYaml("examples/overlay_ports.yml");
+    }
+
+    @Test
+    public void testSecrets() throws Exception {
+        testYaml("examples/secrets.yml");
+    }
+
+    @Test
+    public void testPreReservedRole() throws Exception {
+        testYaml("examples/pre-reserved.yml");
     }
 }

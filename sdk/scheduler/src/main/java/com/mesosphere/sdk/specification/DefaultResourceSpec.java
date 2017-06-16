@@ -1,11 +1,10 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
@@ -33,17 +32,20 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Size(min = 1)
     private final String principal;
     private final String envKey;
+    private final String preReservedRole;
 
     @JsonCreator
     public DefaultResourceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey) {
         this.name = name;
         this.value = value;
         this.role = role;
+        this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.principal = principal;
         this.envKey = envKey;
     }
@@ -52,6 +54,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         name = builder.name;
         value = builder.value;
         role = builder.role;
+        preReservedRole = builder.preReservedRole;
         principal = builder.principal;
         envKey = builder.envKey;
     }
@@ -60,13 +63,14 @@ public class DefaultResourceSpec implements ResourceSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultResourceSpec copy) {
+    public static Builder newBuilder(ResourceSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.value = copy.value;
-        builder.role = copy.role;
-        builder.principal = copy.principal;
-        builder.envKey = copy.envKey;
+        builder.name = copy.getName();
+        builder.value = copy.getValue();
+        builder.role = copy.getRole();
+        builder.preReservedRole = copy.getPreReservedRole();
+        builder.principal = copy.getPrincipal();
+        builder.envKey = copy.getEnvKey().isPresent() ? copy.getEnvKey().get() : null;
         return builder;
     }
 
@@ -81,13 +85,13 @@ public class DefaultResourceSpec implements ResourceSpec {
     }
 
     @Override
-    public String getPrincipal() {
-        return principal;
+    public String getPreReservedRole() {
+        return preReservedRole;
     }
 
     @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new ResourceRequirement(resource == null ? ResourceUtils.getDesiredResource(this) : resource);
+    public String getPrincipal() {
+        return principal;
     }
 
     @Override
@@ -97,7 +101,14 @@ public class DefaultResourceSpec implements ResourceSpec {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+        return String.format(
+                "name: %s, value: %s, role: %s, preReservedRole: %s, principal: %s, envKey: %s",
+                getName(),
+                TextFormat.shortDebugString(getValue()),
+                getRole(),
+                getPreReservedRole(),
+                getPrincipal(),
+                getEnvKey());
     }
 
     @Override
@@ -125,6 +136,7 @@ public class DefaultResourceSpec implements ResourceSpec {
         private String role;
         private String principal;
         private String envKey;
+        public String preReservedRole = Constants.ANY_ROLE;
 
         private Builder() {
         }
@@ -159,6 +171,11 @@ public class DefaultResourceSpec implements ResourceSpec {
          */
         public Builder role(String role) {
             this.role = role;
+            return this;
+        }
+
+        public Builder preReservedRole(String preReservedRole) {
+            this.preReservedRole = preReservedRole;
             return this;
         }
 

@@ -1,11 +1,12 @@
 package client
 
 import (
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 // TODO(nick): Consider breaking this config retrieval out into a separate independent library?

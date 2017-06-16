@@ -7,14 +7,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
@@ -136,7 +135,7 @@ public class EndpointsResource {
     /**
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
-    private static Map<String, JSONObject> getDiscoveryEndpoints(
+    private Map<String, JSONObject> getDiscoveryEndpoints(
             String serviceName,
             Collection<TaskInfo> taskInfos) throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
@@ -148,15 +147,21 @@ public class EndpointsResource {
             }
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
-            // Mesos DNS hostname:
-            String mesosDnsHost = String.format("%s.%s.mesos",
-                    (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
-                    ? taskInfo.getDiscovery().getName()
-                    : taskInfo.getName(),
-                    serviceName);
+
+            // Autoip hostname:
+            String autoIpTaskName = discoveryInfo.hasName() ? discoveryInfo.getName() : taskInfo.getName();
             // Hostname of agent at offer time:
             String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
-
+            // get IP address(es) from container status on the TaskStatus, gives overlay
+            // network IP (IP-per-container) or host iff on host network.
+            List<String> ipAddresses = new ArrayList<>();
+            Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).orElse(null);
+            if (taskStatus != null && taskStatus.hasContainerStatus() &&
+                    taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+                taskStatus.getContainerStatus().getNetworkInfosList()
+                        .forEach(networkInfo -> networkInfo.getIpAddressesList()
+                                .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
+            }
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
                     LOGGER.info(
@@ -164,12 +169,14 @@ public class EndpointsResource {
                             port.getVisibility(), YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
                     continue;
                 }
+                String hostIpString = ipAddresses.isEmpty() ? nativeHost :
+                        (ipAddresses.size() == 1 ? ipAddresses.get(0) : ipAddresses.toString());
                 addPortToEndpoints(
                         serviceName,
                         endpointsByName,
                         taskInfo,
-                        String.format("%s:%d", mesosDnsHost, port.getNumber()),
-                        String.format("%s:%d", nativeHost, port.getNumber()),
+                        EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
+                        EndpointUtils.toEndpoint(hostIpString, port.getNumber()),
                         port.getLabels().getLabelsList());
             }
         }
@@ -183,7 +190,7 @@ public class EndpointsResource {
      *
      * @param endpointsByName the map to write to
      * @param taskInfo the task which has the port
-     * @param directHostPort the host:port value to advertise for directly connecting to the task
+     * @param dnsHostPort the host:port value to advertise for directly connecting to the task
      * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */
@@ -197,18 +204,18 @@ public class EndpointsResource {
         // Search for any VIPs to add the above host:port against:
         boolean foundAnyVips = false;
         for (Label label : portLabels) {
-            VIPInfo vipInfo = VIPInfo.parse(taskInfo.getName(), label);
-            if (vipInfo == null) {
+            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskInfo.getName(), label);
+            if (!vipInfo.isPresent()) {
                 continue;
             }
 
             // VIP found. file host:port against the VIP name.
             foundAnyVips = true;
 
-            JSONObject vipEndpoint = endpointsByName.get(vipInfo.name);
+            JSONObject vipEndpoint = endpointsByName.get(vipInfo.get().getVipName());
             if (vipEndpoint == null) {
                 vipEndpoint = new JSONObject();
-                endpointsByName.put(vipInfo.name, vipEndpoint);
+                endpointsByName.put(vipInfo.get().getVipName(), vipEndpoint);
             }
 
             // append entry to 'dns' and 'address' arrays for this task:
@@ -216,13 +223,12 @@ public class EndpointsResource {
             vipEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
 
             // (distinctly) append entry to 'vips' for this task:
-            String vipHostPort = String.format("%s.%s.%s:%d",
-                    vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port);
+            String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo.get());
             Boolean foundVip = false;
             if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
                 JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
                 for (Object vipPresent : vips) {
-                    if (vipHostPort.equals((String) vipPresent)) {
+                    if (vipHostPort.equals(vipPresent)) {
                         foundVip = true;
                         break;
                     }
@@ -250,41 +256,6 @@ public class EndpointsResource {
             // append entry to 'direct' array for this task:
             taskEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
             taskEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
-        }
-    }
-
-    /**
-     * Struct for VIP name + port, e.g. 'broker' and 9092.
-     */
-    private static class VIPInfo {
-        private final String name;
-        private final int port;
-
-        private VIPInfo(String name, int port) {
-            this.name = name;
-            this.port = port;
-        }
-
-        private static VIPInfo parse(String taskName, Label label) {
-            if (!label.getKey().startsWith(ResourceUtils.VIP_PREFIX)) {
-                return null;
-            }
-            List<String> namePort = Splitter.on(':').splitToList(label.getValue());
-            if (namePort.size() != 2) {
-                LOGGER.error("Task {}'s VIP value for {} is invalid, expected 2 components but got {}: {}",
-                        taskName, label.getKey(), namePort.size(), label.getValue());
-                return null;
-            }
-            int vipPort;
-            try {
-                vipPort = Integer.parseInt(namePort.get(1));
-            } catch (NumberFormatException e) {
-                LOGGER.error(String.format(
-                        "Unable to Task %s's VIP port from %s as an int",
-                        taskName, label.getValue()), e);
-                return null;
-            }
-            return new VIPInfo(namePort.get(0), vipPort);
         }
     }
 }

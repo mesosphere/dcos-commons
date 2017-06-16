@@ -2,13 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,8 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -34,26 +38,25 @@ public class DefaultService implements Service {
     protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
+    private DefaultScheduler.Builder schedulerBuilder;
     private Scheduler scheduler;
-    private ServiceSpec serviceSpec;
     private StateStore stateStore;
-    private SchedulerFlags schedulerFlags;
 
     public DefaultService() {
         //No initialization needed
     }
 
     public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(pathToYamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this(DefaultScheduler.newBuilder(
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 
@@ -66,50 +69,58 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        initService(schedulerBuilder);
+        this.schedulerBuilder = schedulerBuilder;
     }
 
-    protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
-        this.serviceSpec = schedulerBuilder.getServiceSpec();
-        this.schedulerFlags = schedulerBuilder.getSchedulerFlags();
-
-        try {
-            // Use a single stateStore for either scheduler as the StateStoreCache
-            // requires a single instance of StateStore.
-            this.stateStore = schedulerBuilder.getStateStore();
-            if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
-                if (!StateStoreUtils.isUninstalling(stateStore)) {
-                    LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
-                            "Uninstall cannot be canceled once enabled.");
-                    StateStoreUtils.setUninstalling(stateStore);
+    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
                 }
-
-                LOGGER.info("Launching UninstallScheduler...");
-                this.scheduler = new UninstallScheduler(
-                        schedulerBuilder.getServiceSpec().getApiPort(),
-                        schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
-                        stateStore,
-                        schedulerBuilder.getConfigStore());
-            } else {
-                if (StateStoreUtils.isUninstalling(stateStore)) {
-                    LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
-                            "Reenable the uninstall flag to complete the process.");
-                    SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
-                }
-                this.scheduler = schedulerBuilder.build();
             }
-        } catch (Throwable e) {
-            LOGGER.error("Failed to build scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_BUILD_FAILED);
+        }
+        return false;
+    }
+
+    private void initService() {
+
+        // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
+        this.stateStore = schedulerBuilder.getStateStore();
+        if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+            if (!StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                        "Uninstall cannot be canceled once enabled.");
+                StateStoreUtils.setUninstalling(stateStore);
+            }
+
+            LOGGER.info("Launching UninstallScheduler...");
+            this.scheduler = new UninstallScheduler(
+                    schedulerBuilder.getServiceSpec().getApiPort(),
+                    schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                    stateStore,
+                    schedulerBuilder.getConfigStore());
+        } else {
+            if (StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                        "Reenable the uninstall flag to complete the process.");
+                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+            }
+            this.scheduler = schedulerBuilder.build();
         }
     }
 
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
-        CuratorLocker locker = new CuratorLocker(serviceSpec);
+        initService();
+
+        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
             register();
@@ -127,39 +138,41 @@ public class DefaultService implements Service {
             LOGGER.info("Not registering framework because it is uninstalling.");
             return;
         }
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        String zkUri = String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
-                .create(scheduler, frameworkInfo, zkUri, schedulerFlags)
+                .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
                 .run();
         // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
     }
 
     private boolean allButStateStoreUninstalled() {
+        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
+        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
+        // have register() called after the StateStore already has the uninstall bit wiped.
+        //
+        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
+        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // StateStoreUtils.isUninstalling().
+
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return StateStoreUtils.isUninstalling(stateStore) &&
-                ResourceUtils.allResourcesUninstalled(stateStore.fetchTasks()) &&
-                !stateStore.fetchFrameworkId().isPresent();
+        return isUninstalling() && !stateStore.fetchFrameworkId().isPresent() && tasksNeedClearing();
+    }
+
+    private boolean tasksNeedClearing() {
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    }
+
+    private boolean isUninstalling() {
+        return StateStoreUtils.isUninstalling(stateStore) || schedulerBuilder.getSchedulerFlags().isUninstallEnabled();
     }
 
     protected ServiceSpec getServiceSpec() {
-        return this.serviceSpec;
-    }
-
-    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return this.schedulerBuilder.getServiceSpec();
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
@@ -171,32 +184,13 @@ public class DefaultService implements Service {
             StateStore stateStore,
             String userString,
             int failoverTimeoutSec) {
-        final String serviceName = serviceSpec.getName();
-
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
+                .setName(serviceSpec.getName())
+                .setPrincipal(serviceSpec.getPrincipal())
+                .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
                 .setCheckpoint(true);
-
-        // Use provided role if specified, otherwise default to "<svcname>-role".
-        //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
-        if (StringUtils.isEmpty(serviceSpec.getRole())) {
-            fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
-        } else {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        }
-
-        // Use provided principal if specified, otherwise default to "<svcname>-principal".
-        if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
-            fwkInfoBuilder.setPrincipal(SchedulerUtils.nameToPrincipal(serviceName));
-        } else {
-            fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
-        }
-
-        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
-            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
-        }
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
@@ -211,6 +205,27 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
+
+        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+
+
         return fwkInfoBuilder.build();
+    }
+
+    private List<String> getRoles(ServiceSpec serviceSpec) {
+        List<String> roles = new ArrayList<>();
+        roles.add(serviceSpec.getRole());
+        roles.addAll(
+                serviceSpec.getPods().stream()
+                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
+                .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
+                .collect(Collectors.toList()));
+
+        return roles;
     }
 }

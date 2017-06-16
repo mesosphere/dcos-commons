@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
@@ -61,7 +62,7 @@ public class SchedulerDriverFactory {
             // (note: we intentionally avoid logging the content of the credential secret, just in case)
             LOGGER.info("Creating secret authenticated MesosSchedulerDriver for "
                     + "scheduler[{}], frameworkInfo[{}], masterUrl[{}], credentialSecret[{} bytes]",
-                    scheduler, frameworkInfo, masterUrl, credentialSecret.length);
+                    scheduler, TextFormat.shortDebugString(frameworkInfo), masterUrl, credentialSecret.length);
             credential = Credential.newBuilder()
                     .setPrincipal(getPrincipal(frameworkInfo, "secret"))
                     .setSecretBytes(ByteString.copyFrom(credentialSecret))
@@ -70,7 +71,7 @@ public class SchedulerDriverFactory {
             // Sidechannel auth is enabled. Provide a Credential with only the Principal set.
             LOGGER.info("Creating sidechannel authenticated MesosSchedulerDriver for "
                     + "scheduler[{}], frameworkInfo[{}], masterUrl[{}]",
-                    scheduler, frameworkInfo, masterUrl);
+                    scheduler, TextFormat.shortDebugString(frameworkInfo), masterUrl);
             credential = Credential.newBuilder()
                     .setPrincipal(getPrincipal(frameworkInfo, "sidechannel"))
                     .build();
@@ -78,7 +79,7 @@ public class SchedulerDriverFactory {
             // No auth. Provide no credential.
             LOGGER.info("Creating unauthenticated MesosSchedulerDriver for "
                     + "scheduler[{}], frameworkInfo[{}], masterUrl[{}]",
-                    scheduler, frameworkInfo, masterUrl);
+                    scheduler, TextFormat.shortDebugString(frameworkInfo), masterUrl);
             credential = null;
         }
         return createInternal(scheduler, frameworkInfo, masterUrl, credential);

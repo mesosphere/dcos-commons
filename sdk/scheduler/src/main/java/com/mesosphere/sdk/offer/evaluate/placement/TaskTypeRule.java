@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -92,7 +92,7 @@ public class TaskTypeRule implements PlacementRule {
     }
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         List<TaskInfo> matchingTasks = new ArrayList<>();
         for (TaskInfo task : tasks) {
             if (typeToFind.equals(typeConverter.getTaskType(task))) {
@@ -109,10 +109,11 @@ public class TaskTypeRule implements PlacementRule {
                 // (A avoids B + B avoids A)
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "No tasks of avoided type '%s' are currently running.",
                         typeToFind);
             } else {
-                return filterAvoid(offer, offerRequirement, matchingTasks);
+                return filterAvoid(offer, podInstance, matchingTasks);
             }
         case COLOCATE:
             if (matchingTasks.isEmpty()) {
@@ -121,10 +122,11 @@ public class TaskTypeRule implements PlacementRule {
                 // (A colocates with B + B colocates with A)
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "No tasks of colocated type '%s' are currently running.",
                         typeToFind);
             } else {
-                return filterColocate(offer, offerRequirement, matchingTasks);
+                return filterColocate(offer, podInstance, matchingTasks);
             }
         default:
             throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
@@ -138,9 +140,12 @@ public class TaskTypeRule implements PlacementRule {
      * specified task type.
      */
     private EvaluationOutcome filterAvoid(
-            Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasksToAvoid) {
+            Offer offer,
+            PodInstance podInstance,
+            Collection<TaskInfo> tasksToAvoid) {
+
         for (TaskInfo taskToAvoid : tasksToAvoid) {
-            if (PlacementUtils.areEquivalent(taskToAvoid, offerRequirement)) {
+            if (PlacementUtils.areEquivalent(taskToAvoid, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about avoiding it. This occurs when we're redeploying
                 // a given task with a new configuration (old data not deleted yet).
@@ -153,7 +158,7 @@ public class TaskTypeRule implements PlacementRule {
             }
         }
         // The offer doesn't match any tasks to avoid. Approved!
-        return EvaluationOutcome.pass(this, "No tasks of avoided type '%s' found on this agent.", typeToFind);
+        return EvaluationOutcome.pass(this, null, "No tasks of avoided type '%s' found on this agent.", typeToFind);
     }
 
     /**
@@ -163,9 +168,12 @@ public class TaskTypeRule implements PlacementRule {
      * type.
      */
     private EvaluationOutcome filterColocate(
-            Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasksToColocate) {
+            Offer offer,
+            PodInstance podInstance,
+            Collection<TaskInfo> tasksToColocate) {
+
         for (TaskInfo taskToColocate : tasksToColocate) {
-            if (PlacementUtils.areEquivalent(taskToColocate, offerRequirement)) {
+            if (PlacementUtils.areEquivalent(taskToColocate, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about colocating with it. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).
@@ -175,6 +183,7 @@ public class TaskTypeRule implements PlacementRule {
                 // The offer is for an agent which has a task to colocate with. Approved!
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "Found a task matching colocated type '%s' on this agent.",
                         typeToFind);
             }

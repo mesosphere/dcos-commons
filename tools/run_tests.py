@@ -14,6 +14,7 @@ import tempfile
 import cli_install
 import dcos_login
 import github_update
+import piputil
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -21,11 +22,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 class CITester(object):
 
-    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None):
+    def __init__(self, dcos_url, github_label, sandbox_path='', cli_path=None,
+                 fail_fast=False):
         self._dcos_url = dcos_url
         self._sandbox_path = sandbox_path
         self._cli_path = cli_path
         self._github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
+        self._fail_fast = fail_fast
 
 
     def _configure_cli_sandbox(self):
@@ -101,62 +104,43 @@ class CITester(object):
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'shakedown_env')
+            package_path = os.path.join(os.environ['WORKSPACE'], framework, 'python_deps')
             # produce test report for consumption by Jenkins:
             path_based_name = "%s-%s" % (framework, "shakedown-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                           framework, 'shakedown_env')
+            package_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                           framework, 'python_deps')
             jenkins_args = ''
+
+        if not os.path.isdir(package_path):
+            os.makedirs(package_path)
+
         if requirements_txt is not None:
             logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
-        else:
-            # generate default requirements:
-            logger.info('No requirements.txt provided, using default requirements')
-            requirements_txt = os.path.join(self._sandbox_path, 'requirements.txt')
-            requirements_file = open(requirements_txt, 'w')
-            requirements_file.write('''
-requests==2.10.0
-dcoscli==0.4.16
-dcos==0.4.16
 
--e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
-''')
-            requirements_file.flush()
-            requirements_file.close()
-        # to ensure the 'source' call works, just create a shell script and execute it directly:
-        script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
-        script_file = open(script_path, 'w')
-        # TODO(nick): remove this inlined script with external templating
-        #             (or find a way of entering the virtualenv that doesn't involve a shell script)
-        script_file.write('''
-#!/bin/bash
-set -e
-echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-virtualenv -p $(which python3) --always-copy {venv_path}
-echo ls -l {venv_path}/bin/pip
-ls -l {venv_path}/bin/pip
-echo head {venv_path}/bin/pip
-head {venv_path}/bin/pip
-echo "VIRTUALENV ACTIVATE: {venv_path}"
-source {venv_path}/bin/activate
-echo "REQUIREMENTS INSTALL: {reqs_file}"
-echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
-{venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
-echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
-'''.format(venv_path=virtualenv_path,
-           reqs_file=requirements_txt,
-           dcos_url=self._dcos_url,
-           jenkins_args=jenkins_args,
-           pytest_types=pytest_types,
-           test_dirs=test_dirs))
-        script_file.flush()
-        script_file.close()
+        piputil.populate_dcoscommons_packagedir(package_path,
+                                                requirements_txt)
+        piputil.activate_libdir(package_path)
+
+        cmd = [sys.executable, '-m', 'pytest']
+        if jenkins_args:
+            cmd.append(jenkins_args)
+        if self._fail_fast:
+            cmd.append('--exitfirst')
+        cmd.extend(['-vv', '--fulltrace', '-x', '-s', '-m', pytest_types, test_dirs])
+
+        custom_env = os.environ.copy()
+        new_pythonpath = package_path
+        existing_pythonpath = os.environ.get("PYTHONPATH")
+        if existing_pythonpath:
+            new_pythonpath += ":" + existing_pythonpath
+        custom_env["PYTHONPATH"] = new_pythonpath
+
+
+        self._github_updater.update('pending', 'Running shakedown tests')
         try:
-            self._github_updater.update('pending', 'Running shakedown tests')
-            subprocess.check_call(['bash', script_path])
+            subprocess.check_call(cmd, env=custom_env)
             self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
@@ -193,7 +177,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
-SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv -s -m "{pytest_types}" {test_dirs}
+SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv --capture=no -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
            dcos_tests_dir=dcos_tests_dir,
@@ -228,12 +212,48 @@ def _rand_str(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
 
+def _make_packagename():
+    return 'testpkg-' + _rand_str(8)
+
+
+def handle_stub_options(argv):
+    stub_flag = '--stub-universe'
+    stub_universes = {}
+    if not stub_flag in argv:
+        return argv, stub_universes
+    argv_copy = argv[:]
+    while stub_flag in argv_copy:
+        flag_pos = argv_copy.index(stub_flag)
+        try:
+            flag_val = argv_copy[flag_pos + 1]
+        except:
+            sys.exit("Missing url argument for flag --stub-universe")
+        stub_universes[_make_packagename()] = flag_val
+        # drop flag + arg
+        del argv_copy[flag_pos:flag_pos+2]
+    return argv_copy, stub_universes
+
+def handle_failfast_option(argv):
+    fail_flag = '--fail-fast'
+    fail_fast = False
+    if fail_flag in argv:
+        fail_fast = True
+    return [ent for ent in argv if ent != fail_flag], fail_fast
+
 def main(argv):
     if len(argv) < 3:
         print_help(argv)
         return 1
     test_type = argv[1]
     test_dirs = argv[2]
+
+    # Destructively handle --stub-universe args to avoid disturbing below
+    # messy arg parsing
+    argv, stub_universes = handle_stub_options(argv)
+
+    # and again; really need to implement an arg parser when this gets turned
+    # into a module.
+    argv, fail_fast = handle_failfast_option(argv)
 
     cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
     if cluster_url:
@@ -250,12 +270,13 @@ def main(argv):
             print_help(argv)
             return 1
 
-    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
+    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type),
+                      fail_fast=fail_fast)
 
-    stub_universes = {}
-    stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
-    if stub_universe_url:
-        stub_universes['testpkg-' + _rand_str(8)] = stub_universe_url
+    if not stub_universes:
+        stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
+        if stub_universe_url:
+            stub_universes[_make_packagename()] = stub_universe_url
 
     pytest_types = os.environ.get('TEST_TYPES', 'sanity')
 

@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.config.validate;
 
-import java.util.Collection;
+import java.util.*;
 
 import com.mesosphere.sdk.config.Configuration;
 
@@ -11,6 +11,7 @@ import com.mesosphere.sdk.config.Configuration;
  * @param <C> the type of configuration to be validated
  */
 public interface ConfigValidator<C extends Configuration> {
+
     /**
      * Returns {@code List} of {@code ConfigurationValidationError}s for the newly supplied
      * {@code Configuration} object.
@@ -20,10 +21,10 @@ public interface ConfigValidator<C extends Configuration> {
      * Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
      * 2. Validate just newConfig parameter(s). Ex: CPU value > 0
      *
-     * @param nullableOldConfig Currently persisted Configuration, or {@code null} if none is
-     *                          available (first launch of service)
+     * @param oldConfig Currently persisted Configuration, or an empty {@code Optional} if none is available
+     *     (first launch of service)
      * @param newConfig Proposed new Configuration
      * @return List of errors, or an empty list if validation passed
      */
-    Collection<ConfigValidationError> validate(C nullableOldConfig, C newConfig);
+    Collection<ConfigValidationError> validate(Optional<C> oldConfig, C newConfig);
 }

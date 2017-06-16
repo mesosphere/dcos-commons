@@ -2,13 +2,13 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.VolumeRequirement;
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -16,8 +16,6 @@ import javax.validation.constraints.Pattern;
  * This class provides a default implementation of the VolumeSpec interface.
  */
 public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
-
-    public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
 
@@ -31,9 +29,18 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             Type type,
             String containerPath,
             String role,
+            String preReservedRole,
             String principal,
             String envKey) {
-        this(type, containerPath, RESOURCE_NAME, scalarValue(diskSize), role, principal, envKey);
+        this(
+                type,
+                containerPath,
+                Constants.DISK_RESOURCE_TYPE,
+                scalarValue(diskSize),
+                role,
+                preReservedRole,
+                principal,
+                envKey);
     }
 
     @JsonCreator
@@ -43,9 +50,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal")  String principal,
             @JsonProperty("env-key")  String envKey) {
-        super(name, value, role, principal, envKey);
+        super(name, value, role, preReservedRole, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;
 
@@ -60,11 +68,6 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @Override
     public String getContainerPath() {
         return containerPath;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 
     @Override
@@ -84,22 +87,13 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     }
 
     @Override
-    public VolumeRequirement getResourceRequirement(Protos.Resource resource) {
-        if (resource != null) {
-            return new VolumeRequirement(resource);
-        }
-
-        switch (getType()) {
-            case ROOT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredRootVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
-            case MOUNT:
-                return new VolumeRequirement(
-                        ResourceUtils.getDesiredMountVolume(
-                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
-            default:
-                throw new IllegalArgumentException("FIX: can't handle");
-        }
+    public String toString() {
+        return String.format(
+                "name: '%s', value: '%s', type: '%s', role: '%s', principal: '%s'",
+                getName(),
+                TextFormat.shortDebugString(getValue()),
+                getType(),
+                getRole(),
+                getPrincipal());
     }
 }

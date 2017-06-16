@@ -1,8 +1,8 @@
 import pytest
 
+import shakedown
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_utils
 
 from tests.config import (
@@ -27,8 +27,8 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 def test_deploy():
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
-    sdk_utils.out("deployment_plan: " + str(deployment_plan))
+    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
+    sdk_utils.out("deployment plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 3)
     assert(deployment_plan['phases'][0]['name'] == 'hello-deploy')
@@ -41,13 +41,12 @@ def test_deploy():
 
 @pytest.mark.sanity
 def test_sidecar():
-    plan.start_sidecar_plan(PACKAGE_NAME)
-    sidecar_plan = plan.get_sidecar_plan(PACKAGE_NAME).json()
-    sdk_utils.out("sidecar_plan: " + str(sidecar_plan))
+    plan.start_plan(PACKAGE_NAME, 'sidecar')
 
-    assert(len(sidecar_plan['phases']) == 1)
-    assert(sidecar_plan['phases'][0]['name'] == 'sidecar-deploy')
-    assert(len(sidecar_plan['phases'][0]['steps']) == 2)
+    started_plan = plan.get_plan(PACKAGE_NAME, 'sidecar')
+    sdk_utils.out("sidecar plan: " + str(started_plan))
+    assert(len(started_plan['phases']) == 1)
+    assert(started_plan['phases'][0]['name'] == 'sidecar-deploy')
+    assert(len(started_plan['phases'][0]['steps']) == 2)
 
-    spin.time_wait_noisy(lambda: (
-        plan.get_sidecar_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))
+    plan.wait_for_completed_plan(PACKAGE_NAME, 'sidecar')

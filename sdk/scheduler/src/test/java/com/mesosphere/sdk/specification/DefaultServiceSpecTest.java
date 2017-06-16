@@ -3,21 +3,15 @@ package com.mesosphere.sdk.specification;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.common.collect.Iterables;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.PortRequirement;
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
-import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -26,6 +20,7 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -43,19 +38,15 @@ import org.mockito.MockitoAnnotations;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import com.mesosphere.sdk.specification.yaml.RawNetwork;
-import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
 import java.net.URI;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
-import static com.mesosphere.sdk.testutils.TestConstants.*;
 
 
 public class DefaultServiceSpecTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-    @Mock private FileReader mockFileReader;
+    @Mock private YAMLToInternalMappers.FileReader mockFileReader;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private StateStore mockStateStore;
     @Mock private Capabilities capabilities;
@@ -75,7 +66,9 @@ public class DefaultServiceSpecTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -83,7 +76,7 @@ public class DefaultServiceSpecTest {
     public void validMinimal() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -91,7 +84,7 @@ public class DefaultServiceSpecTest {
     public void validSimple() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
@@ -101,7 +94,7 @@ public class DefaultServiceSpecTest {
     public void validGpuResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
         Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
         Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
@@ -112,7 +105,7 @@ public class DefaultServiceSpecTest {
     public void validGpuResourceSet() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
         Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
         Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
@@ -122,7 +115,7 @@ public class DefaultServiceSpecTest {
     public void validPortResourceEnvKey() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
 
         List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
@@ -130,24 +123,29 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(1, portsResources.size());
+        Assert.assertEquals(3, portsResources.size());
 
-       PortsRequirement portsRequirement = (PortsRequirement) portsResources.get(0).getResourceRequirement(null);
-       List<ResourceRequirement> portReqList = (List<ResourceRequirement>) portsRequirement.getPortRequirements();
+        PortSpec portSpec = (PortSpec) portsResources.get(0);
+        Assert.assertEquals("name1", portSpec.getPortName());
+        Assert.assertEquals(8080, portSpec.getPort());
+        Assert.assertEquals("key1", portSpec.getEnvKey().get());
 
-       Assert.assertEquals(3, portReqList.size());
+        portSpec = (PortSpec) portsResources.get(1);
+        Assert.assertEquals("name2", portSpec.getPortName());
+        Assert.assertEquals(8088, portSpec.getPort());
+        Assert.assertFalse(portSpec.getEnvKey().isPresent());
 
-       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getCustomEnvKey().get());
-       Assert.assertFalse(((PortRequirement) portReqList.get(1)).getCustomEnvKey().isPresent());
-       Assert.assertFalse(((PortRequirement) portReqList.get(2)).getCustomEnvKey().isPresent());
-
+        portSpec = (PortSpec) portsResources.get(2);
+        Assert.assertEquals("name3", portSpec.getPortName());
+        Assert.assertEquals(8089, portSpec.getPort());
+        Assert.assertFalse(portSpec.getEnvKey().isPresent());
     }
 
     @Test
     public void validPortResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
 
         List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
@@ -155,20 +153,22 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(1, portsResources.size());
+        Assert.assertEquals(2, portsResources.size());
 
-        Protos.Value.Ranges ports = portsResources.get(0).getValue().getRanges();
-        Assert.assertEquals(2, ports.getRangeCount());
-        Assert.assertEquals(8080, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
-        Assert.assertEquals(8088, ports.getRange(1).getBegin(), ports.getRange(1).getEnd());
+        Protos.Value.Ranges http = portsResources.get(0).getValue().getRanges();
+        Protos.Value.Ranges another = portsResources.get(1).getValue().getRanges();
+        Assert.assertEquals(1, http.getRangeCount());
+        Assert.assertEquals(1, another.getRangeCount());
+        Assert.assertEquals(8080, http.getRange(0).getBegin(), http.getRange(0).getEnd());
+        Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
     @Test
     public void validReadinessCheck() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("readiness-check.yml").getFile());
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, flags);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         Assert.assertNotNull(serviceSpec);
 
@@ -185,161 +185,29 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void validCniSpec() throws Exception {
+    public void validOverlayNetworkWithPortForwarding() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-cni.yml").getFile());
-        // parse the YAML and check it
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        Assert.assertNotNull(rawServiceSpec);
-
-        // get the raw networks and make sure they were parsed correctly
-        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworkMap = rawServiceSpec
-                .getPods()
-                .get("meta-data")
-                .getNetworks();
-        // test that we populated the RawNetwork object
-        Assert.assertTrue(MapUtils.isNotEmpty(rawNetworkMap));
-        Assert.assertTrue(rawNetworkMap.containsKey(OVERLAY_NETWORK_NAME));
-
-        // test that the port mappings are correct
-        RawNetwork rawNetwork = rawNetworkMap.get(OVERLAY_NETWORK_NAME);
-        // host port
-        ArrayList<Integer> expectedHostPorts = new ArrayList<>();
-        expectedHostPorts.add(HOST_PORT);
-        Assert.assertTrue(rawNetwork.getHostPorts().equals(expectedHostPorts));
-
-        // container port
-        ArrayList<Integer> expectedContainerPorts = new ArrayList<>();
-        expectedContainerPorts.add(CONTAINER_PORT);
-        Assert.assertTrue(rawNetwork.getContainerPorts().equals(expectedContainerPorts));
-
-        // test that the serviceSpec can be translated from the raw service spec
-        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertNotNull(serviceSpec);
-
-        // check that there are the correct number of networks and they have the correct name
-        for (int i = 0; i < serviceSpec.getPods().size(); i++) {
-            List<NetworkSpec> networkSpecs = serviceSpec.getPods().get(i)
-                    .getNetworks()
-                    .stream()
-                    .collect(Collectors.toList());
-            Integer exp = 1;
-            Integer obs = networkSpecs.size();
-            Assert.assertTrue(String.format("Got incorrect number of networks, should be %s got %s ",
-                    exp, obs), obs.equals(exp));
-            for (NetworkSpec networkSpec : networkSpecs) {
-                Assert.assertTrue(networkSpec.getName().equals(OVERLAY_NETWORK_NAME));
-            }
-        }
-
-        // check that they have the correct port mappings
-        Function<Integer, Map<Integer, Integer>> getPortMappings = (index) ->
-                serviceSpec.getPods().get(index)
-                        .getNetworks()
-                        .stream().collect(Collectors.toList())
-                        .get(0).getPortMappings();  // we've already confirmed that there is only one NetworkSpec
-
-        // Check the first one
-        Map<Integer, Integer> portsMap = getPortMappings.apply(0);
-        Assert.assertTrue(portsMap.size() == 1);
-        Assert.assertTrue(portsMap.get(HOST_PORT) == CONTAINER_PORT);
-
-        // Check the second one
-        portsMap = getPortMappings.apply(1);
-        Assert.assertTrue(portsMap.size() == 2);
-        Assert.assertTrue(portsMap.get(HOST_PORT) == CONTAINER_PORT);
-        Assert.assertTrue(portsMap.get(4041) == 8081);
-        validateServiceSpec("valid-cni.yml", DcosConstants.DEFAULT_GPU_POLICY);
-    }
-
-    @Test
-    public void validMinimalNetgroups() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-netgroups.yml").getFile());
-        // parse the YAML and check it
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        Assert.assertNotNull(rawServiceSpec);
-
-        // get the RawNetwork object and check that the netgroups are correct
-        WriteOnceLinkedHashMap<String, RawNetwork> networks = rawServiceSpec.getPods()
-                .get("meta-data")
-                .getNetworks();
-        Assert.assertTrue(networks.size() == 1);
-        Assert.assertTrue("Didn't find default overlay network 'dcos'",
-                networks.containsKey(OVERLAY_NETWORK_NAME));
-        List<String> netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
-        Assert.assertTrue(netgroups.size() == 2);  // ["mygroup", "testgroup"]
-        Assert.assertTrue(netgroups.get(0).equals("mygroup"));
-        Assert.assertTrue(netgroups.get(1).equals("testgroup"));
-
-        networks = rawServiceSpec.getPods()
-                .get("meta-data-anothergroup")
-                .getNetworks();
-        Assert.assertTrue(networks.size() == 1);
-        Assert.assertTrue("Didn't find default overlay network 'dcos'",
-                networks.containsKey(OVERLAY_NETWORK_NAME));
-        netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
-        Assert.assertTrue(netgroups.size() == 2);  // ["mygroup", "anothergroup"]
-        Assert.assertTrue(netgroups.get(0).equals("mygroup"));
-        Assert.assertTrue(netgroups.get(1).equals("anothergroup"));
-
-        networks = rawServiceSpec.getPods()
-                .get("meta-data-joins-all")
-                .getNetworks();
-        Assert.assertTrue(networks.size() == 1);
-        Assert.assertTrue("Didn't find default overlay network 'dcos'",
-                networks.containsKey(OVERLAY_NETWORK_NAME));
-        netgroups = networks.get(OVERLAY_NETWORK_NAME).getNetgroups();
-        Assert.assertTrue(netgroups.size() == 0);
-
-        // Now we check the ServiceSpec object
-        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertNotNull(serviceSpec);
-
-        // test that the pods have the correct groups
-        for (PodSpec podSpec : serviceSpec.getPods()) {
-            for (NetworkSpec networkSpec : podSpec.getNetworks()) {
-                if (networkSpec.getNetgroups().size() > 0) {
-                    Assert.assertTrue(networkSpec.getNetgroups().size() == 2);
-                    Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
-                    Assert.assertTrue(networkSpec.getNetgroups().contains("anothergroup")
-                            || networkSpec.getNetgroups().contains("testgroup"));
-                } else {
-                    Assert.assertTrue(networkSpec.getNetgroups().size() == 0);
-                }
-            }
-        }
-    }
-
-    @Test
-    public void validCniPortForwarding() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-automatic-cni-port-mapping.yml").getFile());
+        File file = new File(classLoader.getResource("valid-automatic-cni-port-forwarding.yml").getFile());
         // load the raw service spec and check that it parsed correctly
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
         Assert.assertNotNull(rawServiceSpec);
         Assert.assertEquals(rawServiceSpec
                 .getPods().get("pod-type")
-                .getNetworks().get(OVERLAY_NETWORK_NAME)
+                .getNetworks().get("mesos-bridge")
                 .numberOfPortMappings(), 0);
         Assert.assertTrue(rawServiceSpec
-                .getPods().get("meta-data-with-group")
-                .getNetworks().get(OVERLAY_NETWORK_NAME)
-                .getNetgroups().contains("mygroup"));
-        Assert.assertTrue(rawServiceSpec
                 .getPods().get("meta-data-with-port-mapping")
-                .getNetworks().get(OVERLAY_NETWORK_NAME)
+                .getNetworks().get("mesos-bridge")
                 .numberOfPortMappings() == 2);
 
         // Check that the raw service spec was correctly translated into the ServiceSpec
-        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, flags);
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
         Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(serviceSpec.getPods().size() == 4);
+        Assert.assertTrue(serviceSpec.getPods().size() == 3);
         // check the first pod
         PodSpec podSpec = serviceSpec.getPods().get(0);
         Assert.assertTrue(podSpec.getNetworks().size() == 1);
         NetworkSpec networkSpec = Iterables.get(podSpec.getNetworks(), 0);
-        Assert.assertTrue(networkSpec.getNetgroups().size() == 0);
         Assert.assertTrue(networkSpec.getPortMappings().size() == 1);
         Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
         // check the second pod
@@ -349,51 +217,15 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
         Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
         Assert.assertTrue(networkSpec.getPortMappings().get(8081) == 8081);
-        // check the third pod
+        // check the third
         podSpec = serviceSpec.getPods().get(2);
         Assert.assertTrue(podSpec.getNetworks().size() == 1);
         networkSpec = Iterables.get(podSpec.getNetworks(), 0);
-        Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
-        Assert.assertTrue(networkSpec.getPortMappings().get(8080) == 8080);
-        Assert.assertTrue(networkSpec.getPortMappings().get(8081) == 8081);
-        Assert.assertTrue(networkSpec.getNetgroups().size() == 1);
-        Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
-        // check the fourth and final
-        podSpec = serviceSpec.getPods().get(3);
-        Assert.assertTrue(podSpec.getNetworks().size() == 1);
-        networkSpec = Iterables.get(podSpec.getNetworks(), 0);
-        Assert.assertTrue(networkSpec.getPortMappings().size() == 2);
+        Assert.assertTrue(String.format("%s", networkSpec.getPortMappings()),
+                networkSpec.getPortMappings().size() == 2);
         Assert.assertTrue(networkSpec.getPortMappings().get(4040)== 8080);
         Assert.assertTrue(networkSpec.getPortMappings().get(4041) == 8081);
-        Assert.assertTrue(networkSpec.getNetgroups().size() == 1);
-        Assert.assertTrue(networkSpec.getNetgroups().contains("mygroup"));
-    }
-
-    @Test
-    public void validIpContainerMapping() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-ip-container-mapping.yml").getFile());
-        // parse the YAML and make sure it's correct
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        Assert.assertNotNull(rawServiceSpec);
-        Assert.assertTrue(rawServiceSpec.getPods().get("meta-data").getNetworks().size() == 1);
-        RawNetwork rawNetwork = Iterables
-                .get(rawServiceSpec.getPods().get("meta-data").getNetworks().values(), 0);
-        Assert.assertTrue(rawNetwork.getIpAddresses().size() == 1);
-        Assert.assertTrue(rawNetwork.getIpAddresses().get(0).equals(IPADDRESS1));
-
-        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec, flags);
-        Assert.assertNotNull(serviceSpec);
-        NetworkSpec networkSpec = Iterables.get(serviceSpec.getPods().get(0).getNetworks(), 0);
-        Assert.assertTrue(networkSpec.getIpAddresses().size() == 1);
-        Assert.assertTrue(networkSpec.getIpAddresses().contains(IPADDRESS1));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void invalidDuplicateNetgroup() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-netgroup.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        validateServiceSpec("valid-automatic-cni-port-forwarding.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
     @Test
@@ -401,7 +233,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -415,7 +247,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-dns.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("Tasks in different pods cannot share DNS names"));
@@ -427,7 +259,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-duplicate-count.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -441,7 +273,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-volume-and-volumes.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains("Both 'volume' and 'volumes'"));
@@ -452,15 +284,15 @@ public class DefaultServiceSpecTest {
     public void invalidConfigFile() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-config-file.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
     @Test(expected = IllegalStateException.class)
     public void invalidPlanSteps() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
-        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
-        DefaultScheduler.newBuilder(generateServiceSpec(rawSpec, flags), flags)
+        RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags)
             .setConfigStore(mockConfigStore)
             .setStateStore(mockStateStore)
             .setPlansFrom(rawSpec)
@@ -477,7 +309,9 @@ public class DefaultServiceSpecTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         DefaultServiceSpec defaultServiceSpec =
-                generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                        .setFileReader(mockFileReader)
+                        .build();
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
             pods.add(pods.get(0));
@@ -496,7 +330,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-name.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -509,14 +343,14 @@ public class DefaultServiceSpecTest {
     public void cantDefineContainerSettingsBothPlaces() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-duplicate-container-definition.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
     @Test
     public void validImage() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-image.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
@@ -524,7 +358,7 @@ public class DefaultServiceSpecTest {
     public void validImageLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-image-legacy.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
@@ -532,25 +366,60 @@ public class DefaultServiceSpecTest {
     public void validNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
-        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
                 .getName());
+        // check that the port resources are ignored
+        List<ResourceSpec> portsResources = defaultServiceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+                .getResources()
+                .stream()
+                .filter(r -> r.getName().equals("ports"))
+                .collect(Collectors.toList());
+        Assert.assertEquals(2, portsResources.size());
+    }
+
+    @Test
+    public void validPortMappingNetworkRespectsPortResources() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-automatic-cni-port-forwarding.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        Assert.assertEquals("mesos-bridge", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+                .getName());
+        // check that the port resources are ignored
+        for (PodSpec podSpec : defaultServiceSpec.getPods()) {
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                List<ResourceSpec> portsResources = taskSpec.getResourceSet()
+                        .getResources()
+                        .stream()
+                        .filter(r -> r.getName().equals("ports"))
+                        .collect(Collectors.toList());
+
+                int portCount = 1;
+                if (podSpec.getType().equals("meta-data-with-port-mapping")) {
+                    portCount = 2;
+                }
+
+                Assert.assertEquals(portCount, portsResources.size());
+            }
+        }
     }
 
     @Test
     public void validNetworksLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
-        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
                 .getName());
     }
 
-    @Test(expected = UnrecognizedPropertyException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void invalidNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
+        // this service spec contains specifies an overlay network that doesn't support port mapping, but contains
+        // port mapping requests
         File file = new File(classLoader.getResource("invalid-network.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
     @Test
@@ -558,7 +427,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -571,7 +440,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -584,7 +453,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -596,14 +465,14 @@ public class DefaultServiceSpecTest {
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
     @Test(expected = RLimit.InvalidRLimitException.class)
     public void invalidRLimitNameLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());
-        generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
     @Test
@@ -616,7 +485,9 @@ public class DefaultServiceSpecTest {
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         DefaultServiceSpec defaultServiceSpec =
-                generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                        .setFileReader(mockFileReader)
+                        .build();
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
             PodSpec aPod = pods.get(0);
@@ -637,7 +508,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -650,7 +521,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-resource-set-name.yml").getFile());
         try {
-            generateServiceSpec(generateRawSpecFromYAML(file), flags);
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -664,7 +535,7 @@ public class DefaultServiceSpecTest {
     public void defaultZKConnection() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals(DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING, serviceSpec.getZookeeperConnection());
@@ -674,7 +545,7 @@ public class DefaultServiceSpecTest {
     public void customZKConnection() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
@@ -685,25 +556,25 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
 
-        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
 
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
-        when(capabilities.supportCniPortMapping()).thenReturn(true);
+        when(capabilities.supportsCNINetworking()).thenReturn(true);
 
         Persister persister = new MemPersister();
+        Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
-                .setCapabilities(capabilities)
                 .build();
     }
 }

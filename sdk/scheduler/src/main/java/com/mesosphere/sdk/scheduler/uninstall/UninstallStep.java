@@ -51,7 +51,8 @@ public class UninstallStep extends AbstractStep {
                 .map(offerRecommendation -> (UninstallRecommendation) offerRecommendation)
                 .map(UninstallRecommendation::getResource)
                 .map(ResourceUtils::getResourceId)
-                .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId));
+                .filter(uninstallResourceId -> uninstallResourceId.isPresent())
+                .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId.get()));
         if (isMatched) {
             logger.info("Completed uninstall step for resource {}", getName());
             setStatus(Status.COMPLETE);

@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
     protected abstract String getValue(TaskInfo task);
 
     @Override
-    public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         final String offerValue = getValue(offer);
         if (offerValue == null) {
             // offer doesn't have the required attribute at all. denied.
@@ -60,7 +60,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             if (!taskFilter.matches(task.getName())) {
                 continue;
             }
-            if (PlacementUtils.areEquivalent(task, offerRequirement)) {
+            if (PlacementUtils.areEquivalent(task, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about counting its usage. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).
@@ -105,6 +105,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 // than some other value in the system.
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "Distinct value count is unspecified, and '%s' has %d instances while others have%d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             } else if (valueCounts.size() >= distinctValueCount.get()) {
@@ -112,6 +113,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 // the system.
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "All distinct values are found, and '%s' has %d instances while others have %d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             }
@@ -119,7 +121,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             // only launch here if this value also has nothing on it.
             if (offerValueCount == 0) {
                 return EvaluationOutcome.pass(
-                        this, "Other values have zero usage, but so does value '%s'", offerValue);
+                        this, null, "Other values have zero usage, but so does value '%s'", offerValue);
             } else {
                 return EvaluationOutcome.fail(
                         this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount);

@@ -2,8 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.ResourceRequirement;
-import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -13,8 +12,6 @@ import org.apache.mesos.Protos;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class represents a ports resource with multiple ports.
@@ -54,6 +51,26 @@ public class PortsSpec implements ResourceSpec {
         ValidationUtils.validate(this);
     }
 
+    @JsonProperty("port-specs")
+    public Collection<PortSpec> getPortSpecs() {
+        return portSpecs;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
     @Override
     public Protos.Value getValue() {
         return value;
@@ -70,38 +87,12 @@ public class PortsSpec implements ResourceSpec {
     }
 
     @Override
+    public String getPreReservedRole() {
+        return Constants.ANY_ROLE;
+    }
+
+    @Override
     public String getPrincipal() {
         return principal;
-    }
-
-    @JsonProperty("port-specs")
-    public Collection<PortSpec> getPortSpecs() {
-        return portSpecs;
-    }
-
-    @Override
-    public Optional<String> getEnvKey() {
-        return Optional.ofNullable(envKey);
-    }
-
-    @Override
-    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
-        return new PortsRequirement(
-                portSpecs.stream().map(spec -> spec.getResourceRequirement(resource)).collect(Collectors.toList()));
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

@@ -24,10 +24,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   This section contains settings related to the scheduler and its interaction with the cluster. All of these settings are optional, reasonable defaults are used if they are not manually provided.
 
-  * `role`
-
-    The Mesos Role to register as. Default is `<name>-role`.
-
   * `principal`
 
     The Mesos Principal to register as. Default is `<name>-principal`.
@@ -39,10 +35,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   * `zookeeper`
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.
-
-  * `user`
-
-    This field isn't used! TODO(nickbp) remove.
 
 * `pods`
 
@@ -74,10 +66,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       `image-name` may be left empty when the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
 
-    * `networks`
-
-      This field may be set to an empty object (`{}`) to enable the experimental CNI feature. This space is reserved for additional networking options relating to CNI.
-
     * `rlimits`
 
       This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
@@ -94,9 +82,35 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
 
-  * `strategy`
+  * `secrets`
 
-    This field isn't used! TODO(nickbp) remove.
+    This section list the Secrets that will be made available to the pod. Secret content is exposed as a file and/or as a environment variable.
+
+     * `secret`
+        The path of a Secret
+
+     * `env-key`
+        Name of the environment variable
+
+     * `file`
+        File path in the container. Secret content is copied into this file. Secret file is a tmpfs file, it disappears when executor exits.
+
+     If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
+   
+
+  * `networks`
+
+    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following:
+    ```
+    networks:
+      dcos:
+    ```
+     * when a pod joins the overlay it has the following effects:
+       * The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed.
+          * The IP can be retrieved using the DNS `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory` (This DNS will also work for pods on the host network).
+       * The `ports` resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.
+       * Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.
+       * For more information see the DC/OS Virtual Network [documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
 
   * `uris`
 

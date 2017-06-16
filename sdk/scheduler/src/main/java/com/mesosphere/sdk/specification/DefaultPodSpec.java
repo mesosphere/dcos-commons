@@ -2,25 +2,21 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Default implementation of {@link PodSpec}.
@@ -50,6 +46,9 @@ public class DefaultPodSpec implements PodSpec {
     private final Collection<URI> uris;
     @Valid
     private Collection<VolumeSpec> volumes;
+    @Valid
+    private Collection<SecretSpec> secrets;
+    private String preReservedRole;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -62,24 +61,38 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("volumes") Collection<VolumeSpec> volumes) {
-        this.type = type;
-        this.user = user;
-        this.count = count;
-        this.image = image;
-        this.networks = (networks != null) ? networks : Collections.emptyList();
-        this.rlimits = (rlimits != null) ? rlimits : Collections.emptyList();
-        this.uris = (uris != null) ? uris : Collections.emptyList();
-        this.tasks = tasks;
-        this.placementRule = placementRule;
-        this.volumes = (volumes != null) ? volumes : Collections.emptyList();
+            @JsonProperty("volumes") Collection<VolumeSpec> volumes,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
+            @JsonProperty("secrets") Collection<SecretSpec> secrets) {
+        this(
+                new Builder(Optional.empty()) // Assume that Executor URI is already present
+                        .type(type)
+                        .user(user)
+                        .count(count)
+                        .image(image)
+                        .networks(networks)
+                        .rlimits(rlimits)
+                        .uris(uris)
+                        .tasks(tasks)
+                        .placementRule(placementRule)
+                        .volumes(volumes)
+                        .preReservedRole(preReservedRole)
+                        .secrets(secrets));
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count,
-             builder.image, builder.networks, builder.rlimits,
-             builder.uris, builder.tasks, builder.placementRule,
-             builder.volumes);
+        this.count = builder.count;
+        this.image = builder.image;
+        this.networks = builder.networks;
+        this.placementRule = builder.placementRule;
+        this.preReservedRole = builder.preReservedRole;
+        this.rlimits = builder.rlimits;
+        this.secrets = builder.secrets;
+        this.tasks = builder.tasks;
+        this.type = builder.type;
+        this.uris = builder.uris;
+        this.user = builder.user;
+        this.volumes = builder.volumes;
         ValidationUtils.validate(this);
     }
 
@@ -89,16 +102,17 @@ public class DefaultPodSpec implements PodSpec {
 
     public static Builder newBuilder(PodSpec copy) {
         Builder builder = new Builder(Optional.empty()); // Assume that Executor URI is already present
-        builder.type = copy.getType();
-        builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
         builder.image = copy.getImage().isPresent() ? copy.getImage().get() : null;
         builder.networks = copy.getNetworks();
-        builder.rlimits = copy.getRLimits();
-        builder.uris = copy.getUris();
-        builder.tasks = new ArrayList<>();
-        builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
+        builder.preReservedRole = copy.getPreReservedRole();
+        builder.rlimits = copy.getRLimits();
+        builder.secrets = copy.getSecrets();
+        builder.tasks = copy.getTasks();
+        builder.type = copy.getType();
+        builder.uris = copy.getUris();
+        builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         return builder;
     }
@@ -154,6 +168,16 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public String getPreReservedRole() {
+        return preReservedRole;
+    }
+
+    @Override
+    public Collection<SecretSpec> getSecrets() {
+        return secrets;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -163,6 +187,10 @@ public class DefaultPodSpec implements PodSpec {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
 
     /**
      * {@code DefaultPodSpec} builder static inner class.
@@ -174,12 +202,14 @@ public class DefaultPodSpec implements PodSpec {
         private String user;
         private Integer count;
         private String image;
-        private Collection<NetworkSpec> networks;
-        private Collection<RLimit> rlimits;
-        private Collection<URI> uris;
-        private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
-        private Collection<VolumeSpec> volumes;
+        public String preReservedRole = Constants.ANY_ROLE;
+        private Collection<NetworkSpec> networks = new ArrayList<>();
+        private Collection<RLimit> rlimits =  new ArrayList<>();
+        private Collection<URI> uris = new ArrayList<>();
+        private List<TaskSpec> tasks = new ArrayList<>();
+        private Collection<VolumeSpec> volumes = new ArrayList<>();
+        private Collection<SecretSpec> secrets = new ArrayList<>();
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -238,7 +268,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder networks(Collection<NetworkSpec> networks) {
-            this.networks = networks;
+            if (networks == null) {
+               this.networks = new ArrayList<>();
+            } else {
+                this.networks = networks;
+            }
+
             return this;
         }
 
@@ -250,7 +285,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder rlimits(Collection<RLimit> rlimits) {
-            this.rlimits = rlimits;
+            if (rlimits == null) {
+                this.rlimits = new ArrayList<>();
+            } else {
+                this.rlimits = rlimits;
+            }
+
             return this;
         }
 
@@ -261,7 +301,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder uris(Collection<URI> uris) {
-            this.uris = uris;
+            if (uris == null) {
+                this.uris = new ArrayList<>();
+            } else {
+                this.uris = uris;
+            }
+
             return this;
         }
 
@@ -272,10 +317,6 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder addUri(URI uri) {
-            if (this.uris == null) {
-                this.uris = new ArrayList<>();
-            }
-
             this.uris.add(uri);
             return this;
         }
@@ -324,6 +365,36 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder volumes(Collection<VolumeSpec> volumes) {
             this.volumes = volumes;
+            return this;
+        }
+
+        /**
+         * Sets the {@code pre-reserved-role} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param preReservedRole the {@code preReservedRole} to set
+         * @return a reference to this Builder
+         */
+        public Builder preReservedRole(String preReservedRole) {
+            if (preReservedRole == null) {
+                this.preReservedRole = Constants.ANY_ROLE;
+            } else {
+                this.preReservedRole = preReservedRole;
+            }
+
+            return this;
+        }
+
+
+        /**
+         * Sets the {@code secrets} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param secrets the {@code secrets} to set
+         * @return a reference to this Builder
+         */
+        public Builder secrets(Collection<SecretSpec> secrets) {
+            this.secrets = secrets;
             return this;
         }
 

@@ -23,8 +23,8 @@
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
-    "JRE_VERSION": "jre1.8.0_112",
-    "TASKCFG_ALL_JRE_VERSION": "jre1.8.0_112",
+    "JRE_VERSION": "jre1.8.0_131",
+    "TASKCFG_ALL_JRE_VERSION": "jre1.8.0_131",
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
@@ -48,6 +48,10 @@
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
+
+    {{#service.virtual_network}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    {{/service.virtual_network}}
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },

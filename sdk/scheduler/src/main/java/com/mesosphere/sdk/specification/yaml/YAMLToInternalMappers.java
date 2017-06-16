@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.mesosphere.sdk.config.ConfigNamespace;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
-import com.mesosphere.sdk.config.TaskConfigRouter;
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
@@ -16,8 +17,13 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -31,63 +37,52 @@ public class YAMLToInternalMappers {
 
     public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
+
+    /**
+     * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
+     */
+    @VisibleForTesting
+    public static class FileReader {
+        public String read(String path) throws IOException {
+            return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
+        }
+    }
+
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
-     * @param rawSvcSpec the raw service specification representing a YAML file
+     * @param rawServiceSpec the raw service specification representing a YAML file
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
-    static DefaultServiceSpec from(
-            RawServiceSpec rawSvcSpec,
+    public static DefaultServiceSpec from(
+            RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
-            YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
-        RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-        String role = null;
-        String principal = null;
-        Integer apiPort = null;
-        String zookeeper = null;
+            TaskEnvRouter taskEnvRouter,
+            FileReader fileReader) throws Exception {
+        verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
 
-        if (rawScheduler != null) {
-            principal = rawScheduler.getPrincipal();
-            role = rawScheduler.getRole();
-            apiPort = rawScheduler.getApiPort();
-            zookeeper = rawScheduler.getZookeeper();
-        }
-        // Fall back to defaults as needed, if either RawScheduler or a given RawScheduler field is missing:
-        if (StringUtils.isEmpty(role)) {
-            role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
-        }
-        if (StringUtils.isEmpty(principal)) {
-            principal = SchedulerUtils.nameToPrincipal(rawSvcSpec.getName());
-        }
-        if (apiPort == null) {
-            apiPort = schedulerFlags.getApiServerPort();
-        }
-        if (StringUtils.isEmpty(zookeeper)) {
-            zookeeper = SchedulerUtils.defaultZkHost();
-        }
-
-        verifyRawSpec(rawSvcSpec);
+        String role = SchedulerUtils.getServiceRole(rawServiceSpec);
+        String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
-                .name(rawSvcSpec.getName())
+                .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
-                .apiPort(apiPort)
-                .zookeeperConnection(zookeeper)
-                .webUrl(rawSvcSpec.getWebUrl());
+                .apiPort(SchedulerUtils.getApiPort(rawServiceSpec, schedulerFlags))
+                .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
+                .webUrl(rawServiceSpec.getWebUrl());
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
-        final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
-        TaskConfigRouter taskConfigRouter = new DefaultTaskConfigRouter();
+        final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
             pods.add(from(
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
-                    taskConfigRouter.getConfig(entry.getKey()),
+                    taskEnvRouter.getConfig(entry.getKey()),
                     role,
                     principal,
                     schedulerFlags.getExecutorURI()));
@@ -98,9 +93,9 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
-    private static void verifyRawSpec(RawServiceSpec rawServiceSpec) {
+    private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
         // Verify that tasks in separate pods don't share a discovery prefix.
-        Map<String, Long> dnsPrefixCounts = rawServiceSpec.getPods().values().stream()
+        Map<String, Long> dnsPrefixCounts = rawPods.stream()
                 .flatMap(p -> p.getTasks().values().stream()
                         .map(t -> t.getDiscovery())
                         .filter(d -> d != null)
@@ -150,16 +145,61 @@ public class YAMLToInternalMappers {
 
     private static PodSpec from(
             RawPod rawPod,
-            YAMLServiceSpecFactory.FileReader fileReader,
+            FileReader fileReader,
             String podName,
-            ConfigNamespace configNamespace,
+            Map<String, String> additionalEnv,
             String role,
             String principal,
             String executorUri) throws Exception {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
-                .user(rawPod.getUser());
+                .user(rawPod.getUser())
+                .preReservedRole(rawPod.getPreReservedRole());
+
+        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
+        // functionality (CNI or otherwise) will land in the pod-level only.
+        RawContainerInfoProvider containerInfoProvider = null;
+        List<String> networkNames = new ArrayList<>();
+        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
+            if (rawPod.getContainer() != null) {
+                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
+                        + "pod %s or under %s:container, but not both.", podName, podName));
+            }
+            containerInfoProvider = rawPod;
+        } else if (rawPod.getContainer() != null) {
+            containerInfoProvider = rawPod.getContainer();
+        }
+
+        if (containerInfoProvider != null) {
+            List<RLimit> rlimits = new ArrayList<>();
+            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
+                RawRLimit rawRLimit = entry.getValue();
+                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+            }
+
+            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
+            final Collection<NetworkSpec> networks = new ArrayList<>();
+            if (MapUtils.isNotEmpty(rawNetworks)) {
+                networks.addAll(rawNetworks.entrySet().stream()
+                        .map(rawNetworkEntry -> {
+                            String networkName = rawNetworkEntry.getKey();
+                            if (!DcosConstants.isSupportedNetwork(networkName)) {
+                                LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
+                                        "may experience unexpected behavior", networkName));
+                            }
+                            networkNames.add(networkName);
+                            RawNetwork rawNetwork = rawNetworks.get(networkName);
+                            return from(networkName, rawNetwork, collatePorts(rawPod));
+                        })
+                        .collect(Collectors.toList()));
+            }
+
+            builder.image(containerInfoProvider.getImage())
+                    .networks(networks)
+                    .rlimits(rlimits);
+
+        }
 
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
@@ -178,17 +218,29 @@ public class YAMLToInternalMappers {
                                 rawResourceSet.getVolume(),
                                 rawResourceSet.getVolumes(),
                                 role,
-                                principal);
+                                rawPod.getPreReservedRole(),
+                                principal,
+                                networkNames);
                     })
                     .collect(Collectors.toList()));
         }
+
+        if (!rawPod.getSecrets().isEmpty()) {
+            Collection<SecretSpec> secretSpecs = new ArrayList<>();
+            secretSpecs.addAll(rawPod.getSecrets().values().stream()
+                    .map(v -> from(v))
+                    .collect(Collectors.toList()));
+
+            builder.secrets(secretSpecs);
+        }
+
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
                     Collections.emptyList() :
-                    Arrays.asList(from(rawPod.getVolume(), role, principal)));
+                    Arrays.asList(from(rawPod.getVolume(), role, rawPod.getPreReservedRole(), principal)));
 
             volumeSpecs.addAll(rawPod.getVolumes().values().stream()
-                    .map(v -> from(v, role, principal))
+                    .map(v -> from(v, role, rawPod.getPreReservedRole(), principal))
                     .collect(Collectors.toList()));
 
             builder.volumes(volumeSpecs);
@@ -201,10 +253,12 @@ public class YAMLToInternalMappers {
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
-                    configNamespace,
+                    additionalEnv,
                     resourceSets,
                     role,
-                    principal));
+                    rawPod.getPreReservedRole(),
+                    principal,
+                    networkNames));
         }
         builder.tasks(taskSpecs);
 
@@ -219,58 +273,21 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
 
-        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
-        // functionality (CNI or otherwise) will land in the pod-level only.
-        RawContainerInfoProvider containerInfoProvider = null;
-        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
-            if (rawPod.getContainer() != null) {
-                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
-                        + "pod %s or under %s:container, but not both.", podName, podName));
-            }
-            containerInfoProvider = rawPod;
-        } else if (rawPod.getContainer() != null) {
-            containerInfoProvider = rawPod.getContainer();
-        }
-
-
-        if (containerInfoProvider != null) {
-            List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
-                RawRLimit rawRLimit = entry.getValue();
-                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
-            }
-
-            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
-            final Collection<NetworkSpec> networks = new ArrayList<>();
-            if (MapUtils.isNotEmpty(rawNetworks)) {
-                networks.addAll(rawNetworks.entrySet().stream()
-                        .map(rawNetworkEntry -> {
-                            String networkName = rawNetworkEntry.getKey();
-                            RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            return from(networkName, rawNetwork, collatePorts(rawPod));
-                        })
-                        .collect(Collectors.toList()));
-            }
-
-            builder.image(containerInfoProvider.getImage())
-                .networks(networks)
-                .rlimits(rlimits);
-
-        }
-
         return builder.build();
     }
 
     private static TaskSpec from(
             RawTask rawTask,
-            YAMLServiceSpecFactory.FileReader fileReader,
+            FileReader fileReader,
             String taskName,
-            ConfigNamespace configNamespace,
+            Map<String, String> additionalEnv,
             Collection<ResourceSet> resourceSets,
             String role,
-            String principal) throws Exception {
+            String preReservedRole,
+            String principal,
+            Collection<String> networkNames) throws Exception {
 
-        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
+        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(additionalEnv)
                 .environment(rawTask.getEnv())
                 .value(rawTask.getCmd());
 
@@ -333,7 +350,9 @@ public class YAMLToInternalMappers {
                     rawTask.getVolume(),
                     rawTask.getVolumes(),
                     role,
-                    principal));
+                    preReservedRole,
+                    principal,
+                    networkNames));
         }
 
         return builder.build();
@@ -348,9 +367,11 @@ public class YAMLToInternalMappers {
             RawVolume rawSingleVolume,
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
-            String principal) {
+            String preReservedRole,
+            String principal,
+            Collection<String> networkNames) {
 
-        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
+        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, preReservedRole, principal);
 
         if (rawVolumes != null) {
             if (rawSingleVolume != null) {
@@ -385,7 +406,8 @@ public class YAMLToInternalMappers {
         }
 
         if (rawPorts != null) {
-            resourceSetBuilder.addResource(from(role, principal, rawPorts));
+            from(role, preReservedRole, principal, rawPorts, networkNames).getPortSpecs()
+                    .forEach(resourceSetBuilder::addResource);
         }
 
         return resourceSetBuilder
@@ -393,7 +415,17 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String principal) {
+    private static DefaultSecretSpec from(RawSecret rawSecret) {
+        String filePath =  (rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null) ?
+                rawSecret.getSecretPath() : rawSecret.getFilePath();
+
+        return new DefaultSecretSpec(
+                rawSecret.getSecretPath(),
+                rawSecret.getEnvKey(),
+                filePath);
+    }
+
+    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String preReservedRole, String principal) {
         VolumeSpec.Type volumeTypeEnum;
         try {
             volumeTypeEnum = VolumeSpec.Type.valueOf(rawVolume.getType());
@@ -408,6 +440,7 @@ public class YAMLToInternalMappers {
                 volumeTypeEnum,
                 rawVolume.getPath(),
                 role,
+                preReservedRole,
                 principal,
                 "DISK_SIZE");
     }
@@ -417,38 +450,33 @@ public class YAMLToInternalMappers {
             RawNetwork rawNetwork,
             Collection<Integer> ports) throws IllegalArgumentException {
         DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder().networkName(networkName);
-        Map<Integer, Integer> portMap = new HashMap<>();
-        if (rawNetwork.numberOfPortMappings() > 0) {
-            // zip the host and container ports together
-            portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
-                    .boxed().collect(Collectors
-                            .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+        boolean supportsPortMapping = DcosConstants.networkSupportsPortMapping(networkName);
+        if (!supportsPortMapping && rawNetwork.numberOfPortMappings() > 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Virtual Network %s doesn't support container->host port mapping", networkName));
         }
-        if (ports.size() > 0) {
-            for (Integer port : ports) {
-                // iterate over the task ports and if they aren't being remapped do a 1:1 (host:container) mapping
-                if (!portMap.values().contains(port)) {
-                    portMap.put(port, port);
+        if (supportsPortMapping) {
+            Map<Integer, Integer> portMap = new HashMap<>();  // hostPort:containerPort
+            if (rawNetwork.numberOfPortMappings() > 0) {
+                // zip the host and container ports together
+                portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
+                        .boxed().collect(Collectors
+                                .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
+            }
+            if (ports.size() > 0) {
+                for (Integer port : ports) {
+                    // iterate over the task ports and if they aren't being remapped do a 1:1 (host:container) mapping
+                    if (!portMap.keySet().contains(port)) {
+                        portMap.put(port, port);
+                    }
                 }
             }
-        }
-        builder.portMappings(portMap);
-
-        if (rawNetwork.getNetgroups() != null) {
-            Set<String> netgroupSet = new HashSet<>(rawNetwork.getNetgroups());
-            if (netgroupSet.size() != rawNetwork.getNetgroups().size()) {
-                throw new IllegalArgumentException("Cannot have repeat netgroups");
-            }
-            builder.netgroups(netgroupSet);
+            builder.portMappings(portMap);
+        } else {
+            builder.portMappings(Collections.emptyMap());
         }
 
-        if (rawNetwork.getIpAddresses() != null) {
-            Set<String> ipAddressSet = new HashSet<>(rawNetwork.getIpAddresses());
-            if (ipAddressSet.size() != rawNetwork.getIpAddresses().size()) {
-                throw new IllegalArgumentException("Cannot have repeat IP address requests");
-            }
-            builder.ipAddresses(ipAddressSet);
-        }
+        //TODO(arand) implement network labels
 
         return builder.build();
     }
@@ -474,7 +502,21 @@ public class YAMLToInternalMappers {
         return ports;
     }
 
-    private static ResourceSpec from(String role, String principal, WriteOnceLinkedHashMap<String, RawPort> rawPorts) {
+    private static boolean maybeUsePortResources(Collection<String> networkNames) {
+        for (String networkName : networkNames) {
+            if (DcosConstants.networkSupportsPortMapping(networkName)) {
+                return true;
+            }
+        }
+        return networkNames.size() == 0;  // if we have no networks, we want to use port resources
+    }
+
+    private static PortsSpec from(
+            String role,
+            String preReservedRole,
+            String principal,
+            WriteOnceLinkedHashMap<String, RawPort> rawPorts,
+                                     Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
         String envKey = null;
@@ -496,25 +538,28 @@ public class YAMLToInternalMappers {
                 final String protocol =
                         StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
-                portSpecs.add(new NamedVIPSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
+                NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,
+                        preReservedRole,
                         principal,
                         rawPort.getEnvKey(),
                         name,
                         protocol,
                         toVisibility(rawVip.isAdvertised()),
                         vipName,
-                        rawVip.getPort()));
+                        rawVip.getPort(),
+                        networkNames);
+                portSpecs.add(namedVIPSpec);
             } else {
                 portSpecs.add(new PortSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
                         portValueBuilder.build(),
                         role,
+                        preReservedRole,
                         principal,
                         rawPort.getEnvKey(),
-                        name));
+                        name,
+                        networkNames));
             }
         }
         return new PortsSpec(

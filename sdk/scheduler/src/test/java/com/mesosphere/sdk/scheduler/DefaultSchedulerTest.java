@@ -7,8 +7,6 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
@@ -35,7 +33,10 @@ import org.awaitility.Awaitility;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
@@ -59,7 +60,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the DefaultScheduler class.
  */
-@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
+@SuppressWarnings({"PMD.TooManyStaticImports", "PMD.AvoidUsingHardCodedIP"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
@@ -75,6 +76,8 @@ public class DefaultSchedulerTest {
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
     public static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+
+    private static final String TASK_IP = "9.9.9.9";
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -189,10 +192,10 @@ public class DefaultSchedulerTest {
         stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
         configStore = new DefaultConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
@@ -293,10 +296,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -310,10 +313,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -328,10 +331,10 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         register();
 
@@ -374,10 +377,9 @@ public class DefaultSchedulerTest {
 
         // Make offers sufficient to recover Task A-0 and launch Task B-0,
         // and also have some unused reserved resources for cleaning, and verify that only one of those three happens.
-        Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        cpus = ResourceUtils.setResourceId(cpus, UUID.randomUUID().toString());
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        mem = ResourceUtils.setResourceId(mem, UUID.randomUUID().toString());
+
+        Protos.Resource cpus = ResourceTestUtils.getExpectedScalar("cpus", 1.0, UUID.randomUUID().toString());
+        Protos.Resource mem = ResourceTestUtils.getExpectedScalar("mem", 1.0, UUID.randomUUID().toString());
 
         Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
                 .addAllResources(operations.stream()
@@ -501,10 +503,10 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         // Perform Configuration Update
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
         defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
@@ -554,10 +556,10 @@ public class DefaultSchedulerTest {
         UUID targetConfigId = configStore.getTargetConfig();
 
         // Build new scheduler with invalid config (shrinking task count)
+        Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, invalidPodB), flags)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
-                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
                 .build();
 
         // Ensure prior target configuration is still intact
@@ -601,6 +603,82 @@ public class DefaultSchedulerTest {
     }
 
     @Test
+    public void testTaskIpIsStoredOnInstall() {
+        install();
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+    }
+
+    @Test
+    public void testTaskIpIsUpdatedOnStatusUpdate() {
+        List<Protos.TaskID> taskIds = install();
+        String updateIp = "1.1.1.1";
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+
+        Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
+                getTaskStatus(taskIds.get(0), Protos.TaskState.TASK_STAGING))
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                        .addNetworkInfos(Protos.NetworkInfo.newBuilder()
+                            .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
+                                .setIpAddress(updateIp))))
+                .build();
+        defaultScheduler.statusUpdate(mockSchedulerDriver, update);
+
+        // Verify the TaskStatus was update.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
+            return StateStoreUtils.getTaskStatusFromProperty(
+                    stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
+                    .getContainerStatus()
+                    .getNetworkInfos(0)
+                    .getIpAddresses(0)
+                    .getIpAddress().equals(updateIp);
+        });
+    }
+
+    @Test
+    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() {
+        List<Protos.TaskID> taskIds = install();
+
+        // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_B_POD_NAME + "-0-" + TASK_B_NAME ).isPresent());
+
+        Protos.TaskStatus update = Protos.TaskStatus.newBuilder(
+                getTaskStatus(taskIds.get(0), Protos.TaskState.TASK_STAGING))
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                        .addNetworkInfos(Protos.NetworkInfo.newBuilder()))
+                .build();
+        defaultScheduler.statusUpdate(mockSchedulerDriver, update);
+
+        // Verify the TaskStatus was NOT updated.
+        Assert.assertTrue(StateStoreUtils.getTaskStatusFromProperty(
+                stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).isPresent());
+
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> {
+            return StateStoreUtils.getTaskStatusFromProperty(
+                    stateStore, TASK_A_POD_NAME + "-0-" + TASK_A_NAME ).get()
+                    .getContainerStatus()
+                    .getNetworkInfos(0)
+                    .getIpAddresses(0)
+                    .getIpAddress().equals(TASK_IP);
+        });
+    }
+
+    @Test
     public void testApiServerNotReadyDecline() {
         TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
         testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
@@ -635,9 +713,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(2, deployPlan.getChildren().size());
     }
 
-    /**
-     * Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
-     */
+    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
     private Collection<Plan> getDeployUpdatePlans() {
         Phase phase = mock(Phase.class);
         Plan deployPlan = mock(Plan.class);
@@ -679,6 +755,10 @@ public class DefaultSchedulerTest {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
                 .setState(state)
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                    .addNetworkInfos(Protos.NetworkInfo.newBuilder()
+                        .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
+                            .setIpAddress(TASK_IP))))
                 .build();
     }
 
@@ -783,9 +863,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
     }
 
-    /**
-     * Installs the service.
-     */
+    //Installs the service.
     private List<Protos.TaskID> install() {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
@@ -803,9 +881,8 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
     }
 
@@ -819,9 +896,8 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
-                            Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass");
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, null, "test pass");
         }
 
         @JsonProperty("message")
@@ -851,7 +927,6 @@ public class DefaultSchedulerTest {
                     defaultScheduler.plans,
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
-                    defaultScheduler.offerRequirementProvider,
                     defaultScheduler.customEndpointProducers,
                     defaultScheduler.customRestartHook,
                     defaultScheduler.recoveryPlanOverriderFactory,

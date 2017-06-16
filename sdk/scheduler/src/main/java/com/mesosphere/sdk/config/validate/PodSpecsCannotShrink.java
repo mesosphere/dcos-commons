@@ -7,17 +7,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Sample configuration validator which validates that a ServiceSpecification's number of PodSpecs
+ * Configuration validator which validates that a ServiceSpecification's number of PodSpecs
  * and number of tasks within those PodSpecs never go down.
  */
 public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
 
     @Override
-    public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
-        List<ConfigValidationError> errors = new ArrayList<>();
-        if (nullableOldConfig == null) {
-            // No sizes to compare.
-            return errors;
+    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
+        if (!oldConfig.isPresent()) {
+            return Collections.emptyList();
         }
 
         Map<String, PodSpec> newPods;
@@ -25,13 +23,14 @@ public class PodSpecsCannotShrink implements ConfigValidator<ServiceSpec> {
             newPods = newConfig.getPods().stream()
                     .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
         } catch (IllegalStateException e) {
-            errors.add(ConfigValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
-            return errors;
+            return Arrays.asList(
+                    ConfigValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
         }
 
         // Check for PodSpecs in the old config which are missing or smaller in the new config.
         // Adding new PodSpecs or increasing the size of tasksets are allowed.
-        for (PodSpec oldPod : nullableOldConfig.getPods()) {
+        Collection<ConfigValidationError> errors = new ArrayList<>();
+        for (PodSpec oldPod : oldConfig.get().getPods()) {
             PodSpec newPod = newPods.get(oldPod.getType());
             if (newPod == null) {
                 errors.add(ConfigValidationError.transitionError(

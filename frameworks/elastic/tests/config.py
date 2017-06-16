@@ -2,19 +2,21 @@ import json
 from functools import wraps
 
 import shakedown
+
+import sdk_cmd
+import sdk_marathon as marathon
+import sdk_plan
+import sdk_tasks as tasks
 import sdk_utils
 
 PACKAGE_NAME = 'elastic'
-DEFAULT_TASK_COUNT = 9
-WAIT_TIME_IN_SECONDS = 6 * 60
+DEFAULT_TASK_COUNT = 7
+WAIT_TIME_IN_SECONDS = 10 * 60
 KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
-DEFAULT_NODE_COUNT = 7
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
-
-TASK_RUNNING_STATE = 'TASK_RUNNING'
 
 
 def as_json(fn):
@@ -28,10 +30,6 @@ def as_json(fn):
     return wrapper
 
 
-def check_dcos_service_health():
-    return shakedown.service_healthy(PACKAGE_NAME)
-
-
 def index_health_success_predicate(index_name, color):
     result = get_elasticsearch_index_health(index_name)
     return result and result["status"] == color
@@ -42,20 +40,21 @@ def check_elasticsearch_index_health(index_name, color):
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
-def kibana_health_success_predicate():
-    result = get_kibana_status()
-    return result and "kbn-name: kibana" in result
+def check_kibana_adminrouter_integration(path):
+    return shakedown.wait_for(lambda: kibana_health_success_predicate(path),
+                              timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS,
+                              noisy=True)
 
 
-def check_kibana_proxylite_adminrouter_integration():
-    return shakedown.wait_for(lambda: kibana_health_success_predicate(),
-                              timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS)
+def kibana_health_success_predicate(path):
+    result = get_kibana_status(path)
+    return result and "HTTP/1.1 200" in result
 
 
-def get_kibana_status():
+def get_kibana_status(path):
     token = shakedown.authenticate('bootstrapuser', 'deleteme')
-    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/kibana/login".format(
-        token, shakedown.dcos_service_url(PACKAGE_NAME))
+    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}{}".format(
+        token, shakedown.dcos_url(), path)
     exit_status, output = shakedown.run_command_on_master(curl_cmd)
     return output
 
@@ -65,8 +64,8 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
-    return node_count == DEFAULT_NODE_COUNT
+    sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
+    return node_count == DEFAULT_TASK_COUNT
 
 
 def wait_for_expected_nodes_to_exist():
@@ -75,7 +74,7 @@ def wait_for_expected_nodes_to_exist():
 
 def plugins_installed_success_predicate(plugin_name):
     result = get_hosts_with_plugin(plugin_name)
-    return result is not None and len(result) == DEFAULT_NODE_COUNT
+    return result is not None and len(result) == DEFAULT_TASK_COUNT
 
 
 def check_plugin_installed(plugin_name):
@@ -94,8 +93,14 @@ def check_plugin_uninstalled(plugin_name):
 
 
 def get_elasticsearch_master():
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET", "coordinator")))
-    return output.split()[-1]
+    def get_master():
+        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET")))
+        if exit_status and len(output.split()) > 0:
+            return output.split()[-1]
+
+        return False
+
+    return shakedown.wait_for(get_master)
 
 
 def get_hosts_with_plugin(plugin_name):
@@ -104,6 +109,55 @@ def get_hosts_with_plugin(plugin_name):
         return [host for host in output.split("\n") if plugin_name in host]
     else:
         return None
+
+
+def verify_commercial_api_status(is_enabled):
+    query = {
+        "query": {
+            "match": {
+                "name": "*"
+            }
+        },
+        "vertices": [
+            {
+                "field": "name"
+            }
+        ],
+        "connections": {
+            "vertices": [
+                {
+                    "field": "role"
+                }
+            ]
+        }
+    }
+    response = graph_api(DEFAULT_INDEX_NAME, query)
+    if is_enabled:
+        assert response["failures"] == []
+    else:
+        # The _graph endpoint doesn't even exist without X-Pack installed
+        assert response["status"] == 400
+
+
+def enable_xpack():
+    xpack("true")
+
+
+def disable_xpack():
+    xpack("false")
+
+
+def xpack(is_enabled):
+    config = marathon.get_config(PACKAGE_NAME)
+    config['env']['TASKCFG_ALL_XPACK_ENABLED'] = is_enabled
+    marathon.update_app(PACKAGE_NAME, config)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+
+def verify_xpack_license():
+    xpack_license = get_xpack_license()
+    assert xpack_license["license"]["status"] == "active"
 
 
 @as_json
@@ -140,6 +194,13 @@ def graph_api(index_name, query):
 
 
 @as_json
+def get_xpack_license():
+    command = "{}/_xpack/license'".format(curl_api("GET"))
+    exit_status, output = shakedown.run_command_on_master(command)
+    return output
+
+
+@as_json
 def delete_index(index_name):
     exit_status, output = shakedown.run_command_on_master("{}/{}'".format(curl_api("DELETE"), index_name))
     return output
@@ -161,5 +222,25 @@ def get_document(index_name, index_type, doc_id):
 
 
 def curl_api(method, role="master"):
-    vip = "http://{}.{}.l4lb.thisdcos.directory:9200".format(role, PACKAGE_NAME)
+    vip = "http://{}-0-node.{}.autoip.dcos.thisdcos.directory:{}".format(role, PACKAGE_NAME, master_zero_http_port())
     return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
+
+
+def master_zero_http_port():
+    ret_str = sdk_cmd.run_cli('{} endpoints master'.format(PACKAGE_NAME))
+    result = json.loads(ret_str)
+    dns = result['dns']
+    # array will initially look something like this in CCM, with some 9300 ports and some lower ones [
+    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025",
+    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:1025",
+    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:9300",
+    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:1025"
+    # ]
+
+    # sort will bubble up "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025", the HTTP server host:port
+    dns.sort()
+    port = dns[0].split(':')[-1]
+    sdk_utils.out("Extracted {} as port for {}".format(port, dns[0]))
+    return port

@@ -46,6 +46,9 @@
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
     "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
+    {{#service.virtual_network}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    {{/service.virtual_network}}
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",
@@ -94,6 +97,7 @@
     "TASKCFG_ALL_CASSANDRA_HINTS_FLUSH_PERIOD_IN_MS": "{{cassandra.hints_flush_period_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_MATERIALIZED_VIEW_WRITES": "{{cassandra.concurrent_materialized_view_writes}}",
     "TASKCFG_ALL_CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB": "{{cassandra.commitlog_total_space_in_mb}}",
+    "TASKCFG_ALL_CASSANDRA_AUTO_SNAPSHOT": "{{cassandra.auto_snapshot}}",
     "TASKCFG_ALL_CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS": "{{cassandra.roles_update_interval_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_PERMISSIONS_UPDATE_INTERVAL_IN_MS": "{{cassandra.permissions_update_interval_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_KEY_CACHE_KEYS_TO_SAVE": "{{cassandra.key_cache_keys_to_save}}",
@@ -124,7 +128,7 @@
     "TASKCFG_ALL_CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS": "{{cassandra.streaming_socket_timeout_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_MAX_VALUE_SIZE_IN_MB": "{{cassandra.max_value_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_OTC_COALESCING_STRATEGY": "{{cassandra.otc_coalescing_strategy}}",
-    "TASKCFG_ALL_LOCAL_SEEDS": "node-0-server.{{service.name}}.mesos,node-1-server.{{service.name}}.mesos",
+    "TASKCFG_ALL_LOCAL_SEEDS": "node-0-server.{{service.name}}.autoip.dcos.thisdcos.directory,node-1-server.{{service.name}}.autoip.dcos.thisdcos.directory",
     "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",

@@ -27,6 +27,12 @@ def init_repo_root(repo_root):
     _repo_root=repo_root
 
 
+pr_build_change_types = None
+def set_buildtypes(build_set):
+    global pr_build_change_types
+    pr_build_change_types = build_set
+    logging.debug("build_types set to %s", build_set)
+
 def add_framework(framework_name, repo_root=None, dcos_version=None):
     if not repo_root:
         repo_root=_repo_root
@@ -38,6 +44,20 @@ def add_framework(framework_name, repo_root=None, dcos_version=None):
         logger.info("Skipping framework %s, which does not support dcos version %s",
                 framework_name, dcos_version)
         return None
+    if pr_build_change_types:
+        if "DOC" in pr_build_change_types:
+            logger.info("Skipping framework %s, docs-only branch", framework_name)
+            return None
+        if not "SDK" in pr_build_change_types:
+            if not framework_name in pr_build_change_types:
+                msg = "Skipping framework %s, no changes for this framework."
+                msg += " Changes for %s frameworks and not SDK itself."
+                logger.info(msg, framework_name, pr_build_change_types)
+                return None
+            else:
+                logging.info("adding framework %s to run, since PR has framework in list.", framework_name)
+        else:
+            logging.info("adding framework %s to run, since there are SDK changes.", framework_name)
     _framework_infos.append(fwobj)
     return fwobj
 
@@ -85,10 +105,12 @@ class FrameworkTestInfo(object):
         self.running = False
         self.cluster = None
         self.test_success = None # set to True or False later
-        self.stub_universe_url = None # url where cluster can download framework
+        self.stub_universe_urls = [] # url(s) where cluster can download framework
         self.output_file = None # in background
         self.popen = None
         self.dir = os.path.join(repo_root, 'frameworks', self.name)
+        if not os.path.isdir(self.dir):
+            raise ValueError("Invalid framework name %s" % self.name)
         self.buildscript = os.path.join(self.dir, 'build.sh')
         # TODO figure out what this trailing slash is for and eliminate
         self.testdir = os.path.join(self.dir, 'tests') + "/"
@@ -165,20 +187,20 @@ if __name__ == "__main__":
 
 
         def test_add_with_root(self):
-            add_framework('proxylite', repo_root=abs_repo_root)
-            self.assertEqual(get_framework_names(), ['proxylite'])
+            add_framework('template', repo_root=abs_repo_root)
+            self.assertEqual(get_framework_names(), ['template'])
 
         def test_add_without_root(self):
             init_repo_root(abs_repo_root)
-            self.assertFalse(have_framework('proxylite'))
-            add_framework('proxylite')
-            self.assertTrue(have_framework('proxylite'))
-            self.assertEqual(get_framework_names(), ['proxylite'])
+            self.assertFalse(have_framework('template'))
+            add_framework('template')
+            self.assertTrue(have_framework('template'))
+            self.assertEqual(get_framework_names(), ['template'])
 
         def test_add_dupe_framework(self):
             init_repo_root(abs_repo_root)
-            add_framework('proxylite')
-            self.assertRaises(Exception, add_framework, 'proxylite')
+            add_framework('template')
+            self.assertRaises(Exception, add_framework, 'template')
 
         def test_running_frameworks(self):
             init_repo_root(abs_repo_root)

@@ -247,12 +247,23 @@ public class PlansResourceTest {
     }
 
     @Test
+    public void testRestartPhase() {
+        Response response = resource.restartCommand(planName, phaseName, null);
+        assertTrue(response.getStatusInfo().equals(Response.Status.OK));
+        verify(mockPhase).restart();
+        verify(mockPhase).proceed();
+    }
+
+    @Test
+    public void testRestartPhaseInvalid() {
+        Response response = resource.restartCommand(planName, "bad-phase", null);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
+    }
+
+    @Test
     public void testRestartPlanInvalid() {
         Response response = resource.restartCommand("bad-plan", null, null);
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
-
-        response = resource.restartCommand(planName, "non-null", null);
-        assertTrue(response.getStatusInfo().equals(Response.Status.BAD_REQUEST));
 
         response = resource.restartCommand(planName, null, "non-null");
         assertTrue(response.getStatusInfo().equals(Response.Status.BAD_REQUEST));

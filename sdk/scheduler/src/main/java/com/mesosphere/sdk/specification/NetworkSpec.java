@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Spec for defining a container's network membership.
@@ -17,9 +16,6 @@ public interface NetworkSpec {
     @JsonProperty("port-mappings")
     Map<Integer, Integer> getPortMappings();
 
-    @JsonProperty("netgroups")
-    Set<String> getNetgroups();
-
-    @JsonProperty("ip-addresses")
-    Set<String> getIpAddresses();
+    @JsonProperty("network-labels")
+    Map<String, String> getLabels();
 }

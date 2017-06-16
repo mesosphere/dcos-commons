@@ -1,10 +1,7 @@
-import time
-
 import pytest
 
+import sdk_cmd as cmd
 import sdk_install as install
-import sdk_marathon as marathon
-import sdk_tasks as tasks
 import sdk_test_upgrade
 import sdk_utils as utils
 from tests.config import *
@@ -48,7 +45,7 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_service_health():
-    check_dcos_service_health()
+    assert shakedown.service_healthy(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -60,35 +57,28 @@ def test_indexing(default_populated_index):
 
 
 @pytest.mark.sanity
-def test_commercial_api_available(default_populated_index):
-    query = {
-        "query": {
-            "match": {
-                "name": "*"
-            }
-        },
-        "vertices": [
-            {
-                "field": "name"
-            }
-        ],
-        "connections": {
-            "vertices": [
-                {
-                    "field": "role"
-                }
-            ]
-        }
-    }
-    response = graph_api(DEFAULT_INDEX_NAME, query)
-    assert response["failures"] == []
+def test_xpack_toggle(default_populated_index):
+    # Verify disabled by default
+    verify_commercial_api_status(False)
+    enable_xpack()
+    # Verify enabled
+    verify_commercial_api_status(True)
+    verify_xpack_license()
+    # Write some data while enabled, disable X-Pack, and verify we can still read what we wrote.
+    create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 2, {"name": "X-Pack", "role": "commercial plugin"})
+    disable_xpack()
+    verify_commercial_api_status(False)
+    doc = get_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 2)
+    assert doc["_source"]["name"] == "X-Pack"
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
-    shakedown.kill_process_on_host("data-0-node.{}.mesos".format(PACKAGE_NAME), "data__.*Elasticsearch")
+    shakedown.kill_process_on_host(
+        "data-0-node.{}.autoip.dcos.thisdcos.directory".format(PACKAGE_NAME),
+        "data__.*Elasticsearch")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 
@@ -97,11 +87,21 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.sanity
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
-    shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "master__.*Elasticsearch")
-    # Master re-election can take up to 3 seconds by default
-    time.sleep(3)
+    shakedown.kill_process_on_host(
+        "{}.{}.autoip.dcos.thisdcos.directory".format(initial_master, PACKAGE_NAME),
+        "master__.*Elasticsearch")
+    wait_for_expected_nodes_to_exist()
     new_master = get_elasticsearch_master()
     assert new_master.startswith("master") and new_master != initial_master
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_master_node_replace():
+    # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
+    # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
+    cmd.run_cli('elastic pods replace master-0')
+    # setup_function will verify that the cluster becomes healthy again.
 
 
 @pytest.mark.recovery
@@ -109,12 +109,12 @@ def test_master_reelection():
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['ELASTICSEARCH_PLUGINS'] = plugin_name
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
     marathon.update_app(PACKAGE_NAME, config)
     check_plugin_installed(plugin_name)
 
     config = marathon.get_config(PACKAGE_NAME)
-    config['env']['ELASTICSEARCH_PLUGINS'] = ""
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = ""
     marathon.update_app(PACKAGE_NAME, config)
     check_plugin_uninstalled(plugin_name)
 
@@ -125,12 +125,6 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(marathon.get_scheduler_host(PACKAGE_NAME), "elastic.scheduler.Main")
     tasks.check_tasks_not_updated(PACKAGE_NAME, "master", initial_task_ids)
-
-
-@pytest.mark.sanity
-def test_kibana_proxylite_adminrouter_integration():
-    # run this test as late as possible, as it takes 10+ minutes for kibana to be ready
-    check_kibana_proxylite_adminrouter_integration()
 
 
 @pytest.mark.upgrade

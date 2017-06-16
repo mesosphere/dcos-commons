@@ -1,11 +1,14 @@
 name: {{SERVICE_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
-  user: {{SERVICE_USER}}
 pods:
   node:
     count: {{NODES}}
     placement: "{{PLACEMENT_CONSTRAINT}}"
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     image: mesosphere/cassandra:1.0.26-3.0.10
     uris:
       - {{SCHEDULER_URI}}
@@ -83,7 +86,7 @@ pods:
         goal: FINISHED
         cmd: >
                 mkdir container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.autoip.dcos.thisdcos.directory" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
       snapshot:
         goal: FINISHED
@@ -135,7 +138,7 @@ pods:
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.mesos {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.{{SERVICE_NAME}}.autoip.dcos.thisdcos.directory {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
         resource-set: sidecar-resources
       restore-snapshot:
         goal: FINISHED
@@ -150,6 +153,14 @@ pods:
         resource-set: sidecar-resources
 plans:
   deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[server]]
+  replace:
     strategy: serial
     phases:
       node-deploy:

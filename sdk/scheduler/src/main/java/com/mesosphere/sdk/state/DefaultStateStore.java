@@ -141,26 +141,7 @@ public class DefaultStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
-
-        for (Protos.TaskInfo taskInfo : fetchTasks()) {
-            if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
-                if (taskInfoOptional.isPresent()) {
-                    logger.error("Found duplicate taskIDs in Task {} and  Task {}",
-                            taskInfoOptional.get(), taskInfo.getName());
-                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                            "There are more than one tasks with TaskID: %s", status));
-                }
-                taskInfoOptional = Optional.of(taskInfo);
-            }
-        }
-
-        if (!taskInfoOptional.isPresent()) {
-            throw new StateStoreException(Reason.NOT_FOUND, String.format(
-                    "Failed to find a task with TaskID: %s", status));
-        }
-
-        String taskName = taskInfoOptional.get().getName();
+        String taskName = StateStoreUtils.getTaskInfo(this, status).getName();
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()
@@ -198,7 +179,7 @@ public class DefaultStateStore implements StateStore {
     @Override
     public void clearAllData() throws StateStoreException {
         try {
-            persister.deleteAll(PersisterUtils.PATH_DELIM);
+            persister.deleteAll(PersisterUtils.PATH_DELIM_STR);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Nothing to delete, apparently. Treat as a no-op
