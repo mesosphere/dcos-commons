@@ -28,7 +28,8 @@
         "deploy_strategy": {
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",
-          "default": "parallel"
+          "default": "parallel",
+          "enum" : ["parallel"]
         }
       },
       "required": [
