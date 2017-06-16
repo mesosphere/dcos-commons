@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -26,9 +27,10 @@ public class ResourceBuilder {
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
     private Optional<DiskInfo.Source> diskMountInfo;
+    private MesosResource mesosResource;
 
     public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
-        return new ResourceBuilder(spec.getName(), spec.getValue())
+        return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
                 .setRole(Optional.of(spec.getRole()))
                 .setPrincipal(Optional.of(spec.getPrincipal()))
                 .setResourceId(resourceId);
@@ -69,11 +71,11 @@ public class ResourceBuilder {
     }
 
     public static ResourceBuilder fromUnreservedValue(String resourceName, Value value) {
-        return new ResourceBuilder(resourceName, value);
+        return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
     }
 
     private static ResourceSpec getResourceSpec(Resource resource) {
-        if (!resource.hasReservation()) {
+        if (!ResourceUtils.hasResourceId(resource)) {
             throw new IllegalStateException(
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
         }
@@ -81,7 +83,8 @@ public class ResourceBuilder {
         return new DefaultResourceSpec(
                 resource.getName(),
                 ValueUtils.getValue(resource),
-                ResourceUtils.getRole(resource).get(),
+                ResourceUtils.getRole(resource),
+                resource.getRole(),
                 ResourceUtils.getPrincipal(resource).get(),
                 ""); // env-key isn't used
     }
@@ -92,15 +95,16 @@ public class ResourceBuilder {
                 resource.getScalar().getValue(),
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
-                ResourceUtils.getRole(resource).get(),
+                ResourceUtils.getRole(resource),
+                resource.getRole(),
                 resource.getDisk().getPersistence().getPrincipal(),
                 ""); // env-key isn't used
     }
 
-    private ResourceBuilder(String resourceName, Value value) {
+    private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
         this.resourceName = resourceName;
         this.value = value;
-        this.preReservedRole = Constants.ANY_ROLE;
+        this.preReservedRole = preReservedRole;
         this.role = Optional.empty();
         this.principal = Optional.empty();
         this.resourceId = Optional.empty();
@@ -114,22 +118,6 @@ public class ResourceBuilder {
      */
     public ResourceBuilder setValue(Value value) {
         this.value = value;
-        return this;
-    }
-
-    /**
-     * Sets the role for this resource.
-     */
-    public ResourceBuilder setRole(Optional<String> role) {
-        this.role = role;
-        return this;
-    }
-
-    /**
-     * Sets the principal for this resource.
-     */
-    public ResourceBuilder setPrincipal(Optional<String> principal) {
-        this.principal = principal;
         return this;
     }
 
@@ -194,23 +182,30 @@ public class ResourceBuilder {
         return this;
     }
 
-    public Resource build() {
-        Resource.Builder builder = Resource.newBuilder()
-                .setName(resourceName)
-                .setRole(preReservedRole);
+    public ResourceBuilder setMesosResource(MesosResource mesosResource) {
+        this.mesosResource = mesosResource;
+        return this;
+    }
 
-        if (role.isPresent()) {
-            String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
-            Resource.ReservationInfo reservationInfo = Resource.ReservationInfo.newBuilder()
-                    .setPrincipal(principal.get())
-                    .setLabels(
-                            Protos.Labels.newBuilder()
-                                    .addLabels(Protos.Label.newBuilder()
-                                            .setKey(MesosResource.RESOURCE_ID_KEY)
-                                            .setValue(resId)))
-                    .build();
-            builder.setReservation(reservationInfo);
+    public Resource build() {
+        Resource.Builder builder =
+                mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
+        builder.setName(resourceName).setRole(preReservedRole);
+        builder.setType(value.getType());
+
+        if (role.isPresent() && !Capabilities.getInstance().supportsPreReservedResources()) {
             builder.setRole(role.get());
+        }
+
+        if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
+            String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
+            Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
+
+            if (Capabilities.getInstance().supportsPreReservedResources()) {
+                builder.addReservations(reservationInfo);
+            } else {
+                builder.setReservation(reservationInfo);
+            }
         }
 
         if (diskContainerPath.isPresent()) {
@@ -229,20 +224,36 @@ public class ResourceBuilder {
         return setValue(builder, value).build();
     }
 
-    private static Value getValue(Resource resource) {
-        Value.Builder builder = Value.newBuilder()
-                .setType(resource.getType());
-        switch (resource.getType()) {
-        case SCALAR:
-            return builder.setScalar(resource.getScalar()).build();
-        case RANGES:
-            return builder.setRanges(resource.getRanges()).build();
-        case SET:
-            return builder.setSet(resource.getSet()).build();
-        default:
-            throw new IllegalArgumentException(
-                    String.format("Unsupported resource value type: %s", resource.getType()));
+    private Resource.ReservationInfo getReservationInfo(String role, String resId) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            return getRefinedReservationInfo(role, resId);
+        } else {
+            return getLegacyReservationInfo(resId);
         }
+    }
+
+    private Resource.ReservationInfo getRefinedReservationInfo(String role, String resId) {
+        return Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get())
+                .setRole(role)
+                .setType(Resource.ReservationInfo.Type.DYNAMIC)
+                .setLabels(
+                        Protos.Labels.newBuilder()
+                                .addLabels(Protos.Label.newBuilder()
+                                        .setKey(MesosResource.RESOURCE_ID_KEY)
+                                        .setValue(resId)))
+                .build();
+    }
+
+    private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
+        return Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get())
+                .setLabels(
+                        Protos.Labels.newBuilder()
+                                .addLabels(Protos.Label.newBuilder()
+                                        .setKey(MesosResource.RESOURCE_ID_KEY)
+                                        .setValue(resId)))
+                .build();
     }
 
     private static Resource.Builder setValue(Resource.Builder builder, Value value) {
@@ -265,5 +276,15 @@ public class ResourceBuilder {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    public ResourceBuilder setRole(Optional<String> role) {
+        this.role = role;
+        return this;
+    }
+
+    public ResourceBuilder setPrincipal(Optional<String> principal) {
+        this.principal = principal;
+        return this;
     }
 }

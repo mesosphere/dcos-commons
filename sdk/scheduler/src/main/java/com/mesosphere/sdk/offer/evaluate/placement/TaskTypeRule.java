@@ -109,6 +109,7 @@ public class TaskTypeRule implements PlacementRule {
                 // (A avoids B + B avoids A)
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "No tasks of avoided type '%s' are currently running.",
                         typeToFind);
             } else {
@@ -121,6 +122,7 @@ public class TaskTypeRule implements PlacementRule {
                 // (A colocates with B + B colocates with A)
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "No tasks of colocated type '%s' are currently running.",
                         typeToFind);
             } else {
@@ -156,7 +158,7 @@ public class TaskTypeRule implements PlacementRule {
             }
         }
         // The offer doesn't match any tasks to avoid. Approved!
-        return EvaluationOutcome.pass(this, "No tasks of avoided type '%s' found on this agent.", typeToFind);
+        return EvaluationOutcome.pass(this, null, "No tasks of avoided type '%s' found on this agent.", typeToFind);
     }
 
     /**
@@ -181,6 +183,7 @@ public class TaskTypeRule implements PlacementRule {
                 // The offer is for an agent which has a task to colocate with. Approved!
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "Found a task matching colocated type '%s' on this agent.",
                         typeToFind);
             }

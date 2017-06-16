@@ -570,11 +570,11 @@ public class DefaultServiceSpecTest {
         when(capabilities.supportsCNINetworking()).thenReturn(true);
 
         Persister persister = new MemPersister();
+        Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, flags)
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
-                .setCapabilities(capabilities)
                 .build();
     }
 }

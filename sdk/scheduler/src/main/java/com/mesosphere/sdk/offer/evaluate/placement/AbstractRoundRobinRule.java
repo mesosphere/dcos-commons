@@ -105,6 +105,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 // than some other value in the system.
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "Distinct value count is unspecified, and '%s' has %d instances while others have%d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             } else if (valueCounts.size() >= distinctValueCount.get()) {
@@ -112,6 +113,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 // the system.
                 return EvaluationOutcome.pass(
                         this,
+                        null,
                         "All distinct values are found, and '%s' has %d instances while others have %d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             }
@@ -119,7 +121,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             // only launch here if this value also has nothing on it.
             if (offerValueCount == 0) {
                 return EvaluationOutcome.pass(
-                        this, "Other values have zero usage, but so does value '%s'", offerValue);
+                        this, null, "Other values have zero usage, but so does value '%s'", offerValue);
             } else {
                 return EvaluationOutcome.fail(
                         this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount);

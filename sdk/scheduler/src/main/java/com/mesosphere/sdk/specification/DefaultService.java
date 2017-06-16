@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -18,7 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -200,13 +205,27 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
+
         fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                 .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+
 
         return fwkInfoBuilder.build();
     }
 
     private List<String> getRoles(ServiceSpec serviceSpec) {
-        return Arrays.asList(serviceSpec.getRole());
+        List<String> roles = new ArrayList<>();
+        roles.add(serviceSpec.getRole());
+        roles.addAll(
+                serviceSpec.getPods().stream()
+                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
+                .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
+                .collect(Collectors.toList()));
+
+        return roles;
     }
 }

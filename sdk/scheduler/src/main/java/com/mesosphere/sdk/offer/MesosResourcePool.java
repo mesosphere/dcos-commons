@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -49,10 +50,6 @@ public class MesosResourcePool {
         this.reservableMergedPoolByRole = getReservableMergedPool(mesosResources);
     }
 
-    public MesosResourcePool(Offer offer) {
-        this(offer, Optional.empty());
-    }
-
     /**
      * Returns the underlying offer which this resource pool represents.
      */
@@ -71,7 +68,7 @@ public class MesosResourcePool {
     /**
      * Returns the resources which were dynamically reserved.
      */
-    public Map<String, MesosResource> getDynamicallyReservedPool() {
+    public Map<String, MesosResource> getDynamicallyReservedPoolByResourceId() {
         return dynamicallyReservedPoolByResourceId;
     }
 
@@ -179,9 +176,17 @@ public class MesosResourcePool {
         if (sufficientValue(desiredValue, availableValue)) {
             pool.put(name, ValueUtils.subtract(availableValue, desiredValue));
             reservableMergedPoolByRole.put(preReservedRole, pool);
-            Resource resource = ResourceBuilder.fromUnreservedValue(name, desiredValue)
-                    .build();
-            return Optional.of(new MesosResource(resource));
+
+            Resource.Builder builder = ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
+            if (Capabilities.getInstance().supportsPreReservedResources() &&
+                    !preReservedRole.equals(Constants.ANY_ROLE)) {
+                builder.addReservations(
+                        Resource.ReservationInfo.newBuilder()
+                                .setRole(preReservedRole)
+                                .setType(Resource.ReservationInfo.Type.STATIC));
+            }
+
+            return Optional.of(new MesosResource(builder.build()));
         } else {
             if (availableValue == null) {
                 logger.info("Offer lacks any unreserved resources named {}", name);

@@ -26,6 +26,7 @@ public class UnreserveEvaluationStage implements OfferEvaluationStage {
         mesosResourcePool.free(new MesosResource(resource));
         return pass(
                 this,
+                null,
                 Arrays.asList(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource)),
                 "Unreserving orphaned resource: %s",
                 TextFormat.shortDebugString(resource));

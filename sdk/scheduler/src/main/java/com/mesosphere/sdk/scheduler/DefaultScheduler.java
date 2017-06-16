@@ -12,8 +12,6 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -100,7 +98,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         private final List<Plan> manualPlans = new ArrayList<>();
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
-        private Capabilities capabilities;
         private Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
         private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
@@ -270,30 +267,14 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
 
         /**
-         * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
-         * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
-         *
-         * @param capabilities the capabilities used to validate the ServiceSpec
-         */
-        @VisibleForTesting
-        public Builder setCapabilities(Capabilities capabilities) {
-            this.capabilities = capabilities;
-            return this;
-        }
-
-        /**
          * Creates a new scheduler instance with the provided values or their defaults.
          *
          * @return a new scheduler instance
          * @throws IllegalStateException if config validation failed when updating the target config.
          */
         public DefaultScheduler build() {
-            if (capabilities == null) {
-                this.capabilities = new Capabilities(new DcosCluster());
-            }
-
             try {
-                new CapabilityValidator(capabilities).validate(serviceSpec);
+                new CapabilityValidator().validate(serviceSpec);
             } catch (CapabilityValidator.CapabilityValidationException e) {
                 throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
             }
@@ -472,7 +453,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 new ServiceNameCannotContainDoubleUnderscores(),
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange(),
-                new PodSpecsCannotChangeNetworkRegime());
+                new PodSpecsCannotChangeNetworkRegime(),
+                new PreReservationCannotChange());
     }
 
     /**

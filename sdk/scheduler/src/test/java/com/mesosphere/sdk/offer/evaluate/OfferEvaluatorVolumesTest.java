@@ -1,5 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -42,7 +45,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
+        OfferEvaluatorTest.validateRole(reserveResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -54,7 +58,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
+        OfferEvaluatorTest.validateRole(reserveResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
 
@@ -77,6 +82,16 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+    }
+
+    @Test
+    public void testReserveCreateLaunchRootVolumeRefined() throws Exception {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testReserveCreateLaunchRootVolume();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -118,11 +133,22 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(launchResource).get();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource).get());
+        OfferEvaluatorTest.validateRole(launchResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(diskResourceId, getResourceId(launchResource));
+    }
+
+    @Test
+    public void testReserveLaunchScalarRefined() throws Exception {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testExpectedRootVolume();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -208,17 +234,28 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource).get());
+        OfferEvaluatorTest.validateRole(launchResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource));
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
+        validatePrincipal(launchResource);
         Assert.assertEquals(diskResourceId, getResourceId(launchResource));
     }
 
     @Test
+    public void testExpectedMountVolumeRefined() throws Exception {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testExpectedMountVolume();
+        } finally {
+            context.reset();
+        }
+    }
+
+    @Test
     public void testCreateMultipleRootVolumes() throws Exception {
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
                 .addVolume(
@@ -269,7 +306,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testConsumeMultipleMountVolumesFailure() throws Exception {
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-        ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
                 .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
@@ -319,6 +356,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
+                                Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL,
                                 "env-key")),
                 TestConstants.POD_TYPE,
@@ -334,9 +372,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource).get());
+        OfferEvaluatorTest.validateRole(reserveResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
+        validatePrincipal(reserveResource);
         Assert.assertEquals(36, getResourceId(reserveResource).length());
 
         // Validate CREATE Operation
@@ -349,6 +388,16 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
+    }
+
+    @Test
+    public void testReserveCreateExecutorVolumeRefined() throws Exception {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            testReserveCreateExecutorVolume();
+        } finally {
+            context.reset();
+        }
     }
 
     @Test
@@ -367,6 +416,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
+                                Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL,
                                 "env-key")),
                 TestConstants.POD_TYPE,
@@ -397,4 +447,11 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
     }
 
+    private static void validatePrincipal(Resource resource) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            Assert.assertEquals(TestConstants.PRINCIPAL, resource.getReservations(0).getPrincipal());
+        } else {
+            Assert.assertEquals(TestConstants.PRINCIPAL, resource.getReservation().getPrincipal());
+        }
+    }
 }

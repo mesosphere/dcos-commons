@@ -45,6 +45,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
 
         Resource resource;
+        final MesosResource mesosResource;
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
@@ -60,7 +61,10 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             resourceId = reserveEvaluationOutcome.getResourceId();
 
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
-            resource = ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, Optional.empty()).build();
+            mesosResource = evaluationOutcome.getMesosResource().get();
+            resource = ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, Optional.empty())
+                    .setMesosResource(mesosResource)
+                    .build();
         } else {
             Optional<MesosResource> mesosResourceOptional = Optional.empty();
             if (!resourceId.isPresent()) {
@@ -72,16 +76,17 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             }
 
             if (!mesosResourceOptional.isPresent()) {
-                return fail(this, "Failed to find MOUNT volume for '%s'.", getSummary());
+                return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec);
             }
 
-            MesosResource mesosResource = mesosResourceOptional.get();
+            mesosResource = mesosResourceOptional.get();
             resource = ResourceBuilder.fromSpec(
                     volumeSpec,
                     resourceId,
                     persistenceId,
                     Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
                     .setValue(mesosResource.getValue())
+                    .setMesosResource(mesosResource)
                     .build();
 
             if (!resourceId.isPresent()) {
@@ -104,24 +109,16 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
+                mesosResource,
                 offerRecommendations,
-                "Satisfied requirements for %s volume '%s'",
-                volumeSpec.getType(),
-                volumeSpec.getContainerPath());
+                "Offer contains sufficient 'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
+                volumeSpec,
+                resourceId,
+                persistenceId);
     }
 
     private Optional<String> getTaskName() {
         return Optional.ofNullable(taskName);
     }
 
-    protected String getSummary() {
-        return String.format(
-                "name: '%s', value: '%s', role: '%s', principal: '%s', resourceId: '%s', persistenceId: '%s'",
-                volumeSpec.getName(),
-                TextFormat.shortDebugString(volumeSpec.getValue()),
-                volumeSpec.getRole(),
-                volumeSpec.getPrincipal(),
-                resourceId,
-                persistenceId);
-    }
 }

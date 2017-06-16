@@ -25,7 +25,7 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         if (placementRule == null) {
-            return pass(this, "No placement rule defined");
+            return pass(this, null, "No placement rule defined");
         }
 
         return placementRule.filter(
