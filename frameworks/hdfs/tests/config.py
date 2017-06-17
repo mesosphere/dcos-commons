@@ -8,12 +8,12 @@ PACKAGE_NAME = 'hdfs'
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 TEST_CONTENT_SMALL = "This is some test data"
-# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
+# use long-read alignments to human chromosome 1 as large file input (11GB)
+TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 HDFS_CMD_TIMEOUT_SEC = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-
 
 
 def write_some_data(data_node_host, file_name):
@@ -35,6 +35,18 @@ def read_data_from_hdfs(data_node_host, filename):
     read_command = "./bin/hdfs dfs -cat /{}".format(filename)
     rc, output = run_hdfs_command(data_node_host, read_command)
     return rc and output.rstrip() == TEST_CONTENT_SMALL
+
+
+def delete_data_from_hdfs(data_node_host, filename):
+    delete_command = "./bin/hdfs dfs -rm /{}".format(filename)
+    rc, output = run_hdfs_command(data_node_host, delete_command)
+    return rc
+
+
+def write_lots_of_data_to_hdfs(data_node_host, filename):
+    write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
+    rc, output = run_hdfs_command(data_node_host,write_command)
+    return rc
 
 
 def run_hdfs_command(host, command):

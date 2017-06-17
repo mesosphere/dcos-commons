@@ -6,19 +6,6 @@ import sdk_test_upgrade
 import sdk_utils as utils
 from tests.config import *
 
-DEFAULT_NUMBER_OF_SHARDS = 1
-DEFAULT_NUMBER_OF_REPLICAS = 1
-DEFAULT_SETTINGS_MAPPINGS = {
-    "settings": {
-        "index.unassigned.node_left.delayed_timeout": "0",
-        "number_of_shards": DEFAULT_NUMBER_OF_SHARDS,
-        "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS},
-    "mappings": {
-        DEFAULT_INDEX_TYPE: {
-            "properties": {
-                "name": {"type": "keyword"},
-                "role": {"type": "keyword"}}}}}
-
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)

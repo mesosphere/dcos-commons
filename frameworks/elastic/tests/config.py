@@ -19,6 +19,20 @@ DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
 
 
+DEFAULT_NUMBER_OF_SHARDS = 1
+DEFAULT_NUMBER_OF_REPLICAS = 1
+DEFAULT_SETTINGS_MAPPINGS = {
+    "settings": {
+        "index.unassigned.node_left.delayed_timeout": "0",
+        "number_of_shards": DEFAULT_NUMBER_OF_SHARDS,
+        "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS},
+    "mappings": {
+        DEFAULT_INDEX_TYPE: {
+            "properties": {
+                "name": {"type": "keyword"},
+                "role": {"type": "keyword"}}}}}
+
+
 def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -94,7 +108,7 @@ def check_plugin_uninstalled(plugin_name):
 
 def get_elasticsearch_master():
     def get_master():
-        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET", "coordinator")))
+        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(curl_api("GET")))
         if exit_status and len(output.split()) > 0:
             return output.split()[-1]
 
