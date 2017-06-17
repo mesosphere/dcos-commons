@@ -79,6 +79,12 @@ def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE
 
 
 def get_verify_node_replace_job(replaced_address, node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    # TODO something like this, except it'd need to run on a node host:
+    #    'nodetool -p {jmx_port} status > status.txt',
+    #    'cat status.txt',
+    #    'echo CHECKING FOR LACK OF {replaced_address}',
+    #    '[ 0 = $(grep "{replaced_address}" status.txt | wc -l) ]',
+    #    '[ 0 != $(grep -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" status.txt | wc -l) ]'])
     cmd = ' && '.join([
         'cqlsh --no-color -e "select peer from system.peers;" {query_address} {query_port} > peers.txt',
         'cat peers.txt',

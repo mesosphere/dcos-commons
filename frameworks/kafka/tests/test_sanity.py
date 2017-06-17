@@ -68,7 +68,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper():
     zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
-    assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-path__to__kafka'
+    assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-test__integration__kafka'
 
 
 # --------- Broker -------------

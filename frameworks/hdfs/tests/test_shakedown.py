@@ -1,4 +1,3 @@
-import json
 import pytest
 import time
 import xml.etree.ElementTree as etree
@@ -10,7 +9,7 @@ import sdk_install as install
 import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_tasks as tasks
-import sdk_utils
+import sdk_utils as utils
 from tests.config import (
     PACKAGE_NAME,
     FOLDERED_SERVICE_NAME,
@@ -28,7 +27,7 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 
 def setup_module(module):
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
+    utils.gc_frameworks()
     install.install(
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
@@ -49,7 +48,7 @@ def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints core-site.xml'.format(FOLDERED_SERVICE_NAME)))
     check_properties(core_site, {
-        'ha.zookeeper.parent-znode': '/dcos-service-path__to__hdfs/hadoop-ha'
+        'ha.zookeeper.parent-znode': '/dcos-service-test__integration__hdfs/hadoop-ha'
     })
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
@@ -264,7 +263,7 @@ def test_install():
 @pytest.mark.sanity
 def test_bump_journal_cpus():
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
-    sdk_utils.out('journal ids: ' + str(journal_ids))
+    utils.out('journal ids: ' + str(journal_ids))
 
     marathon.bump_cpu_count_config(FOLDERED_SERVICE_NAME, 'JOURNAL_CPUS')
 
@@ -275,7 +274,7 @@ def test_bump_journal_cpus():
 @pytest.mark.sanity
 def test_bump_data_nodes():
     data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
-    sdk_utils.out('data ids: ' + str(data_ids))
+    utils.out('data ids: ' + str(data_ids))
 
     marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
@@ -291,8 +290,8 @@ def test_modify_app_config():
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
     config = marathon.get_config(FOLDERED_SERVICE_NAME)
-    sdk_utils.out('marathon config: ')
-    sdk_utils.out(config)
+    utils.out('marathon config: ')
+    utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
     config['env'][app_config_field] = str(expiry_ms + 1)
     marathon.update_app(FOLDERED_SERVICE_NAME, config)
@@ -313,10 +312,10 @@ def test_modify_app_config_rollback():
 
     old_config = marathon.get_config(FOLDERED_SERVICE_NAME)
     config = marathon.get_config(FOLDERED_SERVICE_NAME)
-    sdk_utils.out('marathon config: ')
-    sdk_utils.out(config)
+    utils.out('marathon config: ')
+    utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
-    sdk_utils.out('expiry ms: ' + str(expiry_ms))
+    utils.out('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
     marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
@@ -324,8 +323,8 @@ def test_modify_app_config_rollback():
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
 
-    sdk_utils.out('old config: ')
-    sdk_utils.out(old_config)
+    utils.out('old config: ')
+    utils.out(old_config)
     # Put the old config back (rollback)
     marathon.update_app(FOLDERED_SERVICE_NAME, old_config)
 
@@ -404,7 +403,7 @@ def find_java_home(host):
     rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
     assert rc
     java_home = output.rstrip()
-    sdk_utils.out("java_home: {}".format(java_home))
+    utils.out("java_home: {}".format(java_home))
     return java_home
 
 
