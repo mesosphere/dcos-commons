@@ -2,7 +2,8 @@ import time
 import pytest
 
 from xml.etree import ElementTree
-from tests.config import *
+#from tests.config import *
+from config import *
 
 import sdk_install as install
 import sdk_networks as networks
@@ -50,17 +51,16 @@ def test_endpoints_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@pytest.mark.skip("Doesn't work, yet")
 def test_read_and_write_data_on_overlay():
     shakedown.wait_for(
-        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     # gives chance for write to succeed and replication to occur
     time.sleep(9)
 
     shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
