@@ -2,8 +2,7 @@ import time
 import pytest
 
 from xml.etree import ElementTree
-#from tests.config import *
-from config import *
+from tests.config import *
 
 import sdk_install as install
 import sdk_networks as networks
