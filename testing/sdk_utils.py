@@ -1,6 +1,7 @@
 import sys
 import shakedown
 import time
+import traceback
 
 def out(msg):
     '''Emit an informational message on test progress during test runs'''
@@ -34,11 +35,13 @@ def gc_frameworks():
         shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
 
 
-def try_throws_n_times(predicate, attempts=1, sleep=0):
-    for _ in range(attempts):
+def try_throws_n_times(predicate, attempts=1, sleep_seconds=0):
+    for index in range(attempts):
         try:
             return predicate()
         except:
-            out("Encountered an exception: {}".format(sys.exc_info()[0]))
+            if index == attempts-1:
+                raise
+            out("Encountered an exception: {}".format(traceback.format_exc()))
 
-        time.sleep(sleep)
+        time.sleep(sleep_seconds)
