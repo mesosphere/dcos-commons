@@ -55,8 +55,8 @@ def get_verify_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NOD
 
 def get_verify_deletion_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
     cmd = ' && '.join([
-        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';" {address} {port} | grep \'0 rows\'',
-        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';" {address} {port} | grep \'0 rows\''])
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';" {address} {port} | grep "0 rows"',
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';" {address} {port} | grep "0 rows"'])
     return _get_test_job(
         'verify-deletion',
         cmd.format(address=node_address, port=node_port))
@@ -102,10 +102,12 @@ def run_backup_and_restore(
         backup_plan,
         restore_plan,
         plan_parameters,
-        write_data_job,
-        verify_data_job,
-        delete_data_job,
-        verify_deletion_job):
+        job_node_address=DEFAULT_NODE_ADDRESS):
+    write_data_job = get_write_data_job(node_address=job_node_address)
+    verify_data_job = get_verify_data_job(node_address=job_node_address)
+    delete_data_job = get_delete_data_job(node_address=job_node_address)
+    verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
+
     # Write data to Cassandra with a metronome job, then verify it was written
     # Note: Write job will fail if data already exists
     jobs.run_job(write_data_job)

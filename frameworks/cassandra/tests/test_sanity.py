@@ -38,7 +38,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    #install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
     # remove job definitions from metronome
     for job in TEST_JOBS:
@@ -84,7 +84,7 @@ def test_repair_plan_completes():
 
 
 # To disable these tests in local runs where you may lack the necessary credentials,
-# use e.g. "TEST_TYPES=speedy and not aws and not azure":
+# use e.g. "TEST_TYPES=sanity and not aws and not azure":
 
 
 @pytest.mark.aws
@@ -92,7 +92,7 @@ def test_repair_plan_completes():
 def test_backup_and_restore_to_s3():
     key_id = os.getenv('AWS_ACCESS_KEY_ID')
     if not key_id:
-        assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="speedy and not aws"'
+        assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
     plan_parameters = {
         'AWS_ACCESS_KEY_ID': key_id,
         'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
@@ -107,10 +107,7 @@ def test_backup_and_restore_to_s3():
         'backup-s3',
         'restore-s3',
         plan_parameters,
-        WRITE_DATA_JOB,
-        VERIFY_DATA_JOB,
-        DELETE_DATA_JOB,
-        VERIFY_DELETION_JOB)
+        FOLDERED_NODE_ADDRESS)
 
 
 @pytest.mark.azure
@@ -118,7 +115,7 @@ def test_backup_and_restore_to_s3():
 def test_backup_and_restore_to_azure():
     client_id = os.getenv('AZURE_CLIENT_ID')
     if not client_id:
-        assert False, 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="speedy and not azure"'
+        assert False, 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not azure"'
     plan_parameters = {
         'AZURE_CLIENT_ID': client_id,
         'AZURE_CLIENT_SECRET': os.getenv('AZURE_CLIENT_SECRET'),
@@ -135,7 +132,4 @@ def test_backup_and_restore_to_azure():
         'backup-azure',
         'restore-azure',
         plan_parameters,
-        WRITE_DATA_JOB,
-        VERIFY_DATA_JOB,
-        DELETE_DATA_JOB,
-        VERIFY_DELETION_JOB)
+        FOLDERED_NODE_ADDRESS)

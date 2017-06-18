@@ -36,11 +36,7 @@ def test_backup_and_restore():
             PACKAGE_NAME,
             'backup-s3',
             'restore-s3',
-            plan_parameters,
-            get_write_data_job(),
-            get_verify_data_job(),
-            get_delete_data_job(),
-            get_verify_deletion_job())
+            plan_parameters)
 
 
 @pytest.mark.soak_upgrade

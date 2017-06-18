@@ -39,10 +39,6 @@ public class EndpointUtils {
 
     /** Prefix to use for VIP labels in DiscoveryInfos. */
     private static final String VIP_LABEL_PREFIX = "VIP_";
-    /** TLD to be used for VIP-based hostnames. */
-    private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
-    /** TLD to be used for 'autoip'-based hostnames (replacement for mesos-dns). */
-    private static final String AUTOIP_HOST_TLD = "autoip.dcos.thisdcos.directory";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointUtils.class);
 
@@ -62,7 +58,7 @@ public class EndpointUtils {
      */
     public static String toAutoIpDomain(String serviceName) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), AUTOIP_HOST_TLD);
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), Constants.DNS_TLD);
     }
 
     /**
@@ -87,7 +83,7 @@ public class EndpointUtils {
         String hostname = String.format("%s.%s.%s",
                 removeSlashes(vipInfo.getVipName()),
                 removeSlashes(serviceName),
-                VIP_HOST_TLD);
+                Constants.VIP_HOST_TLD);
         return toEndpoint(hostname, vipInfo.getVipPort());
     }
 
@@ -95,7 +91,7 @@ public class EndpointUtils {
      * Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.
      */
     public static String toSchedulerApiVipHostname(String serviceName) {
-        return String.format("api.%s.marathon.%s", removeSlashes(serviceName), VIP_HOST_TLD);
+        return String.format("api.%s.marathon.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
     }
 
     /**
