@@ -6,4 +6,4 @@ enterprise: 'no'
 ---
 # Overlay networks
 
-When elastic is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network. 
+When HDFS is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network. 
