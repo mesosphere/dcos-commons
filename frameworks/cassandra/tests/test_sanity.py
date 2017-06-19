@@ -6,6 +6,7 @@ import uuid
 
 from tests.config import *
 import sdk_cmd as cmd
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_jobs as jobs
 import sdk_plan as plan
@@ -55,8 +56,8 @@ def test_service_health():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(FOLDERED_SERVICE_NAME)))
-    assert endpoints['dns'][0] == 'node-0-server.' + FOLDERED_SERVICE_AUTOIP_HOST + ':9042'
-    assert endpoints['vips'][0] == 'node.' + FOLDERED_SERVICE_VIP_HOST + ':9042'
+    assert endpoints['dns'][0] == hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server', 9042)
+    assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', 9042)
 
 
 @pytest.mark.sanity

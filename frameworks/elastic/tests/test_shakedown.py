@@ -1,6 +1,7 @@
 import pytest
 
 import sdk_cmd as cmd
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
@@ -57,8 +58,8 @@ def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for nodetype in ('coordinator', 'data', 'ingest', 'master'):
         endpoints = json.loads(cmd.run_cli('elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, nodetype)))
-        assert endpoints['dns'][0].startswith('{}-0-node.{}:'.format(nodetype, FOLDERED_SERVICE_AUTOIP_HOST))
-        assert endpoints['vips'][0].startswith('{}.{}:'.format(nodetype, FOLDERED_SERVICE_VIP_HOST))
+        assert endpoints['dns'][0].startswith(hosts.autoip_host(FOLDERED_SERVICE_NAME, nodetype + '-0-node'))
+        assert endpoints['vips'][0].startswith(hosts.vip_host(FOLDERED_SERVICE_NAME, nodetype))
 
 
 @pytest.mark.sanity
@@ -77,8 +78,10 @@ def test_xpack_toggle_with_kibana(default_populated_index):
 
     # Test kibana with x-pack disabled...
     install.uninstall("kibana")
-    shakedown.install_package("kibana", options_json={ "kibana": {
-        "elasticsearch_url": "http://coordinator.{}:9200".format(FOLDERED_SERVICE_VIP_HOST) } })
+    shakedown.install_package("kibana", options_json={
+        "kibana": {
+            "elasticsearch_url": "http://" + hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
+        }})
     shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_WAIT_TIME_IN_SECONDS)
     check_kibana_adminrouter_integration("service/kibana/")
     install.uninstall("kibana")
@@ -97,9 +100,11 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         service_name=FOLDERED_SERVICE_NAME)
 
     # Test kibana with x-pack enabled...
-    shakedown.install_package("kibana", options_json={ "kibana": {
-        "elasticsearch_url": "http://coordinator.{}:9200".format(FOLDERED_SERVICE_VIP_HOST),
-        "xpack_enabled": True } })
+    shakedown.install_package("kibana", options_json={
+        "kibana": {
+            "elasticsearch_url": "http://" + hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200),
+            "xpack_enabled": True
+        }})
     # Installing Kibana w/x-pack can take as much as 15 minutes for Marathon deployment to complete,
     # due to a configured HTTP health check. (typical: 10 minutes)
     shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_WAIT_TIME_IN_SECONDS)
@@ -117,9 +122,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
 @pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", service_name=FOLDERED_SERVICE_NAME)
-    shakedown.kill_process_on_host(
-        "data-0-node.{}".format(FOLDERED_SERVICE_AUTOIP_HOST),
-        "data__.*Elasticsearch")
+    shakedown.kill_process_on_host(hosts.system_host(FOLDERED_SERVICE_NAME, "data-0-node"), "data__.*Elasticsearch")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow", service_name=FOLDERED_SERVICE_NAME)
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", service_name=FOLDERED_SERVICE_NAME)
 
@@ -128,9 +131,7 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.sanity
 def test_master_reelection():
     initial_master = get_elasticsearch_master(service_name=FOLDERED_SERVICE_NAME)
-    shakedown.kill_process_on_host(
-        "{}.{}".format(initial_master, FOLDERED_SERVICE_AUTOIP_HOST),
-        "master__.*Elasticsearch")
+    shakedown.kill_process_on_host(hosts.system_host(FOLDERED_SERVICE_NAME, initial_master), "master__.*Elasticsearch")
     wait_for_expected_nodes_to_exist(service_name=FOLDERED_SERVICE_NAME)
     new_master = get_elasticsearch_master(service_name=FOLDERED_SERVICE_NAME)
     assert new_master.startswith("master") and new_master != initial_master

@@ -8,6 +8,7 @@ import shakedown
 
 from tests.config import *
 import sdk_api as api
+import sdk_hosts as hosts
 import sdk_jobs as jobs
 import sdk_plan as plan
 import sdk_test_upgrade
@@ -57,9 +58,8 @@ def test_cassandra_migration():
     backup_service_name = os.getenv('CASSANDRA_BACKUP_CLUSTER_NAME')
     restore_service_name = os.getenv('CASSANDRA_RESTORE_CLUSTER_NAME')
 
-    backup_node_address = os.getenv(
-        'BACKUP_NODE_ADDRESS', 'node-0.cassandra.autoip.dcos.thisdcos.directory')
-    backup_node_port = os.getenv('BACKUP_NODE_PORT', '9042')
+    backup_node_address = os.getenv('BACKUP_NODE_ADDRESS', DEFAULT_NODE_ADDRESS)
+    backup_node_port = os.getenv('BACKUP_NODE_PORT', DEFAULT_NODE_PORT)
 
     backup_write_data_job = get_write_data_job(backup_node_address, backup_node_port)
     backup_verify_data_job = get_verify_data_job(backup_node_address, backup_node_port)
@@ -103,7 +103,7 @@ def test_cassandra_migration():
 
     # Restore data to second instance:
     restore_node_address = os.getenv(
-        'RESTORE_NODE_ADDRESS', 'node-0-server.sdk-cassandra.autoip.dcos.thisdcos.directory')
+        'RESTORE_NODE_ADDRESS', hosts.autoip_host('sdk-cassandra', 'node-0-server'))
     restore_node_port = os.getenv('RESTORE_NODE_PORT', '9052')
 
     restore_write_data_job = get_write_data_job(restore_node_address, restore_node_port)

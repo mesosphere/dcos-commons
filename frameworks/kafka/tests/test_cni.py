@@ -1,5 +1,6 @@
 import pytest
 
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_utils as utils
@@ -52,8 +53,8 @@ def test_cni_deployment():
     endpoints = shakedown.wait_for(fun, noisy=True, timeout_seconds=5 * 60)
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
-    for dns_endpoint in endpoints['dns']:
-        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
+    for i in range(len(endpoints['dns'])):
+        assert hosts.autoip_host(SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)

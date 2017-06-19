@@ -3,8 +3,6 @@ import sdk_tasks as tasks
 
 PACKAGE_NAME = 'hello-world'
 FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
-FOLDERED_SERVICE_AUTOIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.autoip.dcos.thisdcos.directory'
-FOLDERED_SERVICE_VIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.l4lb.thisdcos.directory'
 DEFAULT_TASK_COUNT = 3
 
 

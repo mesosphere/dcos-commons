@@ -5,6 +5,7 @@ import xml.etree.ElementTree as etree
 import shakedown
 
 import sdk_cmd as cmd
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_plan as plan
@@ -13,7 +14,6 @@ import sdk_utils as utils
 from tests.config import (
     PACKAGE_NAME,
     FOLDERED_SERVICE_NAME,
-    FOLDERED_SERVICE_AUTOIP_HOST,
     DEFAULT_TASK_COUNT
 )
 
@@ -53,11 +53,12 @@ def test_endpoints():
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
     expect = {
-        'dfs.namenode.shared.edits.dir': 'qjournal://' + ';'.join(['journal-{}-node.{}:8485'.format(i, FOLDERED_SERVICE_AUTOIP_HOST) for i in range(3)]) + '/hdfs',
+        'dfs.namenode.shared.edits.dir': 'qjournal://' + ';'.join([
+            hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)]) + '/hdfs',
     }
     for i in range(2):
-        expect['dfs.namenode.rpc-address.hdfs.name-{}-node'.format(i)] = 'name-{}-node.{}:9001'.format(i, FOLDERED_SERVICE_AUTOIP_HOST)
-        expect['dfs.namenode.http-address.hdfs.name-{}-node'.format(i)] = 'name-{}-node.{}:9002'.format(i, FOLDERED_SERVICE_AUTOIP_HOST)
+        expect['dfs.namenode.rpc-address.hdfs.name-{}-node'.format(i)] = hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9001)
+        expect['dfs.namenode.http-address.hdfs.name-{}-node'.format(i)] = hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9002)
     check_properties(hdfs_site, expect)
 
 
@@ -75,20 +76,16 @@ def check_properties(xml, expect):
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
-    shakedown.wait_for(
-        lambda: write_data_to_hdfs('data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    write_some_data('data-0-node', TEST_FILE_1_NAME)
 
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
 
-    tasks.kill_task_with_pattern("DataNode", 'data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
-    tasks.kill_task_with_pattern("DataNode", 'data-1-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
+    tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-1-node'))
     time.sleep(1)  # give DataNode a chance to die
 
-    shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.{}".format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    read_some_data('data-2-node', TEST_FILE_1_NAME)
 
     check_healthy()
 
@@ -101,16 +98,12 @@ def test_integrity_on_name_node_failure():
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
     This test checks that it is possible to write and read data after the first name node fails.
     """
-    tasks.kill_task_with_pattern("NameNode", 'name-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern("NameNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
     time.sleep(1)  # give NameNode a chance to die
 
-    shakedown.wait_for(
-        lambda: write_data_to_hdfs('data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_2_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    write_some_data('data-0-node', TEST_FILE_2_NAME)
 
-    shakedown.wait_for(
-        lambda: read_data_from_hdfs('data-2-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST), TEST_FILE_2_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    read_some_data('data-2-node', TEST_FILE_2_NAME)
 
     check_healthy()
 
@@ -121,7 +114,7 @@ def test_kill_journal_node():
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
     data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern('journalnode', hosts.system_host(FOLDERED_SERVICE_NAME, 'journal-0-node'))
     check_healthy()
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
@@ -135,7 +128,7 @@ def test_kill_name_node():
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    tasks.kill_task_with_pattern('namenode', 'name-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern('namenode', hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
     check_healthy()
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -149,7 +142,7 @@ def test_kill_data_node():
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
-    tasks.kill_task_with_pattern('datanode', 'data-0-node.{}'.format(FOLDERED_SERVICE_AUTOIP_HOST))
+    tasks.kill_task_with_pattern('datanode', hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
     check_healthy()
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -354,31 +347,28 @@ def replace_name_node(index):
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
-def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+def write_some_data(data_node_name, file_name):
+    def write_data_to_hdfs():
+        write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(TEST_CONTENT_SMALL, file_name)
+        rc, _ = run_hdfs_command(data_node_name, write_command)
+        # rc being True is effectively it being 0...
+        return rc
+    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
 
-def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+def read_some_data(data_node_name, file_name):
+    def read_data_from_hdfs():
+        read_command = "./bin/hdfs dfs -cat /{}".format(file_name)
+        rc, output = run_hdfs_command(data_node_name, read_command)
+        return rc and output.rstrip() == TEST_CONTENT_SMALL
+    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
 
-def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):
-    write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
-    rc, _ = run_hdfs_command(data_node_host, write_command)
-    # rc being True is effectively it being 0...
-    return rc
-
-
-def read_data_from_hdfs(data_node_host, filename):
-    read_command = "./bin/hdfs dfs -cat /{}".format(filename)
-    rc, output = run_hdfs_command(data_node_host, read_command)
-    return rc and output.rstrip() == TEST_CONTENT_SMALL
-
-
-def run_hdfs_command(host, command):
+def run_hdfs_command(task_name, command):
     """
     Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
     """
+    host = hosts.system_host(FOLDERED_SERVICE_NAME, task_name)
     java_home = find_java_home(host)
 
     # Find hdfs home directory by looking up the Data Node process.

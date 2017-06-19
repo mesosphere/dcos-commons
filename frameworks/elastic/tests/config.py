@@ -4,6 +4,7 @@ from functools import wraps
 import shakedown
 
 import sdk_cmd
+import sdk_hosts as hosts
 import sdk_marathon as marathon
 import sdk_plan
 import sdk_tasks as tasks
@@ -11,8 +12,6 @@ import sdk_utils
 
 PACKAGE_NAME = 'elastic'
 FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
-FOLDERED_SERVICE_AUTOIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.autoip.dcos.thisdcos.directory'
-FOLDERED_SERVICE_VIP_HOST = FOLDERED_SERVICE_NAME.replace('/', '') + '.l4lb.thisdcos.directory'
 
 DEFAULT_TASK_COUNT = 7
 WAIT_TIME_IN_SECONDS = 10 * 60
@@ -217,8 +216,7 @@ def get_document(index_name, index_type, doc_id, service_name=PACKAGE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    vip = "http://{}-0-node.{}.autoip.dcos.thisdcos.directory:{}".format(
-        role, service_name.replace('/', ''), _master_zero_http_port(service_name))
+    vip = "http://" + hosts.vip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
     return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
 
 
@@ -227,15 +225,15 @@ def _master_zero_http_port(service_name):
         '{} --name={} endpoints master'.format(PACKAGE_NAME, service_name),
         print_output=False))['dns']
     # array will initially look something like this in CCM, with some 9300 ports and some lower ones [
-    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:9300",
-    #   "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025",
-    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:9300",
-    #   "master-1-node.elastic.autoip.dcos.thisdcos.directory:1025",
-    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:9300",
-    #   "master-2-node.elastic.autoip.dcos.thisdcos.directory:1025"
+    #   "master-0-node.elastic.[...]:9300",
+    #   "master-0-node.elastic.[...]:1025",
+    #   "master-1-node.elastic.[...]:9300",
+    #   "master-1-node.elastic.[...]:1025",
+    #   "master-2-node.elastic.[...]:9300",
+    #   "master-2-node.elastic.[...]:1025"
     # ]
 
-    # sort will bubble up "master-0-node.elastic.autoip.dcos.thisdcos.directory:1025", the HTTP server host:port
+    # sort will bubble up "master-0-node.elastic.[...]:1025", the HTTP server host:port
     dns.sort()
     port = dns[0].split(':')[-1]
     sdk_utils.out("Extracted {} as port for {}".format(port, dns[0]))
