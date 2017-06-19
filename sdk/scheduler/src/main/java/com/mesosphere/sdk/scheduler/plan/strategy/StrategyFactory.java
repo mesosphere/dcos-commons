@@ -44,6 +44,9 @@ public class StrategyFactory {
             case "serial-canary":
                 strategy = new CanaryStrategy.Generator(new SerialStrategy<>(), steps).generate();
                 break;
+            case "safe":
+                strategy = new SafeStrategy(steps);
+                break;
             case "serial":
                 // fall through
             default:

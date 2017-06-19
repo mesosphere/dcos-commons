@@ -34,12 +34,24 @@
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",
           "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "Elasticsearch update strategy. [parallel, serial, safe]",
+          "type": "string",
+          "default": "serial"
+        },
+        "upgrade_strategy": {
+          "description": "Elasticsearch upgrade strategy. [parallel, serial, safe]",
+          "type": "string",
+          "default": "safe"
         }
       },
       "required": [
         "name",
         "user",
-        "deploy_strategy"
+        "deploy_strategy",
+        "update_strategy",
+        "upgrade_strategy"
       ]
     },
     "elasticsearch": {
