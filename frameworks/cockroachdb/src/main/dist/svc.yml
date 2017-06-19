@@ -85,7 +85,11 @@ pods:
           COCKROACH_VERSION: {{COCKROACH_VERSION}}
       backup:
         goal: FINISHED
-        cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach dump $DATABASE_NAME --dump-mode=$DUMP_MODE > cockroach-data/$DATABASE_NAME.sql"
+        cmd: "touch cockroach-data/$DATABASE_NAME.sql && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach \
+              dump $DATABASE_NAME --insecure \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' > \
+              cockroach-data/$DATABASE_NAME.sql"
         resource-set: sidecar-resources
 plans:
   deploy:
