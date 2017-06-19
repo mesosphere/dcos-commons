@@ -1,5 +1,4 @@
 name: {{FRAMEWORK_NAME}}
-# web-url: "gui.cockroachdb.l4lb.thisdcos.directory" <-- This isn't working :(
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
@@ -28,10 +27,6 @@ pods:
           path: "cockroach-data"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
-      sidecar-resources:
-        cpus: {{NODE_CPUS}}
-        memory: {{NODE_MEM}}
-
     tasks:
       node-init:
         goal: RUNNING
@@ -83,13 +78,23 @@ pods:
           delay: 0
         env:
           COCKROACH_VERSION: {{COCKROACH_VERSION}}
+  sidecar:
+    count: 1
+    uris:
+      - {{COCKROACH_URI}}
+    resource-sets:
+      sidecar-resources:
+        cpus: 1
+        memory: 1024
+    tasks:
       backup:
         goal: FINISHED
-        cmd: "touch cockroach-data/$DATABASE_NAME.sql && \
+        cmd: "mkdir backup-data && \
+              touch backup-data/$DATABASE_NAME.sql && \
               $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach \
               dump $DATABASE_NAME --insecure \
               --host='internal.cockroachdb.l4lb.thisdcos.directory' > \
-              cockroach-data/$DATABASE_NAME.sql"
+              backup-data/$DATABASE_NAME.sql"
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -114,8 +119,6 @@ plans:
     phases:
       backup-test:
         strategy: serial
-        pod: cockroachdb
+        pod: sidecar
         steps:
           - default: [[backup]]
-
-
