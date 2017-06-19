@@ -59,6 +59,8 @@ They store the desired configuration of a service and all relevant information r
 
 1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
 
+1. The [AWS CLI](https://aws.amazon.com/cli/) and [Go](https://golang.org/dl/) installed.
+
 # Getting Started
 
 
