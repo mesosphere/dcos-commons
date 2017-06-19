@@ -1,16 +1,23 @@
-import json
-
 import pytest
-import shakedown
 import time
+
+import shakedown
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils
-from tests.config import *
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT,
+    check_healthy,
+    TEST_FILE_1_NAME,
+    TEST_FILE_2_NAME,
+    HDFS_CMD_TIMEOUT_SEC,
+    read_data_from_hdfs,
+    write_data_to_hdfs
+)
 
 
 def setup_module(module):

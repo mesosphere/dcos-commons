@@ -30,6 +30,9 @@ def teardown_module(module):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_service_overlay_health():
+    """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
+    and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
+    """
     shakedown.service_healthy(PACKAGE_NAME)
     broker_tasks = (
         "kafka-0-broker",
@@ -46,10 +49,10 @@ def test_service_overlay_health():
 def test_overlay_network_deployment_and_endpoints():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-    endpoints = networks.get_endpoints("", PACKAGE_NAME, 2)
+    endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     assert "broker" in endpoints, "broker is missing from endpoints {}".format(endpoints)
     assert "zookeeper" in endpoints, "zookeeper missing from endpoints {}".format(endpoints)
-    broker_endpoints = networks.get_endpoints("broker", PACKAGE_NAME, 4)
+    broker_endpoints = networks.get_and_test_endpoints("broker", PACKAGE_NAME, 4)
     networks.check_endpoints_on_overlay(broker_endpoints)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)

@@ -8,7 +8,7 @@ def check_task_network(task_name, expected_network_name="dcos"):
     """
     _task = shakedown.get_task(task_id=task_name, completed=False)
 
-    if type(_task) == list:
+    if type(_task) == list or type(_task) == tuple:
         assert len(_task) == 1, "Found too many tasks matching {}, got {}"\
             .format(task_name, _task)
         _task = _task[0]
@@ -29,7 +29,13 @@ def check_task_network(task_name, expected_network_name="dcos"):
                         .format(task=task_name, status=status)
 
 
-def get_endpoints(endpoint_to_get, package_name, correct_count):
+def get_and_test_endpoints(endpoint_to_get, package_name, correct_count):
+    """Gets the endpoints for a service or the specified 'endpoint_to_get' similar to running
+    $ docs <service> endpoints
+    or
+    $ dcos <service> endpoints <endpoint_to_get>
+    Checks that there is the correct number of endpoints"""
+
     endpoints, _, rc = shakedown.run_dcos_command("{} endpoints {}".format(package_name, endpoint_to_get))
     assert rc == 0, "Failed to get endpoints on overlay network"
     endpoints = json.loads(endpoints)
@@ -39,8 +45,12 @@ def get_endpoints(endpoint_to_get, package_name, correct_count):
 
 
 def check_endpoints_on_overlay(endpoints):
+    def check_ip_addresses_on_overlay():
+        # the overlay IP address should not contain any agent IPs
+        return len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0
+
     ip_addresses = [e.split(":")[0] for e in endpoints["address"]]
-    assert len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0, \
+    assert check_ip_addresses_on_overlay(), \
         "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
     assert "dns" in endpoints, "Endpoints missing DNS key"

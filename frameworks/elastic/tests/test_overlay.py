@@ -60,13 +60,13 @@ def test_tasks_on_overlay():
 @pytest.mark.sanity
 @pytest.mark.overlay
 def test_endpoints_on_overlay():
-    observed_endpoints = networks.get_endpoints("", PACKAGE_NAME, 4)
+    observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 4)
     expected_endpoints = ("coordinator",
                           "data",
                           "ingest",
                           "master")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = networks.get_endpoints(endpoint, PACKAGE_NAME, 4)
+        specific_endpoint = networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 4)
         networks.check_endpoints_on_overlay(specific_endpoint)
 

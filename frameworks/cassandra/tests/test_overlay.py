@@ -72,9 +72,9 @@ def test_functionality():
 @pytest.mark.sanity
 @pytest.mark.overlay
 def test_endpoints():
-    endpoints = networks.get_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
+    endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
-    endpoints = networks.get_endpoints("node", PACKAGE_NAME, 4)
+    endpoints = networks.get_and_test_endpoints("node", PACKAGE_NAME, 4)
     assert "address" in endpoints, "Endpoints missing address key"
     networks.check_endpoints_on_overlay(endpoints)
 

@@ -39,7 +39,7 @@ def test_tasks_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.sanity
 def test_endpoints_on_overlay():
-    observed_endpoints = networks.get_endpoints("", PACKAGE_NAME, 2)
+    observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
