@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 )
 
 type responseCheck func(response *http.Response, body []byte) error
@@ -90,12 +91,17 @@ func GetValueFromJSON(jsonBytes map[string]interface{}, field string) ([]byte, e
 	return nil, nil
 }
 
-// ConvertJSONToStringArray unmarshals a byte array of JSON into a string array
-func ConvertJSONToStringArray(bytes []byte) ([]string, error) {
+// SortAndPrettyPrintJSONArray unmarshals an array of JSON strings, sorts and counts it and
+// returns a JSON marshaled version of it for pretty printing.
+func SortAndPrettyPrintJSONArray(bytes []byte) (bool, []byte, error) {
+	// Unmarshal into a []string so that we can count and sort the array
 	var convertedArray []string
 	err := json.Unmarshal(bytes, &convertedArray)
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
-	return convertedArray, nil
+	sort.Strings(convertedArray)
+	// Marshal back to JSON, this should preserve the order of elements
+	jsonBytes, err := json.Marshal(convertedArray)
+	return (len(convertedArray) == 0), jsonBytes, err
 }

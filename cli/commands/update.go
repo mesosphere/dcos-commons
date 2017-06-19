@@ -16,6 +16,12 @@ type describeRequest struct {
 	AppID string `json:"appId"`
 }
 
+func checkError(err error, responseBytes []byte) {
+	if err != nil {
+		reportErrorAndExit(err, responseBytes)
+	}
+}
+
 func reportErrorAndExit(err error, responseBytes []byte) {
 	client.PrintMessage("Failed to unmarshal response. Error: %s", err)
 	client.PrintMessage("Original data follows:")
@@ -32,9 +38,7 @@ func describe() {
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
 	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
 	resolvedOptionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "resolvedOptions")
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
 	if resolvedOptionsBytes != nil {
 		client.PrintJSONBytes(resolvedOptionsBytes)
 	} else {
@@ -76,39 +80,27 @@ func printPackageVersions() {
 		client.PrintMessageAndExit(err.Error())
 	}
 	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
 	currentVersionBytes, err := client.GetValueFromJSONResponse(packageBytes, "version")
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
 	downgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "downgradesTo")
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
-	downgradeVersions, err := client.ConvertJSONToStringArray(downgradeVersionsBytes)
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
+	noDowngradeVersions, downgradeVersionsSorted, err := client.SortAndPrettyPrintJSONArray(downgradeVersionsBytes)
+	checkError(err, responseBytes)
 	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
-	upgradeVersions, err := client.ConvertJSONToStringArray(upgradeVersionsBytes)
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
+	noUpgradeVersions, upgradeVersionsSorted, err := client.SortAndPrettyPrintJSONArray(upgradeVersionsBytes)
+	checkError(err, responseBytes)
 	client.PrintMessage("Current package version is: %s", currentVersionBytes)
-	if len(downgradeVersions) == 0 {
-		client.PrintMessage("No valid package downgrade versions")
+	if noDowngradeVersions {
+		client.PrintMessage("No valid package downgrade versions.")
 	} else {
-		client.PrintMessage("Valid package downgrade versions: %s", downgradeVersionsBytes)
+		client.PrintMessage("Package can be downgraded to: %s", downgradeVersionsSorted)
 	}
-	if len(upgradeVersions) == 0 {
-		client.PrintMessage("No valid package upgrade versions")
+	if noUpgradeVersions {
+		client.PrintMessage("No valid package upgrade versions.")
 	} else {
-		client.PrintMessage("Valid package upgrade versions: %s", upgradeVersionsBytes)
+		client.PrintMessage("Package can be upgraded to: %s", upgradeVersionsSorted)
 	}
 }
 
@@ -163,9 +155,7 @@ func doUpdate(optionsFile, packageVersion string) {
 		client.PrintMessageAndExit(err.Error())
 	}
 	_, err = client.UnmarshalJSON(responseBytes)
-	if err != nil {
-		reportErrorAndExit(err, responseBytes)
-	}
+	checkError(err, responseBytes)
 	client.PrintMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update status` to view progress.", config.ModuleName, config.ServiceName))
 }
 

@@ -1,5 +1,5 @@
 {
-  "downgradesTo": ["v0.8", "v0.9"],
+  "downgradesTo": [ "v0.9", "v0.8"],
   "package": {
     "command": {
       "pip": [
