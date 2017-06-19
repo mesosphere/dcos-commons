@@ -234,6 +234,16 @@ public class PlansResourceTest {
     }
 
     @Test
+    public void testForceCompleteAlreadyCompleted() {
+        StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
+
+        when(mockStep.isComplete()).thenReturn(true);
+
+        Response response = resource.forceCompleteCommand(planName, phaseId.toString(), stepId.toString());
+        assertTrue(response.getStatusInfo().equals(expectedStatus));
+    }
+
+    @Test
     public void testRestart() {
         Response response = resource.restartCommand(planName, phaseId.toString(), stepId.toString());
         validateCommandResult(response, "restart");

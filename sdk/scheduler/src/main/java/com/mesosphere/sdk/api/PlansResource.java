@@ -201,6 +201,8 @@ public class PlansResource extends PrettyJsonResource {
         Optional<Step> stepOptional = getStep(getPhases(planManagerOptional.get(), phase), step);
         if (!stepOptional.isPresent()) {
             return elementNotFoundResponse();
+        } else if (stepOptional.get().isComplete()) {
+            return alreadyReportedResponse();
         }
 
         stepOptional.get().forceComplete();
