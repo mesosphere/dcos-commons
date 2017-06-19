@@ -1,16 +1,17 @@
 '''Utilities relating to installing services'''
 
 import collections
+
 import dcos.errors
 import dcos.marathon
+import os
+import shakedown
+import time
+
 import sdk_api
 import sdk_plan
 import sdk_tasks
 import sdk_utils
-import shakedown
-
-import os
-import time
 
 
 def install(
@@ -59,38 +60,62 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
 
     if package_name is None:
         package_name = service_name
-    sdk_utils.out('Uninstalling/janitoring {}'.format(service_name))
-    try:
-        shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
-    except (dcos.errors.DCOSException, ValueError) as e:
-        sdk_utils.out('Got exception when uninstalling package, ' +
-              'continuing with janitor anyway: {}'.format(e))
 
-    janitor_start = time.time()
+    if shakedown.dcos_version_less_than("1.10"):
+        sdk_utils.out('Uninstalling/janitoring {}'.format(service_name))
+        try:
+            shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+        except (dcos.errors.DCOSException, ValueError) as e:
+            sdk_utils.out('Got exception when uninstalling package, ' +
+                          'continuing with janitor anyway: {}'.format(e))
 
-    # leading slash removed, other slashes converted to double underscores:
-    deslashed_service_name = service_name.lstrip('/').replace('/', '__')
-    if role is None:
-        role = deslashed_service_name + '-role'
-    if principal is None:
-        principal = service_name + '-principal'
-    if zk is None:
-        zk = 'dcos-service-' + deslashed_service_name
-    janitor_cmd = (
-        'docker run mesosphere/janitor /janitor.py '
-        '-r {role} -p {principal} -z {zk} --auth_token={auth}')
-    shakedown.run_command_on_master(janitor_cmd.format(
-        role=role,
-        principal=principal,
-        zk=zk,
-        auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
+        janitor_start = time.time()
 
-    finish = time.time()
+        # leading slash removed, other slashes converted to double underscores:
+        deslashed_service_name = service_name.lstrip('/').replace('/', '__')
+        if role is None:
+            role = deslashed_service_name + '-role'
+        if principal is None:
+            principal = service_name + '-principal'
+        if zk is None:
+            zk = 'dcos-service-' + deslashed_service_name
+        janitor_cmd = (
+            'docker run mesosphere/janitor /janitor.py '
+            '-r {role} -p {principal} -z {zk} --auth_token={auth}')
+        shakedown.run_command_on_master(janitor_cmd.format(
+            role=role,
+            principal=principal,
+            zk=zk,
+            auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
 
-    sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-        shakedown.pretty_duration(janitor_start - start),
-        shakedown.pretty_duration(finish - janitor_start),
-        shakedown.pretty_duration(finish - start)))
+        finish = time.time()
+
+        sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
+            shakedown.pretty_duration(janitor_start - start),
+            shakedown.pretty_duration(finish - janitor_start),
+            shakedown.pretty_duration(finish - start)))
+    else:
+        sdk_utils.out('Uninstalling {}'.format(service_name))
+        try:
+            shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+            marathon_app_id = "/" + service_name
+            sdk_utils.out('Waiting for no deployments on {}'.format(marathon_app_id))
+            shakedown.deployment_wait(600, marathon_app_id)
+
+            # wait for service to be gone according to marathon
+            def marathon_dropped_service():
+                client = shakedown.marathon.create_client()
+                app_list = client.get_apps()
+                matching_apps = [app for app in app_list if app['id'] == marathon_app_id]
+                if len(matching_apps) > 1:
+                    msg = 'Error during uninstall, got more than one app in app list with mathching id to %s'
+                    sdk_utils.out(msg % marathon_app_id)
+                return len(matching_apps) == 0
+            sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
+            shakedown.time_wait(marathon_dropped_service)
+
+        except (dcos.errors.DCOSException, ValueError) as e:
+            sdk_utils.out('Got exception when uninstalling package: {}'.format(e))
 
 
 def get_package_options(additional_options={}):
