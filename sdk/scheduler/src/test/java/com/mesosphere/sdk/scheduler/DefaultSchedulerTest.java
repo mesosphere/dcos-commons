@@ -872,6 +872,16 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
+        while (true) {
+            if (defaultScheduler.deploymentPlanManager.getPlan().isComplete()) {
+                break;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {}
+        }
+
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 PlanTestUtils.getStepStatuses(plan));
         Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
