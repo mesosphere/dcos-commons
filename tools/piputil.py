@@ -22,7 +22,8 @@ def determine_pip3_binary():
         return
     pip_binary = shutil.which('pip')
     version_string = subprocess.check_output([pip_binary, '--version'])
-    if 'python 3' in version_string:
+    print(version_string)
+    if 'python 3' in str(version_string):
         pip3_binary = pip_binary
         return
     raise Exception("could not find pip for python3")
