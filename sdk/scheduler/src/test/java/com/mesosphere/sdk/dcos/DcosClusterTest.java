@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
  */
 public class DcosClusterTest {
 
-    private static final String EXPECTED_URI = DcosConstants.MESOS_MASTER_URI + DcosCluster.DCOS_VERSION_PATH;
+    private static final String EXPECTED_URI = DcosConstants.MESOS_LEADER_URI + DcosCluster.DCOS_VERSION_PATH;
     private static final String TEST_VERSION = "1.9-dev";
     public static final String TEST_BOOTSTRAP_ID = "test-bootstrap-id";
     public static final String TEST_DCOS_IMAGE_COMMIT = "test-dcos-image-commit";
@@ -101,6 +101,6 @@ public class DcosClusterTest {
 
     @Test
     public void testGetUri() throws IOException, URISyntaxException {
-        Assert.assertEquals(DcosConstants.MESOS_MASTER_URI, new TestDcosCluster("foo").getDcosUri().toString());
+        Assert.assertEquals(DcosConstants.MESOS_LEADER_URI, new TestDcosCluster("foo").getDcosUri().toString());
     }
 }
