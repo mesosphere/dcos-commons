@@ -216,8 +216,8 @@ def get_document(index_name, index_type, doc_id, service_name=PACKAGE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    vip = "http://" + hosts.vip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("curl -X{} -s -u elastic:changeme '" + vip).format(method)
+    host = "http://" + hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):
