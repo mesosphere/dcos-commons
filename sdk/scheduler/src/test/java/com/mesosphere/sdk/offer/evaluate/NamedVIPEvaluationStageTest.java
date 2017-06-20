@@ -7,10 +7,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
@@ -21,7 +18,7 @@ import java.util.*;
 /**
  * Tests for {@link NamedVIPEvaluationStage}.
  */
-public class NamedVIPEvaluationStageTest {
+public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {

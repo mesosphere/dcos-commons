@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
-public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
+public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
     @Test
     public void testRejectOfferWithoutExpectedExecutorId() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);

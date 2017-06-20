@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -21,7 +22,7 @@ import java.util.UUID;
 /**
  * A base class for use in writing offer evaluation tests.
  */
-public class OfferEvaluatorTestBase {
+public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     protected static final String ROOT_ZK_PATH = "/test-root-path";
     protected StateStore stateStore;

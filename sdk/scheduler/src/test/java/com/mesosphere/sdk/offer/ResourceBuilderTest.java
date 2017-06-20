@@ -6,6 +6,7 @@ import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -17,7 +18,7 @@ import java.util.UUID;
 /**
  * Test construction of Resource protobufs.
  */
-public class ResourceBuilderTest {
+public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     /*
         name: "cpus"
         type: SCALAR

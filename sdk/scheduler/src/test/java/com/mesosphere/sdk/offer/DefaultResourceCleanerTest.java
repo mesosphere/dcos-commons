@@ -2,10 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -23,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultResourceCleanerTest {
+public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
     private static final String EXPECTED_RESOURCE_1_ID = "expected-resource-id";
     private static final String EXPECTED_RESOURCE_2_ID = "expected-volume-id";
