@@ -129,7 +129,7 @@ public class TaskUtils {
         String oldTaskName = oldTaskSpec.getName();
         String newTaskName = newTaskSpec.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
-            LOGGER.info("Task names '{}' and '{}' are different.", oldTaskName, newTaskName);
+            LOGGER.debug("Task names '{}' and '{}' are different.", oldTaskName, newTaskName);
             return true;
         }
 
@@ -138,7 +138,7 @@ public class TaskUtils {
         Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();
         Optional<CommandSpec> newCommand = newTaskSpec.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
-            LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
+            LOGGER.debug("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
         }
 
@@ -147,7 +147,7 @@ public class TaskUtils {
         Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
         Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
         if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
-            LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
+            LOGGER.debug("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
             return true;
         }
 
@@ -159,7 +159,7 @@ public class TaskUtils {
                 getResourceSpecMap(newTaskSpec.getResourceSet().getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
-            LOGGER.info("Resource lengths are different for old resources: '{}' and new resources: '{}'",
+            LOGGER.debug("Resource lengths are different for old resources: '{}' and new resources: '{}'",
                     oldResourceMap, newResourceMap);
             return true;
         }
@@ -169,10 +169,10 @@ public class TaskUtils {
             LOGGER.debug("Checking resource difference for: {}", resourceName);
             ResourceSpec oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
-                LOGGER.info("Resource not found: {}", resourceName);
+                LOGGER.debug("Resource not found: {}", resourceName);
                 return true;
             } else if (areDifferent(oldResourceSpec, newEntry.getValue())) {
-                LOGGER.info("Resources are different.");
+                LOGGER.debug("Resources are different.");
                 return true;
             }
         }
@@ -180,7 +180,7 @@ public class TaskUtils {
         // Volumes (custom comparison)
 
         if (!volumesEqual(oldTaskSpec, newTaskSpec)) {
-            LOGGER.info("Task volumes '{}' and '{}' are different.",
+            LOGGER.debug("Task volumes '{}' and '{}' are different.",
                     oldTaskSpec.getResourceSet().getVolumes(),
                     newTaskSpec.getResourceSet().getVolumes());
             return true;
@@ -191,7 +191,7 @@ public class TaskUtils {
         Map<String, ConfigFileSpec> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
         Map<String, ConfigFileSpec> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
-            LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
+            LOGGER.debug("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
             return true;
         }
 

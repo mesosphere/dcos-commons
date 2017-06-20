@@ -3,10 +3,10 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
 import javax.validation.constraints.NotNull;
@@ -57,7 +57,17 @@ public class PortSpec extends DefaultResourceSpec {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+        return String.format(
+                "name: %s, portName: %s, networkNames: %s, value: %s," +
+                        " role: %s, preReservedRole: %s, principal: %s, envKey: %s",
+                getName(),
+                getPortName(),
+                getNetworkNames(),
+                TextFormat.shortDebugString(getValue()),
+                getRole(),
+                getPreReservedRole(),
+                getPrincipal(),
+                getEnvKey());
     }
 
     @Override
