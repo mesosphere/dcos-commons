@@ -148,19 +148,22 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             taskBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
 
+            Protos.DiscoveryInfo.Builder discoveryInfoBuilder = taskBuilder.hasDiscovery() ?
+                    taskBuilder.getDiscoveryBuilder() : Protos.DiscoveryInfo.newBuilder();
+
+            Protos.Ports.Builder portsBuilder = discoveryInfoBuilder.getPortsBuilder();
+
             if (taskBuilder.hasDiscovery()) {
-                taskBuilder.getDiscoveryBuilder().getPortsBuilder()
-                        .addPortsBuilder()
+                portsBuilder.addPortsBuilder()
                         .setNumber((int) port)
                         .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                        .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
                         .setName(getPortName());  // TODO random string appended to port name?
             } else {
-                Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
+                discoveryInfoBuilder
                         .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
                         .setName(taskBuilder.getName());
 
-                discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+                portsBuilder.addPortsBuilder()
                         .setNumber((int) port)
                         .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
                         .setName(getPortName());

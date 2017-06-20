@@ -55,7 +55,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         .setVisibility(visibility)
                         .setProtocol(protocol)
                         .getLabelsBuilder()
-                        .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
+                            .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
                 //addVIP(
                 //        taskBuilder.getDiscoveryBuilder(),
                 //        vipName,
