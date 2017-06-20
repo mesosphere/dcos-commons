@@ -7,15 +7,18 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
     {{/ENABLE_VIRTUAL_NETWORK}}
+    secrets:
+      s1:
+        secret: /hdfs-keytab
+        file: hdfs.keytab.base64
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -42,11 +45,9 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
   name:
@@ -59,6 +60,10 @@ pods:
     networks:
       dcos:
     {{/ENABLE_VIRTUAL_NETWORK}}
+    secrets:
+      s1:
+        secret: /hdfs-keytab
+        file: hdfs.keytab.base64
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
@@ -81,7 +86,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
 #        readiness-check:
 #          cmd: echo "beginning" && kinit -k -t keytabs/${KERBEROS_PRIMARY}.name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos@${KERBEROS_REALM} && echo "after kinit" 1>&2 && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1 && echo "49 and 1"
@@ -103,16 +108,14 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           NAMENODE: true
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -126,16 +129,14 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           NAMENODE: true
       bootstrap:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -149,16 +150,14 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           NAMENODE: true
       zkfc:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -172,16 +171,14 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           ZKFC: true
       zkfc-format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -195,11 +192,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           ZKFC: true
   data:
@@ -212,11 +207,16 @@ pods:
     networks:
       dcos:
     {{/ENABLE_VIRTUAL_NETWORK}}
+    secrets:
+      s1:
+        secret: /hdfs-keytab
+        file: hdfs.keytab.base64
     tasks:
       node:
         goal: RUNNING
         cmd: >
                ./bootstrap &&
+               base64 -d hdfs.keytab.base64 > hdfs.keytab &&
                mkdir -p /var/lib/hadoop-hdfs &&
                chown root /var/lib/hadoop-hdfs &&
                ./{{HDFS_VERSION}}/bin/hdfs datanode
@@ -248,11 +248,9 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
         env:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet

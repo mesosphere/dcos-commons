@@ -22,11 +22,7 @@ public class DefaultSecretSpec implements SecretSpec {
 
     private final String envKey;
 
-    /** Regexp in @Pattern:
-     *      sub-pattern = [a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*
-     *      (sub-pattern)?  = either NULL, or sub-pattern.  So It can be Null.
-     */
-    @Pattern(regexp = "([a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*)?")
+    @Pattern(regexp = "([a-zA-Z0-9]+([a-zA-Z0-9_\\.-]*[/\\\\]*)*)?")
     private final String filePath;
 
     @JsonCreator

@@ -51,5 +51,9 @@
         <name>hadoop.security.authorization</name>
         <value>true</value>
     </property>
+    <property>
+        <name>hadoop.rpc.protection</name>
+        <value>privacy</value>
+    </property>
     {{/SECURE_MODE}}
 </configuration>
