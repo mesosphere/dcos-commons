@@ -31,9 +31,11 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     protected PortSpec portSpec;
     private final String taskName;
+    private final String portName;
     private Optional<String> resourceId;
 
-    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
+    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId, String portName) {
+        this.portName = portName;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.portSpec = portSpec;
@@ -42,6 +44,18 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     protected long getPort() {
         return portSpec.getValue().getRanges().getRange(0).getBegin();
+    }
+
+    protected long getResourcePort(Protos.Resource resource) {
+        return resource.getRanges().getRange(0).getBegin();
+    }
+
+    protected String getPortName() {
+        return portName;
+    }
+
+    protected boolean isUseHostPorts() {
+        return useHostPorts;
     }
 
     @Override
@@ -127,42 +141,64 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
-
         if (getTaskName().isPresent()) {
             String taskName = getTaskName().get();
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
             taskBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
 
-            // Add port to the health check (if defined)
-            if (taskBuilder.hasHealthCheck()) {
-                taskBuilder.getHealthCheckBuilder().getCommandBuilder().setEnvironment(
-                        withPortEnvironmentVariable(taskBuilder.getHealthCheck().getCommand().getEnvironment(), port));
+            if (taskBuilder.hasDiscovery()) {
+                taskBuilder.getDiscoveryBuilder().getPortsBuilder()
+                        .addPortsBuilder()
+                            .setName(getPortName())
+                            .setNumber((int) port)
+                            .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL);
             } else {
-                LOGGER.info("Health check is not defined for task: {}", taskName);
+                Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
+                        .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
+                        .setName(taskName);
+                discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+                        .setName(getPortName())
+                        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                        .setNumber((int) port);
+                taskBuilder.setDiscovery(discoveryInfoBuilder.build());
             }
 
-            // Add port to the readiness check (if a readiness check is defined)
-            try {
-                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
-                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
-                        .toProto());
-            } catch (TaskException e) {
-                LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
-            }
+            maybeSetHealthAndReadinessCheckLabels(taskBuilder, port);
 
             if (useHostPorts) { // we only use the resource if we're using the host ports
                 taskBuilder.addResources(resource);
             }
-
         } else {
-            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            executorBuilder.getCommandBuilder().setEnvironment(
-                    withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
-            if (useHostPorts) {
-                executorBuilder.addResources(resource);
-            }
+            setExecutorInfoBuilder(podInfoBuilder.getExecutorBuilder().get(), resource);
+        }
+    }
 
+    protected void maybeSetHealthAndReadinessCheckLabels(Protos.TaskInfo.Builder taskBuilder, long port) {
+        // Add port to the health check (if defined)
+        if (taskBuilder.hasHealthCheck()) {
+            taskBuilder.getHealthCheckBuilder().getCommandBuilder().setEnvironment(
+                    withPortEnvironmentVariable(taskBuilder.getHealthCheck().getCommand().getEnvironment(), port));
+        } else {
+            LOGGER.info("Health check is not defined for task: {}", taskName);
+        }
+
+        // Add port to the readiness check (if a readiness check is defined)
+        try {
+            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                    .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
+                    .toProto());
+        } catch (TaskException e) {
+            LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+        }
+    }
+
+    protected void setExecutorInfoBuilder(Protos.ExecutorInfo.Builder executorBuilder, Protos.Resource resource) {
+        executorBuilder.getCommandBuilder().setEnvironment(
+                withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(),
+                        getResourcePort(resource)));
+        if (useHostPorts) {
+            executorBuilder.addResources(resource);
         }
     }
 

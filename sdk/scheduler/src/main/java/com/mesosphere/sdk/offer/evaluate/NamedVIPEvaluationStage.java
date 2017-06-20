@@ -24,8 +24,11 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final long vipPort;
     private final boolean onNamedNetwork;
 
-    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
-        super(namedVIPSpec, taskName, resourceId);
+    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
+                                   String taskName,
+                                   Optional<String> resourceId,
+                                   String portName) {
+        super(namedVIPSpec, taskName, resourceId, portName);
         this.taskName = taskName;
         this.protocol = namedVIPSpec.getProtocol();
         this.visibility = namedVIPSpec.getVisibility();
@@ -36,13 +39,25 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
     @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
-        super.setProtos(podInfoBuilder, resource);
+        long port = getResourcePort(resource);
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
 
-        // If the VIP is already set, we don't have to do anything.
+        if (getTaskName().isPresent()) {
+            String taskName = getTaskName().get();
+            // If the VIP is already set, we don't have to do anything.
+
+            maybeSetHealthAndReadinessCheckLabels(taskBuilder, port);
+
+            if (isUseHostPorts()) {
+                taskBuilder.addResources(resource);
+            }
+        } else {
+            setExecutorInfoBuilder(podInfoBuilder.getExecutorBuilder().get(), resource);
+        }
+
         boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getTaskBuilder(getTaskName().get()));
         if (!didUpdate) {
             // Set the VIP on the TaskInfo.
-            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
                 addVIP(
                         taskBuilder.getDiscoveryBuilder(),
@@ -75,9 +90,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         && vipInfo.get().getVipName().equals(vipName)
                         && vipInfo.get().getVipPort() == vipPort) {
                     portBuilder
-                        .setNumber((int) getPort())
-                        .setVisibility(visibility)
-                        .setProtocol(protocol);
+                            .setNumber((int) getPort())
+                            .setVisibility(visibility)
+                            .setName(getPortName())
+                            .setProtocol(protocol);
                     return true;
                 }
             }
@@ -96,6 +112,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         builder.getPortsBuilder()
                 .addPortsBuilder()
                 .setNumber(destPort)
+                .setName(getPortName())
                 .setProtocol(protocol)
                 .setVisibility(visibility)
                 .getLabelsBuilder()
@@ -121,6 +138,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
                 .setNumber((int) r.getRanges().getRange(0).getBegin())
                 .setProtocol(protocol)
+                .setName(getPortName())
                 .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));

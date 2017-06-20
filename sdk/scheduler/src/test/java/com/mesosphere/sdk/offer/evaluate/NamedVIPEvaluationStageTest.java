@@ -214,7 +214,7 @@ public class NamedVIPEvaluationStageTest {
         return new NamedVIPEvaluationStage(
                 getNamedVIPSpec(taskPort, onOverlay),
                 TestConstants.TASK_NAME,
-                resourceId);
+                resourceId, "test-port");
     }
 
     private NamedVIPSpec getNamedVIPSpec(int taskPort, boolean onOverlay) {

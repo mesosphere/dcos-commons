@@ -14,6 +14,7 @@ public class DcosConstants {
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MASTER_MESOS + ":2181";
     public static final String MESOS_MASTER_URI = "http://" + MASTER_MESOS;
     public static final Boolean DEFAULT_GPU_POLICY = true;
+    public static final String DEFAULT_IP_PROTOCOL = "tcp";
     public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
     public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(Arrays.asList(DEFAULT_OVERLAY_NETWORK));
