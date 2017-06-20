@@ -154,7 +154,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                         .setNumber((int) port)
                         .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
                         .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
-                        .setName(getPortName());
+                        .setName(getPortName());  // TODO random string appended to port name?
             } else {
                 Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
                         .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
