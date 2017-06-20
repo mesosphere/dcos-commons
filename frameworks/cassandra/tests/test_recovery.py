@@ -51,9 +51,21 @@ def test_node_replace_replaces_node():
     # replaced from Cassandra's perspective)
     # Note: Task will sometimes flake out because the node list can take a minute or two to update.
     #       Therefore this job has restart.policy=ON_FAILURE
-    verify_replace_job = get_verify_node_replace_job(pod_host)
-    with jobs.InstallJobContext([verify_replace_job]):
-        jobs.run_job(verify_replace_job)
+    check_host = get_pod_host('node-0')
+    def fun():
+        status, stdout = shakedown.run_command_on_agent(check_host, "docker run -t --net=host pitrho/cassandra-nodetool nodetool -p 7199 status")
+        up_ips = []
+        for line in stdout.split('\n'):
+            words = list(filter(None, line.split()))
+            if len(words) < 2:
+                continue
+            if not 'UN' == words[0]:
+                continue
+            up_ips.append(words[1])
+        utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host, up_ips))
+        return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host in up_ips
+    # observed to take 2-3mins in practice:
+    shakedown.wait_for(lambda: fun(), timeout_seconds=600, sleep_seconds=15, noisy=True)
 
 
 @pytest.mark.sanity
