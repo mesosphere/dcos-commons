@@ -19,8 +19,15 @@ func main() {
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
 }
 
-func sql(c *kingpin.ParseContext) error {
-	runCommand("task",
+type SQLHandler struct {
+	database string
+	user string
+}
+
+func (cmd *SQLHandler) sql(c *kingpin.ParseContext) error {
+	var dcosCmd []string;
+	dcosCmd = append(dcosCmd,
+		"task",
 		"exec",
 		"-it",
 		"cockroachdb-1-node-join",
@@ -28,6 +35,13 @@ func sql(c *kingpin.ParseContext) error {
 		"sql",
 		"--insecure",
 		"--host=internal.cockroachdb.l4lb.thisdcos.directory")
+	if cmd.database != "" {
+		dcosCmd = append(dcosCmd, "-d", cmd.database)
+	}
+	if cmd.user != "" {
+		dcosCmd = append(dcosCmd, "-u", cmd.user)
+	}
+	runCommand(dcosCmd...)
 	return nil
 }
 
@@ -43,5 +57,8 @@ func runCommand(arg ...string) {
 }
 
 func handleCockroachSection(app *kingpin.Application) {
-	app.Command("sql", "Opens interactive Cockroachdb SQL shell").Action(sql)
+	cmd := &SQLHandler{}
+	sql := app.Command("sql", "Opens interactive Cockroachdb SQL shell").Action(cmd.sql)
+	sql.Flag("database", "The database to connect to.").Short('d').StringVar(&cmd.database)
+	sql.Flag("user", "The user connecting to the database. The user must have privileges for any statement executed.").Short('u').StringVar(&cmd.user)
 }
