@@ -70,7 +70,7 @@ func PrintJSONBytes(responseBytes []byte) {
 		PrintMessage("Original data follows:")
 		outBuf = *bytes.NewBuffer(responseBytes)
 	}
-	PrintMessage("%s\n", outBuf.String())
+	PrintMessage("%s", outBuf.String())
 }
 
 // PrintResponseText prints out a byte array as text.

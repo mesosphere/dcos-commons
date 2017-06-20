@@ -110,9 +110,9 @@ func forceComplete(planName, phase, step string) {
 		client.PrintMessageAndExit(err.Error())
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Step %s in phase %s in plan %s has been forced to complete.", step, phase, planName)
+		client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" has been forced to complete.", planName, step, phase)
 	} else {
-		client.PrintMessage("Step %s in phase %s in plan %s could not be forced to complete.", step, phase, planName)
+		client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" could not be forced to complete.", planName, step, phase)
 	}
 }
 
@@ -130,17 +130,20 @@ func restart(planName, phase, step string) {
 		client.PrintMessageAndExit(err.Error())
 	}
 	if parseJSONResponse(responseBytes) {
-		// TODO: the user doesn't always have to specify this down to plan level so we should output different messages
 		if step == "" && phase == "" {
-			client.PrintMessage("Plan %s has been restarted.", planName)
+			client.PrintMessage("\"%s\" plan has been restarted.", planName)
+		} else if step == "" {
+			client.PrintMessage("\"%s\" plan: phase \"%s\" has been restarted.", planName, phase)
 		} else {
-			client.PrintMessage("Step %s in phase %s in plan %s has been restarted.", step, phase, planName)
+			client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" has been restarted.", planName, step, phase)
 		}
 	} else {
 		if step == "" && phase == "" {
-			client.PrintMessage("Plan %s could not be restarted.", planName)
+			client.PrintMessage("\"%s\" plan could not be restarted.", planName)
+		} else if step == "" {
+			client.PrintMessage("\"%s\" plan: phase \"%s\" could not be restarted.", planName, phase)
 		} else {
-			client.PrintMessage("Step %s in phase %s in plan %s could not be restarted.", step, phase, planName)
+			client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" could not be restarted.", planName, step, phase)
 		}
 	}
 }
@@ -169,9 +172,9 @@ func pause(planName, phase string) error {
 		return err
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Plan %s has been paused.", planName)
+		client.PrintMessage("\"%s\" plan has been paused.", planName)
 	} else {
-		client.PrintMessage("Plan %s could not be paused.", planName)
+		client.PrintMessage("\"%s\" plan could not be paused.", planName)
 	}
 	return nil
 }
@@ -193,9 +196,9 @@ func resume(planName, phase string) error {
 		return err
 	}
 	if parseJSONResponse(responseBytes) {
-		client.PrintMessage("Plan %s has been resumed.", planName)
+		client.PrintMessage("\"%s\" plan has been resumed.", planName)
 	} else {
-		client.PrintMessage("Plan %s could not be resumed.", planName)
+		client.PrintMessage("\"%s\" plan could not be resumed.", planName)
 	}
 	return nil
 }

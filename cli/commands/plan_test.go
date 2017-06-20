@@ -173,7 +173,7 @@ func (suite *PlanTestSuite) TestForceComplete() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/force-complete.json")
 	suite.responseStatus = http.StatusOK
 	forceComplete("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been forced to complete.\n"
+	expectedOutput := "\"deploy\" plan: step \"hello-0:[server]\" in phase \"hello\" has been forced to complete.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -181,7 +181,7 @@ func (suite *PlanTestSuite) TestForceRestart() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/restart.json")
 	suite.responseStatus = http.StatusOK
 	restart("deploy", "hello", "hello-0:[server]")
-	expectedOutput := "Step hello-0:[server] in phase hello in plan deploy has been restarted.\n"
+	expectedOutput := "\"deploy\" plan: step \"hello-0:[server]\" in phase \"hello\" has been restarted.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -191,7 +191,7 @@ func (suite *PlanTestSuite) TestPause() {
 	config.Command = "plan pause"
 
 	pause("deploy", "hello")
-	expectedOutput := "Plan deploy has been paused.\n"
+	expectedOutput := "\"deploy\" plan has been paused.\n"
 	assert.Equal(suite.T(), expectedOutput, suite.capturedOutput.String())
 }
 
@@ -246,7 +246,7 @@ func (suite *PlanTestSuite) TestResume() {
 
 	resume("deploy", "hello")
 
-	expectedOutput := "Plan deploy has been resumed.\n"
+	expectedOutput := "\"deploy\" plan has been resumed.\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
@@ -504,7 +504,7 @@ func (suite *PlanTestSuite) TestPrintStatusRaw() {
 	printStatus("deploy", true)
 
 	// assert CLI output matches response json
-	assert.Equal(suite.T(), string(suite.responseBody)+"\n\n", suite.capturedOutput.String())
+	assert.Equal(suite.T(), string(suite.responseBody)+"\n", suite.capturedOutput.String())
 }
 
 func (suite *PlanTestSuite) TestPrintStatusTree() {

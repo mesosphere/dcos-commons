@@ -252,8 +252,9 @@ def test_plan_cli():
     assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False, service_name=FOLDERED_SERVICE_NAME)
     assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME), service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan force-restart {}'.format(DEFAULT_PLAN_NAME), get_json=False, service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), get_json=False, service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), get_json=False, service_name=FOLDERED_SERVICE_NAME)
 
 
 
