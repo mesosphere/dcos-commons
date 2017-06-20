@@ -39,33 +39,28 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
     @Override
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
-        long port = getResourcePort(resource);
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        super.setProtos(podInfoBuilder, resource);
 
-        if (getTaskName().isPresent()) {
-            String taskName = getTaskName().get();
-            // If the VIP is already set, we don't have to do anything.
-
-            maybeSetHealthAndReadinessCheckLabels(taskBuilder, port);
-
-            if (isUseHostPorts()) {
-                taskBuilder.addResources(resource);
-            }
-        } else {
-            setExecutorInfoBuilder(podInfoBuilder.getExecutorBuilder().get(), resource);
-        }
-
+        // If the VIP is already set, we don't have to do anything.
         boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getTaskBuilder(getTaskName().get()));
         if (!didUpdate) {
             // Set the VIP on the TaskInfo.
+            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
-                addVIP(
-                        taskBuilder.getDiscoveryBuilder(),
-                        vipName,
-                        protocol,
-                        visibility,
-                        vipPort,
-                        (int) resource.getRanges().getRange(0).getBegin());
+                taskBuilder.getDiscoveryBuilder().setVisibility(DiscoveryInfo.Visibility.CLUSTER);
+                taskBuilder.getDiscoveryBuilder().getPortsBuilder()
+                        .getPortsBuilder(0)
+                        .setVisibility(visibility)
+                        .setProtocol(protocol)
+                        .getLabelsBuilder()
+                        .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
+                //addVIP(
+                //        taskBuilder.getDiscoveryBuilder(),
+                //        vipName,
+                //        protocol,
+                //        visibility,
+                //        vipPort,
+                //        (int) resource.getRanges().getRange(0).getBegin());
             } else {
                 taskBuilder.setDiscovery(getVIPDiscoveryInfo(
                         taskBuilder.getName(),
