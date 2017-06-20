@@ -596,6 +596,18 @@
             "type":"integer",
             "default":1000
           },
+          "kafka_metrics_reporters":{
+            "title":"kafka.metric.reporters",
+            "description":"Old style metrics reporter",
+            "type":"string",
+            "default":"com.airbnb.kafka.kafka08.StatsdMetricsReporter"
+          },
+          "metric_reporters":{
+            "title":"metric.reporters",
+            "description":"Java class to collect/report broker metrics",
+            "type":"string",
+            "default":"com.airbnb.kafka.kafka09.StatsdMetricsReporter"
+          },
           "metrics_num_samples":{
             "title":"metrics.num.samples",
             "description":"The number of samples maintained to compute metrics.",
