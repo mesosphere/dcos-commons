@@ -86,6 +86,51 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         }
     }
 
+    /*
+        name: "cpus"
+        type: SCALAR
+        scalar {
+          value: 1.0
+        }
+        reservations {
+          role: "base-role"
+          type: STATIC
+        }
+        reservations {
+          principal: "test-principal"
+          labels {
+            labels {
+              key: "resource_id"
+              value: "a395f14b-3cc8-4009-9dc4-51838b423aed"
+            }
+          }
+          role: "test-role"
+          type: DYNAMIC
+        }
+    */
+    @Test
+    public void testRefineStaticResource() {
+        ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        try {
+            ResourceSpec resourceSpec = new DefaultResourceSpec(
+                    "cpus",
+                    value,
+                    TestConstants.ROLE,
+                    TestConstants.PRE_RESERVED_ROLE,
+                    TestConstants.PRINCIPAL,
+                    "CPUS_ENV_KEY");
+            ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
+
+            Protos.Resource resource = resourceBuilder.build();
+            Assert.assertEquals(2, resource.getReservationsCount());
+            validateScalarResourceRefined(TestConstants.PRE_RESERVED_ROLE, resource);
+            Assert.assertEquals(Protos.Resource.ReservationInfo.Type.STATIC, resource.getReservations(0).getType());
+            Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, resource.getReservations(0).getRole());
+        } finally {
+            context.reset();
+        }
+    }
+
     @Test
     public void testExistingFromResourceSpec() {
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
@@ -438,12 +483,15 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private void validateScalarResourceRefined(Protos.Resource resource) {
+        validateScalarResourceRefined(Constants.ANY_ROLE, resource);
+    }
+
+    private void validateScalarResourceRefined(String preReservedRole, Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
         Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
         Assert.assertFalse(resource.hasReservation());
-        Assert.assertEquals(1, resource.getReservationsCount());
 
-        Protos.Resource.ReservationInfo reservationInfo = resource.getReservations(0);
+        Protos.Resource.ReservationInfo reservationInfo = resource.getReservations(resource.getReservationsCount() - 1);
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
         Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
