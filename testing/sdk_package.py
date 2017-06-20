@@ -9,7 +9,7 @@ import re
 def get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        sdk_cmd.run_cli('dcos package describe {}'.format(package_name))).group(1)
+        sdk_cmd.run_cli('package describe {}'.format(package_name))).group(1)
 
 
 def get_repo_list():
