@@ -216,7 +216,7 @@
         "administrators": {
           "type": "string",
           "description": "Administrators for the HDFS cluster",
-          "default": "core,centos,azureuser"
+          "default": "hdfs,root,core,centos,azureuser"
         },
         "name_node_rpc_port": {
           "type": "integer",
