@@ -872,11 +872,7 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
-        while (true) {
-            if (defaultScheduler.deploymentPlanManager.getPlan().isComplete()) {
-                break;
-            }
-
+        while (!defaultScheduler.deploymentPlanManager.getPlan().isComplete()) {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {}
