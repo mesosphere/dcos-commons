@@ -47,6 +47,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             // Set the VIP on the TaskInfo.
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
+                // TODO need a seek to correct portsBuilder here for when there is more than 1 port on a pod
+                // test this too 
                 taskBuilder.getDiscoveryBuilder().setVisibility(DiscoveryInfo.Visibility.CLUSTER);
                 taskBuilder.getDiscoveryBuilder().getPortsBuilder()
                         .getPortsBuilder(0)
