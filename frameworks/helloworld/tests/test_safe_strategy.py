@@ -32,6 +32,7 @@ def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
+@pytest.mark.safe
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_safe_init():
@@ -122,7 +123,7 @@ def test_safe_second():
     phase = pl['phases'][1]
     assert phase['status'] == 'WAITING'
     steps = phase['steps']
-    assert len(steps) == 4
+    assert len(steps) == 1
     assert steps[0]['status'] == 'WAITING'
 
 
@@ -136,9 +137,10 @@ def test_safe_third():
     assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
 
     pl = plan.wait_for_completed_phase(PACKAGE_NAME, 'deploy', 'hello-deploy')
+    utils.out("wait_for_completed_phase(PACKAGE_NAME, 'deploy', 'hello-deploy') output:")
     utils.out(pl)
 
-    assert pl['status'] == 'COMPLETE'
+    assert pl['status'] == 'WAITING'
 
     assert len(pl['phases']) == 2
 
@@ -187,4 +189,3 @@ def test_safe_fourth():
     steps = phase['steps']
     assert len(steps) == 1
     assert steps[0]['status'] == 'COMPLETE'
-
