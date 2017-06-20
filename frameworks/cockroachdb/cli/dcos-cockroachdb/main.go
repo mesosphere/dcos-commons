@@ -1,11 +1,11 @@
 package main
 
 import (
+	"os"
+	"os/exec"
 	"fmt"
-	"strings"
 
 	"github.com/mesosphere/dcos-commons/cli"
-	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -23,46 +23,27 @@ type CockroachHandler struct {
 	command string
 }
 
-func (cmd *CockroachHandler) node(c *kingpin.ParseContext) error {
-	outBytes, err := client.RunCLICommand("task",
-			"exec",
-			"cockroachdb-1-node-join",
-			"./cockroach",
-			"node",
-			"--insecure",
-			"--host=internal.cockroachdb.l4lb.thisdcos.directory",
-			fmt.Sprintf("%s", cmd.command))
-	fmt.Printf("%s\n", outBytes)
-	if err != nil {
-		if strings.Contains(err.Error(), "Cannot find a task with ID") {
-			fmt.Printf("Failed to locate CockroachDB binary. Has the package finished installing yet?\n")
-		} else {
-			fmt.Printf("Error: %s\n", err)
-		}
-	}
+func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
+	runCommand("task",
+		"exec",
+		"-it",
+		"cockroachdb-1-node-join",
+		"./cockroach",
+		"sql",
+		"--insecure",
+		"--host=internal.cockroachdb.l4lb.thisdcos.directory")
 	return nil
 }
 
-func (cmd *CockroachHandler) sql(c *kingpin.ParseContext) error {
-	outBytes, err := client.RunCLICommand("task",
-			"exec",
-			"cockroachdb-1-node-join",
-			"./cockroach",
-			"sql",
-			"--insecure",
-			"--host=internal.cockroachdb.l4lb.thisdcos.directory",
-			"-e",
-			fmt.Sprintf("%s", cmd.command))
-	fmt.Printf("%s\n", outBytes)
+func runCommand(arg ...string) {
+	cmd := exec.Command("dcos", arg...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
 	if err != nil {
-		if strings.Contains(err.Error(), "Cannot find a task with ID") ||
-		   strings.Contains(err.Error(), "No such file or directory") {
-			fmt.Printf("Failed to locate CockroachDB binary. Has the package finished installing yet?\n")
-		} else {
-			fmt.Printf("Error: %s\n", err)
-		}
+		fmt.Printf("Error: %s\n", err)
 	}
-	return nil
 }
 
 func handleCockroachSection(app *kingpin.Application) {
@@ -71,7 +52,4 @@ func handleCockroachSection(app *kingpin.Application) {
 
 	sql := cockroach.Command("sql", "Equivalent to running `cockroach sql <command>` on task.").Action(cmd.sql)
 	sql.Arg("command", "CockroachDB sql command to run.").StringVar(&cmd.command)
-
-	node := cockroach.Command("node", "Equivalent to running `cockroach node <command>` on task.").Action(cmd.node)
-	node.Arg("command", "CockroachDB node command to run.").StringVar(&cmd.command)
 }
