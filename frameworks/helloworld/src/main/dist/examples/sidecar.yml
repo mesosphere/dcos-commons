@@ -5,14 +5,14 @@ pods:
   hello:
     count: 2
     user: {{SERVICE_USER}}
+    volume:
+      path: "hello-container-path"
+      type: ROOT
+      size: 1024
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}
         memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 1024
       sidecar-resources:
         cpus: 1
         memory: 256

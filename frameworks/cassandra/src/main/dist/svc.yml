@@ -11,6 +11,11 @@ pods:
         labels: {{CNI_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     image: {{CASSANDRA_DOCKER_IMAGE}}
+    image: mesosphere/cassandra:1.0.26-3.0.10
+    volume:
+      path: container-path
+      type: {{CASSANDRA_DISK_TYPE}}
+      size: {{CASSANDRA_DISK_MB}}
     uris:
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
@@ -34,10 +39,6 @@ pods:
               port: 9042
           rpc:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
-        volume:
-          path: container-path
-          type: {{CASSANDRA_DISK_TYPE}}
-          size: {{CASSANDRA_DISK_MB}}
       sidecar-resources:
         cpus: 1
         memory: 1024
