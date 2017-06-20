@@ -98,9 +98,9 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
         sdk_utils.out('Uninstalling {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
-            if not service_name.startswith('/'):
-                marathon_app_id = '/' + service_name
-            sdk_utils.out('Waiting for no deployments on {}'.format(marathon_app_id))
+            # service_name may already contain a leading slash:
+            marathon_app_id = '/' + service_name.lstrip('/')
+            sdk_utils.out('Waiting for no deployments for {}'.format(marathon_app_id))
             shakedown.deployment_wait(600, marathon_app_id)
 
             # wait for service to be gone according to marathon
