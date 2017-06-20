@@ -49,11 +49,14 @@ def check_endpoints_on_overlay(endpoints):
         # the overlay IP address should not contain any agent IPs
         return len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0
 
+    assert "address" in endpoints, "endpoints: {} missing 'address' key".format(endpoints)
+    assert "dns" in endpoints, "endpoints: {} missing 'dns' key".format(endpoints)
+
+    # endpoints should have the format <ip_address>:port
     ip_addresses = [e.split(":")[0] for e in endpoints["address"]]
     assert check_ip_addresses_on_overlay(), \
         "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
-    assert "dns" in endpoints, "Endpoints missing DNS key"
     for dns in endpoints["dns"]:
         assert "autoip.dcos.thisdcos.directory" in dns, "DNS {} is incorrect should have autoip.dcos.thisdcos." \
                                                         "directory".format(dns)
