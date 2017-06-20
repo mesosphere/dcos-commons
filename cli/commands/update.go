@@ -30,7 +30,10 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 
 func describe() {
 	// TODO: figure out KingPin's error handling
-	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
+	requestContent, err := json.Marshal(describeRequest{config.ServiceName})
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
 	responseBytes, err := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -165,6 +168,58 @@ func (cmd *updateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func (cmd *planHandler) hasUpdatePlan() bool {
+	// Query scheduler for list of plans
+	responseBytes, err := client.HTTPServiceGet("v1/plans")
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	availablePlans, err := client.JSONBytesToArray(responseBytes)
+	checkError(err, responseBytes)
+	for _, availablePlan := range availablePlans {
+		if availablePlan == "update" {
+			return true
+		}
+	}
+	return false
+}
+
+func (cmd *planHandler) setUpdatePlanName() {
+	if len(cmd.PlanName) == 0 {
+		// Plan name has not been set by the user
+		if cmd.hasUpdatePlan() {
+			cmd.PlanName = "update"
+		} else {
+			cmd.PlanName = "deploy"
+		}
+	}
+}
+
+func (cmd *planHandler) handleUpdateForceComplete(c *kingpin.ParseContext) error {
+	cmd.setUpdatePlanName()
+	return cmd.handleForceComplete(c)
+}
+
+func (cmd *planHandler) handleUpdateForceRestart(c *kingpin.ParseContext) error {
+	cmd.setUpdatePlanName()
+	return cmd.handleForceRestart(c)
+}
+
+func (cmd *planHandler) handleUpdatePause(c *kingpin.ParseContext) error {
+	cmd.setUpdatePlanName()
+	return cmd.handlePause(c)
+}
+
+func (cmd *planHandler) handleUpdateResume(c *kingpin.ParseContext) error {
+	cmd.setUpdatePlanName()
+	return cmd.handleResume(c)
+}
+
+func (cmd *planHandler) handleUpdateStatus(c *kingpin.ParseContext) error {
+	cmd.setUpdatePlanName()
+	return cmd.handleStatus(c)
+}
+
 // HandleUpdateSection adds the update subcommand to the passed in kingpin.Application.
 func HandleUpdateSection(app *kingpin.Application) {
 	cmd := &updateHandler{}
@@ -176,26 +231,20 @@ func HandleUpdateSection(app *kingpin.Application) {
 
 	planCmd := &planHandler{}
 
-	forceComplete := update.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(planCmd.handleForceComplete)
-	// TODO: it'd be nice if this was optional (but there is no way to make this optional and have required arguments after it).
-	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&planCmd.PlanName)
+	forceComplete := update.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(planCmd.handleUpdateForceComplete)
 	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&planCmd.Phase)
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&planCmd.Step)
 
-	forceRestart := update.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(planCmd.handleForceRestart)
-	forceRestart.Arg("plan", "Name of the plan to restart").StringVar(&planCmd.PlanName)
+	forceRestart := update.Command("force-restart", "Restart update plan, or specific step in the provided phase").Alias("restart").Action(planCmd.handleUpdateForceRestart)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&planCmd.Phase)
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&planCmd.Step)
 
 	update.Command("package-versions", "View a list of available package versions to downgrade or upgrade to").Action(cmd.ViewPackageVersions)
 
-	pause := update.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.handlePause)
-	pause.Arg("plan", "Name of the plan to pause").StringVar(&planCmd.PlanName)
+	update.Command("pause", "Pause update plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.handleUpdatePause)
 
-	resume := update.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(planCmd.handleResume)
-	resume.Arg("plan", "Name of the plan to resume").StringVar(&planCmd.PlanName)
+	update.Command("resume", "Resume update plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(planCmd.handleUpdateResume)
 
-	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
-	status.Arg("plan", "Name of the plan to show").StringVar(&planCmd.PlanName)
+	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleUpdateStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)
 }

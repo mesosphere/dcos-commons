@@ -91,12 +91,18 @@ func GetValueFromJSON(jsonBytes map[string]interface{}, field string) ([]byte, e
 	return nil, nil
 }
 
+// JSONBytesToArray is a utility method for unmarshaling a JSON string array
+func JSONBytesToArray(bytes []byte) ([]string, error) {
+	var array []string
+	err := json.Unmarshal(bytes, &array)
+	return array, err
+}
+
 // SortAndPrettyPrintJSONArray unmarshals an array of JSON strings, sorts and counts it and
 // returns a JSON marshaled version of it for pretty printing.
 func SortAndPrettyPrintJSONArray(bytes []byte) (bool, []byte, error) {
 	// Unmarshal into a []string so that we can count and sort the array
-	var convertedArray []string
-	err := json.Unmarshal(bytes, &convertedArray)
+	convertedArray, err := JSONBytesToArray(bytes)
 	if err != nil {
 		return false, nil, err
 	}

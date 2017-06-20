@@ -52,11 +52,10 @@ func getPlanParameterPayload(parameters []string) (string, error) {
 }
 
 func (cmd *planHandler) getPlanName() string {
-	plan := "deploy"
 	if len(cmd.PlanName) > 0 {
-		plan = cmd.PlanName
+		return cmd.PlanName
 	}
-	return plan
+	return "deploy"
 }
 
 type plansResponse struct {

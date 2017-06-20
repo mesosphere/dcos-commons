@@ -163,3 +163,23 @@ func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
 	expectedOutput := "Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
+
+func (suite *UpdateTestSuite) TestSetUpdatePlanName() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plans.json")
+	cmd := planHandler{}
+	cmd.setUpdatePlanName()
+	assert.Equal(suite.T(), "update", cmd.PlanName)
+}
+
+func (suite *UpdateTestSuite) TestSetUpdatePlanNameNoUpdatePlan() {
+	suite.responseBody = suite.loadFile("testdata/responses/scheduler/plans-no-update.json")
+	cmd := planHandler{}
+	cmd.setUpdatePlanName()
+	assert.Equal(suite.T(), "deploy", cmd.PlanName)
+}
+
+func (suite *UpdateTestSuite) TestSetUpdatePlanNameExistingName() {
+	cmd := planHandler{PlanName: "arbitrary-plan"}
+	cmd.setUpdatePlanName()
+	assert.Equal(suite.T(), "arbitrary-plan", cmd.PlanName)
+}
