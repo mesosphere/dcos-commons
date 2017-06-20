@@ -22,7 +22,7 @@ def autoip_host(service_name, task_name, port=-1):
 
 
 def vip_host(service_name, vip_name, port=-1):
-    host = '{}.{}.{}'.format(task_name.replace('/', ''), service_name.replace('/', ''), VIP_HOST_SUFFIX)
+    host = '{}.{}.{}'.format(vip_name.replace('/', ''), service_name.replace('/', ''), VIP_HOST_SUFFIX)
     return _with_port(host, port)
 
 
