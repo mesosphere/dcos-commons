@@ -57,8 +57,7 @@ public class Capabilities {
     }
 
     public boolean supportsPreReservedResources() {
-        // RESERVATION_REFINEMENT is supported by DC/OS 1.10 upwards
-        return hasOrExceedsVersion(1, 10);
+        return false;
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) {
