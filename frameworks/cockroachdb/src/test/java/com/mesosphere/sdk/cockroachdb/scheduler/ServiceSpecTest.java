@@ -19,6 +19,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         envVars.put("NODE_DISK", "5000");
         envVars.put("NODE_DISK_TYPE", "ROOT");
 
+        envVars.put("SIDE_COUNT", "2");
+        envVars.put("SIDE_CPUS", "0.1");
+        envVars.put("SIDE_MEM", "512");
+        envVars.put("SIDE_DISK", "5000");
+        envVars.put("SIDE_DISK_TYPE", "ROOT");
+
         envVars.put("SLEEP_DURATION", "1000");
         
         URL resource = ServiceSpecTest.class.getClassLoader().getResource("start.sh.mustache");

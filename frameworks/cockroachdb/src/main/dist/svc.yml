@@ -102,14 +102,19 @@ pods:
               restore/$DATABASE_NAME.sql"
         resource-set: sidecar-resources
   sidecar:
-    count: 1
+    count: {{SIDE_COUNT}}
     uris:
       - {{COCKROACH_URI}}
       - {{BOOTSTRAP_URI}}
+    placement: {{SIDE_PLACEMENT}}
     resource-sets:
       sidecar-resources:
-        cpus: 1
-        memory: 1024
+        cpus: {{SIDE_CPUS}}
+        memory: {{SIDE_MEM}}
+        volume:
+          path: "cockroach-backup"
+          type: {{SIDE_DISK_TYPE}}
+          size: {{SIDE_DISK}}
     tasks:
       backup:
         goal: FINISHED
