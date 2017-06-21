@@ -58,9 +58,6 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Phase inputPhase = inputPlan.getChildren().get(0);
         Step inputStep = inputPhase.getChildren().get(0);
 
-        logger.info("Input Phase: {}", inputPhase);
-        logger.info("Input Step: {}", inputStep);
-
         PodInstanceRequirement joinPodInstanceRequirement =
              PodInstanceRequirement.newBuilder(
                     inputStep.start().get().getPodInstance(),
@@ -69,8 +66,6 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
             .recoveryType(RecoveryType.PERMANENT)
             .build();
 
-        logger.info("PodInstanceRequirement: {}", joinPodInstanceRequirement);
-
         Step joinStep = new DefaultRecoveryStep(
                 inputStep.getName(),
                 Status.PENDING,
@@ -78,15 +73,11 @@ public class CockroachdbRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 new UnconstrainedLaunchConstrainer(),
                 stateStore);
 
-        logger.info("Join Step: {}", joinStep);
-
         Phase phase = new DefaultPhase(
                 RECOVERY_PHASE_NAME,
                 Collections.singletonList(joinStep),
                 new SerialStrategy<>(),
                 Collections.emptyList());
-
-        logger.info("Replacement phase: {}", phase);
 
         return phase;
       }
