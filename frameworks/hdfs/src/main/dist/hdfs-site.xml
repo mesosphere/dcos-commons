@@ -206,7 +206,7 @@
     </property>
     <property>
         <name>dfs.http.policy</name>
-        <value>HTTPS_ONLY</value>
+        <value>HTTP_AND_HTTPS</value>
     </property>
     <property>
         <name>hadoop.security.auth_to_local</name>

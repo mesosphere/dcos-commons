@@ -11,9 +11,10 @@ pods:
     networks:
       dcos:
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{KERBEROS
     secrets:
       s1:
-        secret: /hdfs-keytab
+        secret: {{KERBEROS_SECRET_PATH}}
         file: hdfs.keytab.base64
     tasks:
       node:

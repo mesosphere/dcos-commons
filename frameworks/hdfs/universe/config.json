@@ -34,52 +34,6 @@
           "description": "HDFS update strategy. [parallel, serial]",
           "type": "string",
           "default": "serial"
-        },
-        "tls": {
-          "type": "object",
-          "description": "TLS configuration properties.",
-          "properties": {
-            "enabled": {
-              "description": "Enable TLS support (requires Strict mode).",
-              "type": "boolean",
-              "default": false
-            }
-          }
-        },
-        "kerberos": {
-          "type": "object",
-          "description": "Kerberos configuration properties.",
-          "properties": {
-            "enabled": {
-              "description": "Enable kerberos authentication.",
-              "type": "boolean",
-              "default": false
-            },
-            "keytabs_uri": {
-              "type": "string",
-              "description": "The URI from which Keytabs tar.gz can be downloaded. Only relevant when secure_mode is enabled.",
-              "default": ""
-            },
-            "krb5_conf_uri": {
-              "type": "string",
-              "description": "The URI of the krb5.conf file.  This file will be downloaded and used by each HDFS task."
-            },
-            "primary": {
-              "type": "string",
-              "description": "The Kerberos primary used by HDFS tasks.  The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
-              "default": "hdfs"
-            },
-            "primary_http": {
-              "type": "string",
-              "description": "The Kerberos primary used by the HTTP server running on HDFS tasks.  See <service.kerberos.primary>.",
-              "default": "HTTP"
-            },
-            "realm": {
-              "type": "string",
-              "description": "The Kerberos realm used to render the principal of HDFS tasks.",
-              "default": "LOCAL"
-            }
-          }
         }
       },
       "virtual_network": {
@@ -282,6 +236,57 @@
           "type": "string",
           "description": "",
           "default": "INFO,console"
+        },
+        "security": {
+          "type": "object",
+          "description": "Security configuration properties."
+          "properties": {
+            "tls": {
+              "type": "object",
+              "description": "TLS configuration properties.",
+              "properties": {
+                "enabled": {
+                  "description": "Enable TLS support (requires Strict mode).",
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "kerberos": {
+              "type": "object",
+              "description": "Kerberos configuration properties.",
+              "properties": {
+                "enabled": {
+                  "description": "Enable kerberos authentication.",
+                  "type": "boolean",
+                  "default": false
+                },
+                "keytab_secret_path": {
+                  "type": "string",
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
+                },
+                "krb5_conf_uri": {
+                  "type": "string",
+                  "description": "The URI of the krb5.conf file.  This file will be downloaded and used by each HDFS task."
+                },
+                "primary": {
+                  "type": "string",
+                  "description": "The Kerberos primary used by HDFS tasks.  The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
+                  "default": "hdfs"
+                },
+                "primary_http": {
+                  "type": "string",
+                  "description": "The Kerberos primary used by the HTTP server running on HDFS tasks.  See <service.kerberos.primary>.",
+                  "default": "HTTP"
+                },
+                "realm": {
+                  "type": "string",
+                  "description": "The Kerberos realm used to render the principal of HDFS tasks.",
+                  "default": "LOCAL"
+                }
+              }
+            }
+          }
         }
       },
       "required": [

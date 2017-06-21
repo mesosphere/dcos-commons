@@ -59,19 +59,20 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.tls.enabled}}
+    {{#hdfs.security.tls.enabled}}
     "TLS_ENABLED": "{{service.tls.enabled}}",
     "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
-    {{/service.tls.enabled}}
+    {{/hdfs.security.tls.enabled}}
 
-    {{#service.kerberos.enabled}}
-    "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
-    "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
-    "TASKCFG_ALL_SECURE_MODE": "{{service.kerberos.enabled}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
-    "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
-    {{/service.kerberos.enabled}}
+    {{#hdfs.security.kerberos.enabled}}
+    "TASKCFG_ALL_KERBEROS_ENABLED": "{{hdfs.security.kerberos.enabled}}",
+    "KERBEROS_KEYTAB_SECRET_PATH": "{{hdfs.security.kerberos.keytab_secret_path}}",
+    "KRB5_CONF_URI": "{{hdfs.security.kerberos.krb5_conf_uri}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{hdfs.security.kerberos.primary}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{hdfs.security.kerberos.primary_http}}",
+    "TASKCFG_ALL_KERBEROS_REALM": "{{hdfs.security.kerberos.realm}}",
+    {{/hdfs.security.kerberos.enabled}}
+
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
