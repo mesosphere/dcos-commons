@@ -71,7 +71,7 @@ pods:
           cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
           interval: 10
           delay: 5
-          timeout: 300 
+          timeout: 300
         health-check:
           cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
           interval: 120
@@ -89,19 +89,18 @@ pods:
             dest: "aws.sh"
         cmd: "./bootstrap && \
               chmod +x $MESOS_SANDBOX/aws.sh && \
-              mkdir backup-data && \ 
+              mkdir restore && \ 
               $MESOS_SANDBOX/aws.sh s3 cp \
               s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/$DATABASE_NAME.sql \
-              backup-data/ && \
+              restore/ && \
               $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql --insecure \
               --execute=\"CREATE DATABASE IF NOT EXISTS $DATABASE_NAME\" \
               --host='internal.cockroachdb.l4lb.thisdcos.directory' && \
               $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql \
               --database=$DATABASE_NAME --insecure \
               --host='internal.cockroachdb.l4lb.thisdcos.directory' < \
-              backup-data/$DATABASE_NAME.sql"
+              restore/$DATABASE_NAME.sql"
         resource-set: sidecar-resources
-
   sidecar:
     count: 1
     uris:
@@ -118,7 +117,7 @@ pods:
           aws:
             template: "{{CONFIG_TEMPLATE_PATH}}/aws.sh.mustache"
             dest: "aws.sh"
-        cmd: "./bootstrap && \
+        cmd: "./bootstrap --resolve=false && \
               chmod +x $MESOS_SANDBOX/aws.sh && \    
               mkdir backup && \
               touch backup/$DATABASE_NAME.sql && \
@@ -127,7 +126,7 @@ pods:
               backup/$DATABASE_NAME.sql && \
               $MESOS_SANDBOX/aws.sh s3 cp \
               backup/$DATABASE_NAME.sql \
-              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/ "
+              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/"
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -136,16 +135,16 @@ plans:
       node-deploy:
         strategy: serial
         pod: cockroachdb
-        steps: 
+        steps:
           - 0: [[node-init]]
           - default: [[node-join]]
   replace:
-    strategy: serial
+    strategy: parallel
     phases:
-      node-deploy: 
-        strategy: serial
+      node-deploy:
+        strategy: parallel
         pod: cockroachdb
-        steps: 
+        steps:
           - default: [[node-join]]
   backup:
     strategy: serial
@@ -164,3 +163,11 @@ plans:
         steps:
           - 0: [[restore]]
           - default: [[]]
+  update:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - default: [[node-join]]
