@@ -10,19 +10,7 @@ import dcos.config
 import dcos.http
 import shakedown
 
-from tests.test_utils import (
-    DEFAULT_PARTITION_COUNT,
-    DEFAULT_REPLICATION_FACTOR,
-    PACKAGE_NAME,
-    SERVICE_NAME,
-    DEFAULT_BROKER_COUNT,
-    DEFAULT_POD_TYPE,
-    DEFAULT_PHASE_NAME,
-    DEFAULT_PLAN_NAME,
-    DEFAULT_TASK_NAME,
-    service_cli,
-    broker_count_check
-)
+from tests.test_utils import *
 
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
@@ -93,23 +81,13 @@ def test_broker_invalid():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_restart():
-    for i in range(DEFAULT_BROKER_COUNT):
-        broker_id = tasks.get_task_ids(SERVICE_NAME,'{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME))
-        restart_info = service_cli('pods restart {}-{}'.format(DEFAULT_POD_TYPE, i))
-        tasks.check_tasks_updated(SERVICE_NAME, '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME), broker_id)
-        assert len(restart_info) == 2
-        assert restart_info['tasks'][0] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
+    restart_broker_pods()
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_replace():
-    broker_0_id = tasks.get_task_ids(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME))
-    service_cli('pods replace {}-0'.format(DEFAULT_POD_TYPE))
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_0_id)
-    tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-    # wait till all brokers register
-    broker_count_check(DEFAULT_BROKER_COUNT)
+    replace_broker_pod()
 
 
 # --------- Topics -------------
@@ -118,31 +96,13 @@ def test_pods_replace():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_create():
-    create_info = service_cli(
-        'topic create {}'.format(EPHEMERAL_TOPIC_NAME)
-    )
-    utils.out(create_info)
-    assert ('Created topic "%s".\n' % EPHEMERAL_TOPIC_NAME in create_info['message'])
-    assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
-    topic_list_info = service_cli('topic list')
-    assert topic_list_info == [EPHEMERAL_TOPIC_NAME]
-
-    topic_info = service_cli('topic describe {}'.format(EPHEMERAL_TOPIC_NAME))
-    assert len(topic_info) == 1
-    assert len(topic_info['partitions']) == DEFAULT_PARTITION_COUNT
+    create_topic()
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_delete():
-    delete_info = service_cli('topic delete {}'.format(EPHEMERAL_TOPIC_NAME))
-
-    assert len(delete_info) == 1
-    assert delete_info['message'].startswith('Output: Topic {} is marked for deletion'.format(EPHEMERAL_TOPIC_NAME))
-
-    topic_info = service_cli('topic describe {}'.format(EPHEMERAL_TOPIC_NAME))
-    assert len(topic_info) == 1
-    assert len(topic_info['partitions']) == DEFAULT_PARTITION_COUNT
+    delete_topic()
 
 
 @pytest.fixture

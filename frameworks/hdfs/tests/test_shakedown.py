@@ -1,26 +1,23 @@
-import json
-
 import pytest
-import shakedown
 import time
+
+import shakedown
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_TASK_COUNT
+    DEFAULT_TASK_COUNT,
+    check_healthy,
+    TEST_FILE_1_NAME,
+    TEST_FILE_2_NAME,
+    HDFS_CMD_TIMEOUT_SEC,
+    read_data_from_hdfs,
+    write_data_to_hdfs
 )
-
-TEST_CONTENT_SMALL = "This is some test data"
-# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
-HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
 def setup_module(module):
@@ -42,18 +39,18 @@ def teardown_module(module):
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
     shakedown.wait_for(
-        lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     # gives chance for write to succeed and replication to occur
-    time.sleep(5)
+    time.sleep(9)
 
-    tasks.kill_task_with_pattern("DataNode", 'data-0-node.hdfs.autoip.dcos.thisdcos.directory')
-    tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.autoip.dcos.thisdcos.directory')
-    time.sleep(1)  # give DataNode a chance to die
+    tasks.kill_task_with_pattern("DataNode", 'data-0-node.hdfs.mesos')
+    tasks.kill_task_with_pattern("DataNode", 'data-1-node.hdfs.mesos')
+    time.sleep(9)  # give DataNode a chance to die
 
     shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_1_NAME),
+        lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME),
         timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
     check_healthy()
@@ -68,7 +65,7 @@ def test_integrity_on_name_node_failure():
     This test checks that it is possible to write and read data after the first name node fails.
     """
     tasks.kill_task_with_pattern("NameNode", 'name-0-node.hdfs.autoip.dcos.thisdcos.directory')
-    time.sleep(1)  # give NameNode a chance to die
+    time.sleep(9)  # give NameNode a chance to die
 
     shakedown.wait_for(
         lambda: write_data_to_hdfs("data-0-node.hdfs.autoip.dcos.thisdcos.directory", TEST_FILE_2_NAME),
@@ -318,62 +315,3 @@ def replace_name_node(index):
     tasks.check_tasks_updated(PACKAGE_NAME, name_node_name, name_id)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
-
-
-def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
-
-
-def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
-
-
-def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):
-    write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
-    rc, _ = run_hdfs_command(data_node_host, write_command)
-    # rc being True is effectively it being 0...
-    return rc
-
-
-def read_data_from_hdfs(data_node_host, filename):
-    read_command = "./bin/hdfs dfs -cat /{}".format(filename)
-    rc, output = run_hdfs_command(data_node_host, read_command)
-    return rc and output.rstrip() == TEST_CONTENT_SMALL
-
-
-def run_hdfs_command(host, command):
-    """
-    Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
-    """
-    java_home = find_java_home(host)
-
-    # Find hdfs home directory by looking up the Data Node process.
-    # Hdfs directory is found in an arg to the java command.
-    hdfs_dir_cmd = """ps -ef | grep hdfs | grep DataNode \
-        | awk 'BEGIN {RS=" "}; /-Dhadoop.home.dir/' | sed s/-Dhadoop.home.dir=//"""
-    full_command = """cd $({}) &&
-        export JAVA_HOME={} &&
-        {}""".format(hdfs_dir_cmd, java_home, command)
-
-    rc, output = shakedown.run_command_on_agent(host, full_command)
-    return rc, output
-
-
-def find_java_home(host):
-    """
-    Find java home by looking up the Data Node process.
-    Java home is found in the process command.
-    """
-    java_home_cmd = """ps -ef | grep hdfs | grep DataNode | grep -v grep \
-        | awk '{print $8}' | sed s:/bin/java::"""
-    rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
-    assert rc
-    java_home = output.rstrip()
-    sdk_utils.out("java_home: {}".format(java_home))
-    return java_home
-
-
-def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=20 * 60)
-    tasks.check_running(PACKAGE_NAME, count)

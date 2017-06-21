@@ -10,11 +10,6 @@ import sdk_plan as plan
 import sdk_utils as utils
 
 
-TEST_JOBS = (
-    WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB
-)
-
-
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
@@ -41,6 +36,11 @@ def teardown_module(module):
 def test_service_health():
     assert shakedown.service_healthy(PACKAGE_NAME)
 
+
+@pytest.mark.smoke
+def test_read_write_delete_data():
+    jobs.RunJobContext(before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
+                       after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB])
 
 @pytest.mark.sanity
 def test_cleanup_plan_completes():

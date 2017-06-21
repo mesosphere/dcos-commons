@@ -6,12 +6,6 @@ enterprise: 'no'
 ---
 
 
-
-
-
-
-
-
 * Configurations
 
     The "disk" configuration value is denominated in MB. We recommend you set the configuration value `log_retention_bytes` to a value smaller than the indicated "disk" configuration. See the Configuring section for instructions for customizing these values.
@@ -27,3 +21,7 @@ enterprise: 'no'
 * Security
 
     The security features introduced in Apache Kafka 0.9 are not supported at this time.
+    
+* Overlay networks
+
+    When kafka is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network. 
