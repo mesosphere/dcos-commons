@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli"
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -26,26 +27,28 @@ type SQLHandler struct {
 
 func (cmd *SQLHandler) sql(c *kingpin.ParseContext) error {
 	var dcosCmd []string;
+	cockroachHostFlag := fmt.Sprintf("--host=internal.%s.l4lb.thisdcos.directory", config.ServiceName)
+	cockroachTask := fmt.Sprintf("%s-1-node-join", config.ServiceName)
 	dcosCmd = append(dcosCmd,
 		"task",
 		"exec",
 		"-it",
-		"cockroachdb-1-node-join",
+		cockroachTask,
 		"./cockroach",
 		"sql",
 		"--insecure",
-		"--host=internal.cockroachdb.l4lb.thisdcos.directory")
+		cockroachHostFlag)
 	if cmd.database != "" {
 		dcosCmd = append(dcosCmd, "-d", cmd.database)
 	}
 	if cmd.user != "" {
 		dcosCmd = append(dcosCmd, "-u", cmd.user)
 	}
-	runCommand(dcosCmd...)
+	runDcosCommand(dcosCmd...)
 	return nil
 }
 
-func runCommand(arg ...string) {
+func runDcosCommand(arg ...string) {
 	cmd := exec.Command("dcos", arg...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
