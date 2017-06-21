@@ -307,7 +307,7 @@
         "storage_port": {
           "type": "integer",
           "description": "The port for inter-node communication.",
-          "default": 7000
+          "default": 7005
         },
         "ssl_storage_port": {
           "type": "integer",
