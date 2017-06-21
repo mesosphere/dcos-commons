@@ -142,6 +142,18 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     }
 
+    private void setPortBuilder(Protos.Port.Builder portBuilder, long port) {
+        portBuilder.setNumber((int) port)
+                .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                .setName(getPortName());
+    }
+
+    private Protos.Port.Builder makePortBuilder(long port) {
+        Protos.Port.Builder builder = Protos.Port.newBuilder();
+        setPortBuilder(builder, port);
+        return builder;
+    }
+
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
@@ -151,25 +163,39 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             taskBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
 
-            Protos.DiscoveryInfo.Builder discoveryInfoBuilder = taskBuilder.hasDiscovery() ?
-                    taskBuilder.getDiscoveryBuilder() : Protos.DiscoveryInfo.newBuilder();
+            //Protos.DiscoveryInfo.Builder discoveryInfoBuilder = taskBuilder.hasDiscovery() ?
+            //        taskBuilder.getDiscoveryBuilder() : Protos.DiscoveryInfo.newBuilder();
 
-            Protos.Ports.Builder portsBuilder = discoveryInfoBuilder.getPortsBuilder();
+            //Protos.Ports.Builder portsBuilder = discoveryInfoBuilder.getPortsBuilder();
 
             if (taskBuilder.hasDiscovery()) {
-                portsBuilder.addPortsBuilder()
-                        .setNumber((int) port)
-                        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                        .setName(getPortName());  // TODO random string appended to port name?
+                Protos.Ports.Builder portsBuilder = taskBuilder.getDiscoveryBuilder().getPortsBuilder();
+                Optional<Protos.Port.Builder> builderOptional = portsBuilder.getPortsBuilderList().stream()
+                        .filter(b -> b.getName().equals(getPortName()))
+                        .findFirst();
+                if (builderOptional.isPresent()) {
+                    //builderOptional.get()
+                    //        .setNumber((int) port)
+                    //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL);
+                    setPortBuilder(builderOptional.get(), port);
+                } else {
+                    portsBuilder.addPorts(makePortBuilder(port));
+                    //portsBuilder.addPortsBuilder()
+                    //        .setNumber((int) port)
+                    //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                    //        .setName(getPortName());  // TODO random string appended to port name?
+
+                }
             } else {
-                discoveryInfoBuilder
+                Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
                         .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
                         .setName(taskBuilder.getName());
-
-                portsBuilder.addPortsBuilder()
-                        .setNumber((int) port)
-                        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                        .setName(getPortName());
+                //discoveryInfoBuilder.getPortsBuilder().
+                //portsBuilder.addPortsBuilder()
+                //        .setNumber((int) port)
+                //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                //        .setName(getPortName());
+                discoveryInfoBuilder.getPortsBuilder().addPorts(makePortBuilder(port));
                 taskBuilder.setDiscovery(discoveryInfoBuilder);
             }
 
