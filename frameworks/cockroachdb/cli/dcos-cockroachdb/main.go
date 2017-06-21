@@ -48,6 +48,17 @@ func (cmd *SQLHandler) sql(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func version(c *kingpin.ParseContext) error {
+	runDcosCommand("task",
+			"exec",
+			"-it",
+			"cockroachdb-0-node-init",
+			"./cockroach",
+			"version")
+	runDcosCommand("--version")
+	return nil
+}
+
 func runDcosCommand(arg ...string) {
 	cmd := exec.Command("dcos", arg...)
 	cmd.Stdin = os.Stdin
@@ -64,4 +75,5 @@ func handleCockroachSection(app *kingpin.Application) {
 	sql := app.Command("sql", "Opens interactive Cockroachdb SQL shell").Action(cmd.sql)
 	sql.Flag("database", "The database to connect to.").Short('d').StringVar(&cmd.database)
 	sql.Flag("user", "The user connecting to the database. The user must have privileges for any statement executed.").Short('u').StringVar(&cmd.user)
+	app.Command("version", "Output CockroachDB version and dependency details").Action(version)
 }
