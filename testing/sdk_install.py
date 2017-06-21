@@ -85,7 +85,6 @@ def _uninstall(service_name, package_name=None, role=None, principal=None, zk=No
         #   2. Does the marathon app have the capability label?
         cosmos_support = not shakedown.dcos_version_less_than("1.10")
 
-        sdk_marathon.get_config(package_name).
         scheduler_support = True if "DCOS_COMMONS_UNINSTALL" in sdk_marathon.get_config(package_name)['labels'] else False
 
         return cosmos_support and scheduler_support
