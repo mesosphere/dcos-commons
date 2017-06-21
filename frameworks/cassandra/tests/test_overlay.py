@@ -57,14 +57,8 @@ def test_service_overlay_health():
         networks.check_task_network(task)
 
 
-@pytest.mark.smoke
-@pytest.mark.overlay
-def test_basic_functionality():
-    jobs.RunJobContext(before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
-                       after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB])
-
-
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.overlay
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
@@ -74,11 +68,11 @@ def test_functionality():
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
 
-        plan.start_plan(SERVICE_NAME, 'cleanup', parameters=parameters)
-        plan.wait_for_completed_plan(SERVICE_NAME, 'cleanup')
+        plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=parameters)
+        plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
 
-        plan.start_plan(SERVICE_NAME, 'repair', parameters=parameters)
-        plan.wait_for_completed_plan(SERVICE_NAME, 'repair')
+        plan.start_plan(PACKAGE_NAME, 'repair', parameters=parameters)
+        plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
 
 
 @pytest.mark.sanity

@@ -60,33 +60,20 @@ def test_endpoints():
     assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', 9042)
 
 
-@pytest.mark.smoke
-def test_read_write_delete_data():
-    jobs.RunJobContext(before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
-                       after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB])
-
-
 @pytest.mark.sanity
-def test_cleanup_plan_completes():
-    cleanup_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+@pytest.mark.smoke
+def test_repair_cleanup_plans_complete():
+    parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
     # populate 'testspace1' for test, then delete afterwards:
     with jobs.RunJobContext(
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
-        plan.start_plan(FOLDERED_SERVICE_NAME, 'cleanup', parameters=cleanup_parameters)
+
+        plan.start_plan(FOLDERED_SERVICE_NAME, 'cleanup', parameters=parameters)
         plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'cleanup')
 
-
-@pytest.mark.sanity
-def test_repair_plan_completes():
-    repair_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
-
-    # populate 'testspace1' for test, then delete afterwards:
-    with jobs.RunJobContext(
-        before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
-        after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
-        plan.start_plan(FOLDERED_SERVICE_NAME, 'repair', parameters=repair_parameters)
+        plan.start_plan(FOLDERED_SERVICE_NAME, 'repair', parameters=parameters)
         plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'repair')
 
 
