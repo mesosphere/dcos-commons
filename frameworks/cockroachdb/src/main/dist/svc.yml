@@ -17,12 +17,12 @@ pods:
             port: 0
             vip:
               prefix: gui
-              port: 80
+              port: {{COCKROACH_GUI_PORT}}
           internal:
             port: 0
             vip:
               prefix: internal
-              port: 26257
+              port: {{COCKROACH_INTERNAL_PORT}}
         volume:
           path: "cockroach-data"
           type: {{NODE_DISK_TYPE}}

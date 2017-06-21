@@ -23,6 +23,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         
         URL resource = ServiceSpecTest.class.getClassLoader().getResource("start.sh.mustache");
         envVars.put("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
+
+        envVars.put("COCKROACH_GUI_PORT", "80");
+        envVars.put("COCKROACH_INTERNAL_PORT", "26257");
     }
 
     @Test
