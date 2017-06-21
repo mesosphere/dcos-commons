@@ -65,6 +65,7 @@
     {{/hdfs.security.tls.enabled}}
 
     {{#hdfs.security.kerberos.enabled}}
+    "KERBEROS_ENABLED": "{{hdfs.security.kerberos.enabled}}",
     "TASKCFG_ALL_KERBEROS_ENABLED": "{{hdfs.security.kerberos.enabled}}",
     "KERBEROS_KEYTAB_SECRET_PATH": "{{hdfs.security.kerberos.keytab_secret_path}}",
     "KRB5_CONF_URI": "{{hdfs.security.kerberos.krb5_conf_uri}}",

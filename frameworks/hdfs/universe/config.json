@@ -239,7 +239,7 @@
         },
         "security": {
           "type": "object",
-          "description": "Security configuration properties."
+          "description": "Security configuration properties.",
           "properties": {
             "tls": {
               "type": "object",
