@@ -15,11 +15,25 @@ FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
 
 DEFAULT_TASK_COUNT = 7
 WAIT_TIME_IN_SECONDS = 10 * 60
-KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
+KIBANA_WAIT_TIME_IN_SECONDS = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
+
+
+DEFAULT_NUMBER_OF_SHARDS = 1
+DEFAULT_NUMBER_OF_REPLICAS = 1
+DEFAULT_SETTINGS_MAPPINGS = {
+    "settings": {
+        "index.unassigned.node_left.delayed_timeout": "0",
+        "number_of_shards": DEFAULT_NUMBER_OF_SHARDS,
+        "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS},
+    "mappings": {
+        DEFAULT_INDEX_TYPE: {
+            "properties": {
+                "name": {"type": "keyword"},
+                "role": {"type": "keyword"}}}}}
 
 
 def as_json(fn):

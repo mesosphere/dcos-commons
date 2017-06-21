@@ -98,7 +98,7 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt=None, pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_filename=None, pytest_types='sanity'):
         normal_path = test_dirs.rstrip(os.sep)
         framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
@@ -116,11 +116,15 @@ class CITester(object):
         if not os.path.isdir(package_path):
             os.makedirs(package_path)
 
-        if requirements_txt is not None:
-            logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
+        if requirements_filename is not None:
+            logger.info('Using provided requirements.txt: {}'.format(requirements_filename))
+            with open(requirements_filename) as req_f:
+                requirements_text = req_f.read()
+        else:
+            requirements_text = None
 
         piputil.populate_dcoscommons_packagedir(package_path,
-                                                requirements_txt)
+                                                requirements_text)
         piputil.activate_libdir(package_path)
 
         cmd = [sys.executable, '-m', 'pytest']
@@ -285,11 +289,11 @@ def main(argv):
         if test_type == 'shakedown':
             if len(argv) >= 4:
                 # use provided requirements.txt
-                requirements_txt = argv[3]
+                requirements_filename = argv[3]
             else:
                 # use default requirements
-                requirements_txt = None
-            tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
+                requirements_filename = None
+            tester.run_shakedown(test_dirs, requirements_filename, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]
             tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)

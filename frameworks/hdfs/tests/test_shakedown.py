@@ -11,18 +11,7 @@ import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils as utils
-from tests.config import (
-    PACKAGE_NAME,
-    FOLDERED_SERVICE_NAME,
-    DEFAULT_TASK_COUNT
-)
-
-TEST_CONTENT_SMALL = "This is some test data"
-# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
-HDFS_POD_TYPES = {"journal", "name", "data"}
+from tests.config import *
 
 
 def setup_module(module):
@@ -79,7 +68,7 @@ def test_integrity_on_data_node_failure():
     write_some_data('data-0-node', TEST_FILE_1_NAME)
 
     # gives chance for write to succeed and replication to occur
-    time.sleep(5)
+    time.sleep(9)
 
     tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
     tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-1-node'))

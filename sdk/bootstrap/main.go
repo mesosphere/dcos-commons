@@ -47,6 +47,9 @@ type args struct {
 
 	// Install certs from .ssl into JRE/lib/security/cacerts
 	installCerts bool
+
+	// Get Task IP
+	getTaskIp bool
 }
 
 func parseArgs() args {
@@ -74,10 +77,12 @@ func parseArgs() args {
 	flag.BoolVar(&args.installCerts, "install-certs", true,
 		"Whether to install certs from .ssl to the JRE.")
 
+	flag.BoolVar(&args.getTaskIp, "get-task-ip", false, "Print task IP")
+
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
-	if args.resolveEnabled && rawHosts == defaultHostString {
+	if args.resolveEnabled && rawHosts == defaultHostString && !args.getTaskIp {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
@@ -322,10 +327,53 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
+func GetLocalIPold() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
+func GetLocalIP() (addr string, err error) {
+	ip, err := ContainerIP()
+
+	if err != nil {
+		return ip.String(), err
+	}
+
+	addr = ip.String()
+	return ip.String(), err
+}
+
 // main
 
 func main() {
 	args := parseArgs()
+
+	pod_ip, err := GetLocalIP()
+	if err != nil {
+		log.Fatalf("Cannot find the container's IP address: ", err)
+	}
+
+	err = os.Setenv("LIBPROCESS_IP", pod_ip)
+	if err != nil {
+		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
+	}
+
+	if args.getTaskIp {
+		log.Printf("Printing new task IP: %s", pod_ip)
+		fmt.Printf("%s", pod_ip)
+		os.Exit(0)
+	}
 
 	if args.printEnvEnabled {
 		printEnv()
@@ -346,6 +394,6 @@ func main() {
 	if args.installCerts {
 		installDCOSCertIntoJRE()
 	}
-
+	log.Printf("Local IP --> %s", pod_ip)
 	log.Printf("SDK Bootstrap successful.")
 }

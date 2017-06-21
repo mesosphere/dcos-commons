@@ -60,6 +60,12 @@ def test_endpoints():
     assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', 9042)
 
 
+@pytest.mark.smoke
+def test_read_write_delete_data():
+    jobs.RunJobContext(before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
+                       after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB])
+
+
 @pytest.mark.sanity
 def test_cleanup_plan_completes():
     cleanup_parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
