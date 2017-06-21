@@ -264,7 +264,7 @@ pods:
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
         readiness-check:
-          cmd: MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $LIBPROCESS_IP | wc -l)" && [ $MATCH -gt 1 ]
+          cmd: export TASK_IP=$(./bootstrap --getTaskIp) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
           interval: 10
           delay: 120
           timeout: 60

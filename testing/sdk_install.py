@@ -108,7 +108,7 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
                 app_list = client.get_apps()
                 matching_apps = [app for app in app_list if app['id'] == marathon_app_id]
                 if len(matching_apps) > 1:
-                    msg = 'Error during uninstall, got more than one app in app list with mathching id to %s'
+                    msg = 'Error during uninstall, got more than one app in app list with matching id to %s'
                     sdk_utils.out(msg % marathon_app_id)
                 return len(matching_apps) == 0
             sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))

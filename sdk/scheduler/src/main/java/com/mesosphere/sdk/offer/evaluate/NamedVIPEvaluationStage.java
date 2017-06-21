@@ -2,7 +2,11 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.api.EndpointUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
@@ -48,14 +52,35 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
                 // TODO need a seek to correct portsBuilder here for when there is more than 1 port on a pod
-                // test this too 
+                // test this too
                 taskBuilder.getDiscoveryBuilder().setVisibility(DiscoveryInfo.Visibility.CLUSTER);
-                taskBuilder.getDiscoveryBuilder().getPortsBuilder()
-                        .getPortsBuilder(0)
-                        .setVisibility(visibility)
+                List<Protos.Port.Builder> portsBuilders = taskBuilder
+                        .getDiscoveryBuilder()
+                        .getPortsBuilder()
+                            .getPortsBuilderList().stream()
+                            .filter(port -> port.getNumber() == portSpec.getPort())
+                            .collect(Collectors.toList());
+                if (portsBuilders.size() != 1) {
+                    throw new IllegalStateException(String.format("Cannot have multiple ports with the same number" +
+                            "got ports %s", portsBuilders.toString()));
+                }
+                Protos.Port.Builder portBuilder = portsBuilders.get(0);
+                if (!portBuilder.getName().equals(getPortName())) {
+                    throw new IllegalStateException(String.format("Port has incorrect name/port pair got %s" +
+                            " should have name %s", portBuilder.getName(), portSpec.getPortName()));
+                }
+                portBuilder.setVisibility(visibility)
                         .setProtocol(protocol)
                         .getLabelsBuilder()
                             .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
+
+
+                //taskBuilder.getDiscoveryBuilder().getPortsBuilder
+                //        .getPortsBuilder(0)
+                //        .setVisibility(visibility)
+                //        .setProtocol(protocol)
+                //        .getLabelsBuilder()
+                //            .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
                 //addVIP(
                 //        taskBuilder.getDiscoveryBuilder(),
                 //        vipName,
@@ -64,13 +89,15 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 //        vipPort,
                 //        (int) resource.getRanges().getRange(0).getBegin());
             } else {
-                taskBuilder.setDiscovery(getVIPDiscoveryInfo(
-                        taskBuilder.getName(),
-                        vipName,
-                        vipPort,
-                        protocol,
-                        visibility,
-                        resource));
+                throw new IllegalStateException(String.format("Trying TaskBuilder missing DiscoveryInfo for port" +
+                        "%s, TaskBuilder: %s", getPortName(), taskBuilder.toString()));
+                //taskBuilder.setDiscovery(getVIPDiscoveryInfo(
+                //        taskBuilder.getName(),
+                //        vipName,
+                //        vipPort,
+                //        protocol,
+                //        visibility,
+                //        resource));
             }
         }
     }

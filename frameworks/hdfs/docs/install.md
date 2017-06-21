@@ -205,3 +205,15 @@ If the installation has been paused, the REST API request below will resume inst
 ```
 curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
+
+
+## Overlay networks
+HDFS supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each container to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+```json
+{
+    "service": {
+        "virtual_network": true
+    }
+}
+```
+As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network. 

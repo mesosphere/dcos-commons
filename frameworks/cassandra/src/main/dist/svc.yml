@@ -70,7 +70,7 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
             dest: s3config.json
         readiness-check:
-          cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $LIBPROCESS_IP"
+          cmd: export TASK_IP=$(./bootstrap --getTaskIp) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60
