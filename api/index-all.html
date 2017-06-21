@@ -186,9 +186,10 @@
 <div class="block">Sets the <code>applicationPort</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html#applyEnvToMustache-java.lang.String-java.util.Map-">applyEnvToMustache(String, Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html#applyEnvToMustache-java.lang.String-java.lang.String-java.util.Map-com.mesosphere.sdk.specification.yaml.TemplateUtils.MissingBehavior-">applyEnvToMustache(String, String, Map&lt;String, String&gt;, TemplateUtils.MissingBehavior)</a></span> - Static method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils</a></dt>
 <dd>
-<div class="block">Renders a given Mustache template using the provided environment map.</div>
+<div class="block">Renders a given Mustache template using the provided environment map, with the provided behavior when missing
+ template values are encountered.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#areDifferent-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-">areDifferent(TaskSpec, TaskSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
@@ -1867,15 +1868,15 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#forStep-com.mesosphere.sdk.scheduler.plan.Step-">forStep(Step)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_HOST_TASKENV">FRAMEWORK_HOST_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
+<dd>
+<div class="block">Provides the host domain of the service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#FRAMEWORK_ID">FRAMEWORK_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_NAME_TASKENV">FRAMEWORK_NAME_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
 <div class="block">Provides the configured name of the framework/service.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_TLD_TASKENV">FRAMEWORK_TLD_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
-<dd>
-<div class="block">Provides top-level-domain suffix for DNS with Navstar (uses overlay network and the host network).</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#frameworkMessage-ExecutorDriver-byte:A-">frameworkMessage(ExecutorDriver, byte[])</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
@@ -4144,8 +4145,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#MESOS_TLD_TASKENV">MESOS_TLD_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
-<div class="block">Provides top-level-domain suffix for Mesos-DNS (only reflects task IP when the task is on the
-  host network).</div>
+<div class="block">Provides top-level-domain suffix for Mesos-DNS (only reflects task IP when the task is on the host network).</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/executor/MesosExecutorDriverFactory.html" title="class in com.mesosphere.sdk.executor"><span class="typeNameLink">MesosExecutorDriverFactory</span></a> - Class in <a href="com/mesosphere/sdk/executor/package-summary.html">com.mesosphere.sdk.executor</a></dt>
 <dd>
@@ -5468,6 +5468,14 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterCache.html#set-java.lang.String-byte:A-">set(String, byte[])</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage">PersisterCache</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/TaskEnvRouter.html#setAllPodsEnv-java.lang.String-java.lang.String-">setAllPodsEnv(String, String)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></dt>
+<dd>
+<div class="block">Adds a custom environment value to be included in all pods.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setAllPodsEnv-java.lang.String-java.lang.String-">setAllPodsEnv(String, String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></dt>
+<dd>
+<div class="block">Assigns an environment variable to be included in all service tasks.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#setCanLaunch-boolean-">setCanLaunch(boolean)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.config.ConfigStore-">setConfigStore(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
@@ -5509,14 +5517,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setFileReader-com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers.FileReader-">setFileReader(YAMLToInternalMappers.FileReader)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></dt>
 <dd>
 <div class="block">Assigns a custom <code>YAMLToInternalMappers.FileReader</code> implementation for reading config file templates.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/TaskEnvRouter.html#setGlobalTaskEnv-java.lang.String-java.lang.String-">setGlobalTaskEnv(String, String)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></dt>
-<dd>
-<div class="block">Adds a custom environment value to be included in all pods.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setGlobalTaskEnv-java.lang.String-java.lang.String-">setGlobalTaskEnv(String, String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></dt>
-<dd>
-<div class="block">Assigns an environment variable to be included in all service tasks.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/SchedulerLabelWriter.html#setGoalState-com.mesosphere.sdk.specification.GoalState-">setGoalState(GoalState)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/SchedulerLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">SchedulerLabelWriter</a></dt>
 <dd>
@@ -5573,11 +5573,11 @@
 <div class="block">Sets the <a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s from the provided <a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> to this instance, using a
  <a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification"><code>DefaultPlanGenerator</code></a> to handle conversion.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/TaskEnvRouter.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">setPodTaskEnv(String, String, String)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/TaskEnvRouter.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-">setPodEnv(String, String, String)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></dt>
 <dd>
 <div class="block">Adds a custom environment variable to be only included in the specified pod type.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">setPodTaskEnv(String, String, String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-">setPodEnv(String, String, String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></dt>
 <dd>
 <div class="block">Assigns an environment variable to be included in tasks for the specified pod type.</div>
 </dd>
@@ -6084,6 +6084,10 @@
 <dd>
 <div class="block">Utility methods relating to rendering mustache templates.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">TemplateUtils.MissingBehavior</span></a> - Enum in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
+<dd>
+<div class="block">Available behaviors when a template value is missing.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#terminate-java.time.Duration-">terminate(Duration)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils"><span class="typeNameLink">TestConstants</span></a> - Class in <a href="com/mesosphere/sdk/testutils/package-summary.html">com.mesosphere.sdk.testutils</a></dt>
@@ -6133,9 +6137,17 @@
 <dd>
 <div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dd>
+<div class="block">Returns the correct DNS domain for tasks within the service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-">toAutoIpEndpoint(String, String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
 <dd>
-<div class="block">Returns the correct Mesos DNS endpoint for the provided task and port running within the provided service.</div>
+<div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-">toAutoIpHostname(String, String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dd>
+<div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toEndpoint-java.lang.String-int-">toEndpoint(String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
 <dd>
@@ -6628,6 +6640,10 @@
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/MemPersister.LockMode.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage">MemPersister.LockMode</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
@@ -6662,6 +6678,11 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/VolumeSpec.Type.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>

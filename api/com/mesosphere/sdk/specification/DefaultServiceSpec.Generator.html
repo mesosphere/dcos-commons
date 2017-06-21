@@ -138,22 +138,22 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setFileReader-com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers.FileReader-">setFileReader</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/YAMLToInternalMappers.FileReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLToInternalMappers.FileReader</a>&nbsp;fileReader)</code>
-<div class="block">Assigns a custom <code>YAMLToInternalMappers.FileReader</code> implementation for reading config file templates.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setAllPodsEnv-java.lang.String-java.lang.String-">setAllPodsEnv</a></span>(java.lang.String&nbsp;key,
+             java.lang.String&nbsp;value)</code>
+<div class="block">Assigns an environment variable to be included in all service tasks.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setGlobalTaskEnv-java.lang.String-java.lang.String-">setGlobalTaskEnv</a></span>(java.lang.String&nbsp;key,
-                java.lang.String&nbsp;value)</code>
-<div class="block">Assigns an environment variable to be included in all service tasks.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setFileReader-com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers.FileReader-">setFileReader</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/YAMLToInternalMappers.FileReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLToInternalMappers.FileReader</a>&nbsp;fileReader)</code>
+<div class="block">Assigns a custom <code>YAMLToInternalMappers.FileReader</code> implementation for reading config file templates.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">setPodTaskEnv</a></span>(java.lang.String&nbsp;podType,
-             java.lang.String&nbsp;key,
-             java.lang.String&nbsp;value)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
+         java.lang.String&nbsp;key,
+         java.lang.String&nbsp;value)</code>
 <div class="block">Assigns an environment variable to be included in tasks for the specified pod type.</div>
 </td>
 </tr>
@@ -179,28 +179,28 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setGlobalTaskEnv-java.lang.String-java.lang.String-">
+<a name="setAllPodsEnv-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setGlobalTaskEnv</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setGlobalTaskEnv(java.lang.String&nbsp;key,
-                                                     java.lang.String&nbsp;value)</pre>
+<h4>setAllPodsEnv</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setAllPodsEnv(java.lang.String&nbsp;key,
+                                                  java.lang.String&nbsp;value)</pre>
 <div class="block">Assigns an environment variable to be included in all service tasks. Note that this may be overridden via
  <code>TASKCFG_*</code> scheduler environment variables at runtime, and by pod-specific settings provided via
- <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodTaskEnv(String, String, String)</code></a>.</div>
+ <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodEnv(String, String, String)</code></a>.</div>
 </li>
 </ul>
-<a name="setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">
+<a name="setPodEnv-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setPodTaskEnv</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setPodTaskEnv(java.lang.String&nbsp;podType,
-                                                  java.lang.String&nbsp;key,
-                                                  java.lang.String&nbsp;value)</pre>
+<h4>setPodEnv</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setPodEnv(java.lang.String&nbsp;podType,
+                                              java.lang.String&nbsp;key,
+                                              java.lang.String&nbsp;value)</pre>
 <div class="block">Assigns an environment variable to be included in tasks for the specified pod type. For example, all tasks
  running inside of "index" pods. Note that this may be overridden via <code>TASKCFG_*</code> scheduler environment
  variables at runtime.</div>

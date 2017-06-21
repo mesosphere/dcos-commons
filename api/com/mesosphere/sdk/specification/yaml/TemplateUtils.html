@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/specification/yaml/TemplateUtils.html" target="_top">Frames</a></li>
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -116,6 +116,27 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!--   -->
+</a>
+<h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a></span></code>
+<div class="block">Available behaviors when a template value is missing.</div>
+</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -130,9 +151,12 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#applyEnvToMustache-java.lang.String-java.util.Map-">applyEnvToMustache</a></span>(java.lang.String&nbsp;templateContent,
-                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment)</code>
-<div class="block">Renders a given Mustache template using the provided environment map.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#applyEnvToMustache-java.lang.String-java.lang.String-java.util.Map-com.mesosphere.sdk.specification.yaml.TemplateUtils.MissingBehavior-">applyEnvToMustache</a></span>(java.lang.String&nbsp;templateName,
+                  java.lang.String&nbsp;templateContent,
+                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment,
+                  <a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a>&nbsp;missingValueBehavior)</code>
+<div class="block">Renders a given Mustache template using the provided environment map, with the provided behavior when missing
+ template values are encountered.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -163,19 +187,24 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="applyEnvToMustache-java.lang.String-java.util.Map-">
+<a name="applyEnvToMustache-java.lang.String-java.lang.String-java.util.Map-com.mesosphere.sdk.specification.yaml.TemplateUtils.MissingBehavior-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>applyEnvToMustache</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;applyEnvToMustache(java.lang.String&nbsp;templateContent,
-                                                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment)</pre>
-<div class="block">Renders a given Mustache template using the provided environment map.</div>
+<pre>public static&nbsp;java.lang.String&nbsp;applyEnvToMustache(java.lang.String&nbsp;templateName,
+                                                  java.lang.String&nbsp;templateContent,
+                                                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment,
+                                                  <a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a>&nbsp;missingValueBehavior)</pre>
+<div class="block">Renders a given Mustache template using the provided environment map, with the provided behavior when missing
+ template values are encountered.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>templateContent</code> - String representation of template.</dd>
-<dd><code>environment</code> - Map of environment variables.</dd>
+<dd><code>templateContent</code> - String representation of template</dd>
+<dd><code>environment</code> - Map of environment variables</dd>
+<dd><code>missingValueBehavior</code> - What to do when the <code>templateContent</code> has a value which isn't present in the
+      <code>environment</code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Rendered Mustache template String.</dd>
 </dl>
@@ -223,7 +252,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/specification/yaml/TemplateUtils.html" target="_top">Frames</a></li>
@@ -247,7 +276,7 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>

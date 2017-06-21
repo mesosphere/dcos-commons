@@ -202,6 +202,7 @@
           </li>
           <li><a href="#reconfiguration" id="markdown-toc-reconfiguration">Reconfiguration</a>            <ul>
               <li><a href="#steps-handled-by-the-dcos-cluster-1" id="markdown-toc-steps-handled-by-the-dcos-cluster-1">Steps handled by the DC/OS cluster</a></li>
+              <li><a href="#steps-handled-by-the-scheduler-1" id="markdown-toc-steps-handled-by-the-scheduler-1">Steps handled by the Scheduler</a></li>
             </ul>
           </li>
         </ul>
@@ -382,7 +383,7 @@
 
 <ul>
   <li>
-    <p>If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a “Framework has been removed” error if Mesos doesn’t recognize that Framework ID, indicating an incomplete uninstall.</p>
+    <p>If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a “<a href="#framework-has-been-removed">Framework has been removed</a>” error if Mesos doesn’t recognize that Framework ID, indicating an incomplete uninstall.</p>
   </li>
   <li>
     <p>If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.</p>
@@ -422,6 +423,8 @@
   </li>
 </ol>
 
+<h4 id="steps-handled-by-the-scheduler-1">Steps handled by the Scheduler</h4>
+
 <p>As with initial install above, at this point the Scheduler is re-launched with the same three sources of information it had before:</p>
 <ul>
   <li><code class="highlighter-rouge">svc.yml</code> template.</li>
@@ -460,7 +463,7 @@
 
 <p>The Offer Cycle is a core Mesos concept and often a source of confusion when running services on Mesos.</p>
 
-<p>Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what’s being explicitly offered to them. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler’s end.</p>
+<p>Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what’s being explicitly offered to them at any given time. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler’s end, but it also means that the Scheduler cannot deterministically know whether it’s seen everything that’s available in the cluster.</p>
 
 <p>Schedulers written using the SDK perform the following operations as Offers are received from Mesos:</p>
 

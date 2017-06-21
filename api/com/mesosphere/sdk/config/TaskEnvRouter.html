@@ -168,16 +168,16 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setGlobalTaskEnv-java.lang.String-java.lang.String-">setGlobalTaskEnv</a></span>(java.lang.String&nbsp;key,
-                java.lang.String&nbsp;value)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setAllPodsEnv-java.lang.String-java.lang.String-">setAllPodsEnv</a></span>(java.lang.String&nbsp;key,
+             java.lang.String&nbsp;value)</code>
 <div class="block">Adds a custom environment value to be included in all pods.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">setPodTaskEnv</a></span>(java.lang.String&nbsp;podType,
-             java.lang.String&nbsp;key,
-             java.lang.String&nbsp;value)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
+         java.lang.String&nbsp;key,
+         java.lang.String&nbsp;value)</code>
 <div class="block">Adds a custom environment variable to be only included in the specified pod type.</div>
 </td>
 </tr>
@@ -240,31 +240,31 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setGlobalTaskEnv-java.lang.String-java.lang.String-">
+<a name="setAllPodsEnv-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setGlobalTaskEnv</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setGlobalTaskEnv(java.lang.String&nbsp;key,
-                                      java.lang.String&nbsp;value)</pre>
+<h4>setAllPodsEnv</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setAllPodsEnv(java.lang.String&nbsp;key,
+                                   java.lang.String&nbsp;value)</pre>
 <div class="block">Adds a custom environment value to be included in all pods. This may be overridden by the Scheduler environment
  via <code>TASKCFG_ALL_*</code> or <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars, and by any per-pod types added via
- <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodTaskEnv(String, String, String)</code></a>.</div>
+ <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodEnv(String, String, String)</code></a>.</div>
 </li>
 </ul>
-<a name="setPodTaskEnv-java.lang.String-java.lang.String-java.lang.String-">
+<a name="setPodEnv-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setPodTaskEnv</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setPodTaskEnv(java.lang.String&nbsp;podType,
-                                   java.lang.String&nbsp;key,
-                                   java.lang.String&nbsp;value)</pre>
+<h4>setPodEnv</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setPodEnv(java.lang.String&nbsp;podType,
+                               java.lang.String&nbsp;key,
+                               java.lang.String&nbsp;value)</pre>
 <div class="block">Adds a custom environment variable to be only included in the specified pod type. This may be overridden by the
  Scheduler environment via <code>TASKCFG_ALL_*</code> or <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars. This takes precedence
- over values specified via <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setGlobalTaskEnv-java.lang.String-java.lang.String-"><code>setGlobalTaskEnv(String, String)</code></a> for pods with this type.</div>
+ over values specified via <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setAllPodsEnv-java.lang.String-java.lang.String-"><code>setAllPodsEnv(String, String)</code></a> for pods with this type.</div>
 </li>
 </ul>
 <a name="getConfig-java.lang.String-">
