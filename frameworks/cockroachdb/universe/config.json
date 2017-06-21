@@ -39,6 +39,18 @@
             "description": "Production release version of CockroachDB",
             "type": "string",
             "default": "1.0.1"
+          },
+          "gui_port":{
+            "title": "CockroachDB GUI Port",
+            "description": "Port for CockroachDB admin GUI",
+            "type": "number",
+            "default":80
+          },
+          "internal_port":{
+            "title": "CockroachDB Internal Port",
+            "description": "Port for CockroachDB internal communication",
+            "type": "number",
+            "default":26257
           }
         },
         "required":[
