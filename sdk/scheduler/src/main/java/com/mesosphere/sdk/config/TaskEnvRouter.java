@@ -58,9 +58,9 @@ public class TaskEnvRouter {
     /**
      * Adds a custom environment value to be included in all pods. This may be overridden by the Scheduler environment
      * via {@code TASKCFG_ALL_*} or {@code TASKCFG_<POD_TYPE>_*} envvars, and by any per-pod types added via
-     * {@link #setPodTaskEnv(String, String, String)}.
+     * {@link #setPodEnv(String, String, String)}.
      */
-    public TaskEnvRouter setGlobalTaskEnv(String key, String value) {
+    public TaskEnvRouter setAllPodsEnv(String key, String value) {
         sdkGlobalConfig.put(key, value);
         return this;
     }
@@ -68,9 +68,9 @@ public class TaskEnvRouter {
     /**
      * Adds a custom environment variable to be only included in the specified pod type. This may be overridden by the
      * Scheduler environment via {@code TASKCFG_ALL_*} or {@code TASKCFG_<POD_TYPE>_*} envvars. This takes precedence
-     * over values specified via {@link #setGlobalTaskEnv(String, String)} for pods with this type.
+     * over values specified via {@link #setAllPodsEnv(String, String)} for pods with this type.
      */
-    public TaskEnvRouter setPodTaskEnv(String podType, String key, String value) {
+    public TaskEnvRouter setPodEnv(String podType, String key, String value) {
         Map<String, String> podConfig = sdkPodConfigs.get(podType.toLowerCase());
         if (podConfig == null) {
             podConfig = new TreeMap<>();

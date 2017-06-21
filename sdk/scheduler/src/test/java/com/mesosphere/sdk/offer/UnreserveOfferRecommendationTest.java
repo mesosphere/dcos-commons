@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
@@ -9,7 +10,7 @@ import org.junit.Test;
 /**
  * This class tests the {@link UnreserveOfferRecommendation} class.
  */
-public class UnreserveOfferRecommendationTest {
+public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testUnreserveRootDisk() {

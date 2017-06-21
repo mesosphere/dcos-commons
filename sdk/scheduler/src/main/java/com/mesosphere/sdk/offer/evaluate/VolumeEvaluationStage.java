@@ -42,8 +42,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        List<OfferRecommendation> offerRecommendations = new ArrayList<>();
+        String detailsClause = resourceId.isPresent() ? "previously reserved " : "";
 
+        List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Resource resource;
         final MesosResource mesosResource;
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
@@ -111,7 +112,8 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 this,
                 mesosResource,
                 offerRecommendations,
-                "Offer contains sufficient 'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
+                "Offer contains sufficient %s'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
+                detailsClause,
                 volumeSpec,
                 resourceId,
                 persistenceId);

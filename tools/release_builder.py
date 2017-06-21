@@ -434,23 +434,6 @@ class UniverseReleaseBuilder(object):
         if not self._beta_release:
             return pkgdir
 
-        # Add the beta optin bool to config.json
-        config_file_name = os.path.join(pkgdir, 'config.json')
-        with open(config_file_name) as f:
-            config_json = json.load(f, object_pairs_hook=collections.OrderedDict)
-            service_dict = config_json['properties']['service']
-            service_dict['properties']['beta-optin'] = {
-                "description":"I have been invited to the Beta Program and accept all the terms of the Beta Agreement.",
-                "type": "boolean",
-                "title": "Agree to Beta terms",
-                "default": ""
-            }
-            required_list = service_dict.setdefault('required', [])
-            required_list.append('beta-optin')
-
-        with open(config_file_name, 'w') as f:
-            json.dump(config_json, f, indent=4)
-
         # Add the beta prefix to package.json
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:

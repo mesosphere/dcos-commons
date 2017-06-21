@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
@@ -11,7 +12,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class MesosResourcePoolTest {
+public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testEmptyUnreservedAtomicPool() {

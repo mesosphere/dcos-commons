@@ -84,33 +84,39 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `secrets`
 
-    This section list the Secrets that will be made available to the pod. Secret content is exposed as a file and/or as a environment variable.
+    This section list the Secrets that will be made available to the pod. The content of a Secret may be exposed as a file and/or as a environment variable.
+    If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
 
      * `secret`
-        The path of a Secret
+
+         The path of a Secret. This setting would typically be configurable by service users as it must match what path the administrator used in the DC/OS Secrets UI.
 
      * `env-key`
-        Name of the environment variable
+
+         Name of the environment variable to expose the Secret content against. This may be left unset if the secret shouldn't be provided as an environment variable.
 
      * `file`
-        File path in the container. Secret content is copied into this file. Secret file is a tmpfs file, it disappears when executor exits.
 
-     If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
-   
+        A path within the container to copy the Secret content into. The Secret file is a tmpfs file; it disappears when executor exits.
 
   * `networks`
 
-    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following:
+    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following to its YAML specification:
+
     ```
     networks:
       dcos:
     ```
-     * when a pod joins the overlay it has the following effects:
-       * The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed.
-          * The IP can be retrieved using the DNS `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory` (This DNS will also work for pods on the host network).
-       * The `ports` resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.
-       * Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.
-       * For more information see the DC/OS Virtual Network [documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
+
+    Pods on overlay networks have the following effects:
+
+    <div class="noyaml"><ul>
+    <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
+    <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.</li>
+    <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
+    </ul></div>
+
+    For more information see the [DC/OS Virtual Network documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
 
   * `uris`
 
@@ -148,8 +154,9 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       For convenience, the following environment variables are automatically provided to all tasks:
       <div class="noyaml"><ul>
-      <li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
       <li><code>TASK_NAME</code>: The name of the task, of the form <code>&lt;pod>-&lt;#>-&lt;task></code>. For example: <code>mypod-0-node</code>.</li>
+      <li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
+      <li><code>FRAMEWORK_HOST</code>: The host domain of the service. For example, the full hostname for the task would be [TASK_NAME].[FRAMEWORK_HOST].</li>
       <li><code>POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
       <li><code>&lt;TASK_NAME>=true</code>: The task name as the envvar name, with <code>true</code> as the value.</li>
       </ul></div>

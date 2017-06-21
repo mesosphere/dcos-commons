@@ -66,15 +66,15 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated:{}".format(task_sets)
 
 
-def kill_task_with_pattern(pattern, host=None):
+def kill_task_with_pattern(pattern, agent_host=None):
     command = (
         "sudo kill -9 "
         "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
         "cut -d ' ' -f 1)".format(pattern))
-    if host is None:
+    if agent_host is None:
         result = shakedown.run_command_on_master(command)
     else:
-        result = shakedown.run_command_on_agent(host, command)
+        result = shakedown.run_command_on_agent(agent_host, command)
 
     if not result:
         raise RuntimeError('Failed to kill task with pattern "{}"'.format(pattern))

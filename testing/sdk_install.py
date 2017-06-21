@@ -22,6 +22,18 @@ def install(
         package_version=None,
         check_suppression=True,
         timeout_seconds=15 * 60):
+    sdk_utils.try_throws_n_times(lambda: _install(package_name, running_task_count,
+        service_name, additional_options, package_version, check_suppression, timeout_seconds), 5, 5)
+
+
+def _install(
+        package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        package_version=None,
+        check_suppression=True,
+        timeout_seconds=15 * 60):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -56,6 +68,11 @@ def install(
 
 
 def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
+    sdk_utils.try_throws_n_times(lambda: _uninstall(service_name, package_name, role, principal, zk),
+        5, 5)
+
+
+def _uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
     start = time.time()
 
     if package_name is None:
@@ -98,19 +115,21 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
         sdk_utils.out('Uninstalling {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
-            marathon_app_id = "/" + service_name
-            sdk_utils.out('Waiting for no deployments on {}'.format(marathon_app_id))
+            # service_name may already contain a leading slash:
+            marathon_app_id = '/' + service_name.lstrip('/')
+            sdk_utils.out('Waiting for no deployments for {}'.format(marathon_app_id))
             shakedown.deployment_wait(600, marathon_app_id)
 
             # wait for service to be gone according to marathon
             def marathon_dropped_service():
                 client = shakedown.marathon.create_client()
                 app_list = client.get_apps()
-                matching_apps = [app for app in app_list if app['id'] == marathon_app_id]
-                if len(matching_apps) > 1:
-                    msg = 'Error during uninstall, got more than one app in app list with mathching id to %s'
-                    sdk_utils.out(msg % marathon_app_id)
-                return len(matching_apps) == 0
+                app_ids = [app['id'] for app in app_list]
+                sdk_utils.out('Marathon apps: {}'.format(app_ids))
+                matching_app_ids = [app_id for app_id in app_ids if app_id == marathon_app_id]
+                if len(matching_app_ids) > 1:
+                    sdk_utils.out('Found multiple apps with id {}'.format(marathon_app_id))
+                return len(matching_app_ids) == 0
             sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
             shakedown.time_wait(marathon_dropped_service)
 
