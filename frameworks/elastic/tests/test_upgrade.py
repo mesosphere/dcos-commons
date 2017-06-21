@@ -11,5 +11,5 @@ def test_upgrade_downgrade():
         "beta-{}".format(PACKAGE_NAME),
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
-        additional_options={"service": {"beta-optin": True, "upgrade_strategy": "parallel"}},
+        additional_options={"service": {"beta-optin": True, "update_strategy": "parallel"}},
         reinstall_test_version=False)

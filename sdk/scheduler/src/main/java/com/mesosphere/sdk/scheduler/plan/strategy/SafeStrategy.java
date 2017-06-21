@@ -14,7 +14,6 @@ import java.util.List;
  */
 public class SafeStrategy extends CanaryStrategy {
 
-
     /**
      * Creates a new SafeStrategy based on the Steps given, requiring {@link #proceed()} calls from a user in order for
      * each Step to complete. Initially all pending steps are interrupted.

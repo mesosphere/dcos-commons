@@ -32,7 +32,6 @@ def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
-@pytest.mark.safe
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_safe_init():

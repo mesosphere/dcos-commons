@@ -289,18 +289,3 @@ plans:
       coordinator:
         strategy: {{UPDATE_STRATEGY}}
         pod: coordinator
-  upgrade:
-    strategy: serial
-    phases:
-      master:
-        strategy: {{UPGRADE_STRATEGY}}
-        pod: master
-      data:
-        strategy: {{UPGRADE_STRATEGY}}
-        pod: data
-      ingest:
-        strategy: {{UPGRADE_STRATEGY}}
-        pod: ingest
-      coordinator:
-        strategy: {{UPGRADE_STRATEGY}}
-        pod: coordinator
