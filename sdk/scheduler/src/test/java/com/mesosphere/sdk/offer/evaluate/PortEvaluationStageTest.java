@@ -15,7 +15,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PortEvaluationStageTest {
+public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private Protos.Value getPort(int port) {

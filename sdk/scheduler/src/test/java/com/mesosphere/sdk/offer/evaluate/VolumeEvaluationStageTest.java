@@ -5,10 +5,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class VolumeEvaluationStageTest {
+public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testCreateSucceeds() throws Exception {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
