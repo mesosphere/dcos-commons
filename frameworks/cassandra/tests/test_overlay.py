@@ -4,17 +4,19 @@ import pytest
 import shakedown
 
 from tests.config import *
-from tests.test_plans import (
-    test_read_write_delete_data,
-    test_cleanup_plan_completes,
-    test_repair_plan_completes)
-
 
 import sdk_install as install
 import sdk_plan as plan
 import sdk_jobs as jobs
 import sdk_utils as utils
 import sdk_networks as networks
+
+
+WRITE_DATA_JOB = get_write_data_job()
+VERIFY_DATA_JOB = get_verify_data_job()
+DELETE_DATA_JOB = get_delete_data_job()
+VERIFY_DELETION_JOB = get_verify_deletion_job()
+TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 
 OVERLAY_OPTIONS = {'service':{'virtual_network':True}}
@@ -55,18 +57,22 @@ def test_service_overlay_health():
         networks.check_task_network(task)
 
 
+@pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-def test_basic_functionality():
-    test_read_write_delete_data()
-
-
-@pytest.mark.sanity
-@pytest.mark.overlay
 def test_functionality():
-    test_read_write_delete_data()
-    test_cleanup_plan_completes()
-    test_repair_plan_completes()
+    parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+
+    # populate 'testspace1' for test, then delete afterwards:
+    with jobs.RunJobContext(
+        before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
+        after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
+
+        plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=parameters)
+        plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
+
+        plan.start_plan(PACKAGE_NAME, 'repair', parameters=parameters)
+        plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
 
 
 @pytest.mark.sanity
@@ -77,4 +83,3 @@ def test_endpoints():
     endpoints = networks.get_and_test_endpoints("node", PACKAGE_NAME, 4)
     assert "address" in endpoints, "Endpoints missing address key"
     networks.check_endpoints_on_overlay(endpoints)
-

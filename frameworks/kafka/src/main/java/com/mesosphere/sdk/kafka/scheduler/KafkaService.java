@@ -41,7 +41,7 @@ public class KafkaService extends DefaultService {
 
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
-                        .setGlobalTaskEnv("KAFKA_ZOOKEEPER_URI", kafkaZookeeperUri)
+                        .setAllPodsEnv("KAFKA_ZOOKEEPER_URI", kafkaZookeeperUri)
                         .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
 

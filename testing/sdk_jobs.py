@@ -26,14 +26,20 @@ def install_job(job_dict, tmp_dir=None):
         f.write(job_str)
 
     try:
-        sdk_cmd.run_cli('job remove {}'.format(job_name))
+        _remove_job_by_name(job_name)
     except:
-        sdk_utils.out(traceback.format_exc())
+        sdk_utils.out('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
+            job_name, traceback.format_exc()))
     sdk_cmd.run_cli('job add {}'.format(out_filename))
 
 
 def remove_job(job_dict):
-    sdk_cmd.run_cli('job remove {}'.format(job_dict['id']), print_output=False)
+    _remove_job_by_name(job_dict['id'])
+
+
+def _remove_job_by_name(job_name):
+    # force bit ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed:
+    sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
 
 
 class InstallJobContext(object):

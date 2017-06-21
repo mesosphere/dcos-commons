@@ -3,6 +3,7 @@ import json
 
 import shakedown
 
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_plan as plan
 import sdk_utils as utils
@@ -96,7 +97,7 @@ def test_overlay_network():
     assert overlay_port == "4044"
     assert "dns" in overlay_endpoints_result.keys()
     assert len(overlay_endpoints_result["dns"]) == 1
-    assert overlay_endpoints_result["dns"][0] == "hello-overlay-vip-0-server.hello-world.autoip.dcos.thisdcos.directory:4044"
+    assert overlay_endpoints_result["dns"][0] == hosts.autoip_host(PACKAGE_NAME, "hello-overlay-vip-0-server", 4044)
 
     host_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints host-vip".format(pkg=PACKAGE_NAME))
     assert rc == 0, "Getting host endpoints failed"
@@ -109,4 +110,4 @@ def test_overlay_network():
     assert host_port == "4044"
     assert "dns" in host_endpoints_result.keys()
     assert len(host_endpoints_result["dns"]) == 1
-    assert host_endpoints_result["dns"][0] == "hello-host-vip-0-server.hello-world.autoip.dcos.thisdcos.directory:4044"
+    assert host_endpoints_result["dns"][0] == hosts.autoip_host(PACKAGE_NAME, "hello-host-vip-0-server", 4044)

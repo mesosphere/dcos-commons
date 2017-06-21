@@ -84,10 +84,10 @@ public class DefaultTaskEnvRouterTest {
     @Test
     public void testPriorities() {
         TaskEnvRouter router = new TaskEnvRouter(TEST_MAP)
-                .setGlobalTaskEnv("NOT_IGNORED", "VAL")
-                .setGlobalTaskEnv("ONE", "FOUR") // ignored in pod A, added in others
-                .setPodTaskEnv("A", "NOT_IGNORED", "VAL2") // overrides VAL in pod A
-                .setPodTaskEnv("A", "THREE", "EIGHT"); // ignored
+                .setAllPodsEnv("NOT_IGNORED", "VAL")
+                .setAllPodsEnv("ONE", "FOUR") // ignored in pod A, added in others
+                .setPodEnv("A", "NOT_IGNORED", "VAL2") // overrides VAL in pod A
+                .setPodEnv("A", "THREE", "EIGHT"); // ignored
 
         Map<String, String> values = router.getConfig("a");
         assertEquals(values, router.getConfig("A")); // case insensitive

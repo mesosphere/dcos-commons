@@ -528,7 +528,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
             SchedulerFlags schedulerFlags,
-            Collection<Object> resources,
+            Collection<Object> customResources,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
@@ -539,7 +539,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         super(stateStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
-        this.resources = resources;
+        this.resources = new ArrayList<>();
+        this.resources.addAll(customResources);
         this.plans = plans;
         this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;

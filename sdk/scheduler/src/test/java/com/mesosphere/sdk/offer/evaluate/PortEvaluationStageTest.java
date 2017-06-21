@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -241,9 +242,8 @@ public class PortEvaluationStageTest {
         Assert.assertEquals(
                 5000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
-        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(2);
-        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT");
-        Assert.assertEquals(variable.getValue(), "5000");
+        Assert.assertEquals("5000",
+                EnvUtils.getEnvVar(taskBuilder.getCommand().getEnvironment(), "PORT_TEST_PORT").get());
     }
 
     private PortSpec getPortSpec(PodInstance podInstance) {
