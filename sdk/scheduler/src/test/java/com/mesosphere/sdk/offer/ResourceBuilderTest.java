@@ -123,7 +123,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
 
             Protos.Resource resource = resourceBuilder.build();
             Assert.assertEquals(2, resource.getReservationsCount());
-            validateScalarResourceRefined(TestConstants.PRE_RESERVED_ROLE, resource);
+            validateScalarResourceRefined(resource);
             Assert.assertEquals(Protos.Resource.ReservationInfo.Type.STATIC, resource.getReservations(0).getType());
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, resource.getReservations(0).getRole());
         } finally {
@@ -483,10 +483,6 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private void validateScalarResourceRefined(Protos.Resource resource) {
-        validateScalarResourceRefined(Constants.ANY_ROLE, resource);
-    }
-
-    private void validateScalarResourceRefined(String preReservedRole, Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
         Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
         Assert.assertFalse(resource.hasReservation());
