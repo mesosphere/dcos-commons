@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Resource;
 
 
 /**
