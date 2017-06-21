@@ -1,6 +1,7 @@
 import pytest
 import urllib
 
+import sdk_hosts as hosts
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_utils as utils
@@ -17,13 +18,17 @@ EPHEMERAL_TOPIC_NAME = 'topic_2'
 
 
 def setup_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
     utils.gc_frameworks()
-    install.install(PACKAGE_NAME,  DEFAULT_BROKER_COUNT, service_name = SERVICE_NAME)
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_BROKER_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
 
 
 def teardown_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 # --------- Endpoints -------------
@@ -33,7 +38,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 def test_endpoints_address():
     def fun():
-        ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
+        ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME), service_name=FOLDERED_SERVICE_NAME)
         if len(ret['address']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
@@ -41,17 +46,16 @@ def test_endpoints_address():
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
-    for dns_endpoint in endpoints['dns']:
-        assert "autoip.dcos.thisdcos.directory" in dns_endpoint
+    for i in range(len(endpoints['dns'])):
+        assert hosts.autoip_host(FOLDERED_SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
+    assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper():
-    zookeeper = service_cli('endpoints zookeeper', get_json=False)
-    assert zookeeper.rstrip() == (
-        'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
-    )
+    zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
+    assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-test__integration__kafka'
 
 
 # --------- Broker -------------
@@ -60,7 +64,7 @@ def test_endpoints_zookeeper():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_list():
-    brokers = service_cli('broker list')
+    brokers = service_cli('broker list', service_name=FOLDERED_SERVICE_NAME)
     assert set(brokers) == set([str(i) for i in range(DEFAULT_BROKER_COUNT)])
 
 
@@ -68,12 +72,13 @@ def test_broker_list():
 @pytest.mark.sanity
 def test_broker_invalid():
     try:
-        service_cli('broker get {}'.format(DEFAULT_BROKER_COUNT + 1))
+        service_cli('broker get {}'.format(DEFAULT_BROKER_COUNT + 1), service_name=FOLDERED_SERVICE_NAME)
         assert False, "Should have failed"
     except AssertionError as arg:
         raise arg
     except:
         pass  # expected to fail
+
 
 # --------- Pods -------------
 
@@ -81,13 +86,13 @@ def test_broker_invalid():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_restart():
-    restart_broker_pods()
+    restart_broker_pods(FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_replace():
-    replace_broker_pod()
+    replace_broker_pod(FOLDERED_SERVICE_NAME)
 
 
 # --------- Topics -------------
@@ -96,29 +101,29 @@ def test_pods_replace():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_create():
-    create_topic()
+    create_topic(FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_delete():
-    delete_topic()
+    delete_topic(FOLDERED_SERVICE_NAME)
 
 
 @pytest.fixture
 def default_topic():
-    service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME))
+    service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_topic_partition_count(default_topic):
-    topic_info = service_cli('topic describe {}'.format(DEFAULT_TOPIC_NAME))
+    topic_info = service_cli('topic describe {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert len(topic_info['partitions']) == DEFAULT_PARTITION_COUNT
 
 
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes():
-    offset_info = service_cli('topic offsets --time="-1" {}'.format(DEFAULT_TOPIC_NAME))
+    offset_info = service_cli('topic offsets --time="-1" {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert len(offset_info) == DEFAULT_PARTITION_COUNT
 
     offsets = {}
@@ -129,11 +134,11 @@ def test_topic_offsets_increase_with_writes():
     assert len(offsets) == DEFAULT_PARTITION_COUNT
 
     num_messages = 10
-    write_info = service_cli('topic producer_test {} {}'.format(DEFAULT_TOPIC_NAME, num_messages))
+    write_info = service_cli('topic producer_test {} {}'.format(DEFAULT_TOPIC_NAME, num_messages), service_name=FOLDERED_SERVICE_NAME)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
 
-    offset_info = service_cli('topic offsets --time="-1" {}'.format(DEFAULT_TOPIC_NAME))
+    offset_info = service_cli('topic offsets --time="-1" {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert len(offset_info) == DEFAULT_PARTITION_COUNT
 
     post_write_offsets = {}
@@ -146,7 +151,7 @@ def test_topic_offsets_increase_with_writes():
 
 @pytest.mark.sanity
 def test_decreasing_topic_partitions_fails():
-    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT - 1))
+    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT - 1), service_name=FOLDERED_SERVICE_NAME)
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
@@ -155,7 +160,7 @@ def test_decreasing_topic_partitions_fails():
 
 @pytest.mark.sanity
 def test_setting_topic_partitions_to_same_value_fails():
-    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT))
+    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT), service_name=FOLDERED_SERVICE_NAME)
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
@@ -164,7 +169,7 @@ def test_setting_topic_partitions_to_same_value_fails():
 
 @pytest.mark.sanity
 def test_increasing_topic_partitions_succeeds():
-    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT + 1))
+    partition_info = service_cli('topic partitions {} {}'.format(DEFAULT_TOPIC_NAME, DEFAULT_PARTITION_COUNT + 1), service_name=FOLDERED_SERVICE_NAME)
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
@@ -173,7 +178,7 @@ def test_increasing_topic_partitions_succeeds():
 
 @pytest.mark.sanity
 def test_no_under_replicated_topics_exist():
-    partition_info = service_cli('topic under_replicated_partitions')
+    partition_info = service_cli('topic under_replicated_partitions', service_name=FOLDERED_SERVICE_NAME)
 
     assert len(partition_info) == 1
     assert partition_info['message'] == ''
@@ -181,7 +186,7 @@ def test_no_under_replicated_topics_exist():
 
 @pytest.mark.sanity
 def test_no_unavailable_partitions_exist():
-    partition_info = service_cli('topic unavailable_partitions')
+    partition_info = service_cli('topic unavailable_partitions', service_name=FOLDERED_SERVICE_NAME)
 
     assert len(partition_info) == 1
     assert partition_info['message'] == ''
@@ -199,40 +204,40 @@ def test_help_cli():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_config_cli():
-    configs = service_cli('config list')
+    configs = service_cli('config list', service_name=FOLDERED_SERVICE_NAME)
     assert len(configs) == 1
 
-    assert service_cli('config show {}'.format(configs[0]), print_output=False) # noisy output
-    assert service_cli('config target')
-    assert service_cli('config target_id')
+    assert service_cli('config show {}'.format(configs[0]), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
+    assert service_cli('config target', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('config target_id', service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_plan_cli():
-    assert service_cli('plan list')
-    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False)
-    assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME))
-    assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME))
-    assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
-    assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
+    assert service_cli('plan list', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME), get_json=False, service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan show --json {}'.format(DEFAULT_PLAN_NAME), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan show {} --json'.format(DEFAULT_PLAN_NAME), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME), service_name=FOLDERED_SERVICE_NAME)
 
 
 
-@pytest.mark.smoke1
-@pytest.mark.sanity1
-# state gives error, now sure why? disabling for the moment
+@pytest.mark.smoke
+@pytest.mark.sanity
 def test_state_cli():
-    assert service_cli('state framework_id')
-    assert service_cli('state properties')
+    assert service_cli('state framework_id', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('state properties', service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_cli():
-    assert service_cli('pods list')
-    assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE))
-    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), print_output=False) # noisy output
+    assert service_cli('pods list', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
+
 
 # --------- Suppressed -------------
 
@@ -242,7 +247,7 @@ def test_pods_cli():
 def test_suppress():
     dcos_url = dcos.config.get_config_val('core.dcos_url')
     suppressed_url = urllib.parse.urljoin(
-        dcos_url, 'service/{}/v1/state/properties/suppressed'.format(PACKAGE_NAME))
+        dcos_url, 'service/{}/v1/state/properties/suppressed'.format(FOLDERED_SERVICE_NAME))
 
     def fun():
         response = dcos.http.get(suppressed_url)

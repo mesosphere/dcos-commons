@@ -13,11 +13,16 @@ import sdk_utils
 # (1) Installs Universe version of framework.
 # (2) Upgrades to test version of framework.
 # (3) Downgrades to Universe version.
-# (4) Upgrades back to test version, as clean up.
+# (4) Upgrades back to test version, as clean up (if reinstall_test_version == True).
 #
 # With beta packages, the Universe package name is different from the test package name.
 # We install both with the same service name=test_package_name.
-def upgrade_downgrade(universe_package_name, test_package_name, running_task_count, additional_options={}):
+def upgrade_downgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        additional_options={},
+        reinstall_test_version=True):
     install.uninstall(test_package_name)
 
     test_version = get_pkg_version(test_package_name)
@@ -64,8 +69,12 @@ def upgrade_downgrade(universe_package_name, test_package_name, running_task_cou
     shakedown.remove_package_repo('Universe')
     add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
-    sdk_utils.out('Upgrading to test version')
-    upgrade_or_downgrade(test_package_name, test_package_name, running_task_count, additional_options)
+    if reinstall_test_version:
+        sdk_utils.out('Re-upgrading to test version before exiting')
+        upgrade_or_downgrade(test_package_name, test_package_name, running_task_count, additional_options)
+    else:
+        sdk_utils.out('Skipping reinstall of test version, uninstalling universe version')
+        install.uninstall(test_package_name, package_name=universe_package_name)
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.

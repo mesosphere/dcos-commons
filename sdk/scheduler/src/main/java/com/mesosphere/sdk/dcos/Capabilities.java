@@ -36,23 +36,23 @@ public class Capabilities {
         this.dcosCluster = dcosCluster;
     }
 
-    public boolean supportsNamedVips() throws IOException {
+    public boolean supportsNamedVips() {
         // Named Vips are supported by DC/OS 1.8 upwards.
         return hasOrExceedsVersion(1, 8);
     }
 
-    public boolean supportsRLimits() throws IOException {
+    public boolean supportsRLimits() {
         // Container rlimits are supported by DC/OS 1.9 upwards.
         return hasOrExceedsVersion(1, 9);
     }
 
-    public boolean supportsGpuResource() throws IOException {
+    public boolean supportsGpuResource() {
         // GPU_RESOURCE is supported by DC/OS 1.9 upwards
         return hasOrExceedsVersion(1, 9);
     }
 
-    public boolean supportsCNINetworking() throws IOException {
-        // CNI port-mapping is supported by DC/OS 1.10 upwards
+    public boolean supportsCNINetworking() {
+        // CNI port-mapping is supported by DC/OS 1.9 upwards
         return hasOrExceedsVersion(1, 9);
     }
 
@@ -60,8 +60,16 @@ public class Capabilities {
         return false;
     }
 
-    private boolean hasOrExceedsVersion(int major, int minor) throws IOException {
-        DcosVersion.Elements versionElements = dcosCluster.getDcosVersion().getElements();
+    private boolean hasOrExceedsVersion(int major, int minor) {
+        DcosVersion dcosVersion = null;
+        try {
+            dcosVersion = dcosCluster.getDcosVersion();
+        } catch (IOException e) {
+            LOGGER.error("Unable to fetch DC/OS version.");
+            throw new IllegalStateException(e);
+        }
+
+        DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {
             if (versionElements.getFirstElement() > major) {
                 return true;
@@ -71,9 +79,8 @@ public class Capabilities {
             return false;
         } catch (NumberFormatException ex) {
             // incorrect version string.
-            LOGGER.error("Unable to parse DC/OS version string: {}", dcosCluster.getDcosVersion().getVersion());
-            return false;
+            LOGGER.error("Unable to parse DC/OS version string: {}", dcosVersion.getVersion());
+            throw new IllegalStateException(ex);
         }
-
     }
 }

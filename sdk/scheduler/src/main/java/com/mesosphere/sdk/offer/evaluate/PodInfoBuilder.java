@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
@@ -70,8 +71,7 @@ public class PodInfoBuilder {
 
         }
 
-        this.executorBuilder =
-                getExecutorInfo(podInstance.getPod(), serviceName, targetConfigId, schedulerFlags).toBuilder();
+        this.executorBuilder = getExecutorInfoBuilder(serviceName, podInstance, targetConfigId, schedulerFlags);
 
         this.podInstance = podInstance;
 
@@ -175,15 +175,17 @@ public class PodInfoBuilder {
         return taskInfoBuilder.build();
     }
 
-    private static Protos.ExecutorInfo getExecutorInfo(
-            PodSpec podSpec,
+    private static Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
             String serviceName,
+            PodInstance podInstance,
             UUID targetConfigurationId,
             SchedulerFlags schedulerFlags) throws IllegalStateException {
+        PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-        // Populate ContainerInfo with the appropriate information from PodSpec
+        // Populate ContainerInfo with the appropriate information from PodSpec.
+        // This includes networks, rlimits, secret volumes...
         Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
         if (containerInfo != null) {
             executorInfoBuilder.setContainer(containerInfo);
@@ -211,9 +213,17 @@ public class PodInfoBuilder {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
         }
 
-        // Add SECRET type environment variables to command info
-        executorCommandBuilder.getEnvironmentBuilder()
-                .addAllVariables(getExecutorInfoSecretVariables(podSpec.getSecrets()));
+        // Pod-wide default envvars and secret envvars
+
+        // Secrets are constructed differently from other envvars where the proto is concerned:
+        for (SecretSpec secretSpec : podInstance.getPod().getSecrets()) {
+            if (secretSpec.getEnvKey().isPresent()) {
+                executorCommandBuilder.getEnvironmentBuilder().addVariablesBuilder()
+                        .setName(secretSpec.getEnvKey().get())
+                        .setType(Protos.Environment.Variable.Type.SECRET)
+                        .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
+            }
+        }
 
         // Finally any URIs for config templates defined in TaskSpecs.
         for (TaskSpec taskSpec : podSpec.getTasks()) {
@@ -230,47 +240,39 @@ public class PodInfoBuilder {
             }
         }
 
-        // Add SECRET volumes to container info
-        for (Protos.Volume secretVolume : getExecutorInfoSecretVolumes(podSpec.getSecrets())) {
-            if (!executorInfoBuilder.hasContainer()) {
-                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
-                        .setType(Protos.ContainerInfo.Type.MESOS)
-                        .addVolumes(secretVolume).build());
-            } else {
-                executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder()
-                        .addVolumes(secretVolume)
-                        .build());
-            }
-        }
+        executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
+                .setKey("DCOS_SPACE")
+                .setValue(getDcosSpaceLabel());
 
-        executorInfoBuilder.setLabels(executorInfoBuilder.getLabelsBuilder()
-                .addLabels(Protos.Label.newBuilder().setKey("DCOS_SPACE").setValue(getDcosSpaceLabel())));
-
-
-        return executorInfoBuilder.build();
+        return executorInfoBuilder;
     }
 
     private static Protos.Environment getTaskEnvironment(
             String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
-        Map<String, String> environment = new HashMap<>();
+        Map<String, String> environmentMap = new TreeMap<>();
 
         // Task envvars from either of the following sources:
         // - ServiceSpec (provided by developer)
         // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
-        environment.putAll(commandSpec.getEnvironment());
+        environmentMap.putAll(commandSpec.getEnvironment());
 
         // Default envvars for use by executors/developers:
+        // Unline the envvars added in getExecutorEnvironment(), these are specific to individual tasks and currently
+        // aren't visible to sidecar tasks (as they would need to be added at the executor...):
 
         // Inject Pod Instance Index
-        environment.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
-        // Inject Framework Name
-        environment.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
-        // Inject TASK_NAME as KEY:VALUE
-        environment.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
-        // Inject TASK_NAME as KEY for conditional mustache templating
-        environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
+        environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        // Inject Framework Name (raw, not safe for use in hostnames)
+        environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        // Inject Framework host domain (with hostname-safe framework name)
+        environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
 
-        return EnvUtils.toProto(environment);
+        // Inject TASK_NAME as KEY:VALUE
+        environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+        // Inject TASK_NAME as KEY for conditional mustache templating
+        environmentMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
+
+        return EnvUtils.toProto(environmentMap);
     }
 
     private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
@@ -373,7 +375,12 @@ public class PodInfoBuilder {
     }
 
     private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
-        if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
+        Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
+
+        if (!podSpec.getImage().isPresent()
+                && podSpec.getNetworks().isEmpty()
+                && podSpec.getRLimits().isEmpty()
+                && secretVolumes.isEmpty()) {
             return null;
         }
 
@@ -395,6 +402,10 @@ public class PodInfoBuilder {
 
         if (!podSpec.getRLimits().isEmpty()) {
             containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
+        }
+
+        for (Protos.Volume secretVolume : secretVolumes) {
+            containerInfo.addVolumes(secretVolume);
         }
 
         return containerInfo.build();
@@ -518,22 +529,6 @@ public class PodInfoBuilder {
                 .setType(Protos.Secret.Type.REFERENCE)
                 .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
                 .build();
-    }
-
-    private static Collection<Protos.Environment.Variable> getExecutorInfoSecretVariables(
-            Collection<SecretSpec> secretSpecs) {
-        Collection<Protos.Environment.Variable> variables = new ArrayList<>();
-
-        for (SecretSpec secretSpec : secretSpecs) {
-            if (secretSpec.getEnvKey().isPresent()) {
-                variables.add(Protos.Environment.Variable.newBuilder()
-                        .setName(secretSpec.getEnvKey().get())
-                        .setType(Protos.Environment.Variable.Type.SECRET)
-                        .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
-                        .build());
-            }
-        }
-        return variables;
     }
 
     private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {

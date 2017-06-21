@@ -183,7 +183,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     //portsBuilder.addPortsBuilder()
                     //        .setNumber((int) port)
                     //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                    //        .setName(getPortName());  // TODO random string appended to port name?
+                    //        .setName(getPortName());
 
                 }
             } else {

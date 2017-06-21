@@ -89,7 +89,7 @@ The service Scheduler's `main()` function is run like any other Java application
 
 1. The Scheduler connects to that ZooKeeper instance and checks to see if it has previously stored a Mesos Framework ID for itself.
 
-  - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "Framework has been removed" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
+  - If the Framework ID is present, the Scheduler will attempt to reconnect to Mesos using that ID. This may result in a "[Framework has been removed](#framework-has-been-removed)" error if Mesos doesn't recognize that Framework ID, indicating an incomplete uninstall.
 
   - If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.
 
@@ -111,6 +111,8 @@ The service Scheduler's `main()` function is run like any other Java application
 1. The user edits the Scheduler's environment variables either via the DC/OS Dashboard's Services section or via Marathon directly (at `<dcos-url>/marathon`).
 
 1. Marathon kills the current Scheduler and launches a new Scheduler with the updated environment variables.
+
+#### Steps handled by the Scheduler
 
 As with initial install above, at this point the Scheduler is re-launched with the same three sources of information it had before:
 - `svc.yml` template.
@@ -135,7 +137,7 @@ Scheduler reconfiguration is slightly different from initial deployment because 
 
 The Offer Cycle is a core Mesos concept and often a source of confusion when running services on Mesos.
 
-Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what's being explicitly offered to them. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler's end.
+Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what's being explicitly offered to them at any given time. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler's end, but it also means that the Scheduler cannot deterministically know whether it's seen everything that's available in the cluster.
 
 Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
 

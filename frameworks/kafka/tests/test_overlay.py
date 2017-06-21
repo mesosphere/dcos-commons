@@ -83,9 +83,3 @@ def test_topic_create_overlay():
 @pytest.mark.overlay
 def test_topic_delete_overlay():
     delete_topic()
-
-
-
-
-
-

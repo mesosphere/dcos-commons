@@ -21,7 +21,7 @@ enterprise: 'no'
 * Security
 
     The security features introduced in Apache Kafka 0.9 are not supported at this time.
-    
+
 * Overlay networks
 
-    When kafka is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network. 
+    When kafka is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network.

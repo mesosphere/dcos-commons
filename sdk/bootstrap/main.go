@@ -24,7 +24,6 @@ import (
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
 	resolveRetryDelay    = time.Duration(1) * time.Second
-	dns_tld              = "autoip.dcos.thisdcos.directory"
 	mesos_dns            = "mesos"
 )
 
@@ -64,7 +63,7 @@ func parseArgs() args {
 		"Whether to enable the step of waiting for hosts to resolve. "+
 			"May be disabled for faster startup when not needed.")
 	var rawHosts string
-	defaultHostString := "<TASK_NAME>.<FRAMEWORK_NAME>.mesos"
+	defaultHostString := "<TASK_NAME>.<FRAMEWORK_HOST>"
 	flag.StringVar(&rawHosts, "resolve-hosts", defaultHostString,
 		"Comma-separated list of hosts to resolve. Defaults to the hostname of the task itself.")
 	flag.DurationVar(&args.resolveTimeout, "resolve-timeout", time.Duration(5)*time.Minute,
@@ -78,7 +77,7 @@ func parseArgs() args {
 	flag.BoolVar(&args.installCerts, "install-certs", true,
 		"Whether to install certs from .ssl to the JRE.")
 
-	flag.BoolVar(&args.getTaskIp, "getTaskIp", false, "Return task IP")
+	flag.BoolVar(&args.getTaskIp, "get-task-ip", false, "Print task IP")
 
 	flag.Parse()
 
@@ -87,14 +86,13 @@ func parseArgs() args {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
-		frameworkName, frameworkNameOk := os.LookupEnv("FRAMEWORK_NAME")
-		if !taskNameOk || !frameworkNameOk {
+		frameworkHost, frameworkHostOk := os.LookupEnv("FRAMEWORK_HOST")
+		if !taskNameOk || !frameworkHostOk {
 			printEnv()
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
-				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
+				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_HOST.")
 		}
-		args.resolveHosts = []string{fmt.Sprintf("%s.%s.%s", taskName, frameworkName, dns_tld),
-			fmt.Sprintf("%s.%s.%s", taskName, frameworkName, mesos_dns)}
+		args.resolveHosts = []string{fmt.Sprintf("%s.%s", taskName, frameworkHost)}
 	} else {
 		args.resolveHosts = splitAndClean(rawHosts, ",")
 	}
@@ -372,7 +370,7 @@ func main() {
 	}
 
 	if args.getTaskIp {
-		log.Printf("exporting new task IP %s", pod_ip)
+		log.Printf("Printing new task IP: %s", pod_ip)
 		fmt.Printf("%s", pod_ip)
 		os.Exit(0)
 	}

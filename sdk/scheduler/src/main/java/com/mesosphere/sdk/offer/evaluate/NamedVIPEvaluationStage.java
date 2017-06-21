@@ -3,9 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.api.EndpointUtils;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.specification.NamedVIPSpec;
@@ -51,8 +49,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             // Set the VIP on the TaskInfo.
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
-                // TODO need a seek to correct portsBuilder here for when there is more than 1 port on a pod
-                // test this too
                 taskBuilder.getDiscoveryBuilder().setVisibility(DiscoveryInfo.Visibility.CLUSTER);
                 List<Protos.Port.Builder> portsBuilders = taskBuilder
                         .getDiscoveryBuilder()

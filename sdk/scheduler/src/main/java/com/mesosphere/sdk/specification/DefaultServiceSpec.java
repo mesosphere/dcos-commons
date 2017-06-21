@@ -328,10 +328,10 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * Assigns an environment variable to be included in all service tasks. Note that this may be overridden via
          * {@code TASKCFG_*} scheduler environment variables at runtime, and by pod-specific settings provided via
-         * {@link #setPodTaskEnv(String, String, String)}.
+         * {@link #setPodEnv(String, String, String)}.
          */
-        public Generator setGlobalTaskEnv(String key, String value) {
-            this.taskEnvRouter.setGlobalTaskEnv(key, value);
+        public Generator setAllPodsEnv(String key, String value) {
+            this.taskEnvRouter.setAllPodsEnv(key, value);
             return this;
         }
 
@@ -340,8 +340,8 @@ public class DefaultServiceSpec implements ServiceSpec {
          * running inside of "index" pods. Note that this may be overridden via {@code TASKCFG_*} scheduler environment
          * variables at runtime.
          */
-        public Generator setPodTaskEnv(String podType, String key, String value) {
-            this.taskEnvRouter.setPodTaskEnv(podType, key, value);
+        public Generator setPodEnv(String podType, String key, String value) {
+            this.taskEnvRouter.setPodEnv(podType, key, value);
             return this;
         }
 

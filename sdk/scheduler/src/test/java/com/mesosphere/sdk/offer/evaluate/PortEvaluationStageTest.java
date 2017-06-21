@@ -14,7 +14,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PortEvaluationStageTest {
+public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private Protos.Value getPort(int port) {
@@ -285,9 +285,10 @@ public class PortEvaluationStageTest {
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         checkDiscoveryInfo(taskBuilder.getDiscovery(),
                 expectedPortName, Protos.DiscoveryInfo.Visibility.FRAMEWORK, expectedPortNumber);
-        Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(2);
-        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT");
-        Assert.assertEquals(variable.getValue(), String.valueOf(expectedPortNumber));
+        Assert.assertTrue(taskBuilder.getCommand().getEnvironment().getVariablesList().stream()
+                .filter(v -> v.getName().equals("PORT_TEST_PORT")
+                        && v.getValue().equals(String.valueOf(expectedPortNumber)))
+                .count() == 1);
     }
 
     @Test
