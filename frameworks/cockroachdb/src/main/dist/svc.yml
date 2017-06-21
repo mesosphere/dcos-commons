@@ -27,6 +27,9 @@ pods:
           path: "cockroach-data"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
+      sidecar-resources:
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
     tasks:
       node-init:
         goal: RUNNING
@@ -78,10 +81,32 @@ pods:
           delay: 0
         env:
           COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      restore:
+        goal: FINISHED
+        configs:
+          aws:
+            template: "{{CONFIG_TEMPLATE_PATH}}/aws.sh.mustache"
+            dest: "aws.sh"
+        cmd: "./bootstrap && \
+              chmod +x $MESOS_SANDBOX/aws.sh && \
+              mkdir backup-data && \ 
+              $MESOS_SANDBOX/aws.sh s3 cp \
+              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/$DATABASE_NAME.sql \
+              backup-data/ && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql --insecure \
+              --execute=\"CREATE DATABASE IF NOT EXISTS $DATABASE_NAME\" \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql \
+              --database=$DATABASE_NAME --insecure \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' < \
+              backup-data/$DATABASE_NAME.sql"
+        resource-set: sidecar-resources
+
   sidecar:
     count: 1
     uris:
       - {{COCKROACH_URI}}
+      - {{BOOTSTRAP_URI}}
     resource-sets:
       sidecar-resources:
         cpus: 1
@@ -89,12 +114,20 @@ pods:
     tasks:
       backup:
         goal: FINISHED
-        cmd: "mkdir backup-data && \
-              touch backup-data/$DATABASE_NAME.sql && \
-              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach \
-              dump $DATABASE_NAME --insecure \
+        configs:
+          aws:
+            template: "{{CONFIG_TEMPLATE_PATH}}/aws.sh.mustache"
+            dest: "aws.sh"
+        cmd: "./bootstrap && \
+              chmod +x $MESOS_SANDBOX/aws.sh && \    
+              mkdir backup && \
+              touch backup/$DATABASE_NAME.sql && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach dump $DATABASE_NAME --insecure \
               --host='internal.cockroachdb.l4lb.thisdcos.directory' > \
-              backup-data/$DATABASE_NAME.sql"
+              backup/$DATABASE_NAME.sql && \
+              $MESOS_SANDBOX/aws.sh s3 cp \
+              backup/$DATABASE_NAME.sql \
+              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/ "
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -122,3 +155,12 @@ plans:
         pod: sidecar
         steps:
           - default: [[backup]]
+  restore:
+    strategy: serial
+    phases:
+      backup-test:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - 0: [[restore]]
+          - default: [[]]

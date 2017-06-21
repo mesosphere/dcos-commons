@@ -55,7 +55,7 @@
             "title": "Node count",
             "description": "Number of Template pods to run",
             "type": "integer",
-            "default":3
+            "default":2
           },
           "placement_constraint": {
             "title": "Placement constraint",
