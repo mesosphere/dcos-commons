@@ -132,7 +132,8 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 def test_upgrade_downgrade():
     options = {
         "service": {
-            "beta-optin": True
+            "beta-optin": True,
+            "upgrade_strategy": "parallel"
         }
     }
     sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, DEFAULT_TASK_COUNT,
