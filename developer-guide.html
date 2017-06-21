@@ -70,13 +70,13 @@
       
       
       
-      <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
-      
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
       <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
       
+      <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
       <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -142,6 +142,8 @@
           
           <li><a href="./services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
+          <li><a href="./services/hdfs/limitations.html">Limitations</a></li>
+          
           <li><a href="./services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="./services/hdfs/api-reference.html">API Reference</a></li>
@@ -158,9 +160,9 @@
         <ul>
           
           
-          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
-          
           <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -1276,7 +1278,7 @@ installed the
 <p>For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md">the Mesos documentation on rlimits</a>.</p>
 
 <p><strong>Overlay networks</strong>
-The SDK supports having pods join the <code class="highlighter-rouge">dcos</code> overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the <code class="highlighter-rouge">dcos</code> overlay to the host network or vice-versa. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
+The SDK supports having pods join the <code class="highlighter-rouge">dcos</code> overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the <code class="highlighter-rouge">dcos</code> overlay to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
 
 <h3 id="placement-rules">Placement Rules</h3>
 
