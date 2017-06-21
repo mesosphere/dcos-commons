@@ -12,6 +12,7 @@ import sdk_api
 import sdk_plan
 import sdk_tasks
 import sdk_utils
+import sdk_marathon
 
 
 def install(
@@ -78,7 +79,18 @@ def _uninstall(service_name, package_name=None, role=None, principal=None, zk=No
     if package_name is None:
         package_name = service_name
 
-    if shakedown.dcos_version_less_than("1.10"):
+    def has_uninstall_capability():
+        # Two things to check:
+        #   1. Is it > DC/OS 1.10 (Cosmos support)
+        #   2. Does the marathon app have the capability label?
+        cosmos_support = not shakedown.dcos_version_less_than("1.10")
+
+        sdk_marathon.get_config(package_name).
+        scheduler_support = True if "DCOS_COMMONS_UNINSTALL" in sdk_marathon.get_config(package_name)['labels'] else False
+
+        return cosmos_support and scheduler_support
+
+    if not has_uninstall_capability():
         sdk_utils.out('Uninstalling/janitoring {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
