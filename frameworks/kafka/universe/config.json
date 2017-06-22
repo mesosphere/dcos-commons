@@ -117,6 +117,12 @@
         "type":"object",
         "additionalProperties":false,
         "properties":{
+          "kafka_zookeeper_uri":{
+            "title":"Custom Zookeeper path",
+            "description":"The address of the cluster to be used by Kafka, or empty to use DC/OS' instance. Example: myhost:2181/mynode",
+            "type":"string",
+            "default":""
+          },
           "auto_create_topics_enable":{
             "title":"auto.create.topics.enable",
             "description":"Enables auto creation of topic on the server",
