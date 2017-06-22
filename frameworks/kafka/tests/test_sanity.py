@@ -238,7 +238,7 @@ def test_help_cli():
 @pytest.mark.sanity
 def test_config_cli():
     configs = service_cli('config list', service_name=FOLDERED_SERVICE_NAME)
-    assert len(configs) == 1
+    assert len(configs) >= 1 # refrain from breaking this test if earlier tests did a config update
 
     assert service_cli('config show {}'.format(configs[0]), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
     assert service_cli('config target', service_name=FOLDERED_SERVICE_NAME)
