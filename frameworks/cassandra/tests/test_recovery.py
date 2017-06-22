@@ -45,15 +45,25 @@ def test_node_replace_replaces_node():
     cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
     plan.wait_for_completed_recovery(PACKAGE_NAME)
 
-    # Install replace verification job with correct node IP templated
-    # (the job checks for that IP's absence in the peers list and also verifies
-    # that the expected number of peers is present, meaning that the node was
-    # replaced from Cassandra's perspective)
-    # Note: Task will sometimes flake out because the node list can take a minute or two to update.
-    #       Therefore this job has restart.policy=ON_FAILURE
-    verify_replace_job = get_verify_node_replace_job(pod_host)
-    with jobs.InstallJobContext([verify_replace_job]):
-        jobs.run_job(verify_replace_job)
+    # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
+    pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
+    task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
+    # wait for 'nodetool status' to reflect the replacement:
+    def fun():
+        stdout = cmd.run_cli(
+            'task exec {} /bin/bash -c "JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_id))
+        up_ips = []
+        for line in stdout.split('\n'):
+            words = list(filter(None, line.split()))
+            if len(words) < 2:
+                continue
+            if not 'UN' == words[0]:
+                continue
+            up_ips.append(words[1])
+        utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host, up_ips))
+        return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host in up_ips
+    # observed to take 2-3mins in practice:
+    shakedown.wait_for(lambda: fun(), timeout_seconds=600, sleep_seconds=15, noisy=True)
 
 
 @pytest.mark.sanity

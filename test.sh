@@ -32,8 +32,8 @@ function run_framework_tests {
     echo Security: $SECURITY
     if [ "$SECURITY" = "strict" ]; then
         ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
-        # Some tests install a second instance of a framework, such as "hdfs2"
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}2-role
+        # include foldered roles (tests exercise with /test/integration/svcname):
+        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root test__integration__${framework}-role
     fi
 
     # Run shakedown tests in framework directory:
