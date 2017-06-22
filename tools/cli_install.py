@@ -6,6 +6,7 @@ import os
 import os.path
 import shutil
 import ssl
+import subprocess
 import sys
 import tempfile
 import time
@@ -127,7 +128,7 @@ def download_cli(dcos_url, write_dir):
                                                                    output_filepath,
                                                                    attempt))
             try:
-                urllib.request.URLopener().retrieve(cli_url, temp_target)
+                subprocess.check_call(['curl', '-o', temp_target, cli_url])
                 break
             except Exception as e:
                 logger.info("Attempt {} failed: {}".format(attempt, e))
