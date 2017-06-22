@@ -15,7 +15,7 @@ def setup_module(module):
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "update_strategy": "parallel"}})
 
 
 def setup_function(function):

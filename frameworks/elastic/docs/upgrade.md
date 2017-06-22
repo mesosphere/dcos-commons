@@ -110,3 +110,22 @@ deploy (COMPLETE)
    └─ coordinator-0:[node] (COMPLETE)
 ```
 
+## Full Cluster Restarts
+
+Some changes to an Elasticsearch cluster require a full restart of all the nodes. A rolling upgrade is not possible under the following circumstances:
+  * Upgrading across major versions. Consult (this table)[https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html] to see if a full cluster restart is required. 
+  * Toggling X-Pack installation.
+  
+In these cases, you will need to use the `parallel` strategy and perform a full cluster restart using the following process based on Elastic's (full cluster restart guide)[https://www.elastic.co/guide/en/elasticsearch/reference/current/restart-upgrade.html]:
+
+Steps 1 and 2 are the same as in Elastic's guide:
+1. Disable shard allocation
+2. Stop non-essential indexing and perform a synced flush
+
+Steps 3-5 happen automatically when you submit your service updates.
+ 
+Steps 6-7 are the same as in Elastic's guide:
+6. Wait for yellow
+7. Reenable shard allocation 
+ 
+At this point, your cluster should return to green.
