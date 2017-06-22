@@ -384,7 +384,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `strategy`
 
-      How the steps within a given plan should be deployed. This may be any of `serial`, `parallel`, `serial-canary`, or `parallel-canary`. The `-canary` strategies will invoke the first step as a "trial", and then wait for the operator to manually confirm that the "trial" step was successful and invoke a `plan continue` call to continue the rollout. This may be useful in the case of deploying a configuration change to the cluster, where the first change is checked against a "canary" node before applying the rollout further.
+      How the steps within a given plan should be deployed. This may be any of `safe`, `serial`, `parallel`, `serial-canary`, or `parallel-canary`. The `-canary` strategies will invoke the first step as a "trial", and then wait for the operator to manually confirm that the "trial" step was successful and invoke a `plan continue` call to continue the rollout. This may be useful in the case of deploying a configuration change to the cluster, where the first change is checked against a "canary" node before applying the rollout further. The `safe` strategy requires the operator to invoke a `plan continue` call for each step in order to finish the rollout. This is useful in cases where some operator intervention or inspection is required at various points of the process.
 
     * `pod`
 

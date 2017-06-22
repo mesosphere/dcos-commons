@@ -31,15 +31,23 @@
           "default": false
         },
         "deploy_strategy": {
-          "description": "Elasticsearch deploy strategy. [parallel, serial]",
+          "description": "Elasticsearch deploy strategy. [parallel, serial, safe]",
+          "enum": ["serial", "parallel", "safe"],
           "type": "string",
           "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "Elasticsearch update strategy. [parallel, serial, safe]",
+          "enum": ["serial", "parallel", "safe"],
+          "type": "string",
+          "default": "serial"
         }
       },
       "required": [
         "name",
         "user",
-        "deploy_strategy"
+        "deploy_strategy",
+        "update_strategy"
       ]
     },
     "elasticsearch": {

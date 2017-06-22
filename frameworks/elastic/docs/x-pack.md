@@ -12,6 +12,8 @@ enterprise: 'no'
 ![x-pack](img/x-pack.png)
 
 You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can disable it without losing access to your data.
+
+When toggling X-Pack, a rolling upgrade is not possible. You must set the update strategy to `parallel` to do a full cluster restart.
   
 ## License Expiration
 

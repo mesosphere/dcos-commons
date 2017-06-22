@@ -262,15 +262,30 @@ plans:
   deploy:
     strategy: {{DEPLOY_STRATEGY}}
     phases:
-      master-deploy:
+      master:
         strategy: {{DEPLOY_STRATEGY}}
         pod: master
-      data-deploy:
+      data:
         strategy: {{DEPLOY_STRATEGY}}
         pod: data
-      ingest-deploy:
+      ingest:
         strategy: {{DEPLOY_STRATEGY}}
         pod: ingest
-      coordinator-deploy:
+      coordinator:
         strategy: {{DEPLOY_STRATEGY}}
+        pod: coordinator
+  update:
+    strategy: serial
+    phases:
+      master:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: master
+      data:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: data
+      ingest:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: ingest
+      coordinator:
+        strategy: {{UPDATE_STRATEGY}}
         pod: coordinator
