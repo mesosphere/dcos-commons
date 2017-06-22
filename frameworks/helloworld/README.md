@@ -2,7 +2,7 @@ Refer to the [top-level tutorial document](../../docs/pages/developer-guide.md).
 
 # Sample configuration files
 
-The default example [svc.yml](src/main/dist/svc.yml) has two pods, with volumes and is used in the 'official' `hello-world` package.
+The default example [svc.yml](src/main/dist/svc.yml) has two pods, with volumes and is used in the 'official' `helloworld` package.
 
 [Multiple example configuration files](src/main/dist/examples/) are also provided (change the name of the default YAML file at ["universe/config.json"](universe/config.json)). In particular:
 

@@ -1,2 +1,2 @@
-Package configuration is not available for service hello-world.
+Package configuration is not available for service helloworld.
 Only packages installed with Enterprise DC/OS 1.10 or newer will have configuration persisted.

@@ -30,7 +30,7 @@ distZip.finalizedBy copyExecutor
 
 distributions {
     main {
-        baseName = 'hello-world-scheduler'
+        baseName = 'helloworld-scheduler'
         version = ''
     }
 }

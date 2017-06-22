@@ -1,7 +1,7 @@
 {
     "data": {
-        "appId": "/hello-world-1"
+        "appId": "/helloworld-1"
     },
-    "message": "Unable to locate service with marathon appId: '/hello-world-1'",
+    "message": "Unable to locate service with marathon appId: '/helloworld-1'",
     "type": "MarathonAppNotFound"
 }

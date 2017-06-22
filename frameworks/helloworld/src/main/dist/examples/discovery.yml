@@ -4,6 +4,7 @@ scheduler:
 pods:
   hello:
     count: 1
+    user: {{SERVICE_USER}}
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}
@@ -11,7 +12,7 @@ pods:
     tasks:
       once:
         goal: FINISHED
-        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.helloworld.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
         resource-set: hello-resources
         discovery:
           prefix: hello
@@ -19,7 +20,7 @@ pods:
           DNS_WAIT_DURATION: 75
       server:
         goal: RUNNING
-        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.helloworld.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         discovery:
           prefix: hello

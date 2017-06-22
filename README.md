@@ -45,18 +45,18 @@ From a workstation with 8GB Memory, [Git](https://git-scm.com/book/en/v2/Getting
   cd tools/vagrant/ && vagrant ssh
   ```
 
-4. Build your hello-world example project.
+4. Build your helloworld example project.
   ```
   cd /dcos-commons/frameworks/helloworld/ && ./build.sh local
   ```
 
-5. Start your hello-world DC/OS service.
+5. Start your helloworld DC/OS service.
   ```
-  dcos package install hello-world
+  dcos package install helloworld
   ```
 
-6. Explore your hello-world service.
-  * Visit the [dashboard](http://172.17.0.2/#/services/%2Fhello-world/) to see your hello-world service running.
+6. Explore your helloworld service.
+  * Visit the [dashboard](http://172.17.0.2/#/services/%2Fhelloworld/) to see your helloworld service running.
   * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
 ---

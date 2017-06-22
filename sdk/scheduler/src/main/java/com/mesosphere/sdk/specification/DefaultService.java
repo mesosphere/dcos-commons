@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    protected static final String USER = "root";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private DefaultScheduler.Builder schedulerBuilder;
@@ -176,20 +175,19 @@ public class DefaultService implements Service {
     }
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
-        return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
+        return getFrameworkInfo(serviceSpec, stateStore, TWO_WEEK_SEC);
     }
 
     protected Protos.FrameworkInfo getFrameworkInfo(
             ServiceSpec serviceSpec,
             StateStore stateStore,
-            String userString,
             int failoverTimeoutSec) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
                 .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
-                .setUser(userString)
+                .setUser(serviceSpec.getUser())
                 .setCheckpoint(true);
 
         // The framework ID is not available when we're being started for the first time.

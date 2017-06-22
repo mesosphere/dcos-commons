@@ -1,4 +1,4 @@
-name: "hello-world"
+name: "helloworld"
 pods:
   hello:
     count: 2

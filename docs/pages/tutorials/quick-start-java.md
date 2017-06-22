@@ -92,7 +92,7 @@ drwxr-xr-x  7 dcos admin  238 Mar 21 08:54 universe
 
 Define the `helloworldjava` service specification in Java using:
 ```java
-ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
+ServiceSpec helloworldSpec = DefaultServiceSpec.newBuilder()
   .name("helloworldjava")
   .principal("helloworldjava-principal")
   .zookeeperConnection("master.mesos:2181")
@@ -168,7 +168,7 @@ import org.apache.mesos.specification.*;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-      ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
+      ServiceSpec helloworldSpec = DefaultServiceSpec.newBuilder()
         .name("helloworldjava")
         .principal("helloworldjava-principal")
         .zookeeperConnection("master.mesos:2181")
@@ -188,7 +188,7 @@ public class Main {
               .memory(32.0)
               .addVolume("ROOT", 64.0, "helloworldjava-container-volume")
               .build()).build()).build()).build();
-      Service service = new DefaultService(helloWorldSpec);
+      Service service = new DefaultService(helloworldSpec);
     }
 }
 ```

@@ -33,13 +33,13 @@ Now you may build the example CLI module for each targeted platform. Run build.s
 
 ```bash
 cd frameworks/helloworld
-./build.sh # will build framework including dcos-hello-world.exe, dcos-hello-world-darwin, dcos-hello-world-linux
+./build.sh # will build framework including dcos-helloworld.exe, dcos-helloworld-darwin, dcos-helloworld-linux
 ```
 
 To run the compiled CLI (the example below uses Linux, pick the correct binary for your platform):
 
 ```bash
-./cli/dcos-hello-world/dcos-hello-world-linux hello-world -h
+./cli/dcos-helloworld/dcos-helloworld-linux helloworld -h
 ```
 
 ## Develop

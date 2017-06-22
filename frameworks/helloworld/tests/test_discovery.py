@@ -33,5 +33,5 @@ def test_task_dns_prefix_points_to_all_tasks():
 
     # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))
-    # Assert that the hello-0.hello-world.mesos DNS entry points to the right IP.
+    # Assert that the hello-0.helloworld.mesos DNS entry points to the right IP.
     plan.wait_for_completed_deployment(PACKAGE_NAME)

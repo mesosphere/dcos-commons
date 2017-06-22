@@ -6,7 +6,7 @@ stylesheet: yaml-reference.css
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](developer-guide.html#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](developer-guide.html).
+This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](developer-guide.html#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for helloworld](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](developer-guide.html).
 
 This documentation effectively reflects the Java object tree under [RawServiceSpec](api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](developer-guide.html).
 

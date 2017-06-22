@@ -7,7 +7,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     public ServiceSpecTest() {
         super(
-                "FRAMEWORK_NAME", "hello-world",
+                "FRAMEWORK_NAME", "helloworld",
                 "EXECUTOR_URI", "",
                 "LIBMESOS_URI", "",
                 "PORT_API", "8080",
@@ -27,11 +27,11 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "WORLD_FAILS", "3",
                 "WORLD_DISK", "5000",
 
-                "HELLO_SECRET1", "hello-world/secret1",
-                "HELLO_SECRET2", "hello-world/secret2",
-                "WORLD_SECRET1", "hello-world/secret1",
-                "WORLD_SECRET2", "hello-world/secret2",
-                "WORLD_SECRET3", "hello-world/secret3");
+                "HELLO_SECRET1", "helloworld/secret1",
+                "HELLO_SECRET2", "helloworld/secret2",
+                "WORLD_SECRET1", "helloworld/secret1",
+                "WORLD_SECRET2", "helloworld/secret2",
+                "WORLD_SECRET3", "helloworld/secret3");
     }
 
     @Test

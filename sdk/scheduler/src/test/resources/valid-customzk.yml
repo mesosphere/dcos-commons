@@ -1,4 +1,4 @@
-name: "hello-world"
+name: "helloworld"
 scheduler:
   zookeeper: custom.master.mesos:2181
 pods:
