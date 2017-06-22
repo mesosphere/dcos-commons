@@ -75,6 +75,11 @@
             "type": "string",
             "default": "hostname:UNIQUE"
           },
+          "virtual_network":{
+            "description": "Enable DC/OS Virtual Network",
+            "type": "boolean",
+            "default": false
+          },
           "cpus": {
             "title": "CPU count",
             "description": "Template pod CPU requirements",

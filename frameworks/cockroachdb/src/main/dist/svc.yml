@@ -7,6 +7,10 @@ pods:
     uris:
       - {{COCKROACH_URI}}
       - {{BOOTSTRAP_URI}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
     placement: {{NODE_PLACEMENT}}
     resource-sets:
       server-resources:
