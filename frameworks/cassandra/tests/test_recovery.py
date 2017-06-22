@@ -45,15 +45,13 @@ def test_node_replace_replaces_node():
     cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
     plan.wait_for_completed_recovery(PACKAGE_NAME)
 
-    # Install replace verification job with correct node IP templated
-    # (the job checks for that IP's absence in the peers list and also verifies
-    # that the expected number of peers is present, meaning that the node was
-    # replaced from Cassandra's perspective)
-    # Note: Task will sometimes flake out because the node list can take a minute or two to update.
-    #       Therefore this job has restart.policy=ON_FAILURE
-    check_host = get_pod_host('node-0')
+    # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
+    pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
+    task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
+    # wait for 'nodetool status' to reflect the replacement:
     def fun():
-        status, stdout = shakedown.run_command_on_agent(check_host, "docker run -t --net=host pitrho/cassandra-nodetool nodetool -p 7199 status")
+        stdout = cmd.run_cli(
+            'task exec {} /bin/bash -c "JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_id))
         up_ips = []
         for line in stdout.split('\n'):
             words = list(filter(None, line.split()))
