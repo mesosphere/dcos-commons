@@ -31,8 +31,10 @@ pods:
                     Wants=docker.service
                     After=docker.service
                     StartLimitIntervalSec=3600
+                    StartLimitInterval=3600
                     StartLimitBurst=10000
                     [Service]
+                    StartLimitBurst=10000
                     TimeoutStartSec=0
                     Restart=always
                     ExecStartPre=/usr/bin/ping -c 1 master.mesos
