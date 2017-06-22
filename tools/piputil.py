@@ -87,4 +87,4 @@ if __name__ == "__main__":
         sys.exit("Unknown command {}\nusage: piputil.py create <dir>".format(sys.argv))
     venv_tgt_dir = sys.argv[2]
     os.makedirs(venv_tgt_dir)
-    create_dcoscommons_venv(venv_tgt_dir)
+    populate_dcoscommons_packagedir(venv_tgt_dir)
