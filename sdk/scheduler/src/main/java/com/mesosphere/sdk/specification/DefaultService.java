@@ -184,13 +184,22 @@ public class DefaultService implements Service {
             StateStore stateStore,
             String userString,
             int failoverTimeoutSec) {
+
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
-                .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
                 .setCheckpoint(true);
+
+        List<String> roles = getRoles(serviceSpec);
+        if (roles.size() == 1) {
+            fwkInfoBuilder.setRole(roles.get(0));
+        } else {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+            fwkInfoBuilder.addAllRoles(getRoles(serviceSpec));
+        }
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
@@ -209,10 +218,6 @@ public class DefaultService implements Service {
             fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                     .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
         }
-
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-
 
         return fwkInfoBuilder.build();
     }
