@@ -6,13 +6,12 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import org.apache.commons.lang3.StringUtils;
+import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -29,26 +28,18 @@ public class CassandraService extends DefaultService {
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
-        DefaultScheduler.Builder schedulerBuilder =
-                DefaultScheduler.newBuilder(
+        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
                         DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(),
-                        schedulerFlags)
-                        .setPlansFrom(rawServiceSpec)
-                        .setCustomResources(getResources())
-                        .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+                        schedulerFlags);
+        schedulerBuilder.setPlansFrom(rawServiceSpec)
+                .setCustomResources(getResources(schedulerBuilder.getStateStore()))
+                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
         return schedulerBuilder;
     }
 
-    private static Collection<Object> getResources() {
+    private static Collection<Object> getResources(StateStore stateStore) {
         final Collection<Object> apiResources = new ArrayList<>();
-        Collection<String> configuredSeeds = new ArrayList<>(
-                Arrays.asList(System.getenv("TASKCFG_ALL_LOCAL_SEEDS").split(",")));
-        String remoteSeeds = System.getenv("TASKCFG_ALL_REMOTE_SEEDS");
-
-        if (!StringUtils.isEmpty(remoteSeeds)) {
-            configuredSeeds.addAll(Arrays.asList(remoteSeeds.split(",")));
-        }
-        apiResources.add(new SeedsResource(configuredSeeds));
+        apiResources.add(new SeedsResource(stateStore, 2));
 
         return apiResources;
     }

@@ -7,9 +7,9 @@ data_file_directories:
 commitlog_directory: {{MESOS_SANDBOX}}/container-path/commitlog
 saved_caches_directory: {{MESOS_SANDBOX}}/container-path/saved_caches
 seed_provider:
-    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+    - class_name: com.mesosphere.sdk.cassandra.seedprovider.DcosSeedProvider
       parameters:
-          - seeds: "{{LOCAL_SEEDS}},{{REMOTE_SEEDS}}"
+        - scheduler_url: "http://api.{{SERVICE_NAME}}.marathon.l4lb.thisdcos.directory/v1/seeds"
 num_tokens: {{CASSANDRA_NUM_TOKENS}}
 hinted_handoff_enabled: {{CASSANDRA_HINTED_HANDOFF_ENABLED}}
 max_hint_window_in_ms: {{CASSANDRA_MAX_HINT_WINDOW_IN_MS}}
@@ -97,7 +97,7 @@ incremental_backups: false
 snapshot_before_compaction: false
 auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
 cross_node_timeout: false
-endpoint_snitch: SimpleSnitch
+endpoint_snitch: GossipingPropertyFileSnitch
 roles_update_interval_in_ms: {{CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS}}
 permissions_update_interval_in_ms: {{CASSANDRA_PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
 key_cache_keys_to_save: {{CASSANDRA_KEY_CACHE_KEYS_TO_SAVE}}

@@ -138,6 +138,8 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
+    "CASSANDRA_REMOTE_DATACENTER_URLS": "{{#service.remote_datacenter_urls}}{{.}} {{/service.remote_datacenter_urls}}",
+    "CASSANDRA_REMOTE_DATACENTER_COUNT": "{{service.remote_datacenter_urls.size}}",
     "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },
