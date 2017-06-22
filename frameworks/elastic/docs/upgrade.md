@@ -24,7 +24,9 @@ Note: The upgrade process will cause all of your Elastic node processes to resta
 
 ## Rolling Upgrades
 
-By default, the upgrade strategy is `safe`, meaning the operator manually triggers the upgrade for each node, pausing to make sure the deployment is going as planned using `dcos elastic plan show`. The following rolling upgrade process is based on Elastic's own (recommendations for rolling upgrades)[https://www.elastic.co/guide/en/elasticsearch/reference/current/rolling-upgrades.html]. 
+By default, the update strategy is `serial`, which waits for each node to be ready before moving on to the next one. But the elasticsearch node being ready doesn't mean all the shards in the indexes are ready. This may be an appropriate strategy for test clusters or clusters where writes can be suspended during the upgrade/update process, but for production clusters you may want to use the `safe` strategy.
+
+In the `safe` strategy, the operator manually triggers the upgrade for each node, pausing to make sure the deployment is going as planned using `dcos elastic plan show`. The following rolling upgrade process is based on Elastic's own (recommendations for rolling upgrades)[https://www.elastic.co/guide/en/elasticsearch/reference/current/rolling-upgrades.html]. 
 
 After starting the upgrade process, the plan will await your input to continue:
 ```

@@ -1,11 +1,11 @@
 import pytest
 
 import sdk_cmd as cmd
-import sdk_hosts as hosts
 import sdk_install as install
-import sdk_test_upgrade
 import sdk_utils as utils
 from tests.config import *
+
+XPACK_TEST_TIMEOUT = 45 * 60
 
 
 def setup_module(module):
@@ -31,7 +31,8 @@ def teardown_module(module):
 def default_populated_index():
     delete_index(DEFAULT_INDEX_NAME, service_name=FOLDERED_SERVICE_NAME)
     create_index(DEFAULT_INDEX_NAME, DEFAULT_SETTINGS_MAPPINGS, service_name=FOLDERED_SERVICE_NAME)
-    create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"}, service_name=FOLDERED_SERVICE_NAME)
+    create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"},
+                    service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.sanity
@@ -57,6 +58,8 @@ def test_indexing(default_populated_index):
     assert doc["_source"]["name"] == "Loren"
 
 
+# We might actually need more than the default 30 minutes
+@pytest.mark.timeout(XPACK_TEST_TIMEOUT)
 @pytest.mark.sanity
 def test_xpack_toggle_with_kibana(default_populated_index):
     # Verify disabled by default
