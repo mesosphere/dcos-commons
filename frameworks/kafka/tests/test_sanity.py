@@ -3,6 +3,8 @@ import urllib
 
 import sdk_hosts as hosts
 import sdk_install as install
+import sdk_marathon as marathon
+import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils as utils
 import shakedown
@@ -53,9 +55,43 @@ def test_endpoints_address():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_endpoints_zookeeper():
+def test_endpoints_zookeeper_default():
     zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
-    assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-test__integration__kafka'
+    assert zookeeper.rstrip('\n') == 'master.mesos:2181/dcos-service-test__integration__kafka'
+
+
+@pytest.mark.smoke
+@pytest.mark.sanity
+def test_custom_zookeeper():
+    broker_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
+
+    # sanity check: brokers should be reinitialized:
+    brokers = service_cli('broker list', service_name=FOLDERED_SERVICE_NAME)
+    assert set(brokers) == set([str(i) for i in range(DEFAULT_BROKER_COUNT)])
+
+    # create a topic against the default zk:
+    service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('topic list', service_name=FOLDERED_SERVICE_NAME) == [DEFAULT_TOPIC_NAME]
+
+    config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    # should be using default path when this envvar is empty/unset:
+    assert config['env']['KAFKA_ZOOKEEPER_URI'] == ''
+
+    # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
+    zk_path = 'master.mesos:2181/dcos-service-test__integration__kafka/CUSTOMPATH'
+    config['env']['KAFKA_ZOOKEEPER_URI'] = zk_path
+    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+
+    zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
+    assert zookeeper.rstrip('\n') == zk_path
+
+    # topic created earlier against default zk should no longer be present:
+    assert service_cli('topic list', service_name=FOLDERED_SERVICE_NAME) == []
+
+    # tests from here continue with the custom ZK path...
 
 
 # --------- Broker -------------
@@ -110,13 +146,10 @@ def test_topic_delete():
     delete_topic(FOLDERED_SERVICE_NAME)
 
 
-@pytest.fixture
-def default_topic():
+@pytest.mark.sanity
+def test_topic_partition_count():
     service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
 
-
-@pytest.mark.sanity
-def test_topic_partition_count(default_topic):
     topic_info = service_cli('topic describe {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert len(topic_info['partitions']) == DEFAULT_PARTITION_COUNT
 
@@ -205,7 +238,7 @@ def test_help_cli():
 @pytest.mark.sanity
 def test_config_cli():
     configs = service_cli('config list', service_name=FOLDERED_SERVICE_NAME)
-    assert len(configs) == 1
+    assert len(configs) >= 1 # refrain from breaking this test if earlier tests did a config update
 
     assert service_cli('config show {}'.format(configs[0]), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
     assert service_cli('config target', service_name=FOLDERED_SERVICE_NAME)
