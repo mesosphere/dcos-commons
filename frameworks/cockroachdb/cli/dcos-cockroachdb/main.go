@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/mesosphere/dcos-commons/cli"
@@ -168,27 +169,41 @@ func handleBackupRestoreSection(app *kingpin.Application) {
 type sqlHandler struct {
 	database string
 	user     string
+	execute  string
 }
 
 func (cmd *sqlHandler) sql(c *kingpin.ParseContext) error {
 	var dcosCmd []string
 	cockroachHostFlag := fmt.Sprintf("--host=internal.%s.l4lb.thisdcos.directory", config.ServiceName)
 	cockroachTask := fmt.Sprintf("%s-1-node-join", config.ServiceName)
+
+	var dcosFlag string
+	if cmd.execute != "" {
+		dcosFlag = "-i"
+	} else {
+		dcosFlag = "-it"
+	}
+
 	dcosCmd = append(dcosCmd,
 		"task",
 		"exec",
-		"-it",
+		dcosFlag,
 		cockroachTask,
 		"./cockroach",
 		"sql",
 		"--insecure",
 		cockroachHostFlag)
+
 	if cmd.database != "" {
 		dcosCmd = append(dcosCmd, "-d", cmd.database)
 	}
 	if cmd.user != "" {
 		dcosCmd = append(dcosCmd, "-u", cmd.user)
 	}
+	if cmd.execute != "" {
+		dcosCmd = append(dcosCmd, "-e", cmd.execute)
+	}
+
 	runDcosCommand(dcosCmd...)
 	return nil
 }
@@ -200,7 +215,9 @@ func runDcosCommand(arg ...string) {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("[Error] %s\n", err)
+		fmt.Printf("[Error] %s\n\n", err)
+		fmt.Printf("Unable to run DC/OS command: %s\n", strings.Join(arg, " "))
+		fmt.Printf("Make sure your PATH includes the 'dcos' executable.\n")
 	}
 }
 
@@ -209,4 +226,5 @@ func handleSQLSection(app *kingpin.Application) {
 	sql := app.Command("sql", "Opens interactive Cockroachdb SQL shell").Action(cmd.sql)
 	sql.Flag("database", "The database to connect to.").Short('d').StringVar(&cmd.database)
 	sql.Flag("user", "The user connecting to the database. The user must have privileges for any statement executed.").Short('u').StringVar(&cmd.user)
+	sql.Flag("execute", "SQL command to execute. Will open interactive shell if omitted.").Short('e').StringVar(&cmd.execute)
 }
