@@ -132,7 +132,7 @@ class CITester(object):
             cmd.append(jenkins_args)
         if self._fail_fast:
             cmd.append('--exitfirst')
-        cmd.extend(['-vv', '--fulltrace', '-x', '-s', '-m', pytest_types, test_dirs])
+        cmd.extend(['-vv', '--fulltrace', '--capture=no', '-m', pytest_types, test_dirs])
 
         custom_env = os.environ.copy()
         new_pythonpath = package_path
