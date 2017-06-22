@@ -266,8 +266,9 @@ def test_bump_data_nodes():
 
 @pytest.mark.sanity
 def test_modify_app_config():
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    old_recovery_plan = plan.get_recovery_plan(PACKAGE_NAME).json()
 
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
@@ -283,6 +284,10 @@ def test_modify_app_config():
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
+
+    new_recovery_plan = plan.get_recovery_plan(PACKAGE_NAME).json()
+    # Recovery should not have been modified at all
+    assert(old_recovery_plan_status == new_recovery_plan_status)
 
 
 @pytest.mark.sanity
