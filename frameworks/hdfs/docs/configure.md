@@ -18,10 +18,18 @@ You can customize your cluster in-place when it is up and running.
 
 The HDFS scheduler runs as a Marathon process and can be reconfigured by changing values for the service from the DC/OS dashboard. These are the general steps to follow:
 
-1. Go to the DC/OS dashboard.
-1. Click the **Services** tab, then the name of the HDFS service to be updated.
-1. Within the HDFS instance details view, click the menu in the upper right, then choose **Edit**.
-1. click the menu in the upper right, then choose **Edit**. For example, to increase the number of nodes, edit the value for `DATA_NODES`.
+1.  Go to the **Services** tab of the DC/OS GUI and click the name of the HDFS service to be updated.
+
+	![HFDS in DC/OS GUI](/img/hdfs-service-gui.png)
+
+1.  Within the HDFS instance details view, click the vertical ellipsis menu in the upper right, then choose **Edit**.
+
+	![Edit tab](/img/hdfs-service-gui2.png)
+
+1.  Click the **Environment** tab and make your updates. For example, to increase the number of nodes, edit the value for `DATA_COUNT`.
+
+	![Edit environment](/img/hdfs-service-gui3.png)
+
 1. Click **REVIEW & RUN** to apply any changes and cleanly reload the HDFS scheduler. The HDFS cluster itself will persist across the change.
 
 ## Configuration Deployment Strategy
@@ -37,7 +45,7 @@ This configuration update strategy is analogous to the installation procedure ab
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
 ```
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
+curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
 ```
 
 The response will look similar to this:
@@ -138,7 +146,7 @@ The response will look similar to this:
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
 ```
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 
@@ -242,7 +250,7 @@ If you query the plan again, the response will look like this (notice `status: "
 Enter the `continue` command to resume the update process.
 
 ```
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:

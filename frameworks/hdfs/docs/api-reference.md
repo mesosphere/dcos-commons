@@ -20,7 +20,7 @@ If you are using open source DC/OS, follow these instructions to [pass your HTTP
 Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:
 
 ```
-$ export auth_token=uSeR_t0k3n
+export auth_token=uSeR_t0k3n
 ```
 
 The `curl` examples in this document assume that an auth token has been stored in an environment variable named `auth_token`.
@@ -31,14 +31,14 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy
+curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy
 ```
 ## Pause Installation
 
 The installation will pause after completing installation of the current node and wait for user input.
 
 ```bash
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resume Installation
@@ -46,17 +46,17 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/p
 The REST API request below will resume installation at the next pending node.
 
 ```bash
-$ curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
+curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
 ```
 
 # Connection API
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
+curl -H "Authorization:token=$auth_token" dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
 ```
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
+curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
 ```
 
 You will see a response similar to the following:
@@ -291,12 +291,12 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```
-$ dcos beta-hdfs pods list
+dcos beta-hdfs pods list
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
 [
     "data-0",
     "data-1",
@@ -316,17 +316,17 @@ $ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
 You can retrieve node information by sending a GET request to `/v1/pods/<node-id>/info`:
 
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
 ```
 
 CLI Example
 ```
-$ dcos beta-hdfs pods info journal-0
+dcos beta-hdfs pods info journal-0
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journal-0/info
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -726,12 +726,12 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos beta-hdfs pods replace <node-id>
+dcos beta-hdfs pods replace <node-id>
 ```
 
 HTTP Example
 ```
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
+curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -742,12 +742,12 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos beta-hdfs pods restart <node-id>
+dcos beta-hdfs pods restart <node-id>
 ```
 
 HTTP Example
 ```bash
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
+curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.
@@ -762,12 +762,12 @@ You can view the current target configuration by sending a GET request to `/v1/c
 
 CLI Example
 ```
-$ dcos beta-hdfs config target
+dcos beta-hdfs config target
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/target
+curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/target
 {
 	name: "hdfs",
 	role: "hdfs-role",
@@ -2026,12 +2026,12 @@ You can list all configuration IDs by sending a GET request to `/v1/configuratio
 
 CLI Example
 ```
-$ dcos beta-hdfs config list
+dcos beta-hdfs config list
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations
+curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations
 [
     "9a8d4308-ab9d-4121-b460-696ec3368ad6"
 ]
@@ -2043,12 +2043,12 @@ You can view a specific configuration by sending a GET request to `/v1/configura
 
 CLI Example
 ```
-$ dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 {
     ... same format as target config above ...
 }
