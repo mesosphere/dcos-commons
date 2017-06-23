@@ -132,9 +132,9 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -204,7 +204,7 @@
 
 <p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ export auth_token=uSeR_t0k3n
+<div class="highlighter-rouge"><pre class="highlight"><code>export auth_token=uSeR_t0k3n
 </code></pre>
 </div>
 
@@ -215,14 +215,14 @@
 <h1 id="plan-api">Plan API</h1>
 <p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
 </code></pre>
 </div>
 <h2 id="pause-installation">Pause Installation</h2>
 
 <p>The installation will pause after completing installation of the current node and wait for user input.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
@@ -230,17 +230,17 @@
 
 <p>The REST API request below will resume installation at the next pending node.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT &lt;dcos_surl&gt;/service/hdfs/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -X PUT &lt;dcos_surl&gt;/service/hdfs/v1/plans/deploy/continue
 </code></pre>
 </div>
 
 <h1 id="connection-api">Connection API</h1>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
 </code></pre>
 </div>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/endpoints/core-site.xml
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/endpoints/core-site.xml
 </code></pre>
 </div>
 
@@ -475,12 +475,12 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pods</code>:</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods list
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods list
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods
 [
     "data-0",
     "data-1",
@@ -500,17 +500,17 @@
 
 <p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pods/&lt;node-id&gt;/info</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/info
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/info
 </code></pre>
 </div>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods info journal-0
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods info journal-0
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/journal-0/info
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -910,12 +910,12 @@
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods replace &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods replace &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/replace
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/replace
 </code></pre>
 </div>
 
@@ -926,12 +926,12 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods restart &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods restart &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/restart
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/restart
 </code></pre>
 </div>
 
@@ -946,12 +946,12 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs config target
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs config target
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations/target
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations/target
 {
 	name: "hdfs",
 	role: "hdfs-role",
@@ -2210,12 +2210,12 @@
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs config list
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs config list
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations
 [
     "9a8d4308-ab9d-4121-b460-696ec3368ad6"
 ]
@@ -2227,12 +2227,12 @@
 <p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 {
     ... same format as target config above ...
 }

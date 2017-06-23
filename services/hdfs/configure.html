@@ -132,9 +132,9 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -204,11 +204,24 @@ enterprise: ‘no’
 <p>The HDFS scheduler runs as a Marathon process and can be reconfigured by changing values for the service from the DC/OS dashboard. These are the general steps to follow:</p>
 
 <ol>
-  <li>Go to the DC/OS dashboard.</li>
-  <li>Click the <strong>Services</strong> tab, then the name of the HDFS service to be updated.</li>
-  <li>Within the HDFS instance details view, click the menu in the upper right, then choose <strong>Edit</strong>.</li>
-  <li>click the menu in the upper right, then choose <strong>Edit</strong>. For example, to increase the number of nodes, edit the value for <code class="highlighter-rouge">DATA_NODES</code>.</li>
-  <li>Click <strong>REVIEW &amp; RUN</strong> to apply any changes and cleanly reload the HDFS scheduler. The HDFS cluster itself will persist across the change.</li>
+  <li>
+    <p>Go to the <strong>Services</strong> tab of the DC/OS GUI and click the name of the HDFS service to be updated.</p>
+
+    <p><img src="/img/hdfs-service-gui.png" alt="HFDS in DC/OS GUI" /></p>
+  </li>
+  <li>
+    <p>Within the HDFS instance details view, click the vertical ellipsis menu in the upper right, then choose <strong>Edit</strong>.</p>
+
+    <p><img src="/img/hdfs-service-gui2.png" alt="Edit tab" /></p>
+  </li>
+  <li>
+    <p>Click the <strong>Environment</strong> tab and make your updates. For example, to increase the number of nodes, edit the value for <code class="highlighter-rouge">DATA_COUNT</code>.</p>
+
+    <p><img src="/img/hdfs-service-gui3.png" alt="Edit environment" /></p>
+  </li>
+  <li>
+    <p>Click <strong>REVIEW &amp; RUN</strong> to apply any changes and cleanly reload the HDFS scheduler. The HDFS cluster itself will persist across the change.</p>
+  </li>
 </ol>
 
 <h2 id="configuration-deployment-strategy">Configuration Deployment Strategy</h2>
@@ -223,7 +236,7 @@ enterprise: ‘no’
 
 <p>Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy"
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy"
 </code></pre>
 </div>
 
@@ -324,7 +337,7 @@ enterprise: ‘no’
 
 <p>If you want to interrupt a configuration update that is in progress, enter the <code class="highlighter-rouge">interrupt</code> command.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
@@ -427,7 +440,7 @@ enterprise: ‘no’
 
 <p>Enter the <code class="highlighter-rouge">continue</code> command to resume the update process.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
 </code></pre>
 </div>
 

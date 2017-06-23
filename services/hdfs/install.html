@@ -132,9 +132,9 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -242,7 +242,7 @@
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-hdfs.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-hdfs.json hdfs
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install --options=sample-hdfs.json hdfs
 </code></pre>
 </div>
 
@@ -258,7 +258,7 @@ See the Configuration section for a list of fields that can be customized via a 
 
 <p>Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique <code class="highlighter-rouge">name</code> for each installation:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ cat hdfs1.json
+<div class="highlighter-rouge"><pre class="highlight"><code>cat hdfs1.json
 
 {
    "service": {
@@ -266,7 +266,7 @@ See the Configuration section for a list of fields that can be customized via a 
    }
 }
 
-$ dcos package install hdfs --options=hdfs1.json
+dcos package install hdfs --options=hdfs1.json
 </code></pre>
 </div>
 

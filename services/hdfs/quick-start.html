@@ -9,7 +9,7 @@
 
 
 <head>
-<title>HDFS: Quick Start</title>
+<title>HDFS: Quickstart</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -132,9 +132,9 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -188,271 +188,192 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>HDFS: Quick Start</h1>
+<h1>HDFS: Quickstart</h1>
 <div id="content">
+<p>This tutorial will get you up and running in minutes with HDFS. You will install and configure the DC/OS HDFS package and retrieve the core-site.xml and hdfs-site.xml files. These XML files are used to configure client nodes of the HDFS cluster.</p>
+
+<p><strong>Prerequisites:</strong></p>
+
+<ul>
+  <li><a href="https://docs.mesosphere.com/1.9/installing/">DC/OS and DC/OS CLI installed</a> with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.</li>
+  <li>
+    <p>Depending on your <a href="https://docs.mesosphere.com/1.9/overview/security/security-modes/">security mode</a>, HDFS requires a service authentication for access to DC/OS. For more information, see <a href="https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/">Configuring DC/OS Access for HDFS</a>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Security mode</th>
+          <th>Service Account</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Disabled</td>
+          <td>Not available</td>
+        </tr>
+        <tr>
+          <td>Permissive</td>
+          <td>Optional</td>
+        </tr>
+        <tr>
+          <td>Strict</td>
+          <td>Required</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
 <ol>
   <li>
-    <p>Perform a default installation of HDFS by following the instructions in the Install and Customize section of this topic.
-  <strong>Note:</strong> Your cluster must have a minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.</p>
+    <p>Install the HDFS package.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install hdfs
+</code></pre>
+    </div>
+
+    <p><strong>Tip:</strong> Type <code class="highlighter-rouge">dcos hdfs</code> to view the HDFS CLI options.</p>
   </li>
   <li>
-    <p><a href="https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/">SSH into a DC/OS node</a>.</p>
+    <p>Show the currently configured HDFS nodes.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos node ssh --leader --master-proxy
-</code></pre>
-    </div>
-  </li>
-  <li>
-    <p>Run the Hadoop client.</p>
-
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>docker run -it mesosphere/hdfs-client:1.0.0-2.6.0 bash
- <span class="nv">$ </span>./bin/hdfs dfs -ls /
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs config list
 </code></pre>
     </div>
 
-    <p>By default, the client is configured to be configured to connect to an HDFS service named <code class="highlighter-rouge">hdfs</code> and no further client configuration is required.</p>
+    <p>The output should resemble:</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>./bin/hdfs dfs -ls /
-</code></pre>
-    </div>
-
-    <p>If an HDFS cluster has been installed that does not use the default name of <code class="highlighter-rouge">hdfs</code>, you must configure the client before use.</p>
-
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ HDFS_SERVICE_NAME</span><span class="o">=</span>&lt;hdfs-alternate-name&gt; /configure-hdfs.sh
- <span class="nv">$ </span>./bin/hdfs dfs -ls /
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>
+  <span class="s2">"1773cced-0805-4b36-9022-ce5f08cf373a"</span>
+<span class="o">]</span>
 </code></pre>
     </div>
   </li>
   <li>
-    <p>To configure other clients, return to the DC/OS CLI. Retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> files with the <code class="highlighter-rouge">dcos hdfs endpoints</code> command and the <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> argument:</p>
+    <p>Configure HDFS on your nodes.</p>
+  </li>
+  <li>
+    <p><a href="https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/">SSH</a> to the leading master node.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-hdfs endpoints hdfs-site.xml
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos node ssh --leader --master-proxy
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Pull the HDFS Docker container down to your node and start an interactive pseudo-TTY session.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>docker run -it mesosphere/hdfs-client:2.6.4 /bin/bash
 </code></pre>
     </div>
 
-    <div class="language-xml highlighter-rouge"><pre class="highlight"><code> <span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
- <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span>
- <span class="nt">&lt;configuration&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.nameservices<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.ha.namenodes.hdfs<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>name-0-node,name-1-node<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
+    <p>The output should resemble:</p>
 
-     <span class="c">&lt;!-- namenode --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.shared.edits.dir<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>qjournal://journal-0-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-1-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-2-node.hdfs.autoip.dcos.thisdcos.directory:8485/hdfs<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.name.dir<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>/name-data<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.safemode.threshold-pct<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.9<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.heartbeat.recheck-interval<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>60000<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.handler.count<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>20<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.invalidate.work.pct.per.iteration<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.95<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.replication.work.multiplier.per.iteration<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>4<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.datanode.registration.ip-hostname-check<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>false<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-
-     <span class="c">&lt;!-- name-0-node --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9001<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9002<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-0-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-
-     <span class="c">&lt;!-- name-1-node --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9001<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.rpc-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-address.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9002<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.namenode.http-bind-host.hdfs.name-1-node<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-     <span class="c">&lt;!-- journalnode --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.journalnode.rpc-address<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0:8485<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.journalnode.http-address<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0:8480<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.journalnode.edits.dir<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>/journal-data<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-     <span class="c">&lt;!-- datanode --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.address<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0:9003<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.http.address<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0:9004<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.ipc.address<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>0.0.0.0:9005<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.data.dir<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>/data-data<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.balance.bandwidthPerSec<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>41943040<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.datanode.handler.count<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>10<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-     <span class="c">&lt;!-- HA --&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>ha.zookeeper.quorum<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>master.mesos:2181<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.ha.fencing.methods<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>shell(/bin/true)<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.ha.automatic-failover.enabled<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
-
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.image.compress<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.image.compression.codec<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>org.apache.hadoop.io.compress.SnappyCodec<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit.streams.cache.size<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>1000<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>1000<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.client.failover.proxy.provider.hdfs<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.domain.socket.path<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>/var/lib/hadoop-hdfs/dn_socket<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>dfs.permissions.enabled<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>false<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-
- <span class="nt">&lt;/configuration&gt;</span>
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>Unable to find image <span class="s1">'mesosphere/hdfs-client:2.6.4'</span> locally
+2.6.4: Pulling from mesosphere/hdfs-client
+6edcc89ed412: Pull <span class="nb">complete
+</span>bdf37643ee24: Pull <span class="nb">complete
+</span>ea0211d47051: Pull <span class="nb">complete
+</span>a3ed95caeb02: Pull <span class="nb">complete
+</span>12bd7c00b7e6: Pull <span class="nb">complete
+</span>9a93505f2bac: Pull <span class="nb">complete
+</span>9cc2baa935ae: Pull <span class="nb">complete
+</span>88e8b845a891: Pull <span class="nb">complete
+</span>9a84bc18aaba: Pull <span class="nb">complete
+</span>Digest: sha256:02384bc96d770e3e1fc6102b2019cdceea74e81f8223b8cdc330a499f1df733e
+Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client:2.6.4
 </code></pre>
     </div>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos hdfs endpoints hdfs-site.xml
+    <p>By default, the client is configured to be configured to connect to an HDFS service named <code class="highlighter-rouge">hdfs</code> and no further client configuration is required. If you want to configure with a different name, run this command with name (<code class="highlighter-rouge">&lt;hdfs-name&gt;</code>) specified:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">HDFS_SERVICE_NAME=&lt;hdfs-name&gt; </span>./configure-hdfs.sh
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Navigate to the Hadoop installation directory and list the contents.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>hadoop-2.6.4
+./bin/hdfs dfs -ls /
 </code></pre>
     </div>
 
-    <div class="language-xml highlighter-rouge"><pre class="highlight"><code> <span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
- <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span><span class="nt">&lt;configuration&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>fs.default.name<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>hdfs://hdfs<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.hue.hosts<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.hue.groups<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.root.hosts<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.root.groups<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.httpfs.groups<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>hadoop.proxyuser.httpfs.hosts<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>*<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;property&gt;</span>
-         <span class="nt">&lt;name&gt;</span>ha.zookeeper.parent-znode<span class="nt">&lt;/name&gt;</span>
-         <span class="nt">&lt;value&gt;</span>/dcos-service-hdfs/hadoop-ha<span class="nt">&lt;/value&gt;</span>
-     <span class="nt">&lt;/property&gt;</span>
+    <p>The output should resemble:</p>
 
- <span class="nt">&lt;/configuration&gt;</span>
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>Found 22 items
+-rwxr-xr-x   1 root  root           0 2017-06-15 18:23 /.dockerenv
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /bin
+drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /boot
+-rw-rw-r--   1 root  root         364 2016-08-25 01:01 /configure-hdfs.sh
+drwxr-xr-x   - root  root         380 2017-06-15 18:23 /dev
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /etc
+drwxr-xr-x   - 10021 10021       4096 2017-06-15 18:23 /hadoop-2.6.4
+drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /home
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib64
+drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /media
+drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /mnt
+drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /opt
+dr-xr-xr-x   - root  root           0 2017-06-15 18:23 /proc
+drwx------   - root  root        4096 2017-06-15 18:23 /root
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /run
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /sbin
+drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /srv
+dr-xr-xr-x   - root  root           0 2017-06-15 16:11 /sys
+drwxrwxrwt   - root  root        4096 2017-06-15 18:23 /tmp
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /usr
+drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /var
 </code></pre>
     </div>
-    <p>These commands returns XML files that can be used by clients of the HDFS cluster.</p>
+  </li>
+  <li>
+    <p>To configure other clients, return to the DC/OS CLI and retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> files. Use these XML files to configure client nodes of the HDFS cluster.</p>
+
+    <ol>
+      <li>
+        <p>Run this command to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file.</p>
+
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs endpoints hdfs-site.xml
+</code></pre>
+        </div>
+
+        <p>The output should resemble:</p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+<span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span><span class="nt">&lt;configuration&gt;</span>
+<span class="nt">&lt;property&gt;</span>
+<span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
+<span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
+<span class="nt">&lt;/property&gt;</span>
+...
+
+<span class="nt">&lt;/configuration&gt;</span>
+</code></pre>
+        </div>
+      </li>
+      <li>
+        <p>Run this command to retrieve the <code class="highlighter-rouge">core-site.xml</code> file.</p>
+
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs endpoints hdfs-site.xml
+</code></pre>
+        </div>
+
+        <p>The output should resemble:</p>
+
+        <div class="highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+<span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span>
+<span class="nt">&lt;configuration&gt;</span>
+    <span class="nt">&lt;property&gt;</span>
+        <span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
+    <span class="nt">&lt;/property&gt;</span>
+    ...
+
+<span class="nt">&lt;/configuration&gt;</span>
+</code></pre>
+        </div>
+      </li>
+    </ol>
   </li>
 </ol>
 
