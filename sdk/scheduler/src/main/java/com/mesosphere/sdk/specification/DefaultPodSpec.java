@@ -369,7 +369,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder volumes(Collection<VolumeSpec> volumes) {
-            this.volumes = volumes;
+            if (volumes == null) {
+                volumes = new ArrayList<>();
+            } else {
+                this.volumes = volumes;
+            }
+
             return this;
         }
 
