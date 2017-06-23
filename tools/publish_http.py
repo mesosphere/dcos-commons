@@ -241,8 +241,10 @@ Artifacts:       {}
     logger.info('---')
     logger.info('(Re)install your package using the following commands:')
     logger.info('dcos package uninstall {}'.format(package_name))
+    logger.info('\n- - - -\nFor 1.9 or older clusters only')
     logger.info('dcos node ssh --master-proxy --leader ' +
                 '"docker run mesosphere/janitor /janitor.py -r {0}-role -p {0}-principal -z dcos-service-{0}"'.format(package_name))
+    logger.info('- - - -\n')
     if not repo_added:
         logger.info('dcos package repo remove {}-local'.format(package_name))
         logger.info('dcos package repo add --index=0 {}-local {}'.format(package_name, universe_url))
