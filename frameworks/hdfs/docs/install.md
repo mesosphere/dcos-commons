@@ -53,7 +53,7 @@ Sample JSON options file named `sample-hdfs.json`:
 The command below creates a cluster using `sample-hdfs.json`:
 
 ```
-$ dcos package install --options=sample-hdfs.json hdfs
+dcos package install --options=sample-hdfs.json hdfs
 ```
 
 This cluster will have 10 data nodes instead of the default value of 3.
@@ -69,7 +69,7 @@ Many of the other Infinity services currently support DC/OS Vagrant deployment. 
 Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique `name` for each installation:
 
 ```
-$ cat hdfs1.json
+cat hdfs1.json
 
 {
    "service": {
@@ -77,7 +77,7 @@ $ cat hdfs1.json
    }
 }
 
-$ dcos package install hdfs --options=hdfs1.json
+dcos package install hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
@@ -220,4 +220,4 @@ HDFS supports deployment on the `dcos` overlay network, a virtual network on DC/
     }
 }
 ```
-As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network. 
+As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network.
