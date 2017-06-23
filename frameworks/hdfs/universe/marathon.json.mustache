@@ -60,8 +60,8 @@
     {{/service.secret_name}}
 
     {{#hdfs.security.tls.enabled}}
-    "TLS_ENABLED": "{{service.tls.enabled}}",
-    "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
+    "TLS_ENABLED": "{{hdfs.security.tls.enabled}}",
+    "TASKCFG_ALL_TLS_ENABLED": "{{hdfs.security.tls.enabled}}",
     {{/hdfs.security.tls.enabled}}
 
     {{#hdfs.security.kerberos.enabled}}
@@ -114,9 +114,9 @@
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
-    {{#service.kerberos.enabled}}
-    "{{service.kerberos.krb5_conf_uri}}",
-    {{/service.kerberos.enabled}}
+    {{#hdfs.security.kerberos.enabled}}
+    "{{hdfs.security.kerberos.krb5_conf_uri}}",
+    {{/hdfs.security.kerberos.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{

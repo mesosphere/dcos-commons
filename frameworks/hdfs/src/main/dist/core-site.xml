@@ -38,7 +38,7 @@
         <value>ALLOW_ALL</value>
     </property>
     {{/TLS_ENABLED}}
-    {{#SECURE_MODE}}
+    {{#KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
         <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
@@ -55,5 +55,5 @@
         <name>hadoop.rpc.protection</name>
         <value>privacy</value>
     </property>
-    {{/SECURE_MODE}}
+    {{/KERBEROS_ENABLED}}
 </configuration>

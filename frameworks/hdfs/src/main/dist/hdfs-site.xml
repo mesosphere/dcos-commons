@@ -148,12 +148,12 @@
         <value>{{HA_AUTOMATIC_FAILURE}}</value>
     </property>
 
-    {{#NAMENODE}}
+{{#NAMENODE}}
     <property>
         <name>dfs.ha.namenode.id</name>
         <value>name-{{POD_INSTANCE_INDEX}}-node</value>
     </property>
-    {{/NAMENODE}}
+{{/NAMENODE}}
 
     <property>
         <name>dfs.image.compress</name>
@@ -188,7 +188,7 @@
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
 
-    {{#SECURE_MODE}}
+{{#KERBEROS_ENABLED}}
     <property>
         <name>dfs.data.transfer.protection</name>
         <value>privacy</value>
@@ -233,7 +233,7 @@
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.keytab</name>
@@ -241,7 +241,7 @@
     </property>
 
 
-    {{#DATANODE}}
+{{#DATANODE}}
     <!-- DataNode Security Configuration -->
     <property>
         <name>dfs.datanode.keytab.file</name>
@@ -249,15 +249,15 @@
     </property>
     <property>
         <name>dfs.datanode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.datanode.data.dir.perm</name>
         <value>700</value>
     </property>
-    {{/DATANODE}}
+{{/DATANODE}}
 
-    {{#NAMENODE}}
+{{#NAMENODE}}
     <!-- NameNode Security Configuration -->
     <property>
         <name>dfs.namenode.keytab.file</name>
@@ -265,15 +265,11 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
-    <property>
-        <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-        <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
-    </property>
-    {{/NAMENODE}}
+{{/NAMENODE}}
 
-    {{#ZKFC}}
+{{#ZKFC}}
     <!-- NameNode Security Configuration -->
     <property>
         <name>dfs.namenode.keytab.file</name>
@@ -281,15 +277,11 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIbMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
-    <property>
-        <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-        <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
-    </property>
-    {{/ZKFC}}
+{{/ZKFC}}
 
-    {{#JOURNALNODE}}
+{{#JOURNALNODE}}
     <!-- JournalNode Security Configuration -->
     <property>
         <name>dfs.journalnode.keytab.file</name>
@@ -297,12 +289,12 @@
     </property>
     <property>
         <name>dfs.journalnode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
-        <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
-    {{/JOURNALNODE}}
-    {{/SECURE_MODE}}
+{{/JOURNALNODE}}
+{{/KERBEROS_ENABLED}}
 </configuration>
