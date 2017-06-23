@@ -9,8 +9,6 @@ import shakedown
 def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
 
-def get_recovery_plan(service_name):
-    return get_plan(service_name, "recovery")
 
 def get_plan(service_name, plan):
     def fn():

@@ -82,6 +82,6 @@ def find_java_home(host):
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=20 * 60)
+    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
+    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
     tasks.check_running(PACKAGE_NAME, count)

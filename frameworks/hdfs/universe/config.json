@@ -318,7 +318,7 @@
         "hadoop_root_logger": {
           "type": "string",
           "description": "",
-          "default": "INFO,console"
+          "default": "DEBUG,console"
         }
       },
       "required": [

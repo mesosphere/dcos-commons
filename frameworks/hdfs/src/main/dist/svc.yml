@@ -53,11 +53,10 @@ pods:
           JOURNALNODE: true
         readiness-check:
           cmd: >
-              READY=$(grep "IPC Server listener on {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}: starting" stderr| wc -l) &&
-              [ $READY -ge 1 ]
+            export JOURNAL_STARTED=$(grep "IPC Server idle connection scanner for port {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}: task running" stderr | wc -l) &&
+            [[ $JOURNAL_STARTED -ge 1 ]]
           interval: 10
-          delay: 60
-          timeout: 60
+          timeout: 10
   name:
     count: 2
     user: {{TASKCFG_ALL_TASK_USER}}
