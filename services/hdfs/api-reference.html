@@ -134,7 +134,7 @@
           
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Usage Example</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -475,7 +475,7 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pods</code>:</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs pods list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods list
 </code></pre>
 </div>
 
@@ -505,12 +505,12 @@
 </div>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs pods info journalnode-0
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods info journal-0
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/journalnode-0/info
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -910,7 +910,7 @@
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs pods replace &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods replace &lt;node-id&gt;
 </code></pre>
 </div>
 
@@ -926,7 +926,7 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs pods restart &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs pods restart &lt;node-id&gt;
 </code></pre>
 </div>
 
@@ -946,7 +946,7 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs config target
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs config target
 </code></pre>
 </div>
 
@@ -2210,7 +2210,7 @@
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs config list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs config list
 </code></pre>
 </div>
 

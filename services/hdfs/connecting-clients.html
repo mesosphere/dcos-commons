@@ -134,7 +134,7 @@
           
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/hdfs/quick-start.html">Usage Example</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -194,13 +194,15 @@
 
 <p>Applications interface with HDFS like they would any POSIX file system. However, applications that will act as client nodes of the HDFS deployment require an <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> file that provides the configuration information necessary to communicate with the cluster.</p>
 
+<h1 id="discovering-endpoints">Discovering Endpoints</h1>
+
 <h2 id="connection-info-using-the-dcos-cli">Connection Info Using the DC/OS CLI</h2>
 
 <p>Executed the following command from the DC/OS CLI to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file that client applications can use to connect to the cluster.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hdfs --name=&lt;service-name&gt; endpoints hdfs-site.xml
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-hdfs --name=&lt;service-name&gt; endpoints hdfs-site.xml
 ...
-$ dcos hdfs --name=&lt;service-name&gt; endpoints core-site.xml
+$ dcos beta-hdfs --name=&lt;service-name&gt; endpoints core-site.xml
 ...
 </code></pre>
 </div>
