@@ -18,12 +18,12 @@ pods:
         memory: {{NODE_MEM}}
         ports:
           gui:
-            port: 0
+            port: {{CONTAINER_GUI_PORT}}
             vip:
               prefix: gui
               port: {{COCKROACH_GUI_PORT}}
           internal:
-            port: 0
+            port: {{CONTAINER_INTERNAL_PORT}}
             vip:
               prefix: internal
               port: {{COCKROACH_INTERNAL_PORT}}

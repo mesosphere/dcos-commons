@@ -32,6 +32,8 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
         envVars.put("COCKROACH_GUI_PORT", "80");
         envVars.put("COCKROACH_INTERNAL_PORT", "26257");
+        envVars.put("CONTAINER_GUI_PORT", "8123");
+        envVars.put("CONTAINER_INTERNAL_PORT", "26257");
     }
 
     @Test

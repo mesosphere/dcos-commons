@@ -51,6 +51,23 @@
             "description": "Port for CockroachDB internal communication",
             "type": "number",
             "default":26257
+          },
+          "container_gui_port":{
+            "title": "Container GUI Port",
+            "description": "Container port for CockroachDB admin GUI. This port MUST be available on the host machine.",
+            "type": "number",
+            "default":8123
+          },
+          "container_internal_port":{
+            "title": "Container Internal Port",
+            "description": "Container port for CockroachDB internal communication. This port MUST be available on the host machine.",
+            "type": "number",
+            "default":26257
+          },
+          "virtual_network":{
+            "description": "Enable DC/OS Virtual Network",
+            "type": "boolean",
+            "default": false
           }
         },
         "required":[
@@ -67,18 +84,13 @@
             "title": "Node count",
             "description": "Number of Template pods to run",
             "type": "integer",
-            "default":2
+            "default":3
           },
           "placement_constraint": {
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": "hostname:UNIQUE"
-          },
-          "virtual_network":{
-            "description": "Enable DC/OS Virtual Network",
-            "type": "boolean",
-            "default": false
           },
           "cpus": {
             "title": "CPU count",
