@@ -5,10 +5,10 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-Uninstalling the service is straightforward. Replace `hdfs` with the name of the HDFS instance to be uninstalled.
+Uninstalling a cluster is straightforward. Replace `hdfs` with the name of the HDFS instance to be uninstalled.
 
 ```
-$ dcos package uninstall --app-id=hdfs
+$ dcos package uninstall --app-id=beta-hdfs
 ```
 
 **Note:** Alternatively, you can [uninstall HDFS from the DC/OS GUI](https://docs.mesosphere.com/1.9/deploying-services/uninstall/).

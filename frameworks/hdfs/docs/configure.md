@@ -5,6 +5,13 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
+---
+post_title: Configuring
+menu_order: 30
+feature_maturity: preview
+enterprise: 'no'
+---
+
 # Changing Configuration at Runtime
 
 You can customize your cluster in-place when it is up and running.
@@ -30,7 +37,7 @@ This configuration update strategy is analogous to the installation procedure ab
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
 ```
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
 ```
 
 The response will look similar to this:
@@ -335,7 +342,7 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of DC/OS Apache HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of DC/OS Apache Cassandra and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 

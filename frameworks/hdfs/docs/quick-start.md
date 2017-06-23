@@ -1,5 +1,5 @@
 ---
-post_title: Usage Example 
+post_title: Quick Start
 menu_order: 10
 feature_maturity: preview
 enterprise: 'no'
@@ -37,7 +37,7 @@ enterprise: 'no'
 1. To configure other clients, return to the DC/OS CLI. Retrieve the `hdfs-site.xml` and `core-site.xml` files with the `dcos hdfs endpoints` command and the `hdfs-site.xml` and `core-site.xml` argument:
 
     ```bash
-    $ dcos hdfs endpoints hdfs-site.xml
+    $ dcos beta-hdfs endpoints hdfs-site.xml
     ```
 
     ```xml
