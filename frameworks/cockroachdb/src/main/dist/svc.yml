@@ -85,6 +85,16 @@ pods:
           delay: 0
         env:
           COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      metrics:
+        goal: RUNNING
+        resource-set: sidecar-resources
+        cmd: "docker run \
+              -e PORT_GUI=8123 \
+              -e STATSD_UDP_HOST=$STATSD_UDP_HOST \
+              -e STATSD_UDP_PORT=$STATSD_UDP_PORT \
+              -e PYTHONUNBUFFERED=1 \
+              --network='host' \
+              sammisthemannis/cockroach-statsd:3.0"
       restore:
         goal: FINISHED
         configs:
@@ -145,8 +155,8 @@ plans:
         strategy: serial
         pod: cockroachdb
         steps:
-          - 0: [[node-init]]
-          - default: [[node-join]]
+          - 0: [[node-init], [metrics]]
+          - default: [[node-join], [metrics]]
   replace:
     strategy: parallel
     phases:
@@ -154,7 +164,7 @@ plans:
         strategy: parallel
         pod: cockroachdb
         steps:
-          - default: [[node-join]]
+          - default: [[node-join], [metrics]]
   backup:
     strategy: serial
     phases:
@@ -179,4 +189,4 @@ plans:
         strategy: serial
         pod: cockroachdb
         steps:
-          - default: [[node-join]]
+          - default: [[node-join], [metrics]]
