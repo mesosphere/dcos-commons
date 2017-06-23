@@ -1,9 +1,20 @@
 // Config shared by the dcos-commons library and the examples:
 
+// Gradle is bundled with jansi 1.9 which can crash the JVM in some cases
+// Solution taken from: https://github.com/gradle/gradle/issues/778
+buildscript {
+    dependencies {
+        classpath group: 'org.fusesource.jansi', name: 'jansi', version: '1.14'
+    }
+}
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '1.2.3'
     id 'com.github.ksoichiro.console.reporter' version '0.4.0'
 }
+
+// Importing org.fusesource.jansi.AnsiConsole is not enough to avoid aforementioned failure
+org.fusesource.jansi.AnsiConsole.out.print('init workaround')
 
 allprojects {
     apply plugin: 'java'

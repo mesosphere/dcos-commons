@@ -29,7 +29,8 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
             .build();
 
     @BeforeClass
-    public static void beforeAll() throws Exception {
+    public static void beforeAll2() throws Exception {
+        // Use a new beforeAll name to avoid shadowing parent final void
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
         File file = new File(classLoader.getResource("shared-resource-set.yml").getFile());
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
