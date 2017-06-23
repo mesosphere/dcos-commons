@@ -394,7 +394,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder secrets(Collection<SecretSpec> secrets) {
-            this.secrets = secrets;
+            if (secrets == null) {
+                this.secrets = new ArrayList<>();
+            } else {
+                this.secrets = secrets;
+            }
+
             return this;
         }
 
