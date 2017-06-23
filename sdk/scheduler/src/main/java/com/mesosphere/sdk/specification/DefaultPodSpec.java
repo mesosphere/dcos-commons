@@ -329,7 +329,12 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder tasks(List<TaskSpec> tasks) {
-            this.tasks = tasks;
+            if (tasks == null) {
+                this.tasks = new ArrayList<>();
+            } else {
+                this.tasks = tasks;
+            }
+
             return this;
         }
 
@@ -384,7 +389,6 @@ public class DefaultPodSpec implements PodSpec {
 
             return this;
         }
-
 
         /**
          * Sets the {@code secrets} and returns a reference to this Builder so that the methods can be
