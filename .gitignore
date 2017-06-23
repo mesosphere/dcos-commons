@@ -29,6 +29,9 @@ classes/
 .settings/
 bin/
 
+# vscode
+.vscode
+
 # gradle
 .gradle
 build/
