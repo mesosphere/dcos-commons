@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -130,61 +130,82 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#alreadyReportedResponse--">alreadyReportedResponse</a></span>()</code>
+<div class="block">Returns a "208 Already reported" response.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>static Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#elementNotFoundResponse--">elementNotFoundResponse</a></span>()</code>
+<div class="block">Returns a "404 Element not found" response.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-JSONArray-">jsonOkResponse</a></span>(JSONArray&nbsp;jsonArray)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONArray</code>.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-JSONObject-">jsonOkResponse</a></span>(JSONObject&nbsp;jsonObject)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-Message-">jsonOkResponse</a></span>(Message&nbsp;protoMessage)</code>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-JSONArray-Response.Status-">jsonResponse</a></span>(JSONArray&nbsp;jsonArray,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a response containing the provided <code>JSONArray</code>.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-JSONObject-Response.Status-">jsonResponse</a></span>(JSONObject&nbsp;jsonObject,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-Message-Response.Status-">jsonResponse</a></span>(Message&nbsp;protoMessage,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#jsonResponseBean-java.lang.Object-Response.Status-">jsonResponseBean</a></span>(java.lang.Object&nbsp;entity,
                 Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing the provided JSON <code>String</code>.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#plainOkResponse-java.lang.String-">plainOkResponse</a></span>(java.lang.String&nbsp;string)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#plainOkResponse-java.lang.String-">plainOkResponse</a></span>(java.lang.String&nbsp;plaintext)</code>
 <div class="block">Returns a 200 OK response containing the provided plaintext <code>String</code>.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#plainResponse-java.lang.String-Response.Status-">plainResponse</a></span>(java.lang.String&nbsp;string,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#plainResponse-java.lang.String-int-">plainResponse</a></span>(java.lang.String&nbsp;plaintext,
+             int&nbsp;statusCode)</code>
+<div class="block">Returns a response containing the provided plaintext <code>String</code> with the 
+ provided statusCode.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code>static Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html#plainResponse-java.lang.String-Response.Status-">plainResponse</a></span>(java.lang.String&nbsp;plaintext,
              Response.Status&nbsp;status)</code>
-<div class="block">Returns a 200 OK response containing the provided plaintext <code>String</code>.</div>
+<div class="block">Returns a response containing the provided plaintext <code>String</code> with the 
+ provided status <code>Response.Status</code>.</div>
 </td>
 </tr>
 </table>
@@ -291,19 +312,52 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>plainOkResponse</h4>
-<pre>public static&nbsp;Response&nbsp;plainOkResponse(java.lang.String&nbsp;string)</pre>
+<pre>public static&nbsp;Response&nbsp;plainOkResponse(java.lang.String&nbsp;plaintext)</pre>
 <div class="block">Returns a 200 OK response containing the provided plaintext <code>String</code>.</div>
 </li>
 </ul>
 <a name="plainResponse-java.lang.String-Response.Status-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>plainResponse</h4>
-<pre>public static&nbsp;Response&nbsp;plainResponse(java.lang.String&nbsp;string,
+<pre>public static&nbsp;Response&nbsp;plainResponse(java.lang.String&nbsp;plaintext,
                                      Response.Status&nbsp;status)</pre>
-<div class="block">Returns a 200 OK response containing the provided plaintext <code>String</code>.</div>
+<div class="block">Returns a response containing the provided plaintext <code>String</code> with the 
+ provided status <code>Response.Status</code>.</div>
+</li>
+</ul>
+<a name="plainResponse-java.lang.String-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>plainResponse</h4>
+<pre>public static&nbsp;Response&nbsp;plainResponse(java.lang.String&nbsp;plaintext,
+                                     int&nbsp;statusCode)</pre>
+<div class="block">Returns a response containing the provided plaintext <code>String</code> with the 
+ provided statusCode.</div>
+</li>
+</ul>
+<a name="elementNotFoundResponse--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>elementNotFoundResponse</h4>
+<pre>public static&nbsp;Response&nbsp;elementNotFoundResponse()</pre>
+<div class="block">Returns a "404 Element not found" response.</div>
+</li>
+</ul>
+<a name="alreadyReportedResponse--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>alreadyReportedResponse</h4>
+<pre>public static&nbsp;Response&nbsp;alreadyReportedResponse()</pre>
+<div class="block">Returns a "208 Already reported" response.</div>
 </li>
 </ul>
 </li>
