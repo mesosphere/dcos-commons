@@ -319,10 +319,10 @@ public class StateStoreUtils {
      */
     public static void setLastCompletedUpdateType(
             StateStore stateStore,
-            ConfigurationUpdater.UpdateResult updateResult) {
+            ConfigurationUpdater.UpdateResult.DeploymentType updateResultDeploymentType) {
         stateStore.storeProperty(
                 LAST_COMPLETED_UPDATE_TYPE_KEY,
-                updateResult.getDeploymentType().name().getBytes(StandardCharsets.UTF_8));
+                updateResultDeploymentType.name().getBytes(StandardCharsets.UTF_8));
     }
 
     /**

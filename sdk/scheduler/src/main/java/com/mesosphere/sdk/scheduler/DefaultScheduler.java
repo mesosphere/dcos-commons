@@ -267,6 +267,67 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
 
         /**
+         * Gets or generate plans against the given service spec.
+         *
+         * @param stateStore The state store to use for plan generation.
+         * @param configStore The config store to use for plan generation.
+         * @return a collection of plans
+         */
+        public Collection<Plan> getPlans(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+            LOGGER.info("Getting plans");
+            Collection<Plan> plans;
+            if (!manualPlans.isEmpty()) {
+                plans = new ArrayList<>(manualPlans);
+            } else if (!yamlPlans.isEmpty()) {
+                // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
+                // may look at the old config and mistakenly think they're COMPLETE.
+                DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
+                plans = yamlPlans.entrySet().stream()
+                        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
+                        .collect(Collectors.toList());
+            } else {
+                try {
+                    if (!configStore.list().isEmpty()) {
+                        LOGGER.info("Generating default deploy plan.");
+                        plans = Arrays.asList(
+                                new DeployPlanFactory(
+                                        new DefaultPhaseFactory(
+                                                new DefaultStepFactory(configStore, stateStore)))
+                                        .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                    } else {
+                        plans = Collections.emptyList();
+                    }
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to generate a deploy plan.");
+                    throw new IllegalStateException(e);
+                }
+            }
+            return plans;
+        }
+
+        /**
+         * Detects whether or not the previous deployment's type was set or not and if not, sets it.
+         *
+         * @param stateStore The stateStore to get last deployment type from.
+         * @param configStore The configStore to get plans from.
+         */
+        public void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+            LOGGER.info("Fixing last deployment type");
+            ConfigurationUpdater.UpdateResult.DeploymentType lastDeploymentType =
+                    StateStoreUtils.getLastCompletedUpdateType(stateStore);
+            if (lastDeploymentType.equals(ConfigurationUpdater.UpdateResult.DeploymentType.NONE)) {
+                Collection<Plan> plans = getPlans(stateStore, configStore);
+                Optional<Plan> deployPlan = getDeployPlan(plans);
+
+                if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
+                    StateStoreUtils.setLastCompletedUpdateType(
+                            stateStore,
+                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
+                }
+            }
+        }
+
+        /**
          * Creates a new scheduler instance with the provided values or their defaults.
          *
          * @return a new scheduler instance
@@ -282,11 +343,13 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
             final StateStore stateStore = getStateStore();
             final ConfigStore<ServiceSpec> configStore = getConfigStore();
+            fixLastDeploymentType(stateStore, configStore);
 
             // Update/validate config as needed to reflect the new service spec:
             Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
             configValidators.addAll(defaultConfigValidators());
             configValidators.addAll(customConfigValidators);
+
             final ConfigurationUpdater.UpdateResult configUpdateResult =
                     updateConfig(serviceSpec, stateStore, configStore, configValidators);
             if (!configUpdateResult.getErrors().isEmpty()) {
@@ -294,31 +357,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         configUpdateResult.getTargetId(), configUpdateResult.getErrors());
             }
 
-            // Get or generate plans. Any plan generation is against the service spec that we just updated:
-            Collection<Plan> plans;
-            if (!manualPlans.isEmpty()) {
-                plans = new ArrayList<>(manualPlans);
-            } else if (!yamlPlans.isEmpty()) {
-                // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
-                // may look at the old config and mistakenly think they're COMPLETE.
-                DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
-                plans = yamlPlans.entrySet().stream()
-                        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
-                        .collect(Collectors.toList());
-            } else {
-                LOGGER.info("Generating default deploy plan.");
-                try {
-                    plans = Arrays.asList(
-                            new DeployPlanFactory(
-                                    new DefaultPhaseFactory(
-                                            new DefaultStepFactory(configStore, stateStore)))
-                                    .getPlan(configStore.fetch(configStore.getTargetConfig())));
-                } catch (ConfigStoreException e) {
-                    LOGGER.error("Failed to generate a deploy plan.");
-                    throw new IllegalStateException(e);
-                }
-            }
-
+            Collection<Plan> plans = getPlans(stateStore, configStore);
             plans = overrideDeployPlan(plans, configUpdateResult);
             Optional<Plan> deployOptional = getDeployPlan(plans);
             if (!deployOptional.isPresent()) {
@@ -708,7 +747,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     private void completeDeploy() {
         if (!planCoordinator.hasOperations()) {
-            StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult);
+            StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
         }
     }
 
