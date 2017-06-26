@@ -23,7 +23,7 @@ def setup_module(module):
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
-def cockroach_cmd(sql_command, database='', task='cockroachdb-0-node-init'):
+def cockroach_cmd(sql_command, database='', task='cockroachdb-1-node-join'):
     ''' Generates dcos command that can be passed
     to sdk_cmd.run_cli for testing. '''
     dcos_command = """task exec {} \
@@ -34,7 +34,7 @@ def cockroach_cmd(sql_command, database='', task='cockroachdb-0-node-init'):
         dcos_command += ' -d {}'.format(database)
     return dcos_command
 
-def cockroach_nodes_healthy(task='cockroachdb-0-node-init'):
+def cockroach_nodes_healthy(task='cockroachdb-1-node-join'):
     ''' Executes `cockroach node ls` on the
     first CockroachDB node to confirm that
     the number of active, connected nodes
@@ -89,7 +89,7 @@ def test_nodes_connected():
     cmd_create_database = cockroach_cmd('CREATE DATABASE bank;')
     cmd_create_table = cockroach_cmd('CREATE TABLE accounts (id INT PRIMARY KEY, balance INT);', 'bank')
     cmd_insert = cockroach_cmd('INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250);', 'bank')
-    cmd_select = cockroach_cmd('SELECT id, balance FROM accounts;', 'bank', task='cockroachdb-1-node-join')
+    cmd_select = cockroach_cmd('SELECT id, balance FROM accounts;', 'bank', task='cockroachdb-2-node-join')
 
     # Run SQL Commands
     cmd.run_cli(cmd_drop_database)

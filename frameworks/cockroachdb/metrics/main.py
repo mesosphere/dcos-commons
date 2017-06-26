@@ -34,7 +34,7 @@ class CockroachEmitter:
                     urllib3.exceptions.MaxRetryError, \
                     requests.exceptions.ConnectionError) as e:
                 print("[CONNECTION ERROR] {}".format(e), file=sys.stderr)
-                print("[CONNECTION ERROR] Waiting {} seconds to retry...".format(self.CONNECTION_RETRY_INTERVAL))
+                print("[CONNECTION ERROR] Waiting {} seconds to retry...".format(self.CONNECTION_RETRY_INTERVAL), file=sys.stderr)
                 time.sleep(self.CONNECTION_RETRY_INTERVAL)
 
     def stop(self):
