@@ -9,10 +9,10 @@ pods:
     networks:
       dcos:
     {{/ENABLE_VIRTUAL_NETWORK}}
-    image: mesosphere/cassandra:1.0.26-3.0.10
+    image: {{CASSANDRA_DOCKER_IMAGE}}
     uris:
       - {{SCHEDULER_URI}}
-      - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
+      - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
     user: {{SERVICE_USER}}
     resource-sets:
