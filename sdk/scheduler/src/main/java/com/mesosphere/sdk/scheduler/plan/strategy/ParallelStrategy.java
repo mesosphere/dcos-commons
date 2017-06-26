@@ -14,7 +14,7 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
 
     @Override
     public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
-        // No prerequites configured:
+        // No prerequisites configured:
         return new DependencyStrategyHelper<C>(elements).getCandidates(isInterrupted(), dirtyAssets);
     }
 

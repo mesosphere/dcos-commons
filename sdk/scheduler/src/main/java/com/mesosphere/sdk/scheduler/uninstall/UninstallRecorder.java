@@ -35,7 +35,7 @@ public class UninstallRecorder implements OperationRecorder {
     }
 
     private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
-        return taskInfo.getResourcesList().stream()
+        return ResourceUtils.getAllResources(taskInfo).stream()
                 .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
     }
 

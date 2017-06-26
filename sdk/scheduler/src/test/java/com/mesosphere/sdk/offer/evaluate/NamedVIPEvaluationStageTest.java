@@ -1,16 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
@@ -21,7 +18,7 @@ import java.util.*;
 /**
  * Tests for {@link NamedVIPEvaluationStage}.
  */
-public class NamedVIPEvaluationStageTest {
+public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {
@@ -33,7 +30,9 @@ public class NamedVIPEvaluationStageTest {
 
         // Evaluate stage
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(10000, Optional.empty(), onOverlay);
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -50,6 +49,7 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertEquals("pod-type-0-test-task-name", discoveryInfo.getName());
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+        //TODO(arand) check that second discovery label is NOT added
     }
 
     @Test
@@ -65,7 +65,8 @@ public class NamedVIPEvaluationStageTest {
 
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(containerPort, Optional.empty(), onOverlay);
 
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -103,7 +104,8 @@ public class NamedVIPEvaluationStageTest {
 
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(containerPort, Optional.empty(), onOverlay);
 
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -156,7 +158,9 @@ public class NamedVIPEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(10000, taskInfos, onOverlay);
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(10000, Optional.of(resourceId), onOverlay);
 
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -193,7 +197,9 @@ public class NamedVIPEvaluationStageTest {
         // a new port has been requested but we want to reuse the old VIP definition.
 
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(8000, Optional.empty(), onOverlay);
-        EvaluationOutcome outcome = vipEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -222,6 +228,7 @@ public class NamedVIPEvaluationStageTest {
         return new NamedVIPSpec(
                 valueBuilder.build(),
                 TestConstants.ROLE,
+                Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL,
                 TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
                 TestConstants.VIP_NAME + "-" + taskPort,
@@ -234,9 +241,7 @@ public class NamedVIPEvaluationStageTest {
 
     private PodInstanceRequirement getPodInstanceRequirement(int taskPort, boolean onOverlay) {
         // Build Pod
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL)
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE,Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
                 .addResource(getNamedVIPSpec(taskPort, onOverlay))

@@ -72,16 +72,17 @@ public class UninstallScheduler extends AbstractScheduler {
             return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
         }
 
-        // create one UninstallStep per unique Resource, including Executor resources
-        List<Step> taskSteps = new ArrayList<>();
-        for (Protos.Resource resource : ResourceUtils.getAllResources(stateStore.fetchTasks())) {
-            Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-            if (!resourceId.isPresent()) {
-                continue;
-            }
-            Status status = resourceId.get().startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING;
-            taskSteps.add(new UninstallStep(resourceId.get(), status));
-        }
+        // Given this scenario:
+        // - Task 1: resource A, resource B
+        // - Task 2: resource A, resource C
+        // Create one UninstallStep per unique Resource, including Executor resources.
+        // We filter to unique Resource Id's, because Executor level resources are tracked
+        // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
+        List<Protos.Resource> allResources = ResourceUtils.getAllResources(stateStore.fetchTasks());
+        List<Step> taskSteps = ResourceUtils.getResourceIds(allResources).stream()
+                .map(resourceId -> new UninstallStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
+                        Status.COMPLETE : Status.PENDING))
+                .collect(Collectors.toList());
 
         Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                 Collections.emptyList());

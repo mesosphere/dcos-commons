@@ -14,6 +14,7 @@ import tempfile
 import cli_install
 import dcos_login
 import github_update
+import piputil
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -97,73 +98,53 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt=None, pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_filename=None, pytest_types='sanity'):
         normal_path = test_dirs.rstrip(os.sep)
         framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], framework, 'shakedown_env')
+            package_path = os.path.join(os.environ['WORKSPACE'], framework, 'python_deps')
             # produce test report for consumption by Jenkins:
             path_based_name = "%s-%s" % (framework, "shakedown-report.xml")
             jenkins_args = '--junitxml=' + path_based_name
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                           framework, 'shakedown_env')
+            package_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                           framework, 'python_deps')
             jenkins_args = ''
-        if requirements_txt is not None:
-            logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
-        else:
-            # generate default requirements:
-            logger.info('No requirements.txt provided, using default requirements')
-            requirements_txt = os.path.join(self._sandbox_path, 'requirements.txt')
-            requirements_file = open(requirements_txt, 'w')
-            requirements_file.write('''
-requests==2.10.0
-dcoscli==0.4.16
-dcos==0.4.16
 
--e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
-''')
-            requirements_file.flush()
-            requirements_file.close()
-        if self._fail_fast:
-            fail_arg = '--exitfirst'
+        if not os.path.isdir(package_path):
+            os.makedirs(package_path)
+
+        if requirements_filename is not None:
+            logger.info('Using provided requirements.txt: {}'.format(requirements_filename))
+            with open(requirements_filename) as req_f:
+                requirements_text = req_f.read()
         else:
-            fail_arg = ''
-        # to ensure the 'source' call works, just create a shell script and execute it directly:
-        script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
-        script_file = open(script_path, 'w')
-        # TODO(nick): remove this inlined script with external templating
-        #             (or find a way of entering the virtualenv that doesn't involve a shell script)
-        script_file.write('''
-#!/bin/bash
-set -e
-echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
-virtualenv -p $(which python3) --always-copy {venv_path}
-echo ls -l {venv_path}/bin/pip
-ls -l {venv_path}/bin/pip
-echo head {venv_path}/bin/pip
-head {venv_path}/bin/pip
-echo "VIRTUALENV ACTIVATE: {venv_path}"
-source {venv_path}/bin/activate
-echo "REQUIREMENTS INSTALL: {reqs_file}"
-echo {venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
-{venv_path}/bin/python3 {venv_path}/bin/pip install -r {reqs_file}
-echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args} -vv {fail_arg} --exitfirst --capture=no -m "{pytest_types}" {test_dirs}
-'''.format(venv_path=virtualenv_path,
-           reqs_file=requirements_txt,
-           dcos_url=self._dcos_url,
-           jenkins_args=jenkins_args,
-           fail_arg=fail_arg,
-           pytest_types=pytest_types,
-           test_dirs=test_dirs))
-        script_file.flush()
-        script_file.close()
+            requirements_text = None
+
+        piputil.populate_dcoscommons_packagedir(package_path,
+                                                requirements_text)
+        piputil.activate_libdir(package_path)
+
+        cmd = [sys.executable, '-m', 'pytest']
+        if jenkins_args:
+            cmd.append(jenkins_args)
+        if self._fail_fast:
+            cmd.append('--exitfirst')
+        cmd.extend(['-vv', '--fulltrace', '--capture=no', '-m', pytest_types, test_dirs])
+
+        custom_env = os.environ.copy()
+        new_pythonpath = package_path
+        existing_pythonpath = os.environ.get("PYTHONPATH")
+        if existing_pythonpath:
+            new_pythonpath += ":" + existing_pythonpath
+        custom_env["PYTHONPATH"] = new_pythonpath
+
+
+        self._github_updater.update('pending', 'Running shakedown tests')
         try:
-            self._github_updater.update('pending', 'Running shakedown tests')
-            subprocess.check_call(['bash', script_path])
+            subprocess.check_call(cmd, env=custom_env)
             self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
@@ -308,11 +289,11 @@ def main(argv):
         if test_type == 'shakedown':
             if len(argv) >= 4:
                 # use provided requirements.txt
-                requirements_txt = argv[3]
+                requirements_filename = argv[3]
             else:
                 # use default requirements
-                requirements_txt = None
-            tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
+                requirements_filename = None
+            tester.run_shakedown(test_dirs, requirements_filename, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]
             tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)

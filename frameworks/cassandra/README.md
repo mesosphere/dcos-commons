@@ -183,6 +183,9 @@ You can configure whether the creation, transfer, and restoration of backups occ
 *   **In DC/OS CLI options.json**: `backup_restore_strategy`: string (default: `"serial"`)
 *   **DC/OS web interface**: `BACKUP_RESTORE_STRATEGY`: `string`
 
+### Overlay networks
+The Cassandra service can be run on the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). For the Cassandra service, using the overlay network means that nodes no longer use reserved port resources on the mesos agents.  This means that nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarentee that the ports on the agents containing the reserved resources for Cassandra will be avialable, therefore we do not allow a service to change from the overlay network to the host network. **Once the service is deployed on the overlay network it must remain on the overlay network**. The only way to move your data to Cassandra on the host network is through a migration.  
+
 <a name="cassandra-settings"></a>
 ## Cassandra Settings
 
@@ -362,6 +365,19 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
 
 <a name="uninstalling"></a>
+
+### Overlay networks
+
+Cassandra supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+```json
+{
+    "service": {
+        "virtual_network": true
+    }
+}
+```
+By default two nodes will not be placed on the same agent, however multiple Cassandra clusters can share an agent. As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network. 
+
 # Uninstalling
 
 Follow these steps to uninstall the service.

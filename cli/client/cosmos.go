@@ -10,51 +10,70 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-func HTTPCosmosPostJSON(urlPath, jsonPayload string) *http.Response {
-	return checkCosmosHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
+const (
+	cosmosURLConfigKey  = "package.cosmos_url"
+	marathonAppNotFound = "MarathonAppNotFound"
+	badVersionUpdate    = "BadVersionUpdate"
+)
+
+// HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
+// https://dcos.cluster/cosmos/service/<urlPath>
+func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
+	SetCustomResponseCheck(checkCosmosHTTPResponse)
+	return checkHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
-func printBadVersionErrorAndExit(response *http.Response, data map[string]interface{}) {
-	requestedVersion := data["updateVersion"]
-	//TODO: this is probably an array?
-	validVersions := data["validVersions"]
-	printResponseError(response)
-	LogMessage("- Unable to update %s to requested version: %s", config.ServiceName, requestedVersion)
-	LogMessageAndExit("- Valid versions are: %s", validVersions)
-}
-
-func parseCosmosHTTPErrorResponse(response *http.Response) {
-	responseJSON, err := UnmarshalJSON(GetResponseBytes(response))
+func createBadVersionError(response *http.Response, data map[string]interface{}) error {
+	requestedVersion, err := GetValueFromJSON(data, "updateVersion")
 	if err != nil {
-		printResponseErrorAndExit(response)
+		return err
+	}
+	validVersions, err := GetValueFromJSON(data, "validVersions")
+	if err != nil {
+		return err
+	}
+	if config.Verbose {
+		printResponseError(response)
+	}
+
+	errorString := `Unable to update %s to requested version: %s
+Valid versions are: %s`
+
+	return fmt.Errorf(errorString, config.ServiceName, requestedVersion, validVersions)
+}
+
+func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
+	responseJSON, err := UnmarshalJSON(body)
+	if err != nil {
+		return createResponseError(response)
 	}
 	if errorType, present := responseJSON["type"]; present {
 		message := responseJSON["message"]
 		switch errorType {
-		case "MarathonAppNotFound":
-			printServiceNameErrorAndExit(response)
-		case "BadVersionUpdate":
-			printBadVersionErrorAndExit(response, responseJSON["data"].(map[string]interface{}))
+		case marathonAppNotFound:
+			return createServiceNameError(response)
+		case badVersionUpdate:
+			return createBadVersionError(response, responseJSON["data"].(map[string]interface{}))
 		default:
 			if config.Verbose {
-				LogMessage("Cosmos error: %s: %s", errorType, message)
+				PrintMessage("Cosmos error: %s: %s", errorType, message)
 			}
-			printResponseErrorAndExit(response)
 		}
 	}
+	return createResponseError(response)
 }
 
-func checkCosmosHTTPResponse(response *http.Response) *http.Response {
+func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
-		printResponseError(response)
-		LogMessageAndExit("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		if config.Verbose {
+			printResponseError(response)
+		}
+		return fmt.Errorf("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	case response.StatusCode == http.StatusBadRequest:
-		parseCosmosHTTPErrorResponse(response)
-	default:
-		return checkHTTPResponse(response)
+		return parseCosmosHTTPErrorResponse(response, body)
 	}
-	return response
+	return nil
 }
 
 func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
@@ -68,16 +87,16 @@ func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Requ
 
 func createCosmosURL(urlPath string) *url.URL {
 	// Try to fetch the Cosmos URL from the system configuration
-	if len(config.CosmosUrl) == 0 {
-		config.CosmosUrl = OptionalCLIConfigValue("package.cosmos_url")
+	if len(config.CosmosURL) == 0 {
+		config.CosmosURL = OptionalCLIConfigValue(cosmosURLConfigKey)
 	}
 
 	// Use Cosmos URL if we have it specified
-	if len(config.CosmosUrl) > 0 {
+	if len(config.CosmosURL) > 0 {
 		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
-		return createURL(config.CosmosUrl, joinedURLPath, "")
+		return createURL(config.CosmosURL, joinedURLPath, "")
 	}
 	getDCOSURL()
 	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
-	return createURL(config.DcosUrl, joinedURLPath, "")
+	return createURL(config.DcosURL, joinedURLPath, "")
 }

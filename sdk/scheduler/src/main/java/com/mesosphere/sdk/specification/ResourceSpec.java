@@ -22,6 +22,9 @@ public interface ResourceSpec {
     @JsonProperty("role")
     String getRole();
 
+    @JsonProperty("pre-reserved-role")
+    String getPreReservedRole();
+
     @JsonProperty("principal")
     String getPrincipal();
 

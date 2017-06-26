@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -18,7 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -179,13 +184,22 @@ public class DefaultService implements Service {
             StateStore stateStore,
             String userString,
             int failoverTimeoutSec) {
+
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
-                .addAllRoles(getRoles(serviceSpec))
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
                 .setCheckpoint(true);
+
+        List<String> roles = getRoles(serviceSpec);
+        if (roles.size() == 1) {
+            fwkInfoBuilder.setRole(roles.get(0));
+        } else {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+            fwkInfoBuilder.addAllRoles(getRoles(serviceSpec));
+        }
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
@@ -200,13 +214,23 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
-        fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
 
         return fwkInfoBuilder.build();
     }
 
     private List<String> getRoles(ServiceSpec serviceSpec) {
-        return Arrays.asList(serviceSpec.getRole());
+        List<String> roles = new ArrayList<>();
+        roles.add(serviceSpec.getRole());
+        roles.addAll(
+                serviceSpec.getPods().stream()
+                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
+                .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
+                .collect(Collectors.toList()));
+
+        return roles;
     }
 }

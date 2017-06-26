@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -69,10 +71,11 @@ public class ResourceTestUtils {
                         .setMode(Volume.Mode.RW)
                         .build())
                 .build();
-        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
-                .setDisk(mountVolumeDiskInfo)
-                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
-                .build();
+        return addReservation(
+                Resource.newBuilder(getUnreservedResource("disk", diskValue)).setDisk(mountVolumeDiskInfo),
+                resourceId,
+                role,
+                principal).build();
     }
 
     public static Resource getUnreservedRootVolume(double diskSize) {
@@ -82,27 +85,6 @@ public class ResourceTestUtils {
                 .build();
         return Resource.newBuilder(getUnreservedResource("disk", diskValue))
                 .setRole("*")
-                .build();
-    }
-
-    public static Resource getDesiredRootVolume(String role, String principal, double diskSize, String containerPath) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        DiskInfo rootVolumeDiskInfo = DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId("")
-                        .setPrincipal(principal)
-                        .build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(containerPath)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
-        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
-                .setRole(role)
-                .setDisk(rootVolumeDiskInfo)
                 .build();
     }
 
@@ -118,6 +100,7 @@ public class ResourceTestUtils {
                 VolumeSpec.Type.ROOT,
                 containerPath,
                 role,
+                Constants.ANY_ROLE,
                 principal,
                 ""); // env-key isn't used
         return ResourceBuilder.fromSpec(
@@ -125,13 +108,6 @@ public class ResourceTestUtils {
                 Optional.of(resourceId),
                 Optional.of(persistenceId),
                 Optional.empty())
-                .build();
-    }
-
-    private static Resource getExpectedResource(String role, String principal, String name, Value value) {
-        return Resource.newBuilder(getUnreservedResource(name, value))
-                .setRole(role)
-                .setReservation(getExpectedReservationInfo("", role, principal))
                 .build();
     }
 
@@ -143,29 +119,6 @@ public class ResourceTestUtils {
         return Resource.newBuilder(getUnreservedResource(name, val))
                 .setRole("*")
                 .build();
-    }
-
-    public static Resource getExpectedScalar(
-            String name,
-            double value,
-            String resourceId,
-            String role,
-            String principal) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(value))
-                .build();
-        return Resource.newBuilder(getUnreservedResource(name, val))
-                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
-                .build();
-    }
-
-    public static Resource getDesiredScalar(String role, String principal, String name, double value) {
-        Value val = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(value))
-                .build();
-        return getExpectedResource(role, principal, name, val);
     }
 
     public static Resource getUnreservedRanges(String name, List<Range> ranges) {
@@ -189,9 +142,11 @@ public class ResourceTestUtils {
                 .setType(Value.Type.RANGES)
                 .setRanges(Value.Ranges.newBuilder().addAllRange(ranges))
                 .build();
-        return Resource.newBuilder(getUnreservedResource(name, val))
-                .setReservation(getExpectedReservationInfo(resourceId, role, principal))
-                .build();
+        return addReservation(
+                Resource.newBuilder(getUnreservedResource(name, val)),
+                resourceId,
+                role,
+                principal).build();
     }
 
     public static Resource setResourceId(Resource resource, String resourceId) {
@@ -215,18 +170,6 @@ public class ResourceTestUtils {
 
     public static String getPersistenceId(Resource diskResource) {
         return ResourceUtils.getPersistenceId(diskResource).get();
-    }
-
-    private static ReservationInfo getExpectedReservationInfo(String resourceId, String role, String principal) {
-        return ReservationInfo.newBuilder()
-                .setPrincipal(principal)
-                .setLabels(Labels.newBuilder()
-                        .addLabels(Label.newBuilder()
-                                .setKey(MesosResource.RESOURCE_ID_KEY)
-                                .setValue(resourceId)
-                                .build())
-                        .build())
-                .build();
     }
 
     private static DiskInfo getUnreservedMountVolumeDiskInfo(String mountRoot) {
@@ -267,28 +210,6 @@ public class ResourceTestUtils {
         }
 
         return builder.build();
-    }
-
-    public static Resource getDesiredMountVolume(double diskSize) {
-        Value diskValue = Value.newBuilder()
-                .setType(Value.Type.SCALAR)
-                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
-                .build();
-        DiskInfo mountVolumeDiskInfo = DiskInfo.newBuilder()
-                .setPersistence(Persistence.newBuilder()
-                        .setId("")
-                        .setPrincipal(TestConstants.PRINCIPAL)
-                        .build())
-                .setSource(Source.newBuilder().setType(Source.Type.MOUNT).build())
-                .setVolume(Volume.newBuilder()
-                        .setContainerPath(TestConstants.CONTAINER_PATH)
-                        .setMode(Volume.Mode.RW)
-                        .build())
-                .build();
-        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
-                .setRole(TestConstants.ROLE)
-                .setDisk(mountVolumeDiskInfo)
-                .build();
     }
 
     public static Resource getUnreservedMountVolume(double diskSize) {
@@ -335,14 +256,6 @@ public class ResourceTestUtils {
                 persistenceId);
     }
 
-    private static Resource getDesiredScalar(String name, double value) {
-        return getDesiredScalar(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                name,
-                value);
-    }
-
     public static Resource getExpectedScalar(String name, double value, String resourceId) {
         return getExpectedScalar(
                 name,
@@ -352,6 +265,56 @@ public class ResourceTestUtils {
                 TestConstants.PRINCIPAL);
     }
 
+    public static Resource getExpectedScalar(
+            String name,
+            double value,
+            String resourceId,
+            String role,
+            String principal) {
+        Value val = Value.newBuilder()
+                .setType(Value.Type.SCALAR)
+                .setScalar(Value.Scalar.newBuilder().setValue(value))
+                .build();
+        return addReservation(
+                Resource.newBuilder(getUnreservedResource(name, val)),
+                resourceId,
+                role,
+                principal).build();
+    }
+
+    private static Resource.Builder addReservation(
+            Resource.Builder builder,
+            String resourceId,
+            String role,
+            String principal) {
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            builder.addReservations(ReservationInfo.newBuilder()
+                    .setRole(role)
+                    .setPrincipal(principal)
+                    .setLabels(Labels.newBuilder()
+                            .addLabels(Label.newBuilder()
+                                    .setKey(MesosResource.RESOURCE_ID_KEY)
+                                    .setValue(resourceId)
+                                    .build())
+                            .build())
+                    .build());
+        } else {
+            builder.setRole(role);
+            builder.setReservation(ReservationInfo.newBuilder()
+                    .setPrincipal(principal)
+                    .setLabels(Labels.newBuilder()
+                            .addLabels(Label.newBuilder()
+                                    .setKey(MesosResource.RESOURCE_ID_KEY)
+                                    .setValue(resourceId)
+                                    .build())
+                            .build())
+                    .build());
+
+        }
+
+        return  builder;
+    }
+
     public static final Resource getExpectedRanges(String name, long begin, long end, String resourceId) {
         return getExpectedRanges(
                 name,
@@ -359,19 +322,6 @@ public class ResourceTestUtils {
                 resourceId,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL);
-    }
-
-    public static final Resource getDesiredRanges(String name, long begin, long end) {
-        Value.Builder valueBuilder = Value.newBuilder()
-                .setType(Value.Type.RANGES);
-        valueBuilder.getRangesBuilder().addRangeBuilder()
-                .setBegin(begin)
-                .setEnd(end);
-        return getExpectedResource(
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                name,
-                valueBuilder.build());
     }
 
     public static Resource getUnreservedCpu(double cpus) {
@@ -397,13 +347,5 @@ public class ResourceTestUtils {
 
     public static Resource getExpectedCpu(double cpus) {
         return ResourceTestUtils.getExpectedScalar("cpus", cpus, TestConstants.RESOURCE_ID);
-    }
-
-    public static Resource getDesiredCpu(double cpus) {
-        return ResourceTestUtils.getDesiredScalar("cpus", cpus);
-    }
-
-    public static Resource getDesiredMem(double mem) {
-        return ResourceTestUtils.getDesiredScalar("mem", mem);
     }
 }

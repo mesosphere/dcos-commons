@@ -32,6 +32,7 @@ public class NamedVIPSpec extends PortSpec {
     public NamedVIPSpec(
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
+            @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("principal") String principal,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("port-name") String portName,
@@ -41,7 +42,7 @@ public class NamedVIPSpec extends PortSpec {
             @JsonProperty("vip-port") Integer vipPort,
             @JsonProperty("network-names") Collection<String> networkNames) {
 
-        super(value, role, principal, envKey, portName, networkNames);
+        super(value, role, preReservedRole, principal, envKey, portName, networkNames);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;

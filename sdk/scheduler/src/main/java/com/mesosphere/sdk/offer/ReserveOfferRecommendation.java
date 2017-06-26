@@ -14,14 +14,7 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
     private final Operation operation;
 
     public ReserveOfferRecommendation(Offer offer, Resource resource) {
-        // The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
-        // information which is not appropriate for the RESERVE operation.  It is filtered out here.
-        if (resource.hasDisk()) {
-            DiskInfo diskInfo = resource.getDisk().toBuilder()
-                    .clearVolume()
-                    .build();
-            resource = resource.toBuilder().setDisk(diskInfo).build();
-        }
+        resource = getReservedResource(resource);
         this.offer = offer;
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.RESERVE)
@@ -42,5 +35,26 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    /**
+     * The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
+     * information which is not appropriate for the RESERVE operation.  It is filtered out here.
+     */
+    private static Resource getReservedResource(Resource resource) {
+        // The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
+        // information which is not appropriate for the RESERVE operation.  It is filtered out here.
+        Resource.Builder resBuilder = Resource.newBuilder(resource);
+        if (resBuilder.hasDisk() && resBuilder.getDisk().hasSource()) {
+            // Mount volume: Copy disk, but without 'persistence' nor 'volume' fields
+            resBuilder.setDisk(DiskInfo.newBuilder(resBuilder.getDisk())
+                    .clearPersistence()
+                    .clearVolume());
+        } else {
+            // Root volume: Clear the disk.
+            resBuilder.clearDisk();
+        }
+        resBuilder.clearRevocable();
+        return resBuilder.build();
     }
 }
