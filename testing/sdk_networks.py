@@ -67,10 +67,10 @@ def get_framework_srv_records(package_name):
     ok, out = shakedown.run_command_on_master(cmd)
     assert ok, "Failed to get srv records. command was {}".format(cmd)
     srvs = json.loads(out)
-    fmk_srvs = [f for f in srvs["frameworks"] if f["name"] == package_name]
-    assert len(fmk_srvs) == 1, "Got too many srv records matching package {}, got {}"\
-        .format(package_name, fmk_srvs)
-    return fmk_srvs[0]
+    framework_srvs = [f for f in srvs["frameworks"] if f["name"] == package_name]
+    assert len(framework_srvs) == 1, "Got too many srv records matching package {}, got {}"\
+        .format(package_name, framework_srvs)
+    return framework_srvs[0]
 
 
 def get_task_record(task_name, fmk_srv_records):

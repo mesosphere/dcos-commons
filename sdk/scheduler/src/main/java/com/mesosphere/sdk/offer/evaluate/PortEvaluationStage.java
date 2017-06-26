@@ -54,10 +54,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         return portName;
     }
 
-    protected boolean isUseHostPorts() {
-        return useHostPorts;
-    }
-
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
@@ -163,38 +159,21 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             taskBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
 
-            //Protos.DiscoveryInfo.Builder discoveryInfoBuilder = taskBuilder.hasDiscovery() ?
-            //        taskBuilder.getDiscoveryBuilder() : Protos.DiscoveryInfo.newBuilder();
-
-            //Protos.Ports.Builder portsBuilder = discoveryInfoBuilder.getPortsBuilder();
-
             if (taskBuilder.hasDiscovery()) {
                 Protos.Ports.Builder portsBuilder = taskBuilder.getDiscoveryBuilder().getPortsBuilder();
                 Optional<Protos.Port.Builder> builderOptional = portsBuilder.getPortsBuilderList().stream()
                         .filter(b -> b.getName().equals(getPortName()))
                         .findFirst();
                 if (builderOptional.isPresent()) {
-                    //builderOptional.get()
-                    //        .setNumber((int) port)
-                    //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL);
                     setPortBuilder(builderOptional.get(), port);
                 } else {
                     portsBuilder.addPorts(makePortBuilder(port));
-                    //portsBuilder.addPortsBuilder()
-                    //        .setNumber((int) port)
-                    //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                    //        .setName(getPortName());
 
                 }
             } else {
                 Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
                         .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
                         .setName(taskBuilder.getName());
-                //discoveryInfoBuilder.getPortsBuilder().
-                //portsBuilder.addPortsBuilder()
-                //        .setNumber((int) port)
-                //        .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
-                //        .setName(getPortName());
                 discoveryInfoBuilder.getPortsBuilder().addPorts(makePortBuilder(port));
                 taskBuilder.setDiscovery(discoveryInfoBuilder);
             }

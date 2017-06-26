@@ -17,8 +17,6 @@ from tests.config import (
 )
 
 
-
-
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()

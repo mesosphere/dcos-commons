@@ -1,5 +1,5 @@
 {
-  "downgradesTo": [ "v0.9", "v0.8"],
+  "downgradesTo": [],
   "package": {
     "command": {
       "pip": [
@@ -234,6 +234,6 @@
       "placement": "hostname:UNIQUE"
     }
   },
-  "upgradesTo": [ "v1.1", "v2.0" ],
+  "upgradesTo": [],
   "userProvidedOptions": {}
 }

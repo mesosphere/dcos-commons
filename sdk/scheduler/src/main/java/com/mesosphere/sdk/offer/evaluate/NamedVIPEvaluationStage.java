@@ -69,7 +69,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         .getLabelsBuilder()
                             .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
             } else {
-                throw new IllegalStateException(String.format("Trying TaskBuilder missing DiscoveryInfo for port" +
+                throw new IllegalStateException(String.format("TaskBuilder missing DiscoveryInfo for port" +
                         "%s, TaskBuilder: %s", getPortName(), taskBuilder.toString()));
             }
         }
