@@ -1846,6 +1846,10 @@
 <dd>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#fixLastDeploymentType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">fixLastDeploymentType(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dd>
+<div class="block">Detects whether or not the previous deployment's type was set or not and if not, sets it.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html#forceComplete--">forceComplete()</a></span> - Method in class com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/Reconciler.html#forceComplete--">forceComplete()</a></span> - Method in interface com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a></dt>
@@ -2736,6 +2740,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getPlans-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">getPlans(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dd>
+<div class="block">Gets or generate plans against the given service spec.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getPlans--">getPlans()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html#getPod--">getPod()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPodInstance</a></dt>
@@ -5544,7 +5552,7 @@
 <dd>
 <div class="block">Assigns the pod instance index to the provided task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">setLastCompletedUpdateType(StateStore, ConfigurationUpdater.UpdateResult)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType(StateStore, ConfigurationUpdater.UpdateResult.DeploymentType)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Sets the last completed update type.</div>
 </dd>
