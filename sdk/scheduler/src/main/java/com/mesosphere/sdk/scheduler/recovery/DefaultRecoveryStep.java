@@ -23,7 +23,8 @@ public class DefaultRecoveryStep extends DeploymentStep {
     private final LaunchConstrainer launchConstrainer;
     private final StateStore stateStore;
 
-    public DefaultRecoveryStep(
+    public
+    DefaultRecoveryStep(
             String name,
             Status status,
             PodInstanceRequirement podInstanceRequirement,

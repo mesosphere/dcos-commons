@@ -12,7 +12,8 @@ public class DefaultPodInstance implements PodInstance {
     private final PodSpec podSpec;
     private final Integer index;
 
-    public DefaultPodInstance(PodSpec podSpec, Integer index) {
+    public
+    DefaultPodInstance(PodSpec podSpec, Integer index) {
         this.podSpec = podSpec;
         this.index = index;
     }

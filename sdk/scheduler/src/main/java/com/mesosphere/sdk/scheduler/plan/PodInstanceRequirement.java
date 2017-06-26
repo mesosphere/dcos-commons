@@ -13,7 +13,8 @@ import java.util.Map;
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.
  */
-public class PodInstanceRequirement {
+public class
+PodInstanceRequirement {
     private final PodInstance podInstance;
     private final Collection<String> tasksToLaunch;
     private final Map<String, String> environment;

@@ -25,8 +25,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         envVars.put("SIDE_DISK", "5000");
         envVars.put("SIDE_DISK_TYPE", "ROOT");
 
-        envVars.put("SLEEP_DURATION", "1000");
-        
         URL resource = ServiceSpecTest.class.getClassLoader().getResource("start.sh.mustache");
         envVars.put("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
 

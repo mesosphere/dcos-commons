@@ -11,11 +11,6 @@
             "type": "string",
             "default": "cockroachdb"
           },
-          "sleep": {
-            "description": "The sleep duration in seconds before tasks exit.",
-            "type": "number",
-            "default":1000
-          },
           "user": {
             "title": "User",
             "description": "The user that the service will run as.",
@@ -72,7 +67,6 @@
         },
         "required":[
           "name",
-          "sleep",
           "user"
         ]
       },
