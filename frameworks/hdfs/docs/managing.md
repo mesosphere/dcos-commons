@@ -854,7 +854,7 @@ Result:
             },
             {
               "name": "CLIENT_READ_SHORTCIRCUIT_PATH",
-              "value": "/var/lib/hadoop-hdfs/dn_socket"
+              "value": "dn_socket"
             },
             {
               "name": "DATA_NODE_HTTP_PORT",
