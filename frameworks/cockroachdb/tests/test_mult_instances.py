@@ -9,14 +9,19 @@ import shakedown
 
 from tests.config import (
     PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
 )
 TASK_COUNT = 1
 SERVICE_NAMES = ["firstservice", "secondservice"]
 
 def teardown_module(module):
     uninstall_two_cockroach_services()
+    install.uninstall(PACKAGE_NAME)
+    utils.gc_frameworks()
 
 def setup_module(module):
+    install.uninstall(PACKAGE_NAME)
+    utils.gc_frameworks()
     uninstall_two_cockroach_services()
 
 def uninstall_two_cockroach_services():
