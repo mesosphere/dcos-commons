@@ -41,7 +41,7 @@ class CockroachEmitter:
         self.run=False
 
     def get_prometheus_text(self, url):
-        ''' Screate prometheus formatted metrics from CockroachDB'''
+        ''' Scrape prometheus formatted metrics from CockroachDB'''
         r = requests.get(url)
         prometheus_text = r.text
         return prometheus_text
