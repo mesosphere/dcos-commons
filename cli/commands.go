@@ -6,7 +6,6 @@ package cli
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -51,7 +50,7 @@ func HandleDefaultSections(app *kingpin.Application) {
 func New() *kingpin.Application {
 	modName, err := GetModuleName()
 	if err != nil {
-		log.Fatalf(err.Error())
+		client.PrintMessageAndExit(err.Error())
 	}
 	config.ModuleName = modName
 	app := kingpin.New(fmt.Sprintf("dcos %s", config.ModuleName), "")
