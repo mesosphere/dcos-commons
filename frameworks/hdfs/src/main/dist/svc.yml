@@ -50,9 +50,7 @@ pods:
         env:
           JOURNALNODE: true
         readiness-check:
-          cmd: >
-              READY=$(grep "IPC Server listener on {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}: starting" stderr | wc -l) &&
-              [ $READY -ge 1 ]
+          cmd: READY=$(grep "Initializing journal in directory" stderr | wc -l) && [ $READY -ge 1 ]
           interval: 10
           timeout: 60
   name:
