@@ -49,6 +49,12 @@ pods:
           {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
+        readiness-check:
+          cmd: >
+              READY=$(grep "IPC Server listener on {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}: starting" stderr | wc -l) &&
+              [ $READY -ge 1 ]
+          interval: 10
+          timeout: 60
   name:
     count: 2
     uris:

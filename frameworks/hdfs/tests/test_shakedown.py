@@ -263,11 +263,12 @@ def test_bump_data_nodes():
     check_healthy(DEFAULT_TASK_COUNT + 1)
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
-
 @pytest.mark.sanity
 def test_modify_app_config():
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    old_recovery_plan = plan.get_recovery_plan(FOLDERED_SERVICE_NAME)
 
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
@@ -283,6 +284,10 @@ def test_modify_app_config():
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
+
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    new_recovery_plan = plan.get_recovery_plan(FOLDERED_SERVICE_NAME)
+    assert(old_recovery_plan == new_recovery_plan)
 
 
 @pytest.mark.sanity
