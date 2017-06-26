@@ -36,6 +36,9 @@ _notify_github() {
 
 _notify_github pending "Build running"
 
+# Verify airgap
+${TOOLS_DIR}/airgap_linter.py ${FRAMEWORK_DIR}
+
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 if [ $? -ne 0 ]; then
