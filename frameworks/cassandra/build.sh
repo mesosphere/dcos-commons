@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# trigger test
+# trigger test take 2
 
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
