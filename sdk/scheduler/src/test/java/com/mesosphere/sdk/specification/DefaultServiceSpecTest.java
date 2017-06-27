@@ -382,7 +382,6 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key2"));
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
                 .get("key2").equals("val2"));
-
     }
 
     @Test

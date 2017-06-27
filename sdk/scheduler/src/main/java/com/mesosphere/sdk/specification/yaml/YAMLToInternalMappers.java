@@ -479,8 +479,8 @@ public class YAMLToInternalMappers {
 
         if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
             Map<String, String> labels = new HashMap<>();
-            for (String kv : Arrays.asList(rawNetwork.getLabelsCsv().split(","))) {
-                labels.put(kv.split(":")[0], kv.split(":")[1]);
+            for (String[] kv : rawNetwork.getValidadedLabels()) {
+                labels.put(kv[0], kv[1]);
             }
             builder.networkLabels(labels);
         } else {
