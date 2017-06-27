@@ -127,24 +127,22 @@ class CITester(object):
                                                 requirements_text)
         piputil.activate_libdir(package_path)
 
-        cmd = [sys.executable, '-m', 'pytest']
+        args = []
         if jenkins_args:
-            cmd.append(jenkins_args)
+            args.append(jenkins_args)
         if self._fail_fast:
-            cmd.append('--exitfirst')
-        cmd.extend(['-vv', '--fulltrace', '--capture=no', '-m', pytest_types, test_dirs])
+            args.append('--exitfirst')
+        args.extend(['-vv', '--fulltrace', '--capture=no', '-m', pytest_types, test_dirs])
 
-        custom_env = os.environ.copy()
-        new_pythonpath = package_path
-        existing_pythonpath = os.environ.get("PYTHONPATH")
-        if existing_pythonpath:
-            new_pythonpath += ":" + existing_pythonpath
-        custom_env["PYTHONPATH"] = new_pythonpath
+        sys.path.insert(0, package_path)
+        import pytest
 
+        # old method
+        #cmd = [sys.executable, '-m', 'pytest']
 
         self._github_updater.update('pending', 'Running shakedown tests')
         try:
-            subprocess.check_call(cmd, env=custom_env)
+            pytest.main(args)
             self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
