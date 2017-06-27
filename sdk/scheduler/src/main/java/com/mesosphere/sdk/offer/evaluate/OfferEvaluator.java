@@ -29,22 +29,24 @@ public class OfferEvaluator {
     private final String serviceName;
     private final UUID targetConfigId;
     private final SchedulerFlags schedulerFlags;
+    private final boolean useDefaultExecutor;
 
     @Inject
     public OfferEvaluator(
             StateStore stateStore,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags) {
+            SchedulerFlags schedulerFlags,
+            boolean useDefaultExecutor) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
         this.schedulerFlags = schedulerFlags;
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-
         // All tasks in the service (used by some PlacementRules):
         Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
@@ -88,8 +90,8 @@ public class OfferEvaluator {
                     targetConfigId,
                     schedulerFlags,
                     thisPodTasks.values(),
-                    // FIX: signal if this is fucked
-                    stateStore.fetchFrameworkId().get());
+                    stateStore.fetchFrameworkId().get(),
+                    useDefaultExecutor);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
@@ -238,7 +240,7 @@ public class OfferEvaluator {
         return resourceSpecs;
     }
 
-    private static List<OfferEvaluationStage> getNewEvaluationPipeline(
+    private List<OfferEvaluationStage> getNewEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
@@ -251,12 +253,13 @@ public class OfferEvaluator {
 
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
             evaluationStages.add(
-                    new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty()));
+                    new VolumeEvaluationStage(
+                            volumeSpec, null, Optional.empty(), Optional.empty(), useDefaultExecutor));
         }
 
         String role = null;
         String principal = null;
-        boolean shouldAddExecutorResources = true;
+        boolean shouldAddExecutorResources = useDefaultExecutor;
         for (Map.Entry<String, ResourceSet> entry : resourceSets.entrySet()) {
             String taskName = entry.getKey();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
@@ -269,20 +272,17 @@ public class OfferEvaluator {
                                     namedVIPSpec,
                                     taskName,
                                     Optional.empty(),
-                                    namedVIPSpec.getPortName()));
+                                    namedVIPSpec.getPortName(),
+                                    useDefaultExecutor));
                 } else if (resourceSpec instanceof PortSpec) {
                     PortSpec portSpec = (PortSpec) resourceSpec;
                     evaluationStages.add(new PortEvaluationStage(
-                            portSpec,
-                            taskName,
-                            Optional.empty(),
-                            portSpec.getPortName()));
+                            portSpec, taskName, Optional.empty(), portSpec.getPortName(), useDefaultExecutor));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }
 
                 if (role == null && principal == null) {
-                    // FIX: this sucks
                     role = resourceSpec.getRole();
                     principal = resourceSpec.getPrincipal();
                 }
@@ -290,7 +290,8 @@ public class OfferEvaluator {
 
             for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
                 evaluationStages.add(
-                        new VolumeEvaluationStage(volumeSpec, taskName, Optional.empty(), Optional.empty()));
+                        new VolumeEvaluationStage(
+                                volumeSpec, taskName, Optional.empty(), Optional.empty(), useDefaultExecutor));
             }
 
             if (shouldAddExecutorResources) {
@@ -302,7 +303,7 @@ public class OfferEvaluator {
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
-            evaluationStages.add(new LaunchEvaluationStage(taskName, shouldBeLaunched));
+            evaluationStages.add(new LaunchEvaluationStage(taskName, shouldBeLaunched, useDefaultExecutor));
         }
 
         return evaluationStages;
@@ -344,7 +345,7 @@ public class OfferEvaluator {
         return resources;
     }
 
-    private static List<OfferEvaluationStage> getExistingEvaluationPipeline(
+    private List<OfferEvaluationStage> getExistingEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Map<String, Protos.TaskInfo> podTasks,
             Collection<Protos.TaskInfo> allTasks,
@@ -369,7 +370,8 @@ public class OfferEvaluator {
         ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
                 podInstanceRequirement.getPodInstance().getPod(),
                 getExecutorResources(role, principal),
-                executorInfo);
+                executorInfo,
+                useDefaultExecutor);
         executorResourceMapper.getOrphanedResources()
                 .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
         executorResourceMapper.getOrphanedResources()
@@ -387,13 +389,13 @@ public class OfferEvaluator {
                 return Collections.emptyList();
             }
 
-            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(taskSpec, taskInfo);
+            TaskResourceMapper taskResourceMapper = new TaskResourceMapper(taskSpec, taskInfo, useDefaultExecutor);
             taskResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
-            evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch));
+            evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch, useDefaultExecutor));
         }
 
         return evaluationStages;

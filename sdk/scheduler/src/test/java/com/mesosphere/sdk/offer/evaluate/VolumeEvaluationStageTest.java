@@ -30,7 +30,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                true);
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -40,7 +41,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                                 Collections.emptyList(),
-                                TestConstants.FRAMEWORK_ID));
+                                TestConstants.FRAMEWORK_ID,
+                                true));
         Assert.assertTrue(outcome.isPassing());
 
         List<OfferRecommendation> recommendations = new ArrayList<>(outcome.getOfferRecommendations());
@@ -82,7 +84,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                true);
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -92,7 +95,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 UUID.randomUUID(),
                                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                                 Collections.emptyList(),
-                                TestConstants.FRAMEWORK_ID));
+                                TestConstants.FRAMEWORK_ID,
+                                true));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }

@@ -24,16 +24,26 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final Optional<String> persistenceId;
     private final String taskName;
     private Optional<String> resourceId;
+    private final boolean useDefaultExecutor;
 
     public VolumeEvaluationStage(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
-            Optional<String> persistenceId) {
+            Optional<String> persistenceId,
+            boolean useDefaultExecutor) {
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.persistenceId = persistenceId;
+        this.useDefaultExecutor = useDefaultExecutor;
+        if (taskName == null && !useDefaultExecutor && resourceId.isPresent()) {
+            try {
+                throw new Exception("wtf");
+            } catch (Exception e) {
+                logger.info("WTF: {}", e);
+            }
+        }
     }
 
     private boolean createsVolume() {
@@ -48,10 +58,10 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         Resource resource;
         final MesosResource mesosResource;
 
-        if (taskName == null && resourceId.isPresent()) {
+        if (taskName == null && useDefaultExecutor && resourceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo as well as whatever task is being launched.
-            podInfoBuilder.setExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get());
+            podInfoBuilder.setExecutorVolume(volumeSpec);
 
             return pass(
                     this,
@@ -83,7 +93,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     .setMesosResource(mesosResource)
                     .build();
         } else {
-            Optional<MesosResource> mesosResourceOptional = Optional.empty();
+            Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
                         mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
@@ -118,6 +128,10 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         if (createsVolume()) {
             logger.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
+
+            if (taskName == null) {
+                podInfoBuilder.setExecutorVolume(volumeSpec);
+            }
         }
 
         logger.info("  Generated '{}' resource for task: [{}]",

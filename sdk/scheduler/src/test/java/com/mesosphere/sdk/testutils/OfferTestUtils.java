@@ -26,6 +26,14 @@ public class OfferTestUtils {
         return getCompleteOffer(Arrays.asList(resource));
     }
 
+    public static List<Protos.Offer> getOffers(Protos.Resource resource) {
+        return getOffers(Arrays.asList(resource));
+    }
+
+    public static List<Protos.Offer> getOffers(List<Protos.Resource> resources) {
+        return Arrays.asList(getOffer(resources));
+    }
+
     public static Protos.Offer getOffer(Protos.Resource resource) {
         return getOffer(Arrays.asList(resource));
     }

@@ -50,7 +50,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
                         Collections.emptyList(),
-                        TestConstants.FRAMEWORK_ID));
+                        TestConstants.FRAMEWORK_ID,
+                        true));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());
@@ -85,7 +86,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         UUID.randomUUID(),
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
                         Collections.emptyList(),
-                        TestConstants.FRAMEWORK_ID));
+                        TestConstants.FRAMEWORK_ID,
+                        true));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());

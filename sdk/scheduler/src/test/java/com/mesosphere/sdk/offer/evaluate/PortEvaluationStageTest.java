@@ -35,7 +35,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                 Collections.emptyList(),
-                TestConstants.FRAMEWORK_ID);
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(PortSpec... portSpecs) {
@@ -126,7 +127,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName());
+                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName(), true);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -166,7 +167,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName());
+                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName(), true);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -220,12 +221,12 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInfoBuilder.getAssignedOverlayPorts().size() == 1);
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PortEvaluationStage portEvaluationStage_ = new PortEvaluationStage(
-                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName());
+                portSpec, TestConstants.TASK_NAME, Optional.empty(), portSpec.getPortName(), true);
         EvaluationOutcome outcome0 = portEvaluationStage_.evaluate(mesosResourcePool, podInfoBuilder);
         Assert.assertTrue(outcome0.isPassing());
         Assert.assertEquals(0, outcome0.getOfferRecommendations().size());
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                dynamPortSpec, TestConstants.TASK_NAME, Optional.empty(), dynamPortSpec.getPortName());
+                dynamPortSpec, TestConstants.TASK_NAME, Optional.empty(), dynamPortSpec.getPortName(), true);
         EvaluationOutcome outcome1 = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome1.isPassing());
@@ -273,7 +274,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 portSpec,
                 TestConstants.TASK_NAME,
-                Optional.empty(), portSpec.getPortName());
+                Optional.empty(),
+                portSpec.getPortName(),
+                true);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
@@ -305,7 +308,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
-                Optional.empty(), getPortSpec(podInstance).getPortName());
+                Optional.empty(),
+                getPortSpec(podInstance).getPortName(),
+                true);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
@@ -350,7 +355,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
-                Optional.empty(), getPortSpec(podInstance).getPortName());
+                Optional.empty(),
+                getPortSpec(podInstance).getPortName(),
+                true);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -376,7 +383,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
-                Optional.empty(), getPortSpec(podInstance).getPortName());
+                Optional.empty(),
+                getPortSpec(podInstance).getPortName(),
+                true);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -405,7 +414,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 getPortSpec(podInstance),
                 TestConstants.TASK_NAME,
-                Optional.empty(), getPortSpec(podInstance).getPortName());
+                Optional.empty(),
+                getPortSpec(podInstance).getPortName(),
+                true);
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),

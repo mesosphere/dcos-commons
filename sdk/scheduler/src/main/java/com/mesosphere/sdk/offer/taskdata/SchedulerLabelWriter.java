@@ -1,7 +1,10 @@
 package com.mesosphere.sdk.offer.taskdata;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.TaskException;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Label;
@@ -105,5 +108,33 @@ public class SchedulerLabelWriter extends LabelWriter {
     public SchedulerLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
         put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
         return this;
+    }
+
+    /**
+     * Updates the stored readiness check, if any, to have the provided environment variable.
+     * Does nothing if no readiness check is present.
+     *
+     * @throws TaskException if parsing a previously set {@link HealthCheck}
+     */
+    public SchedulerLabelWriter setReadinessCheckEnvvar(String key, String value) throws TaskException {
+        Optional<HealthCheck> readinessCheck = getReadinessCheck();
+        if (!readinessCheck.isPresent()) {
+            return this;
+        }
+        HealthCheck.Builder readinessCheckBuilder = readinessCheck.get().toBuilder();
+        readinessCheckBuilder.getCommandBuilder().setEnvironment(
+                EnvUtils.withEnvVar(readinessCheckBuilder.getCommand().getEnvironment(), key, value));
+        return setReadinessCheck(readinessCheckBuilder.build());
+    }
+
+    /**
+     * Returns the embedded readiness check, or an empty Optional if no readiness check is configured.
+     */
+    @VisibleForTesting
+    protected Optional<HealthCheck> getReadinessCheck() throws TaskException {
+        Optional<String> encodedReadinessCheck = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        return (encodedReadinessCheck.isPresent())
+                ? Optional.of(LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
+                : Optional.empty();
     }
 }

@@ -116,7 +116,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Launch for the first time.
         String resourceId = getFirstResourceId(
-                recordLaunchWithOfferedResources(
+                recordLaunchWithCompleteOfferedResources(
                         podInstanceRequirement,
                         ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
 
@@ -142,7 +142,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testIncreaseReservationScalar() throws Exception {
         // Launch for the first time.
         String resourceId = getFirstResourceId(
-                recordLaunchWithOfferedResources(
+                recordLaunchWithCompleteOfferedResources(
                         PodInstanceRequirementTestUtils.getCpuRequirement(1.0),
                         ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
 
@@ -194,7 +194,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testDecreaseReservationScalar() throws Exception {
         // Launch for the first time.
-        Resource reserveResource = recordLaunchWithOfferedResources(
+        Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 PodInstanceRequirementTestUtils.getCpuRequirement(2.0),
                 ResourceTestUtils.getUnreservedScalar("cpus", 2.0))
                 .get(0);
@@ -247,7 +247,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testFailIncreaseReservationScalar() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        Resource reserveResource = recordLaunchWithOfferedResources(
+        Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement,
                 ResourceTestUtils.getUnreservedScalar("cpus", 2.0))
                 .get(0);
@@ -265,7 +265,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         // Launch for the first time.
         String resourceId = getFirstResourceId(
-                recordLaunchWithOfferedResources(
+                recordLaunchWithCompleteOfferedResources(
                         podInstanceRequirement,
                         ResourceTestUtils.getUnreservedScalar("cpus", 2.0)));
 

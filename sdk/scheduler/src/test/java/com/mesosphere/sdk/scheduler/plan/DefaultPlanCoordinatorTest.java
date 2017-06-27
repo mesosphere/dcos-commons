@@ -113,7 +113,8 @@ public class DefaultPlanCoordinatorTest {
                         stateStore,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        true),
                 stateStore,
                 taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()

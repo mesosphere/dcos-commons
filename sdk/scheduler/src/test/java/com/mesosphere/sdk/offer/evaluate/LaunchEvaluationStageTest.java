@@ -20,7 +20,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
-        Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                 podInstanceRequirement,
@@ -28,7 +28,8 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                 Collections.emptyList(),
-                TestConstants.FRAMEWORK_ID);
+                TestConstants.FRAMEWORK_ID,
+                true);
 
         EvaluationOutcome outcome = evaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),

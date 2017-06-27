@@ -29,6 +29,7 @@ public class ExecutorResourceMapper {
     private final List<Protos.Resource> resources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
+    private final boolean useDefaultExecutor;
 
     /**
      * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
@@ -55,11 +56,15 @@ public class ExecutorResourceMapper {
     }
 
     public ExecutorResourceMapper(
-            PodSpec podSpec, Collection<ResourceSpec> resourceSpecs, Protos.ExecutorInfo executorInfo) {
+            PodSpec podSpec,
+            Collection<ResourceSpec> resourceSpecs,
+            Protos.ExecutorInfo executorInfo,
+            boolean useDefaultExecutor) {
         this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
         this.resources = executorInfo.getResourcesList();
+        this.useDefaultExecutor = useDefaultExecutor;
         this.evaluationStages = getEvaluationStagesInternal();
     }
 
@@ -75,7 +80,7 @@ public class ExecutorResourceMapper {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
         remainingResourceSpecs.addAll(volumeSpecs);
 
-        if (executorInfo.getExecutorId().getValue().isEmpty()) {
+        if (useDefaultExecutor && executorInfo.getExecutorId().getValue().isEmpty()) {
             remainingResourceSpecs.addAll(resourceSpecs);
         }
 
@@ -167,21 +172,22 @@ public class ExecutorResourceMapper {
         return Optional.empty();
     }
 
-    private static OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
+    private OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
         return toEvaluationStage(resourceLabels.resourceSpec, Optional.of(resourceLabels.resourceId),
                 resourceLabels.persistenceId);
     }
 
-    private static OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
+    private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         return toEvaluationStage(resourceSpec, Optional.empty(), Optional.empty());
     }
 
-    private static OfferEvaluationStage toEvaluationStage(
+    private OfferEvaluationStage toEvaluationStage(
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
             Optional<String> persistenceId) {
         if (resourceSpec instanceof VolumeSpec) {
-            return new VolumeEvaluationStage((VolumeSpec) resourceSpec, null, resourceId, persistenceId);
+            return new VolumeEvaluationStage(
+                    (VolumeSpec) resourceSpec, null, resourceId, persistenceId, useDefaultExecutor);
         } else {
             return new ResourceEvaluationStage(resourceSpec, resourceId, null);
         }

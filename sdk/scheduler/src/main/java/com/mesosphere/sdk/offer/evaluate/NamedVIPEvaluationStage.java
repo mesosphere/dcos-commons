@@ -25,11 +25,13 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final long vipPort;
     private final boolean onNamedNetwork;
 
-    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
-                                   String taskName,
-                                   Optional<String> resourceId,
-                                   String portName) {
-        super(namedVIPSpec, taskName, resourceId, portName);
+    public NamedVIPEvaluationStage(
+            NamedVIPSpec namedVIPSpec,
+            String taskName,
+            Optional<String> resourceId,
+            String portName,
+            boolean useDefaultExecutor) {
+        super(namedVIPSpec, taskName, resourceId, portName, useDefaultExecutor);
         this.taskName = taskName;
         this.protocol = namedVIPSpec.getProtocol();
         this.visibility = namedVIPSpec.getVisibility();

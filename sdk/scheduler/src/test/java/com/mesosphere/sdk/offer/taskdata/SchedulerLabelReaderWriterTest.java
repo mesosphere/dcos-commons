@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -81,6 +82,20 @@ public class SchedulerLabelReaderWriterTest {
         builder = getTestTaskInfo().toBuilder();
         builder.setLabels(new SchedulerLabelWriter(builder).setType("").toProto());
         Assert.assertEquals("", new SchedulerLabelReader(builder).getType());
+    }
+
+    @Test
+    public void testReadinessCheckTagging() throws TaskException {
+        Protos.HealthCheck inReadinessCheck = Protos.HealthCheck.newBuilder()
+                .setDelaySeconds(1.0)
+                .build();
+        Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
+        builder.setLabels(new SchedulerLabelWriter(builder)
+                .setReadinessCheck(inReadinessCheck)
+                .toProto());
+        Protos.HealthCheck outReadinessCheck = OfferRequirementTestUtils.getReadinessCheck(builder.build()).get();
+
+        Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);
     }
 
     private static Protos.TaskInfo getTestTaskInfo() {

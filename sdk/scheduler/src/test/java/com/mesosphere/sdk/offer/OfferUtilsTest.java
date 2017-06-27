@@ -80,12 +80,12 @@ public class OfferUtilsTest {
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
         final ArrayList<Protos.Offer> offers = new ArrayList<>();
-        offers.addAll(OfferTestUtils.getCompleteOffers(
+        offers.addAll(OfferTestUtils.getOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
                         ResourceTestUtils.getUnreservedDisk(disk))));
-        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getCompleteOffers(
+        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),

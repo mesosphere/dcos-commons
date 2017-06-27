@@ -130,7 +130,8 @@ public class DefaultRecoveryPlanManagerTest {
                         stateStore,
                         serviceSpec.getName(),
                         configTarget,
-                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        true),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),

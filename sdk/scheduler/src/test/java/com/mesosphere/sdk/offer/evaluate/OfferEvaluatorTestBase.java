@@ -27,24 +27,49 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
+    protected boolean useCustomExecutor;
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         stateStore = new DefaultStateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, true);
+        useCustomExecutor = true;
+    }
+
+    protected void useCustomExecutor() {
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, false);
+        useCustomExecutor = false;
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {
         return ResourceUtils.getResourceId(resources.get(0)).get();
     }
 
+    protected List<Resource> recordLaunchWithCompleteOfferedResources(
+            PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            throws InvalidRequirementException {
+        return recordLaunchWithOfferedResources(
+                OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
+                podInstanceRequirement,
+                offeredResources);
+    }
+
     protected List<Resource> recordLaunchWithOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException {
+        return recordLaunchWithOfferedResources(
+                OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
+                podInstanceRequirement,
+                offeredResources);
+    }
+
+    private List<Resource> recordLaunchWithOfferedResources(
+            Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            throws InvalidRequirementException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement, Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources))));
+                podInstanceRequirement, Arrays.asList(offer));
 
         List<Resource> reservedResources = new ArrayList<>();
         for (OfferRecommendation recommendation : recommendations) {
@@ -53,9 +78,13 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
             } else if (recommendation instanceof LaunchOfferRecommendation) {
                 // DO NOT extract the TaskInfo from the Operation. That version has a packed CommandInfo.
                 LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
-                Protos.TaskInfo taskInfo = launchOfferRecommendation.getTaskInfo().toBuilder()
-                        .setExecutor(launchOfferRecommendation.getExecutorInfo()).build();
-                stateStore.storeTasks(Arrays.asList(taskInfo));
+                if (useCustomExecutor) {
+                    Protos.TaskInfo taskInfo = launchOfferRecommendation.getTaskInfo().toBuilder()
+                            .setExecutor(launchOfferRecommendation.getExecutorInfo()).build();
+                    stateStore.storeTasks(Arrays.asList(taskInfo));
+                } else {
+                    stateStore.storeTasks(Arrays.asList(((LaunchOfferRecommendation) recommendation).getTaskInfo()));
+                }
             }
         }
 

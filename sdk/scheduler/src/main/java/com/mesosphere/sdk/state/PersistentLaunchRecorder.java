@@ -32,9 +32,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         }
 
         LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
-        Protos.ExecutorInfo executorInfo = launchOfferRecommendation.getExecutorInfo();
-        Protos.TaskInfo taskInfo = launchOfferRecommendation.getTaskInfo().toBuilder()
-                .setExecutor(executorInfo).build();
+        Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
         Protos.TaskStatus taskStatus = null;
         if (!taskInfo.getTaskId().getValue().equals("")) {
@@ -43,7 +41,9 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                     .setTaskId(taskInfo.getTaskId())
                     .setState(Protos.TaskState.TASK_STAGING);
 
-            taskStatusBuilder.setExecutorId(executorInfo.getExecutorId());
+            if (taskInfo.hasExecutor()) {
+                taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+            }
 
             taskStatus = taskStatusBuilder.build();
         }

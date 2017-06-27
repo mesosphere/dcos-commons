@@ -61,6 +61,7 @@ public class DefaultStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
+                true,
                 true);
         step.updateOfferStatus(Arrays.asList(launchRec));
 

@@ -17,18 +17,19 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
     private final boolean shouldLaunch;
+    private final boolean useDefaultExecutor;
 
     public LaunchEvaluationStage(String taskName) {
-        this(taskName, true);
+        this(taskName, true, true);
     }
-    public LaunchEvaluationStage(String taskName, boolean shouldLaunch) {
+    public LaunchEvaluationStage(String taskName, boolean shouldLaunch, boolean useDefaultExecutor) {
         this.taskName = taskName;
         this.shouldLaunch = shouldLaunch;
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        // FIX: no lonegr optional on podinfobuilder
         Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
@@ -41,12 +42,15 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
             .setIndex(podInfoBuilder.getIndex())
             .setHostname(offer)
             .toProto());
+        if (!useDefaultExecutor) {
+            taskBuilder.setExecutor(executorBuilder);
+        }
 
         return pass(
                 this,
                 null,
                 Arrays.asList(new LaunchOfferRecommendation(
-                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch)),
+                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
                 "Added launch information to offer requirement");
     }
 }

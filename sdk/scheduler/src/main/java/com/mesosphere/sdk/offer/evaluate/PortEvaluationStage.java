@@ -5,6 +5,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -28,18 +29,25 @@ import java.util.stream.IntStream;
 public class PortEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
     private final boolean useHostPorts;
+    private final boolean useDefaultExecutor;
 
     protected PortSpec portSpec;
     private final String taskName;
     private final String portName;
     private Optional<String> resourceId;
 
-    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId, String portName) {
-        this.portName = portName;
+    public PortEvaluationStage(
+            PortSpec portSpec,
+            String taskName,
+            Optional<String> resourceId,
+            String portName,
+            boolean useDefaultExecutor) {
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.portSpec = portSpec;
         this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
+        this.portName = portName;
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     protected long getPort() {
@@ -189,7 +197,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             // Add port to the readiness check (if a readiness check is defined)
             addReadinessCheckPort(taskBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
 
-            if (useHostPorts) {
+            if (useHostPorts) { // we only use the resource if we're using the host ports
                 taskBuilder.addResources(resource);
             }
         } else {
@@ -202,22 +210,33 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         }
     }
 
-    private static void addReadinessCheckPort(Protos.TaskInfo.Builder taskBuilder, String name, String value) {
-        Protos.Environment.Builder envBuilder = taskBuilder.getCheckBuilder()
-                .getCommandBuilder().getCommandBuilder().getEnvironmentBuilder();
-        boolean foundName = false;
+    private void addReadinessCheckPort(Protos.TaskInfo.Builder taskBuilder, String name, String value) {
+        if (useDefaultExecutor) {
+            Protos.Environment.Builder envBuilder = taskBuilder.getCheckBuilder()
+                    .getCommandBuilder().getCommandBuilder().getEnvironmentBuilder();
+            boolean foundName = false;
 
-        for (Variable.Builder b : envBuilder.getVariablesBuilderList()) {
-            if (b.getName().equals(name)) {
-                b.setValue(value);
-                foundName = true;
+            for (Variable.Builder b : envBuilder.getVariablesBuilderList()) {
+                if (b.getName().equals(name)) {
+                    b.setValue(value);
+                    foundName = true;
+                }
             }
+
+            if (!foundName) {
+                envBuilder.addVariablesBuilder().setName(name).setValue(value);
+            }
+
+            return;
         }
 
-        if (!foundName) {
-            envBuilder.addVariablesBuilder().setName(name).setValue(value);
+        try {
+            taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                    .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), value)
+                    .toProto());
+        } catch (TaskException e) {
+            LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
         }
-
     }
 
     private static Optional<Integer> selectDynamicPort(

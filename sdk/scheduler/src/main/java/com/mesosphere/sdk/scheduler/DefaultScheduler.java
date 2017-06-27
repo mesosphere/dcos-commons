@@ -12,6 +12,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -623,6 +624,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
+
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         offerAccepter = new OfferAccepter(Collections.singletonList(new PersistentLaunchRecorder(stateStore,
@@ -633,7 +635,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         stateStore,
                         serviceSpec.getName(),
                         configStore.getTargetConfig(),
-                        schedulerFlags),
+                        schedulerFlags,
+                        Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore,
                 taskKiller);
     }

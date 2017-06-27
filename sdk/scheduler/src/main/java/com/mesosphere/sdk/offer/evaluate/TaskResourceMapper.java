@@ -26,6 +26,7 @@ class TaskResourceMapper {
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<Protos.Resource> resources;
     private final Map<String, String> taskEnv;
+    private final boolean useDefaultExecutor;
 
     /**
      * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
@@ -51,7 +52,7 @@ class TaskResourceMapper {
         }
     }
 
-    public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo) {
+    public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo, boolean useDefaultExecutor) {
         this.taskSpecName = taskSpec.getName();
         this.resourceSpecs = new ArrayList<>();
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
@@ -59,6 +60,7 @@ class TaskResourceMapper {
         this.resources = taskInfo.getResourcesList();
         this.taskEnv = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         this.evaluationStages = getEvaluationStagesInternal();
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     public List<Protos.Resource> getOrphanedResources() {
@@ -215,28 +217,31 @@ class TaskResourceMapper {
         return Optional.empty();
     }
 
-    private static OfferEvaluationStage newUpdateEvaluationStage(String taskSpecName, ResourceLabels resourceLabels) {
+    private OfferEvaluationStage newUpdateEvaluationStage(String taskSpecName, ResourceLabels resourceLabels) {
         return toEvaluationStage(taskSpecName, resourceLabels.resourceSpec, Optional.of(resourceLabels.resourceId),
                 resourceLabels.persistenceId);
     }
 
-    private static OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
+    private OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
         return toEvaluationStage(taskSpecName, resourceSpec, Optional.empty(), Optional.empty());
     }
 
-    private static OfferEvaluationStage toEvaluationStage(
+    private OfferEvaluationStage toEvaluationStage(
             String taskSpecName,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
             Optional<String> persistenceId) {
         if (resourceSpec instanceof NamedVIPSpec) {
             NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
-            return new NamedVIPEvaluationStage(namedVIPSpec, taskSpecName, resourceId, namedVIPSpec.getPortName());
+            return new NamedVIPEvaluationStage(
+                    namedVIPSpec, taskSpecName, resourceId, namedVIPSpec.getPortName(), useDefaultExecutor);
         } else if (resourceSpec instanceof PortSpec) {
             PortSpec portSpec = (PortSpec) resourceSpec;
-            return new PortEvaluationStage(portSpec, taskSpecName, resourceId, portSpec.getPortName());
+            return new PortEvaluationStage(
+                    portSpec, taskSpecName, resourceId, portSpec.getPortName(), useDefaultExecutor);
         } else if (resourceSpec instanceof VolumeSpec) {
-            return new VolumeEvaluationStage((VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId);
+            return new VolumeEvaluationStage(
+                    (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, useDefaultExecutor);
         } else {
             return new ResourceEvaluationStage(resourceSpec, resourceId, taskSpecName);
         }
