@@ -262,5 +262,3 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
     # Don't bother scaling back to 1 instance as we're about to be uninstalled anyway.
-    #marathon_client.update_app(FOLDERED_SERVICE_NAME, {"instances": 1})
-    #shakedown.deployment_wait()
