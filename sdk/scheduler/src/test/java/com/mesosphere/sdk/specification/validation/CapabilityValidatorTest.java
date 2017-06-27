@@ -150,4 +150,62 @@ public class CapabilityValidatorTest {
                 .build();
         capabilityValidator.validate(serviceSpec);
     }
+
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenFileSecretIsNotSupported() throws Exception {
+        when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(false);
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test
+    public void testSpecSucceedsWhenSecretIsSupported() throws Exception {
+        when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(true);
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenEnvSecretIsNotSupported() throws Exception {
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(false);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test
+    public void testSpecSucceedsWhenEnvSecretIsSupported() throws Exception {
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
 }

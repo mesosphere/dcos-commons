@@ -168,8 +168,10 @@ class AWSPublisher(object):
         logger.info('---')
         logger.info('(Re)install your package using the following commands:')
         logger.info('dcos package uninstall {}'.format(self._pkg_name))
+        logger.info('\n- - - -\nFor 1.9 or older clusters only')
         logger.info('dcos node ssh --master-proxy --leader ' +
                     '"docker run mesosphere/janitor /janitor.py -r {0}-role -p {0}-principal -z dcos-service-{0}"'.format(self._pkg_name))
+        logger.info('- - - -\n')
         logger.info('dcos package repo remove {}-aws'.format(self._pkg_name))
         logger.info('dcos package repo add --index=0 {}-aws {}'.format(self._pkg_name, universe_url))
         logger.info('dcos package install --yes {}'.format(self._pkg_name))

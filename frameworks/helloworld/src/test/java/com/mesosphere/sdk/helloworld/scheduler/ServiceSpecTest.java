@@ -80,11 +80,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     @Test
-    public void testOverlayNetworks2() throws Exception {
-        testYaml("examples/overlay_ports.yml");
-    }
-
-    @Test
     public void testSecrets() throws Exception {
         testYaml("examples/secrets.yml");
     }

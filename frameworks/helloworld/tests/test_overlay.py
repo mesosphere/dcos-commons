@@ -8,6 +8,9 @@ import sdk_install as install
 import sdk_plan as plan
 import sdk_utils as utils
 import sdk_networks as networks
+import sdk_api as api
+
+from dcos.http import DCOSHTTPException
 
 from tests.config import (
     PACKAGE_NAME
@@ -29,6 +32,19 @@ def setup_module(module):
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
+
+# test suite constants
+EXPECTED_TASKS = ['getter-0-get-host',
+                  'getter-0-get-overlay',
+                  'getter-0-get-overlay-vip',
+                  'getter-0-get-host-vip',
+                  'hello-host-vip-0-server',
+                  'hello-overlay-vip-0-server',
+                  'hello-host-0-server',
+                  'hello-overlay-0-server']
+
+
+TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
 
 @pytest.mark.sanity
 @pytest.mark.overlay
@@ -54,16 +70,8 @@ def test_overlay_network():
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
     framework_task_names = [t["name"] for t in framework_tasks]
-    expected_tasks = ['getter-0-get-host',
-                      'getter-0-get-overlay',
-                      'getter-0-get-overlay-vip',
-                      'getter-0-get-host-vip',
-                      'hello-host-vip-0-server',
-                      'hello-overlay-vip-0-server',
-                      'hello-host-0-server',
-                      'hello-overlay-0-server']
 
-    for expected_task in expected_tasks:
+    for expected_task in EXPECTED_TASKS:
         assert(expected_task in framework_task_names), "Missing {expected}".format(expected=expected_task)
 
     for task in framework_tasks:
@@ -111,3 +119,36 @@ def test_overlay_network():
     assert "dns" in host_endpoints_result.keys()
     assert len(host_endpoints_result["dns"]) == 1
     assert host_endpoints_result["dns"][0] == hosts.autoip_host(PACKAGE_NAME, "hello-host-vip-0-server", 4044)
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_port_names():
+    def check_task_ports(task_name, expected_port_count, expected_port_names):
+        endpoint = "/v1/tasks/info/{}".format(task_name)
+        try:
+            r = api.get(PACKAGE_NAME, endpoint).json()
+        except DCOSHTTPException:
+            return False, "Failed to get API endpoint {}".format(endpoint)
+        networks.check_port_names(r, expected_port_count, expected_port_names)
+
+    for task in TASKS_WITH_PORTS:
+        if task == "hello-overlay-0-server":
+            check_task_ports(task, 2, ["dummy", "dynport"])
+        else:
+            check_task_ports(task, 1, ["test"])
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_srv_records():
+    fmk_srvs = networks.get_framework_srv_records(PACKAGE_NAME)
+    for task in TASKS_WITH_PORTS:
+        task_records = networks.get_task_record(task, fmk_srvs)
+        if task == "hello-overlay-0-server":
+            assert len([r for r in task_records if "dummy" in r["name"]]) == 1, "Missing SRV record for dummy and "\
+                "task {}".format(task)
+            assert len([r for r in task_records if "dynport" in r["name"]]) == 1, "Missing SRV record for dynport "\
+                "task {}".format(task)
+        else:
+            assert len([r for r in task_records if "test" in r["name"]]) == 1, "Missing SRV record for test and task"\
+                "{}".format(task)

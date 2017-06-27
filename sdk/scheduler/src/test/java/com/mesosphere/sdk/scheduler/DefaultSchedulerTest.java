@@ -853,7 +853,7 @@ public class DefaultSchedulerTest {
         statusUpdate(getTaskId(operations), Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
 
         return taskId;
     }
