@@ -17,8 +17,10 @@ public class DcosConstants {
     public static final Boolean DEFAULT_GPU_POLICY = true;
     public static final String DEFAULT_IP_PROTOCOL = "tcp";
     public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
+    public static final String DEFAULT_BRIDGE_NETWORK = "mesos-bridge";
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
-    public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(Arrays.asList(DEFAULT_OVERLAY_NETWORK));
+    public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(
+            Arrays.asList(DEFAULT_OVERLAY_NETWORK, DEFAULT_BRIDGE_NETWORK));
     // DEFAULT_PORT_MAPPING_POLICY decides whether when joining an network that does not have an explicit
     // port-mapping capability to automatically map ports (ContainerIP:port : HostIP:port). After consideration, it
     // seems that port mapping (bridge networking) is in fact not common and so we default to true.
@@ -33,6 +35,9 @@ public class DcosConstants {
         switch (networkName) {
             case DEFAULT_OVERLAY_NETWORK:
                 supportsPortMapping = false;
+                break;
+            case DEFAULT_BRIDGE_NETWORK:
+                supportsPortMapping = true;
                 break;
             default:
                 supportsPortMapping = DEFAULT_PORT_MAPPING_POLICY;

@@ -444,14 +444,9 @@ public class PodInfoBuilder {
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            //List<Protos.Label> labelList = new ArrayList<>();
-
             List<Protos.Label> labelList = networkSpec.getLabels().entrySet().stream()
                     .map(e -> Protos.Label.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build())
                     .collect(Collectors.toList());
-
-            //networkSpec.getLabels().forEach((k, v) ->
-             //   labelList.add(Protos.Label.newBuilder().setKey(k).setValue(v).build()));
             netInfoBuilder.setLabels(Protos.Labels.newBuilder().addAllLabels(labelList).build());
         }
 
