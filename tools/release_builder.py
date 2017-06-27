@@ -25,7 +25,6 @@ class UniverseReleaseBuilder(object):
 
     def __init__(self, package_version, stub_universe_url,
                  commit_desc='',
-                 min_dcos_release_version=os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.8'),
                  http_release_server=os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
                  s3_release_bucket=os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
                  release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
@@ -43,7 +42,6 @@ class UniverseReleaseBuilder(object):
         self._pkg_version = package_version
         self._commit_desc = commit_desc
         self._stub_universe_url = stub_universe_url
-        self._min_dcos_release_version = min_dcos_release_version
 
         self._pr_title = 'Release {} {} (automated commit)\n\n'.format(
             self._pkg_name, self._pkg_version)
@@ -116,13 +114,11 @@ class UniverseReleaseBuilder(object):
             if file_dict is not None:
                 del package_dict[name]
                 # ensure that the file has a trailing newline (json.dump() doesn't!)
-                fileref = open(os.path.join(pkgdir, name + '.json'), 'w')
-                content = json.dumps(file_dict, indent=2)
-                fileref.write(content)
-                if not content.endswith('\n'):
-                    fileref.write('\n')
-                fileref.flush()
-                fileref.close()
+                with open(os.path.join(pkgdir, name + '.json'), 'w') as fileref:
+                    content = json.dumps(file_dict, indent=2)
+                    fileref.write(content)
+                    if not content.endswith('\n'):
+                        fileref.write('\n')
         extract_json_file(package_json, 'command')
         extract_json_file(package_json, 'config')
         extract_json_file(package_json, 'resource')
@@ -130,15 +126,14 @@ class UniverseReleaseBuilder(object):
         marathon_json = package_json.get('marathon', {}).get('v2AppMustacheTemplate')
         if marathon_json is not None:
             del package_json['marathon']
-            marathon_file = open(os.path.join(pkgdir, 'marathon.json.mustache'), 'w')
-            marathon_file.write(base64.standard_b64decode(marathon_json).decode())
-            marathon_file.flush()
-            marathon_file.close()
+            with open(os.path.join(pkgdir, 'marathon.json.mustache'), 'w') as marathon_file:
+                marathon_file.write(base64.standard_b64decode(marathon_json).decode())
 
         if 'releaseVersion' in package_json:
             del package_json['releaseVersion']
 
-        json.dump(package_json, open(os.path.join(pkgdir, 'package.json'), 'w'), indent=2)
+        with open(os.path.join(pkgdir, 'package.json'), 'w') as package_file:
+            json.dump(package_json, package_file, indent=2)
 
         return pkgdir
 
@@ -168,10 +163,8 @@ class UniverseReleaseBuilder(object):
                 logger.info('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
             else:
                 logger.info('Applied templating changes to {}'.format(path))
-            newfile = open(path, 'w')
-            newfile.write(new_content)
-            newfile.flush()
-            newfile.close()
+            with open(path, 'w') as newfile:
+                newfile.write(new_content)
 
 
     def _update_package_get_artifact_source_urls(self, pkgdir):
@@ -181,25 +174,22 @@ class UniverseReleaseBuilder(object):
         '''
         # replace package.json:version (smart replace)
         path = os.path.join(pkgdir, 'package.json')
-        packagingVersion = '3.0'
-        if self._min_dcos_release_version == '0':
-            minDcosReleaseVersion = None
-        else:
-            minDcosReleaseVersion = self._min_dcos_release_version
-        logger.info('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
-            self._pkg_version, packagingVersion, minDcosReleaseVersion, path))
-        orig_content = open(path, 'r').read()
-        content_json = json.loads(orig_content)
-        content_json['version'] = self._pkg_version
-        content_json['packagingVersion'] = packagingVersion
-        if minDcosReleaseVersion:
-            content_json['minDcosReleaseVersion'] = minDcosReleaseVersion
-        # dumps() adds trailing space, fix that:
-        new_content_lines = json.dumps(content_json, indent=2, sort_keys=True).split('\n')
-        new_content = '\n'.join([line.rstrip() for line in new_content_lines]) + '\n'
-        logger.info(new_content)
-        # don't bother showing diff, things get rearranged..
-        self._update_file_content(path, orig_content, new_content, showdiff=False)
+        packaging_version = '3.0'
+        logger.info('[1/2] Setting version={}, packagingVersion={} in {}'.format(
+            self._pkg_version, packaging_version, path))
+        with open(path, 'r') as orig_file:
+            orig_content = orig_file.read()
+            content_json = json.loads(orig_content)
+            content_json['version'] = self._pkg_version
+            content_json['packagingVersion'] = packaging_version
+            if 'minDcosReleaseVersion' not in content_json:
+                raise Exception('minDcosReleaseVersion must be specified in package.json: {}'.format(content_json))
+            # dumps() adds trailing space, fix that:
+            new_content_lines = json.dumps(content_json, indent=2, sort_keys=True).split('\n')
+            new_content = '\n'.join([line.rstrip() for line in new_content_lines]) + '\n'
+            logger.info(new_content)
+            # don't bother showing diff, things get rearranged..
+            self._update_file_content(path, orig_content, new_content, showdiff=False)
 
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
@@ -208,11 +198,12 @@ class UniverseReleaseBuilder(object):
         original_artifact_urls = []
         for filename in os.listdir(pkgdir):
             path = os.path.join(pkgdir, filename)
-            orig_content = open(path, 'r').read()
-            found = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
-            original_artifact_urls += found
-            new_content = orig_content.replace(original_artifact_prefix, self._release_artifact_http_dir)
-            self._update_file_content(path, orig_content, new_content)
+            with open(path, 'r') as orig_file:
+                orig_content = orig_file.read()
+                found = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
+                original_artifact_urls += found
+                new_content = orig_content.replace(original_artifact_prefix, self._release_artifact_http_dir)
+                self._update_file_content(path, orig_content, new_content)
         return original_artifact_urls
 
 
@@ -246,10 +237,8 @@ class UniverseReleaseBuilder(object):
             if self._dry_run:
                 # create stub file to make 'aws s3 cp --dryrun' happy:
                 logger.info('[DRY RUN] {} Downloading {} to {}'.format(progress, src_url, local_path))
-                stub = open(local_path, 'w')
-                stub.write('stub')
-                stub.flush()
-                stub.close()
+                with open(local_path, 'w') as stub:
+                    stub.write('stub')
                 logger.info('[DRY RUN] {} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
                 ret = os.system('aws s3 cp --dryrun --acl public-read {} {} 1>&2'.format(
                     local_path, dest_s3_url))
@@ -352,11 +341,9 @@ class UniverseReleaseBuilder(object):
             resultlines.append(filediffs[filename])
         resultlines.append('```\n')
         commitmsg_path = os.path.join(scratchdir, 'commitmsg.txt')
-        commitmsg_file = open(commitmsg_path, 'w')
-        commitmsg_file.write(self._pr_title)
-        commitmsg_file.writelines(resultlines)
-        commitmsg_file.flush()
-        commitmsg_file.close()
+        with open(commitmsg_path, 'w') as commitmsg_file:
+            commitmsg_file.write(self._pr_title)
+            commitmsg_file.writelines(resultlines)
         # commit the change and push the branch:
         cmds = ['cd {}'.format(os.path.join(scratchdir, 'universe')),
                 'git add .',
@@ -382,11 +369,12 @@ class UniverseReleaseBuilder(object):
             'User-Agent': 'release_builder.py',
             'Content-Type': 'application/json',
             'Authorization': 'Basic {}'.format(self._github_token)}
-        payload = {
-            'title': self._pr_title,
-            'head': branch,
-            'base': 'version-3.x',
-            'body': open(commitmsg_path).read()}
+        with open(commitmsg_path) as commitmsg_file:
+            payload = {
+                'title': self._pr_title,
+                'head': branch,
+                'base': 'version-3.x',
+                'body': commitmsg_file.read()}
         conn = http.client.HTTPSConnection('api.github.com')
         conn.set_debuglevel(999)
         conn.request(
