@@ -28,6 +28,11 @@
             "type": "string",
             "default": ""
           },
+          "virtual_networks": {
+            "description": "Enable DC/OS Virtual Networking",
+            "type": "boolean",
+            "default": false
+          },
           "secret_name": {
             "title": "Credential secret name (optional)",
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -56,11 +61,6 @@
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": ""
-          },
-          "virtual_networks": {
-            "description": "Enable DC/OS Virtual Network",
-            "type": "boolean",
-            "default": false
           },
           "virtual_network": {
             "description": "Name of virtual network to join",
