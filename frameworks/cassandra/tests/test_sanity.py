@@ -11,6 +11,7 @@ import sdk_install as install
 import sdk_jobs as jobs
 import sdk_plan as plan
 import sdk_utils as utils
+import sdk_metrics as metrics
 
 
 WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
@@ -77,3 +78,13 @@ def test_repair_cleanup_plans_complete():
         plan.start_plan(FOLDERED_SERVICE_NAME, 'repair', parameters=parameters)
         plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'repair')
 
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+def test_metrics():
+    def metrics_exist():
+        utils.out("verifying metrics exist for {}".format(FOLDERED_SERVICE_NAME))
+        service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "node-0-server")
+        return len(service_metrics) != 0
+
+    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)

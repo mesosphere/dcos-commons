@@ -7,6 +7,7 @@ import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils as utils
+import sdk_metrics as metrics
 import shakedown
 import dcos
 import dcos.config
@@ -14,6 +15,7 @@ import dcos.http
 import shakedown
 
 from tests.test_utils import *
+from tests.config import *
 
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
@@ -28,6 +30,7 @@ def setup_module(module):
         DEFAULT_BROKER_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
 
 def teardown_module(module):
@@ -272,6 +275,16 @@ def test_pods_cli():
     assert service_cli('pods list', service_name=FOLDERED_SERVICE_NAME)
     assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
     assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+def test_metrics():
+    def metrics_exist():
+        utils.out("verifying metrics exist for {}".format(FOLDERED_SERVICE_NAME))
+        service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker")
+        return len(service_metrics) != 0
+
+    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)
 
 
 # --------- Suppressed -------------

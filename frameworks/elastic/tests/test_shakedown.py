@@ -5,6 +5,7 @@ import sdk_hosts as hosts
 import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
+import sdk_metrics as metrics
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
@@ -59,6 +60,17 @@ def test_indexing(default_populated_index):
 
 
 @pytest.mark.sanity
+@pytest.mark.metrics
+def test_metrics():
+    def metrics_exist():
+        utils.out("verifying metrics exist for {}".format(FOLDERED_SERVICE_NAME))
+        service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "data-0-node")
+        return len(service_metrics) != 0
+
+    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)
+
+
+@pytest.mark.sanity
 def test_xpack_toggle_with_kibana(default_populated_index):
     # Verify disabled by default
     verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
@@ -70,7 +82,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         "kibana": {
             "elasticsearch_url": "http://" + hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
         }})
-    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_WAIT_TIME_IN_SECONDS)
+    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_DEFAULT_TIMEOUT)
     check_kibana_adminrouter_integration("service/kibana/")
     install.uninstall("kibana")
 
@@ -95,7 +107,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         }})
     # Installing Kibana w/x-pack can take as much as 15 minutes for Marathon deployment to complete,
     # due to a configured HTTP health check. (typical: 10 minutes)
-    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_WAIT_TIME_IN_SECONDS)
+    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_DEFAULT_TIMEOUT)
     check_kibana_adminrouter_integration("service/kibana/login")
     install.uninstall("kibana")
 
@@ -170,3 +182,4 @@ def test_bump_node_counts():
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     marathon.update_app(FOLDERED_SERVICE_NAME, config)
     tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
+
