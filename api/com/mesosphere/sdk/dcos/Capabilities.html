@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -178,17 +178,29 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsGpuResource--">supportsGpuResource</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsEnvBasedSecretsDirectiveLabel--">supportsEnvBasedSecretsDirectiveLabel</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsNamedVips--">supportsNamedVips</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsEnvBasedSecretsProtobuf--">supportsEnvBasedSecretsProtobuf</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsPreReservedResources--">supportsPreReservedResources</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsFileBasedSecrets--">supportsFileBasedSecrets</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsGpuResource--">supportsGpuResource</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsNamedVips--">supportsNamedVips</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsPreReservedResources--">supportsPreReservedResources</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/Capabilities.html#supportsRLimits--">supportsRLimits</a></span>()</code>&nbsp;</td>
 </tr>
@@ -291,6 +303,33 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>supportsGpuResource</h4>
 <pre>public&nbsp;boolean&nbsp;supportsGpuResource()</pre>
+</li>
+</ul>
+<a name="supportsFileBasedSecrets--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>supportsFileBasedSecrets</h4>
+<pre>public&nbsp;boolean&nbsp;supportsFileBasedSecrets()</pre>
+</li>
+</ul>
+<a name="supportsEnvBasedSecretsProtobuf--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>supportsEnvBasedSecretsProtobuf</h4>
+<pre>public&nbsp;boolean&nbsp;supportsEnvBasedSecretsProtobuf()</pre>
+</li>
+</ul>
+<a name="supportsEnvBasedSecretsDirectiveLabel--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>supportsEnvBasedSecretsDirectiveLabel</h4>
+<pre>public&nbsp;boolean&nbsp;supportsEnvBasedSecretsDirectiveLabel()</pre>
 </li>
 </ul>
 <a name="supportsCNINetworking--">
