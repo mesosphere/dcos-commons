@@ -34,6 +34,11 @@
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",
           "default": "parallel"
+        },
+        "mesos_api_version": {
+          "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
+          "type": "string",
+          "default": "V0"
         }
       },
       "required": [
