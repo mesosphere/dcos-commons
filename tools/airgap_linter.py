@@ -17,28 +17,18 @@ def extract_uris(file_name):
     with open(file_name, "r") as file:
         lines = file.readlines()
 
-    matcher = re.compile(".*(https:\/\/|http:\/\/)([^\/]*)", re.IGNORECASE)
+    matcher = re.compile(".*https?:\/\/([^\/\?]*)", re.IGNORECASE)
     matches = []
     for line in lines:
+        # Do not grab comments
+        if line.startswith("*") or line.startswith("#") or line.startswith("//"):
+            continue
+
         match = matcher.match(line)
         if match:
-            matches.append(match.group(2))
+            matches.append(match.group(1))
 
     return matches
-
-
-def validate_uri(uri):
-    # URIs are valid if they:
-    #   - end with .mesos
-    #   - contain .dcos
-    if ".dcos" in uri:
-        return True
-
-    if uri.endswith(".mesos"):
-        return True
-
-    return False
-
 
 
 def validate_uris_in(file_name):
@@ -46,14 +36,15 @@ def validate_uris_in(file_name):
 
     bad_uri = False
     for uri in uris:
-        if not validate_uri(uri):
+        # A FQDN is a valid internal FQDN if it contains .dcos or ends with .mesos.
+        if not (".dcos" in uri or uri.endswith(".mesos")):
             print("Found a bad URI:", uri, "in:", file_name)
             bad_uri = True
 
     return not bad_uri
 
 
-def get_all_files_to_check(framework_directory):
+def get_files_to_check_for_uris(framework_directory):
     # There's a set of files that will always be present.
     files = [os.path.join(framework_directory, "universe", "config.json"),
              os.path.join(framework_directory, "universe", "marathon.json.mustache")]
@@ -61,15 +52,16 @@ def get_all_files_to_check(framework_directory):
     # Always check every file in the `dist` directory of the scheduler.
     dist_dir = os.path.join(framework_directory, "src", "main", "dist")
 
-    for file in os.listdir(dist_dir):
-        files.append(os.path.join(dist_dir, file))
+    for dp, dn, filenames in os.walk(dist_dir):
+        for file in filenames:
+            files.append(os.path.join(dp, file))
 
     return files
 
 
 def validate_all_uris(framework_directory):
     bad_file = False
-    files = get_all_files_to_check(framework_directory)
+    files = get_files_to_check_for_uris(framework_directory)
     for file in files:
         if not validate_uris_in(file):
             bad_file = True
@@ -85,8 +77,9 @@ def validate_images(framework_directory):
 
     bad_image = False
     for line in lines:
+        line = line.strip()
         if "image:" in line:
-            image_matcher = re.compile("\s*image:\s?(.*)", re.IGNORECASE)
+            image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
             match = image_matcher.match(line)
             image_path = match.group(1)
             env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
