@@ -5,6 +5,7 @@ web-url: http://hello-world.marathon.mesos:{{PORT_API}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     tasks:
       server:
         goal: RUNNING
