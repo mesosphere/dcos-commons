@@ -1,5 +1,5 @@
 import pytest
-import shakedown
+from shakedown import *
 
 import sdk_cmd as cmd
 import sdk_install as install
