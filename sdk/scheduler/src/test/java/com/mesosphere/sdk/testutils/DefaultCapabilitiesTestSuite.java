@@ -24,7 +24,7 @@ public abstract class DefaultCapabilitiesTestSuite {
         when(capabilities.supportsRLimits()).thenReturn(true);
         when(capabilities.supportsPreReservedResources()).thenReturn(true);
         when(capabilities.supportsFileBasedSecrets()).thenReturn(true);
-        when(capabilities.supportsEnvBasedSecretsProtoBuf()).thenReturn(true);
+        when(capabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         when(capabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
     }
 

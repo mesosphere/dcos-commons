@@ -56,7 +56,7 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 10);
     }
 
-    public boolean supportsEnvBasedSecretsProtoBuf() {
+    public boolean supportsEnvBasedSecretsProtobuf() {
         // Environment-based Secret is supported by DC/OS 1.10 upwards
         return hasOrExceedsVersion(1, 10);
     }

@@ -69,7 +69,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         //Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
     }
 
@@ -81,7 +81,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         //Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
     }
 
@@ -93,7 +93,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
     }
 
@@ -105,7 +105,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
     }
 
@@ -117,7 +117,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
     }
 
@@ -129,7 +129,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsRLimits());
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
-        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtoBuf());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
     }
 
