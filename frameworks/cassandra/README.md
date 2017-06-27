@@ -1,3 +1,5 @@
+trigger test
+
 # DC/OS Apache Cassandra Service Documentation
 
 ## Table of Contents
