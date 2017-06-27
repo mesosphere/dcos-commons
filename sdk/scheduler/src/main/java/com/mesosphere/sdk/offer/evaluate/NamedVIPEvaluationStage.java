@@ -2,12 +2,13 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.api.EndpointUtils;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Resource;
 
 
 /**
@@ -24,8 +25,11 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final long vipPort;
     private final boolean onNamedNetwork;
 
-    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
-        super(namedVIPSpec, taskName, resourceId);
+    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
+                                   String taskName,
+                                   Optional<String> resourceId,
+                                   String portName) {
+        super(namedVIPSpec, taskName, resourceId, portName);
         this.taskName = taskName;
         this.protocol = namedVIPSpec.getProtocol();
         this.visibility = namedVIPSpec.getVisibility();
@@ -44,21 +48,29 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             // Set the VIP on the TaskInfo.
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
             if (taskBuilder.hasDiscovery()) {
-                addVIP(
-                        taskBuilder.getDiscoveryBuilder(),
-                        vipName,
-                        protocol,
-                        visibility,
-                        vipPort,
-                        (int) resource.getRanges().getRange(0).getBegin());
+                taskBuilder.getDiscoveryBuilder().setVisibility(DiscoveryInfo.Visibility.CLUSTER);
+                List<Protos.Port.Builder> portsBuilders = taskBuilder
+                        .getDiscoveryBuilder()
+                        .getPortsBuilder()
+                            .getPortsBuilderList().stream()
+                            .filter(port -> port.getNumber() == portSpec.getPort())
+                            .collect(Collectors.toList());
+                if (portsBuilders.size() != 1) {
+                    throw new IllegalStateException(String.format("Cannot have multiple ports with the same number" +
+                            "got ports %s", portsBuilders.toString()));
+                }
+                Protos.Port.Builder portBuilder = portsBuilders.get(0);
+                if (!portBuilder.getName().equals(getPortName())) {
+                    throw new IllegalStateException(String.format("Port has incorrect name/port pair got %s" +
+                            " should have name %s", portBuilder.getName(), portSpec.getPortName()));
+                }
+                portBuilder.setVisibility(visibility)
+                        .setProtocol(protocol)
+                        .getLabelsBuilder()
+                            .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
             } else {
-                taskBuilder.setDiscovery(getVIPDiscoveryInfo(
-                        taskBuilder.getName(),
-                        vipName,
-                        vipPort,
-                        protocol,
-                        visibility,
-                        resource));
+                throw new IllegalStateException(String.format("TaskBuilder missing DiscoveryInfo for port" +
+                        "%s, TaskBuilder: %s", getPortName(), taskBuilder.toString()));
             }
         }
     }
@@ -75,56 +87,15 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         && vipInfo.get().getVipName().equals(vipName)
                         && vipInfo.get().getVipPort() == vipPort) {
                     portBuilder
-                        .setNumber((int) getPort())
-                        .setVisibility(visibility)
-                        .setProtocol(protocol);
+                            .setNumber((int) getPort())
+                            .setVisibility(visibility)
+                            .setName(getPortName())
+                            .setProtocol(protocol);
                     return true;
                 }
             }
         }
 
         return false;
-    }
-
-    private DiscoveryInfo.Builder addVIP(
-            DiscoveryInfo.Builder builder,
-            String vipName,
-            String protocol,
-            DiscoveryInfo.Visibility visibility,
-            long vipPort,
-            int destPort) {
-        builder.getPortsBuilder()
-                .addPortsBuilder()
-                .setNumber(destPort)
-                .setProtocol(protocol)
-                .setVisibility(visibility)
-                .getLabelsBuilder()
-                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
-
-        // Ensure Discovery visibility is always CLUSTER. This is to update visibility if prior info
-        // (i.e. upgrading an old service with a previous version of SDK) has different visibility.
-        builder.setVisibility(DiscoveryInfo.Visibility.CLUSTER);
-        return builder;
-    }
-
-    private DiscoveryInfo getVIPDiscoveryInfo(
-            String taskName,
-            String vipName,
-            long vipPort,
-            String protocol,
-            DiscoveryInfo.Visibility visibility,
-            Resource r) {
-        DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
-                .setName(taskName);
-
-        discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
-                .setNumber((int) r.getRanges().getRange(0).getBegin())
-                .setProtocol(protocol)
-                .setVisibility(visibility)
-                .getLabelsBuilder()
-                .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
-
-        return discoveryInfoBuilder.build();
     }
 }

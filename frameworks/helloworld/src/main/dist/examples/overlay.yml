@@ -38,12 +38,14 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          test:
-            port: 4044
+          dummy:
+            port: 1025
+          dynport:
+            port: 0
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the overlay network!"
+        cmd: "python3 http_py3responder.py $PORT_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
   hello-host-vip:
     count: 1
@@ -92,7 +94,7 @@ pods:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       get-overlay-vip:

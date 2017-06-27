@@ -31,9 +31,11 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     protected PortSpec portSpec;
     private final String taskName;
+    private final String portName;
     private Optional<String> resourceId;
 
-    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
+    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId, String portName) {
+        this.portName = portName;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.portSpec = portSpec;
@@ -42,6 +44,14 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     protected long getPort() {
         return portSpec.getValue().getRanges().getRange(0).getBegin();
+    }
+
+    protected long getResourcePort(Protos.Resource resource) {
+        return resource.getRanges().getRange(0).getBegin();
+    }
+
+    protected String getPortName() {
+        return portName;
     }
 
     @Override
@@ -128,6 +138,18 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     }
 
+    private void setPortBuilder(Protos.Port.Builder portBuilder, long port) {
+        portBuilder.setNumber((int) port)
+                .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                .setName(getPortName());
+    }
+
+    private Protos.Port.Builder makePortBuilder(long port) {
+        Protos.Port.Builder builder = Protos.Port.newBuilder();
+        setPortBuilder(builder, port);
+        return builder;
+    }
+
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
@@ -136,6 +158,25 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
             taskBuilder.getCommandBuilder().setEnvironment(
                     withPortEnvironmentVariable(taskBuilder.getCommandBuilder().getEnvironment(), port));
+
+            if (taskBuilder.hasDiscovery()) {
+                Protos.Ports.Builder portsBuilder = taskBuilder.getDiscoveryBuilder().getPortsBuilder();
+                Optional<Protos.Port.Builder> builderOptional = portsBuilder.getPortsBuilderList().stream()
+                        .filter(b -> b.getName().equals(getPortName()))
+                        .findFirst();
+                if (builderOptional.isPresent()) {
+                    setPortBuilder(builderOptional.get(), port);
+                } else {
+                    portsBuilder.addPorts(makePortBuilder(port));
+
+                }
+            } else {
+                Protos.DiscoveryInfo.Builder discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
+                        .setVisibility(Protos.DiscoveryInfo.Visibility.FRAMEWORK)
+                        .setName(taskBuilder.getName());
+                discoveryInfoBuilder.getPortsBuilder().addPorts(makePortBuilder(port));
+                taskBuilder.setDiscovery(discoveryInfoBuilder);
+            }
 
             // Add port to the health check (if defined)
             if (taskBuilder.hasHealthCheck()) {
@@ -167,6 +208,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
 
         }
+
     }
 
     private static Optional<Integer> selectDynamicPort(
