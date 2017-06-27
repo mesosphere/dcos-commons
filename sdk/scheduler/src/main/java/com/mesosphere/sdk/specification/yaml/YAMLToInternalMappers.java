@@ -479,7 +479,7 @@ public class YAMLToInternalMappers {
 
         if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
             builder.networkLabels(rawNetwork.getValidadedLabels()
-                    .stream().collect(Collectors.toMap(s -> s[0], s ->s [1])));
+                    .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
         } else {
             builder.networkLabels(Collections.emptyMap());
         }

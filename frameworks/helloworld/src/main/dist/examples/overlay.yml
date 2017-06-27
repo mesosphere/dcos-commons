@@ -33,6 +33,7 @@ pods:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     networks:
       dcos:
+        labels:
     image: ubuntu:14.04
     resource-sets:
       hello-resource:

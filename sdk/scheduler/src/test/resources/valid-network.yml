@@ -5,7 +5,6 @@ pods:
     networks:
       dcos:
         labels: "key1:val1,key2:val2"
-
     tasks:
       server:
         goal: RUNNING
