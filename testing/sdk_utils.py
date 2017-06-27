@@ -45,3 +45,11 @@ def try_throws_n_times(predicate, attempts=1, sleep_seconds=0):
             out("Encountered an exception: {}".format(traceback.format_exc()))
 
         time.sleep(sleep_seconds)
+
+def get_foldered_name(service_name):
+    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
+    # group names
+    if shakedown.dcos_version_less_than("1.10"):
+        return "test__integration__" + service_name
+    return "/test/integration/" + service_name
+
