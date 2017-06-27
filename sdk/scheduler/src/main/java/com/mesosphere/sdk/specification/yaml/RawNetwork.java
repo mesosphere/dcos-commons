@@ -13,20 +13,20 @@ import java.util.Map;
 public class RawNetwork {
     private final List<Integer> hostPorts;
     private final List<Integer> containerPorts;
-    private final Map<String, String> labels;
+    private final String labelsCsv;
 
     @JsonCreator
     private RawNetwork(
             @JsonProperty("host-ports") List<Integer> hostPorts,
             @JsonProperty("container-ports") List<Integer> containerPorts,
-            @JsonProperty("labels") Map<String, String> labels) {
+            @JsonProperty("labels") String labels) {
         this.hostPorts = hostPorts;
         this.containerPorts = containerPorts;
-        this.labels = labels;
+        this.labelsCsv = labels;
     }
 
     private RawNetwork(String name) {
-        this(Collections.emptyList(), Collections.emptyList(), Collections.emptyMap());
+        this(Collections.emptyList(), Collections.emptyList(), "");
     }
 
     public List<Integer> getHostPorts() {
@@ -48,8 +48,8 @@ public class RawNetwork {
         return hostPorts.size();
     }
 
-    public Map<String, String> getLabels() {
-        return labels;
+    public String getLabelsCsv() {
+        return labelsCsv;
     }
 
 }

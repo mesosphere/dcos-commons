@@ -433,7 +433,12 @@ public class PodInfoBuilder {
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            throw new IllegalStateException("Network-labels is not implemented, yet");
+            Map<String, String> labels = networkSpec.getLabels();
+            Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
+            labels.forEach((k, v) -> {
+                labelsBuilder.addLabels(Protos.Label.newBuilder().setKey(k).setValue(v));
+            });
+            netInfoBuilder.setLabels(labelsBuilder.build());
         }
 
         return netInfoBuilder.build();
