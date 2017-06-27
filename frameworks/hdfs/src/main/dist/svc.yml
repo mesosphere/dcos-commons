@@ -4,6 +4,7 @@ scheduler:
 pods:
   journal:
     count: 3
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -51,6 +52,7 @@ pods:
           JOURNALNODE: true
   name:
     count: 2
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -204,6 +206,7 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
@@ -215,11 +218,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: >
-               ./bootstrap &&
-               mkdir -p /var/lib/hadoop-hdfs &&
-               chown root /var/lib/hadoop-hdfs &&
-               ./{{HDFS_VERSION}}/bin/hdfs datanode
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
