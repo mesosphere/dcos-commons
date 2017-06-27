@@ -50,6 +50,6 @@ def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
     if shakedown.dcos_version_less_than("1.10"):
-        return "test__integration__" + service_name
+        return "test_integration_" + service_name
     return "/test/integration/" + service_name
 
