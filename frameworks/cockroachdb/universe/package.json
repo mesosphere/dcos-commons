@@ -1,0 +1,13 @@
+{
+  "packagingVersion": "2.0",
+  "minDcosReleaseVersion": "1.9",
+  "name": "cockroachdb",
+  "version": "1.0.1",
+  "maintainer": "alex@cockroachlabs.com",
+  "description": "CockroachDB on DC/OS",
+  "selected": false,
+  "framework": true,
+  "tags": ["cockroachdb", "sql", "database"],
+  "postInstallNotes": "CockroachDB is being installed!\n\n\tDocumentation: https://www.cockroachlabs.com/docs\n\tIssues: contact https://www.cockroachlabs.com/docs/support-resources.html\n\tRelease Notes:https://www.cockroachlabs.com/docs/v1.0.1.html",
+  "postUninstallNotes": "CockroachDB has been uninstalled."
+}

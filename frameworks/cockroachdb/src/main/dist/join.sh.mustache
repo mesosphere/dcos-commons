@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "--------------------"
+echo "JOINING COCKROACHDB"
+echo "--------------------"
+
+echo "Looks like there's already at least one other CockroachDB node running, connecting new node to the cluster..."
+
+# Start CockroachDB server (join existing cluster)
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach start \
+    --insecure \
+    --logtostderr \
+    --http-port=$PORT_GUI \
+    --port=$PORT_INTERNAL \
+    --join="internal.cockroachdb.l4lb.thisdcos.directory:26257"
+

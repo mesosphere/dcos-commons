@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "--------------------"
+echo "STARTING COCKROACHDB"
+echo "--------------------"
+
+echo "Looks like there are no CockroachDB nodes running, starting first node..."
+
+echo "-----------------------"
+echo "GENERATING CERTIFICATES"
+echo "-----------------------"
+
+# Create directories for certificates
+mkdir certs
+mkdir my-safe-directory
+
+# Create the CA key pair
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-ca \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
+
+# Create a client key pair for the root user
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-client root \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
+
+# Create a key pair for the nodes
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach cert create-node \
+    localhost \
+    $(hostname) \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
+
+# Start CockroachDB server
+$MESOS_SANDBOX/$COCKROACH_VERSION/cockroach start \
+    --logtostderr \
+    --insecure \
+    --http-port=$PORT_GUI \
+    --port=$PORT_INTERNAL
+

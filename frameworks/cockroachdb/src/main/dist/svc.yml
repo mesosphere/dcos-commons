@@ -1,0 +1,196 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+pods:
+  cockroachdb:
+    count: {{NODE_COUNT}}
+    uris:
+      - {{COCKROACH_URI}}
+      - {{BOOTSTRAP_URI}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    placement: {{NODE_PLACEMENT}}
+    resource-sets:
+      server-resources:
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        ports:
+          gui:
+            port: {{CONTAINER_GUI_PORT}}
+            vip:
+              prefix: gui
+              port: {{COCKROACH_GUI_PORT}}
+          internal:
+            port: {{CONTAINER_INTERNAL_PORT}}
+            vip:
+              prefix: internal
+              port: {{COCKROACH_INTERNAL_PORT}}
+        volume:
+          path: "cockroach-data"
+          type: {{NODE_DISK_TYPE}}
+          size: {{NODE_DISK}}
+      sidecar-resources:
+        cpus: {{SIDE_CPUS}}
+        memory: {{SIDE_MEM}}
+    tasks:
+      node-init:
+        goal: RUNNING
+        resource-set: server-resources
+        configs:
+          start:
+            template: "{{CONFIG_TEMPLATE_PATH}}/start.sh.mustache"
+            dest: "start.sh"
+        cmd: "./bootstrap && \
+              chmod +x $MESOS_SANDBOX/start.sh && \
+              ln -s $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach cockroach && \
+              $MESOS_SANDBOX/start.sh"
+        readiness-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls \
+                --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 10
+          delay: 5
+          timeout: 300
+        health-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls \
+                --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 120
+          grace-period: 30
+          max-consecutive-failures: 3
+          timeout: 10
+          delay: 0
+        env:
+          COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      node-join:
+        goal: RUNNING
+        resource-set: server-resources
+        configs:
+          join:
+            template: "{{CONFIG_TEMPLATE_PATH}}/join.sh.mustache"
+            dest: "join.sh"
+        cmd: "./bootstrap && \
+              chmod +x $MESOS_SANDBOX/join.sh && \
+              ln -s $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach cockroach && \
+              $MESOS_SANDBOX/join.sh"
+        readiness-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls \
+                --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 10
+          delay: 5
+          timeout: 300
+        health-check:
+          cmd: "$MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach node ls \
+                --insecure --port=$PORT_INTERNAL >/dev/null 2>/dev/null"
+          interval: 120
+          grace-period: 30
+          max-consecutive-failures: 3
+          timeout: 10
+          delay: 0
+        env:
+          COCKROACH_VERSION: {{COCKROACH_VERSION}}
+      metrics:
+        goal: RUNNING
+        resource-set: sidecar-resources
+        cmd: "docker run \
+              -e PORT_GUI={{CONTAINER_GUI_PORT}} \
+              -e STATSD_UDP_HOST=$STATSD_UDP_HOST \
+              -e STATSD_UDP_PORT=$STATSD_UDP_PORT \
+              -e PYTHONUNBUFFERED=1 \
+              --network='host' \
+              sammisthemannis/cockroach-statsd:1.0"
+      restore:
+        goal: FINISHED
+        configs:
+          aws:
+            template: "{{CONFIG_TEMPLATE_PATH}}/aws.sh.mustache"
+            dest: "aws.sh"
+        cmd: "./bootstrap && \
+              chmod +x $MESOS_SANDBOX/aws.sh && \
+              mkdir restore && \
+              $MESOS_SANDBOX/aws.sh s3 cp \
+              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/$DATABASE_NAME.sql \
+              restore/ && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql --insecure \
+              --execute=\"CREATE DATABASE IF NOT EXISTS $DATABASE_NAME\" \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach sql \
+              --database=$DATABASE_NAME --insecure \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' < \
+              restore/$DATABASE_NAME.sql"
+        resource-set: sidecar-resources
+  sidecar:
+    count: {{SIDE_COUNT}}
+    uris:
+      - {{COCKROACH_URI}}
+      - {{BOOTSTRAP_URI}}
+    placement: {{SIDE_PLACEMENT}}
+    resource-sets:
+      sidecar-resources:
+        cpus: {{SIDE_CPUS}}
+        memory: {{SIDE_MEM}}
+        volume:
+          path: "cockroach-backup"
+          type: {{SIDE_DISK_TYPE}}
+          size: {{SIDE_DISK}}
+    tasks:
+      backup:
+        goal: FINISHED
+        configs:
+          aws:
+            template: "{{CONFIG_TEMPLATE_PATH}}/aws.sh.mustache"
+            dest: "aws.sh"
+        cmd: "./bootstrap --resolve=false && \
+              chmod +x $MESOS_SANDBOX/aws.sh && \
+              mkdir backup && \
+              touch backup/$DATABASE_NAME.sql && \
+              $MESOS_SANDBOX/{{COCKROACH_VERSION}}/cockroach dump $DATABASE_NAME --insecure \
+              --host='internal.cockroachdb.l4lb.thisdcos.directory' > \
+              backup/$DATABASE_NAME.sql && \
+              $MESOS_SANDBOX/aws.sh s3 cp \
+              backup/$DATABASE_NAME.sql \
+              s3://$S3_BUCKET_NAME/$S3_DIR_PATH/$BACKUP_DIR/"
+        resource-set: sidecar-resources
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - 0: [[node-init], [metrics]]
+          - default: [[node-join], [metrics]]
+  replace:
+    strategy: parallel
+    phases:
+      node-deploy:
+        strategy: parallel
+        pod: cockroachdb
+        steps:
+          - default: [[node-join], [metrics]]
+  backup:
+    strategy: serial
+    phases:
+      backup-test:
+        strategy: serial
+        pod: sidecar
+        steps:
+          - default: [[backup]]
+  restore:
+    strategy: serial
+    phases:
+      backup-test:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - 0: [[restore]]
+          - default: [[]]
+  update:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: cockroachdb
+        steps:
+          - default: [[node-join], [metrics]]
