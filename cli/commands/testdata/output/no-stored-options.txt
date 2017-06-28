@@ -1,2 +1,2 @@
 Package configuration is not available for service hello-world.
-Only packages installed with Enterprise DC/OS 1.10 or newer will have configuration persisted.
+dcos hello-world describe is only available for packages installed with Enterprise DC/OS 1.10 or newer.

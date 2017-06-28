@@ -6,38 +6,13 @@ import dcos
 import pytest
 import shakedown
 
-from tests.config import (
-    DEFAULT_TASK_COUNT,
-    DELETE_DATA_JOB,
-    PACKAGE_NAME,
-    TEST_JOBS,
-    VERIFY_DATA_JOB,
-    VERIFY_DELETION_JOB,
-    WRITE_DATA_JOB,
-    DataContext,
-    EnvironmentContext,
-    JobContext,
-    get_jobs_folder,
-    install_cassandra_jobs,
-    install_job,
-    launch_and_verify_job,
-    remove_cassandra_jobs,
-    remove_job,
-)
-from tests.test_backup import run_backup_and_restore
+from tests.config import *
 import sdk_api as api
+import sdk_hosts as hosts
+import sdk_jobs as jobs
 import sdk_plan as plan
-import sdk_spin as spin
 import sdk_test_upgrade
 import sdk_utils as utils
-
-
-def get_dcos_cassandra_plan(service_name):
-    utils.out('Waiting for {} plan to complete...'.format(service_name))
-
-    def fn():
-        return api.get(service_name, '/v1/plan')
-    return spin.time_wait_return(fn)
 
 
 @pytest.mark.soak_backup
@@ -53,8 +28,16 @@ def test_backup_and_restore():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    with JobContext(TEST_JOBS):
-        run_backup_and_restore('backup-s3', 'restore-s3', plan_parameters)
+    with jobs.InstallJobContext([
+            get_write_data_job(),
+            get_verify_data_job(),
+            get_delete_data_job(),
+            get_verify_deletion_job()]):
+        run_backup_and_restore(
+            PACKAGE_NAME,
+            'backup-s3',
+            'restore-s3',
+            plan_parameters)
 
 
 @pytest.mark.soak_upgrade
@@ -75,12 +58,14 @@ def test_cassandra_migration():
     backup_service_name = os.getenv('CASSANDRA_BACKUP_CLUSTER_NAME')
     restore_service_name = os.getenv('CASSANDRA_RESTORE_CLUSTER_NAME')
 
-    env = EnvironmentContext(
-        CASSANDRA_NODE_ADDRESS=os.getenv(
-            'BACKUP_NODE_ADDRESS', 'node-0.cassandra.mesos'
-        ),
-        CASSANDRA_NODE_PORT=os.getenv('BACKUP_NODE_PORT', '9042')
-    )
+    backup_node_address = os.getenv('BACKUP_NODE_ADDRESS', DEFAULT_NODE_ADDRESS)
+    backup_node_port = os.getenv('BACKUP_NODE_PORT', DEFAULT_NODE_PORT)
+
+    backup_write_data_job = get_write_data_job(backup_node_address, backup_node_port)
+    backup_verify_data_job = get_verify_data_job(backup_node_address, backup_node_port)
+    backup_delete_data_job = get_delete_data_job(backup_node_address, backup_node_port)
+    backup_verify_deletion_job = get_verify_deletion_job(backup_node_address, backup_node_port)
+
     plan_parameters = {
         'S3_BUCKET_NAME': os.getenv(
             'AWS_BUCKET_NAME', 'infinity-framework-test'
@@ -92,13 +77,15 @@ def test_cassandra_migration():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    data_context = DataContext(
-        init_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
-        cleanup_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]
-    )
+    backup_install_job_context = jobs.InstallJobContext(
+        [backup_write_data_job, backup_verify_data_job,
+         backup_delete_data_job, backup_verify_deletion_job])
+    backup_run_job_context = jobs.RunJobContext(
+        before_jobs=[backup_write_data_job, backup_verify_data_job],
+        after_jobs=[backup_delete_data_job, backup_verify_deletion_job])
     # Install and run the write/delete data jobs against backup cluster,
     # running dcos-cassandra-service
-    with env, JobContext(TEST_JOBS), data_context:
+    with backup_install_job_context, backup_run_job_context:
         # Back this cluster up to S3
         backup_parameters = {
             'backup_name': plan_parameters['SNAPSHOT_NAME'],
@@ -112,30 +99,27 @@ def test_cassandra_migration():
             ),
             json=backup_parameters
         )
-        spin.time_wait_noisy(
-            lambda: get_dcos_cassandra_plan(
-                backup_service_name
-            ).json()['status'] == 'COMPLETE'
-        )
+        plan.wait_for_completed_deployment(backup_service_name)
 
-    env = EnvironmentContext(
-        CASSANDRA_NODE_ADDRESS=os.getenv(
-            'RESTORE_NODE_ADDRESS', 'node-0-server.sdk-cassandra.mesos'
-        ),
-        CASSANDRA_NODE_PORT=os.getenv('RESTORE_NODE_PORT', '9052')
-    )
+    # Restore data to second instance:
+    restore_node_address = os.getenv(
+        'RESTORE_NODE_ADDRESS', hosts.autoip_host('sdk-cassandra', 'node-0-server'))
+    restore_node_port = os.getenv('RESTORE_NODE_PORT', '9052')
 
-    data_context = DataContext(
-        cleanup_jobs=[VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
+    restore_write_data_job = get_write_data_job(restore_node_address, restore_node_port)
+    restore_verify_data_job = get_verify_data_job(restore_node_address, restore_node_port)
+    restore_delete_data_job = get_delete_data_job(restore_node_address, restore_node_port)
+    restore_verify_deletion_job = get_verify_deletion_job(restore_node_address, restore_node_port)
+
+    restore_install_job_context = jobs.InstallJobContext(
+        [restore_write_data_job, restore_verify_data_job,
+         restore_delete_data_job, restore_verify_deletion_job]
     )
-    with env, JobContext(TEST_JOBS), data_context:
+    restore_run_job_context = jobs.RunJobContext(
+        after_jobs=[restore_verify_data_job, restore_delete_data_job, restore_verify_deletion_job]
+    )
+    with restore_install_job_context, restore_run_job_context:
         plan.start_plan(
             restore_service_name, 'restore-s3', parameters=plan_parameters
         )
-        spin.time_wait_noisy(
-            lambda: (
-                plan.get_plan(
-                    restore_service_name, 'restore-s3'
-                ).json()['status'] == 'COMPLETE'
-            )
-        )
+        plan.wait_for_completed_plan(restore_service_name, 'restore-s3')

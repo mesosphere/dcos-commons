@@ -2,7 +2,6 @@
 
 import shakedown
 import sdk_cmd
-import sdk_spin
 
 import re
 
@@ -10,7 +9,7 @@ import re
 def get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        sdk_cmd.run_cli('dcos package describe {}'.format(package_name))).group(1)
+        sdk_cmd.run_cli('package describe {}'.format(package_name))).group(1)
 
 
 def get_repo_list():
@@ -33,4 +32,4 @@ def add_repo(repo_name, repo_url, package_name, prev_version):
 def check_default_version_available(package_name, prev_version):
     def fn():
         return get_pkg_version(package_name) != prev_version
-    sdk_spin.time_wait_noisy(lambda: fn())
+    shakedown.wait_for(lambda: fn())

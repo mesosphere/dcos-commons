@@ -17,6 +17,7 @@ logger = logging.getLogger("dcos-commons-test")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
 sys.path.append(os.path.join(get_repo_root(), 'tools'))
+import branch_changes
 import clustinfo
 import fwinfo
 import launch_ccm_cluster
@@ -126,6 +127,9 @@ def detect_requirements(run_attrs):
             else:
                 logger.info("ssh-agent .. does not have ec2 key.  FAIL")
                 return False
+        except AttributeError as e:
+            logger.info("python3.5+ required.  FAIL")
+            return False
         except:
             logger.info("ssh-add invocation failed.  FAIL")
             return False
@@ -315,15 +319,21 @@ def _one_cluster_linear_tests(run_attrs, repo_root, continue_on_error):
         clustinfo.start_cluster(start_config)
 
     cluster = clustinfo._clusters[0]
+    all_ok = True
     for framework in fwinfo.get_frameworks():
         func = run_test
-        args = framework, cluster, repo_root
-        _action_wrapper("Run %s tests" % framework.name,
-                framework, func, *args)
-    # we don't handle exceptions here, so any failures will stop us from
-    # getting this far.
-    all_passed = True
-    return all_passed
+        args = framework, cluster, repo_root, fail_fast
+        try:
+            _action_wrapper("Run %s tests" % framework.name,
+                    framework, func, *args)
+        except Exception as e:
+            all_ok = False
+            if fail_fast:
+                logger.info("Some tests failed; aborting early") # TODO paramaterize
+                raise
+            else:
+                logger.info("Tests for % tests failed.", framework.name)
+    return all_ok
 
 def _handle_test_completions():
     all_tests_ok = True
@@ -418,7 +428,7 @@ def _multicluster_linear_per_cluster(run_attrs, repo_root, continue_on_error):
                              next_test, avail_cluster.cluster_id)
                 framework = fwinfo.get_framework(next_test)
                 func = start_test_background
-                args = framework, avail_cluster, repo_root
+                args = framework, avail_cluster, repo_root, fail_fast
                 _action_wrapper("Launch %s tests" % framework.name,
                         framework, func, *args)
                 next_test = None
@@ -489,15 +499,13 @@ def _setup_strict(framework, cluster, repo_root):
         custom_env['CLUSTER_URL'] = cluster.url
         custom_env['CLUSTER_AUTH_TOKEN'] = cluster.auth_token
 
-        for role_base in (framework.name, framework.name + "2"):
-
-            role_arg = '%s-role' % role_base
+        # include both base and foldered roles (tests exercise with /test/integration/svcname):
+        for role_base in (framework.name, 'test__integration__%s' % framework.name):
 
             # XXX helloworld is terrible and doesn't use its own name
-            if role_base == 'helloworld':
-                role_arg = 'hello-world-role'
+            role_base = role_base.replace('helloworld', 'hello-world')
 
-            cmd_args = [perm_setup_script, 'root', role_arg]
+            cmd_args = [perm_setup_script, 'root', '%s-role' % role_base]
 
             completed_cmd = subprocess.run(cmd_args, env=custom_env)
             if completed_cmd.returncode != 0:
@@ -507,7 +515,7 @@ def _setup_strict(framework, cluster, repo_root):
 
         logger.info("%s role setup script(s) completed", framework.name)
 
-def start_test_background(framework, cluster, repo_root):
+def start_test_background(framework, cluster, repo_root, fail_fast):
     """Start one test on a cluster as a subprocess.
     The state of these subprocesses lives in the framework objects stored in
     the fwinfo module
@@ -533,6 +541,8 @@ def start_test_background(framework, cluster, repo_root):
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
     for stub_url in framework.stub_universe_urls:
         cmd_args.extend(["--stub-universe", stub_url])
+    if fail_fast:
+        cmd_args.append("--fail-fast")
 
     output_filename = os.path.join(get_work_dir(), "%s.out" % framework.name)
     output_file = open(output_filename, "w+b")
@@ -546,7 +556,7 @@ def start_test_background(framework, cluster, repo_root):
     cluster.claim(framework)
     logger.info("Shakedown for %s now running in background", framework.name)
 
-def run_test(framework, cluster, repo_root):
+def run_test(framework, cluster, repo_root, fail_fast):
     "Run one test on a cluster in a blocking fashion"
     logger.info("Starting cluster configure & test run for %s", framework.name)
     _setup_strict(framework, cluster, repo_root)
@@ -564,6 +574,8 @@ def run_test(framework, cluster, repo_root):
     cmd_args = [runtests_script, 'shakedown', framework_testdir]
     for stub_url in framework.stub_universe_urls:
         cmd_args.extend(["--stub-universe", stub_url])
+    if fail_fast:
+        cmd_args.append("--fail-fast")
     completed_cmd = subprocess.run(cmd_args, env=custom_env)
     if completed_cmd.returncode != 0:
         msg = "Test script: %s invocation returned failure for %s.  FAIL"
@@ -591,6 +603,8 @@ def main():
 
     repo_root = get_repo_root()
     fwinfo.init_repo_root(repo_root)
+    if 'PULL_REQUEST' in os.environ:
+        fwinfo.set_buildtypes(branch_changes.get_branch_changetypes())
 
     setup_frameworks(run_attrs)
 

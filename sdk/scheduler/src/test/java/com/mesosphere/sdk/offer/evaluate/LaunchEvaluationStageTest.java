@@ -1,21 +1,20 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.GoalState;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
-public class LaunchEvaluationStageTest {
+public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
@@ -30,7 +29,9 @@ public class LaunchEvaluationStageTest {
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                 Collections.emptyList());
 
-        EvaluationOutcome outcome = evaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        EvaluationOutcome outcome = evaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 

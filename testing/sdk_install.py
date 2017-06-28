@@ -1,17 +1,17 @@
 '''Utilities relating to installing services'''
 
 import collections
+
 import dcos.errors
 import dcos.marathon
+import os
+import shakedown
+import time
+
 import sdk_api
 import sdk_plan
-import sdk_spin
 import sdk_tasks
 import sdk_utils
-import shakedown
-
-import os
-import time
 
 
 def install(
@@ -20,7 +20,20 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None,
-        check_suppression=True):
+        check_suppression=True,
+        timeout_seconds=15 * 60):
+    sdk_utils.try_throws_n_times(lambda: _install(package_name, running_task_count,
+        service_name, additional_options, package_version, check_suppression, timeout_seconds), 5, 5)
+
+
+def _install(
+        package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        package_version=None,
+        check_suppression=True,
+        timeout_seconds=15 * 60):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -29,39 +42,17 @@ def install(
     sdk_utils.out('Installing {} with options={} version={}'.format(
         package_name, merged_options, package_version))
 
-    # install_package_and_wait silently waits for all marathon deployments to clear.
-    # to give some visibility, install in the following order:
-    # 1. install package
+    # 1. Install package, wait for tasks, wait for marathon deployment
     shakedown.install_package(
         package_name,
         package_version=package_version,
-        options_json=merged_options)
+        service_name=service_name,
+        options_json=merged_options,
+        wait_for_completion=True,
+        timeout_sec=timeout_seconds,
+        expected_running_tasks=running_task_count)
 
-    # 2. wait for expected tasks to come up
-    sdk_utils.out("Waiting for expected tasks to come up...")
-    sdk_tasks.check_running(service_name, running_task_count)
-    sdk_plan.wait_for_completed_deployment(service_name)
-
-    # 3. check service health
-    marathon_client = dcos.marathon.create_client()
-    def is_deployment_finished():
-        # TODO(nickbp): upstream fix to shakedown, which currently checks for ANY deployments rather
-        #               than the one we care about
-        deploying_apps = set([])
-        sdk_utils.out("Getting deployments")
-        deployments = marathon_client.get_deployments()
-        sdk_utils.out("Found {} deployments".format(len(deployments)))
-        for deployment in deployments:
-            sdk_utils.out("Deployment: {}".format(deployment))
-            for app in deployment.get('affectedApps', []):
-                sdk_utils.out("Adding {}".format(app))
-                deploying_apps.add(app)
-        sdk_utils.out('Checking that deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
-        return not '/{}'.format(service_name) in deploying_apps
-    sdk_utils.out("Waiting for marathon deployment to finish...")
-    sdk_spin.time_wait_noisy(is_deployment_finished)
-
-    # 4. Ensure the framework is suppressed.
+    # 2. Ensure the framework is suppressed.
     #
     # This is only configurable in order to support installs from
     # Universe during the upgrade_downgrade tests, because currently
@@ -70,39 +61,80 @@ def install(
     # dcos-commons >= 0.13.
     if check_suppression:
         sdk_utils.out("Waiting for framework to be suppressed...")
-        sdk_spin.time_wait_noisy(
-            lambda: sdk_api.is_suppressed(service_name))
+        shakedown.wait_for(
+            lambda: sdk_api.is_suppressed(service_name), noisy=True, timeout_seconds=5 * 60)
 
-    sdk_utils.out('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
+    sdk_utils.out('Install done after {}'.format(shakedown.pretty_duration(time.time() - start)))
 
 
-def uninstall(service_name, package_name=None):
+def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
+    sdk_utils.try_throws_n_times(lambda: _uninstall(service_name, package_name, role, principal, zk),
+        5, 5)
+
+
+def _uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
     start = time.time()
 
     if package_name is None:
         package_name = service_name
-    sdk_utils.out('Uninstalling/janitoring {}'.format(service_name))
-    try:
-        shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
-    except (dcos.errors.DCOSException, ValueError) as e:
-        sdk_utils.out('Got exception when uninstalling package, ' +
-              'continuing with janitor anyway: {}'.format(e))
 
-    janitor_start = time.time()
+    if shakedown.dcos_version_less_than("1.10"):
+        sdk_utils.out('Uninstalling/janitoring {}'.format(service_name))
+        try:
+            shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+        except (dcos.errors.DCOSException, ValueError) as e:
+            sdk_utils.out('Got exception when uninstalling package, ' +
+                          'continuing with janitor anyway: {}'.format(e))
 
-    janitor_cmd = (
-        'docker run mesosphere/janitor /janitor.py '
-        '-r {svc}-role -p {svc}-principal -z dcos-service-{svc} --auth_token={auth}')
-    shakedown.run_command_on_master(janitor_cmd.format(
-        svc=service_name,
-        auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
+        janitor_start = time.time()
 
-    finish = time.time()
+        # leading slash removed, other slashes converted to double underscores:
+        deslashed_service_name = service_name.lstrip('/').replace('/', '__')
+        if role is None:
+            role = deslashed_service_name + '-role'
+        if principal is None:
+            principal = service_name + '-principal'
+        if zk is None:
+            zk = 'dcos-service-' + deslashed_service_name
+        janitor_cmd = (
+            'docker run mesosphere/janitor /janitor.py '
+            '-r {role} -p {principal} -z {zk} --auth_token={auth}')
+        shakedown.run_command_on_master(janitor_cmd.format(
+            role=role,
+            principal=principal,
+            zk=zk,
+            auth=shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()))
 
-    sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-        sdk_spin.pretty_time(janitor_start - start),
-        sdk_spin.pretty_time(finish - janitor_start),
-        sdk_spin.pretty_time(finish - start)))
+        finish = time.time()
+
+        sdk_utils.out('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
+            shakedown.pretty_duration(janitor_start - start),
+            shakedown.pretty_duration(finish - janitor_start),
+            shakedown.pretty_duration(finish - start)))
+    else:
+        sdk_utils.out('Uninstalling {}'.format(service_name))
+        try:
+            shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+            # service_name may already contain a leading slash:
+            marathon_app_id = '/' + service_name.lstrip('/')
+            sdk_utils.out('Waiting for no deployments for {}'.format(marathon_app_id))
+            shakedown.deployment_wait(600, marathon_app_id)
+
+            # wait for service to be gone according to marathon
+            def marathon_dropped_service():
+                client = shakedown.marathon.create_client()
+                app_list = client.get_apps()
+                app_ids = [app['id'] for app in app_list]
+                sdk_utils.out('Marathon apps: {}'.format(app_ids))
+                matching_app_ids = [app_id for app_id in app_ids if app_id == marathon_app_id]
+                if len(matching_app_ids) > 1:
+                    sdk_utils.out('Found multiple apps with id {}'.format(marathon_app_id))
+                return len(matching_app_ids) == 0
+            sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
+            shakedown.time_wait(marathon_dropped_service)
+
+        except (dcos.errors.DCOSException, ValueError) as e:
+            sdk_utils.out('Got exception when uninstalling package: {}'.format(e))
 
 
 def get_package_options(additional_options={}):

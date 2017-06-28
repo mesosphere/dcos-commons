@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
@@ -59,7 +60,7 @@ public class PodInstanceRequirementTestUtils {
     }
 
     public static ResourceSet getCpuResourceSet(double value) {
-        return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(value)
                 .build();
@@ -71,15 +72,15 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.ROOT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name());
     }
 
     private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, TestConstants.MOUNT_DISK_TYPE);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
     }
 
     private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {
-        return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
                 .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH)
@@ -88,7 +89,7 @@ public class PodInstanceRequirementTestUtils {
 
     private static ResourceSet getPortsResourceSet(Map<String, Integer> envPorts) {
         DefaultResourceSet.Builder builder =
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID);
         for (Map.Entry<String, Integer> envPort : envPorts.entrySet()) {
             Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
@@ -99,16 +100,18 @@ public class PodInstanceRequirementTestUtils {
             builder.addResource(new PortSpec(
                     valueBuilder.build(),
                     TestConstants.ROLE,
+                    Constants.ANY_ROLE,
                     TestConstants.PRINCIPAL,
                     envPort.getKey(),
-                    String.format("test-port-%s", envPort.getKey())));
+                    String.format("test-port-%s", envPort.getKey()),
+                    Collections.emptyList()));
         }
         return builder.build();
     }
 
     private static ResourceSet getVIPResourceSet(Map<Integer, Integer> vipPorts) {
         DefaultResourceSet.Builder builder =
-                DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+                DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID);
         for (Map.Entry<Integer, Integer> entry : vipPorts.entrySet()) {
             int taskPort = entry.getValue();
@@ -120,13 +123,15 @@ public class PodInstanceRequirementTestUtils {
             builder.addResource(new NamedVIPSpec(
                     valueBuilder.build(),
                     TestConstants.ROLE,
+                    Constants.ANY_ROLE,
                     TestConstants.PRINCIPAL,
                     TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
                     TestConstants.VIP_NAME + "-" + taskPort,
                     "tcp",
                     DiscoveryInfo.Visibility.EXTERNAL,
                     TestConstants.VIP_NAME + "-" + taskPort,
-                    entry.getKey()));
+                    entry.getKey(),
+                    Collections.emptyList()));
         }
         return builder.build();
 
@@ -140,7 +145,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)
@@ -151,6 +156,7 @@ public class PodInstanceRequirementTestUtils {
                 .type(type)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec))
+                .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
         PodInstance podInstance = new DefaultPodInstance(podSpec, index);
@@ -170,7 +176,7 @@ public class PodInstanceRequirementTestUtils {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
-                        DefaultCommandSpec.newBuilder(TestConstants.POD_TYPE)
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
                                 .value(TestConstants.TASK_CMD)
                                 .build())
                 .goalState(GoalState.RUNNING)

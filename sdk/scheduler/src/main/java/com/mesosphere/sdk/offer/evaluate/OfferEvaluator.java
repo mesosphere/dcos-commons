@@ -79,7 +79,9 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
-            MesosResourcePool resourcePool = new MesosResourcePool(offer);
+            MesosResourcePool resourcePool = new MesosResourcePool(
+                    offer,
+                    OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,
@@ -132,7 +134,7 @@ public class OfferEvaluator {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
-                .map(resource -> ResourceCollectionUtils.getResourceId(resource))
+                .map(resource -> ResourceUtils.getResourceId(resource))
                 .filter(resourceId -> resourceId.isPresent())
                 .map(Optional::get)
                 .filter(resourceId -> !resourceId.isEmpty())
@@ -255,10 +257,20 @@ public class OfferEvaluator {
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
+                    NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
                     evaluationStages.add(
-                            new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskName, Optional.empty()));
+                            new NamedVIPEvaluationStage(
+                                    namedVIPSpec,
+                                    taskName,
+                                    Optional.empty(),
+                                    namedVIPSpec.getPortName()));
                 } else if (resourceSpec instanceof PortSpec) {
-                    evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
+                    PortSpec portSpec = (PortSpec) resourceSpec;
+                    evaluationStages.add(new PortEvaluationStage(
+                            portSpec,
+                            taskName,
+                            Optional.empty(),
+                            portSpec.getPortName()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }

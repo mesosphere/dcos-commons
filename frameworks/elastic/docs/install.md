@@ -66,3 +66,14 @@ $ dcos package install elastic --options=another-cluster.json
 ```
 
 See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.
+
+## Overlay networks
+Elastic supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each container (task) to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+```json
+{
+    "service": {
+        "virtual_network": true
+    }
+}
+```
+As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network. 

@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -23,6 +26,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 /**
  * A {@link PodInfoBuilder} encompasses a mutable group of {@link org.apache.mesos.Protos.TaskInfo.Builder}s and,
  * optionally, a {@link org.apache.mesos.Protos.ExecutorInfo.Builder}. This supports the modification of task infos
@@ -33,7 +37,7 @@ public class PodInfoBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
-
+    private Set<Long> assignedOverlayPorts = new HashSet<>();
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
@@ -58,10 +62,16 @@ public class PodInfoBuilder {
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
+
+            taskSpec.getResourceSet().getResources().stream()
+                    .filter(resourceSpec -> resourceSpec.getName().equals(Constants.PORTS_RESOURCE_TYPE))
+                    .filter(resourceSpec -> resourceSpec.getValue().getRanges().getRange(0).getBegin() > 0)
+                    .forEach(resourceSpec -> assignedOverlayPorts
+                            .add(resourceSpec.getValue().getRanges().getRange(0).getBegin()));
+
         }
 
-        this.executorBuilder =
-                getExecutorInfo(podInstance.getPod(), serviceName, targetConfigId, schedulerFlags).toBuilder();
+        this.executorBuilder = getExecutorInfoBuilder(serviceName, podInstance, targetConfigId, schedulerFlags);
 
         this.podInstance = podInstance;
 
@@ -110,8 +120,20 @@ public class PodInfoBuilder {
     }
 
     public Collection<Protos.Resource.Builder> getExecutorResourceBuilders() {
-        return executorBuilder.getResourcesBuilderList().stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(executorBuilder.getResourcesBuilderList());
+    }
+
+    public boolean isAssignedOverlayPort(long candidatePort) {
+        return assignedOverlayPorts.contains(candidatePort);
+    }
+
+    public void addAssignedOverlayPort(long port) {
+        assignedOverlayPorts.add(port);
+    }
+
+    @VisibleForTesting
+    public Set<Long> getAssignedOverlayPorts() {
+        return assignedOverlayPorts;
     }
 
     private static Protos.TaskInfo getTaskInfo(
@@ -123,6 +145,7 @@ public class PodInfoBuilder {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonIdUtils.emptyTaskId())
+                .setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS))
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         // create default labels:
@@ -152,15 +175,17 @@ public class PodInfoBuilder {
         return taskInfoBuilder.build();
     }
 
-    private static Protos.ExecutorInfo getExecutorInfo(
-            PodSpec podSpec,
+    private static Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
             String serviceName,
+            PodInstance podInstance,
             UUID targetConfigurationId,
             SchedulerFlags schedulerFlags) throws IllegalStateException {
+        PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-        // Populate ContainerInfo with the appropriate information from PodSpec
+        // Populate ContainerInfo with the appropriate information from PodSpec.
+        // This includes networks, rlimits, secret volumes...
         Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
         if (containerInfo != null) {
             executorInfoBuilder.setContainer(containerInfo);
@@ -188,6 +213,18 @@ public class PodInfoBuilder {
             executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
         }
 
+        // Pod-wide default envvars and secret envvars
+
+        // Secrets are constructed differently from other envvars where the proto is concerned:
+        for (SecretSpec secretSpec : podInstance.getPod().getSecrets()) {
+            if (secretSpec.getEnvKey().isPresent()) {
+                executorCommandBuilder.getEnvironmentBuilder().addVariablesBuilder()
+                        .setName(secretSpec.getEnvKey().get())
+                        .setType(Protos.Environment.Variable.Type.SECRET)
+                        .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
+            }
+        }
+
         // Finally any URIs for config templates defined in TaskSpecs.
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -203,30 +240,39 @@ public class PodInfoBuilder {
             }
         }
 
-        return executorInfoBuilder.build();
+        executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
+                .setKey("DCOS_SPACE")
+                .setValue(getDcosSpaceLabel());
+
+        return executorInfoBuilder;
     }
 
     private static Protos.Environment getTaskEnvironment(
             String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
-        Map<String, String> environment = new HashMap<>();
+        Map<String, String> environmentMap = new TreeMap<>();
 
         // Task envvars from either of the following sources:
         // - ServiceSpec (provided by developer)
         // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
-        environment.putAll(commandSpec.getEnvironment());
+        environmentMap.putAll(commandSpec.getEnvironment());
 
         // Default envvars for use by executors/developers:
+        // Unline the envvars added in getExecutorEnvironment(), these are specific to individual tasks and currently
+        // aren't visible to sidecar tasks (as they would need to be added at the executor...):
 
         // Inject Pod Instance Index
-        environment.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
-        // Inject Framework Name
-        environment.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
-        // Inject TASK_NAME as KEY:VALUE
-        environment.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
-        // Inject TASK_NAME as KEY for conditional mustache templating
-        environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
+        environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        // Inject Framework Name (raw, not safe for use in hostnames)
+        environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        // Inject Framework host domain (with hostname-safe framework name)
+        environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
 
-        return EnvUtils.toProto(environment);
+        // Inject TASK_NAME as KEY:VALUE
+        environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+        // Inject TASK_NAME as KEY for conditional mustache templating
+        environmentMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
+
+        return EnvUtils.toProto(environmentMap);
     }
 
     private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
@@ -329,7 +375,12 @@ public class PodInfoBuilder {
     }
 
     private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
-        if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
+        Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
+
+        if (!podSpec.getImage().isPresent()
+                && podSpec.getNetworks().isEmpty()
+                && podSpec.getRLimits().isEmpty()
+                && secretVolumes.isEmpty()) {
             return null;
         }
 
@@ -351,6 +402,10 @@ public class PodInfoBuilder {
 
         if (!podSpec.getRLimits().isEmpty()) {
             containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
+        }
+
+        for (Protos.Volume secretVolume : secretVolumes) {
+            containerInfo.addVolumes(secretVolume);
         }
 
         return containerInfo.build();
@@ -467,6 +522,42 @@ public class PodInfoBuilder {
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
+    }
+
+    private static Protos.Secret getReferenceSecret(String secretPath) {
+        return Protos.Secret.newBuilder()
+                .setType(Protos.Secret.Type.REFERENCE)
+                .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
+                .build();
+    }
+
+    private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
+        Collection<Protos.Volume> volumes = new ArrayList<>();
+
+        for (SecretSpec secretSpec: secretSpecs) {
+            if (secretSpec.getFilePath().isPresent()) {
+                volumes.add(Protos.Volume.newBuilder()
+                        .setSource(Protos.Volume.Source.newBuilder()
+                                .setType(Protos.Volume.Source.Type.SECRET)
+                                .setSecret(getReferenceSecret(secretSpec.getSecretPath()))
+                                .build())
+                        .setContainerPath(secretSpec.getFilePath().get())
+                        .setMode(Protos.Volume.Mode.RO)
+                        .build());
+            }
+        }
+        return volumes;
+    }
+
+    private static String getDcosSpaceLabel() {
+        String labelString = System.getenv("DCOS_SPACE");
+        if (labelString == null) {
+            labelString = System.getenv("MARATHON_APP_ID");
+        }
+        if (labelString == null) {
+            return "/"; // No Authorization for this framework
+        }
+        return labelString;
     }
 
     @Override

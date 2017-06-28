@@ -5,10 +5,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,13 +16,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class VolumeEvaluationStageTest {
+public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testCreateSucceeds() throws Exception {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
 
@@ -54,7 +51,8 @@ public class VolumeEvaluationStageTest {
         Protos.Resource resource = reserveRecommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
-        Protos.Label reservationLabel = resource.getReservation().getLabels().getLabels(0);
+        Protos.Resource.ReservationInfo reservationInfo = ResourceUtils.getReservation(resource).get();
+        Protos.Label reservationLabel = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(reservationLabel.getKey(), "resource_id");
         Assert.assertNotEquals(reservationLabel.getValue(), "");
 
@@ -63,7 +61,8 @@ public class VolumeEvaluationStageTest {
         Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().getType());
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
-        reservationLabel = resource.getReservation().getLabels().getLabels(0);
+        reservationInfo = ResourceUtils.getReservation(resource).get();
+        reservationLabel = reservationInfo.getLabels().getLabels(0);
         Assert.assertEquals(reservationLabel.getKey(), "resource_id");
         Assert.assertNotEquals(reservationLabel.getValue(), "");
         Assert.assertNotEquals(resource.getDisk().getPersistence().getId(), "");
@@ -74,7 +73,7 @@ public class VolumeEvaluationStageTest {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
 

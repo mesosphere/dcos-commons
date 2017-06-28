@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.DestroyOfferRecommendation;
+import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import org.apache.mesos.Protos;
 
@@ -23,6 +24,7 @@ public class DestroyEvaluationStage implements OfferEvaluationStage {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         return pass(
                 this,
+                new MesosResource(resource),
                 Arrays.asList(new DestroyOfferRecommendation(mesosResourcePool.getOffer(), resource)),
                 "Unreserving orphaned resource: %s",
                 TextFormat.shortDebugString(resource));

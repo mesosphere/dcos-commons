@@ -8,12 +8,14 @@ import java.util.Set;
  * This class encapsulates constants common to DC/OS and its services.
  */
 public class DcosConstants {
-    private static final String MASTER_MESOS = "master.mesos";
+    private static final String MESOS_MASTER = "master.mesos";
+    private static final String MESOS_LEADER = "leader.mesos";
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MASTER_MESOS + ":2181";
-    public static final String MESOS_MASTER_URI = "http://" + MASTER_MESOS;
+    public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
+    public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
     public static final Boolean DEFAULT_GPU_POLICY = true;
+    public static final String DEFAULT_IP_PROTOCOL = "tcp";
     public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
     public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(Arrays.asList(DEFAULT_OVERLAY_NETWORK));
@@ -23,14 +25,10 @@ public class DcosConstants {
     // in general if the network does not support port-mapping, but the task maps the ports the behavior is
     // as expected.
     public static final Boolean DEFAULT_PORT_MAPPING_POLICY = true;
-
-    /**
-     * This must never change, as it affects the path to the SchemaVersion object for a given
-     * framework name.
-     *
-     * @see com.mesosphere.sdk.state.DefaultSchemaVersionStore
-     */
-    public static final String SERVICE_ROOT_PATH_PREFIX = "/dcos-service-";
+    // These ports should be available to a container on the overlay regardless of it's permissions, it's unlikely
+    // that a pod will ever exceed 1000 ports.
+    public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
+    public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
 
     public static boolean networkSupportsPortMapping(String networkName) {
         boolean supportsPortMapping;

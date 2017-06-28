@@ -2,187 +2,114 @@ import json
 import os
 
 import shakedown
-
-import sdk_cmd as cmd
-import sdk_spin as spin
+import sdk_hosts as hosts
+import sdk_jobs as jobs
+import sdk_plan as plan
+import sdk_utils as utils
 
 
 PACKAGE_NAME = 'cassandra'
+FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
 DEFAULT_TASK_COUNT = 3
-WAIT_TIME_IN_SECONDS = 360
-DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
-DCOS_TOKEN = shakedown.run_dcos_command(
-    'config show core.dcos_acs_token'
-)[0].strip()
 
-TASK_RUNNING_STATE = 'TASK_RUNNING'
-
-REQUEST_HEADERS = {
-    'authorization': 'token=%s' % DCOS_TOKEN
-}
-
-WRITE_DATA_JOB = 'write-data'
-VERIFY_DATA_JOB = 'verify-data'
-DELETE_DATA_JOB = 'delete-data'
-VERIFY_DELETION_JOB = 'verify-deletion'
-TEST_JOBS = (
-    WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB
-)
+DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', hosts.autoip_host(PACKAGE_NAME, 'node-0-server'))
+FOLDERED_NODE_ADDRESS = hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server')
+DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
-def check_dcos_service_health():
-    return shakedown.service_healthy(PACKAGE_NAME)
-
-
-def qualified_job_name(job_name):
-    return 'test.cassandra.{}'.format(job_name)
-
-
-def get_jobs_folder():
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'jobs')
-
-
-def install_cassandra_jobs():
-    for job in TEST_JOBS:
-        install_job(job, get_jobs_folder())
-
-
-def install_job(job_name, jobs_folder, **replacements):
-    replacements.update(get_default_replacements())
-
-    template_filename = os.path.join(
-        jobs_folder, '{}.json.template'.format(job_name)
-    )
-    with open(template_filename) as f:
-        job_contents = f.read()
-
-    for name, value in replacements.items():
-        job_contents = job_contents.replace('{{%s}}' % name, value)
-
-    job_filename = os.path.join(jobs_folder, '{}.json'.format(job_name))
-    with open(job_filename, 'w') as f:
-        f.write(job_contents)
-
-    cmd.run_cli('job add {}'.format(job_filename))
-
-
-def get_default_replacements():
+def _get_test_job(name, cmd, restart_policy='NEVER'):
     return {
-        'NODE_ADDRESS': os.getenv(
-            'CASSANDRA_NODE_ADDRESS', 'node-0-server.cassandra.mesos'
-        ),
-        'NODE_PORT': os.getenv('CASSANDRA_NODE_PORT', '9042'),
+        'description': 'Integration test job: ' + name,
+        'id': 'test.cassandra.' + name,
+        'run': {
+            'cmd': cmd,
+            'docker': { 'image': 'cassandra:3.0.13' },
+            'cpus': 1,
+            'mem': 512,
+            'user': 'root',
+            'restart': { 'policy': restart_policy }
+        }
     }
 
 
-def launch_and_verify_job(job_name):
-    job_name = qualified_job_name(job_name)
-    run_id = launch_job(job_name)
-
-    verify_job_succeeded(job_name, run_id)
-
-
-def launch_job(job_name):
-    output = cmd.run_cli('job run {}'.format(job_name))
-    # Get the id of the run we just initiated
-    run_id = json.loads(
-        cmd.run_cli('job show runs {} --json'.format(job_name))
-    )[0]['id']
-
-    return run_id
+def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = ' '.join([
+        'TRUNCATE testspace1.testtable1;',
+        'TRUNCATE testspace2.testtable2;',
+        'DROP KEYSPACE testspace1;',
+        'DROP KEYSPACE testspace2;'])
+    return _get_test_job(
+        'delete-data',
+        'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
 
 
-def verify_job_succeeded(job_name, run_id):
-    # Verify that our most recent run succeeded
-    spin.time_wait_noisy(lambda: (
-        run_id in [
-            r['id'] for r in
-            json.loads(cmd.run_cli(
-                'job history --show-failures --json {}'.format(job_name)
-            ))['history']['successfulFinishedRuns']
-        ]
-    ))
+def get_verify_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cmd = ' && '.join([
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM testspace1.testtable1;" {address} {port} | grep testkey1',
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM testspace2.testtable2;" {address} {port} | grep testkey2'])
+    return _get_test_job(
+        'verify-data',
+        cmd.format(address=node_address, port=node_port))
 
 
-def verify_job_finished(job_name, run_id):
-    spin.time_wait_noisy(lambda: (
-        run_id in [
-            r['id'] for r in
-            get_runs(job_name)['history']['successfulFinishedRuns']
-        ] or
-        run_id in [
-            r['id'] for r in
-            get_runs(job_name)['history']['failedFinishedRuns']
-        ]
-    ))
+def get_verify_deletion_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cmd = ' && '.join([
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';" {address} {port} | grep "0 rows"',
+        'cqlsh --cqlversion=3.4.0 -e "SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';" {address} {port} | grep "0 rows"'])
+    return _get_test_job(
+        'verify-deletion',
+        cmd.format(address=node_address, port=node_port))
 
 
-def get_runs(job_name):
-    return json.loads(cmd.run_cli(
-        'job history --show-failures --json {}'.format(job_name)
-    ))
+def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = ' '.join([
+        "CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
+        "USE testspace1;",
+        "CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));",
+        "INSERT INTO testspace1.testtable1(key, value) VALUES('testkey1', 'testvalue1');",
+
+        "CREATE KEYSPACE testspace2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
+        "USE testspace2;",
+        "CREATE TABLE testtable2 (key varchar, value varchar, PRIMARY KEY(key));",
+        "INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');"])
+    return _get_test_job(
+        'write-data',
+        'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
 
 
-def remove_cassandra_jobs():
-    for job in TEST_JOBS:
-        remove_job(job)
+def run_backup_and_restore(
+        service_name,
+        backup_plan,
+        restore_plan,
+        plan_parameters,
+        job_node_address=DEFAULT_NODE_ADDRESS):
+    write_data_job = get_write_data_job(node_address=job_node_address)
+    verify_data_job = get_verify_data_job(node_address=job_node_address)
+    delete_data_job = get_delete_data_job(node_address=job_node_address)
+    verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
 
+    # Write data to Cassandra with a metronome job, then verify it was written
+    # Note: Write job will fail if data already exists
+    jobs.run_job(write_data_job)
+    jobs.run_job(verify_data_job)
 
-def remove_job(job_name):
-    cmd.run_cli('job remove {}'.format(qualified_job_name(job_name)))
+    # Run backup plan, uploading snapshots and schema to the cloudddd
+    plan.start_plan(service_name, backup_plan, parameters=plan_parameters)
+    plan.wait_for_completed_plan(service_name, backup_plan)
 
+    # Delete all keyspaces and tables with a metronome job
+    jobs.run_job(delete_data_job)
 
-class EnvironmentContext(object):
-    """Context manager for temporarily overriding local process envvars."""
+    # Verify that the keyspaces and tables were deleted
+    jobs.run_job(verify_deletion_job)
 
-    def __init__(self, variable_mapping=None, **variables):
-        self.new_variables = {}
+    # Run restore plan, retrieving snapshots and schema from S3
+    plan.start_plan(service_name, restore_plan, parameters=plan_parameters)
+    plan.wait_for_completed_plan(service_name, restore_plan)
 
-        self.new_variables.update(
-            {} if variable_mapping is None else variable_mapping
-        )
-        self.new_variables.update(variables)
+    # Verify that the data we wrote and then deleted has been restored
+    jobs.run_job(verify_data_job)
 
-    def __enter__(self):
-        self.original_variables = os.environ
-        for k, v in self.new_variables.items():
-            os.environ[k] = v
-
-    def __exit__(self, *args):
-        for k, v in self.new_variables.items():
-            if k not in self.original_variables:
-                del os.environ[k]
-            else:
-                os.environ[k] = self.original_variables[k]
-
-
-class JobContext(object):
-    """Context manager for installing and cleaning up metronome jobs."""
-
-    def __init__(self, job_names, **replacements):
-        self.job_names = job_names
-        self.replacements = replacements
-
-    def __enter__(self):
-        for j in self.job_names:
-            install_job(j, get_jobs_folder(), **self.replacements)
-
-    def __exit__(self, *args):
-        for j in self.job_names:
-            remove_job(j)
-
-
-class DataContext(object):
-    """Context manager for temporarily installing data in a cluster."""
-
-    def __init__(self, init_jobs=None, cleanup_jobs=None):
-        self.init_jobs = init_jobs if init_jobs is not None else []
-        self.cleanup_jobs = cleanup_jobs if cleanup_jobs is not None else []
-
-    def __enter__(self):
-        for j in self.init_jobs:
-            launch_and_verify_job(j)
-
-    def __exit__(self, *args):
-        for j in self.cleanup_jobs:
-            launch_and_verify_job(j)
+    # Delete data in preparation for any other backup tests
+    jobs.run_job(delete_data_job)
+    jobs.run_job(verify_deletion_job)

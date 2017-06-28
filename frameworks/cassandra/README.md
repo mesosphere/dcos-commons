@@ -87,9 +87,9 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
         "10.0.1.22:9042"
       ],
       "dns": [
-        "node-1-server.cassandra.mesos:9042",
-        "node-0-server.cassandra.mesos:9042",
-        "node-2-server.cassandra.mesos:9042"
+        "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+        "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+        "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
       ],
       "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
     }
@@ -97,7 +97,7 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 1. Write some data to your cluster:
 ```
 dcos node ssh --master-proxy --leader
-core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
+core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
 > CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 > USE space1;
 > CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));
@@ -170,7 +170,7 @@ You can configure the name of the rack that this Cassandra cluster runs in. This
 <a name="remote-seeds"></a>
 ### Remote Seeds
 
-You can configure the remote seeds from another Cassandra cluster that this cluster should communicate with to establish cross-data-center replication. This should be a comma-separated list of node hostnames, such as `node-0-server.cassandra.mesos,node-1-server.cassandra.mesos`. For more information on multi-data-center configuration, see [Configuring Multi-data-center Deployments](#configuring-multi-data-center-deployments).
+You can configure the remote seeds from another Cassandra cluster that this cluster should communicate with to establish cross-data-center replication. This should be a comma-separated list of node hostnames, such as `node-0-server.cassandra.autoip.dcos.thisdcos.directory,node-1-server.cassandra.autoip.dcos.thisdcos.directory`. For more information on multi-data-center configuration, see [Configuring Multi-data-center Deployments](#configuring-multi-data-center-deployments).
 
 *   **In DC/OS CLI options.json**: `remote_seeds`: string (default: `""`)
 *   **DC/OS web interface**: `TASKCFG_ALL_REMOTE_SEEDS`: `string`
@@ -182,6 +182,9 @@ You can configure whether the creation, transfer, and restoration of backups occ
 
 *   **In DC/OS CLI options.json**: `backup_restore_strategy`: string (default: `"serial"`)
 *   **DC/OS web interface**: `BACKUP_RESTORE_STRATEGY`: `string`
+
+### Overlay networks
+The Cassandra service can be run on the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). For the Cassandra service, using the overlay network means that nodes no longer use reserved port resources on the mesos agents.  This means that nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarentee that the ports on the agents containing the reserved resources for Cassandra will be avialable, therefore we do not allow a service to change from the overlay network to the host network. **Once the service is deployed on the overlay network it must remain on the overlay network**. The only way to move your data to Cassandra on the host network is through a migration.  
 
 <a name="cassandra-settings"></a>
 ## Cassandra Settings
@@ -238,6 +241,7 @@ You can configure most of the settings exposed in Apache Cassandra's `cassandra.
 *   `dynamic_snitch_update_interval_in_ms`
 *   `dynamic_snitch_reset_interval_in_ms`
 *   `dynamic_snitch_badness_threshold`
+*   `auto_snapshot`
 *   `roles_update_interval_in_ms`
 *   `permissions_update_interval_in_ms`
 *   `key_cache_keys_to_save`
@@ -361,6 +365,19 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
 
 <a name="uninstalling"></a>
+
+### Overlay networks
+
+Cassandra supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+```json
+{
+    "service": {
+        "virtual_network": true
+    }
+}
+```
+By default two nodes will not be placed on the same agent, however multiple Cassandra clusters can share an agent. As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network. 
+
 # Uninstalling
 
 Follow these steps to uninstall the service.
@@ -404,15 +421,15 @@ The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint ty
     "10.0.1.27:9042"
   ],
   "dns": [
-    "node-2-server.cassandra.mesos:9042",
-    "node-0-server.cassandra.mesos:9042",
-    "node-1-server.cassandra.mesos:9042"
+    "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"
   ],
   "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
 }
 ```
 
-In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs, or set up a proxy service that acts as a frontend to your DC/OS Apache Cassandra instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
+In general, the `.autoip.dcos.thisdcos.directory` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs, or set up a proxy service that acts as a frontend to your DC/OS Apache Cassandra instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
 
 <a name="connecting-clients-to-endpoints"></a>
 ## Connecting Clients to Endpoints
@@ -424,7 +441,7 @@ dcos node ssh --leader --master-proxy
 
 Then, use the `cassandra` Docker image to run `cqlsh`, passing as an argument the address of one of the Apache Cassandra nodes in the cluster:
 ```
-docker run cassandra:3.0.13 cqlsh node-0-server.cassandra.mesos
+docker run cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
 ```
 
 This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.13.

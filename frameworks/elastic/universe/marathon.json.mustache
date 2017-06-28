@@ -3,11 +3,16 @@
   "cpus": 0.5,
   "mem": 2048,
   "instances": 1,
+  "user":"{{service.user}}",
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx1024M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./elastic-scheduler/bin/elastic ./elastic-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
+    "DCOS_COMMONS_UNINSTALL": "true",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
-    "MARATHON_SINGLE_INSTANCE_APP": "true"
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
   },
   {{#service.secret_name}}
   "secrets": {
@@ -18,6 +23,7 @@
   {{/service.secret_name}}
   "env": {
     "ELASTIC_VERSION": "{{elastic-version}}",
+    "STATSD_PLUGIN": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
     "DIAGNOSTICS_URI" : "{{resource.assets.uris.diagnostics-zip}}",
@@ -35,6 +41,10 @@
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
+
+    {{#service.virtual_network}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    {{/service.virtual_network}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",

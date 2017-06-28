@@ -21,7 +21,7 @@ public class PassthroughRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        return EvaluationOutcome.pass(this, "Passthrough rule always passes.");
+        return EvaluationOutcome.pass(this, null, "Passthrough rule always passes.");
     }
 
     @Override

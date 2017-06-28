@@ -1,6 +1,6 @@
 {
-  "packagingVersion": "2.0",
-  "minDcosReleaseVersion": "1.9",
+  "packagingVersion": "3.0",
+  "minDcosReleaseVersion": "1.8",
   "name": "template",
   "version": "{{package-version}}",
   "maintainer": "support@YOURNAMEHERE.COM",
@@ -9,5 +9,5 @@
   "framework": true,
   "tags": ["template"],
   "postInstallNotes": "DC/OS YOURNAMEHERE is being installed!\n\n\tDocumentation: http://YOURNAMEHERE.COM/DOCS\n\tIssues: http://YOURNAMEHERE.COM/SUPPORT",
-  "postUninstallNotes": "DC/OS YOURNAMEHERE has been uninstalled."
+  "postUninstallNotes": "DC/OS YOURNAMEHERE is being uninstalled."
 }

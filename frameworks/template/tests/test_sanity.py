@@ -1,22 +1,29 @@
 import pytest
 
 import sdk_install as install
+import sdk_plan as plan
 import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME,
+    FOLDERED_SERVICE_NAME,
     DEFAULT_TASK_COUNT
 )
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
     utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 @pytest.mark.sanity

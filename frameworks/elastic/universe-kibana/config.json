@@ -45,6 +45,16 @@
           "description": "Password to use for X-Pack authentication, if enabled. Note that you are not setting the password here. You are specifying the credentials for Kibana to use when sending requests.",
           "type": "string",
           "default": "changeme"
+        },
+        "cpus": {
+          "description": "Kibana CPU requirements",
+          "type": "number",
+          "default": 0.5
+        },
+        "mem": {
+          "description": "Kibana mem requirements",
+          "type": "integer",
+          "default": 2048
         }
       },
       "required": [

@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.config.ConfigNamespace;
-import com.mesosphere.sdk.testutils.TestConstants;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -96,7 +98,7 @@ public class TestPodFactory {
                 .name(name)
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
-                .commandSpec(DefaultCommandSpec.newBuilder(ConfigNamespace.emptyInstance())
+                .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value(cmd)
                         .environment(Collections.emptyMap())
                         .build())
@@ -106,7 +108,7 @@ public class TestPodFactory {
     }
 
     public static ResourceSet getResourceSet(String id, double cpu, double mem, double disk) {
-        return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(id)
                 .cpus(cpu)
                 .memory(mem)

@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification.validation;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
 import org.junit.Before;
@@ -12,7 +14,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -22,7 +23,7 @@ public class CapabilityValidatorTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     @Mock private Capabilities mockCapabilities;
-    @Mock private FileReader mockFileReader;
+    @Mock private YAMLToInternalMappers.FileReader mockFileReader;
 
     @Before
     public void beforeEach() {
@@ -33,10 +34,12 @@ public class CapabilityValidatorTest {
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -46,14 +49,17 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -62,14 +68,17 @@ public class CapabilityValidatorTest {
     public void testSpecFailsWithRLimitsButWithoutCapability() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -78,7 +87,8 @@ public class CapabilityValidatorTest {
     @Test(expected = CapabilityValidator.CapabilityValidationException.class)
     public void testSpecFailsWhenGpuResourceNotSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(false);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
@@ -86,33 +96,38 @@ public class CapabilityValidatorTest {
 
         // check that it works when GPUs are specified at the task level
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
         capabilityValidator.validate(serviceSpec);
 
         // check that it works when GPUs are specified at the resourceSet level
         file = new File(getClass().getClassLoader().getResource("valid-gpu-resourceset.yml").getFile());
-        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).setFileReader(mockFileReader).build();
         capabilityValidator.validate(serviceSpec);
     }
 
     @Test
     public void testSpecSucceedsWhenGpuResourceIsSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
 
         capabilityValidator.validate(serviceSpec);
 
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), flags, mockFileReader);
+        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file2).build(), flags).setFileReader(mockFileReader).build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -122,14 +137,75 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
 
-        CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file2), flags, mockFileReader);
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file2).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenFileSecretIsNotSupported() throws Exception {
+        when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(false);
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test
+    public void testSpecSucceedsWhenSecretIsSupported() throws Exception {
+        when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(true);
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test(expected = CapabilityValidator.CapabilityValidationException.class)
+    public void testSpecFailsWhenEnvSecretIsNotSupported() throws Exception {
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(false);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
+        capabilityValidator.validate(serviceSpec);
+    }
+
+    @Test
+    public void testSpecSucceedsWhenEnvSecretIsSupported() throws Exception {
+        when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+
+        Capabilities.overrideCapabilities(mockCapabilities);
+        CapabilityValidator capabilityValidator = new CapabilityValidator();
+
+        File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+                .setFileReader(mockFileReader)
+                .build();
         capabilityValidator.validate(serviceSpec);
     }
 }

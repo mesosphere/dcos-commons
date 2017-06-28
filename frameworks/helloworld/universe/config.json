@@ -33,7 +33,7 @@
           "user": {
             "description": "The user that the service will run as.",
             "type": "string",
-            "default": "root"
+            "default": "nobody"
           },
           "principal": {
             "description": "The principal for the service instance.",
@@ -75,6 +75,16 @@
             "description":"Marathon-style placement constraint for Hello pods",
             "type":"string",
             "default":"hostname:UNIQUE"
+          },
+          "secret1":{
+            "description":"secret1",
+            "type":"string",
+            "default":""
+          },
+          "secret2": {
+            "description": "secret2",
+            "type": "string",
+            "default": ""
           }
         },
         "required":[
@@ -113,6 +123,21 @@
             "description":"Marathon-style placement constraint for World pods",
             "type":"string",
             "default":"hostname:UNIQUE"
+          },
+          "secret1":{
+            "description":"secret1",
+            "type":"string",
+            "default":""
+          },
+          "secret2":{
+            "description":"secret2",
+            "type":"string",
+            "default":""
+          },
+          "secret3":{
+            "description":"secret3",
+            "type":"string",
+            "default":""
           }
         },
         "required":[

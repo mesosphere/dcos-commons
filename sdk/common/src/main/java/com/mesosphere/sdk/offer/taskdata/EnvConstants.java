@@ -18,4 +18,9 @@ public class EnvConstants {
     public static final String FRAMEWORK_NAME_TASKENV = "FRAMEWORK_NAME";
     /** Provides the name of the pod/task within the service. */
     public static final String TASK_NAME_TASKENV = "TASK_NAME";
+    /** Provides the host domain of the service. Pods within the service would be accessed as subdomains under this
+     *  domain. For example, <TASK_NAME>.<FRAMEWORK_HOST> => pod hostname. **/
+    public static final String FRAMEWORK_HOST_TASKENV = "FRAMEWORK_HOST";
+    /** Provides top-level-domain suffix for Mesos-DNS (only reflects task IP when the task is on the host network). */
+    public static final String MESOS_TLD_TASKENV = "MESOS_DNS_TLD";
 }

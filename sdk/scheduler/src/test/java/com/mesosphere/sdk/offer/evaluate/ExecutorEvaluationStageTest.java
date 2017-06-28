@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
-public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
+public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
     @Test
     public void testRejectOfferWithoutExpectedExecutorId() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
@@ -35,7 +36,9 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
 
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
-        MesosResourcePool resources = new MesosResourcePool(OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)));
+        MesosResourcePool resources = new MesosResourcePool(
+                OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)),
+                Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
                 new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor()));
@@ -72,7 +75,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase{
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)).toBuilder()
                 .addExecutorIds(taskInfo.getExecutor().getExecutorId())
                 .build();
-        MesosResourcePool resources = new MesosResourcePool(offer);
+        MesosResourcePool resources = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
                 new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor()));

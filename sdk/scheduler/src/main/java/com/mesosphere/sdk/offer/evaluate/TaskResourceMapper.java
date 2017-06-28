@@ -2,8 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.RangeAlgorithms;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.RangeUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -103,7 +103,7 @@ class TaskResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            logger.info("Orphaned task resources no longer in TaskSpec: {}",
+            logger.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
@@ -133,7 +133,7 @@ class TaskResourceMapper {
 
             if (taskResource.getDisk().getVolume().getContainerPath().equals(
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
                     logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
@@ -151,6 +151,14 @@ class TaskResourceMapper {
 
     private Optional<ResourceLabels> findMatchingPortSpec(
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs, Map<String, String> taskEnv) {
+        Protos.Value.Ranges ranges = taskResource.getRanges();
+        boolean hasMultiplePorts = ranges.getRangeCount() != 1
+                || ranges.getRange(0).getEnd() - ranges.getRange(0).getBegin() != 0;
+
+        if (hasMultiplePorts) {
+            return Optional.empty();
+        }
+
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof PortSpec)) {
                 continue;
@@ -162,12 +170,12 @@ class TaskResourceMapper {
                 //               We should then only check env as a fallback when the label isn't present.
                 String portEnvVal = taskEnv.get(PortEvaluationStage.getPortEnvironmentVariable(portSpec));
                 if (portEnvVal != null
-                        && RangeAlgorithms.isInAny(
+                        && RangeUtils.isInAny(
                                 taskResource.getRanges().getRangeList(),
                                 Integer.parseInt(portEnvVal))) {
 
                     // The advertised port value is present in this resource. Resource must match!
-                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
                         logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
@@ -177,8 +185,8 @@ class TaskResourceMapper {
                 }
             } else {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
-                if (RangeAlgorithms.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
-                    Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                if (RangeUtils.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
+                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
                         logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
@@ -195,7 +203,7 @@ class TaskResourceMapper {
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (resourceSpec.getName().equals(taskResource.getName())) {
-                Optional<String> resourceId = ResourceCollectionUtils.getResourceId(taskResource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
                     logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
@@ -222,9 +230,11 @@ class TaskResourceMapper {
             Optional<String> resourceId,
             Optional<String> persistenceId) {
         if (resourceSpec instanceof NamedVIPSpec) {
-            return new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskSpecName, resourceId);
+            NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
+            return new NamedVIPEvaluationStage(namedVIPSpec, taskSpecName, resourceId, namedVIPSpec.getPortName());
         } else if (resourceSpec instanceof PortSpec) {
-            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId);
+            PortSpec portSpec = (PortSpec) resourceSpec;
+            return new PortEvaluationStage(portSpec, taskSpecName, resourceId, portSpec.getPortName());
         } else if (resourceSpec instanceof VolumeSpec) {
             return new VolumeEvaluationStage((VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId);
         } else {

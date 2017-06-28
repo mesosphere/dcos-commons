@@ -2,14 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceCollectionUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,8 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -44,16 +47,16 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification), schedulerFlags);
+        this(RawServiceSpec.newBuilder(pathToYamlSpecification).build(), schedulerFlags);
     }
 
     public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         this(DefaultScheduler.newBuilder(
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec, schedulerFlags), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 
@@ -159,8 +162,8 @@ public class DefaultService implements Service {
     }
 
     private boolean tasksNeedClearing() {
-        return ResourceCollectionUtils.getResourceIds(
-                ResourceCollectionUtils.getAllResources(stateStore.fetchTasks())).stream()
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                 .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
@@ -181,31 +184,21 @@ public class DefaultService implements Service {
             StateStore stateStore,
             String userString,
             int failoverTimeoutSec) {
-        final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
+                .setName(serviceSpec.getName())
+                .setPrincipal(serviceSpec.getPrincipal())
                 .setFailoverTimeout(failoverTimeoutSec)
                 .setUser(userString)
                 .setCheckpoint(true);
 
-        // Use provided role if specified, otherwise default to "<svcname>-role".
-        //TODO(nickbp): Use fwkInfoBuilder.addRoles(role) AND fwkInfoBuilder.addCapabilities(MULTI_ROLE)
-        if (StringUtils.isEmpty(serviceSpec.getRole())) {
-            fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
+        List<String> roles = getRoles(serviceSpec);
+        if (roles.size() == 1) {
+            fwkInfoBuilder.setRole(roles.get(0));
         } else {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        }
-
-        // Use provided principal if specified, otherwise default to "<svcname>-principal".
-        if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
-            fwkInfoBuilder.setPrincipal(SchedulerUtils.nameToPrincipal(serviceName));
-        } else {
-            fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
-        }
-
-        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
-            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+            fwkInfoBuilder.addAllRoles(getRoles(serviceSpec));
         }
 
         // The framework ID is not available when we're being started for the first time.
@@ -221,6 +214,23 @@ public class DefaultService implements Service {
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
+        if (Capabilities.getInstance().supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
+
         return fwkInfoBuilder.build();
+    }
+
+    private List<String> getRoles(ServiceSpec serviceSpec) {
+        List<String> roles = new ArrayList<>();
+        roles.add(serviceSpec.getRole());
+        roles.addAll(
+                serviceSpec.getPods().stream()
+                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
+                .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
+                .collect(Collectors.toList()));
+
+        return roles;
     }
 }

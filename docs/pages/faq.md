@@ -16,7 +16,7 @@ title: Frequently Asked Questions
 
 #### __What is a DC/OS service?__
 
-  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is an instance of a service in a DC/OS cluster.
+  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is a service (typically a stateful, distributed service) in a DC/OS cluster. These services often have multiple instances that run on discrete DC/OS agents and provide redundancy and high availability. DC/OS services built using the DC/OS SDK implement schedulers, which allow for orchestrated installation, update and backup/recovery.
 
 #### __What is a DC/OS package?__
 
@@ -52,7 +52,7 @@ title: Frequently Asked Questions
 
 #### __Can I contribute to the DC/OS SDK?__
 
-  Yes, contributions are welcome. See [CONTRIBUTING](CONTRIBUTING.md).
+  Yes, contributions are welcome. See [CONTRIBUTING](../../CONTRIBUTING.md).
 
 #### __Will the DC/OS SDK work with Apache Mesos (without DC/OS)?__
 

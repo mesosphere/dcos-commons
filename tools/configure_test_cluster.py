@@ -11,7 +11,6 @@ import tempfile
 
 import cli_install
 import dcos_login
-import venvutil
 
 logger = logging.getLogger(__name__)
 if __name__ == "__main__":

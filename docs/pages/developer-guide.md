@@ -59,6 +59,8 @@ They store the desired configuration of a service and all relevant information r
 
 1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
 
+1. The [AWS CLI](https://aws.amazon.com/cli/) and [Go](https://golang.org/dl/) installed.
+
 # Getting Started
 
 
@@ -246,13 +248,13 @@ As an example, let’s consider the scenario where we wish to deploy the hello-p
 name: "hello-world"
 pods:
   hello-pod:
-  count: 2
-  tasks:
-    hello-task:
-      goal: RUNNING
-      cmd: "echo hello && sleep 1000"
-      cpus: 0.1
-      memory: 512
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo hello && sleep 1000"
+        cpus: 0.1
+        memory: 512
   world-pod:
     count: 2
     tasks:
@@ -771,7 +773,7 @@ There are two service discovery options that are relevant to the SDK: mesos-dns 
 All tasks launched in DC/OS receive a DNS address. It is of the form:
 
 ```
-<task-name>.<framework-name>.mesos
+<task-name>.<framework-name>.autoip.dcos.thisdcos.directory
 ```
 
 So a service defined as follows:
@@ -793,7 +795,7 @@ pods:
           size: 50
 ```
 
-would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.mesos". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
+would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.autoip.dcos.thisdcos.directory". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
 
 ```yaml
 name: "hello-world"
@@ -823,7 +825,7 @@ pods:
           prefix: hello
 ```
 
-In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.mesos", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
+In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.autoip.dcos.thisdcos.directory", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
 
 **Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
 
@@ -941,7 +943,7 @@ pods:
 For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
 **Overlay networks**
-The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task. 
+The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task. 
 
 ### Placement Rules
 
@@ -1367,13 +1369,13 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      health-check:
-        cmd: "./check-up"
-        interval: 5
-        grace-period: 30
-        max-consecutive-failures: 3
-        delay: 0
-        timeout: 10
+        health-check:
+          cmd: "./check-up"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
 ```
 
 The interval, grace-period, delay, and timeout elements are denominated in seconds. If the maximum consecutive number of failures is exceeded, the task will be killed.
@@ -1393,11 +1395,11 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-      readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10
+        readiness-check:
+          cmd: "./readiness-check"
+          interval: 5
+          delay: 0
+          timeout: 10
 ```
 
 The interval, delay, and timeout elements are denominated in seconds.

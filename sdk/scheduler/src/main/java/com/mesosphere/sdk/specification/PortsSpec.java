@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,7 +16,7 @@ import java.util.Collection;
 /**
  * This class represents a ports resource with multiple ports.
  */
-public class PortsSpec {
+public class PortsSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String name;
@@ -68,5 +69,30 @@ public class PortsSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public Protos.Value getValue() {
+        return value;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getRole() {
+        return role;
+    }
+
+    @Override
+    public String getPreReservedRole() {
+        return Constants.ANY_ROLE;
+    }
+
+    @Override
+    public String getPrincipal() {
+        return principal;
     }
 }

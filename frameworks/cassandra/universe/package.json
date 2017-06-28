@@ -1,17 +1,14 @@
 {
-  "packagingVersion": "2.0",
+  "packagingVersion": "3.0",
+  "minDcosReleaseVersion": "1.8",
   "name": "cassandra",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "An example implementation of a stateful service using the DC/OS SDK",
+  "description": "Apache Cassandra",
   "selected": false,
   "framework": true,
-  "tags": [
-    "example",
-    "reference",
-    "cassandra"
-  ],
-  "preInstallNotes": "This DC/OS Service is currently a beta candidate and undergoing beta testing as part of a formal beta test program. There may be bugs, incomplete features, incorrect documentation, or other discrepancies. Contact Mesosphere before deploying this beta candidate data service framework. Product support is available to approved participants in the beta test program.",
+  "tags": ["cassandra"],
+  "preInstallNotes": "This DC/OS Service is currently a beta candidate undergoing testing as part of a formal beta test program. There may be bugs, incomplete features, incorrect documentation, or other discrepancies. Contact Mesosphere before deploying this beta candidate service. Product support is available to approved participants in the beta test program.",
   "postInstallNotes": "DC/OS Cassandra is being installed!\n\n\tDocumentation: https://docs.mesosphere.com/latest/usage/service-guides/cassandra\n\tIssues: https://docs.mesosphere.com/support/",
-  "postUninstallNotes": "DC/OS Cassandra has been uninstalled."
+  "postUninstallNotes": "DC/OS cassandra is being uninstalled."
 }

@@ -9,14 +9,16 @@ enterprise: 'no'
 
 Applications interface with HDFS like they would any POSIX file system. However, applications that will act as client nodes of the HDFS deployment require an `hdfs-site.xml` and `core-site.xml` file that provides the configuration information necessary to communicate with the cluster.
 
+# Discovering Endpoints
+
 ## Connection Info Using the DC/OS CLI
 
 Executed the following command from the DC/OS CLI to retrieve the `hdfs-site.xml` file that client applications can use to connect to the cluster.
 
 ```
-$ dcos hdfs --name=<service-name> endpoints hdfs-site.xml
+$ dcos beta-hdfs --name=<service-name> endpoints hdfs-site.xml
 ...
-$ dcos hdfs --name=<service-name> endpoints core-site.xml
+$ dcos beta-hdfs --name=<service-name> endpoints core-site.xml
 ...
 ```
 
@@ -45,7 +47,7 @@ The responses are as below.
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
-        <value>qjournal://journal-0-node.hdfs.mesos:8485;journal-1-node.hdfs.mesos:8485;journal-2-node.hdfs.mesos:8485/hdfs</value>
+        <value>qjournal://journal-0-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-1-node.hdfs.autoip.dcos.thisdcos.directory:8485;journal-2-node.hdfs.autoip.dcos.thisdcos.directory:8485/hdfs</value>
     </property>
     <property>
         <name>dfs.namenode.name.dir</name>
@@ -80,7 +82,7 @@ The responses are as below.
     <!-- name-0-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:9001</value>
+        <value>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9001</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
@@ -88,7 +90,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:9002</value>
+        <value>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
@@ -99,7 +101,7 @@ The responses are as below.
     <!-- name-1-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:9001</value>
+        <value>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9001</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
@@ -107,7 +109,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:9002</value>
+        <value>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
@@ -195,7 +197,7 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.domain.socket.path</name>
-        <value>/var/lib/hadoop-hdfs/dn_socket</value>
+        <value>dn_socket</value>
     </property>
     <property>
         <name>dfs.permissions.enabled</name>

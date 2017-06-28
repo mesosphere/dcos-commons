@@ -6,10 +6,10 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * A base class for use in writing offer evaluation tests.
  */
-public class OfferEvaluatorTestBase {
+public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     protected static final String ROOT_ZK_PATH = "/test-root-path";
     protected StateStore stateStore;
@@ -35,17 +35,8 @@ public class OfferEvaluatorTestBase {
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags);
     }
 
-    protected static String getResourceId(Resource resource) {
-        for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                return label.getValue();
-            }
-        }
-        throw new IllegalStateException("No resource ID found in resource: " + resource);
-    }
-
     protected static String getFirstResourceId(List<Resource> resources) {
-        return getResourceId(resources.get(0));
+        return ResourceUtils.getResourceId(resources.get(0)).get();
     }
 
     protected List<Resource> recordLaunchWithOfferedResources(
@@ -65,5 +56,13 @@ public class OfferEvaluatorTestBase {
         }
 
         return reservedResources;
+    }
+
+    protected String getResourceId(Resource resource) {
+        return ResourceUtils.getResourceId(resource).get();
+    }
+
+    protected String getPrincipal(Resource resource) {
+        return ResourceUtils.getPrincipal(resource).get();
     }
 }

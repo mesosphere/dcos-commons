@@ -190,12 +190,19 @@ _ANY CUSTOMIZATIONS RELATING TO MEMORY THAT SHOULD BE ADJUSTED AS WELL (E.G. HEA
 <a name="ports"></a>
 ### Ports
 
-You can customize the ports exposed by the service via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise.
+You can customize the ports exposed by the service via the service configuratiton. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise. If your pod is on the overlay network (see below) then the port resources will be ignored allowing a pod to share a machine with another one using the same ports. 
 
 Each component's ports may be customized in the following configuration sections:
 - _LIST PORT OPTIONS AND WHERE THEY ARE LOCATED IN THE CONFIG HERE_
 
 <a name="storage-volumes"></a>
+
+### Networks
+You can specify that a pod should join the `dcos` overlay network, a [Virtual Network](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns) that supports having one IP address per pod.  When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining dcos we ignore the ports resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <task_name>.<framework_name>.autoip.dcos.thisdcos.directory. 
+
+**Note** that this DNS will also work for pods on the host network. **Because the ports resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the dcos overlay to the host network or vice-versa.** This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
+
+
 ### Storage Volumes
 
 The service supports two volume types:
@@ -267,11 +274,12 @@ Once the service is running, you may view information about its endpoints via ei
   - View endpoints for an endpoint type: `<dcos-url>/service/_PKGNAME_/v1/endpoints/<endpoint>`
 
 Returned endpoints will include the following:
-- `.mesos` hostnames for each instance that will follow them if they're moved within the DC/OS cluster.
+- `.autoip.dcos.thisdcos.directory` hostnames for each instance that will follow them if they're moved within the DC/OS cluster.
 - A HA-enabled VIP hostname for accessing any of the instances (optional).
-- A direct IP address for accesssing the service if `.mesos` hostnames are not resolvable.
+- A direct IP address for accesssing the service if `.autoip.dcos.thisdcos.directory` hostnames are not resolvable.
+- If your service is on the `dcos` overlay network, then the IP will be from the subnet allocated to the host that the task is running on. It will not be the host IP. To resolve the host IP use Mesos DNS (`<task>.<service>.mesos`).
 
-In general, the `.mesos` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your _SERVICENAME_ instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
+In general, the `.autoip.dcos.thisdcos.directory` endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your _SERVICENAME_ instance. For development and testing purposes, you can use [DC/OS Tunnel](https://docs.mesosphere.com/latest/administration/access-node/tunnel/) to access services from outside the cluster, but this option is not suitable for production use.
 
 <a name="connecting-clients-to-endpoints"></a>
 ## Connecting Clients to Endpoints
@@ -435,6 +443,9 @@ Neither volume type nor volume size requirements may be changed after initial de
 ## Rack-aware Replication
 
 Rack placement and awareness are not supported at this time.
+
+## Overlay network configuration updates
+When a pod from your service uses the overlay network, it does not use the port resources on the agent machine, and thus does not have them reserved. For this reason, we do not allow a pod deployed on the overlay network to be updated (moved) to the host network, because we cannot guarantee that the machine with the reserved volumes will have ports available. To make the reasoning simpler, we also do not allow for pods to be moved from the host network to the overlay. Once you pick a networking paradigm for your service the service is bound to that networking paradigm. 
 
 ## _OTHER CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 
