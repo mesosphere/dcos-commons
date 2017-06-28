@@ -5,13 +5,6 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
----
-post_title: Configuring
-menu_order: 30
-feature_maturity: preview
-enterprise: 'no'
----
-
 # Changing Configuration at Runtime
 
 You can customize your cluster in-place when it is up and running.
