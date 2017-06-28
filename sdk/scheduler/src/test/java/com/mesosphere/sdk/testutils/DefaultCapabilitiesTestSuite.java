@@ -15,7 +15,7 @@ public abstract class DefaultCapabilitiesTestSuite {
     private static ResourceRefinementCapabilityContext context;
 
     @BeforeClass
-    public static final void beforeAll() throws Exception {
+    public static final void beforeAllSuites() throws Exception {
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
         when(capabilities.supportsCNINetworking()).thenReturn(true);
