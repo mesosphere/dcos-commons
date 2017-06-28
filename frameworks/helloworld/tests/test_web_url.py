@@ -9,20 +9,22 @@ from tests.config import (
 )
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    options = {
-        "service": {
-            "spec_file": "examples/web-url.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        options = {
+            "service": {
+                "spec_file": "examples/web-url.yml"
+            }
         }
-    }
 
-    # this config produces 1 hello's + 0 world's:
-    install.install(PACKAGE_NAME, 1, additional_options=options)
+        # this config produces 1 hello's + 0 world's:
+        install.install(PACKAGE_NAME, 1, additional_options=options)
 
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -34,4 +36,3 @@ def test_deploy():
     assert(len(deployment_plan['phases']) == 1)
     assert(deployment_plan['phases'][0]['name'] == 'hello')
     assert(len(deployment_plan['phases'][0]['steps']) == 1)
-

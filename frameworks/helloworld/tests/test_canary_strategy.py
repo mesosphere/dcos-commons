@@ -14,23 +14,25 @@ from tests.config import (
 )
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
-    # due to canary: no tasks should launch, and suppressed shouldn't be set
-    install.install(
-        PACKAGE_NAME,
-        0,
-        additional_options={
-            'service': {'spec_file': 'examples/canary.yml'},
-            'hello': {'count': 4},
-            'world': {'count': 4}
-        },
-        check_suppression=False)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        utils.gc_frameworks()
+        # due to canary: no tasks should launch, and suppressed shouldn't be set
+        install.install(
+            PACKAGE_NAME,
+            0,
+            additional_options={
+                'service': {'spec_file': 'examples/canary.yml'},
+                'hello': {'count': 4},
+                'world': {'count': 4}
+            },
+            check_suppression=False)
 
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.smoke

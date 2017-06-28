@@ -23,19 +23,21 @@ FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 ZK_SERVICE_PATH = utils.get_zk_path(PACKAGE_NAME)
 
 
-def setup_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        utils.gc_frameworks()
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_BROKER_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
-
-def teardown_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 # --------- Endpoints -------------
@@ -300,5 +302,3 @@ def test_suppress():
         return response.text == "true"
 
     shakedown.wait_for(fun)
-
-

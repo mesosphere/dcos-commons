@@ -19,31 +19,33 @@ VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 
-def setup_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        utils.gc_frameworks()
 
-    # 1. check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-    # 2. user: root because Azure CLI needs to run in root...
-    install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "user": "root" } },
-        check_suppression=False)
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+        # 1. check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
+        # 2. user: root because Azure CLI needs to run in root...
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "user": "root" } },
+            check_suppression=False)
+        plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
-    tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-    for job in TEST_JOBS:
-        jobs.install_job(job, tmp_dir=tmp_dir)
+        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
+        for job in TEST_JOBS:
+            jobs.install_job(job, tmp_dir=tmp_dir)
 
+        yield # let the test session execute
+    finally:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
-def teardown_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-
-    # remove job definitions from metronome
-    for job in TEST_JOBS:
-        jobs.remove_job(job)
+        # remove job definitions from metronome
+        for job in TEST_JOBS:
+            jobs.remove_job(job)
 
 # To disable these tests in local runs where you may lack the necessary credentials,
 # use e.g. "TEST_TYPES=sanity and not aws and not azure":
@@ -94,4 +96,3 @@ def test_backup_and_restore_to_s3():
         'restore-s3',
         plan_parameters,
         FOLDERED_NODE_ADDRESS)
-

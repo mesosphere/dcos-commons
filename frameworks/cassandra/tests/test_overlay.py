@@ -24,25 +24,26 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        utils.gc_frameworks()
 
-    # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
-                    additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
-    tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-    for job in TEST_JOBS:
-        jobs.install_job(job, tmp_dir=tmp_dir)
+        # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
+        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
+                        additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        plan.wait_for_completed_deployment(PACKAGE_NAME)
+        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
+        for job in TEST_JOBS:
+            jobs.install_job(job, tmp_dir=tmp_dir)
 
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
-
-    for job in TEST_JOBS:
-        jobs.remove_job(job)
-
+        for job in TEST_JOBS:
+            jobs.remove_job(job)
 
 
 @pytest.mark.sanity

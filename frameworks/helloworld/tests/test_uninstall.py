@@ -11,13 +11,15 @@ from tests.config import (
 )
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -31,4 +33,3 @@ def test_uninstall():
     marathon.update_app(PACKAGE_NAME, config)
     plan.wait_for_completed_deployment(PACKAGE_NAME)
     tasks.check_running(PACKAGE_NAME, 0)
-
