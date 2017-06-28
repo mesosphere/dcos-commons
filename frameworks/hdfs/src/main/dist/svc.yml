@@ -7,6 +7,9 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
+      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
+      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
@@ -51,6 +54,9 @@ pods:
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
           {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
@@ -59,7 +65,9 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
+      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
+      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
@@ -120,6 +128,9 @@ pods:
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
           {{/TLS_ENABLED}}
         env:
           NAMENODE: true
@@ -143,6 +154,9 @@ pods:
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
           {{/TLS_ENABLED}}
         env:
           NAMENODE: true
@@ -166,6 +180,9 @@ pods:
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
           {{/TLS_ENABLED}}
         env:
           NAMENODE: true
@@ -185,9 +202,14 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
+          {{/TLS_ENABLED}}
         env:
           ZKFC: true
       zkfc-format:
@@ -206,9 +228,14 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
+          {{/TLS_ENABLED}}
         env:
           ZKFC: true
   data:
@@ -216,6 +243,9 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
+      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
+      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
@@ -265,9 +295,14 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
+          {{/TLS_ENABLED}}
         env:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
