@@ -30,18 +30,12 @@ fi
 GO_VERSION=$(go version | awk '{print $3}')
 UPX_BINARY="" # only enabled for go1.7+
 case "$GO_VERSION" in
-    go1.[7-9]*|go1.1[0-9]*|go[2-9]*) # go1.7+, go2+ (must come before go1.0-go1.4: support e.g. go1.10)
+    go1.[8-9]*|go1.1[0-9]*|go[2-9]*) # go1.8+, go2+ (must come before go1.0-go1.7: support e.g. go1.10)
         UPX_BINARY="$(which upx || which upx-ucl || echo '')" # avoid error code if upx isn't installed
         ;;
-    go0.*|go1.[0-4]*) # go0.*, go1.0-go1.4
-        echo "Detected Go <=1.4. This is too old, please install Go 1.5+: $(which go) $GO_VERSION"
+    go0.*|go1.[0-7]*) # go0.*, go1.0-go1.7
+        echo "Detected Go <=1.7. This is too old, please install Go 1.8+: $(which go) $GO_VERSION"
         exit 1
-        ;;
-    go1.5*) # go1.5
-        export GO15VENDOREXPERIMENT=1
-        ;;
-    go1.6*) # go1.6
-        # no experiment, but also no UPX
         ;;
     *) # ???
         echo "Unrecognized go version: $(which go) $GO_VERSION"
