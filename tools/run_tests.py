@@ -142,8 +142,11 @@ class CITester(object):
 
         self._github_updater.update('pending', 'Running shakedown tests')
         try:
-            pytest.main(args)
-            self._github_updater.update('success', 'Shakedown tests succeeded')
+            returncode = pytest.main(args)
+            if returncode == 0:
+                self._github_updater.update('success', 'Shakedown tests succeeded')
+            else:
+                raise Exception("pytest failed")
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
             raise
