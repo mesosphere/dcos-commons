@@ -288,6 +288,8 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 
 ## Secrets
 
+DC/OS Secrets  provides secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at `docs.mesosphere.com`.
+
 The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the SandBox will be created. Also, value of the environment variable `Secret_Environment_Key1` will be set to the content of this Secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1` as shown below.
 
 ```yaml
