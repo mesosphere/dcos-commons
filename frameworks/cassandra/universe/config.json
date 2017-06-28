@@ -23,7 +23,7 @@
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
-          "default": "root"
+          "default": "nobody"
         },
         "mesos_api_version" : {
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",

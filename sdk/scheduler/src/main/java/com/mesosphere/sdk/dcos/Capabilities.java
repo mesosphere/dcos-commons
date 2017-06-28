@@ -51,6 +51,22 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 9);
     }
 
+    public boolean supportsFileBasedSecrets() {
+        // File-based Secret is supported by DC/OS 1.10 upwards
+        return hasOrExceedsVersion(1, 10);
+    }
+
+    public boolean supportsEnvBasedSecretsProtobuf() {
+        // Environment-based Secret is supported by DC/OS 1.10 upwards
+        return hasOrExceedsVersion(1, 10);
+    }
+
+    // We do not support DCOS_DIRECTIVE label for environment-based Secrets. We may in the future.
+    public boolean supportsEnvBasedSecretsDirectiveLabel() {
+        // DCOS_DIRECTIVE label for Secret environment is supported by DC/OS 1.8 upwards
+        return hasOrExceedsVersion(1, 8);
+    }
+
     public boolean supportsCNINetworking() {
         // CNI port-mapping is supported by DC/OS 1.9 upwards
         return hasOrExceedsVersion(1, 9);

@@ -4,6 +4,7 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{HELLO_PLACEMENT}}
     tasks:
       server:
@@ -19,6 +20,7 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
   world:
     count: {{WORLD_COUNT}}
+    user: {{SERVICE_USER}}
     placement: {{WORLD_PLACEMENT}}
     tasks:
       server:

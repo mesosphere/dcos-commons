@@ -68,6 +68,27 @@ public class CapabilityValidator {
                 }
             }
         }
+
+        if (!podSpec.getSecrets().isEmpty()) {
+            // TODO(MB) : Change validator if we decide to support DCOS_DIRECTIVE label
+            // envBasedSecretSupportMessage =
+            //        "This cluster's DC/OS version does not support environment-based Secrets";
+
+            for (SecretSpec secretSpec : podSpec.getSecrets()) {
+                if (secretSpec.getEnvKey().isPresent() &&
+                        !Capabilities.getInstance().supportsEnvBasedSecretsProtobuf()) {
+                    throw new CapabilityValidationException(
+                            "This service does not support Secrets for current cluster's DC/OS version");
+                }
+                // Default is file-based Secret
+                if ((secretSpec.getFilePath().isPresent() || !secretSpec.getEnvKey().isPresent())
+                        && !Capabilities.getInstance().supportsFileBasedSecrets()) {
+                    throw new CapabilityValidationException(
+                            "This cluster's DC/OS version does not support file-based Secrets");
+                }
+
+            }
+        }
     }
 
     /**

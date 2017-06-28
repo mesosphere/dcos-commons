@@ -231,7 +231,7 @@ You will see a response similar to the following:
     </property>
     <property>
         <name>dfs.domain.socket.path</name>
-        <value>/var/lib/hadoop-hdfs/dn_socket</value>
+        <value>dn_socket</value>
     </property>
     <property>
         <name>dfs.permissions.enabled</name>
@@ -618,7 +618,7 @@ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journ
 					value: "*"
 				}, {
 					name: "CLIENT_READ_SHORTCIRCUIT_PATH",
-					value: "/var/lib/hadoop-hdfs/dn_socket"
+					value: "dn_socket"
 				}, {
 					name: "DATA_NODE_HTTP_PORT",
 					value: "9004"
@@ -906,7 +906,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1116,7 +1116,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1304,7 +1304,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1483,7 +1483,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1613,7 +1613,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1714,7 +1714,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
@@ -1942,7 +1942,7 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 				environment: {
 					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
 					CLIENT_READ_SHORTCIRCUIT: "true",
-					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "dn_socket",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
 					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
 					DATANODE: "true",
