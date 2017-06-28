@@ -17,12 +17,12 @@
         <name>dfs.cluster.administrators</name>
         <value>{{ADMINISTRATORS}}</value>
     </property>
-    {{#TLS_ENABLED}}
+{{#TLS_ENABLED}}
     <property>
         <name>dfs.http.policy</name>
-        <value>HTTP_AND_HTTPS</value>
+        <value>HTTPS_ONLY</value>
     </property>
-    {{/TLS_ENABLED}}
+{{/TLS_ENABLED}}
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
@@ -211,10 +211,6 @@
         <value>true</value>
     </property>
     <property>
-        <name>dfs.http.policy</name>
-        <value>HTTP_AND_HTTPS</value>
-    </property>
-    <property>
         <name>hadoop.security.auth_to_local</name>
         <value>
             RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
@@ -283,7 +279,7 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIbMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
 {{/ZKFC}}
 
