@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strings"
 )
 
 type responseCheck func(response *http.Response, body []byte) error
@@ -105,13 +106,11 @@ func PrettyPrintSlice(slice []string) string {
 	sort.Strings(slice)
 	var buf bytes.Buffer
 	buf.WriteString("[")
-	for index, element := range slice {
-		quotedElement := fmt.Sprintf("\"%s\"", element)
-		buf.WriteString(quotedElement)
-		if index+1 < len(slice) {
-			buf.WriteString(", ")
-		}
+	var bits []string
+	for _, element := range slice {
+		bits = append(bits, fmt.Sprintf("\"%s\"", element))
 	}
+	buf.WriteString(strings.Join(bits, ", "))
 	buf.WriteString("]")
 	return buf.String()
 }

@@ -83,10 +83,6 @@ func createCosmosJSONMismatchError(data cosmosData) error {
 	return fmt.Errorf(buf.String(), config.ServiceName)
 }
 
-func createGenericCosmosError(errorType, message string) error {
-	return fmt.Errorf("Could not execute command: %s: %s", errorType, message)
-}
-
 func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	var errorResponse cosmosErrorResponse
 	err := json.Unmarshal(body, &errorResponse)
@@ -103,7 +99,7 @@ func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 		case jsonSchemaMismatch:
 			return createCosmosJSONMismatchError(errorResponse.Data)
 		default:
-			return createGenericCosmosError(errorResponse.ErrorType, errorResponse.Message)
+			return fmt.Errorf("Could not execute command: %s", errorResponse.Message)
 		}
 	}
 	return createResponseError(response)
