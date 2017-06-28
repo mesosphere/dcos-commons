@@ -1,0 +1,2 @@
+Could not update service name from "/hello-world2" to "/hello-world".
+The service name cannot be changed once installed. Ensure service.name is set to "/hello-world2" in options JSON.

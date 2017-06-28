@@ -16,11 +16,14 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
+const cosmosURLConfigKey = "package.cosmos_url"
+
+// Cosmos error types
 const (
-	cosmosURLConfigKey  = "package.cosmos_url"
-	marathonAppNotFound = "MarathonAppNotFound"
+	appIDChanged        = "AppIdChanged"
 	badVersionUpdate    = "BadVersionUpdate"
 	jsonSchemaMismatch  = "JsonSchemaMismatch"
+	marathonAppNotFound = "MarathonAppNotFound"
 )
 
 // HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
@@ -48,6 +51,8 @@ type cosmosError struct {
 
 type cosmosData struct {
 	Errors        []cosmosError
+	NewAppID      string
+	OldAppID      string
 	UpdateVersion string
 	ValidVersions []string
 }
@@ -67,7 +72,7 @@ Valid versions are: %s`
 
 	return fmt.Errorf(errorString, config.ServiceName, updateVersion, validVersions)
 }
-func createCosmosJSONMismatchError(data cosmosData) error {
+func createJSONMismatchError(data cosmosData) error {
 	var buf bytes.Buffer
 	writer := bufio.NewWriter(&buf)
 	writer.WriteString("Unable to update %s to requested configuration: options JSON failed validation.")
@@ -83,6 +88,12 @@ func createCosmosJSONMismatchError(data cosmosData) error {
 	return fmt.Errorf(buf.String(), config.ServiceName)
 }
 
+func createAppIDChangedError(data cosmosData) error {
+	errorString := `Could not update service name from "%s" to "%s".
+The service name cannot be changed once installed. Ensure service.name is set to "%s" in options JSON.`
+	return fmt.Errorf(errorString, data.OldAppID, data.NewAppID, data.OldAppID)
+}
+
 func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	var errorResponse cosmosErrorResponse
 	err := json.Unmarshal(body, &errorResponse)
@@ -92,13 +103,18 @@ func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	}
 	if errorResponse.ErrorType != "" {
 		switch errorResponse.ErrorType {
-		case marathonAppNotFound:
-			return createServiceNameError()
+		case appIDChanged:
+			return createAppIDChangedError(errorResponse.Data)
 		case badVersionUpdate:
 			return createBadVersionError(errorResponse.Data)
 		case jsonSchemaMismatch:
-			return createCosmosJSONMismatchError(errorResponse.Data)
+			return createJSONMismatchError(errorResponse.Data)
+		case marathonAppNotFound:
+			return createServiceNameError()
 		default:
+			if config.Verbose {
+				PrintJSONBytes(body)
+			}
 			return fmt.Errorf("Could not execute command: %s", errorResponse.Message)
 		}
 	}
