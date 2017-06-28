@@ -43,7 +43,8 @@
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",
-            "default":"serial"
+            "default":"serial",
+            "enum": ["serial", "serial-canary", "parallel-canary", "parallel"]
           }
         },
         "required":[

@@ -33,12 +33,14 @@
         "deploy_strategy": {
           "description": "HDFS deployment strategy. [parallel, serial]",
           "type": "string",
-          "default": "parallel"
+          "default": "parallel",
+          "enum" : ["parallel", "serial"]
         },
         "update_strategy": {
           "description": "HDFS update strategy. [parallel, serial]",
           "type": "string",
-          "default": "serial"
+          "default": "serial",
+          "enum" : ["parallel", "serial"]
         },
         "tls": {
           "type": "object",
