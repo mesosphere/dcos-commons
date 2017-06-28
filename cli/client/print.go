@@ -42,7 +42,7 @@ func printResponseErrorAndExit(response *http.Response) {
 	PrintMessageAndExit(createResponseError(response).Error())
 }
 
-func createServiceNameError(response *http.Response) error {
+func createServiceNameError() error {
 	errorString := `Could not reach the service scheduler with name '%s'.
 Did you provide the correct service name? Specify a different name with '--name=<name>'.
 Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`
@@ -54,7 +54,7 @@ func printServiceNameErrorAndExit(response *http.Response) {
 	if config.Verbose {
 		printResponseError(response)
 	}
-	PrintMessageAndExit(createServiceNameError(response).Error())
+	PrintMessageAndExit(createServiceNameError().Error())
 }
 
 // PrintJSONBytes pretty prints responseBytes assuming it is valid JSON.

@@ -88,22 +88,22 @@ func printPackageVersions() {
 	checkError(err, responseBytes)
 	downgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "downgradesTo")
 	checkError(err, responseBytes)
-	noDowngradeVersions, downgradeVersionsSorted, err := client.SortAndPrettyPrintJSONArray(downgradeVersionsBytes)
+	downgradeVersions, err := client.JSONBytesToArray(downgradeVersionsBytes)
 	checkError(err, responseBytes)
 	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
 	checkError(err, responseBytes)
-	noUpgradeVersions, upgradeVersionsSorted, err := client.SortAndPrettyPrintJSONArray(upgradeVersionsBytes)
+	updateVersions, err := client.JSONBytesToArray(upgradeVersionsBytes)
 	checkError(err, responseBytes)
 	client.PrintMessage("Current package version is: %s", currentVersionBytes)
-	if noDowngradeVersions {
+	if len(downgradeVersions) > 0 {
+		client.PrintMessage("Package can be downgraded to: %s", client.PrettyPrintSlice(downgradeVersions))
+	} else {
 		client.PrintMessage("No valid package downgrade versions.")
-	} else {
-		client.PrintMessage("Package can be downgraded to: %s", downgradeVersionsSorted)
 	}
-	if noUpgradeVersions {
-		client.PrintMessage("No valid package upgrade versions.")
+	if len(updateVersions) > 0 {
+		client.PrintMessage("Package can be upgraded to: %s", client.PrettyPrintSlice(updateVersions))
 	} else {
-		client.PrintMessage("Package can be upgraded to: %s", upgradeVersionsSorted)
+		client.PrintMessage("No valid package upgrade versions.")
 	}
 }
 

@@ -106,6 +106,17 @@ func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	expectedOutput := suite.loadFile("testdata/output/bad-version.txt")
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
+
+func (suite *CosmosTestSuite) TestJSONMismatchErrorResponse() {
+	// create 400 response for JsonSchemaMismatch
+	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-json.json")
+
+	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
+
+	expectedOutput := suite.loadFile("testdata/output/bad-json.txt")
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
 func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	// create a request
 	request, requestBody := suite.createExampleRequest()
