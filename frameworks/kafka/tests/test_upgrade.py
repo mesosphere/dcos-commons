@@ -25,7 +25,8 @@ def teardown_module(module):
 def test_upgrade_downgrade():
     options = {
         "service": {
-            "beta-optin": True
+            "beta-optin": True,
+            "user":"root"
         }
     }
     sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME),

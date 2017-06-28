@@ -49,7 +49,7 @@ public class CuratorUtils {
      * </ul>
      */
     public static String getServiceRootPath(String frameworkName) {
-        // dcos-service-<your__name__here>
+        // /dcos-service-<your__name__here>
         return SERVICE_ROOT_PATH_PREFIX + SchedulerUtils.withEscapedSlashes(frameworkName);
     }
 

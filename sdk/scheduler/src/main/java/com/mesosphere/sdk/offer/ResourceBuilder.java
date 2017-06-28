@@ -190,8 +190,9 @@ public class ResourceBuilder {
     public Resource build() {
         Resource.Builder builder =
                 mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
-        builder.setName(resourceName).setRole(preReservedRole);
-        builder.setType(value.getType());
+        builder.setName(resourceName)
+                .setRole(Constants.ANY_ROLE)
+                .setType(value.getType());
 
         if (role.isPresent() && !Capabilities.getInstance().supportsPreReservedResources()) {
             builder.setRole(role.get());
@@ -202,7 +203,14 @@ public class ResourceBuilder {
             Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
 
             if (Capabilities.getInstance().supportsPreReservedResources()) {
+                if (!preReservedRole.equals(Constants.ANY_ROLE) && mesosResource == null) {
+                    builder.addReservations(
+                            Resource.ReservationInfo.newBuilder()
+                            .setRole(preReservedRole)
+                            .setType(Resource.ReservationInfo.Type.STATIC));
+                }
                 builder.addReservations(reservationInfo);
+                builder.clearRole();
             } else {
                 builder.setReservation(reservationInfo);
             }

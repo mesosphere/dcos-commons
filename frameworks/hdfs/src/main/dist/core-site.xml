@@ -30,7 +30,7 @@
     </property>
     <property>
         <name>ha.zookeeper.parent-znode</name>
-        <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
+        <value>{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
     {{#TLS_ENABLED}}
     <property>

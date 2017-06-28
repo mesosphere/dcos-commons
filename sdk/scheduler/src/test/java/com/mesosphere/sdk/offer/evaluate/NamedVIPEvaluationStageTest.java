@@ -7,10 +7,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
@@ -21,7 +18,7 @@ import java.util.*;
 /**
  * Tests for {@link NamedVIPEvaluationStage}.
  */
-public class NamedVIPEvaluationStageTest {
+public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {
@@ -52,6 +49,7 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertEquals("pod-type-0-test-task-name", discoveryInfo.getName());
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+        //TODO(arand) check that second discovery label is NOT added
     }
 
     @Test
@@ -171,6 +169,39 @@ public class NamedVIPEvaluationStageTest {
     }
 
     @Test
+    public void testUpdatePortWithVipLabel() throws InvalidRequirementException {
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 20000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        boolean onOverlay = false;
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(10000, Collections.emptyList(), onOverlay);
+        // Evaluate stage
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(10000, Optional.empty(), onOverlay);
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        Assert.assertTrue(discoveryInfo.getPorts().getPortsCount() == 1);
+        Protos.Port portInfo = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertTrue(portInfo.getName().equals("test-port"));
+        Assert.assertTrue(portInfo.getNumber() == 10000);
+        Assert.assertTrue(portInfo.getLabels().getLabels(0).getKey().startsWith("VIP_"));
+        Assert.assertTrue(portInfo.getLabels().getLabels(0).getValue().equals("test-vip:80"));
+        NamedVIPEvaluationStage vipEvaluationStage2 = getEvaluationStage(20000, Optional.empty(), onOverlay);
+        outcome = vipEvaluationStage2.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+        discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        Assert.assertTrue(discoveryInfo.getPorts().getPortsCount() == 1);
+        portInfo = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertTrue(portInfo.getName().equals("test-port"));
+        Assert.assertTrue(portInfo.getNumber() == 20000);
+        Assert.assertTrue(portInfo.getLabels().getLabels(0).getKey().startsWith("VIP_"));
+        Assert.assertTrue(portInfo.getLabels().getLabels(0).getValue().equals("test-vip:80"));
+    }
+
+    @Test
     public void testPortNumberIsUpdated() throws InvalidRequirementException {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedPorts(8000, 8000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
@@ -214,7 +245,7 @@ public class NamedVIPEvaluationStageTest {
         return new NamedVIPEvaluationStage(
                 getNamedVIPSpec(taskPort, onOverlay),
                 TestConstants.TASK_NAME,
-                resourceId);
+                resourceId, "test-port");
     }
 
     private NamedVIPSpec getNamedVIPSpec(int taskPort, boolean onOverlay) {

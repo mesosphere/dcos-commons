@@ -84,6 +84,9 @@ public class BaseServiceSpecTest {
         when(capabilities.supportsNamedVips()).thenReturn(true);
         when(capabilities.supportsRLimits()).thenReturn(true);
         when(capabilities.supportsPreReservedResources()).thenReturn(true);
+        when(capabilities.supportsFileBasedSecrets()).thenReturn(true);
+        when(capabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
+        when(capabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);

@@ -853,7 +853,7 @@ public class DefaultSchedulerTest {
         statusUpdate(getTaskId(operations), Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
 
         return taskId;
     }
@@ -871,6 +871,12 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
+
+        while (!defaultScheduler.deploymentPlanManager.getPlan().isComplete()) {
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {}
+        }
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 PlanTestUtils.getStepStatuses(plan));

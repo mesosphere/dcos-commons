@@ -8,12 +8,14 @@ import java.util.Set;
  * This class encapsulates constants common to DC/OS and its services.
  */
 public class DcosConstants {
-    private static final String MASTER_MESOS = "master.mesos";
+    private static final String MESOS_MASTER = "master.mesos";
+    private static final String MESOS_LEADER = "leader.mesos";
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MASTER_MESOS + ":2181";
-    public static final String MESOS_MASTER_URI = "http://" + MASTER_MESOS;
+    public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
+    public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
     public static final Boolean DEFAULT_GPU_POLICY = true;
+    public static final String DEFAULT_IP_PROTOCOL = "tcp";
     public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
     public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(Arrays.asList(DEFAULT_OVERLAY_NETWORK));

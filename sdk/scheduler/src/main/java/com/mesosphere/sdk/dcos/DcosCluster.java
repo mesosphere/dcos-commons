@@ -25,7 +25,7 @@ public class DcosCluster {
     }
 
     public DcosCluster() {
-        this(getUriUnchecked(DcosConstants.MESOS_MASTER_URI));
+        this(getUriUnchecked(DcosConstants.MESOS_LEADER_URI));
     }
 
     public URI getDcosUri() {

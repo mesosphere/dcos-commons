@@ -98,7 +98,7 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt=None, pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_filename=None, pytest_types='sanity'):
         normal_path = test_dirs.rstrip(os.sep)
         framework = os.path.basename(os.path.dirname(normal_path))
         # keep virtualenv in a consistent/reusable location:
@@ -116,31 +116,33 @@ class CITester(object):
         if not os.path.isdir(package_path):
             os.makedirs(package_path)
 
-        if requirements_txt is not None:
-            logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
+        if requirements_filename is not None:
+            logger.info('Using provided requirements.txt: {}'.format(requirements_filename))
+            with open(requirements_filename) as req_f:
+                requirements_text = req_f.read()
+        else:
+            requirements_text = None
 
         piputil.populate_dcoscommons_packagedir(package_path,
-                                                requirements_txt)
+                                                requirements_text)
         piputil.activate_libdir(package_path)
 
-        cmd = [sys.executable, '-m', 'pytest']
+        args = []
         if jenkins_args:
-            cmd.append(jenkins_args)
+            args.append(jenkins_args)
         if self._fail_fast:
-            cmd.append('--exitfirst')
-        cmd.extend(['-vv', '--fulltrace', '-x', '-s', '-m', pytest_types, test_dirs])
+            args.append('--exitfirst')
+        args.extend(['-vv', '--fulltrace', '--capture=no', '-m', pytest_types, test_dirs])
 
-        custom_env = os.environ.copy()
-        new_pythonpath = package_path
-        existing_pythonpath = os.environ.get("PYTHONPATH")
-        if existing_pythonpath:
-            new_pythonpath += ":" + existing_pythonpath
-        custom_env["PYTHONPATH"] = new_pythonpath
+        sys.path.insert(0, package_path)
+        import pytest
 
+        # old method
+        #cmd = [sys.executable, '-m', 'pytest']
 
         self._github_updater.update('pending', 'Running shakedown tests')
         try:
-            subprocess.check_call(cmd, env=custom_env)
+            pytest.main(args)
             self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
@@ -285,11 +287,11 @@ def main(argv):
         if test_type == 'shakedown':
             if len(argv) >= 4:
                 # use provided requirements.txt
-                requirements_txt = argv[3]
+                requirements_filename = argv[3]
             else:
                 # use default requirements
-                requirements_txt = None
-            tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
+                requirements_filename = None
+            tester.run_shakedown(test_dirs, requirements_filename, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]
             tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)

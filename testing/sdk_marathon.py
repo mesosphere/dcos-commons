@@ -50,7 +50,15 @@ def api_url_with_param(basename, path_param):
 
 
 def get_scheduler_host(package_name):
-    return shakedown.get_service_ips('marathon', package_name).pop()
+    # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
+    task_name_elems = package_name.lstrip('/').split('/')
+    task_name_elems.reverse()
+    app_name = '.'.join(task_name_elems)
+    ips = shakedown.get_service_ips('marathon', app_name)
+    if len(ips) == 0:
+        raise Exception('No IPs found for marathon task "{}". Available tasks are: {}'.format(
+            app_name, [task['name'] for task in shakedown.get_service_tasks('marathon')]))
+    return ips.pop()
 
 
 def bump_cpu_count_config(package_name, key_name, delta=0.1):

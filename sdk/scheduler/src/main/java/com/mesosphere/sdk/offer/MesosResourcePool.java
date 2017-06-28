@@ -217,8 +217,11 @@ public class MesosResourcePool {
 
         String previousRole = mesosResource.getPreviousRole();
         Map<String, Value> pool = reservableMergedPoolByRole.get(previousRole);
-        Value currValue = pool.get(mesosResource.getName());
+        if (pool == null) {
+            pool = new HashMap<>();
+        }
 
+        Value currValue = pool.get(mesosResource.getName());
         if (currValue == null) {
             currValue = ValueUtils.getZero(mesosResource.getType());
         }

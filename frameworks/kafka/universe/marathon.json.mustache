@@ -3,6 +3,7 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
+  "user":"{{service.user}}",
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./kafka-scheduler/bin/kafka ./kafka-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
@@ -32,6 +33,8 @@
     "KAFKA_URI": "{{resource.assets.uris.kafka-tgz}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
+    "KAFKA_STATSD_URI": "{{resource.assets.uris.kafka-statsd-jar}}",
+    "CLIENT_STATSD_URI": "{{resource.assets.uris.statsd-client-jar}}",
 
     "PLACEMENT_CONSTRAINTS": "{{service.placement_constraint}}",
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
@@ -57,6 +60,8 @@
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.2.1",
 
+    "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",
+
     {{#kafka.kafka_advertise_host_ip}}
     "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
     {{/kafka.kafka_advertise_host_ip}}
@@ -73,7 +78,6 @@
     "TASKCFG_ALL_KAFKA_LOG_MESSAGE_FORMAT_VERSION": "{{kafka.log_message_format_version}}",
     "TASKCFG_ALL_KAFKA_REPLICA_SOCKET_TIMEOUT_MS": "{{kafka.replica_socket_timeout_ms}}",
     "TASKCFG_ALL_KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS": "{{kafka.group_max_session_timeout_ms}}",
-    "TASKCFG_ALL_KAFKA_METRICS_NUM_SAMPLES": "{{kafka.metrics_num_samples}}",
     "TASKCFG_ALL_KAFKA_LOG_CLEANER_DELETE_RETENTION_MS": "{{kafka.log_cleaner_delete_retention_ms}}",
     "TASKCFG_ALL_KAFKA_LOG_PREALLOCATE": "{{kafka.log_preallocate}}",
     "TASKCFG_ALL_KAFKA_REPLICA_SOCKET_RECEIVE_BUFFER_BYTES": "{{kafka.replica_socket_receive_buffer_bytes}}",
@@ -90,6 +94,9 @@
     "TASKCFG_ALL_KAFKA_REPLICA_FETCH_MAX_BYTES": "{{kafka.replica_fetch_max_bytes}}",
     "TASKCFG_ALL_KAFKA_CONNECTIONS_MAX_IDLE_MS": "{{kafka.connections_max_idle_ms}}",
     "TASKCFG_ALL_KAFKA_SOCKET_REQUEST_MAX_BYTES": "{{kafka.socket_request_max_bytes}}",
+    "TASKCFG_ALL_KAFKA_METRICS_REPORTERS": "{{kafka.kafka_metrics_reporters}}",
+    "TASKCFG_ALL_METRIC_REPORTERS": "{{kafka.metric_reporters}}",
+    "TASKCFG_ALL_KAFKA_METRICS_NUM_SAMPLES": "{{kafka.metrics_num_samples}}",
     "TASKCFG_ALL_KAFKA_METRICS_SAMPLE_WINDOW_MS": "{{kafka.metrics_sample_window_ms}}",
     "TASKCFG_ALL_KAFKA_NUM_PARTITIONS": "{{kafka.num_partitions}}",
     "TASKCFG_ALL_KAFKA_REPLICA_LAG_TIME_MAX_MS": "{{kafka.replica_lag_time_max_ms}}",

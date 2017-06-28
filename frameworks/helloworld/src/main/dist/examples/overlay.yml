@@ -2,6 +2,7 @@ name: {{FRAMEWORK_NAME}}
 pods:
   hello-overlay-vip:
     count: 1
+    user: {{SERVICE_USER}}
     uris:
       # this python script starts a basic HTTP server, it responds on a specific port with a given message
       # USAGE: python3 http_py3responder.py <port> <message>
@@ -28,6 +29,7 @@ pods:
         resource-set: hello-resource
   hello-overlay:
     count: 1
+    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     networks:
@@ -38,15 +40,18 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          test:
-            port: 4044
+          dummy:
+            port: 1025
+          dynport:
+            port: 0
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the overlay network!"
+        cmd: "python3 http_py3responder.py $PORT_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
   hello-host-vip:
     count: 1
+    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     image: ubuntu:14.04
@@ -68,6 +73,7 @@ pods:
         resource-set: hello-resource
   hello-host:
     count: 1
+    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     image: ubuntu:14.04
@@ -85,6 +91,7 @@ pods:
         resource-set: hello-resource
   getter:
     count: {{HELLO_COUNT}}
+    user: {{SERVICE_USER}}
     networks:
       dcos:
     tasks:
@@ -92,7 +99,7 @@ pods:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       get-overlay-vip:

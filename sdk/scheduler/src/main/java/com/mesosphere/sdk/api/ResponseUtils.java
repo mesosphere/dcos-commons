@@ -71,14 +71,39 @@ public class ResponseUtils {
     /**
      * Returns a 200 OK response containing the provided plaintext {@link String}.
      */
-    public static Response plainOkResponse(String string) {
-        return plainResponse(string, Response.Status.OK);
+    public static Response plainOkResponse(String plaintext) {
+        return plainResponse(plaintext, Response.Status.OK);
     }
 
     /**
-     * Returns a 200 OK response containing the provided plaintext {@link String}.
+     * Returns a response containing the provided plaintext {@link String} with the 
+     * provided status {@link Response.Status}.
      */
-    public static Response plainResponse(String string, Response.Status status) {
-        return Response.status(status).entity(string).type(MediaType.TEXT_PLAIN_TYPE).build();
+    public static Response plainResponse(String plaintext, Response.Status status) {
+        return Response.status(status).entity(plaintext).type(MediaType.TEXT_PLAIN_TYPE).build();
     }
+
+
+    /**
+     * Returns a response containing the provided plaintext {@link String} with the 
+     * provided statusCode.
+     */
+    public static Response plainResponse(String plaintext, int statusCode) {
+        return Response.status(statusCode).entity(plaintext).type(MediaType.TEXT_PLAIN_TYPE).build();
+    }
+
+    /**
+     * Returns a "404 Element not found" response.
+     */
+    public static Response elementNotFoundResponse() {
+        return plainResponse("Element not found", Response.Status.NOT_FOUND);
+    }
+
+    /**
+     * Returns a "208 Already reported" response.
+     */
+    public static Response alreadyReportedResponse() {
+        return plainResponse("Command has already been reported or completed", 208);
+    }
+
 }

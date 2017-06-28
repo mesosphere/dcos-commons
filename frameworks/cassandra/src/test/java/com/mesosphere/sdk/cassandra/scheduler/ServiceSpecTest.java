@@ -10,7 +10,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "EXECUTOR_URI", "http://executor.uri",
                 "BOOTSTRAP_URI", "http://bootstrap.uri",
                 "SCHEDULER_URI", "http://scheduler.uri",
+                "CASSANDRA_URI", "http://cassandra.uri",
                 "LIBMESOS_URI", "http://libmesos.uri",
+                "CASSANDRA_DOCKER_IMAGE", "docker/cassandra",
                 "PORT_API", "8080",
 
                 "SERVICE_NAME", "cassandra",

@@ -21,7 +21,7 @@ def determine_pip3_binary():
     if pip3_binary:
         return
     pip_binary = shutil.which('pip')
-    version_string = subprocess.check_output([pip_binary, '--version'])
+    version_string = str(subprocess.check_output([pip_binary, '--version']))
     if 'python 3' in version_string:
         pip3_binary = pip_binary
         return
@@ -59,16 +59,16 @@ def pip_install_dir(path, requirements_filepath):
 
     subprocess.check_call(pip_cmd)
 
-def create_requirementsfile(filename, req_txt=None):
-    if not req_txt:
-        req_txt = ('''
+def create_requirementsfile(filename, req_text=None):
+    if not req_text:
+        req_text = ('''
 requests==2.10.0
 dcoscli==0.4.16
 dcos==0.4.16
 dcos-shakedown
 ''')
     with open(filename, 'w') as reqfile:
-        reqfile.write(req_txt)
+        reqfile.write(req_text)
 
 def populate_dcoscommons_packagedir(path, req_txt=None):
     logger.error("populating %s", path)
@@ -87,4 +87,4 @@ if __name__ == "__main__":
         sys.exit("Unknown command {}\nusage: piputil.py create <dir>".format(sys.argv))
     venv_tgt_dir = sys.argv[2]
     os.makedirs(venv_tgt_dir)
-    create_dcoscommons_venv(venv_tgt_dir)
+    populate_dcoscommons_packagedir(venv_tgt_dir)

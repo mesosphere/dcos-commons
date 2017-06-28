@@ -26,6 +26,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
+@pytest.mark.executor_volumes
 def test_deploy():
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
     sdk_utils.out("deployment plan: " + str(deployment_plan))
@@ -40,6 +41,7 @@ def test_deploy():
 
 
 @pytest.mark.sanity
+@pytest.mark.executor_volumes
 def test_sidecar():
     plan.start_plan(PACKAGE_NAME, 'sidecar')
 

@@ -36,6 +36,12 @@ _notify_github() {
 
 _notify_github pending "Build running"
 
+# Verify airgap (except for hello world)
+if [ $FRAMEWORK_NAME != "hello-world" ];
+then
+    ${TOOLS_DIR}/airgap_linter.py ${FRAMEWORK_DIR}
+fi
+
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 if [ $? -ne 0 ]; then

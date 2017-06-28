@@ -5,9 +5,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.collections.MapUtils;
 
-import java.io.IOException;
-
-
 /**
  * This class contains logic for validating that a {@link ServiceSpec} only requires features supported by the DC/OS
  * cluster being run on.
@@ -22,14 +19,10 @@ public class CapabilityValidator {
     }
 
     private void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
-        try {
-            if (DefaultService.serviceSpecRequestsGpuResources(serviceSpec)
-                    && !Capabilities.getInstance().supportsGpuResource()) {
-                throw new CapabilityValidationException(
-                        "This cluster's DC/OS version does not support setting GPU_RESOURCE");
-            }
-        } catch (IOException e) {
-            throw new CapabilityValidationException("Failed to determine capabilities: " + e.getMessage());
+        if (DefaultService.serviceSpecRequestsGpuResources(serviceSpec)
+                && !Capabilities.getInstance().supportsGpuResource()) {
+            throw new CapabilityValidationException(
+                    "This cluster's DC/OS version does not support setting GPU_RESOURCE");
         }
     }
 
@@ -48,36 +41,53 @@ public class CapabilityValidator {
     }
 
     private void validate(PodSpec podSpec) throws CapabilityValidationException {
-        try {
-            if (!podSpec.getRLimits().isEmpty() && !Capabilities.getInstance().supportsRLimits()) {
-                throw new CapabilityValidationException(
-                        "This cluster's DC/OS version does not support setting rlimits");
+        if (!podSpec.getRLimits().isEmpty() && !Capabilities.getInstance().supportsRLimits()) {
+            throw new CapabilityValidationException(
+                    "This cluster's DC/OS version does not support setting rlimits");
+        }
+
+        // if we don't have a cluster that supports CNI port mapping make sure that we don't either (1) specify
+        // any networks and/ (2) if we are make sure we didn't explicitly do any port mapping or that
+        // any of the tasks ask for ports (which will automatically be forwarded, this requiring port mapping).
+        if (!podSpec.getNetworks().isEmpty()) {
+            String cniNotSupportedMessage = "This cluster's DC/OS version does not support CNI port mapping";
+            for (NetworkSpec networkSpec : podSpec.getNetworks()) {
+                if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) &&
+                        !Capabilities.getInstance().supportsCNINetworking()) {
+                    // ask for port mapping but not supported
+                    throw new CapabilityValidationException(cniNotSupportedMessage);
+                }
             }
 
-            // if we don't have a cluster that supports CNI port mapping make sure that we don't either (1) specify
-            // any networks and/ (2) if we are make sure we didn't explicitly do any port mapping or that
-            // any of the tasks ask for ports (which will automatically be forwarded, this requiring port mapping).
-            if (!podSpec.getNetworks().isEmpty()) {
-                String cniNotSupportedMessage = "This cluster's DC/OS version does not support CNI port mapping";
-                for (NetworkSpec networkSpec : podSpec.getNetworks()) {
-                    if (MapUtils.isNotEmpty(networkSpec.getPortMappings()) &&
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("ports") &&
                             !Capabilities.getInstance().supportsCNINetworking()) {
-                        // ask for port mapping but not supported
                         throw new CapabilityValidationException(cniNotSupportedMessage);
                     }
                 }
-
-                for (TaskSpec taskSpec : podSpec.getTasks()) {
-                    for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                        if (resourceSpec.getName().equals("ports") &&
-                                !Capabilities.getInstance().supportsCNINetworking()) {
-                            throw new CapabilityValidationException(cniNotSupportedMessage);
-                        }
-                    }
-                }
             }
-        } catch (IOException e) {
-            throw new CapabilityValidationException("Failed to determine capabilities: " + e.getMessage());
+        }
+
+        if (!podSpec.getSecrets().isEmpty()) {
+            // TODO(MB) : Change validator if we decide to support DCOS_DIRECTIVE label
+            // envBasedSecretSupportMessage =
+            //        "This cluster's DC/OS version does not support environment-based Secrets";
+
+            for (SecretSpec secretSpec : podSpec.getSecrets()) {
+                if (secretSpec.getEnvKey().isPresent() &&
+                        !Capabilities.getInstance().supportsEnvBasedSecretsProtobuf()) {
+                    throw new CapabilityValidationException(
+                            "This service does not support Secrets for current cluster's DC/OS version");
+                }
+                // Default is file-based Secret
+                if ((secretSpec.getFilePath().isPresent() || !secretSpec.getEnvKey().isPresent())
+                        && !Capabilities.getInstance().supportsFileBasedSecrets()) {
+                    throw new CapabilityValidationException(
+                            "This cluster's DC/OS version does not support file-based Secrets");
+                }
+
+            }
         }
     }
 
