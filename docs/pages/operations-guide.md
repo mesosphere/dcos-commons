@@ -288,7 +288,7 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 
 ## Secrets
 
-DC/OS Secrets  provides secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at `docs.mesosphere.com`.
+Enterprise DC/OS provides Secrets feature.  Secrets enable secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at `docs.mesosphere.com`.
 
 The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the SandBox will be created. Also, value of the environment variable `Secret_Environment_Key1` will be set to the content of this Secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1` as shown below.
 
@@ -317,6 +317,7 @@ All tasks defined in the pod will have access to Secret data. If Secret content 
 
 `env-key` or `file` can be left empty. The Secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos, if referenced in pod definition as shown above. You can make a Secret available as an environment variable, as a file within the Sandbox, or you can use both. 
 
+Please note Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
 ### Authorization for Secrets
 
