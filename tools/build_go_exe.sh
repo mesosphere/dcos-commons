@@ -24,14 +24,13 @@ else
     EXE_FILENAME=$(basename $1)-$2 # dcos-kafka-linux
 fi
 
-# Detect Go version to determine:
-# - if UPX should be used to compress binaries (Go 1.7+)
-# - if vendoring needs to be manually enabled (Go 1.5)
+# Detect Go version to determine if the user has a compatible Go version or not.
 GO_VERSION=$(go version | awk '{print $3}')
-UPX_BINARY="" # only enabled for go1.7+
+# Note, UPX only works on binaries produced by Go 1.7+. However, we require Go 1.8+
+UPX_BINARY="$(which upx || which upx-ucl || echo '')"
 case "$GO_VERSION" in
     go1.[8-9]*|go1.1[0-9]*|go[2-9]*) # go1.8+, go2+ (must come before go1.0-go1.7: support e.g. go1.10)
-        UPX_BINARY="$(which upx || which upx-ucl || echo '')" # avoid error code if upx isn't installed
+        echo "Found supported Go version."
         ;;
     go0.*|go1.[0-7]*) # go0.*, go1.0-go1.7
         echo "Detected Go <=1.7. This is too old, please install Go 1.8+: $(which go) $GO_VERSION"
