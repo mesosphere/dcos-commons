@@ -1,5 +1,6 @@
 {
-  "packagingVersion": "2.0",
+  "packagingVersion": "3.0",
+  "minDcosReleaseVersion": "1.8",
   "name": "hdfs",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
