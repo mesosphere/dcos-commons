@@ -104,11 +104,11 @@ pods:
         goal: RUNNING
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
-#        readiness-check:
-#          cmd: echo "beginning" && kinit -k -t keytabs/${KERBEROS_PRIMARY}.name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos@${KERBEROS_REALM} && echo "after kinit" 1>&2 && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1 && echo "49 and 1"
-#          interval: 5
-#          delay: 0
-#          timeout: 60
+        readiness-check:
+          cmd: echo "beginning" && KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && echo "after kinit" 1>&2 && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1 && echo "49 and 1"
+          interval: 5
+          delay: 0
+          timeout: 60
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
@@ -307,11 +307,11 @@ pods:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
-#        readiness-check:
-#          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
-#          interval: 10
-#          delay: 120
-#          timeout: 60
+        readiness-check:
+          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
+          interval: 10
+          delay: 120
+          timeout: 60
 
 plans:
   deploy:
