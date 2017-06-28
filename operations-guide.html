@@ -218,6 +218,10 @@
       <li><a href="#persistent-volumes" id="markdown-toc-persistent-volumes">Persistent Volumes</a></li>
       <li><a href="#pods-vs-tasks" id="markdown-toc-pods-vs-tasks">Pods vs Tasks</a></li>
       <li><a href="#overlay-networks" id="markdown-toc-overlay-networks">Overlay networks</a></li>
+      <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a>        <ul>
+          <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
+        </ul>
+      </li>
       <li><a href="#placement-constraints" id="markdown-toc-placement-constraints">Placement Constraints</a>        <ul>
           <li><a href="#updating-placement-constraints" id="markdown-toc-updating-placement-constraints">Updating placement constraints</a></li>
         </ul>
@@ -662,6 +666,44 @@ Agent 3: X B
   </li>
   <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.</li>
 </ul>
+
+<h2 id="secrets">Secrets</h2>
+
+<p>Enterprise DC/OS provides Secrets feature.  Secrets enable secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at <code class="highlighter-rouge">docs.mesosphere.com</code>.</p>
+
+<p>The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the SandBox will be created. Also, value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this Secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code> as shown below.</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-app/instance1</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">pod-with-secret</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="c1"># add secret values to pod's sandbox</span>
+    <span class="s">secrets</span><span class="pi">:</span>
+      <span class="s">secret_name1</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path1</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath1</span>
+      <span class="s">secret_name2</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/instance1/Secret_Path2</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath2</span>
+      <span class="s">secret_name3</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path3</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key2</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">....</span>
+</code></pre>
+</div>
+
+<p>All tasks defined in the pod will have access to Secret data. If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.</p>
+
+<p><code class="highlighter-rouge">env-key</code> or <code class="highlighter-rouge">file</code> can be left empty. The Secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos, if referenced in pod definition as shown above. You can make a Secret available as an environment variable, as a file within the Sandbox, or you can use both.</p>
+
+<p>Please note Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.</p>
+
+<h3 id="authorization-for-secrets">Authorization for Secrets</h3>
+
+<p>The path of a Secret defines which application ids can have access. You can think Secret paths as namespaces. Applications that are under the same namespace can <em>only</em> read the Secret’s content.
+For the example given above,  the Secret with path <code class="highlighter-rouge">secret-app/Secret_Path1</code> can only be accessed by applications with id <code class="highlighter-rouge">secret-app</code> or any other id under it. Applications with ids <code class="highlighter-rouge">secret-app/instance1</code> and <code class="highlighter-rouge">secret-app/instance2/type1</code> can all have access to this Secret. On the other hand, <code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code> can not be accessed by an application with id <code class="highlighter-rouge">secret-app</code>.</p>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
 
