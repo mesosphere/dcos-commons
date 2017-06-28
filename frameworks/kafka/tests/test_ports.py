@@ -16,13 +16,15 @@ STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092}}
 DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 
 
-def setup_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        utils.gc_frameworks()
 
-
-def teardown_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.sanity

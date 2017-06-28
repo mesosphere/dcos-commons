@@ -10,13 +10,15 @@ from tests.test_utils import (
 )
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        utils.gc_frameworks()
 
-
-def teardown_module(module):
-    install.uninstall(SERVICE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(SERVICE_NAME)
 
 
 @pytest.mark.upgrade

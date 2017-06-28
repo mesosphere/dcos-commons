@@ -18,12 +18,14 @@ from tests.config import (
 num_private_agents = len(shakedown.get_private_agents())
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
 
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.smoke

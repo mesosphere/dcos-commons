@@ -14,23 +14,28 @@ import sdk_utils as utils
 import sdk_metrics as metrics
 from tests.config import *
 
-def setup_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        utils.gc_frameworks()
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+
+        yield # let the test session execute
+    finally:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     check_healthy()
 
-
-def teardown_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 @pytest.mark.sanity
 def test_endpoints():
