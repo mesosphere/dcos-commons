@@ -53,11 +53,6 @@
           "type": "integer",
           "default": 2
         },
-        "remote_seeds": {
-          "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
-          "type": "string",
-          "default": ""
-        },
         "backup_restore_strategy": {
           "description": "Strategy to use for uploading/downloading backups {serial, parallel}",
           "type": "string",
