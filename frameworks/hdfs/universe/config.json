@@ -249,6 +249,14 @@
                   "description": "Enable TLS support (requires Strict mode).",
                   "type": "boolean",
                   "default": false
+                },
+                "trust_store_secret_path": {
+                  "type": "string",
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a Java Trust Store."
+                },
+                "key_store_secret_path": {
+                  "type": "string",
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a Java Key Store."
                 }
               }
             },

@@ -8,22 +8,31 @@ pods:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
-      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
-    {{#ENABLE_VIRTUAL_NETWORK}}
+{{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
-    {{/ENABLE_VIRTUAL_NETWORK}}
-    {{#KERBEROS_ENABLED}}
+{{/ENABLE_VIRTUAL_NETWORK}}
+
+{{#KERBEROS_ENABLED}}
     secrets:
-      s1:
+      keytab:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-    {{/KERBEROS_ENABLED}}
+{{/KERBEROS_ENABLED}}
+
+{{#TLS_ENABLED}}
+      trust-store:
+        secret: {{TLS_TRUST_STORE_SECRET_PATH}}
+        file: trust.jks.base64
+      key-store:
+        secret: {{TLS_KEY_STORE_SECRET_PATH}}
+        file: server.jks.base64
+{{/TLS_ENABLED}}
+
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -66,19 +75,27 @@ pods:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
-      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
-    {{#ENABLE_VIRTUAL_NETWORK}}
+
+{{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
-    {{/ENABLE_VIRTUAL_NETWORK}}
+{{/ENABLE_VIRTUAL_NETWORK}}
 
-    {{#KERBEROS_ENABLED}}
+{{#KERBEROS_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-    {{/KERBEROS_ENABLED}}
+{{/KERBEROS_ENABLED}}
+
+{{#TLS_ENABLED}}
+      trust-store:
+        secret: {{TLS_TRUST_STORE_SECRET_PATH}}
+        file: trust.jks.base64
+      key-store:
+        secret: {{TLS_KEY_STORE_SECRET_PATH}}
+        file: server.jks.base64
+{{/TLS_ENABLED}}
 
     resource-sets:
       name-resources:
@@ -102,7 +119,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
           cmd: echo "beginning" && KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && echo "after kinit" 1>&2 && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1 && echo "49 and 1"
@@ -136,7 +153,7 @@ pods:
           NAMENODE: true
       format:
         goal: FINISHED
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -162,7 +179,7 @@ pods:
           NAMENODE: true
       bootstrap:
         goal: FINISHED
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -188,7 +205,7 @@ pods:
           NAMENODE: true
       zkfc:
         goal: RUNNING
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -214,7 +231,7 @@ pods:
           ZKFC: true
       zkfc-format:
         goal: FINISHED
-        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+        cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -244,19 +261,27 @@ pods:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-      - http://mgummelt-mesos.s3.amazonaws.com/trust.jks
-      - http://mgummelt-mesos.s3.amazonaws.com/server.jks
-    {{#ENABLE_VIRTUAL_NETWORK}}
+
+{{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
-    {{/ENABLE_VIRTUAL_NETWORK}}
+{{/ENABLE_VIRTUAL_NETWORK}}
 
-    {{#KERBEROS_ENABLED}}
+{{#KERBEROS_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-    {{/KERBEROS_ENABLED}}
+{{/KERBEROS_ENABLED}}
+
+{{#TLS_ENABLED}}
+      trust-store:
+        secret: {{TLS_TRUST_STORE_SECRET_PATH}}
+        file: trust.jks.base64
+      key-store:
+        secret: {{TLS_KEY_STORE_SECRET_PATH}}
+        file: server.jks.base64
+{{/TLS_ENABLED}}
 
     tasks:
       node:
@@ -264,6 +289,8 @@ pods:
         cmd: >
                ./bootstrap &&
                base64 -d hdfs.keytab.base64 > hdfs.keytab &&
+               base64 -d trust.jks.base64 > trust.jks &&
+               base64 -d server.jks.base64 > server.jks &&
                mkdir -p /var/lib/hadoop-hdfs &&
                chown root /var/lib/hadoop-hdfs &&
                ./{{HDFS_VERSION}}/bin/hdfs datanode
