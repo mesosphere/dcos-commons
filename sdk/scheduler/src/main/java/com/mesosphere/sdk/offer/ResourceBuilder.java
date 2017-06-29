@@ -10,6 +10,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +20,9 @@ import java.util.UUID;
  * Constructs Mesos {@link Resource} protobufs.
  */
 public class ResourceBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(ResourceBuilder.class);
+
+
     private final String resourceName;
     private Optional<String> principal;
     private Value value;
@@ -214,6 +219,11 @@ public class ResourceBuilder {
             } else {
                 builder.setReservation(reservationInfo);
             }
+        }
+
+        // TODO: Verify with mpark how this should work in and outside of resource refinement.
+        if (ResourceUtils.hasPersistenceId(builder.build())) {
+            builder.clearRole();
         }
 
         if (diskContainerPath.isPresent()) {

@@ -112,6 +112,10 @@ public class ResourceUtils {
         return ResourceUtils.getResourceId(resource).isPresent();
     }
 
+    public static boolean hasPersistenceId(Resource resource) {
+        return ResourceUtils.getPersistenceId(resource).isPresent();
+    }
+
     public static Optional<String> getPersistenceId(Resource resource) {
         if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
             return Optional.of(resource.getDisk().getPersistence().getId());
