@@ -15,7 +15,8 @@ pods:
       - {{CLIENT_STATSD_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{CNI_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       broker:

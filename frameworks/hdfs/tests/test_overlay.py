@@ -8,14 +8,13 @@ import sdk_install as install
 import sdk_networks as networks
 
 
-OVERLAY_OPTIONS = {'service':{'virtual_network':True}}
 
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                    additional_options=OVERLAY_OPTIONS)
+                    additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
 
 def setup_function(function):

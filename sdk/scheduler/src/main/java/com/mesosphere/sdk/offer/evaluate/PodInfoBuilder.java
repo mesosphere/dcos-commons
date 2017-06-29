@@ -145,8 +145,13 @@ public class PodInfoBuilder {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonIdUtils.emptyTaskId())
-                .setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS))
                 .setSlaveId(CommonIdUtils.emptyAgentId());
+
+        if (!podInstance.getPod().getNetworks().isEmpty()) {
+            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false));
+        } else {
+            taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
+        }
 
         // create default labels:
         taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
@@ -374,7 +379,7 @@ public class PodInfoBuilder {
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
     }
 
-    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec, boolean addExtraParameters) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
 
         if (!podSpec.getImage().isPresent()
@@ -387,7 +392,7 @@ public class PodInfoBuilder {
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (podSpec.getImage().isPresent()) {
+        if (podSpec.getImage().isPresent() && addExtraParameters) {
             containerInfo.getMesosBuilder()
                     .setImage(Protos.Image.newBuilder()
                             .setType(Protos.Image.Type.DOCKER)
@@ -397,18 +402,24 @@ public class PodInfoBuilder {
 
         if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
-                    podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+                    podSpec.getNetworks().stream().map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
         }
 
-        if (!podSpec.getRLimits().isEmpty()) {
+        if (!podSpec.getRLimits().isEmpty() && addExtraParameters) {
             containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
         }
 
-        for (Protos.Volume secretVolume : secretVolumes) {
-            containerInfo.addVolumes(secretVolume);
+        if (addExtraParameters) {
+            for (Protos.Volume secretVolume : secretVolumes) {
+                containerInfo.addVolumes(secretVolume);
+            }
         }
 
         return containerInfo.build();
+    }
+
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+        return getContainerInfo(podSpec, true);
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
@@ -433,7 +444,10 @@ public class PodInfoBuilder {
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            throw new IllegalStateException("Network-labels is not implemented, yet");
+            List<Protos.Label> labelList = networkSpec.getLabels().entrySet().stream()
+                    .map(e -> Protos.Label.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build())
+                    .collect(Collectors.toList());
+            netInfoBuilder.setLabels(Protos.Labels.newBuilder().addAllLabels(labelList).build());
         }
 
         return netInfoBuilder.build();

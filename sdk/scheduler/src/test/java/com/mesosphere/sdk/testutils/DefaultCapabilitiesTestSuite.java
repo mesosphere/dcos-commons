@@ -13,11 +13,10 @@ import static org.mockito.Mockito.when;
  */
 public abstract class DefaultCapabilitiesTestSuite {
     private static ResourceRefinementCapabilityContext context;
-    private static Capabilities capabilities;
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public DefaultCapabilitiesTestSuite() {
-        capabilities = mock(Capabilities.class);
+    @BeforeClass
+    public static final void beforeAllSuites() throws Exception {
+        Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
         when(capabilities.supportsCNINetworking()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
@@ -26,15 +25,12 @@ public abstract class DefaultCapabilitiesTestSuite {
         when(capabilities.supportsFileBasedSecrets()).thenReturn(true);
         when(capabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         when(capabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
-    }
-
-    @BeforeClass
-    public static void beforeAll() throws Exception {
         context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+
     }
 
     @AfterClass
-    public static void afterAll() {
+    public static final void afterAll() {
         context.reset();
     }
 }
