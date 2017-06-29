@@ -10,8 +10,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -20,9 +18,6 @@ import java.util.UUID;
  * Constructs Mesos {@link Resource} protobufs.
  */
 public class ResourceBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(ResourceBuilder.class);
-
-
     private final String resourceName;
     private Optional<String> principal;
     private Value value;
@@ -193,16 +188,31 @@ public class ResourceBuilder {
     }
 
     public Resource build() {
+        // In the pre-resource-refinment world (< 1.9), Mesos will expect
+        // Resources to have role and reservation set.
+        //
+        // In the post-resource-refinement world (1.10+), Mesos will expect
+        // Resources to have reservations (and ONLY reservations) set.
+
         Resource.Builder builder =
                 mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
         builder.setName(resourceName)
                 .setRole(Constants.ANY_ROLE)
                 .setType(value.getType());
 
-        if (role.isPresent() && !Capabilities.getInstance().supportsPreReservedResources()) {
+        boolean preReservedSupported = Capabilities.getInstance().supportsPreReservedResources();
+
+        // Set the role (<1.9) or clear it (1.10+)
+        if (role.isPresent() && !preReservedSupported) {
             builder.setRole(role.get());
+        } else if (preReservedSupported) {
+            builder.clearRole();
         }
 
+        // Set the reservation (<1.9) or reservations (1.10+) for Resources that do not
+        // already have a resource id.
+        // todo (bwood): @gabriel, why do we not just re-run if resource id is already set?
+        // is the reservation setting destructive / non-repeatable?
         if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
             Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
@@ -215,15 +225,9 @@ public class ResourceBuilder {
                             .setType(Resource.ReservationInfo.Type.STATIC));
                 }
                 builder.addReservations(reservationInfo);
-                builder.clearRole();
             } else {
                 builder.setReservation(reservationInfo);
             }
-        }
-
-        // TODO: Verify with mpark how this should work in and outside of resource refinement.
-        if (ResourceUtils.hasPersistenceId(builder.build())) {
-            builder.clearRole();
         }
 
         if (diskContainerPath.isPresent()) {
