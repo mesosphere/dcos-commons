@@ -168,8 +168,11 @@ public class MesosResourcePool {
         Map<String, Value> pool = reservableMergedPoolByRole.get(preReservedRole);
         if (pool == null) {
             logger.info("No unreserved resources available in role: {}", preReservedRole);
+            logger.info("reservableMergedPoolByRole {}", reservableMergedPoolByRole.toString());
             return Optional.empty();
         }
+
+        logger.info("Role {} has resources", preReservedRole);
 
         Value availableValue = pool.get(name);
 

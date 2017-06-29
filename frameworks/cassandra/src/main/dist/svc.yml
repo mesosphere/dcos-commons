@@ -41,6 +41,12 @@ pods:
         cpus: 1
         memory: 1024
     tasks:
+      agent:
+        cpus: 0.5
+        memory: 500
+        goal: RUNNING
+        cmd: >
+          ./bootstrap --get-task-ip && env && sleep 100000000
       server:
         goal: RUNNING
         resource-set: server-resources
@@ -157,7 +163,7 @@ plans:
         strategy: serial
         pod: node
         steps:
-          - default: [[server]]
+          - default: [[server], [agent]]
   replace:
     strategy: serial
     phases:
