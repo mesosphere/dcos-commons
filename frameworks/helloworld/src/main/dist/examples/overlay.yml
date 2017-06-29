@@ -10,6 +10,7 @@ pods:
     # join the 'dcos' overlay network
     networks:
       dcos:
+       labels: "key1:val1,key2:val2"
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -34,6 +35,7 @@ pods:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
     networks:
       dcos:
+        labels:
     image: ubuntu:14.04
     resource-sets:
       hello-resource:

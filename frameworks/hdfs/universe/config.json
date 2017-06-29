@@ -10,6 +10,11 @@
           "type":"string",
           "default":"hdfs"
         },
+        "virtual_networks": {
+          "description": "Enable DC/OS Virtual Networking",
+          "type": "boolean",
+          "default": false
+        },
         "user": {
           "type": "string",
           "description": "The linux user used to run the scheduler and all executors.",
@@ -88,11 +93,6 @@
             }
           }
         }
-      },
-      "virtual_network": {
-        "description": "Enable DC/OS Virtual Network",
-        "type": "boolean",
-        "default": false
       }
     },
     "journal_node":{
@@ -118,6 +118,16 @@
           "description":"Journal node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required":[
@@ -150,6 +160,16 @@
           "description":"Name node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required":[
@@ -207,6 +227,16 @@
           "description":"Data node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required":[

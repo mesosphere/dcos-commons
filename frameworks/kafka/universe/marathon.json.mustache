@@ -53,9 +53,11 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.virtual_network}}
+    {{#service.virtual_networks}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    {{/service.virtual_network}}
+    "VIRTUAL_NETWORK_NAME": "{{brokers.virtual_network}}",
+    "CNI_PLUGIN_LABELS": "{{brokers.cni_plugin_labels}}",
+    {{/service.virtual_networks}}
 
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.2.1",

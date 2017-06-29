@@ -13,7 +13,7 @@ from tests.config import (
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options={'service':{'virtual_network':True}})
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
 
 def teardown_module(module):

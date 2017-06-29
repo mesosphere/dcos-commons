@@ -28,6 +28,11 @@
             "type": "string",
             "default": ""
           },
+          "virtual_networks": {
+            "description": "Enable DC/OS Virtual Networking",
+            "type": "boolean",
+            "default": false
+          },
           "secret_name": {
             "title": "Credential secret name (optional)",
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -57,10 +62,15 @@
             "type": "string",
             "default": ""
           },
-          "virtual_network":{
-            "description": "Enable DC/OS Virtual Network",
-            "type": "boolean",
-            "default": false
+          "virtual_network": {
+            "description": "Name of virtual network to join",
+            "type": "string",
+            "default": "dcos"
+          },
+          "cni_plugin_labels": {
+            "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+            "type": "string",
+            "default": ""
           },
           "cpus": {
             "title": "CPU count",

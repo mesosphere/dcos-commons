@@ -25,8 +25,8 @@
           "type": "string",
           "default": ""
         },
-        "virtual_network": {
-          "description": "Enable DC/OS Virtual Network",
+        "virtual_networks": {
+          "description": "Enable DC/OS Virtual Networking",
           "type": "boolean",
           "default": false
         },
@@ -122,6 +122,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -179,6 +184,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -236,6 +246,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -293,6 +308,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [

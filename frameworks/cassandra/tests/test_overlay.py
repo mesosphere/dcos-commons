@@ -19,16 +19,13 @@ VERIFY_DELETION_JOB = get_verify_deletion_job()
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 
-OVERLAY_OPTIONS = {'service':{'virtual_network':True}}
-
-
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     utils.gc_frameworks()
 
     # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
-                    additional_options=OVERLAY_OPTIONS)
+                    additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
     plan.wait_for_completed_deployment(PACKAGE_NAME)
     tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
     for job in TEST_JOBS:

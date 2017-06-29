@@ -28,9 +28,11 @@
 
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
-    {{#service.virtual_network}}
+    {{#service.virtual_networks}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    {{/service.virtual_network}}
+    "VIRTUAL_NETWORK_NAME": "{{node.virtual_network}}",
+    "CNI_PLUGIN_LABELS": "{{node.cni_plugin_labels}}",
+    {{/service.virtual_networks}}
     "NODE_CPUS": "{{node.cpus}}",
     "NODE_MEM": "{{node.mem}}",
     "NODE_DISK": "{{node.disk}}",
