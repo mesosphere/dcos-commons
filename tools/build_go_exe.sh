@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # exit immediately on failure
-set -e -x
+set -e
 
 if [ $# -lt 2 ]; then
     echo "Syntax: $0 <repo-relative/path/to/executable/> <windows|darwin|linux>"
@@ -42,7 +42,6 @@ case "$GO_VERSION" in
         ;;
 esac
 
-# I am so conrfused why this exists
 # Add symlink from GOPATH which points into the repository directory, if necessary:
 SYMLINK_LOCATION="$GOPATH_ORG/$REPO_NAME"
 if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_DIR" ] && [ ! -d "$SYMLINK_LOCATION" -o "$SYMLINK_LOCATION" != "$REPO_ROOT_DIR" ]; then
