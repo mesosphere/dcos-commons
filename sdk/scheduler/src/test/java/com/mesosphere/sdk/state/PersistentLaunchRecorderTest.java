@@ -28,7 +28,6 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
             .setSlaveId(TestConstants.AGENT_ID)
             .build();
 
-    /** Use a new beforeAll name to avoid shadowing parent final void */
     @BeforeClass
     public static void beforeAll() throws Exception {
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
