@@ -73,7 +73,7 @@ fi
 
 _notify_github pending "SDK build running"
 
-./gradlew clean jar --stacktrace
+./gradlew clean jar
 if [ $? -ne 0 ]; then
   _notify_github failure "SDK build failed"
   exit 1

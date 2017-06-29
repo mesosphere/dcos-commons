@@ -1,5 +1,5 @@
 #!/bin/bash
-set  -x
+set -e
 
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1

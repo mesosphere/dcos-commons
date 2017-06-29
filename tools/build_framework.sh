@@ -1,7 +1,5 @@
 #!/bin/bash
-
-# Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
-set -x
+set -e
 
 if [ $# -lt 2 ]; then
     echo "Syntax: $0 <framework-name> </path/to/framework> [local|aws]"
@@ -28,13 +26,6 @@ CLI_EXE_NAME=${CLI_EXE_NAME:=dcos-${FRAMEWORK_NAME}}
 BUILD_BOOTSTRAP=${BUILD_BOOTSTRAP:=yes}
 
 source $TOOLS_DIR/init_paths.sh
-
-# GitHub notifier config
-_notify_github() {
-    GIT_REPOSITORY_ROOT=$REPO_ROOT_DIR ${TOOLS_DIR}/github_update.py $1 build:${FRAMEWORK_NAME} $2
-}
-
-_notify_github pending "Build running"
 
 # Verify airgap (except for hello world)
 if [ $FRAMEWORK_NAME != "hello-world" ];
