@@ -6,7 +6,7 @@ defaults:
       layout: "gh-basic"
       stylesheet: "gh-basic.css"
       menu_order: 999
-plugins:
+gems:
   - jekyll-redirect-from
 sass:
   sass_dir: _sass
