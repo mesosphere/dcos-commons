@@ -288,7 +288,10 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 
 ## Secrets
 
-Enterprise DC/OS provides a secrets store to control storage and provide access to sensitive data such as database passwords, private keys, and API tokens. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+
+**Note:** Dcos-commons SDK supports secrets in Enterprise DC/OS 1.10 upwards (The SDK does not support secrets in Enterprise DC/OS 1.9).
+
 
 The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
