@@ -114,6 +114,33 @@ volume:
 ```
 
 ---
+### Integration Testing The Frameworks
+To run the framework integration tests hosted in this repository, use a Docker container from the [CI Dockerfile](Dockerfile) or similarly provisioned environment and do the following:
+1. Build and upload (to local or AWS) the desired framework
+  ```
+  export STUB_UNIVERSE_URL_PATH=foo/bar
+  cd frameworks/cassandra/ && ./build.sh aww
+  ```
+2. Log the CLI into the cluster (this will be used by shakdown to test)
+  ```
+  CLUSTER_URL=http://123.123.123.1
+  dcos config set core.dcos_url $CLUSTER_URL
+  dcos config set core.ssl_verify false
+  tools/./dcos_login.py
+  ```
+3. Add the stub universe URLs that are now being hosted to your cluster:
+  ```
+  dcos package repo add --index=0 --name=cassandra $STUB_UNIVERSE_URL
+  ```
+4. Add the SSH key that shakedown will use to `~/.ssh/id_rsa`
+5. Run the integration tests
+  ```
+  py.test frameworks/cassandra/tests/
+  ```
+
+[The CI Testing Script](test.sh) is checked in to provide an example of how to do this specifically.
+
+---
 ### References
 * [Quick Start Guide - Java](https://mesosphere.github.io/dcos-commons/tutorials/quick-start-java.html)
 * [Developer Guide](https://mesosphere.github.io/dcos-commons/developer-guide.html)
