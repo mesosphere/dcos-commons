@@ -74,12 +74,12 @@
         ]
       },
       "etcd": {
-        "description": "etcd properties",
+        "description": "Start a 3 node etcd cluster. Required for Portworx if you don't have either etcd or consul already running",
         "type": "object",
         "properties": {
           "enabled": {
             "title": "Start etcd",
-            "description": "Start a 3 node etcd cluster. Required for Portworx if you don't have either etcd or consul already running. If disabled, please enter the external etcd server IP on the service tab.",
+            "description": "If disabled, please enter the external etcd server IP on the service tab.",
             "type": "boolean",
             "default":true
           },

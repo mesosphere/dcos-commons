@@ -10,21 +10,40 @@ pods:
         cpus: 0.3
         memory: 512
     placement: {{NODE_PLACEMENT}}
+    uris:
+      - https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
     tasks:
       install:
         goal: FINISHED
         resource-set: px-resources
         cmd: >
+
                 {{#LIGHTHOUSE_ENABLED}}
+                if ! [ -x "$(command -v curl)" ]; then
+                    echo 'Error: curl is not installed.' >&2
+                    exit 1
+                fi
+
+
                 if [ $POD_INSTANCE_INDEX -eq "0" ]; then
                     authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
-                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
+                    token=$(curl -X POST \
                         -H "Accept:application/json" -H "Authorization:Basic $authkey" \
                         http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
                 fi
-                {{/LIGHTHOUSE_ENABLED}}
 
-                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} | jq -r ".node" | jq -r ".value"| jq -r ".token")
+                chmod +x ${MESOS_SANDBOX}/jq-linux64
+
+                PWX_TOKEN=$(curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
+                    ${MESOS_SANDBOX}/jq-linux64 -r ".node" |\
+                    ${MESOS_SANDBOX}/jq-linux64 -r ".value"|\
+                    ${MESOS_SANDBOX}/jq-linux64 -r ".token")
+
+                if [ -z "$PWX_TOKEN" ]; then
+                    echo 'Error getting PWX token from lighthouse.' >&2
+                    exit 1
+                fi
+                {{/LIGHTHOUSE_ENABLED}}
 
                 echo "[Unit]
                     Description=Portworx Container
@@ -37,11 +56,10 @@ pods:
                     StartLimitBurst=10000
                     TimeoutStartSec=0
                     Restart=always
-                    ExecStartPre=/usr/bin/ping -c 1 master.mesos
+                    ExecStartPre=`which ping` -c 1 master.mesos
                     ExecStartPre=-/usr/bin/docker stop %n
                     ExecStartPre=-/usr/bin/docker rm -f %n
                     ExecStart=/usr/bin/docker run --net=host --privileged=true \
-                          --cgroup-parent=/system.slice/px-enterprise.service \
                           -v /run/docker/plugins:/run/docker/plugins     \
                           -v /var/lib/osd:/var/lib/osd:shared            \
                           -v /dev:/dev                                   \
@@ -69,12 +87,6 @@ pods:
                 systemctl daemon-reload &&
                 systemctl enable portworx && 
                 systemctl start portworx
-
-        readiness-check:
-          cmd: /opt/pwx/bin/pxctl status
-          interval: 5
-          delay: 0
-          timeout: 60
 
   etcd-cluster:
     count: 3
