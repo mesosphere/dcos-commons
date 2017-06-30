@@ -235,7 +235,7 @@
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY_HTTP}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.web.authentication.kerberos.keytab</name>
@@ -251,7 +251,7 @@
     </property>
     <property>
         <name>dfs.datanode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.datanode.data.dir.perm</name>
@@ -267,7 +267,7 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
 {{/NAMENODE}}
 
@@ -279,7 +279,7 @@
     </property>
     <property>
         <name>dfs.namenode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
 {{/ZKFC}}
 
@@ -291,11 +291,11 @@
     </property>
     <property>
         <name>dfs.journalnode.kerberos.principal</name>
-        <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
-        <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
     </property>
 {{/JOURNALNODE}}
 {{/SECURITY_ENABLED}}
