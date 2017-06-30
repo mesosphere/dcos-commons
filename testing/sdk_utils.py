@@ -1,7 +1,6 @@
 import sys
 import shakedown
-import time
-import traceback
+
 
 def out(msg):
     '''Emit an informational message on test progress during test runs'''
@@ -35,21 +34,9 @@ def gc_frameworks():
         shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
 
 
-def try_throws_n_times(predicate, attempts=1, sleep_seconds=0):
-    for index in range(attempts):
-        try:
-            return predicate()
-        except:
-            if index == attempts-1:
-                raise
-            out("Encountered an exception: {}".format(traceback.format_exc()))
-
-        time.sleep(sleep_seconds)
-
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
     if shakedown.dcos_version_less_than("1.10"):
         return "test_integration_" + service_name
     return "/test/integration/" + service_name
-
