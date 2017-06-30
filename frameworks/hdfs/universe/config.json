@@ -241,15 +241,15 @@
           "type": "object",
           "description": "Security configuration properties.",
           "properties": {
+            "enabled": {
+              "description": "Enable TLS and Kerberos support.",
+              "type": "boolean",
+              "default": false
+            },
             "tls": {
               "type": "object",
               "description": "TLS configuration properties.",
               "properties": {
-                "enabled": {
-                  "description": "Enable TLS support (requires Strict mode).",
-                  "type": "boolean",
-                  "default": false
-                },
                 "trust_store_secret_path": {
                   "type": "string",
                   "description": "A DC/OS Secret Store path.  The contents of this secret should be a Java Trust Store."
@@ -264,11 +264,6 @@
               "type": "object",
               "description": "Kerberos configuration properties.",
               "properties": {
-                "enabled": {
-                  "description": "Enable kerberos authentication.",
-                  "type": "boolean",
-                  "default": false
-                },
                 "keytab_secret_path": {
                   "type": "string",
                   "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."

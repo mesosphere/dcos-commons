@@ -32,13 +32,11 @@
         <name>ha.zookeeper.parent-znode</name>
         <value>{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
-    {{#TLS_ENABLED}}
+{{#SECURITY_ENABLED}}
     <property>
         <name>hadoop.ssl.hostname.verifier</name>
         <value>ALLOW_ALL</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
         <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
@@ -55,5 +53,5 @@
         <name>hadoop.rpc.protection</name>
         <value>privacy</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+{{/SECURITY_ENABLED}}
 </configuration>

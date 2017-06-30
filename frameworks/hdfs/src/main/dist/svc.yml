@@ -7,27 +7,23 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
 {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
 {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#KERBEROS_ENABLED}}
+{{#SECURITY_ENABLED}}
     secrets:
       keytab:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-{{/KERBEROS_ENABLED}}
-
-{{#TLS_ENABLED}}
       trust-store:
         secret: {{TLS_TRUST_STORE_SECRET_PATH}}
         file: trust.jks.base64
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/TLS_ENABLED}}
+{{/SECURITY_ENABLED}}
 
     tasks:
       node:
@@ -45,11 +41,6 @@ pods:
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -59,14 +50,17 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           JOURNALNODE: true
   name:
@@ -74,28 +68,24 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
 
 {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
 {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#KERBEROS_ENABLED}}
+{{#SECURITY_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-{{/KERBEROS_ENABLED}}
-
-{{#TLS_ENABLED}}
       trust-store:
         secret: {{TLS_TRUST_STORE_SECRET_PATH}}
         file: trust.jks.base64
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/TLS_ENABLED}}
+{{/SECURITY_ENABLED}}
 
     resource-sets:
       name-resources:
@@ -127,11 +117,6 @@ pods:
           delay: 0
           timeout: 60
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -141,14 +126,17 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       format:
@@ -156,25 +144,23 @@ pods:
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       bootstrap:
@@ -182,25 +168,23 @@ pods:
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       zkfc:
@@ -208,25 +192,23 @@ pods:
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           ZKFC: true
       zkfc-format:
@@ -234,25 +216,23 @@ pods:
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           ZKFC: true
   data:
@@ -260,28 +240,24 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
 
 {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       dcos:
 {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#KERBEROS_ENABLED}}
+{{#SECURITY_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
         file: hdfs.keytab.base64
-{{/KERBEROS_ENABLED}}
-
-{{#TLS_ENABLED}}
       trust-store:
         secret: {{TLS_TRUST_STORE_SECRET_PATH}}
         file: trust.jks.base64
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/TLS_ENABLED}}
+{{/SECURITY_ENABLED}}
 
     tasks:
       node:
@@ -308,11 +284,6 @@ pods:
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
         configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: {{MESOS_SANDBOX}}/krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
-          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -322,14 +293,17 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
+          {{#SECURITY_ENABLED}}
+          krb5-conf:
+             template: {{MESOS_SANDBOX}}/krb5.conf
+             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           ssl-server:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-          {{/TLS_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet

@@ -17,12 +17,7 @@
         <name>dfs.cluster.administrators</name>
         <value>{{ADMINISTRATORS}}</value>
     </property>
-{{#TLS_ENABLED}}
-    <property>
-        <name>dfs.http.policy</name>
-        <value>HTTPS_ONLY</value>
-    </property>
-{{/TLS_ENABLED}}
+
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
@@ -194,7 +189,12 @@
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
 
-{{#KERBEROS_ENABLED}}
+{{#SECURITY_ENABLED}}
+    <property>
+        <name>dfs.http.policy</name>
+        <value>HTTPS_ONLY</value>
+    </property>
+
     <property>
         <name>dfs.data.transfer.protection</name>
         <value>privacy</value>
@@ -298,5 +298,5 @@
         <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
 {{/JOURNALNODE}}
-{{/KERBEROS_ENABLED}}
+{{/SECURITY_ENABLED}}
 </configuration>

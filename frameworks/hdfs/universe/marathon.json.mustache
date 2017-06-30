@@ -59,22 +59,19 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#hdfs.security.tls.enabled}}
-    "TLS_ENABLED": "{{hdfs.security.tls.enabled}}",
-    "TASKCFG_ALL_TLS_ENABLED": "{{hdfs.security.tls.enabled}}",
+    {{#hdfs.security.enabled}}
+    "SECURITY_ENABLED": "{{hdfs.security.enabled}}",
+    "TASKCFG_ALL_SECURITY_ENABLED": "{{hdfs.security.enabled}}",
+
     "TLS_TRUST_STORE_SECRET_PATH": "{{hdfs.security.tls.trust_store_secret_path}}",
     "TLS_KEY_STORE_SECRET_PATH": "{{hdfs.security.tls.key_store_secret_path}}",
-    {{/hdfs.security.tls.enabled}}
 
-    {{#hdfs.security.kerberos.enabled}}
-    "KERBEROS_ENABLED": "{{hdfs.security.kerberos.enabled}}",
-    "TASKCFG_ALL_KERBEROS_ENABLED": "{{hdfs.security.kerberos.enabled}}",
     "KERBEROS_KEYTAB_SECRET_PATH": "{{hdfs.security.kerberos.keytab_secret_path}}",
     "KRB5_CONF_URI": "{{hdfs.security.kerberos.krb5_conf_uri}}",
     "TASKCFG_ALL_KERBEROS_PRIMARY": "{{hdfs.security.kerberos.primary}}",
     "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{hdfs.security.kerberos.primary_http}}",
     "TASKCFG_ALL_KERBEROS_REALM": "{{hdfs.security.kerberos.realm}}",
-    {{/hdfs.security.kerberos.enabled}}
+    {{/hdfs.security.enabled}}
 
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
@@ -116,9 +113,9 @@
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
-    {{#hdfs.security.kerberos.enabled}}
+    {{#hdfs.security.enabled}}
     "{{hdfs.security.kerberos.krb5_conf_uri}}",
-    {{/hdfs.security.kerberos.enabled}}
+    {{/hdfs.security.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{
