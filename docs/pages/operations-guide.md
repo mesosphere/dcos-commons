@@ -1,6 +1,6 @@
 ---
 title: SDK Operations Guide
-menu_order: 1
+menu_order: 2
 redirect_from: "/ops-guide"
 ---
 
