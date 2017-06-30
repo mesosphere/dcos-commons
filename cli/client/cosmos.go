@@ -64,13 +64,15 @@ type cosmosErrorResponse struct {
 }
 
 func createBadVersionError(data cosmosData) error {
-	updateVersion := fmt.Sprintf("\"%s\"", data.UpdateVersion)
-	validVersions := PrettyPrintSlice(data.ValidVersions)
-
-	errorString := `Unable to update %s to requested version: %s
-Valid versions are: %s`
-
-	return fmt.Errorf(errorString, config.ServiceName, updateVersion, validVersions)
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("Unable to update %s to requested version: \"%s\"\n", config.ServiceName, data.UpdateVersion))
+	if len(data.ValidVersions) > 0 {
+		validVersions := PrettyPrintSlice(data.ValidVersions)
+		buf.WriteString(fmt.Sprintf("Valid package versions are: %s", validVersions))
+	} else {
+		buf.WriteString("No valid package versions to update to.")
+	}
+	return fmt.Errorf(buf.String())
 }
 func createJSONMismatchError(data cosmosData) error {
 	var buf bytes.Buffer

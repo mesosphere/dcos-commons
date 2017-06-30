@@ -103,8 +103,9 @@ func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
 }
 
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
-	// create 400 response for BadVersionUpdate
+	// create 400 responses for BadVersionUpdate
 	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json", "testdata/output/bad-version.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json", "testdata/output/bad-version-no-versions.txt")
 }
 
 func (suite *CosmosTestSuite) TestJSONMismatchErrorResponse() {
