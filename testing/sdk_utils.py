@@ -1,7 +1,6 @@
 import sys
 import shakedown
-import time
-import traceback
+
 
 def out(msg):
     '''Emit an informational message on test progress during test runs'''
@@ -33,15 +32,3 @@ def gc_frameworks():
     '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
     for host in shakedown.get_private_agents():
         shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
-
-
-def try_throws_n_times(predicate, attempts=1, sleep_seconds=0):
-    for index in range(attempts):
-        try:
-            return predicate()
-        except:
-            if index == attempts-1:
-                raise
-            out("Encountered an exception: {}".format(traceback.format_exc()))
-
-        time.sleep(sleep_seconds)
