@@ -112,7 +112,7 @@ pods:
         cmd: ./bootstrap && base64 -d hdfs.keytab.base64 > hdfs.keytab && base64 -d trust.jks.base64 > trust.jks && base64 -d server.jks.base64 > server.jks && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
-          cmd: echo "beginning" && KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && echo "after kinit" 1>&2 && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1 && echo "49 and 1"
+          cmd: KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/name-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node 2>&1
           interval: 5
           delay: 0
           timeout: 60
