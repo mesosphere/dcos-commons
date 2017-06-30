@@ -23,5 +23,6 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@pytest.skipif('os.environ.get("SECURITY") == "strict"')
 def test_install():
     networks.check_task_network("template-0-node")

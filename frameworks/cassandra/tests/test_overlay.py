@@ -3,6 +3,8 @@ import pytest
 
 import shakedown
 
+# Do not use import *; it makes it harder to determine the origin of config
+# items
 from tests.config import *
 
 import sdk_install as install
@@ -43,6 +45,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@pytest.skipif('os.environ.get("SECURITY") == "strict"')
 def test_service_overlay_health():
     shakedown.service_healthy(PACKAGE_NAME)
     node_tasks = (
@@ -57,6 +60,7 @@ def test_service_overlay_health():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@pytest.skipif('os.environ.get("SECURITY") == "strict"')
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -74,6 +78,7 @@ def test_functionality():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@pytest.skipif('os.environ.get("SECURITY") == "strict"')
 def test_endpoints():
     endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
