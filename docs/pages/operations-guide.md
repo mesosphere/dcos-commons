@@ -288,7 +288,9 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 
 ## Secrets
 
-Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
+
+**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
 **Note:** Dcos-commons SDK supports secrets in Enterprise DC/OS 1.10 upwards (The SDK does not support secrets in Enterprise DC/OS 1.9).
 
