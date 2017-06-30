@@ -697,6 +697,8 @@ Once we know the configuration is good, we can add it to our source control for 
 
 ## Updating service configuration
 
+**TODO: Sunil**
+
 Above, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.
 
 Configuration updates are performed by updating the process environment of the Scheduler. The Scheduler runs as a Marathon application, so we can perform the change there.
