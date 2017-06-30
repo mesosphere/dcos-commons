@@ -4,13 +4,15 @@ scheduler:
 pods:
   journal:
     count: 3
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
+      {{VIRTUAL_NETWORK_NAME_JOURNAL}}:
+        labels: {{CNI_PLUGIN_LABELS_JOURNAL}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:
@@ -51,13 +53,15 @@ pods:
           JOURNALNODE: true
   name:
     count: 2
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
+      {{VIRTUAL_NETWORK_NAME_NAME}}:
+        labels: {{CNI_PLUGIN_LABELS_NAME}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     resource-sets:
       name-resources:
@@ -204,22 +208,20 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
+      {{VIRTUAL_NETWORK_NAME_DATA}}:
+        labels: {{CNI_PLUGIN_LABELS_DATA}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:
         goal: RUNNING
-        cmd: >
-               ./bootstrap &&
-               mkdir -p /var/lib/hadoop-hdfs &&
-               chown root /var/lib/hadoop-hdfs &&
-               ./{{HDFS_VERSION}}/bin/hdfs datanode
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:

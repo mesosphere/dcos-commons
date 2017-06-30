@@ -18,7 +18,7 @@
           "user": {
             "type": "string",
             "description": "The user that the service will run as.",
-            "default": "root"
+            "default": "nobody"
           },
           "principal": {
             "description": "The principal for the Kafka service instance.",
@@ -35,15 +35,16 @@
             "type":"string",
             "default":"hostname:MAX_PER:1"
           },
-          "virtual_network":{
-            "description": "Enable DC/OS Virtual Network",
+          "virtual_networks": {
+            "description": "Enable DC/OS Virtual Networking",
             "type": "boolean",
             "default": false
           },
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",
-            "default":"serial"
+            "default":"serial",
+            "enum": ["serial", "serial-canary", "parallel-canary", "parallel"]
           }
         },
         "required":[
@@ -103,6 +104,16 @@
             "description": "Port for broker to listen on",
             "type": "integer",
             "default": 0
+          },
+          "virtual_network": {
+            "description": "Name of virtual network to join",
+            "type": "string",
+            "default": "dcos"
+          },
+          "cni_plugin_labels": {
+            "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+            "type": "string",
+            "default": ""
           }
         },
         "required":[

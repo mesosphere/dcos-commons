@@ -3,6 +3,9 @@ import json
 import shakedown
 
 
+ENABLE_VIRTUAL_NETWORKS_OPTIONS = {'service':{'virtual_networks':True}}
+
+
 def check_task_network(task_name, expected_network_name="dcos"):
     """Tests whether a task (and it's parent pod) is on a given network
     """

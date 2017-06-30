@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.google.common.base.Strings;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
@@ -476,7 +477,12 @@ public class YAMLToInternalMappers {
             builder.portMappings(Collections.emptyMap());
         }
 
-        //TODO(arand) implement network labels
+        if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
+            builder.networkLabels(rawNetwork.getValidadedLabels()
+                    .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
+        } else {
+            builder.networkLabels(Collections.emptyMap());
+        }
 
         return builder.build();
     }

@@ -1,6 +1,6 @@
 {
-  "packagingVersion": "2.0",
-  "minDcosReleaseVersion": "1.9",
+  "packagingVersion": "3.0",
+  "minDcosReleaseVersion": "1.8",
   "name": "template",
   "version": "{{package-version}}",
   "maintainer": "support@YOURNAMEHERE.COM",

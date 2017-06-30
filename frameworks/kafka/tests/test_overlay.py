@@ -18,7 +18,7 @@ def setup_module(module):
         PACKAGE_NAME,
         DEFAULT_BROKER_COUNT,
         service_name=SERVICE_NAME,
-        additional_options = {'service':{'virtual_network':True}})
+        additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
     plan.wait_for_completed_deployment(PACKAGE_NAME)
 
 

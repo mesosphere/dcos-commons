@@ -4,6 +4,7 @@ scheduler:
 pods:
   hello:
     count: 2
+    user: {{SERVICE_USER}}
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}

@@ -286,6 +286,46 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
   
   
 
+## Secrets
+
+Enterprise DC/OS provides Secrets feature.  Secrets enable secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at `docs.mesosphere.com`.
+
+The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the SandBox will be created. Also, value of the environment variable `Secret_Environment_Key1` will be set to the content of this Secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1` as shown below.
+
+```yaml
+name: secret-app/instance1
+pods:
+  pod-with-secret:
+    count: {{COUNT}}
+    # add secret values to pod's sandbox
+    secrets:
+      secret_name1:
+        secret: secret-app/Secret_Path1
+        env-key: Secret_Environment_Key
+        file: data/somePath/Secret_FilePath1
+      secret_name2:
+        secret: secret-app/instance1/Secret_Path2
+        file: data/somePath/Secret_FilePath2
+      secret_name3:
+        secret: secret-app/Secret_Path3
+        env-key: Secret_Environment_Key2
+    tasks:
+      ....
+```      
+
+All tasks defined in the pod will have access to Secret data. If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
+
+`env-key` or `file` can be left empty. The Secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos, if referenced in pod definition as shown above. You can make a Secret available as an environment variable, as a file within the Sandbox, or you can use both. 
+
+Please note Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
+
+### Authorization for Secrets
+
+The path of a Secret defines which application ids can have access. You can think Secret paths as namespaces. Applications that are under the same namespace can *only* read the Secret's content.
+For the example given above,  the Secret with path `secret-app/Secret_Path1` can only be accessed by applications with id `secret-app` or any other id under it. Applications with ids `secret-app/instance1` and `secret-app/instance2/type1` can all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with id `secret-app`. 
+
+
+  
 ## Placement Constraints
 
 Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.

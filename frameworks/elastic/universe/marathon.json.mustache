@@ -3,6 +3,7 @@
   "cpus": 0.5,
   "mem": 2048,
   "instances": 1,
+  "user":"{{service.user}}",
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx1024M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./elastic-scheduler/bin/elastic ./elastic-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
@@ -41,9 +42,17 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.virtual_network}}
+    {{#service.virtual_networks}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    {{/service.virtual_network}}
+    "VIRTUAL_NETWORK_NAME_MASTER": "{{master_nodes.virtual_network}}",
+    "CNI_PLUGIN_LABELS_MASTER": "{{master_nodes.cni_plugin_labels}}",
+    "VIRTUAL_NETWORK_NAME_DATA": "{{data_nodes.virtual_network}}",
+    "CNI_PLUGIN_LABELS_DATA": "{{data_nodes.cni_plugin_labels}}",
+    "VIRTUAL_NETWORK_NAME_INGEST": "{{ingest_nodes.virtual_network}}",
+    "CNI_PLUGIN_LABELS_INGEST": "{{ingest_nodes.cni_plugin_labels}}",
+    "VIRTUAL_NETWORK_NAME_COORDINATOR": "{{coordinator_nodes.virtual_network}}",
+    "CNI_PLUGIN_LABELS_COORDINATOR": "{{coordinator_nodes.cni_plugin_labels}}",
+    {{/service.virtual_networks}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
