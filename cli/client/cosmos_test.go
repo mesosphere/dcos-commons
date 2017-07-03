@@ -85,27 +85,44 @@ func (suite *CosmosTestSuite) Test404ErrorResponse() {
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
+func (suite *CosmosTestSuite) test400ErrorResponse(responseBody, output string) {
+	// fake 400 response for MarathonAppNotFound
+	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, responseBody)
+
+	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
+
+	expectedOutput := suite.loadFile(output)
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
 func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
 	config.ServiceName = "hello-world-1"
 
 	// fake 400 response for MarathonAppNotFound
-	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-name.json")
-
-	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
-
-	expectedOutput := suite.loadFile("testdata/output/bad-name.txt")
-	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-name.json", "testdata/output/bad-name.txt")
 }
 
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
-	// create 400 response for BadVersionUpdate
-	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, "testdata/responses/cosmos/1.10/enterprise/bad-version.json")
-
-	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
-
-	expectedOutput := suite.loadFile("testdata/output/bad-version.txt")
-	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+	// create 400 responses for BadVersionUpdate
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json", "testdata/output/bad-version.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json", "testdata/output/bad-version-no-versions.txt")
 }
+
+func (suite *CosmosTestSuite) TestJSONMismatchErrorResponse() {
+	// create 400 response for JsonSchemaMismatch
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-json.json", "testdata/output/bad-json.txt")
+}
+
+func (suite *CosmosTestSuite) TestAppIDChangedErrorResponse() {
+	// create 400 response for JsonSchemaMismatch
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-app-id.json", "testdata/output/bad-app-id.txt")
+}
+
+func (suite *CosmosTestSuite) TestGenericErrorResponse() {
+	// create 400 response for a generic error
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/generic-error.json", "testdata/output/generic-error.txt")
+}
+
 func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	// create a request
 	request, requestBody := suite.createExampleRequest()
