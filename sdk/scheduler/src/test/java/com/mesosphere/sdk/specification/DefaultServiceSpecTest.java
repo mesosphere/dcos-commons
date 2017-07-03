@@ -185,7 +185,7 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void validOverlayNetworkWithPortForwarding() throws Exception {
+    public void validBridgeNetworkWithPortForwarding() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-automatic-cni-port-forwarding.yml").getFile());
         // load the raw service spec and check that it parsed correctly
@@ -367,15 +367,21 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+        PodSpec podSpec = defaultServiceSpec.getPods().get(0);
+        Assert.assertEquals("dcos", Iterables.get(podSpec.getNetworks(), 0)
                 .getName());
-        // check that the port resources are ignored
         List<ResourceSpec> portsResources = defaultServiceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
                 .stream()
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
         Assert.assertEquals(2, portsResources.size());
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
+                .get("key1").equals("val1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key2"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
+                .get("key2").equals("val2"));
     }
 
     @Test

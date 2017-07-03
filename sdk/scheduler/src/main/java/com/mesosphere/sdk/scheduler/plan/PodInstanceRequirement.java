@@ -4,11 +4,10 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.
@@ -18,6 +17,8 @@ public class PodInstanceRequirement {
     private final Collection<String> tasksToLaunch;
     private final Map<String, String> environment;
     private final RecoveryType recoveryType;
+
+    private static final Logger logger = LoggerFactory.getLogger(PodInstanceRequirement.class);
 
     public static Builder newBuilder(PodInstance podInstance, Collection<String> tasksToLaunch) {
         return new Builder(podInstance, tasksToLaunch);
@@ -86,10 +87,13 @@ public class PodInstanceRequirement {
      */
     public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
         boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
-        boolean tasksConflict = CollectionUtils.isEqualCollection(
-                podInstanceRequirement.getTasksToLaunch(),
-                getTasksToLaunch());
-        return podConflicts && tasksConflict;
+        Set<String> intersection = new HashSet<>(getTasksToLaunch());
+        intersection.retainAll(podInstanceRequirement.getTasksToLaunch());
+        boolean result = podConflicts && (intersection.size() > 0);
+        String verb = result ? "conflict" : "do not conflict";
+        logger.info("SENTINEL I'm pod {} and I {} with Pod {}. Intersecting tasks {}",
+                getName(), verb, podInstanceRequirement.getName(), intersection);
+        return result;
     }
 
     /**

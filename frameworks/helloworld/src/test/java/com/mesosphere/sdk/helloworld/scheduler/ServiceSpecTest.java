@@ -88,4 +88,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testPreReservedRole() throws Exception {
         testYaml("examples/pre-reserved.yml");
     }
+
+    @Test
+    public void testConfigUpdate() throws Exception {
+        testYaml("examples/config_update.yml");
+    }
 }

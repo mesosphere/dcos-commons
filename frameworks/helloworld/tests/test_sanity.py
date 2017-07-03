@@ -9,7 +9,6 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
-import sdk_test_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
