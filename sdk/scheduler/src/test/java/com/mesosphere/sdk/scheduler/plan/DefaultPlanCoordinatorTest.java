@@ -6,10 +6,7 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -23,6 +20,7 @@ import org.junit.*;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -156,6 +154,43 @@ public class DefaultPlanCoordinatorTest {
                 Arrays.asList(planManager), planScheduler);
         Assert.assertEquals(1, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
                 SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
+    }
+
+    @Test
+    public void testPodInstanceRequirementConflictsWhenTasksOverlap() {
+        PodSpec podOne = TestPodFactory.getMultiTaskPodSpec(
+                TASK_A_POD_NAME,
+                TestConstants.RESOURCE_SET_ID + "-A",
+                TASK_A_NAME,
+                TASK_A_CMD,
+                TASK_A_COUNT,
+                TASK_A_CPU,
+                TASK_A_MEM,
+                TASK_A_DISK,
+                2);
+        PodSpec podTwo = TestPodFactory.getMultiTaskPodSpec(
+                TASK_A_POD_NAME,
+                TestConstants.RESOURCE_SET_ID + "-A",
+                TASK_A_NAME,
+                TASK_A_CMD,
+                TASK_A_COUNT,
+                TASK_A_CPU,
+                TASK_A_MEM,
+                TASK_A_DISK,
+                1);
+        PodInstance podOneInstance = new DefaultPodInstance(podOne, 0);
+        PodInstance podTwoInstance = new DefaultPodInstance(podTwo, 0);
+
+        PodInstanceRequirement podOneInstanceRequirement = PodInstanceRequirement.newBuilder(
+                podOneInstance,
+                podOne.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
+                .build();
+        PodInstanceRequirement podTwoInstanceRequirement = PodInstanceRequirement.newBuilder(
+                podTwoInstance,
+                podTwo.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
+                .build();
+
+        Assert.assertTrue(podOneInstanceRequirement.conflictsWith(podTwoInstanceRequirement));
     }
 
     @Test
