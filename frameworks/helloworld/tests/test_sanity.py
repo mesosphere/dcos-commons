@@ -261,8 +261,8 @@ def test_lock():
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
 
-
-@pytest.mark.upgrade
-@pytest.mark.sanity
-def test_upgrade_downgrade():
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
+# TODO(arand) is this supposed to be enabled?
+#@pytest.mark.upgrade
+#@pytest.mark.sanity
+#def test_upgrade_downgrade():
+#    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
