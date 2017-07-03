@@ -90,7 +90,7 @@ public class PodInstanceRequirement {
         intersection.retainAll(podInstanceRequirement.getTasksToLaunch());
         boolean result = podConflicts && (intersection.size() > 0);
         String verb = result ? "conflict" : "do not conflict";
-        logger.info("SENTINEL I'm pod {} and I {} with Pod {}. Intersecting tasks {}",
+        logger.info("I'm pod {} and I {} with Pod {}. Intersecting tasks {}",
                 getName(), verb, podInstanceRequirement.getName(), intersection);
         return result;
     }

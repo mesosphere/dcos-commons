@@ -28,7 +28,7 @@ pods:
       second:
         goal: RUNNING
         cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
-        cpus: 0.1
+        cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
           path: hello-container-path

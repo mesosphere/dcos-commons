@@ -247,8 +247,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                         failedPod.getName());
                 continue;
             }
-            logger.info("SENTINAL checking if podInstanceRequirement {} is dirtied by {}", failedPod,
-                    dirtyAssets.toString());
+
             if (PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets)) {
                 logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.", failedPod);
             } else {
