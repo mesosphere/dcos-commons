@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.mesosphere.sdk.config.ConfigStore;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
@@ -92,9 +93,11 @@ public class SchedulerLabelReader extends LabelReader {
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
         Optional<String> readinessCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
-        if (!readinessCheckOptional.isPresent()) {
+        if (!readinessCheckOptional.isPresent() && !taskStatus.hasCheckStatus()) {
             // check not applicable: PASS
             return true;
+        } else if (taskStatus.hasCheckStatus()) {
+            return taskStatus.getCheckStatus().getCommand().getExitCode() == 0;
         }
 
         // Special case: the 'readiness check passed' bit is set in TaskStatus (by the executor),
