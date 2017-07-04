@@ -155,7 +155,7 @@ public class OfferEvaluator {
             description = "existing";
             shouldGetNewRequirement = false;
         }
-        logger.info("Generating requirement for {} pod '{}' containing tasks: {}, situation is {}",
+        logger.info("Generating requirement for {} pod '{}' containing tasks: {}. This is a(n) {} launch.",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch(), description);
 
         evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));

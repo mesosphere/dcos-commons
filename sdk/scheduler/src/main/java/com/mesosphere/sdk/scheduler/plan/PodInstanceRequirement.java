@@ -86,13 +86,10 @@ public class PodInstanceRequirement {
      */
     public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
         boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
-        Set<String> intersection = new HashSet<>(getTasksToLaunch());
-        intersection.retainAll(podInstanceRequirement.getTasksToLaunch());
-        boolean result = podConflicts && (intersection.size() > 0);
-        String verb = result ? "conflict" : "do not conflict";
-        logger.info("I'm pod {} and I {} with Pod {}. Intersecting tasks {}",
-                getName(), verb, podInstanceRequirement.getName(), intersection);
-        return result;
+        boolean taskConflicts = getTasksToLaunch().stream()
+                .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
+                .count() > 0;
+        return podConflicts && taskConflicts;
     }
 
     /**

@@ -196,7 +196,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 configStore,
                 failedTasks,
                 stateStore.fetchTasks());
-        logger.info("All failedPods {}", getPodNames(failedPods));
+        logger.info("All failed pods: {}", getPodNames(failedPods));
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
                 .collect(Collectors.toList());

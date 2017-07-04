@@ -157,8 +157,8 @@ public class DefaultPlanCoordinatorTest {
     }
 
     @Test
-    public void testPodInstanceRequirementConflictsWhenTasksOverlap() {
-        PodSpec podOne = TestPodFactory.getMultiTaskPodSpec(
+    public void testPodInstanceRequirementConflictsWith() {
+        PodSpec pod = TestPodFactory.getMultiTaskPodSpec(
                 TASK_A_POD_NAME,
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
@@ -168,7 +168,7 @@ public class DefaultPlanCoordinatorTest {
                 TASK_A_MEM,
                 TASK_A_DISK,
                 2);
-        PodSpec podTwo = TestPodFactory.getMultiTaskPodSpec(
+        PodSpec podOverlapTask = TestPodFactory.getMultiTaskPodSpec(
                 TASK_A_POD_NAME,
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
@@ -178,19 +178,46 @@ public class DefaultPlanCoordinatorTest {
                 TASK_A_MEM,
                 TASK_A_DISK,
                 1);
-        PodInstance podOneInstance = new DefaultPodInstance(podOne, 0);
-        PodInstance podTwoInstance = new DefaultPodInstance(podTwo, 0);
+        PodSpec podDifferentTask = TestPodFactory.getMultiTaskPodSpec(
+                TASK_A_POD_NAME,
+                TestConstants.RESOURCE_SET_ID + "-A",
+                "AA",
+                TASK_A_CMD,
+                TASK_A_COUNT,
+                TASK_A_CPU,
+                TASK_A_MEM,
+                TASK_A_DISK,
+                1);
+        PodSpec podDifferentIndex = TestPodFactory.getMultiTaskPodSpec(
+                TASK_B_POD_NAME,
+                TestConstants.RESOURCE_SET_ID + "-A",
+                TASK_A_NAME,
+                TASK_A_CMD,
+                TASK_A_COUNT,
+                TASK_A_CPU,
+                TASK_A_MEM,
+                TASK_A_DISK,
+                2);
+        PodInstanceRequirement podInstanceRequirement = makePodInstanceRequirement(pod, 0);
+        PodInstanceRequirement conflictsOverlapTasks = makePodInstanceRequirement(podOverlapTask, 0);
+        PodInstanceRequirement noConflictDifferentTasks = makePodInstanceRequirement(podDifferentTask, 0);
+        PodInstanceRequirement noConflictDifferentIndex = makePodInstanceRequirement(podDifferentIndex, 0);
+        // pods with overlapping tasks conflict
+        Assert.assertTrue(podInstanceRequirement.conflictsWith(conflictsOverlapTasks));
+        // pods with different tasks do NOT conflict
+        Assert.assertFalse(podInstanceRequirement.conflictsWith(noConflictDifferentTasks));
+        // pods with different indices, but the same tasks do not conflict
+        Assert.assertFalse(podInstanceRequirement.conflictsWith(noConflictDifferentIndex));
+        // a pod conflicts with itseld
+        Assert.assertTrue(podInstanceRequirement.conflictsWith(podInstanceRequirement));
+    }
 
-        PodInstanceRequirement podOneInstanceRequirement = PodInstanceRequirement.newBuilder(
-                podOneInstance,
-                podOne.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
+    private PodInstanceRequirement makePodInstanceRequirement(PodSpec podSpec, int index) {
+        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        return PodInstanceRequirement.newBuilder(
+                podInstance,
+                podSpec.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
                 .build();
-        PodInstanceRequirement podTwoInstanceRequirement = PodInstanceRequirement.newBuilder(
-                podTwoInstance,
-                podTwo.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
-                .build();
-
-        Assert.assertTrue(podOneInstanceRequirement.conflictsWith(podTwoInstanceRequirement));
     }
 
     @Test
