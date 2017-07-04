@@ -53,5 +53,12 @@
         <name>hadoop.rpc.protection</name>
         <value>privacy</value>
     </property>
+    <property>
+        <name>hadoop.security.auth_to_local</name>
+        <value>
+            RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
+            RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
+        </value>
+    </property>
 {{/SECURITY_ENABLED}}
 </configuration>

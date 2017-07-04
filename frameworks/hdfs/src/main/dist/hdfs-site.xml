@@ -211,13 +211,6 @@
         <value>true</value>
     </property>
     <property>
-        <name>hadoop.security.auth_to_local</name>
-        <value>
-            RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
-            RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
-        </value>
-    </property>
-    <property>
         <name>dfs.block.access.token.enable</name>
         <value>true</value>
     </property>
