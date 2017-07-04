@@ -25,6 +25,7 @@
     "ELASTIC_VERSION": "{{elastic-version}}",
     "STATSD_PLUGIN": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
+    "ELASTICSEARCH_JAVA_URI" : "{{resource.assets.uris.elasticsearch-jre-tar-gz}}",
     "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
     "DIAGNOSTICS_URI" : "{{resource.assets.uris.diagnostics-zip}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -55,6 +56,7 @@
     {{/service.virtual_networks}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
+    "TASKCFG_ALL_JAVA_HOME": "jre1.8.0_131/",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",

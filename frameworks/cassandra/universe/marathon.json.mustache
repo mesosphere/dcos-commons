@@ -45,6 +45,7 @@
     "CASSANDRA_DISK_TYPE": "{{nodes.disk_type}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB": "{{nodes.heap.size}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
+    "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
     "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
     {{#service.virtual_networks}}
@@ -52,6 +53,7 @@
     "VIRTUAL_NETWORK_NAME": "{{nodes.virtual_network}}",
     "CNI_PLUGIN_LABELS": "{{nodes.cni_plugin_labels}}",
     {{/service.virtual_networks}}
+    "TASKCFG_ALL_JAVA_HOME": "jre1.8.0_131/",
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",

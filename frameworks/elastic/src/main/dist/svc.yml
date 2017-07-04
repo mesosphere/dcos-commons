@@ -13,6 +13,7 @@ pods:
       - {{BOOTSTRAP_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_PLUGIN}}

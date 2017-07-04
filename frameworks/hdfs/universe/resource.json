@@ -4,6 +4,7 @@
       "jre-tar-gz": "{{jre-jce-unlimited-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.11.0.tar.gz",
+      "hdfs-jre-tar-gz": "{{jre-jce-unlimited-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/hdfs-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"

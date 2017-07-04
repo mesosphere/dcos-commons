@@ -8,6 +8,7 @@ pods:
     user: {{FRAMEWORK_USER}}
     uris:
       - {{KAFKA_URI}}
+      - {{KAFKA_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{EXECUTOR_URI}}
       - {{LIBMESOS_URI}}

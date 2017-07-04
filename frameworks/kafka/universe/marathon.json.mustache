@@ -31,6 +31,7 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "KAFKA_URI": "{{resource.assets.uris.kafka-tgz}}",
+    "KAFKA_JAVA_URI": "{{resource.assets.uris.kafka-jre-tar-gz}}"
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KAFKA_STATSD_URI": "{{resource.assets.uris.kafka-statsd-jar}}",
@@ -68,6 +69,7 @@
     "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
     {{/kafka.kafka_advertise_host_ip}}
 
+    "TASKCFG_ALL_JAVA_HOME": "jre1.8.0_131/",
     "TASKCFG_ALL_KAFKA_RESERVED_BROKER_MAX_ID": "{{kafka.reserved_broker_max_id}}",
     "TASKCFG_ALL_KAFKA_OFFSETS_TOPIC_COMPRESSION_CODEC": "{{kafka.offsets_topic_compression_codec}}",
     "TASKCFG_ALL_KAFKA_REPLICA_FETCH_MIN_BYTES": "{{kafka.replica_fetch_min_bytes}}",

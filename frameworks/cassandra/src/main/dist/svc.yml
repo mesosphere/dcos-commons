@@ -11,12 +11,12 @@ pods:
         labels: {{CNI_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     image: {{CASSANDRA_DOCKER_IMAGE}}
-    image: mesosphere/cassandra:1.0.26-3.0.10
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
       size: {{CASSANDRA_DISK_MB}}
     uris:
+      - {{CASSANDRA_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
@@ -70,7 +70,7 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
             dest: s3config.json
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $TASK_IP"
+          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p 7199 | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60

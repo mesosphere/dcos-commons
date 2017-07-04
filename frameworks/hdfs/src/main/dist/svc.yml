@@ -7,6 +7,7 @@ pods:
     user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
