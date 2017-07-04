@@ -140,6 +140,14 @@ public class DefaultPlanCoordinatorTest {
         return offers;
     }
 
+    private PodInstanceRequirement makePodInstanceRequirement(PodSpec podSpec, int index) {
+        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        return PodInstanceRequirement.newBuilder(
+                podInstance,
+                podSpec.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
+                .build();
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testNoPlanManager() {
         new DefaultPlanCoordinator(Arrays.asList(), planScheduler);
@@ -210,14 +218,6 @@ public class DefaultPlanCoordinatorTest {
         Assert.assertFalse(podInstanceRequirement.conflictsWith(noConflictDifferentIndex));
         // a pod conflicts with itseld
         Assert.assertTrue(podInstanceRequirement.conflictsWith(podInstanceRequirement));
-    }
-
-    private PodInstanceRequirement makePodInstanceRequirement(PodSpec podSpec, int index) {
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
-        return PodInstanceRequirement.newBuilder(
-                podInstance,
-                podSpec.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
-                .build();
     }
 
     @Test
