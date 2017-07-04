@@ -17,8 +17,6 @@ public class PodInstanceRequirement {
     private final Map<String, String> environment;
     private final RecoveryType recoveryType;
 
-    private static final Logger logger = LoggerFactory.getLogger(PodInstanceRequirement.class);
-
     public static Builder newBuilder(PodInstance podInstance, Collection<String> tasksToLaunch) {
         return new Builder(podInstance, tasksToLaunch);
     }
