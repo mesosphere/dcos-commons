@@ -130,10 +130,10 @@ EOF
     dcos package install --yes hdfs --options=/tmp/hdfs-kerberos-options.json
 }
 
-# add_kdc
-# add_kerberos_principals
-# create_keytab_file
-# upload_krb5_conf
-# create_tls_artifacts
-# create_secrets
+add_kdc
+add_kerberos_principals
+create_keytab_file
+upload_krb5_conf
+create_tls_artifacts
+create_secrets
 install_hdfs
