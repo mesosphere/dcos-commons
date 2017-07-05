@@ -173,7 +173,7 @@ pods:
 
 * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
-For a full listing of available fields and what they mean, see the [YAML Reference](yaml-reference.html).
+For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
 
 ### Summary
 
