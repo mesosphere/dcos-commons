@@ -17,6 +17,7 @@ from tests.test_utils import *
 
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
+FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 
 
 def setup_module(module):
