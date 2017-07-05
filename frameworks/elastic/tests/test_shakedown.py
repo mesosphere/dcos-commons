@@ -67,7 +67,7 @@ def test_metrics():
         service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "data-0-node")
         return len(service_metrics) != 0
 
-    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)
+    shakedown.wait_for(metrics_exist, DEFAULT_ELASTIC_TIMEOUT)
 
 
 @pytest.mark.sanity
@@ -82,7 +82,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         "kibana": {
             "elasticsearch_url": "http://" + hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
         }})
-    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_DEFAULT_TIMEOUT)
+    shakedown.deployment_wait(app_id="/kibana", timeout=DEFAULT_KIBANA_TIMEOUT)
     check_kibana_adminrouter_integration("service/kibana/")
     install.uninstall("kibana")
 
@@ -107,7 +107,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         }})
     # Installing Kibana w/x-pack can take as much as 15 minutes for Marathon deployment to complete,
     # due to a configured HTTP health check. (typical: 10 minutes)
-    shakedown.deployment_wait(app_id="/kibana", timeout=KIBANA_DEFAULT_TIMEOUT)
+    shakedown.deployment_wait(app_id="/kibana", timeout=DEFAULT_KIBANA_TIMEOUT)
     check_kibana_adminrouter_integration("service/kibana/login")
     install.uninstall("kibana")
 

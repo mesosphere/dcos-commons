@@ -331,7 +331,7 @@ def test_metrics():
         service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "journal-0-node")
         return len(service_metrics) != 0
 
-    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)
+    shakedown.wait_for(metrics_exist, DEFAULT_HDFS_TIMEOUT)
 
 def replace_name_node(index):
     check_healthy()

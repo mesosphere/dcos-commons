@@ -1,12 +1,6 @@
 import sys
 import shakedown
-<<<<<<< HEAD
 
-=======
-import time
-import traceback
-import dcos
->>>>>>> e069d8a21... Add integration tests for verifying metrics
 
 def out(msg):
     '''Emit an informational message on test progress during test runs'''

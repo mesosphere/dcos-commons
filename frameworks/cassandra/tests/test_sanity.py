@@ -87,4 +87,4 @@ def test_metrics():
         service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "node-0-server")
         return len(service_metrics) != 0
 
-    shakedown.wait_for(metrics_exist, DEFAULT_TIMEOUT)
+    shakedown.wait_for(metrics_exist, DEFAULT_CASSANDRA_TIMEOUT)
