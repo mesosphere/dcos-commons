@@ -1,0 +1,6 @@
+{
+  "data": {
+  },
+  "message": "This an example of a generic Cosmos error response.",
+  "type": "GenericErrorType"
+}

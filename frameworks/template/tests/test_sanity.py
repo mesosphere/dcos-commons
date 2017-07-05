@@ -6,10 +6,10 @@ import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME,
-    FOLDERED_SERVICE_NAME,
     DEFAULT_TASK_COUNT
 )
 
+FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 
 def setup_module(module):
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)

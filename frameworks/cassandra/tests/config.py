@@ -9,8 +9,8 @@ import sdk_utils as utils
 
 
 PACKAGE_NAME = 'cassandra'
-FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
 DEFAULT_TASK_COUNT = 3
+FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 
 DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', hosts.autoip_host(PACKAGE_NAME, 'node-0-server'))
 FOLDERED_NODE_ADDRESS = hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server')
