@@ -2,7 +2,6 @@ import sdk_marathon as marathon
 import sdk_tasks as tasks
 
 PACKAGE_NAME = 'hello-world'
-FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
 DEFAULT_TASK_COUNT = 3
 
 

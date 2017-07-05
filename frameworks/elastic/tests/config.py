@@ -11,7 +11,6 @@ import sdk_tasks as tasks
 import sdk_utils
 
 PACKAGE_NAME = 'elastic'
-FOLDERED_SERVICE_NAME = '/test/integration/' + PACKAGE_NAME
 
 DEFAULT_TASK_COUNT = 7
 WAIT_TIME_IN_SECONDS = 10 * 60

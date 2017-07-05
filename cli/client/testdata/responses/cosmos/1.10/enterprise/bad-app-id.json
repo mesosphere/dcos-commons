@@ -1,0 +1,8 @@
+{
+  "type": "AppIdChanged",
+  "message": "The new appId /hello-world must be equal to the old appId /hello-world2",
+  "data": {
+    "newAppId": "/hello-world",
+    "oldAppId": "/hello-world2"
+  }
+}

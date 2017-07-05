@@ -1,0 +1,1 @@
+Could not execute command: This an example of a generic Cosmos error response.
