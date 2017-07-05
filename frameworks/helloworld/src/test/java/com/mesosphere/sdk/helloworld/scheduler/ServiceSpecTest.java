@@ -88,4 +88,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testPreReservedRole() throws Exception {
         testYaml("examples/pre-reserved.yml");
     }
+
+
+    @Test
+    public void testMultiStepPlan() throws Exception {
+        testYaml("examples/multistep_plan.yml");
+    }
 }
