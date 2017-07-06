@@ -1,5 +1,5 @@
 import pytest
-import sdk_test_upgrade
+from shakedown import *
 import os
 
 FRAMEWORK_NAME = "secrets/hello-world"
