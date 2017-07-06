@@ -669,9 +669,11 @@ Agent 3: X B
 
 <h2 id="secrets">Secrets</h2>
 
-<p>Enterprise DC/OS provides Secrets feature.  Secrets enable secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at <code class="highlighter-rouge">docs.mesosphere.com</code>.</p>
+<p>Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.</p>
 
-<p>The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the SandBox will be created. Also, value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this Secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code> as shown below.</p>
+<p><strong>Note:</strong> The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). <a href="https://docs.mesosphere.com/1.9/security/secrets/">Learn more about the secrets store</a>.</p>
+
+<p>The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the sandbox will be created. Also, the value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code>, as shown below.</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-app/instance1</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -694,16 +696,17 @@ Agent 3: X B
 </code></pre>
 </div>
 
-<p>All tasks defined in the pod will have access to Secret data. If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.</p>
+<p>All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.</p>
 
-<p><code class="highlighter-rouge">env-key</code> or <code class="highlighter-rouge">file</code> can be left empty. The Secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos, if referenced in pod definition as shown above. You can make a Secret available as an environment variable, as a file within the Sandbox, or you can use both.</p>
+<p><code class="highlighter-rouge">env-key</code> or <code class="highlighter-rouge">file</code> can be left empty. The secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos if it referenced in pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.</p>
 
-<p>Please note Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.</p>
+<p><strong>Note:</strong> Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.</p>
 
 <h3 id="authorization-for-secrets">Authorization for Secrets</h3>
 
-<p>The path of a Secret defines which application ids can have access. You can think Secret paths as namespaces. Applications that are under the same namespace can <em>only</em> read the Secret’s content.
-For the example given above,  the Secret with path <code class="highlighter-rouge">secret-app/Secret_Path1</code> can only be accessed by applications with id <code class="highlighter-rouge">secret-app</code> or any other id under it. Applications with ids <code class="highlighter-rouge">secret-app/instance1</code> and <code class="highlighter-rouge">secret-app/instance2/type1</code> can all have access to this Secret. On the other hand, <code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code> can not be accessed by an application with id <code class="highlighter-rouge">secret-app</code>.</p>
+<p>The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. <em>Only</em> applications that are under the same namespace can read the content of the secret.</p>
+
+<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-app/Secret_Path1</code> can only be accessed by applications with the ID <code class="highlighter-rouge">secret-app</code> or an ID under it. Applications with IDs <code class="highlighter-rouge">secret-app/instance1</code> and <code class="highlighter-rouge">secret-app/instance2/type1</code> all have access to this Secret. On the other hand, <code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code> can not be accessed by an application with ID <code class="highlighter-rouge">secret-app</code> because it is not <em>under</em> the namespace.</p>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
 
