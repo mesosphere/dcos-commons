@@ -638,14 +638,19 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 ### DC/OS 1.10
 
-Follow these steps to uninstall a service installed on a DC/OS 1.10 cluster:
+If you are using DC/OS 1.10 and the installed service has a version greater than 2.0: 
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
-   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
 
-#### DC/OS <= 1.9 
+For example, to uninstall a Confluence Kafka instance named `kafka-dev`, run:
 
-If you are running DC/OS 1.9 or older, or installed your service on DC/OS 1.9 or older before upgrading to DC/OS 1.10, please follow these steps:
+```bash
+dcos package uninstall --app-id=kafka-dev confluent-kafka
+```
+
+### Older versions
+
+If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0, follow these steps:
 
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
    For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
