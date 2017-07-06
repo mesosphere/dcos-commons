@@ -23,7 +23,9 @@ TEST_FILE_2_NAME = "test_2"
 HDFS_CMD_TIMEOUT_SEC = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
-def setup_function(function):
+def setup_module(module):
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    utils.gc_frameworks()
     install.install(
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
@@ -32,37 +34,12 @@ def setup_function(function):
     plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
 
-def teardown_function(function):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    utils.gc_frameworks()
-
-
-@pytest.mark.sanity
-def test_modify_app_config():
-    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    old_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
-    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
-    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
-
-    config = marathon.get_config(FOLDERED_SERVICE_NAME)
-    utils.out('marathon config: ')
-    utils.out(config)
-    expiry_ms = int(config['env'][app_config_field])
-    config['env'][app_config_field] = str(expiry_ms + 1)
-    marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
-
-    # All tasks should be updated because hdfs-site.xml has changed
+def setup_function(function):
     check_healthy()
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
-    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    new_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-    assert(old_recovery_plan == new_recovery_plan)
 
+def teardown_module(module):
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 @pytest.mark.sanity
 def test_endpoints():
@@ -294,6 +271,33 @@ def test_bump_data_nodes():
     check_healthy(DEFAULT_TASK_COUNT + 1)
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
+
+@pytest.mark.readiness_check
+@pytest.mark.sanity
+def test_modify_app_config():
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    old_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
+
+    config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    utils.out('marathon config: ')
+    utils.out(config)
+    expiry_ms = int(config['env'][app_config_field])
+    config['env'][app_config_field] = str(expiry_ms + 1)
+    marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
+
+    # All tasks should be updated because hdfs-site.xml has changed
+    check_healthy()
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
+    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
+
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    new_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    assert(old_recovery_plan == new_recovery_plan)
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():

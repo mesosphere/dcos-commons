@@ -51,12 +51,20 @@ pods:
           {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
+        # The existence of the journal-data/hdfs/current/committed-txid file indicates HDFS has already been deployed once
         readiness-check:
           cmd: >
-            export JOURNAL_STARTED=$(grep "IPC Server idle connection scanner for port {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}: task running" stderr | wc -l) &&
-            [[ $JOURNAL_STARTED -ge 1 ]]
-          interval: 10
-          timeout: 10
+            if [ ! -d journal-data/hdfs ]; then
+              exit 0
+            else
+              export COMMITTED_ID_TIME=$(ls -l --time-style='+%Y-%m-%d %H:%M:%S' journal-data/hdfs/current/committed-txid | awk '{print $6 FS $7}') &&
+              export CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S') &&
+              export TIME_DIFF=$(( ( $(date -ud "$CURRENT_TIME" +'%s') - $(date -ud "$COMMITTED_ID_TIME" +'%s') ) )) &&
+              [[ $TIME_DIFF -le 12 ]]
+            fi
+          delay: 60
+          interval: 3
+          timeout: 1
   name:
     count: 2
     user: {{TASKCFG_ALL_TASK_USER}}
