@@ -21,7 +21,7 @@ OUTPUT_DIR=${OUTPUT_BASE_DIR}/dcos-commons
 
 # Swagger build to fetch if needed:
 SWAGGER_CODEGEN_VERSION=2.2.2
-SWAGGER_OUTPUT_DIR=swagger-api
+SWAGGER_OUTPUT_DIR=reference/swagger-api
 SWAGGER_JAR=swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar
 SWAGGER_URL=http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
 
@@ -76,7 +76,7 @@ run_cmd jekyll build --destination ${DOCS_DIR}/${OUTPUT_DIR}
 popd
 
 # 2. Generate javadocs to api/ subdir
-javadoc -quiet -notimestamp -package -d ${OUTPUT_DIR}/api/ \
+javadoc -quiet -notimestamp -package -d ${OUTPUT_DIR}/reference/api/ \
     $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
 
 # 3. Generate swagger html to swagger-api/ subdir

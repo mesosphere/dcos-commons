@@ -1,6 +1,6 @@
 ---
 title: SDK Operations Guide
-menu_order: 1
+menu_order: 2
 redirect_from: "/ops-guide"
 ---
 
@@ -571,13 +571,13 @@ Looks like we were successful! Now we can run commands inside this container to 
 
 ## Querying the Scheduler
 
-The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the [API reference](http://mesosphere.github.io/dcos-commons/swagger-api/). The Scheduler endpoints most useful to field diagnosis come from three sections:
+The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the [API reference](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). The Scheduler endpoints most useful to field diagnosis come from three sections:
 
 - __Plan__: Describes any work that the Scheduler is currently doing, and what work it's about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they're stuck.
 - __Pods__: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.
 - __State__: Access to other miscellaneous state information such as service-specific properties data.
 
-For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/swagger-api/). Here is an example of invoking one of these commands against a service named `hello-world` via `curl`:
+For full documentation of each command, see the [API Reference](https://mesosphere.github.io/dcos-commons/reference/swagger-api/). Here is an example of invoking one of these commands against a service named `hello-world` via `curl`:
 
 ```bash
 $ export AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
@@ -801,7 +801,7 @@ This method can be used mapping any configuration setting (applicable during ini
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
-Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
+Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
 Via the CLI:
 
