@@ -11,6 +11,7 @@ import sdk_marathon as marathon
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_utils as utils
+import sdk_metrics as metrics
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
@@ -320,6 +321,12 @@ def test_modify_app_config_rollback():
 
     # Data tasks should not have been affected
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+def test_metrics():
+    metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", DEFAULT_HDFS_TIMEOUT)
 
 
 def replace_name_node(index):

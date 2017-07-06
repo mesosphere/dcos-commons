@@ -13,8 +13,8 @@ import sdk_utils
 PACKAGE_NAME = 'elastic'
 
 DEFAULT_TASK_COUNT = 7
-WAIT_TIME_IN_SECONDS = 10 * 60
-KIBANA_WAIT_TIME_IN_SECONDS = 30 * 60
+DEFAULT_ELASTIC_TIMEOUT = 10 * 60
+DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
@@ -53,7 +53,7 @@ def check_kibana_adminrouter_integration(path):
         exit_status, output = shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
 
-    return shakedown.wait_for(fun, timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS, noisy=True)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_KIBANA_TIMEOUT, noisy=True)
 
 
 def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAME):
@@ -62,7 +62,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAM
         result = _get_elasticsearch_index_health(curl_api, index_name)
         return result and result["status"] == color
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
@@ -75,7 +75,7 @@ def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
         sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
         return node_count == DEFAULT_TASK_COUNT
 
-    return shakedown.wait_for(expected_nodes, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
@@ -84,7 +84,7 @@ def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and len(result) == DEFAULT_TASK_COUNT
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def check_plugin_uninstalled(plugin_name, service_name=PACKAGE_NAME):
@@ -93,7 +93,7 @@ def check_plugin_uninstalled(plugin_name, service_name=PACKAGE_NAME):
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and result == []
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def _get_hosts_with_plugin(curl_api, plugin_name):
