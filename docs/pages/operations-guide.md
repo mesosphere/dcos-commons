@@ -288,9 +288,12 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 
 ## Secrets
 
-Enterprise DC/OS provides Secrets feature.  Secrets enable secure storage and transportation and fine-grained access control to store sensitive data such as database passwords, private keys, API tokens. More information about Secrets is available at `docs.mesosphere.com`.
+Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-The SDK allows Secrets to be exposed to pods, as a file and/or as an evironment variable. Content of a Secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the SandBox will be created. Also, value of the environment variable `Secret_Environment_Key1` will be set to the content of this Secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1` as shown below.
+**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+
+
+The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
 ```yaml
 name: secret-app/instance1
@@ -313,16 +316,17 @@ pods:
       ....
 ```      
 
-All tasks defined in the pod will have access to Secret data. If Secret content is changed, relevant pod needs to be restarted, so it can update new content from the Secret store.
+All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 
-`env-key` or `file` can be left empty. The Secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos, if referenced in pod definition as shown above. You can make a Secret available as an environment variable, as a file within the Sandbox, or you can use both. 
+`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos if it referenced in pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both. 
 
-Please note Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
+**Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
 ### Authorization for Secrets
 
-The path of a Secret defines which application ids can have access. You can think Secret paths as namespaces. Applications that are under the same namespace can *only* read the Secret's content.
-For the example given above,  the Secret with path `secret-app/Secret_Path1` can only be accessed by applications with id `secret-app` or any other id under it. Applications with ids `secret-app/instance1` and `secret-app/instance2/type1` can all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with id `secret-app`. 
+The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
+
+For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
 
 
   
