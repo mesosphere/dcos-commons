@@ -81,7 +81,6 @@ plans:
         strategy: serial
         pod: hello
         steps:
-          #- default: [[first]]
           - default: [[first], [second]]
       world-deploy:
         strategy: serial
