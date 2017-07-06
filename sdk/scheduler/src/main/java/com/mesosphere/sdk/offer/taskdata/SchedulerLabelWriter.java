@@ -106,7 +106,7 @@ public class SchedulerLabelWriter extends LabelWriter {
      * Any existing stored readiness check is overwritten.
      */
     public SchedulerLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
-        put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
+        put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck.toBuilder().setConsecutiveFailures(0).build()));
         return this;
     }
 
