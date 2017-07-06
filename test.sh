@@ -1,80 +1,48 @@
-#!/usr/bin/env bash
-
-# This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds each framework, packages and uploads it, then runs its
-# integration tests against a newly-launched cluster.
-
-# Exit immediately on errors -- the helper scripts all emit github statuses internally
-set -e
-
-function run_framework_tests {
-    framework=$1
-    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
-
-    # Build/upload framework scheduler artifact if one is not directly provided:
-    if [ -z "${!STUB_UNIVERSE_URL}" ]; then
-        STUB_UNIVERSE_URL=$(echo "${framework}_STUB_UNIVERSE_URL" | awk '{print toupper($0)}')
-        # Build/upload framework scheduler:
-        UNIVERSE_URL_PATH=$FRAMEWORK_DIR/${framework}-universe-url
-        UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${FRAMEWORK_DIR}/build.sh aws
-
-        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-            exit 1
-        fi
-        export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
-        rm -f $UNIVERSE_URL_PATH
-        echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
-    else
-        echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
-    fi
-
-    echo Security: $SECURITY
-    if [ "$SECURITY" = "strict" ]; then
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
-        # include foldered roles (tests exercise with /test/integration/svcname):
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root test__integration__${framework}-role
-    fi
-
-    # Run shakedown tests in framework directory:
-    TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
-}
-
-echo "Beginning integration tests at "`date`
-
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-cd $REPO_ROOT_DIR
-
-# Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
-if [ -z "$CLUSTER_URL" ]; then
-    echo "CLUSTER_URL is empty/unset, launching new cluster."
-    export CCM_AGENTS=6
-    CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
-    echo "Launched cluster: ${CLUSTER_INFO}"
-    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
-    export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
-    CLUSTER_CREATED="true"
-else
-    echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
-    CLUSTER_CREATED=""
+#!/bin/bash
+random_id=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+set -e -x
+# Build and upload our framework
+FRAMEWORK=$1
+export UNIVERSE_URL_PATH=frameworks/$FRAMEWORK/$FRAMEWORK-universe-url
+frameworks/$FRAMEWORK/./build.sh aws
+if [ ! -f "$UNIVERSE_URL_PATH" ]; then
+    echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+    exit 1
 fi
 
-# A specific framework can be specified to run its tests
-# Otherwise all tests are run in random framework order
-if [ -n "$1" ]; then
-    run_framework_tests $1
-else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
-        echo "Starting shakedown tests for $framework at "`date`
-        run_framework_tests $framework
-    done
-fi
+# Create out test cluster
+cat <<EOF > config.yaml
+launch_config_version: 1
+deployment_name: dcos-ci-test-infinity-$random_id
+template_url: https://s3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise/testing/master/cloudformation/ee.single-master.cloudformation.json
+provider: aws
+aws_region: us-west-2
+key_helper: true
+template_parameters:
+    AdminLocation: 0.0.0.0/0
+    PublicSlaveInstanceCount: 1
+    SlaveInstanceCount: 6
+ssh_user: core
+EOF
 
-# Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
-# Don't wait for the cluster to complete teardown.
-if [ -n "${CLUSTER_CREATED}" ]; then
-    ${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py trigger-stop ${CLUSTER_ID}
-fi
+dcos-launch create
+dcos-launch wait
+
+# Setup the SSH key for shakedown to use. This is the only way to configure
+# shakedown to use this ssh key without using the shakdedown CLI
+mkdir -p ~/.ssh/
+cat cluster_info.json | jq -r .ssh_private_key > ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa
+
+# configure the dcos-cli/shakedown-backend
+CLUSTER_URL=http://`dcos-launch describe | jq -r .masters[0].public_ip`
+dcos config set core.dcos_url $CLUSTER_URL
+dcos config set core.ssl_verify false
+tools/./dcos_login.py
+for url in `cat $UNIVERSE_URL_PATH`; do
+    dcos package repo add --index=0 `echo $url | cut -d / -f 5` $url
+done
+
+set +e
+py.test --teamcity -m "sanity" frameworks/$FRAMEWORK/tests
+dcos-launch delete
