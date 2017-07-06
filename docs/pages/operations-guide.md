@@ -110,7 +110,7 @@ This is the flow for reconfiguring a DC/OS service either in order to update spe
 
 #### Steps handled by the DC/OS cluster
 
-1. The user edits the Scheduler's environment variables either via the DC/OS Dashboard's Services section, using the Scheduler CLI's `update` command or via Marathon directly (at `<dcos-url>/marathon`).
+1. The user edits the Scheduler's environment variables either using the Scheduler CLI's `update` command or via Marathon directly (at `<dcos-url>/marathon`).
 1. The DC/OS package manager instructs Marathon to kill the current Scheduler and launch a new Scheduler with the updated environment variables.
 
 #### Steps handled by the Scheduler
