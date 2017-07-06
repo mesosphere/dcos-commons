@@ -9,6 +9,7 @@ import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
 import sdk_tasks as tasks
+import sdk_test_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
@@ -261,8 +262,7 @@ def test_lock():
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
 
-# TODO(arand) is this supposed to be enabled?
-#@pytest.mark.upgrade
-#@pytest.mark.sanity
-#def test_upgrade_downgrade():
-#    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
+@pytest.mark.upgrade
+@pytest.mark.sanity
+def test_upgrade_downgrade():
+    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
