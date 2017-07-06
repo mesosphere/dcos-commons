@@ -89,7 +89,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         testYaml("examples/pre-reserved.yml");
     }
 
-
     @Test
     public void testMultiStepPlan() throws Exception {
         testYaml("examples/multistep_plan.yml");

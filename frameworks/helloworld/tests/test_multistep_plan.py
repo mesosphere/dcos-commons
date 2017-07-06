@@ -54,4 +54,3 @@ def test_bump_hello_cpus():
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
 
-

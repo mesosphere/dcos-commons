@@ -54,17 +54,3 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-plans:
-  deploy:
-    strategy: serial
-    phases:
-      hello-deploy:
-        strategy: serial
-        pod: hello
-        steps:
-          - default: [[server], [server-two]]
-      world-deploy:
-        strategy: serial
-        pod: world
-        steps:
-          - default: [[server]]

@@ -140,7 +140,7 @@ public class DefaultPlanCoordinatorTest {
         return offers;
     }
 
-    private PodInstanceRequirement makePodInstanceRequirement(PodSpec podSpec, int index) {
+    private PodInstanceRequirement getPodInstanceRequirement(PodSpec podSpec, int index) {
         PodInstance podInstance = new DefaultPodInstance(podSpec, index);
         return PodInstanceRequirement.newBuilder(
                 podInstance,
@@ -206,10 +206,10 @@ public class DefaultPlanCoordinatorTest {
                 TASK_A_MEM,
                 TASK_A_DISK,
                 2);
-        PodInstanceRequirement podInstanceRequirement = makePodInstanceRequirement(pod, 0);
-        PodInstanceRequirement conflictsOverlapTasks = makePodInstanceRequirement(podOverlapTask, 0);
-        PodInstanceRequirement noConflictDifferentTasks = makePodInstanceRequirement(podDifferentTask, 0);
-        PodInstanceRequirement noConflictDifferentIndex = makePodInstanceRequirement(podDifferentIndex, 0);
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(pod, 0);
+        PodInstanceRequirement conflictsOverlapTasks = getPodInstanceRequirement(podOverlapTask, 0);
+        PodInstanceRequirement noConflictDifferentTasks = getPodInstanceRequirement(podDifferentTask, 0);
+        PodInstanceRequirement noConflictDifferentIndex = getPodInstanceRequirement(podDifferentIndex, 0);
         // pods with overlapping tasks conflict
         Assert.assertTrue(podInstanceRequirement.conflictsWith(conflictsOverlapTasks));
         // pods with different tasks do NOT conflict

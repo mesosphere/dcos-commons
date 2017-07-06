@@ -82,10 +82,10 @@ public class PodInstanceRequirement {
      */
     public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
         boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
-        boolean taskConflicts = getTasksToLaunch().stream()
+        boolean anyTaskConflicts = getTasksToLaunch().stream()
                 .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
                 .count() > 0;
-        return podConflicts && taskConflicts;
+        return podConflicts && anyTaskConflicts;
     }
 
     /**
