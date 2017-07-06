@@ -48,20 +48,112 @@
       
       
       
-      <li><a href="./operations-guide.html">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       <li><a href="./developer-guide.html">SDK Developer Guide</a></li>
       
-      <li><a href="./yaml-reference.html">YAML Reference</a></li>
+      
+      
+      <li><a href="./operations-guide.html">SDK Operations Guide</a></li>
+      
+      
       
       <li><a href="./faq.html">Frequently Asked Questions</a></li>
       
+      
+      
       <li><a href="./glossary.html">Glossary</a></li>
       
-      <li><a href="./ops-guide"></a></li>
       
-      <li><a href="./swagger-api">REST APIs</a></li>
-      <li><a href="./api">Javadoc Reference</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -70,14 +162,23 @@
       
       
       
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+      <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
       <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
       
       <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Reference</span>
+    <ul>
       
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
+      <li><a href="./reference/api">Javadoc Reference</a></li>
+      <li><a href="./reference/swagger-api">REST APIs</a></li>
+      <li><a href="./reference/yaml-reference.html">YAML Reference</a></li>
     </ul>
   </li>
   <li>
@@ -132,9 +233,9 @@
         <ul>
           
           
-          <li><a href="./services/hdfs/install.html">Install and Customize</a></li>
-          
           <li><a href="./services/hdfs/quick-start.html">Quickstart</a></li>
+          
+          <li><a href="./services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="./services/hdfs/uninstall.html">Uninstall</a></li>
           
@@ -142,9 +243,9 @@
           
           <li><a href="./services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
-          <li><a href="./services/hdfs/managing.html">Managing</a></li>
-          
           <li><a href="./services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="./services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="./services/hdfs/api-reference.html">API Reference</a></li>
           
@@ -160,9 +261,9 @@
         <ul>
           
           
-          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
-          
           <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -966,7 +1067,7 @@ broker-container#
 
 <h2 id="querying-the-scheduler">Querying the Scheduler</h2>
 
-<p>The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler’s view of its tasks. For a full listing of HTTP endpoints, see the <a href="http://mesosphere.github.io/dcos-commons/swagger-api/">API reference</a>. The Scheduler endpoints most useful to field diagnosis come from three sections:</p>
+<p>The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler’s view of its tasks. For a full listing of HTTP endpoints, see the <a href="http://mesosphere.github.io/dcos-commons/reference/swagger-api/">API reference</a>. The Scheduler endpoints most useful to field diagnosis come from three sections:</p>
 
 <ul>
   <li><strong>Plan</strong>: Describes any work that the Scheduler is currently doing, and what work it’s about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they’re stuck.</li>
@@ -974,7 +1075,7 @@ broker-container#
   <li><strong>State</strong>: Access to other miscellaneous state information such as service-specific properties data.</li>
 </ul>
 
-<p>For full documentation of each command, see the <a href="https://mesosphere.github.io/dcos-commons/swagger-api/">API Reference</a>. Here is an example of invoking one of these commands against a service named <code class="highlighter-rouge">hello-world</code> via <code class="highlighter-rouge">curl</code>:</p>
+<p>For full documentation of each command, see the <a href="https://mesosphere.github.io/dcos-commons/reference/swagger-api/">API Reference</a>. Here is an example of invoking one of these commands against a service named <code class="highlighter-rouge">hello-world</code> via <code class="highlighter-rouge">curl</code>:</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">AUTH_TOKEN</span><span class="o">=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span>
 <span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> https://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy
@@ -1200,7 +1301,7 @@ broker-container#
 
 <p>Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see <a href="#recovery-plan">Recovery</a>.</p>
 
-<p>Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same <a href="http://mesosphere.github.io/dcos-commons/swagger-api/">API</a>. In these examples we list the known pods, and then restart the one named <code class="highlighter-rouge">dse-1</code>, which contains tasks named <code class="highlighter-rouge">dse-1-agent</code> and <code class="highlighter-rouge">dse-1-node</code>:</p>
+<p>Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same <a href="http://mesosphere.github.io/dcos-commons/reference/swagger-api/">API</a>. In these examples we list the known pods, and then restart the one named <code class="highlighter-rouge">dse-1</code>, which contains tasks named <code class="highlighter-rouge">dse-1-agent</code> and <code class="highlighter-rouge">dse-1-node</code>:</p>
 
 <p>Via the CLI:</p>
 
