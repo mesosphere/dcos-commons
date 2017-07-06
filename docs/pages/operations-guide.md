@@ -134,6 +134,22 @@ Scheduler reconfiguration is slightly different from initial deployment because 
         - If the changes are valid, the new configuration is stored in ZooKeeper as the new Target Configuration and the change deployment proceeds as described below.
     1. __Change deployment__: The Scheduler produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren't affected by the configuration change will be left as-is.
 
+### Uninstall
+
+This is the flow for uninstalling a DC/OS service.
+
+#### Steps handled by the cluster
+
+1. The user uses the DC/OS CLI's `dcos package uninstall` command to uninstall the service.
+1. The DC/OS package manager instructs Marathon to kill the current Scheduler and to launch a new Scheduler with the environment variable `SDK_UNINSTALL` set to "true".
+
+#### Steps handled by the Scheduler
+
+When started in uninstall mode, the Scheduler performs the current actions:
+- Any Mesos resources reservations are unreserved.
+  - **Note**: any data stored in reserved disk resources will be irretrievably lost.
+- Preexisting state in ZooKeeper is deleted.
+
 ## Offer Cycle
 
 The Offer Cycle is a core Mesos concept and often a source of confusion when running services on Mesos.
