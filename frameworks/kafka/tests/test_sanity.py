@@ -279,12 +279,7 @@ def test_pods_cli():
 @pytest.mark.sanity
 @pytest.mark.metrics
 def test_metrics():
-    def metrics_exist():
-        utils.out("verifying metrics exist for {}".format(FOLDERED_SERVICE_NAME))
-        service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker")
-        return len(service_metrics) != 0
-
-    shakedown.wait_for(metrics_exist, DEFAULT_KAFKA_TIMEOUT)
+    metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker", DEFAULT_KAFKA_TIMEOUT)
 
 
 # --------- Suppressed -------------

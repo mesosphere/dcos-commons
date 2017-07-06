@@ -38,3 +38,11 @@ def get_metrics(service_name, task_name):
 
     metrics = json.loads(output)
     return metrics["datapoints"]
+
+def wait_for_any_metrics(service_name, task_name, timeout):
+    def metrics_exist():
+        utils.out("verifying metrics exist for {}".format(service_name))
+        service_metrics = get_metrics(service_name, task_name)
+        return len(service_metrics) != 0
+
+    shakedown.wait_for(metrics_exist, timeout)

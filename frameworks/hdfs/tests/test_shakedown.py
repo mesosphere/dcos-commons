@@ -326,12 +326,8 @@ def test_modify_app_config_rollback():
 @pytest.mark.sanity
 @pytest.mark.metrics
 def test_metrics():
-    def metrics_exist():
-        utils.out("verifying metrics exist for {}".format(FOLDERED_SERVICE_NAME))
-        service_metrics = metrics.get_metrics(FOLDERED_SERVICE_NAME, "journal-0-node")
-        return len(service_metrics) != 0
+    metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", DEFAULT_HDFS_TIMEOUT)
 
-    shakedown.wait_for(metrics_exist, DEFAULT_HDFS_TIMEOUT)
 
 def replace_name_node(index):
     check_healthy()
