@@ -309,7 +309,7 @@ pods:
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
+          cmd: KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/data-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
           interval: 10
           delay: 120
           timeout: 60
