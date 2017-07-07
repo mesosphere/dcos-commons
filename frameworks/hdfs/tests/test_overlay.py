@@ -54,19 +54,16 @@ def test_endpoints_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@pytest.mark.skip("HDFS-451, not working on jenkins")
+@pytest.mark.data_integrity
 @pytest.mark.skipif('os.environ.get("SECURITY") == "strict"')
-def test_read_and_write_data_on_overlay():
+def test_write_and_read_data_on_overlay():
     # use mesos DNS here because we want the host IP to run the command
     shakedown.wait_for(
         lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
-
-    # gives chance for write to succeed and replication to occur
-    time.sleep(9)
+        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
     shakedown.wait_for(
         lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
     check_healthy()

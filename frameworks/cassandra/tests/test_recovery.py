@@ -63,7 +63,7 @@ def test_node_replace_replaces_node():
         utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host, up_ips))
         return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host in up_ips
     # observed to take 2-3mins in practice:
-    shakedown.wait_for(lambda: fun(), timeout_seconds=600, sleep_seconds=15, noisy=True)
+    shakedown.wait_for(lambda: fun(), timeout_seconds=DEFAULT_CASSANDRA_TIMEOUT, sleep_seconds=15, noisy=True)
 
 
 @pytest.mark.sanity

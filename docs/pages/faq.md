@@ -1,5 +1,6 @@
 ---
 title: Frequently Asked Questions
+menu_order: 3
 ---
 
 #### __What is the DC/OS SDK?__

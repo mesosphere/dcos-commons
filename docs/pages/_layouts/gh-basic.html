@@ -70,11 +70,11 @@
     <ul>
       {% comment %}List all the non-tutorials, skipping the front page, ordered by menu_order if any.{% endcomment %}
       {% assign sorted_pages = site.pages | sort:"menu_order" %}
-      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size < 3 and p.url != "/" %}
+      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}
+      {% if urltokens.size < 3 and p.url != "/" and p.title != nil %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
-      {% endif %}{% endfor %}
-      <li><a href="{{ rootdir }}/swagger-api">REST APIs</a></li>
-      <li><a href="{{ rootdir }}/api">Javadoc Reference</a></li>
+      {% endif %}
+      {% endfor %}
     </ul>
   </li>
   <li>
@@ -85,6 +85,15 @@
       {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "tutorials" %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
+    </ul>
+  </li>
+  <li>
+    <span>Reference</span>
+    <ul>
+      {% comment %}List all the reference pages.{% endcomment %}
+      <li><a href="{{ rootdir }}/reference/api">Javadoc Reference</a></li>
+      <li><a href="{{ rootdir }}/reference/swagger-api">REST APIs</a></li>
+      <li><a href="{{ rootdir }}/reference/yaml-reference.html">YAML Reference</a></li>
     </ul>
   </li>
   <li>

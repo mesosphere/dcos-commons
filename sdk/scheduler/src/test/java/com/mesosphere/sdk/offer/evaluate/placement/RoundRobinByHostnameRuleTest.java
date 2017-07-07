@@ -11,6 +11,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.mesos.Protos;
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for {@link RoundRobinByHostnameRule}.
  */
-public class RoundRobinByHostnameRuleTest {
+public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static PodInstance POD;
 
