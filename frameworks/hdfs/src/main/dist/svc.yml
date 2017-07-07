@@ -51,7 +51,11 @@ pods:
           {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
-        # The existence of the journal-data/hdfs/current/committed-txid file indicates HDFS has already been deployed once
+        # The absence of journal-data/hdfs/current/committed-txid indicates HDFS is about to be deployed for the first time.
+        # Its existence is used during an update plan to check that the given Journal Node has in fact started and by writing 
+        # to the committed-txid file, hence updating the file's last modified timestamp within the last 12 seconds, signals that
+        # the Journal Node is newly running as part of the update plan.
+        {{#JOURNAL_READINESS_CHECK_ENABLED}}
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
@@ -65,6 +69,7 @@ pods:
           delay: 60
           interval: 3
           timeout: 1
+        {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2
     user: {{TASKCFG_ALL_TASK_USER}}
