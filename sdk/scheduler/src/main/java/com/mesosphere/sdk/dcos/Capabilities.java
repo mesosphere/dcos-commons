@@ -47,7 +47,7 @@ public class Capabilities {
     }
 
     public boolean supportsGpuResource() {
-        // GPU_RESOURCE is supported by DC/OS 1.9 upwards
+        // GPU_RESOURCE is supported by DC/OS 1.9 upwards.
         return hasOrExceedsVersion(1, 9);
     }
 
@@ -68,12 +68,13 @@ public class Capabilities {
     }
 
     public boolean supportsCNINetworking() {
-        // CNI port-mapping is supported by DC/OS 1.9 upwards
+        // CNI port-mapping is supported by DC/OS 1.9 upwards.
         return hasOrExceedsVersion(1, 9);
     }
 
     public boolean supportsPreReservedResources() {
-        return false;
+        // The RESERVATION_REFINEMENT capability is supported by DC/OS 1.10 upwards.
+        return hasOrExceedsVersion(1, 10);
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) {
