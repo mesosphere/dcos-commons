@@ -8,6 +8,11 @@ import sdk_marathon as marathon
 import time
 import json
 import os
+import sdk_test_upgrade
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
+)
 
 FRAMEWORK_NAME = "secrets/hello-world"
 NUM_HELLO = 2
@@ -19,6 +24,11 @@ if "NUM_HELLO" in os.environ:
     NUM_HELLO = os.environ("NUM_HELLO")
 if "NUM_WORLD" in os.environ:
     NUM_WORLD = os.environ("NUM_WORLD")
+
+
+@pytest.mark.soak_upgrade
+def test_soak_upgrade_downgrade():
+    sdk_test_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.soak_secrets_update
@@ -67,8 +77,15 @@ def test_soak_secrets_update():
     cmd.run_cli("security secrets update --value=SECRET2 secrets/secret2")
     cmd.run_cli("security secrets update --value=SECRET3 secrets/secret3")
 
+    hello_tasks_old = tasks.get_task_ids(FRAMEWORK_NAME, "hello-0")
+    world_tasks_old = tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
+
     # restart pods to retrieve new secret's content
     cmd.run_cli('hello-world pods restart hello-0')
     cmd.run_cli('hello-world pods restart world-0')
+
+    # wait pod restart to complete
+    tasks.check_tasks_updated(FRAMEWORK_NAME, "hello-0", hello_tasks_old)
+    tasks.check_tasks_updated(FRAMEWORK_NAME, 'world-0', world_tasks_old)
 
 
