@@ -1,5 +1,5 @@
 import pytest
-from shakedown import *
+import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_plan as plan
@@ -32,7 +32,7 @@ def test_soak_upgrade_downgrade():
 
 
 @pytest.mark.soak_secrets_update
-@dcos_1_10
+@shakedown.dcos_1_10
 def test_soak_secrets_update():
 
     secret_content_alternative = "hello-world-secret-data-alternative"
@@ -50,7 +50,7 @@ def test_soak_secrets_update():
     # make sure content is changed
     assert secret_content_alternative == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == task_exec(world_tasks[0], "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_alternative == task_exec(world_tasks[0], "cat secrets/secret3")
 
     # make sure content is changed
     assert secret_content_alternative == task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
@@ -65,7 +65,7 @@ def test_soak_secrets_update():
 
 
 @pytest.mark.soak_secrets_alive
-@dcos_1_10
+@shakedown.dcos_1_10
 def test_soak_secrets_framework_alive():
     plan.wait_for_completed_deployment(FRAMEWORK_NAME)
     tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
@@ -77,8 +77,8 @@ def test_soak_secrets_restart_hello0():
     world_tasks_old = tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
-    cmd.run_cli('hello-world pods restart hello-0')
-    cmd.run_cli('hello-world pods restart world-0')
+    cmd.run_cli('hello-world --name={} pods restart hello-0'.format(FRAMEWORK_NAME))
+    cmd.run_cli('hello-world --name={} pods restart world-0'.format(FRAMEWORK_NAME))
 
     # wait pod restart to complete
     tasks.check_tasks_updated(FRAMEWORK_NAME, "hello-0", hello_tasks_old)
@@ -88,4 +88,14 @@ def test_soak_secrets_restart_hello0():
     tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
 
 
+def task_exec(task_name, command):
+    lines = cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
+    print(lines)
+    for i in lines:
+        # ignore text starting with:
+        #    Overwriting Environment Variable ....
+        #    Overwriting PATH ......
+        if not i.isspace() and not i.startswith("Overwriting"):
+            return i
+    return ""
 
