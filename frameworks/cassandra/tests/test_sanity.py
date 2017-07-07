@@ -11,6 +11,7 @@ import sdk_install as install
 import sdk_jobs as jobs
 import sdk_plan as plan
 import sdk_utils as utils
+import sdk_metrics as metrics
 
 
 WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
@@ -18,6 +19,7 @@ VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)
 DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
 VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
+FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 
 
 def setup_module(module):
@@ -76,3 +78,8 @@ def test_repair_cleanup_plans_complete():
         plan.start_plan(FOLDERED_SERVICE_NAME, 'repair', parameters=parameters)
         plan.wait_for_completed_plan(FOLDERED_SERVICE_NAME, 'repair')
 
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+def test_metrics():
+    metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "node-0-server", DEFAULT_CASSANDRA_TIMEOUT)

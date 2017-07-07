@@ -248,10 +248,12 @@ public class PlansResourceTest {
         Response response = resource.restartCommand(planName, phaseId.toString(), stepId.toString());
         validateCommandResult(response, "restart");
         verify(mockStep).restart();
+        verify(mockStep).proceed();
 
         response = resource.restartCommand(planName, phaseName, stepName);
         validateCommandResult(response, "restart");
         verify(mockStep, times(2)).restart();
+        verify(mockStep, times(2)).proceed();
     }
 
     @Test

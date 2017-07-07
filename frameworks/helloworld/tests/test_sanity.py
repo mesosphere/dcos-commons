@@ -13,7 +13,6 @@ import sdk_test_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
-    FOLDERED_SERVICE_NAME,
     DEFAULT_TASK_COUNT,
     configured_task_count,
     hello_task_count,
@@ -22,6 +21,7 @@ from tests.config import (
     bump_hello_cpus,
     bump_world_cpus
 )
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
 
 def setup_module(module):

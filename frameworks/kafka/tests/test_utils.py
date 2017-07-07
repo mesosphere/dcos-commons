@@ -9,7 +9,6 @@ import sdk_utils as utils
 from tests.config import (
     PACKAGE_NAME,
     SERVICE_NAME,
-    FOLDERED_SERVICE_NAME,
     DEFAULT_PARTITION_COUNT,
     DEFAULT_REPLICATION_FACTOR,
     DEFAULT_BROKER_COUNT,

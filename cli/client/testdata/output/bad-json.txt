@@ -1,0 +1,6 @@
+Unable to update hello-world to requested configuration: options JSON failed validation.
+
+Field                      Error                                                                                            
+-----                      -----                                                                                            
+/world/cpus                instance type (string) does not match any allowed primitive type (allowed: ["integer","number"]) 
+/service/mesos_api_version instance type (integer) does not match any allowed primitive type (allowed: ["string"])
