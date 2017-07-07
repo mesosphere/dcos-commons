@@ -63,34 +63,33 @@ def check_properties(xml, expect):
     assert expect == found
 
 
-@pytest.mark.skip(reason="HDFS-451")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
+    """
+    Verifies proper data replication among data nodes.
+    """
+    # An HDFS write will only successfully return when the data replication has taken place
     write_some_data('data-0-node', TEST_FILE_1_NAME)
-
-    # gives chance for write to succeed and replication to occur
-    time.sleep(9)
 
     tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
     tasks.kill_task_with_pattern("DataNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'data-1-node'))
-    time.sleep(1)  # give DataNode a chance to die
 
     read_some_data('data-2-node', TEST_FILE_1_NAME)
 
     check_healthy()
 
 
-@pytest.mark.skip(reason="HDFS-451")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_name_node_failure():
     """
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
-    This test checks that it is possible to write and read data after the first name node fails.
+    This test checks that it is possible to write and read data after the active name node fails
+    so as to verify a failover sustains expected functionality.
     """
     tasks.kill_task_with_pattern("NameNode", hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
-    time.sleep(1)  # give NameNode a chance to die
+    wait_for_failover_to_complete("name-1-node")
 
     write_some_data('data-0-node', TEST_FILE_2_NAME)
 
@@ -392,6 +391,31 @@ def find_java_home(host):
     java_home = output.rstrip()
     utils.out("java_home: {}".format(java_home))
     return java_home
+
+
+def wait_for_failover_to_complete(namenode):
+    """
+    Inspects the name node logs to make sure ZK signals a complete failover.
+    The given namenode is the one to become active after the failover is complete.
+    """
+    def failover_detection():
+        host = hosts.system_host(FOLDERED_SERVICE_NAME, namenode)
+        mesos_sandbox_cmd = "ps -ef | grep hdfs | grep NameNode | grep -v grep | awk '{print $8}' | sed s:/jre.*//bin/java::"
+        rc, output = shakedown.run_command_on_agent(host, mesos_sandbox_cmd)
+        if not rc:
+            return rc
+        mesos_sandbox = output.strip()
+
+        cmd = """cd {} &&
+                export FAILOVER=$(grep 'ha.ZKFailoverController: Successfully transitioned NameNode at {}.*to active state$' stderr | wc -l) &&
+                [[ $FAILOVER -ge 1 ]]""".format(mesos_sandbox, namenode).replace("\n","")
+
+        rc, output = shakedown.run_command_on_agent(host, cmd)
+        if rc:
+            utils.out("Failover to {} successfully completed".format(namenode))
+        return rc
+
+    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):

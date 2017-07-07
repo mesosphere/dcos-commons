@@ -59,6 +59,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "TASKCFG_ALL_IMAGE_COMPRESS","true",
                 "TASKCFG_ALL_IMAGE_COMPRESSION_CODEC","org.apache.hadoop.io.compress.SnappyCodec",
                 "TASKCFG_ALL_NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION","0.95",
+                "TASKCFG_ALL_NAME_NODE_REPLICATION_MIN","3",
                 "TASKCFG_ALL_NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION","4",
                 "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT","true",
                 "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_PATH","dn_socket",
