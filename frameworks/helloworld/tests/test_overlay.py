@@ -16,6 +16,8 @@ from tests.config import (
     PACKAGE_NAME
 )
 
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
@@ -48,7 +50,7 @@ TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
@@ -124,7 +126,7 @@ def test_overlay_network():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_port_names():
     def check_task_ports(task_name, expected_port_count, expected_port_names):
         endpoint = "/v1/tasks/info/{}".format(task_name)
@@ -142,6 +144,7 @@ def test_port_names():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@overlay_nostrict
 @pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
 def test_srv_records():
     fmk_srvs = networks.get_framework_srv_records(PACKAGE_NAME)

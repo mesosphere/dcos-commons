@@ -10,6 +10,8 @@ from tests.config import *
 import sdk_install as install
 import sdk_networks as networks
 
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 
 
@@ -30,7 +32,7 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(PACKAGE_NAME)
     assert len(hdfs_tasks) == DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
@@ -41,7 +43,7 @@ def test_tasks_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_endpoints_on_overlay():
     observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
@@ -55,7 +57,7 @@ def test_endpoints_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_write_and_read_data_on_overlay():
     # use mesos DNS here because we want the host IP to run the command
     shakedown.wait_for(

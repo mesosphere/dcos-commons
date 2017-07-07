@@ -9,6 +9,8 @@ from tests.config import (
     DEFAULT_TASK_COUNT
 )
 
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
@@ -23,6 +25,6 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_install():
     networks.check_task_network("template-0-node")

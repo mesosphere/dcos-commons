@@ -9,6 +9,8 @@ import sdk_utils as utils
 
 from tests.test_utils import  *
 
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
@@ -29,7 +31,7 @@ def teardown_module(module):
 @pytest.mark.overlay
 @pytest.mark.smoke
 @pytest.mark.sanity
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
@@ -47,7 +49,7 @@ def test_service_overlay_health():
 @pytest.mark.smoke
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_overlay_network_deployment_and_endpoints():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
@@ -63,7 +65,7 @@ def test_overlay_network_deployment_and_endpoints():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_pods_restart_on_overlay():
     restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
@@ -71,7 +73,7 @@ def test_pods_restart_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_pods_replace_on_overlay():
     replace_broker_pod()
     test_overlay_network_deployment_and_endpoints()
@@ -79,13 +81,13 @@ def test_pods_replace_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_topic_create_overlay():
     create_topic()
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict")
+@overlay_nostrict
 def test_topic_delete_overlay():
     delete_topic()
