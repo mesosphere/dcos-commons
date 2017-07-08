@@ -1,5 +1,6 @@
 ---
 title: Glossary
+menu_order: 4
 ---
 
 ## D

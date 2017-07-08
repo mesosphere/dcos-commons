@@ -1,6 +1,10 @@
 set -x
 MODE=
 
+# Otherwise, Python will complain.
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
 if [ "$#" -ge 2 ]; then
     # Set some cluster configs if they are passed in.
     echo At least 2 arguments, must be dcos_url and acs_token

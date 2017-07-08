@@ -1,11 +1,13 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strings"
 )
 
 type responseCheck func(response *http.Response, body []byte) error
@@ -41,7 +43,7 @@ func defaultResponseCheck(response *http.Response) error {
 "- Bad auth token? Run 'dcos auth login' to log in.`
 		return fmt.Errorf(errorString, response.Request.URL)
 	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
-		return createServiceNameError(response)
+		return createServiceNameError()
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		return createResponseError(response)
 	}
@@ -98,16 +100,17 @@ func JSONBytesToArray(bytes []byte) ([]string, error) {
 	return array, err
 }
 
-// SortAndPrettyPrintJSONArray unmarshals an array of JSON strings, sorts and counts it and
-// returns a JSON marshaled version of it for pretty printing.
-func SortAndPrettyPrintJSONArray(bytes []byte) (bool, []byte, error) {
-	// Unmarshal into a []string so that we can count and sort the array
-	convertedArray, err := JSONBytesToArray(bytes)
-	if err != nil {
-		return false, nil, err
+// PrettyPrintSlice takes a slice (e.g. [0 1 2]), sorts it and returns a pretty printed string
+// in the same style as a JSON string array (e.g. ["0", "1", "2"]).
+func PrettyPrintSlice(slice []string) string {
+	sort.Strings(slice)
+	var buf bytes.Buffer
+	buf.WriteString("[")
+	var bits []string
+	for _, element := range slice {
+		bits = append(bits, fmt.Sprintf("\"%s\"", element))
 	}
-	sort.Strings(convertedArray)
-	// Marshal back to JSON, this should preserve the order of elements
-	jsonBytes, err := json.Marshal(convertedArray)
-	return (len(convertedArray) == 0), jsonBytes, err
+	buf.WriteString(strings.Join(bits, ", "))
+	buf.WriteString("]")
+	return buf.String()
 }

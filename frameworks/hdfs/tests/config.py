@@ -12,16 +12,16 @@ TEST_CONTENT_SMALL = "This is some test data"
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
+DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
 def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):

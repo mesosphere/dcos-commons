@@ -1,0 +1,43 @@
+{
+  "type": "JsonSchemaMismatch",
+  "message": "Options JSON failed validation",
+  "data": {
+    "errors": [
+      {
+        "level": "error",
+        "schema": {
+          "loadingURI": "#",
+          "pointer": "/properties/world/properties/cpus"
+        },
+        "instance": {
+          "pointer": "/world/cpus"
+        },
+        "domain": "validation",
+        "keyword": "type",
+        "message": "instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])",
+        "found": "string",
+        "expected": [
+          "integer",
+          "number"
+        ]
+      },
+      {
+        "domain": "validation",
+        "expected": [
+          "string"
+        ],
+        "found": "integer",
+        "instance": {
+          "pointer": "/service/mesos_api_version"
+        },
+        "keyword": "type",
+        "level": "error",
+        "message": "instance type (integer) does not match any allowed primitive type (allowed: [\"string\"])",
+        "schema": {
+          "loadingURI": "#",
+          "pointer": "/properties/service/properties/mesos_api_version"
+        }
+      }
+    ]
+  }
+}
