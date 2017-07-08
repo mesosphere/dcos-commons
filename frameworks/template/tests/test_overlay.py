@@ -23,5 +23,6 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@utils.dcos_1_9_or_higher
 def test_install():
     networks.check_task_network("template-0-node")
