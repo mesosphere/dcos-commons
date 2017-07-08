@@ -32,12 +32,14 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@utils.dcos_1_9_or_higher
 def test_service_health():
     assert shakedown.service_healthy(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@utils.dcos_1_9_or_higher
 def test_indexing(default_populated_index):
     indices_stats = get_elasticsearch_indices_stats(DEFAULT_INDEX_NAME)
     observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
@@ -49,6 +51,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(PACKAGE_NAME)
     assert len(elastic_tasks) == DEFAULT_TASK_COUNT, \
@@ -59,6 +62,7 @@ def test_tasks_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
     observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 4)
     expected_endpoints = ("coordinator",
