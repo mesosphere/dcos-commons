@@ -278,6 +278,7 @@ def test_pods_cli():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
+@utils.dcos_1_9_or_higher
 def test_metrics():
     metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker", DEFAULT_KAFKA_TIMEOUT)
 
