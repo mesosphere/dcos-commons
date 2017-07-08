@@ -4,6 +4,9 @@ import sdk_install as install
 import sdk_utils as utils
 import sdk_networks as networks
 
+import shakedown
+
+
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
