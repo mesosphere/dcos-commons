@@ -1,7 +1,4 @@
 import pytest
-from dcos.mesos import DCOSClient
-from distutils.version import LooseVersion
-import dcos
 import shakedown
 import time
 import json
@@ -36,7 +33,7 @@ def test_soak_upgrade_downgrade():
 
 
 @pytest.mark.soak_secrets_update
-@dcos_1_10
+@pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
 def test_soak_secrets_update():
 
     secret_content_alternative = "hello-world-secret-data-alternative"
@@ -69,8 +66,9 @@ def test_soak_secrets_update():
 
 
 @pytest.mark.soak_secrets_alive
-@dcos_1_10
+@pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
 def test_soak_secrets_framework_alive():
+
     plan.wait_for_completed_deployment(FRAMEWORK_NAME)
     tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
 
@@ -93,6 +91,7 @@ def test_soak_secrets_restart_hello0():
 
 
 def task_exec(task_name, command):
+
     lines = cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
     print(lines)
     for i in lines:
