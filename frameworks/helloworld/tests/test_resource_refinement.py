@@ -23,5 +23,6 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@utils.dcos_1_10_or_higher
 def test_install():
     check_running(PACKAGE_NAME)
