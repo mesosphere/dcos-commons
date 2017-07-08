@@ -1,3 +1,4 @@
+import os
 import pytest
 
 import sdk_install as install
