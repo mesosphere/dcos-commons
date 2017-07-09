@@ -2,6 +2,7 @@ import pytest
 
 import sdk_install as install
 import sdk_utils as utils
+import shakedown
 from tests.config import (
     check_running,
     DEFAULT_TASK_COUNT,
@@ -23,5 +24,6 @@ def teardown_module(module):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@utils.dcos_1_10_or_higher
 def test_install():
     check_running(PACKAGE_NAME)
