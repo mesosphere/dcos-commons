@@ -20,7 +20,7 @@ def setup_module(module):
     utils.gc_frameworks()
     options = {
         "service": {
-            "spec_file": "examples/config_update.yml"
+            "spec_file": "examples/multistep_plan.yml"
         }
     }
 
@@ -34,6 +34,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.config_update
+@pytest.mark.ben
 def test_bump_hello_cpus():
     def close_enough(val0, val1):
         epsilon = 0.00001
