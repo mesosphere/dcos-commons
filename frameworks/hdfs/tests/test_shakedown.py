@@ -15,6 +15,12 @@ import sdk_metrics as metrics
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
+TEST_CONTENT_SMALL = "This is some test data"
+# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
+TEST_FILE_1_NAME = "test_1"
+TEST_FILE_2_NAME = "test_2"
+HDFS_CMD_TIMEOUT_SEC = 5 * 60
+HDFS_POD_TYPES = {"journal", "name", "data"}
 
 def setup_module(module):
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
