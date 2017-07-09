@@ -1,4 +1,6 @@
 import sys
+
+import dcos
 import shakedown
 import pytest
 
@@ -32,6 +34,20 @@ def gc_frameworks():
     '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
     for host in shakedown.get_private_agents():
         shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
+
+
+def list_reserved_resources():
+    '''Displays the currently reserved resources on all agents via state.json;
+       Currently for INFINITY-1881 where we believe uninstall may not be
+       always doing its job correctly.'''
+    state_json_slaveinfo = dcos.mesos.DCOSClient().get_state_summary()['slaves']
+
+    for slave in state_json_slaveinfo:
+        reserved_resources = slave['reserved_resources']
+        if reserved_resources == {}:
+            continue
+        msg = "on slaveid=%s hostname=%s reserved resources: %s"
+        out(msg % (slave['id'], slave['hostname'], reserved_resources))
 
 
 def get_foldered_name(service_name):
