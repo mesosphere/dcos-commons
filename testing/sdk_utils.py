@@ -42,6 +42,8 @@ def get_foldered_name(service_name):
     return "/test/integration/" + service_name
 
 
-dcos_1_9_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.9")')
-dcos_1_10_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
+dcos_1_9_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.9")',
+                                        reason="Feature only supported in DC/OS 1.9 and up")
+dcos_1_10_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")',
+                                         reason="Feature only supported in DC/OS 1.10 and up")
 
