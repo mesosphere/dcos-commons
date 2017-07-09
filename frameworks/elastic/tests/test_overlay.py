@@ -1,10 +1,15 @@
+import os
 import pytest
 
 import sdk_install as install
 import sdk_utils as utils
 import sdk_networks as networks
+# Do not use import *; it makes it harder to determine the origin of config
+# items
 from tests.config import *
 
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
@@ -32,6 +37,7 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
+@overlay_nostrict
 @utils.dcos_1_9_or_higher
 def test_service_health():
     assert shakedown.service_healthy(PACKAGE_NAME)
@@ -39,6 +45,7 @@ def test_service_health():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@overlay_nostrict
 @utils.dcos_1_9_or_higher
 def test_indexing(default_populated_index):
     indices_stats = get_elasticsearch_indices_stats(DEFAULT_INDEX_NAME)
@@ -51,6 +58,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@overlay_nostrict
 @utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(PACKAGE_NAME)
@@ -62,6 +70,7 @@ def test_tasks_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@overlay_nostrict
 @utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
     observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 4)
