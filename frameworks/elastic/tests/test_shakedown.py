@@ -61,6 +61,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.metrics
+@utils.dcos_1_9_or_higher
 def test_metrics():
     metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", DEFAULT_ELASTIC_TIMEOUT)
 
