@@ -5,8 +5,10 @@ import sdk_utils as utils
 import sdk_tasks as tasks
 
 PACKAGE_NAME = 'hdfs'
+FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
+ZK_SERVICE_PATH = utils.get_zk_path(PACKAGE_NAME)
 TEST_CONTENT_SMALL = "This is some test data"
 # use long-read alignments to human chromosome 1 as large file input (11GB)
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
@@ -82,6 +84,6 @@ def find_java_home(host):
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=20 * 60)
+    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
+    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
     tasks.check_running(PACKAGE_NAME, count)

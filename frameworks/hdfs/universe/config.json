@@ -128,6 +128,11 @@
           "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
           "type": "string",
           "default": ""
+        },
+        "enable_readiness_check": {
+          "description": "Determines whether to enable readiness checks for Journal Nodes.",
+          "type": "boolean",
+          "default": true
         }
       },
       "required":[
