@@ -61,7 +61,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
-    assert zookeeper.rstrip('\n') == 'master.mesos:2181/dcos-service-test__integration__kafka'
+    assert zookeeper.rstrip('\n') == 'master.mesos:2181/dcos-service-{}'.format(get_kafka_path())
 
 
 @pytest.mark.smoke
@@ -81,8 +81,9 @@ def test_custom_zookeeper():
     # should be using default path when this envvar is empty/unset:
     assert config['env']['KAFKA_ZOOKEEPER_URI'] == ''
 
+
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
-    zk_path = 'master.mesos:2181/dcos-service-test__integration__kafka/CUSTOMPATH'
+    zk_path = 'master.mesos:2181/dcos-service-{}/CUSTOMPATH'.format(get_kafka_path())
     config['env']['KAFKA_ZOOKEEPER_URI'] = zk_path
     marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
@@ -97,6 +98,12 @@ def test_custom_zookeeper():
 
     # tests from here continue with the custom ZK path...
 
+
+# < 1.10 does not support foldering and has the simple name.
+def get_kafka_path():
+    if shakedown.dcos_version_less_than("1.10"):
+        return "kafka"
+    return "test__integration__kafka"
 
 # --------- Broker -------------
 
