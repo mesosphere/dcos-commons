@@ -102,7 +102,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         PodInstanceRequirement replacePodInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                    newPodInstance, inputLaunchStep.start().get().getTasksToLaunch())
+                    newPodInstance, inputLaunchStep.getPodInstanceRequirement().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
 
@@ -113,8 +113,45 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 new UnconstrainedLaunchConstrainer(),
                 stateStore);
 
+        // Restart all other nodes if replacing a seed node to refresh IP resolution
+        List<Step> restartSteps = new ArrayList<>();
+        int replaceIndex = replaceStep.getPodInstanceRequirement().get().getPodInstance().getIndex();
+        if (isSeedNode(replaceIndex)) {
+            logger.info(
+                    "node-{} is a seed node. Restarting all other nodes to refresh seed node address.",
+                    replaceIndex);
+
+            for (Step step : inputPhase.getChildren()) {
+                if (step.getPodInstanceRequirement().get().getPodInstance().getIndex() == replaceIndex) {
+                    continue;
+                }
+
+                PodInstanceRequirement restartPodInstanceRequirement =
+                        PodInstanceRequirement.newBuilder(
+                                step.getPodInstanceRequirement().get().getPodInstance(),
+                                step.getPodInstanceRequirement().get().getTasksToLaunch())
+                                .recoveryType(RecoveryType.TRANSIENT)
+                                .build();
+
+                restartSteps.add(
+                        new DefaultRecoveryStep(
+                                step.getName(),
+                                Status.PENDING,
+                                restartPodInstanceRequirement,
+                                new UnconstrainedLaunchConstrainer(),
+                                stateStore));
+            }
+        }
+
+        List<Step> steps = new ArrayList<>();
+        steps.add(replaceStep);
+        steps.addAll(restartSteps);
+
         return new DefaultPhase(
-                RECOVERY_PHASE_NAME, Arrays.asList(replaceStep), new SerialStrategy<>(), Collections.emptyList());
+                RECOVERY_PHASE_NAME,
+                steps,
+                new SerialStrategy<>(),
+                Collections.emptyList());
     }
 
     private boolean isSeedNode(int index) {
