@@ -14,15 +14,6 @@ import sdk_utils as utils
 import sdk_metrics as metrics
 from tests.config import *
 
-FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
-ZK_SERVICE_PATH = utils.get_zk_path(PACKAGE_NAME)
-TEST_CONTENT_SMALL = "This is some test data"
-# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
-HDFS_POD_TYPES = {"journal", "name", "data"}
-
 def setup_module(module):
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
     utils.gc_frameworks()
@@ -363,7 +354,7 @@ def write_some_data(data_node_name, file_name):
         rc, _ = run_hdfs_command(data_node_name, write_command)
         # rc being True is effectively it being 0...
         return rc
-    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def read_some_data(data_node_name, file_name):
@@ -371,7 +362,7 @@ def read_some_data(data_node_name, file_name):
         read_command = "./bin/hdfs dfs -cat /{}".format(file_name)
         rc, output = run_hdfs_command(data_node_name, read_command)
         return rc and output.rstrip() == TEST_CONTENT_SMALL
-    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def run_hdfs_command(task_name, command):
@@ -429,7 +420,7 @@ def wait_for_failover_to_complete(namenode):
             utils.out("Failover to {} successfully completed".format(namenode))
         return rc
 
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
