@@ -474,16 +474,15 @@ public class PodInfoBuilder {
     private Protos.ContainerInfo getContainerInfo(
             PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
+        Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
+                .setType(Protos.ContainerInfo.Type.MESOS);
 
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
                 && secretVolumes.isEmpty()) {
-            return null;
+            return containerInfo.build();
         }
-
-        Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
-                .setType(Protos.ContainerInfo.Type.MESOS);
 
         if (podSpec.getImage().isPresent() && addExtraParameters && isTaskContainer) {
             containerInfo.getMesosBuilder()
