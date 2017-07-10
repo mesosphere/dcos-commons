@@ -4,15 +4,15 @@ import java.util.*;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
@@ -35,8 +35,6 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DNS = "dns";
     private static final String RESPONSE_KEY_ADDRESS = "address";
-    // deprecated in favor of vips (RESPONSE_KEY_VIPS), remove at 1.9 -> 2.0 cutover
-    private static final String RESPONSE_KEY_VIP = "vip";
     private static final String RESPONSE_KEY_VIPS = "vips";
 
     private final StateStore stateStore;
@@ -76,27 +74,14 @@ public class EndpointsResource {
     }
 
     /**
-     * Produces a listing of all endpoints, with an optional format argument.
-     *
-     * @param deprecatedFormat (DEPRECATED: REMOVE AFTER APRIL 2017)
+     * Produces a listing of all endpoint names.
      */
     @GET
-    public Response getEndpoints(@Deprecated @QueryParam("format") String deprecatedFormat) {
+    public Response getEndpoints() {
         try {
-            List<String> endpoints = new ArrayList<>();
-
-            // Custom values take precedence:
-            for (Map.Entry<String, EndpointProducer> entry : customEndpoints.entrySet()) {
-                endpoints.add(entry.getKey());
-            }
-            // Add default values (when they don't collide with custom values):
-            for (Map.Entry<String, JSONObject> endpointType :
-                    getDiscoveryEndpoints(serviceName, stateStore.fetchTasks()).entrySet()) {
-                if (!endpoints.contains(endpointType.getKey())) {
-                    endpoints.add(endpointType.getKey());
-                }
-            }
-
+            Set<String> endpoints = new TreeSet<>();
+            endpoints.addAll(customEndpoints.keySet());
+            endpoints.addAll(getDiscoveryEndpoints().keySet());
             return jsonOkResponse(new JSONArray(endpoints));
         } catch (Exception ex) {
             LOGGER.error("Failed to fetch list of endpoints", ex);
@@ -105,27 +90,28 @@ public class EndpointsResource {
     }
 
     /**
-     * Produces the content of the specified endpoint, with an optional format argument.
+     * Produces the content of the specified endpoint.
      *
      * @param name the name of the endpoint whose content should be included
-     * @param deprecatedFormat (DEPRECATED: REMOVE AFTER APRIL 2017)
      */
     @Path("/{name}")
     @GET
-    public Response getEndpoint(
-            @PathParam("name") String name,
-            @Deprecated @QueryParam("format") String deprecatedFormat) {
+    public Response getEndpoint(@PathParam("name") String name) {
         try {
             // Check for custom value before emitting any default values:
             EndpointProducer customValue = customEndpoints.get(name);
             if (customValue != null) {
+                // Return custom values as plain text. They could be anything.
                 return plainOkResponse(customValue.getEndpoint());
             }
-            JSONObject endpoint = getDiscoveryEndpoints(serviceName, stateStore.fetchTasks()).get(name);
-            if (endpoint == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+
+            // Fall back to checking default values:
+            JSONObject endpoint = getDiscoveryEndpoints().get(name);
+            if (endpoint != null) {
+                return jsonOkResponse(endpoint);
             }
-            return jsonOkResponse(endpoint);
+
+            return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception ex) {
             LOGGER.error(String.format("Failed to fetch endpoint %s", name), ex);
             return Response.serverError().build();
@@ -135,11 +121,9 @@ public class EndpointsResource {
     /**
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
-    private Map<String, JSONObject> getDiscoveryEndpoints(
-            String serviceName,
-            Collection<TaskInfo> taskInfos) throws TaskException {
+    private Map<String, JSONObject> getDiscoveryEndpoints() throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
-        for (TaskInfo taskInfo : taskInfos) {
+        for (TaskInfo taskInfo : stateStore.fetchTasks()) {
             if (!taskInfo.hasDiscovery()) {
                 LOGGER.info("Task lacks any discovery information, no endpoints to report: {}",
                         taskInfo.getName());
@@ -163,21 +147,31 @@ public class EndpointsResource {
                                 .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
             }
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
-                if (port.getVisibility() != YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY) {
+                if (port.getVisibility() != Constants.PUBLIC_PORT_VISIBILITY) {
                     LOGGER.info(
-                            "Task discovery information has {} visibility, {} needed to be included in endpoints: {}",
-                            port.getVisibility(), YAMLToInternalMappers.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
+                            "Port {} in task {} has {} visibility. {} is needed to be listed in endpoints.",
+                            port.getName(), taskInfo.getName(), port.getVisibility(), Constants.PUBLIC_PORT_VISIBILITY);
                     continue;
                 }
-                String hostIpString = ipAddresses.isEmpty() ? nativeHost :
-                        (ipAddresses.size() == 1 ? ipAddresses.get(0) : ipAddresses.toString());
+                final String hostIpString;
+                switch (ipAddresses.size()) {
+                case 0:
+                    hostIpString = nativeHost;
+                    break;
+                case 1:
+                    hostIpString = ipAddresses.get(0);
+                    break;
+                default:
+                    hostIpString = ipAddresses.toString();
+                    break;
+                }
                 addPortToEndpoints(
                         serviceName,
                         endpointsByName,
                         taskInfo,
+                        port,
                         EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
-                        EndpointUtils.toEndpoint(hostIpString, port.getNumber()),
-                        port.getLabels().getLabelsList());
+                        EndpointUtils.toEndpoint(hostIpString, port.getNumber()));
             }
         }
         return endpointsByName;
@@ -188,9 +182,11 @@ public class EndpointsResource {
      * will be added for any VIPs listed against the {@link Port}'s labels, or if no VIPs are found,
      * the information will be added against the task type.
      *
+     * @param serviceName the name of the parent service
      * @param endpointsByName the map to write to
-     * @param taskInfo the task which has the port
-     * @param dnsHostPort the host:port value to advertise for directly connecting to the task
+     * @param taskInfo the task which has the port in question
+     * @param autoipHostPort the host:port value to advertise for connecting to the task over DNS
+     * @param ipHostPort the host:port value to advertise for connecting to the task's IP
      * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */
@@ -198,18 +194,19 @@ public class EndpointsResource {
             String serviceName,
             Map<String, JSONObject> endpointsByName,
             TaskInfo taskInfo,
-            String dnsHostPort,
-            String addressHostPort,
-            List<Label> portLabels) throws TaskException {
-        // Search for any VIPs to add the above host:port against:
+            Port taskInfoPort,
+            String autoipHostPort,
+            String ipHostPort) throws TaskException {
+        // Search for any VIPs to list the port against:
         boolean foundAnyVips = false;
-        for (Label label : portLabels) {
+        for (Label label : taskInfoPort.getLabels().getLabelsList()) {
             Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskInfo.getName(), label);
             if (!vipInfo.isPresent()) {
+                // Label doesn't appear to be for a VIP
                 continue;
             }
 
-            // VIP found. file host:port against the VIP name.
+            // VIP found. file host:port against the VIP name (note: NOT necessarily the same as the port name).
             foundAnyVips = true;
 
             JSONObject vipEndpoint = endpointsByName.get(vipInfo.get().getVipName());
@@ -219,16 +216,15 @@ public class EndpointsResource {
             }
 
             // append entry to 'dns' and 'address' arrays for this task:
-            vipEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
-            vipEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
+            vipEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
+            vipEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
 
-            // (distinctly) append entry to 'vips' for this task:
+            // append entry to 'vips' for this task, if entry is not already present from a different task:
             String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo.get());
-            Boolean foundVip = false;
+            boolean foundVip = false;
             if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
-                JSONArray vips = vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS);
-                for (Object vipPresent : vips) {
-                    if (vipHostPort.equals(vipPresent)) {
+                for (Object existingVip : vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS)) {
+                    if (vipHostPort.equals(existingVip)) {
                         foundVip = true;
                         break;
                     }
@@ -237,25 +233,17 @@ public class EndpointsResource {
             if (!foundVip) {
                 vipEndpoint.append(RESPONSE_KEY_VIPS, vipHostPort);
             }
-
-            // deprecated in favor of vips (RESPONSE_KEY_VIPS), remove at 1.9 -> 2.0 cutover
-            // behavior here is last in wins for a 1:n field
-            vipEndpoint.put(RESPONSE_KEY_VIP, vipHostPort);
         }
 
-        if (!foundAnyVips) {
-            // No VIPs found for this port. file direct host:port against task type.
-            final String taskType = new SchedulerLabelReader(taskInfo).getType();
-
-            JSONObject taskEndpoint = endpointsByName.get(taskType);
-            if (taskEndpoint == null) {
-                taskEndpoint = new JSONObject();
-                endpointsByName.put(taskType, taskEndpoint);
+        // If no VIPs were found, list the port against the port name:
+        if (!foundAnyVips && !Strings.isEmpty(taskInfoPort.getName())) {
+            JSONObject portEndpoint = endpointsByName.get(taskInfoPort.getName());
+            if (portEndpoint == null) {
+                portEndpoint = new JSONObject();
+                endpointsByName.put(taskInfoPort.getName(), portEndpoint);
             }
-
-            // append entry to 'direct' array for this task:
-            taskEndpoint.append(RESPONSE_KEY_DNS, dnsHostPort);
-            taskEndpoint.append(RESPONSE_KEY_ADDRESS, addressHostPort);
+            portEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
+            portEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
         }
     }
 }

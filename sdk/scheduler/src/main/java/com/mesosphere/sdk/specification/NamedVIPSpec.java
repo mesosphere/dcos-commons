@@ -21,8 +21,6 @@ public class NamedVIPSpec extends PortSpec {
     @Size(min = 1)
     private final String protocol;
     @NotNull
-    private final DiscoveryInfo.Visibility visibility;
-    @NotNull
     @Size(min = 1)
     private final String vipName;
     @NotNull
@@ -42,9 +40,8 @@ public class NamedVIPSpec extends PortSpec {
             @JsonProperty("vip-port") Integer vipPort,
             @JsonProperty("network-names") Collection<String> networkNames) {
 
-        super(value, role, preReservedRole, principal, envKey, portName, networkNames);
+        super(value, role, preReservedRole, principal, envKey, portName, visibility, networkNames);
         this.protocol = protocol;
-        this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
 
@@ -54,11 +51,6 @@ public class NamedVIPSpec extends PortSpec {
     @JsonProperty("protocol")
     public String getProtocol() {
         return protocol;
-    }
-
-    @JsonProperty("visibility")
-    public DiscoveryInfo.Visibility getVisibility() {
-        return visibility;
     }
 
     @JsonProperty("vip-name")

@@ -176,13 +176,10 @@ public class EndpointsResourceTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void testEndpoint(String expectedHostname) throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("vip1", null);
+        Response response = resource.getEndpoint("vip1");
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
-        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
-        assertEquals(json.toString(), 4, json.length());
-        // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
+        assertEquals(json.toString(), 3, json.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
         JSONArray dns = json.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -208,7 +205,7 @@ public class EndpointsResourceTest {
     private void allEndpointsTest(String serviceName, String serviceNetworkName) {
         resource = buildResource(mockStateStore, serviceName);
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoints(null);
+        Response response = resource.getEndpoints();
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -218,11 +215,8 @@ public class EndpointsResourceTest {
         assertEquals("vip1", json.get(2));
         assertEquals("some-task-type", json.get(3));
 
-        JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1", null).getEntity());
-        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
-        assertEquals(4, vip1.length());
-        // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
+        JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1").getEntity());
+        assertEquals(3, vip1.length());
         assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
         JSONArray dns = vip1.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -233,11 +227,8 @@ public class EndpointsResourceTest {
         assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
         assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
 
-        JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", null).getEntity());
-        // due to deprecated "vip", decremented expected at 1.9 -> 2.0
-        assertEquals(4, vip2.length());
-        // deprecated, remove "vip" at 1.9 -> 2.0
-        assertEquals("vip2." + serviceNetworkName + ".l4lb.thisdcos.directory:6432", vip2.get("vip"));
+        JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2").getEntity());
+        assertEquals(3, vip2.length());
         assertEquals("vip2." + serviceNetworkName + ".l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
         dns = vip2.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -248,7 +239,7 @@ public class EndpointsResourceTest {
         assertEquals(TestConstants.HOSTNAME + ":2346", address.get(0));
         assertEquals(TestConstants.HOSTNAME + ":3457", address.get(1));
 
-        JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type", null).getEntity());
+        JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type").getEntity());
         assertEquals(2, taskType.length());
         dns = taskType.getJSONArray("dns");
         assertEquals(6, dns.length());
@@ -309,22 +300,8 @@ public class EndpointsResourceTest {
     @Test
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("custom", null);
+        Response response = resource.getEndpoint("custom");
         assertEquals(200, response.getStatus());
         assertEquals(CUSTOM_VALUE, response.getEntity());
-    }
-
-    @Test
-    public void testGetAllEndpointsNativeIgnored() throws ConfigStoreException {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        assertEquals(resource.getEndpoints(null).getEntity(), resource.getEndpoints("native").getEntity());
-        assertEquals(resource.getEndpoint("vip1", null).getEntity(),
-                resource.getEndpoint("vip1", "native").getEntity());
-        assertEquals(resource.getEndpoint("vip2", null).getEntity(),
-                resource.getEndpoint("vip2", "native").getEntity());
-        assertEquals(resource.getEndpoint("some-task-type", null).getEntity(),
-                resource.getEndpoint("some-task-type", "native").getEntity());
-        assertEquals(resource.getEndpoint("custom", null).getEntity(),
-                resource.getEndpoint("custom", "native").getEntity());
     }
 }

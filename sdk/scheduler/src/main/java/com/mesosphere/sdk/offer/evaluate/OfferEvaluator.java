@@ -259,18 +259,10 @@ public class OfferEvaluator {
                 if (resourceSpec instanceof NamedVIPSpec) {
                     NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
                     evaluationStages.add(
-                            new NamedVIPEvaluationStage(
-                                    namedVIPSpec,
-                                    taskName,
-                                    Optional.empty(),
-                                    namedVIPSpec.getPortName()));
+                            new NamedVIPEvaluationStage(namedVIPSpec, taskName, Optional.empty()));
                 } else if (resourceSpec instanceof PortSpec) {
                     PortSpec portSpec = (PortSpec) resourceSpec;
-                    evaluationStages.add(new PortEvaluationStage(
-                            portSpec,
-                            taskName,
-                            Optional.empty(),
-                            portSpec.getPortName()));
+                    evaluationStages.add(new PortEvaluationStage(portSpec, taskName, Optional.empty()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }

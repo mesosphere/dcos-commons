@@ -17,7 +17,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.DiscoveryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +33,6 @@ import java.util.stream.IntStream;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-    private static final String DEFAULT_VIP_PROTOCOL = "tcp";
-
-    public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
@@ -508,15 +503,6 @@ public class YAMLToInternalMappers {
         return ports;
     }
 
-    private static boolean maybeUsePortResources(Collection<String> networkNames) {
-        for (String networkName : networkNames) {
-            if (DcosConstants.networkSupportsPortMapping(networkName)) {
-                return true;
-            }
-        }
-        return networkNames.size() == 0;  // if we have no networks, we want to use port resources
-    }
-
     private static PortsSpec from(
             String role,
             String preReservedRole,
@@ -541,9 +527,6 @@ public class YAMLToInternalMappers {
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
-                final String protocol =
-                        StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
-                final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
                 NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,
@@ -551,9 +534,9 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
-                        protocol,
-                        toVisibility(rawVip.isAdvertised()),
-                        vipName,
+                        DcosConstants.DEFAULT_IP_PROTOCOL,
+                        Constants.PUBLIC_PORT_VISIBILITY,
+                        StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix(),
                         rawVip.getPort(),
                         networkNames);
                 portSpecs.add(namedVIPSpec);
@@ -565,21 +548,11 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
+                        Constants.PUBLIC_PORT_VISIBILITY,
                         networkNames));
             }
         }
         return new PortsSpec(
                 Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
-    }
-
-    /**
-     * This visibility information isn't currently used by DC/OS Service Discovery. At the moment it's only enforced in
-     * our own {@link com.mesosphere.sdk.api.EndpointsResource}.
-     */
-    private static DiscoveryInfo.Visibility toVisibility(Boolean rawIsVisible) {
-        if (rawIsVisible == null) {
-            return PUBLIC_VIP_VISIBILITY;
-        }
-        return rawIsVisible ? DiscoveryInfo.Visibility.EXTERNAL : DiscoveryInfo.Visibility.CLUSTER;
     }
 }
