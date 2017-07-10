@@ -17,6 +17,11 @@ public class Constants {
     public static final String PORTS_RESOURCE_TYPE = "ports";
     /** The name used for reserved storage/disk resources. */
     public static final String DISK_RESOURCE_TYPE = "disk";
+    /** The name used for cpu resources. */
+    public static final String CPUS_RESOURCE_TYPE = "cpus";
+    /** The name used for memory resources. */
+    public static final String MEMORY_RESOURCE_TYPE = "mem";
+
 
     /** The "any role" wildcard resource role. */
     public static final String ANY_ROLE = "*";

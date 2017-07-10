@@ -119,8 +119,7 @@ class OfferEvaluationUtils {
 
                 if (!mesosResourceOptional.isPresent()) {
                     return new ReserveEvaluationOutcome(
-                            fail(
-                                    offerEvaluationStage,
+                            fail(offerEvaluationStage,
                                     "Insufficient resources to increase reservation of resource '%s' with resourceId",
                                     resourceSpec,
                                     resourceId),
