@@ -15,6 +15,7 @@ import sdk_metrics as metrics
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
+ZK_SERVICE_PATH = utils.get_zk_path(PACKAGE_NAME)
 TEST_CONTENT_SMALL = "This is some test data"
 # TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
 TEST_FILE_1_NAME = "test_1"
@@ -45,7 +46,7 @@ def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints core-site.xml'.format(FOLDERED_SERVICE_NAME)))
     check_properties(core_site, {
-        'ha.zookeeper.parent-znode': '/dcos-service-test__integration__hdfs/hadoop-ha'
+        'ha.zookeeper.parent-znode': '/dcos-service-{}/hadoop-ha'.format(ZK_SERVICE_PATH)
     })
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))

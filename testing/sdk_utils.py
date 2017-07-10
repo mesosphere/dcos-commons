@@ -57,6 +57,13 @@ def get_foldered_name(service_name):
         return service_name
     return "/test/integration/" + service_name
 
+def get_zk_path(service_name):
+    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
+    # group names
+    if shakedown.dcos_version_less_than("1.10"):
+        return service_name
+    return "test__integration__" + service_name
+
 
 dcos_1_9_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.9")',
                                         reason="Feature only supported in DC/OS 1.9 and up")
