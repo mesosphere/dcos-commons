@@ -261,12 +261,6 @@ public class PodInfoBuilder {
             executorInfoBuilder.getContainerBuilder()
                     .setType(Protos.ContainerInfo.Type.MESOS)
                     .getMesosBuilder().clearImage();
-
-            if (!podInstance.getPod().getNetworks().isEmpty()) {
-                containerBuilder.addAllNetworkInfos(
-                        podSpec.getNetworks().stream()
-                                .map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
-            }
         } else {
             // command and user:
             Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
