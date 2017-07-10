@@ -29,6 +29,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
+@utils.dcos_1_9_or_higher # dcos task exec not supported < 1.9
 def test_node_replace_replaces_node():
     pod_to_replace = 'node-2'
     pod_host = get_pod_host(pod_to_replace)
@@ -48,10 +49,17 @@ def test_node_replace_replaces_node():
     # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
     pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
     task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
+
+    # In DC/OS 1.9, task exec does not run in $MESOS_SANDBOX AND does not have access to the envvar.
+    if shakedown.dcos_version_less_than('1.10'):
+        mesos_sandbox = '/mnt/mesos/sandbox'
+    else:
+        mesos_sandbox = '$MESOS_SANDBOX'
+
     # wait for 'nodetool status' to reflect the replacement:
     def fun():
         stdout = cmd.run_cli(
-            'task exec {} /bin/bash -c "JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_id))
+            'task exec {} /bin/bash -c "cd {} && JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_id, mesos_sandbox))
         up_ips = []
         for line in stdout.split('\n'):
             words = list(filter(None, line.split()))
