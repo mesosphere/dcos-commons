@@ -116,4 +116,8 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         return new DefaultPhase(
                 RECOVERY_PHASE_NAME, Arrays.asList(replaceStep), new SerialStrategy<>(), Collections.emptyList());
     }
+
+    private boolean isSeedNode(int index) {
+       return index < CassandraUtils.getSeedsCount();
+    }
 }
