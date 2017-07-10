@@ -181,7 +181,7 @@ public class PodInfoBuilder {
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         if (!podInstance.getPod().getNetworks().isEmpty()) {
-            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false));
+            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false, true));
         } else {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
@@ -249,13 +249,7 @@ public class PodInfoBuilder {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-
-        // Populate ContainerInfo with the appropriate information from PodSpec
-        // This includes networks, rlimits, secret volumes...
-        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
-        if (containerInfo != null) {
-            executorInfoBuilder.setContainer(containerInfo);
-        }
+        Protos.ContainerInfo.Builder containerBuilder = getContainerInfo(podSpec, true, false).toBuilder();
 
         executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
                 .setKey("DCOS_SPACE")
@@ -267,6 +261,12 @@ public class PodInfoBuilder {
             executorInfoBuilder.getContainerBuilder()
                     .setType(Protos.ContainerInfo.Type.MESOS)
                     .getMesosBuilder().clearImage();
+
+            if (!podInstance.getPod().getNetworks().isEmpty()) {
+                containerBuilder.addAllNetworkInfos(
+                        podSpec.getNetworks().stream()
+                                .map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
+            }
         } else {
             // command and user:
             Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
@@ -314,6 +314,12 @@ public class PodInfoBuilder {
                             .setExtract(false);
                 }
             }
+        }
+
+        // Populate ContainerInfo with the appropriate information from PodSpec
+        // This includes networks, rlimits, secret volumes...
+        if (containerBuilder != null) {
+            executorInfoBuilder.setContainer(containerBuilder);
         }
 
         return executorInfoBuilder;
@@ -465,7 +471,8 @@ public class PodInfoBuilder {
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
     }
 
-    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec, boolean addExtraParameters) {
+    private Protos.ContainerInfo getContainerInfo(
+            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
 
         if (!podSpec.getImage().isPresent()
@@ -478,7 +485,7 @@ public class PodInfoBuilder {
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (podSpec.getImage().isPresent() && addExtraParameters) {
+        if (podSpec.getImage().isPresent() && addExtraParameters && isTaskContainer) {
             containerInfo.getMesosBuilder()
                     .setImage(Protos.Image.newBuilder()
                             .setType(Protos.Image.Type.DOCKER)
@@ -486,7 +493,9 @@ public class PodInfoBuilder {
                                     .setName(podSpec.getImage().get())));
         }
 
-        if (!podSpec.getNetworks().isEmpty()) {
+        // With the default executor, all NetworkInfos must be defined on the executor itself rather than individual
+        // tasks. This check can be made much less ugly once the custom executor no longer need be supported.
+        if (!podSpec.getNetworks().isEmpty() && (!useDefaultExecutor || !isTaskContainer)) {
             containerInfo.addAllNetworkInfos(
                     podSpec.getNetworks().stream().map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
         }
@@ -504,8 +513,8 @@ public class PodInfoBuilder {
         return containerInfo.build();
     }
 
-    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
-        return getContainerInfo(podSpec, true);
+    private Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+        return getContainerInfo(podSpec, true, true);
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
