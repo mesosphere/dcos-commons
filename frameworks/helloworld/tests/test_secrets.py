@@ -1,13 +1,14 @@
 import pytest
-from shakedown import *
+import shakedown
+import time
+import json
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_plan as plan
 import sdk_tasks as tasks
 import sdk_marathon as marathon
-import time
-import json
+import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -72,7 +73,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.secrets
-@dcos_1_10
+@utils.dcos_1_10_or_higher
 def test_secrets_basic():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -111,7 +112,7 @@ def test_secrets_basic():
 
 @pytest.mark.sanity
 @pytest.mark.secrets
-@dcos_1_10
+@utils.dcos_1_10_or_higher
 def test_secrets_verify():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -165,7 +166,7 @@ def test_secrets_verify():
 
 @pytest.mark.sanity
 @pytest.mark.secrets
-@dcos_1_10
+@utils.dcos_1_10_or_higher
 def test_secrets_update():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -226,7 +227,7 @@ def test_secrets_update():
 
 @pytest.mark.sanity
 @pytest.mark.secrets
-@dcos_1_10
+@utils.dcos_1_10_or_higher
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
     # 2) create new Secrets, delete old Secrets
@@ -303,7 +304,7 @@ def test_secrets_config_update():
 @pytest.mark.sanity
 @pytest.mark.secrets
 @pytest.mark.skip(reason="DCOS_SPACE authorization is not working in testing/master. Enable this test later.")
-@dcos_1_10
+@utils.dcos_1_10_or_higher
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
     # 2) Tasks with DCOS_SPACE hello-world/somePath

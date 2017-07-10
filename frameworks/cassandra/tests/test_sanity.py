@@ -81,5 +81,6 @@ def test_repair_cleanup_plans_complete():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
+@utils.dcos_1_9_or_higher
 def test_metrics():
     metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "node-0-server", DEFAULT_CASSANDRA_TIMEOUT)
