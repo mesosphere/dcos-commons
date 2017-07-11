@@ -686,6 +686,14 @@ public class PodInfoBuilder {
                         .setValue(Integer.toString(sizeGB))
                         .build());
 
+                if (dockerVolume.getDriverName().equals("pxd")) {
+                    // Favor creating volumes on the local node
+                    paramsList.add(Protos.Parameter.newBuilder()
+                            .setKey("nodes")
+                            .setValue("LocalNode")
+                            .build());
+                }
+
                 driverOptions.addAllParameter(paramsList);
                 driverOptions.build();
 
