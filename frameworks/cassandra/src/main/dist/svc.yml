@@ -70,7 +70,7 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
             dest: s3config.json
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p 7199 | grep -q "UN  $TASK_IP"
+          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60

@@ -52,7 +52,6 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
             return Optional.empty();
         }
 
-        Phase nnPhase = null;
         int index = stoppedPod.getPodInstance().getIndex();
         logger.info(String.format("Returning replacement plan for node %d.", index));
         return Optional.ofNullable(getNodeRecoveryPhase(replaceNodePlan, index));
