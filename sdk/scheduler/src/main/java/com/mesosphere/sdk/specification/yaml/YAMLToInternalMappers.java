@@ -524,8 +524,8 @@ public class YAMLToInternalMappers {
             RawPort rawPort = portEntry.getValue();
             boolean ok = ports.add(rawPort.getPort());
             if (!ok && rawPort.getPort() > 0) {
-                throw new IllegalArgumentException(String.format("Cannot have duplicate ports, your spec has duplicate " +
-                        "port requests for port %d with name %s", rawPort.getPort(), name));
+                throw new IllegalArgumentException(String.format("Cannot have duplicate ports, your spec has " +
+                        "duplicate port requests for port %d with name %s", rawPort.getPort(), name));
             }
             Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                     .setType(Protos.Value.Type.RANGES);
