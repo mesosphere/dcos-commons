@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -43,7 +43,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -60,7 +60,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).setTransient().toProto());
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -71,7 +71,7 @@ public class OfferAccepterTest {
                 anyCollectionOf(Operation.class),
                 anyObject());
 
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder).clearTransient().toProto());
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).clearTransient().toProto());
         accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), true)));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(

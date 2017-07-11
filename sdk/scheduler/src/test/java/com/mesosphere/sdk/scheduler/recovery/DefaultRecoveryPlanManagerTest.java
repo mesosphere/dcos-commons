@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -105,7 +105,7 @@ public class DefaultRecoveryPlanManagerTest {
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         taskInfo = TaskInfo.newBuilder(taskInfo)
-                .setLabels(new SchedulerLabelWriter(taskInfo)
+                .setLabels(new TaskLabelWriter(taskInfo)
                         .setTargetConfiguration(configTarget)
                         .setIndex(0)
                         .toProto())

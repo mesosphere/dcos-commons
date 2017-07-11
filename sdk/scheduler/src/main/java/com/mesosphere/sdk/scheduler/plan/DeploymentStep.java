@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.mesos.Protos;
 
@@ -147,7 +147,7 @@ public class DeploymentStep extends AbstractStep {
             case TASK_RUNNING:
                 Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
                 if (goalState.equals(GoalState.RUNNING)
-                        && new SchedulerLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
+                        && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
                     setTaskStatus(status.getTaskId(), Status.STARTING);

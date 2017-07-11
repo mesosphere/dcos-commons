@@ -4,38 +4,26 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.mesos.Protos.Labels;
-import org.apache.mesos.Protos.TaskInfo;
 
 /**
  * Implements common logic for write access to a task's Labels. Any access to specific values is provided (only) by
  * ExecutorLabelWriter and SchedulerLabelWriter.
  */
-public class LabelWriter {
+class LabelWriter {
 
     private final Map<String, String> labels;
 
     /**
      * Creates a new instance which is initialized with no labels.
      */
-    protected LabelWriter() {
+    LabelWriter() {
         this(Labels.getDefaultInstance());
     }
 
     /**
-     * Creates a new instance which is initialized with the provided task's labels.
+     * Creates a new instance which is initialized with the provided {@code labels}.
      */
-    protected LabelWriter(TaskInfo taskInfo) {
-        this(taskInfo.getLabels());
-    }
-
-    /**
-     * Creates a new instance which is initialized with the provided task builder's labels.
-     */
-    protected LabelWriter(TaskInfo.Builder taskInfoBuilder) {
-        this(taskInfoBuilder.getLabels());
-    }
-
-    private LabelWriter(Labels labels) {
+    LabelWriter(Labels labels) {
         this.labels = LabelUtils.toMap(labels);
     }
 

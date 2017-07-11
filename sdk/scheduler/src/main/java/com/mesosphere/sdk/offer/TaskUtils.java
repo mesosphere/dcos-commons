@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -39,7 +39,7 @@ public class TaskUtils {
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
     public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
-        String podType = new SchedulerLabelReader(taskInfo).getType();
+        String podType = new TaskLabelReader(taskInfo).getType();
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
             if (podSpec.getType().equals(podType)) {
@@ -110,7 +110,7 @@ public class TaskUtils {
      * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
      */
     public static boolean isSamePodInstance(TaskInfo taskInfo, String type, int index) throws TaskException {
-        SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+        TaskLabelReader labels = new TaskLabelReader(taskInfo);
         return labels.getType().equals(type)
                 && labels.getIndex() == index;
     }
@@ -382,7 +382,7 @@ public class TaskUtils {
             TaskInfo taskInfo) throws TaskException {
 
         PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        int index = new SchedulerLabelReader(taskInfo).getIndex();
+        int index = new TaskLabelReader(taskInfo).getIndex();
 
         return new DefaultPodInstance(podSpec, index);
     }
@@ -391,7 +391,7 @@ public class TaskUtils {
             ConfigStore<ServiceSpec> configStore,
             TaskInfo taskInfo) throws TaskException {
 
-        UUID configId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
+        UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
         try {
