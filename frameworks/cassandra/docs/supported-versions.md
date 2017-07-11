@@ -7,6 +7,4 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-## Supported Versions
-
 The DC/OS Apache Cassandra Service runs Cassandra v3.0.13. It supports DC/OS version 1.8 and later.
