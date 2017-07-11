@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Mock ServiceSpec serviceSpec;
@@ -602,13 +603,19 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
             Offer sufficientOffer = OfferTestUtils.getCompleteOffer(
                     Arrays.asList(
-                            ResourceTestUtils.getUnreservedScalar("cpus", 3.0).toBuilder()
+                            // Include executor resources.
+                            ResourceTestUtils.getUnreservedScalar("cpus", 0.1),
+                            ResourceTestUtils.getUnreservedScalar("mem", 256),
+                            ResourceTestUtils.getUnreservedScalar("disk", 512),
+                            ResourceTestUtils.getUnreservedScalar("cpus", 3.0)).stream()
+                            .map(r -> r.toBuilder()
                                     .setRole(Constants.ANY_ROLE)
                                     .addReservations(
                                             Resource.ReservationInfo.newBuilder()
                                                     .setRole(TestConstants.PRE_RESERVED_ROLE)
                                                     .setType(Resource.ReservationInfo.Type.STATIC))
-                                    .build()));
+                                    .build())
+                            .collect(Collectors.toList()));
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
