@@ -621,10 +621,11 @@ different node.  This is called *replacing* the task.
 it for debugging, we may need to restart the task manually on the same
 node.
 
-You can perform both actions using the same endpoint:
+You can perform both actions using the following endpoints:
 
 ```
-POST /v1/tasks/restart/<task-name>?replace={true|false}
+POST /v1/pods/<task-name>/restart
+POST /v1/pods/<task-name>/replace
 ```
 
 If `replace=true`, this action will replace the task on a separate
@@ -784,20 +785,28 @@ port(s) along with the DNS entry for a task via the following
 endpoint:
 
 ```bash
-GET /v1/tasks/connection/{task-name}
+GET /v1/endpoints/{endpoint-name}
 ```
 
 This HTTP request returns:
 
 ```json
 {
-  "dns": "data-0.data-store.mesos",
-  "ports": "4388"
+  "address": [
+    "10.0.1.161:1025",
+    "10.0.1.6:1025",
+    "10.0.3.205:1025"
+  ],
+  "dns": [
+    "data-2-node.data-store.autoip.dcos.thisdcos.directory:1025",
+    "data-0-node.data-store.autoip.dcos.thisdcos.directory:1025",
+    "data-1-node.data-store.autoip.dcos.thisdcos.directory:1025"
+  ],
+  "vips": [
+    "data.data-store.l4lb.thisdcos.directory:9092"
+  ]
 }
 ```
-
-If the task has multiple ports reserved, they will be displayed as a
-comma-delimited sequence of ranges. e.g. `"8080,2000-3000"`.
 
 # Secrets Management
 
