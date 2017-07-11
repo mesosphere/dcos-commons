@@ -29,7 +29,7 @@ class UniversePackagePublisher(object):
         self._dry_run = dry_run
 
         # Optional configuration via envvars:
-        self._release_branch = os.environ.get('RELEASE_BRANCH', 'version-3.x')
+        self._release_branch = os.environ.get('RELEASE_BRANCH', 'version-3.x-px')
         self._release_index = int(os.environ.get('RELEASE_INDEX', -1))
         self._github_user = os.environ.get('GITHUB_USER', 'mesosphere-ci')
         self._github_token = os.environ.get('GITHUB_TOKEN', None)
@@ -39,7 +39,7 @@ class UniversePackagePublisher(object):
             else:
                 raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
         self._enc_github_token = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
-        self._release_universe_repo = os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
+        self._release_universe_repo = os.environ.get('RELEASE_UNIVERSE_REPO', 'portworx/universe')
 
 
     def _find_release_index(self, repo_pkg_base):
