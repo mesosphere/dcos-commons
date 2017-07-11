@@ -11,7 +11,6 @@ import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -329,16 +328,6 @@ public class TaskUtils {
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
                 .findFirst();
-    }
-
-    public static Optional<String> getLabel(String label, TaskInfo taskInfo) {
-        for (Label l : taskInfo.getLabels().getLabelsList()) {
-            if (l.getKey().equals(label)) {
-                return Optional.of(l.getValue());
-            }
-        }
-
-        return Optional.empty();
     }
 
     public static List<PodInstanceRequirement> getPodRequirements(

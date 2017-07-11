@@ -17,7 +17,7 @@ public class ExecutorTaskLabelWriter {
      * Indicates to the Scheduler that an Executor's readiness check has passed.
      */
     public ExecutorTaskLabelWriter setReadinessCheckPassed() {
-        writer.put(LabelConstants.READINESS_CHECK_PASSED_LABEL, LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);
+        writer.put(LabelConstants.READINESS_CHECK_PASSED_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
         return this;
     }
 

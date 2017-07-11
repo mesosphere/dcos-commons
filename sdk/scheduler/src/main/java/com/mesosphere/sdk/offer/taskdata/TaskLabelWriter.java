@@ -39,7 +39,7 @@ public class TaskLabelWriter {
      * Ensures that the task is identified as a transient task.
      */
     public TaskLabelWriter setTransient() {
-        writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, "true");
+        writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
         return this;
     }
 
@@ -48,6 +48,22 @@ public class TaskLabelWriter {
      */
     public TaskLabelWriter clearTransient() {
         writer.remove(LabelConstants.TRANSIENT_FLAG_LABEL);
+        return this;
+    }
+
+    /**
+     * Ensures that the task is identified as permanently failed.
+     */
+    public TaskLabelWriter setPermanentlyFailed() {
+        writer.put(LabelConstants.PERMANENTLY_FAILED_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+        return this;
+    }
+
+    /**
+     * Ensures that the task is not identified as permanently failed.
+     */
+    public TaskLabelWriter clearPermanentlyFailed() {
+        writer.remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
         return this;
     }
 

@@ -103,7 +103,7 @@ public class TaskLabelReader {
         // not in TaskInfo like other labels
         for (Label statusLabel : taskStatus.getLabels().getLabelsList()) {
             if (statusLabel.getKey().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL)) {
-                return statusLabel.getValue().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);
+                return statusLabel.getValue().equals(LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
             }
         }
         return false;
@@ -116,5 +116,13 @@ public class TaskLabelReader {
     public boolean isTransient() {
         // null is false
         return Boolean.valueOf(reader.getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task is marked as permanently failed.
+     */
+    public boolean isPermanentlyFailed() {
+        // null is false
+        return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
     }
 }

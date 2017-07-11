@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Tests for {@link TaskLabelReader} and {@link TaskLabelWriter}.
+ * Tests for both {@link TaskLabelReader} and {@link TaskLabelWriter}.
  */
-public class SchedulerLabelReaderWriterTest {
+public class TaskLabelReaderWriterTest {
     private static final String testTaskName = "test-task-name";
     private static final String testTaskId = "test-task-id";
     private static final String testAgentId = "test-agent-id";
