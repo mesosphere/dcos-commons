@@ -219,6 +219,16 @@ public class PodInfoBuilder {
                             .setOutputFile(getConfigTemplateDownloadPath(config))
                             .setExtract(false);
                 }
+
+                // Secrets are constructed differently from other envvars where the proto is concerned:
+                for (SecretSpec secretSpec : podInstance.getPod().getSecrets()) {
+                    if (secretSpec.getEnvKey().isPresent()) {
+                        commandBuilder.getEnvironmentBuilder().addVariablesBuilder()
+                                .setName(secretSpec.getEnvKey().get())
+                                .setType(Protos.Environment.Variable.Type.SECRET)
+                                .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
+                    }
+                }
             }
         }
 
