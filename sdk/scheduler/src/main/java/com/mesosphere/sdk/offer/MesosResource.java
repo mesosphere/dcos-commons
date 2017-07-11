@@ -56,7 +56,7 @@ public class MesosResource {
     }
 
     public String getRole() {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
+        if (resource.getReservationsCount() > 0) {
             return getRefinedRole();
         } else {
             return getLegacyRole();
@@ -64,11 +64,7 @@ public class MesosResource {
     }
 
     private String getRefinedRole() {
-        if (resource.getReservationsCount() > 0) {
-            return resource.getReservations(resource.getReservationsCount() - 1).getRole();
-        }
-
-        return Constants.ANY_ROLE;
+        return resource.getReservations(resource.getReservationsCount() - 1).getRole();
     }
 
     private String getLegacyRole() {
@@ -76,7 +72,7 @@ public class MesosResource {
     }
 
     public String getPreviousRole() {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
+        if (resource.getReservationsCount() > 0) {
             return getRefinedPreviousRole();
         } else {
             return getLegacyPreviousRole();
