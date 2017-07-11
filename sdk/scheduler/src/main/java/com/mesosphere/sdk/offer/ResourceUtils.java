@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
@@ -70,7 +69,7 @@ public class ResourceUtils {
     }
 
     public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
+        if (resource.getReservationsCount() > 0) {
             return getRefinedReservation(resource);
         } else {
             return getLegacyReservation(resource);
