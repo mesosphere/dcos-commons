@@ -133,21 +133,12 @@ public class TaskUtils {
             return true;
         }
 
-        // CommandInfos
+        // Goal States
 
-        Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();
-        Optional<CommandSpec> newCommand = newTaskSpec.getCommand();
-        if (!Objects.equals(oldCommand, newCommand)) {
-            LOGGER.debug("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
-            return true;
-        }
-
-        // Health checks
-
-        Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
-        Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
-        if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
-            LOGGER.debug("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
+        GoalState oldGoalState = oldTaskSpec.getGoal();
+        GoalState newGoalState = newTaskSpec.getGoal();
+        if (!Objects.equals(oldGoalState, newGoalState)) {
+            LOGGER.debug("Task goals '{}' and '{}' are different.", oldGoalState, newGoalState);
             return true;
         }
 
@@ -186,12 +177,48 @@ public class TaskUtils {
             return true;
         }
 
+        // CommandSpecs
+
+        Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();
+        Optional<CommandSpec> newCommand = newTaskSpec.getCommand();
+        if (!Objects.equals(oldCommand, newCommand)) {
+            LOGGER.debug("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
+            return true;
+        }
+
+        // Health checks
+
+        Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
+        Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
+        if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
+            LOGGER.debug("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
+            return true;
+        }
+
+        // Readiness checks
+
+        Optional<ReadinessCheckSpec> oldReadinessCheck = oldTaskSpec.getReadinessCheck();
+        Optional<ReadinessCheckSpec> newReadinessCheck = newTaskSpec.getReadinessCheck();
+        if (!Objects.equals(oldReadinessCheck, newReadinessCheck)) {
+            LOGGER.debug("Task readinesschecks '{}' and '{}' are different.", oldReadinessCheck, newReadinessCheck);
+            return true;
+        }
+
         // Config files
 
         Map<String, ConfigFileSpec> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
         Map<String, ConfigFileSpec> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
             LOGGER.debug("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
+            return true;
+        }
+
+        // DiscoverySpecs
+
+        Optional<DiscoverySpec> oldDiscoverySpec = oldTaskSpec.getDiscovery();
+        Optional<DiscoverySpec> newDiscoverySpec = newTaskSpec.getDiscovery();
+        if (!Objects.equals(oldDiscoverySpec, newDiscoverySpec)) {
+            LOGGER.debug("DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec);
             return true;
         }
 
