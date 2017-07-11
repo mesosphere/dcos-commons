@@ -257,6 +257,7 @@ public class OfferEvaluator {
                             volumeSpec, null, Optional.empty(), Optional.empty(), useDefaultExecutor));
         }
 
+        String preReservedRole = null;
         String role = null;
         String principal = null;
         boolean shouldAddExecutorResources = useDefaultExecutor;
@@ -282,7 +283,8 @@ public class OfferEvaluator {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }
 
-                if (role == null && principal == null) {
+                if (preReservedRole == null && role == null && principal == null) {
+                    preReservedRole = resourceSpec.getPreReservedRole();
                     role = resourceSpec.getRole();
                     principal = resourceSpec.getPrincipal();
                 }
@@ -296,7 +298,7 @@ public class OfferEvaluator {
 
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
-                for (ResourceSpec resourceSpec : getExecutorResources(role, principal)) {
+                for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), null));
                 }
                 shouldAddExecutorResources = false;
@@ -309,11 +311,12 @@ public class OfferEvaluator {
         return evaluationStages;
     }
 
-    private static List<ResourceSpec> getExecutorResources(String role, String principal) {
+    private static List<ResourceSpec> getExecutorResources(String preReservedRole, String role, String principal) {
         List<ResourceSpec> resources = new ArrayList<>();
 
         resources.add(DefaultResourceSpec.newBuilder()
                 .name("cpus")
+                .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
                 .value(Protos.Value.newBuilder()
@@ -324,6 +327,7 @@ public class OfferEvaluator {
 
         resources.add(DefaultResourceSpec.newBuilder()
                 .name("mem")
+                .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
                 .value(Protos.Value.newBuilder()
@@ -334,6 +338,7 @@ public class OfferEvaluator {
 
         resources.add(DefaultResourceSpec.newBuilder()
                 .name("disk")
+                .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
                 .value(Protos.Value.newBuilder()
@@ -364,12 +369,13 @@ public class OfferEvaluator {
         }
 
         ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
+        String preReservedRole = firstResource.getPreReservedRole();
         String role = firstResource.getRole();
         String principal = firstResource.getPrincipal();
 
         ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
                 podInstanceRequirement.getPodInstance().getPod(),
-                getExecutorResources(role, principal),
+                getExecutorResources(preReservedRole, role, principal),
                 executorInfo,
                 useDefaultExecutor);
         executorResourceMapper.getOrphanedResources()
