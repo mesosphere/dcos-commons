@@ -41,10 +41,16 @@
             "default": false
           },
           "deploy_strategy":{
-            "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
+            "description":"Strategy to use for deploying {serial, serial-canary, parallel-canary, parallel}",
             "type":"string",
-            "default":"serial",
-            "enum": ["serial", "serial-canary", "parallel-canary", "parallel"]
+            "enum": ["serial", "serial-canary", "parallel", "parallel-canary"],
+            "default":"parallel"
+          },
+          "update_strategy":{
+            "description":"Strategy to use for rolling out updates {serial, serial-canary, parallel-canary, parallel}",
+            "type":"string",
+            "enum": ["serial", "serial-canary", "parallel", "parallel-canary"],
+            "default":"serial"
           }
         },
         "required":[
