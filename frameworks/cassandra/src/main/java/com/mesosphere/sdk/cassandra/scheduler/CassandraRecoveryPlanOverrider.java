@@ -113,39 +113,36 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 new UnconstrainedLaunchConstrainer(),
                 stateStore);
 
+        List<Step> steps = new ArrayList<>();
+        steps.add(replaceStep);
+
         // Restart all other nodes if replacing a seed node to refresh IP resolution
-        List<Step> restartSteps = new ArrayList<>();
         int replaceIndex = replaceStep.getPodInstanceRequirement().get().getPodInstance().getIndex();
-        if (isSeedNode(replaceIndex)) {
+        if (CassandraSeedUtils.isSeedNode(replaceIndex)) {
             logger.info(
-                    "node-{} is a seed node. Restarting all other nodes to refresh seed node address.",
+                    "Scheduling restart of all nodes other than 'node-{}' to refresh seed node address.",
                     replaceIndex);
 
-            for (Step step : inputPhase.getChildren()) {
-                if (step.getPodInstanceRequirement().get().getPodInstance().getIndex() == replaceIndex) {
-                    continue;
-                }
+            List<Step> restartSteps = inputPhase.getChildren().stream()
+                    .filter(step -> step.getPodInstanceRequirement().get().getPodInstance().getIndex() != replaceIndex)
+                    .map(step -> {
+                        PodInstanceRequirement restartPodInstanceRequirement =
+                                PodInstanceRequirement.newBuilder(
+                                        step.getPodInstanceRequirement().get().getPodInstance(),
+                                        step.getPodInstanceRequirement().get().getTasksToLaunch())
+                                        .recoveryType(RecoveryType.TRANSIENT)
+                                        .build();
 
-                PodInstanceRequirement restartPodInstanceRequirement =
-                        PodInstanceRequirement.newBuilder(
-                                step.getPodInstanceRequirement().get().getPodInstance(),
-                                step.getPodInstanceRequirement().get().getTasksToLaunch())
-                                .recoveryType(RecoveryType.TRANSIENT)
-                                .build();
-
-                restartSteps.add(
-                        new DefaultRecoveryStep(
+                        return new DefaultRecoveryStep(
                                 step.getName(),
                                 Status.PENDING,
                                 restartPodInstanceRequirement,
                                 new UnconstrainedLaunchConstrainer(),
-                                stateStore));
-            }
+                                stateStore);
+                    })
+                    .collect(Collectors.toList());
+            steps.addAll(restartSteps);
         }
-
-        List<Step> steps = new ArrayList<>();
-        steps.add(replaceStep);
-        steps.addAll(restartSteps);
 
         return new DefaultPhase(
                 RECOVERY_PHASE_NAME,
@@ -154,7 +151,4 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 Collections.emptyList());
     }
 
-    private boolean isSeedNode(int index) {
-       return index < CassandraUtils.getSeedsCount();
-    }
 }

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * This class is a collection of useful utilities for use by Cassandra components.
  */
-public class CassandraUtils {
+public class CassandraSeedUtils {
     private static final int SEEDS_COUNT;
     static {
         String seedsCount = System.getenv("LOCAL_SEEDS_COUNT");
@@ -35,5 +35,12 @@ public class CassandraUtils {
      */
     public static int getSeedsCount() {
         return SEEDS_COUNT;
+    }
+
+    /**
+     * Determines whether the node at the provided index is a seed node.
+     */
+    public static boolean isSeedNode(int index) {
+        return index < CassandraSeedUtils.getSeedsCount();
     }
 }

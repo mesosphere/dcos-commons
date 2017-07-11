@@ -47,6 +47,7 @@ def test_node_replace_replaces_node():
     plan.wait_for_completed_recovery(PACKAGE_NAME)
 
     # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
+    # Recovery will have completed after the line above so the task id will be stable.
     pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
     task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
     wait_for_all_up_and_normal(pod_host, task_id)
@@ -63,7 +64,8 @@ def test_node_replace_replaces_seed_node():
     plan.wait_for_in_progress_recovery(PACKAGE_NAME)
     plan.wait_for_completed_recovery(PACKAGE_NAME)
 
-    # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
+    # Get an exact task id to run 'task exec' against... just in case there's multiple cassandras
+    # Recovery will have completed after the line above so the task id will be stable.
     pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
     task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
     wait_for_all_up_and_normal(pod_host, task_id)
@@ -125,7 +127,7 @@ def get_pod_host(pod_name):
             return labels[i]['value']
     return None
 
-def wait_for_all_up_and_normal(pod_host, task_id):
+def wait_for_all_up_and_normal(pod_host_to_replace, task_exec_task_id):
     # In DC/OS 1.9, task exec does not run in $MESOS_SANDBOX AND does not have access to the envvar.
     if shakedown.dcos_version_less_than('1.10'):
         mesos_sandbox = '/mnt/mesos/sandbox'
@@ -135,7 +137,7 @@ def wait_for_all_up_and_normal(pod_host, task_id):
     # wait for 'nodetool status' to reflect the replacement:
     def fun():
         stdout = cmd.run_cli(
-            'task exec {} /bin/bash -c "cd {} && JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_id, mesos_sandbox))
+            'task exec {} /bin/bash -c "cd {} && JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_exec_task_id, mesos_sandbox))
         up_ips = []
         for line in stdout.split('\n'):
             words = list(filter(None, line.split()))
@@ -144,8 +146,8 @@ def wait_for_all_up_and_normal(pod_host, task_id):
             if not 'UN' == words[0]:
                 continue
             up_ips.append(words[1])
-        utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host, up_ips))
-        return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host in up_ips
+        utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host_to_replace, up_ips))
+        return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host_to_replace in up_ips
     # observed to take 2-3mins in practice:
     shakedown.wait_for(lambda: fun(), timeout_seconds=DEFAULT_CASSANDRA_TIMEOUT, sleep_seconds=15, noisy=True)
 

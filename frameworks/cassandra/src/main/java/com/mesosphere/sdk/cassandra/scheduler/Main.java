@@ -28,7 +28,7 @@ public class Main {
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
-        List<String> localSeeds = CassandraUtils.getLocalSeeds(rawServiceSpec.getName());
+        List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
