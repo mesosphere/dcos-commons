@@ -269,12 +269,20 @@ func installDCOSCertIntoJRE() {
 		return
 	}
 
-	// Check if .ssl/ca.crt certificate is present
-	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+	// Check if .ssl/ca.crt certificate is present (< 1.10)
+	// or if .ssl/ca-bundle.crt certificate is present (1.10+)
+	certPath := filepath.Join(mesosSandbox, ".ssl", "ca-bundle.crt")
 	certExists, err := isFile(certPath)
 	if !certExists || err != nil {
-		log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate. Error: %s", err)
-		return
+		log.Printf("No $MESOS_SANDBOX/.ssl/ca-bundle.crt file found. Error: %s. Checking pre 1.10 location", err)
+		certPath = filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+		certExists, err = isFile(certPath)
+		if !certExists || err != nil {
+			log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Error: %s.", err)
+			log.Printf("No CA Cert found in the sandbox. Cannot install certificate. " +
+				"This is expected if the cluster is not in STRICT mode.")
+			return
+		}
 	}
 
 	javaHome := os.Getenv("JAVA_HOME")
