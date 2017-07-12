@@ -33,4 +33,7 @@ public interface ServiceSpec extends Configuration {
 
     @JsonProperty("replacement-failure-policy")
     Optional<ReplacementFailurePolicy> getReplacementFailurePolicy();
+
+    @JsonProperty("user")
+    String getUser();
 }

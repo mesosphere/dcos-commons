@@ -73,7 +73,8 @@ public class YAMLToInternalMappers {
                 .principal(principal)
                 .apiPort(SchedulerUtils.getApiPort(rawServiceSpec, schedulerFlags))
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
-                .webUrl(rawServiceSpec.getWebUrl());
+                .webUrl(rawServiceSpec.getWebUrl())
+                .user(SchedulerUtils.getUser(rawServiceSpec, schedulerFlags));
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
