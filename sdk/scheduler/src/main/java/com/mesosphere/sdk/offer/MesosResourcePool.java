@@ -201,6 +201,7 @@ public class MesosResourcePool {
     }
 
     public void free(MesosResource mesosResource) {
+        logger.info("Freeing resource: {}",  mesosResource.toString());
         if (mesosResource.isAtomic()) {
             freeAtomicResource(mesosResource);
             return;
@@ -213,6 +214,7 @@ public class MesosResourcePool {
     private void freeMergedResource(MesosResource mesosResource) {
         if (mesosResource.getResourceId().isPresent()) {
             dynamicallyReservedPoolByResourceId.remove(mesosResource.getResourceId().get());
+            logger.info("Freed resource: {}", !dynamicallyReservedPoolByResourceId.containsKey(mesosResource.getResourceId().get()));
         }
 
         String previousRole = mesosResource.getPreviousRole();
