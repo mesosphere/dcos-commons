@@ -72,7 +72,7 @@ pods:
                           -e API_SERVER=http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}
                           --name=%n \
-                          portworx/{{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
+                          {{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
                           {{#LIGHTHOUSE_ENABLED}}
                           -t $PWX_TOKEN
                           {{/LIGHTHOUSE_ENABLED}}
@@ -90,7 +90,7 @@ pods:
 
   etcd-cluster:
     count: 3
-    image: mesosphere/etcd-mesos:latest
+    image: {{ETCD_IMAGE}}
     placement: {{ETCD_PLACEMENT}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -101,26 +101,34 @@ pods:
         cpus: {{ETCD_CPUS}}
         # etcd doesn't like space before flags, so need to put this all on one line
         cmd: >
-             ${MESOS_SANDBOX}/bootstrap && /work/bin/etcd --name etcd${POD_INSTANCE_INDEX} --advertise-client-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1025,http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1026 --listen-client-urls http://0.0.0.0:1025,http://0.0.0.0:1026 --initial-advertise-peer-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1027 --listen-peer-urls http://0.0.0.0:1027 --initial-cluster-token etcd-cluster-${FRAMEWORK_NAME} --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:1027,etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:1027,etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:1027 --initial-cluster-state new --data-dir $MESOS_SANDBOX/etcd-data
+             ${MESOS_SANDBOX}/bootstrap && /work/bin/etcd --name etcd${POD_INSTANCE_INDEX} --advertise-client-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_ADVERTISE_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_NODE_ADVERTISE_PORT}} --initial-advertise-peer-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --listen-peer-urls http://0.0.0.0:{{ETCD_NODE_PEER_PORT}} --initial-cluster-token etcd-cluster-${FRAMEWORK_NAME} --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --initial-cluster-state new --data-dir $MESOS_SANDBOX/etcd-data
         volume:
           path: "etcd-data"
           type: {{ETCD_DISK_TYPE}}
           size: {{ETCD_DISK_SIZE}}
+        ports:
+          advertise:
+            port: {{ETCD_NODE_ADVERTISE_PORT}}
+          peer:
+            port: {{ETCD_NODE_PEER_PORT}}
         readiness-check:
-          cmd: /work/bin/etcdctl --endpoint http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:1025 cluster-health
+          cmd: /work/bin/etcdctl --endpoint http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_ADVERTISE_PORT}} cluster-health
           interval: 5
           delay: 0
           timeout: 60
     
   etcd-proxy:
     count: 1
-    image: mesosphere/etcd-mesos:latest
+    image: {{ETCD_IMAGE}}
     tasks:
       start:
         goal: RUNNING
         memory: 512
         cpus: 0.3
-        cmd: /work/bin/etcd --proxy=on --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:1027,etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:1027,etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:1027 --listen-client-urls 'http://0.0.0.0:2379'
+        cmd: /work/bin/etcd --proxy=on --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_PROXY_ADVERTISE_PORT}}
+        ports:
+          advertise:
+            port: {{ETCD_PROXY_ADVERTISE_PORT}}
         readiness-check:
           cmd: /work/bin/etcdctl cluster-health
           interval: 5
@@ -128,7 +136,7 @@ pods:
           timeout: 60
   influxdb:
     count: 1
-    image: influxdb:latest
+    image: {{INFLUXDB_IMAGE}}
     placement: {{INFLUXDB_PLACEMENT}}
     tasks:
       start:
@@ -151,13 +159,16 @@ pods:
           timeout: 60
   lighthouse:
     count: 1
-    image: portworx/px-lighthouse:latest
+    image: {{LIGHTHOUSE_IMAGE}}
     placement: {{LIGHTHOUSE_PLACEMENT}}
     tasks:
       start:
         goal: RUNNING
         memory: {{LIGHTHOUSE_MEM}}
         cpus: {{LIGHTHOUSE_CPUS}}
+        ports:
+          http:
+            port: {{LIGHTHOUSE_WEBUI_PORT}}
         cmd: >
             LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
             /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k {{PORTWORX_KVDB}}

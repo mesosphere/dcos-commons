@@ -40,7 +40,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default":"px-dev:latest"
+            "default":"portworx/px-enterprise:1.2.8"
           },
           "portworx_options": {
             "title": "Portworx Options",
@@ -89,6 +89,11 @@
             "type": "string",
             "default": "hostname:UNIQUE"
           },
+          "image": {
+            "title": "Etcd Image name",
+            "type": "string",
+            "default":"mesosphere/etcd-mesos:latest"
+          },
           "cpus": {
             "title": "CPU count",
             "description": "CPU requirements",
@@ -111,13 +116,35 @@
             "title": "Dize of disk (MB)",
             "type": "integer",
             "default": 5120
+          },
+          "node_advertise_port": {
+            "title": "Cluster Node advertise port",
+            "description": "Port on which the etcd cluster nodes will listen",
+            "type": "integer",
+            "default":1026
+          },
+          "node_peer_port": {
+            "title": "Cluster Node peer port",
+            "description": "Port on which the etcd cluster nodes will communicate with each other",
+            "type": "integer",
+            "default":1027
+          },
+          "proxy_advertise_port": {
+            "title": "Cluster Proxy advertise port",
+            "description": "Port on which the etcd proxy will listen",
+            "type": "integer",
+            "default":2379
           }
         },
         "required":[
           "cpus",
           "mem",
           "disk_type",
-          "disk_size"
+          "disk_size",
+          "node_advertise_port",
+          "node_peer_port",
+          "proxy_advertise_port",
+          "image"
         ]
       },
       "influxdb": {
@@ -152,13 +179,19 @@
             "title": "Dize of disk (MB)",
             "type": "integer",
             "default": 1024
+          },
+          "image": {
+            "title": "Influxdb Image name",
+            "type": "string",
+            "default":"influxdb:latest"
           }
         },
         "required":[
           "cpus",
           "mem",
           "disk_type",
-          "disk_size"
+          "disk_size",
+          "image"
         ]
       },
       "lighthouse": {
@@ -189,6 +222,11 @@
             "type": "integer",
             "default": 1024
           },
+          "image": {
+            "title": "Lighthouse Image name",
+            "type": "string",
+            "default":"portworx/px-lighthouse:latest"
+          },
           "webui_port": {
             "title": "WebUI Port",
             "description": "",
@@ -213,7 +251,8 @@
           "mem",
           "webui_port",
           "company_name",
-          "admin_email"
+          "admin_email",
+          "image"
         ]
       }
    }

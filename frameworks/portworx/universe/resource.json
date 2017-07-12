@@ -6,6 +6,14 @@
       "scheduler-zip": "{{artifact-dir}}/portworx-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
+    },
+    "container": {
+      "docker": {
+        "portworx": "portworx/px-enterprise:1.2.8",
+        "lighthouse": "portworx/px-lighthouse:latest",
+        "influxdb": "influxdb:latest",
+        "etcd": "mesosphere/etcd-mesos:latest"
+      }
     }
   },
   "images": {
