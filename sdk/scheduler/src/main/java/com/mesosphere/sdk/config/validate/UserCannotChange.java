@@ -7,6 +7,10 @@ import java.util.*;
 /**
  * Configuration validator which validates that a {@link com.mesosphere.sdk.specification.ServiceSpec}'s user
  * cannot change between deployments.
+ *
+ * This is to prevent change in user-level permissions while accessing files across updates. If a
+ * less-privileged user replaces a more-privilege user (eg. "root" -> "nobody"), this is a breaking change
+ * as "nobody" will not have access to "root"-owned files in persistent volumes.
  */
 public class UserCannotChange implements ConfigValidator<ServiceSpec> {
 
