@@ -279,7 +279,8 @@ func installDCOSCertIntoJRE() {
 		certExists, err = isFile(certPath)
 		if !certExists || err != nil {
 			log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Error: %s.", err)
-			log.Printf("No CA Cert found in the sandbox. Cannot install certificate.")
+			log.Printf("No CA Cert found in the sandbox. Cannot install certificate. " +
+				"This is expected if the cluster is not in STRICT mode.")
 			return
 		}
 	}

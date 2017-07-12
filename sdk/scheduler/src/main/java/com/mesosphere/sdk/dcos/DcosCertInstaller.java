@@ -19,9 +19,15 @@ import java.util.Optional;
 public class DcosCertInstaller {
     private static final Logger LOGGER = LoggerFactory.getLogger(DcosCertInstaller.class);
 
-    public static final String DEFAULT_JRE_KEYSTORE_PASS = "changeit";
-    public static final String PRE_110_CERT_PATH = ".ssl/ca.crt";
-    public static final String POST_110_CERT_PATH = ".ssl/ca-bundle.crt";
+    private static final String DEFAULT_JRE_KEYSTORE_PASS = "changeit";
+    /**
+     * Sandbox location of the ca cert on pre-1.10 DC/OS clusters.
+     */
+    private static final String PRE_110_CERT_PATH = ".ssl/ca.crt";
+    /**
+     * Sandbox location of the ca cert on 1.10+ DC/OS clusters.
+     */
+    private static final String POST_110_CERT_PATH = ".ssl/ca-bundle.crt";
 
     public static boolean installCertificate(String pathToJRE) {
         if (StringUtils.isEmpty(pathToJRE)) {
