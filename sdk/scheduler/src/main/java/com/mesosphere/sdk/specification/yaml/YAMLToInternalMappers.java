@@ -117,7 +117,7 @@ public class YAMLToInternalMappers {
     private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
         return DefaultReadinessCheckSpec.newBuilder()
                 .command(rawReadinessCheck.getCmd())
-                .delay(rawReadinessCheck.getDelay())
+                .delay(rawReadinessCheck.getDelay() == null ? Integer.valueOf(0) : rawReadinessCheck.getDelay())
                 .interval(rawReadinessCheck.getInterval())
                 .timeout(rawReadinessCheck.getTimeout())
                 .build();

@@ -14,14 +14,6 @@ import sdk_utils as utils
 import sdk_metrics as metrics
 from tests.config import *
 
-FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
-TEST_CONTENT_SMALL = "This is some test data"
-# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
-HDFS_POD_TYPES = {"journal", "name", "data"}
-
 def setup_module(module):
     install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
     utils.gc_frameworks()
@@ -45,7 +37,7 @@ def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints core-site.xml'.format(FOLDERED_SERVICE_NAME)))
     check_properties(core_site, {
-        'ha.zookeeper.parent-znode': '/dcos-service-test__integration__hdfs/hadoop-ha'
+        'ha.zookeeper.parent-znode': '/dcos-service-{}/hadoop-ha'.format(ZK_SERVICE_PATH)
     })
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
@@ -271,10 +263,13 @@ def test_bump_data_nodes():
     tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
+@pytest.mark.readiness_check
 @pytest.mark.sanity
 def test_modify_app_config():
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    old_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
 
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
@@ -283,7 +278,7 @@ def test_modify_app_config():
     utils.out(config)
     expiry_ms = int(config['env'][app_config_field])
     config['env'][app_config_field] = str(expiry_ms + 1)
-    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
 
     # All tasks should be updated because hdfs-site.xml has changed
     check_healthy()
@@ -291,6 +286,9 @@ def test_modify_app_config():
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
+    new_recovery_plan = plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    assert(old_recovery_plan == new_recovery_plan)
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
@@ -306,7 +304,7 @@ def test_modify_app_config_rollback():
     expiry_ms = int(config['env'][app_config_field])
     utils.out('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
-    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout= 15 * 60)
 
     # Wait for journal nodes to be affected by the change
     tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -356,7 +354,7 @@ def write_some_data(data_node_name, file_name):
         rc, _ = run_hdfs_command(data_node_name, write_command)
         # rc being True is effectively it being 0...
         return rc
-    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def read_some_data(data_node_name, file_name):
@@ -364,7 +362,7 @@ def read_some_data(data_node_name, file_name):
         read_command = "./bin/hdfs dfs -cat /{}".format(file_name)
         rc, output = run_hdfs_command(data_node_name, read_command)
         return rc and output.rstrip() == TEST_CONTENT_SMALL
-    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def run_hdfs_command(task_name, command):
@@ -422,10 +420,10 @@ def wait_for_failover_to_complete(namenode):
             utils.out("Failover to {} successfully completed".format(namenode))
         return rc
 
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME, timeout_seconds=20 * 60)
+    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME, timeout_seconds=25 * 60)
+    plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME, timeout_seconds=25 * 60)
     tasks.check_running(FOLDERED_SERVICE_NAME, count)

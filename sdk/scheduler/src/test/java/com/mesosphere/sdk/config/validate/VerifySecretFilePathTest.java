@@ -22,7 +22,7 @@ public class VerifySecretFilePathTest {
         new DefaultSecretSpec( secretPath, envKey, " ");
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testFilePathSlash()  {
         new DefaultSecretSpec( secretPath, envKey, "/path/to/file");
     }
@@ -32,9 +32,20 @@ public class VerifySecretFilePathTest {
         new DefaultSecretSpec( secretPath, envKey, "@?test");
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testFilePathBeg() {
         new DefaultSecretSpec( secretPath, envKey, "-test");
+    }
+
+    @Test
+    public void testFilePathBegDot() {
+        new DefaultSecretSpec( secretPath, envKey, ".test");
+    }
+
+
+    @Test
+    public void testFilePathDot() {
+        new DefaultSecretSpec( secretPath, envKey, "somePath/someFile.test");
     }
 
     @Test
