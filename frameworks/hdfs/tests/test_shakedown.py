@@ -303,18 +303,6 @@ def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", DEFAULT_HDFS_TIMEOUT)
 
 
-@pytest.mark.upgrade
-@pytest.mark.sanity
-def test_upgrade_downgrade():
-    options = {
-        "service": {
-            "beta-optin": True
-        }
-    }
-    sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                                       additional_options=options)
-
-
 def replace_name_node(index):
     check_healthy()
     name_node_name = 'name-' + str(index)
