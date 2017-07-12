@@ -11,7 +11,7 @@ pods:
         memory: 512
     placement: {{NODE_PLACEMENT}}
     uris:
-      - https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+      - {{JQ_URI}}
     tasks:
       install:
         goal: FINISHED
@@ -27,14 +27,14 @@ pods:
 
                 if [ $POD_INSTANCE_INDEX -eq "0" ]; then
                     authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
-                    token=$(curl -X POST \
+                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
                         -H "Accept:application/json" -H "Authorization:Basic $authkey" \
                         http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
                 fi
 
                 chmod +x ${MESOS_SANDBOX}/jq-linux64
 
-                PWX_TOKEN=$(curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
+                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".node" |\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".value"|\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".token")

@@ -5,7 +5,8 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/portworx-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "jq-bin": "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64"
     },
     "container": {
       "docker": {
