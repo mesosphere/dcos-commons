@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -11,7 +11,6 @@ import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -39,7 +38,7 @@ public class TaskUtils {
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
     public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
-        String podType = new SchedulerLabelReader(taskInfo).getType();
+        String podType = new TaskLabelReader(taskInfo).getType();
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
             if (podSpec.getType().equals(podType)) {
@@ -110,7 +109,7 @@ public class TaskUtils {
      * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
      */
     public static boolean isSamePodInstance(TaskInfo taskInfo, String type, int index) throws TaskException {
-        SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+        TaskLabelReader labels = new TaskLabelReader(taskInfo);
         return labels.getType().equals(type)
                 && labels.getIndex() == index;
     }
@@ -331,16 +330,6 @@ public class TaskUtils {
                 .findFirst();
     }
 
-    public static Optional<String> getLabel(String label, TaskInfo taskInfo) {
-        for (Label l : taskInfo.getLabels().getLabelsList()) {
-            if (l.getKey().equals(label)) {
-                return Optional.of(l.getValue());
-            }
-        }
-
-        return Optional.empty();
-    }
-
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
@@ -382,7 +371,7 @@ public class TaskUtils {
             TaskInfo taskInfo) throws TaskException {
 
         PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        int index = new SchedulerLabelReader(taskInfo).getIndex();
+        int index = new TaskLabelReader(taskInfo).getIndex();
 
         return new DefaultPodInstance(podSpec, index);
     }
@@ -391,7 +380,7 @@ public class TaskUtils {
             ConfigStore<ServiceSpec> configStore,
             TaskInfo taskInfo) throws TaskException {
 
-        UUID configId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
+        UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
         try {

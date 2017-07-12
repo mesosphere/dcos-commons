@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -254,7 +254,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         TaskInfo launchTask = launchOperation.getLaunch().getTaskInfos(0);
         Assert.assertEquals(
                 Arrays.asList("rack:foo", "diskspeed:1234.568"),
-                new SchedulerLabelReader(launchTask).getOfferAttributeStrings());
+                new TaskLabelReader(launchTask).getOfferAttributeStrings());
         Resource launchResource = launchTask.getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
     }

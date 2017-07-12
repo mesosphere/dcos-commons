@@ -3,7 +3,7 @@ package com.mesosphere.sdk.executor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ProcessBuilderUtils;
-import com.mesosphere.sdk.offer.taskdata.ExecutorLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.ExecutorTaskLabelWriter;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -222,7 +222,7 @@ public class CheckHandler {
                         taskInfo.getExecutor().getExecutorId(),
                         "Readiness check passed",
                         true,
-                        new ExecutorLabelWriter().setReadinessCheckPassed().toProto(),
+                        new ExecutorTaskLabelWriter().setReadinessCheckPassed().toProto(),
                         null);
                 throw new CheckRuntimeException("Readiness check passed", healthCheckStats);
             }

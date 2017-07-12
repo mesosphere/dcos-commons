@@ -3,7 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -143,7 +143,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     private static boolean isOnTarget(Protos.TaskInfo taskInfo, UUID targetConfigId) throws TaskException {
-        UUID taskConfigId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
+        UUID taskConfigId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         return targetConfigId.equals(taskConfigId);
     }
 

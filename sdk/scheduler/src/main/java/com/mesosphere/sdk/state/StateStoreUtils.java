@@ -6,7 +6,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -104,7 +104,7 @@ public class StateStoreUtils {
         for (TaskInfo info : allInfos) {
             String taskPod;
             try {
-                taskPod = new SchedulerLabelReader(info).getType();
+                taskPod = new TaskLabelReader(info).getType();
             } catch (TaskException e) {
                 continue;
             }

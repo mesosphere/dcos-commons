@@ -7,8 +7,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -158,7 +158,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             final UUID taskConfigId;
             try {
-                taskConfigId = new SchedulerLabelReader(taskInfo).getTargetConfiguration();
+                taskConfigId = new TaskLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
                 LOGGER.warn(String.format("Unable to extract configuration ID from task %s: %s",
                         taskInfo.getName(), TextFormat.shortDebugString(taskInfo)), e);
@@ -177,7 +177,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
                                 taskInfo.getName(), taskConfigId, targetConfigId, targetConfigId);
                         TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
-                        taskBuilder.setLabels(new SchedulerLabelWriter(taskInfo)
+                        taskBuilder.setLabels(new TaskLabelWriter(taskInfo)
                                 .setTargetConfiguration(targetConfigId)
                                 .toProto());
                         taskInfosToUpdate.add(taskBuilder.build());
@@ -265,7 +265,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private static Optional<PodSpec> getPodSpec(Protos.TaskInfo taskInfo, ServiceSpec serviceSpecification) {
 
         try {
-            final String taskType = new SchedulerLabelReader(taskInfo).getType();
+            final String taskType = new TaskLabelReader(taskInfo).getType();
 
             return serviceSpecification.getPods().stream()
                     .filter(pod -> pod.getType().equals(taskType))
