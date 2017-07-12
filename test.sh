@@ -55,7 +55,7 @@ for framework in $FRAMEWORK_LIST; do
     echo "Finished build for $framework at "`date`
 
     echo "Starting test for $framework at "`date`
-    py.test --teamcity -vv -s -m "sanity" ${FRAMEWORK_DIR}/tests
+    py.test -vv -s -m "sanity" ${FRAMEWORK_DIR}/tests
     echo "Finished test for $framework at "`date`
 done
 
