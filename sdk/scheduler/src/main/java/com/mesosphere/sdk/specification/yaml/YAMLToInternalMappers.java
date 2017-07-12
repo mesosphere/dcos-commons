@@ -508,15 +508,6 @@ public class YAMLToInternalMappers {
         return ports;
     }
 
-    private static boolean maybeUsePortResources(Collection<String> networkNames) {
-        for (String networkName : networkNames) {
-            if (DcosConstants.networkSupportsPortMapping(networkName)) {
-                return true;
-            }
-        }
-        return networkNames.size() == 0;  // if we have no networks, we want to use port resources
-    }
-
     private static PortsSpec from(
             String role,
             String preReservedRole,
@@ -524,11 +515,18 @@ public class YAMLToInternalMappers {
             WriteOnceLinkedHashMap<String, RawPort> rawPorts,
                                      Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
+        Set<Integer> ports = new HashSet<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
         String envKey = null;
+
         for (Map.Entry<String, RawPort> portEntry : rawPorts.entrySet()) {
             String name = portEntry.getKey();
             RawPort rawPort = portEntry.getValue();
+            boolean ok = ports.add(rawPort.getPort());
+            if (!ok && rawPort.getPort() > 0) {
+                throw new IllegalArgumentException(String.format("Cannot have duplicate ports, your spec has " +
+                        "duplicate port requests for port %d with name %s", rawPort.getPort(), name));
+            }
             Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                     .setType(Protos.Value.Type.RANGES);
             portValueBuilder.getRangesBuilder().addRangeBuilder()
