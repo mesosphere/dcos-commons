@@ -1,80 +1,62 @@
 #!/usr/bin/env bash
 
-# This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds each framework, packages and uploads it, then runs its
-# integration tests against a newly-launched cluster.
+# Build a framework, package, upload it, and then run its integration tests.
+# (Or all frameworks depending on arguments.) Depends on a cluster (identified by CLUSTER_URL).
 
-# Exit immediately on errors -- the helper scripts all emit github statuses internally
+# Exit immediately on errors
 set -e
 
-function run_framework_tests {
-    framework=$1
-    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
+REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
 
-    # Build/upload framework scheduler artifact if one is not directly provided:
-    if [ -z "${!STUB_UNIVERSE_URL}" ]; then
-        STUB_UNIVERSE_URL=$(echo "${framework}_STUB_UNIVERSE_URL" | awk '{print toupper($0)}')
-        # Build/upload framework scheduler:
-        UNIVERSE_URL_PATH=$FRAMEWORK_DIR/${framework}-universe-url
-        UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${FRAMEWORK_DIR}/build.sh aws
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 all|<framework-name>"
+    echo "- Cluster must be created and \$CLUSTER_URL set"
+    echo "- AWS credentials must exist in variables:"
+    echo "      \$AWS_ACCESS_KEY_ID"
+    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "- Current frameworks:"
+    for framework in $FRAMEWORK_LIST; do
+        echo "       $framework"
+    done
+    exit 1
+fi
 
-        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-            exit 1
-        fi
-        export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
-        rm -f $UNIVERSE_URL_PATH
-        echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
-    else
-        echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
-    fi
+if [ -z "$CLUSTER_URL" ]; then
+    echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
+    exit 1
+fi
 
-    echo Security: $SECURITY
-    if [ "$SECURITY" = "strict" ]; then
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
-        # include foldered roles (tests exercise with /test/integration/svcname):
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root test__integration__${framework}-role
-    fi
+if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
+    exit 1
+fi
 
-    # Run shakedown tests in framework directory:
-    TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
-}
+if [ "$1" = "all" ]; then
+    # randomize the FRAMEWORK_LIST
+    FRAMEWORK_LIST=$(while read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done <<< "$FRAMEWORK_LIST" | sort -n | cut -c7- )
+else
+    FRAMEWORK_LIST=$1
+fi
 
 echo "Beginning integration tests at "`date`
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+for framework in $FRAMEWORK_LIST; do
+    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
 
-cd $REPO_ROOT_DIR
+    echo "Starting build for $framework at "`date`
+    export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/$FRAMEWORK-universe-url
+    ${FRAMEWORK_DIR}/build.sh aws
+    if [ ! -f "$UNIVERSE_URL_PATH" ]; then
+        echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+        exit 1
+    fi
+    export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
+    echo "Finished build for $framework at "`date`
 
-# Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
-if [ -z "$CLUSTER_URL" ]; then
-    echo "CLUSTER_URL is empty/unset, launching new cluster."
-    export CCM_AGENTS=6
-    CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
-    echo "Launched cluster: ${CLUSTER_INFO}"
-    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
-    export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
-    CLUSTER_CREATED="true"
-else
-    echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
-    CLUSTER_CREATED=""
-fi
+    echo "Starting test for $framework at "`date`
+    py.test --teamcity -vv -s -m "sanity" ${FRAMEWORK_DIR}/tests
+    echo "Finished test for $framework at "`date`
+done
 
-# A specific framework can be specified to run its tests
-# Otherwise all tests are run in random framework order
-if [ -n "$1" ]; then
-    run_framework_tests $1
-else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
-        echo "Starting shakedown tests for $framework at "`date`
-        run_framework_tests $framework
-    done
-fi
-
-# Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
-# Don't wait for the cluster to complete teardown.
-if [ -n "${CLUSTER_CREATED}" ]; then
-    ${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py trigger-stop ${CLUSTER_ID}
-fi
+echo "Finished integration tests at "`date`
