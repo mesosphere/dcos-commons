@@ -102,7 +102,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         PodInstanceRequirement replacePodInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                    newPodInstance, inputLaunchStep.start().get().getTasksToLaunch())
+                    newPodInstance, inputLaunchStep.getPodInstanceRequirement().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
 
@@ -113,7 +113,42 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 new UnconstrainedLaunchConstrainer(),
                 stateStore);
 
+        List<Step> steps = new ArrayList<>();
+        steps.add(replaceStep);
+
+        // Restart all other nodes if replacing a seed node to refresh IP resolution
+        int replaceIndex = replaceStep.getPodInstanceRequirement().get().getPodInstance().getIndex();
+        if (CassandraSeedUtils.isSeedNode(replaceIndex)) {
+            logger.info(
+                    "Scheduling restart of all nodes other than 'node-{}' to refresh seed node address.",
+                    replaceIndex);
+
+            List<Step> restartSteps = inputPhase.getChildren().stream()
+                    .filter(step -> step.getPodInstanceRequirement().get().getPodInstance().getIndex() != replaceIndex)
+                    .map(step -> {
+                        PodInstanceRequirement restartPodInstanceRequirement =
+                                PodInstanceRequirement.newBuilder(
+                                        step.getPodInstanceRequirement().get().getPodInstance(),
+                                        step.getPodInstanceRequirement().get().getTasksToLaunch())
+                                        .recoveryType(RecoveryType.TRANSIENT)
+                                        .build();
+
+                        return new DefaultRecoveryStep(
+                                step.getName(),
+                                Status.PENDING,
+                                restartPodInstanceRequirement,
+                                new UnconstrainedLaunchConstrainer(),
+                                stateStore);
+                    })
+                    .collect(Collectors.toList());
+            steps.addAll(restartSteps);
+        }
+
         return new DefaultPhase(
-                RECOVERY_PHASE_NAME, Arrays.asList(replaceStep), new SerialStrategy<>(), Collections.emptyList());
+                RECOVERY_PHASE_NAME,
+                steps,
+                new SerialStrategy<>(),
+                Collections.emptyList());
     }
+
 }
