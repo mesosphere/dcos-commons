@@ -68,7 +68,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, flags);
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
-                .placementRule((offer, offerRequirement, taskInfos) -> EvaluationOutcome.pass(this, null, "pass for test"))
+                .placementRule((offer, offerRequirement, taskInfos) ->
+                        EvaluationOutcome.pass(this, "pass for test").build())
                 .build();
 
         serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
