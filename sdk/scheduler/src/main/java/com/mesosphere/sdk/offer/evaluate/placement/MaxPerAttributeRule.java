@@ -105,7 +105,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         }
         if (offerAttributeStrings.isEmpty()) {
             // shortcut: offer has no attributes to enforce. offer accepted!
-            return EvaluationOutcome.pass(this, null, "Offer has no attributes to enforce");
+            return EvaluationOutcome.pass(this, "Offer has no attributes to enforce").build();
         }
 
         // map: enforced attribute in offer => # other tasks which were launched against attribute
@@ -139,9 +139,14 @@ public class MaxPerAttributeRule implements PlacementRule {
                 if (val >= maxTasksPerSelectedAttribute) {
                     // this attribute value's usage meets or exceeds the limit, and it is
                     // present in this offer per the earlier check. offer denied!
-                    return EvaluationOutcome.fail(this,
+                    return EvaluationOutcome.fail(
+                            this,
                             "Reached %d/%d tasks matching filter '%s' on this agent with attribute: %s",
-                            val, maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
+                            val,
+                            maxTasksPerSelectedAttribute,
+                            taskFilter.toString(),
+                            attributeMatcher.toString())
+                            .build();
                 }
                 offerAttrTaskCounts.put(taskAttributeString, val);
             }
@@ -150,9 +155,9 @@ public class MaxPerAttributeRule implements PlacementRule {
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
-                null,
                 "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
-                maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
+                maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString())
+                .build();
     }
 
     @JsonProperty("max")

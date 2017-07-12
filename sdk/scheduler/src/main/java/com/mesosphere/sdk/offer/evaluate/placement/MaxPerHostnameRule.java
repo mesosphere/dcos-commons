@@ -103,17 +103,22 @@ public class MaxPerHostnameRule implements PlacementRule {
             ++offerHostnameTaskCounts;
             if (offerHostnameTaskCounts >= maxTasksPerHostname) {
                 // the hostname for this offer meets or exceeds the limit. offer denied!
-                return EvaluationOutcome.fail(this, "%d/%d tasks matching filter '%s' are already present on this host",
-                        offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
+                return EvaluationOutcome.fail(
+                        this,
+                        "%d/%d tasks matching filter '%s' are already present on this host",
+                        offerHostnameTaskCounts,
+                        maxTasksPerHostname,
+                        taskFilter.toString())
+                        .build();
             }
         }
         // after scanning all the tasks for usage of attributes present in this offer, nothing
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
-                null,
                 "%d/%d tasks matching filter '%s' are present on this host",
-                offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
+                offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString())
+                .build();
     }
 
     @JsonProperty("max")

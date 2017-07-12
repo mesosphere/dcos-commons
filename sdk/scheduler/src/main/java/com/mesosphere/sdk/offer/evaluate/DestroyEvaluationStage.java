@@ -24,9 +24,10 @@ public class DestroyEvaluationStage implements OfferEvaluationStage {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         return pass(
                 this,
-                new MesosResource(resource),
                 Arrays.asList(new DestroyOfferRecommendation(mesosResourcePool.getOffer(), resource)),
                 "Unreserving orphaned resource: %s",
-                TextFormat.shortDebugString(resource));
+                TextFormat.shortDebugString(resource))
+                .mesosResource(new MesosResource(resource))
+                .build();
     }
 }

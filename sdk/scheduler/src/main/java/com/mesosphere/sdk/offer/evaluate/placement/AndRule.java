@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -33,7 +32,7 @@ public class AndRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         if (rules.isEmpty()) {
-            return EvaluationOutcome.fail(this, "No rules to AND together is treated as 'always fail'");
+            return EvaluationOutcome.fail(this, "No rules to AND together is treated as 'always fail'").build();
         }
         int passingCount = 0;
         Collection<EvaluationOutcome> children = new ArrayList<>();
@@ -44,13 +43,15 @@ public class AndRule implements PlacementRule {
             }
             children.add(child);
         }
-        return EvaluationOutcome.create(
-                passingCount == rules.size(),
-                this,
-                null,
-                Collections.emptyList(),
-                children,
-                "%d of %d rules are passing:", passingCount, rules.size());
+
+
+        if (passingCount == rules.size()) {
+            return EvaluationOutcome.pass(this, "%d of %d rules are passing:", passingCount, rules.size())
+                    .addAllChildren(children)
+                    .build();
+        } else {
+            return EvaluationOutcome.fail(this, "%d of %d rules are passing:", passingCount, rules.size()).build();
+        }
     }
 
     @JsonProperty("rules")

@@ -34,12 +34,11 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the pass reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome pass(
+    public static EvaluationOutcome.Builder pass(
             Object source,
-            MesosResource mesosResource,
             String reasonFormat,
             Object... reasonArgs) {
-        return pass(source, mesosResource, Collections.emptyList(), reasonFormat, reasonArgs);
+        return pass(source, Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
@@ -50,18 +49,15 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the pass reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome pass(
+    public static EvaluationOutcome.Builder pass(
             Object source,
-            MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             String reasonFormat,
             Object... reasonArgs) {
-        return create(
-                true,
+        return new EvaluationOutcome.Builder(
+                Type.PASS,
                 source,
-                mesosResource,
                 offerRecommendations,
-                Collections.emptyList(),
                 reasonFormat,
                 reasonArgs);
     }
@@ -73,38 +69,14 @@ public class EvaluationOutcome {
      * @param reasonFormat {@link String#format(String, Object...)} compatible format string describing the fail reason
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
-    public static EvaluationOutcome fail(
+    public static EvaluationOutcome.Builder fail(
             Object source,
             String reasonFormat,
             Object... reasonArgs) {
-        return create(
-                false,
+        return new EvaluationOutcome.Builder(
+                Type.FAIL,
                 source,
-                null,
                 Collections.emptyList(),
-                Collections.emptyList(),
-                reasonFormat,
-                reasonArgs);
-    }
-
-    /**
-     * Returns a new outcome object with the provided outcome type, offer recommendation, descriptive reason, and child
-     * outcomes.
-     */
-    public static EvaluationOutcome create(
-            boolean isPassing,
-            Object source,
-            MesosResource mesosResource,
-            Collection<OfferRecommendation> offerRecommendations,
-            Collection<EvaluationOutcome> children,
-            String reasonFormat,
-            Object... reasonArgs) {
-        return new EvaluationOutcome(
-                isPassing ? Type.PASS : Type.FAIL,
-                source,
-                mesosResource,
-                offerRecommendations,
-                children,
                 reasonFormat,
                 reasonArgs);
     }
@@ -115,14 +87,13 @@ public class EvaluationOutcome {
             MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             Collection<EvaluationOutcome> children,
-            String reasonFormat,
-            Object... reasonArgs) {
+            String reason) {
         this.type = type;
         this.source = source.getClass().getSimpleName();
         this.mesosResource = mesosResource;
         this.offerRecommendations = offerRecommendations;
         this.children = children;
-        this.reason = String.format(reasonFormat, reasonArgs);
+        this.reason = reason;
     }
 
     /**
@@ -169,5 +140,49 @@ public class EvaluationOutcome {
     @Override
     public String toString() {
         return String.format("%s(%s): %s", isPassing() ? "PASS" : "FAIL", getSource(), getReason());
+    }
+
+    /**
+     * Builder for constructor {@link EvaluationOutcome} instances.
+     */
+    public static class Builder {
+        private final Type type;
+        private final Object source;
+        private final Collection<OfferRecommendation> offerRecommendations;
+        private final Collection<EvaluationOutcome> children;
+        private final String reason;
+        private MesosResource mesosResource;
+
+        public Builder(
+                Type type,
+                Object source,
+                Collection<OfferRecommendation> offerRecommendations,
+                String reasonFormat,
+                Object... reasonArgs) {
+            this.type = type;
+            this.source = source;
+            this.offerRecommendations = offerRecommendations;
+            this.children = new ArrayList<>();
+            this.reason = String.format(reasonFormat, reasonArgs);
+        }
+
+        public Builder mesosResource(MesosResource mesosResource) {
+            this.mesosResource = mesosResource;
+            return this;
+        }
+
+        public Builder addChild(EvaluationOutcome child) {
+            children.add(child);
+            return this;
+        }
+
+        public Builder addAllChildren(Collection<EvaluationOutcome> children) {
+            children.addAll(children);
+            return this;
+        }
+
+        public EvaluationOutcome build() {
+            return new EvaluationOutcome(type, source, mesosResource, offerRecommendations, children, reason);
+        }
     }
 }

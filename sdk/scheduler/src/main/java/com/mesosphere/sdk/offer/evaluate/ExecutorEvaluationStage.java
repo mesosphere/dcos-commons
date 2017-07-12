@@ -28,31 +28,29 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         if (!podInfoBuilder.getExecutorBuilder().isPresent()) {
-            return pass(this, null, "No executor requirement defined");
+            return pass(this, "No executor requirement defined").build();
         }
 
         if (!hasExpectedExecutorId(mesosResourcePool.getOffer())) {
             return fail(this,
                     "Offer does not contain the needed Executor ID: '%s'",
-                    executorInfo.get().getExecutorId().getValue());
+                    executorInfo.get().getExecutorId().getValue()).build();
         }
 
         if (executorInfo.isPresent()) {
             podInfoBuilder.setExecutorBuilder(executorInfo.get().toBuilder());
             return pass(
                     this,
-                    null,
                     "Offer contains the matching Executor ID: '%s'",
-                    executorInfo.get().getExecutorId().getValue());
+                    executorInfo.get().getExecutorId().getValue()).build();
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(executorBuilder.getName());
             executorBuilder.setExecutorId(executorID);
             return pass(
                     this,
-                    null,
                     "No Executor ID required, generated: '%s'",
-                    executorID.getValue());
+                    executorID.getValue()).build();
         }
     }
 

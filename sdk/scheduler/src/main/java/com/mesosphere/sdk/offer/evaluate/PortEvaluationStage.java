@@ -69,13 +69,14 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     selectDynamicPort(mesosResourcePool, podInfoBuilder) :
                     selectOverlayPort(podInfoBuilder);
             if (!dynamicPort.isPresent()) {
-                return EvaluationOutcome.fail(this,
+                return EvaluationOutcome.fail(
+                        this,
                         "No ports were available for dynamic claim in offer," +
                                 " and no %s envvar was present in prior %s: %s %s",
                         getPortEnvironmentVariable(portSpec),
                         getTaskName().isPresent() ? "task " + getTaskName().get() : "executor",
                         TextFormat.shortDebugString(mesosResourcePool.getOffer()),
-                        podInfoBuilder.toString());
+                        podInfoBuilder.toString()).build();
             }
 
             assignedPort = dynamicPort.get();
@@ -115,25 +116,26 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
             return EvaluationOutcome.pass(
                     this,
-                    evaluationOutcome.getMesosResource().get(),
                     evaluationOutcome.getOfferRecommendations(),
                     "Offer contains sufficient %s'%s': for resource: '%s' with resourceId: '%s'",
                     detailsClause,
                     portSpec.getName(),
                     portSpec,
-                    resourceId);
+                    resourceId)
+                    .mesosResource(evaluationOutcome.getMesosResource().get())
+                    .build();
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
-                    null,
                     Collections.emptyList(),
                     String.format(
                             "Not using host ports: ignoring port resource requirements, using port %s",
                             assignedPort),
                     portSpec.getName(),
                     portSpec,
-                    resourceId);
+                    resourceId)
+                    .build();
         }
 
     }

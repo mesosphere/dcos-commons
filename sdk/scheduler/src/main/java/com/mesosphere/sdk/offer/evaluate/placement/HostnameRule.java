@@ -144,9 +144,10 @@ public class HostnameRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         if (matcher.matches(offer.getHostname())) {
-            return EvaluationOutcome.pass(this, null, "Offer hostname matches pattern: '%s'", matcher.toString());
+            return EvaluationOutcome.pass(this, "Offer hostname matches pattern: '%s'", matcher.toString()).build();
         } else {
-            return EvaluationOutcome.fail(this, "Offer hostname didn't match pattern: '%s'", matcher.toString());
+            return EvaluationOutcome.fail(this, "Offer hostname didn't match pattern: '%s'", matcher.toString())
+                    .build();
         }
     }
 
