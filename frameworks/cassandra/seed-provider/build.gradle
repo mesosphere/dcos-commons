@@ -1,0 +1,25 @@
+group 'com.mesosphere.sdk'
+version '1.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'distribution'
+
+repositories {
+    maven {
+        url "http://downloads.mesosphere.com/maven/"
+    }
+    maven {
+        url "http://downloads.mesosphere.com/maven-snapshot/"
+    }
+}
+
+dependencies {
+    compile 'org.apache.cassandra:cassandra-all:3.0.10'
+}
+
+distributions {
+    main {
+        baseName = 'cassandra-seed-provider'
+        version = '1.0.30'
+    }
+}

@@ -31,6 +31,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "TASKCFG_ALL_CASSANDRA_RPC_PORT", "9004",
                 "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB", "4000",
                 "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB", "400",
+                "CASSANDRA_REMOTE_DATACENTER_COUNT", "0",
                 "CASSANDRA_HEAP_GC", "CMS",
                 "CASSANDRA_DISK_MB", "5000",
                 "CASSANDRA_DISK_TYPE", "ROOT");

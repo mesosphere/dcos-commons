@@ -37,7 +37,7 @@ def validate_uris_in(file_name):
     bad_uri = False
     for uri in uris:
         # A FQDN is a valid internal FQDN if it contains .dcos or ends with .mesos.
-        if not (".dcos" in uri or uri.endswith(".mesos")):
+        if not (".dcos" in uri or "l4lb" in uri or uri.endswith(".mesos")):
             print("Found a bad URI:", uri, "in:", file_name)
             bad_uri = True
 

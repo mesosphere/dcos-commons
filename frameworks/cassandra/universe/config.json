@@ -40,10 +40,18 @@
           "type": "string",
           "default": "rac1"
         },
-        "remote_seeds": {
-          "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
-          "type": "string",
-          "default": ""
+        "remote_datacenter_urls": {
+          "description": "The scheduler seed endpoints of the remote clusters to include in this multi-datacenter deployment",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "seed_count": {
+          "description": "The number of nodes in this cluster to promote as seeds",
+          "type": "integer",
+          "default": 2
         },
         "backup_restore_strategy": {
           "description": "Strategy to use for uploading/downloading backups {serial, parallel}",

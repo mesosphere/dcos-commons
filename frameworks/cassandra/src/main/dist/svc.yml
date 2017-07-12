@@ -55,10 +55,15 @@ pods:
                 fi
 
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
+        env:
+            SERVICE_NAME: {{SERVICE_NAME}}
         configs:
           cassandra:
             template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+          cassandra-rackdc:
+            template: {{CONFIG_TEMPLATE_PATH}}/cassandra-rackdc.properties
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
           jvm:
             template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
@@ -150,6 +155,26 @@ pods:
 
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
+  seed-manager:
+    count: {{CASSANDRA_REMOTE_DATACENTER_COUNT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      dcos:
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    user: {{SERVICE_USER}}
+    resource-sets:
+      seed-manager-resources:
+        cpus: 0.1
+        memory: 128
+    tasks:
+      register-seeds:
+        goal: FINISHED
+        cmd: >
+                datacenter_urls=({{CASSANDRA_REMOTE_DATACENTER_URLS}}) ;
+                local_seeds="$(curl http://api.{{SERVICE_NAME}}.marathon.l4lb.thisdcos.directory/v1/seeds)"
+
+                curl -X POST -H "content-type: application/json" -d "$local_seeds" "${datacenter_urls[$POD_INSTANCE_INDEX]}/register/{{TASKCFG_ALL_CASSANDRA_CLUSTER_NAME}}"
+        resource-set: seed-manager-resources
 plans:
   deploy:
     strategy: serial
@@ -159,6 +184,11 @@ plans:
         pod: node
         steps:
           - default: [[server]]
+      datacenter-sync:
+        strategy: parallel
+        pod: seed-manager
+        steps:
+          - default: [[register-seeds]]
   replace:
     strategy: serial
     phases:
