@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{TASKCFG_ALL_TASK_USER}}
 pods:
   journal:
     count: 3
