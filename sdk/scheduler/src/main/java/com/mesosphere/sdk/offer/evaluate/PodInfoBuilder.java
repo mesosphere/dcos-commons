@@ -229,6 +229,10 @@ public class PodInfoBuilder {
                                 .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
                     }
                 }
+
+                if (podSpec.getUser().isPresent()) {
+                    commandBuilder.setUser(podSpec.getUser().get());
+                }
             }
         }
 
