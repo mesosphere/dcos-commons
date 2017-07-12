@@ -15,6 +15,8 @@ if [ $# -eq 0 ]; then
     echo "- AWS credentials must exist in variables:"
     echo "      \$AWS_ACCESS_KEY_ID"
     echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "- Set \$STUB_UNIVERSE_URL to bypass build"
+    echo "  (invalid when building all frameworks)"
     echo "- Current frameworks:"
     for framework in $FRAMEWORK_LIST; do
         echo "       $framework"
@@ -35,6 +37,10 @@ fi
 if [ "$1" = "all" ]; then
     # randomize the FRAMEWORK_LIST
     FRAMEWORK_LIST=$(while read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done <<< "$FRAMEWORK_LIST" | sort -n | cut -c7- )
+    if [ -n "$STUB_UNIVERSE_URL" ]; then
+        echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"
+        exit 1
+    fi
 else
     FRAMEWORK_LIST=$1
 fi
@@ -44,15 +50,19 @@ echo "Beginning integration tests at "`date`
 for framework in $FRAMEWORK_LIST; do
     FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
 
-    echo "Starting build for $framework at "`date`
-    export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/$framework-universe-url
-    ${FRAMEWORK_DIR}/build.sh aws
-    if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-        echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-        exit 1
+    if [ -z "$STUB_UNIVERSE_URL" ]; then
+        echo "Starting build for $framework at "`date`
+        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/$framework-universe-url
+        ${FRAMEWORK_DIR}/build.sh aws
+        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
+            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+            exit 1
+        fi
+        export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
+        echo "Finished build for $framework at "`date`
+    else
+        echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
-    export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
-    echo "Finished build for $framework at "`date`
 
     echo "Starting test for $framework at "`date`
     py.test -vv -s -m "sanity" ${FRAMEWORK_DIR}/tests
