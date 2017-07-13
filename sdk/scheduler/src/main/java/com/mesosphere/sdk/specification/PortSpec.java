@@ -44,7 +44,7 @@ public class PortSpec extends DefaultResourceSpec {
         if (visibility == null) {
             // TODO(nickbp): Remove this compatibility fallback after October 2017
             // Older SDK versions only have a visibility setting for VIPs, not ports. Default to visible.
-            visibility = Constants.PUBLIC_PORT_VISIBILITY;
+            visibility = Constants.DISPLAYED_PORT_VISIBILITY;
         }
         this.visibility = visibility;
         this.networkNames = networkNames;

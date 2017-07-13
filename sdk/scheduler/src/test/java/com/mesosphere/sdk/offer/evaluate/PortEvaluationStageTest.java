@@ -102,7 +102,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Port port = ports.get(0);
         Assert.assertTrue(String.format("Port %s has incorrect number got %d should be %d",
                 port.toString(), port.getNumber(), expectedPort), port.getNumber() == expectedPort);
-        Assert.assertEquals(Constants.PUBLIC_PORT_VISIBILITY, port.getVisibility());
+        Assert.assertEquals(Constants.DISPLAYED_PORT_VISIBILITY, port.getVisibility());
     }
 
     @Test

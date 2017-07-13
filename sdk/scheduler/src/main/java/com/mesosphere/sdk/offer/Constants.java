@@ -48,7 +48,8 @@ public class Constants {
 
 
     /**
-     * The visibility setting to use by default in Mesos Ports, for both VIP and non-VIP ports.
+     * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
+     * default.
      *
      * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
      * {@link com.mesosphere.sdk.specification.PortSpec}.
@@ -57,7 +58,13 @@ public class Constants {
      * what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't advertise.
      * According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
      */
-    public static final DiscoveryInfo.Visibility PUBLIC_PORT_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+    public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+
+    /**
+     * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
+     * they will be made visible by default.
+     */
+    public static final DiscoveryInfo.Visibility HIDDEN_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
 
     /**
      * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.

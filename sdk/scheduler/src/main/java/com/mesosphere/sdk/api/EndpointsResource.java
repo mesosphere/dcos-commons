@@ -147,10 +147,11 @@ public class EndpointsResource {
                                 .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
             }
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
-                if (port.getVisibility() != Constants.PUBLIC_PORT_VISIBILITY) {
+                if (port.getVisibility() != Constants.DISPLAYED_PORT_VISIBILITY) {
                     LOGGER.info(
                             "Port {} in task {} has {} visibility. {} is needed to be listed in endpoints.",
-                            port.getName(), taskInfo.getName(), port.getVisibility(), Constants.PUBLIC_PORT_VISIBILITY);
+                            port.getName(), taskInfo.getName(), port.getVisibility(),
+                            Constants.DISPLAYED_PORT_VISIBILITY);
                     continue;
                 }
                 final String hostIpString;

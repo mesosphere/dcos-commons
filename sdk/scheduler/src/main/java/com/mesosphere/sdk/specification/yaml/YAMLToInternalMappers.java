@@ -547,12 +547,15 @@ public class YAMLToInternalMappers {
                         rawPort.getEnvKey(),
                         name,
                         DcosConstants.DEFAULT_IP_PROTOCOL,
-                        Constants.PUBLIC_PORT_VISIBILITY,
+                        Constants.DISPLAYED_PORT_VISIBILITY,
                         StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix(),
                         rawVip.getPort(),
                         networkNames);
                 portSpecs.add(namedVIPSpec);
             } else {
+                // For now, ports without VIPs are omitted in EndpointsResource. To include them, set the visibility
+                // to Constants.DISPLAYED_PORT_VISIBILITY. Services may manually enable this by manually building their
+                // PortSpec objects in Java.
                 portSpecs.add(new PortSpec(
                         portValueBuilder.build(),
                         role,
@@ -560,7 +563,7 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
-                        Constants.PUBLIC_PORT_VISIBILITY,
+                        Constants.HIDDEN_PORT_VISIBILITY,
                         networkNames));
             }
         }

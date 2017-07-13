@@ -55,23 +55,11 @@ def test_service_health():
 
 
 @pytest.mark.sanity
-@pytest.mark.speedy
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    def test_endpoint(name, port, vip=False):
-        endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, name)))
-        assert endpoints['dns'][0] == hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server', port)
-        if vip:
-            assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', port)
-        else:
-            assert 'vips' not in endpoints
-
-    # default ports:
-    test_endpoint('jmx', 7199)
-    test_endpoint('node', 9042, vip=True)
-    test_endpoint('rpc', 9160)
-    test_endpoint('ssl', 7001)
-    test_endpoint('storage', 7000)
+    endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(FOLDERED_SERVICE_NAME)))
+    assert endpoints['dns'][0] == hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server', 9042)
+    assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', 9042)
 
 
 @pytest.mark.sanity
