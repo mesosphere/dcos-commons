@@ -299,9 +299,6 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
   * The `ports` resource requirements in the service spec will ignored as resource requirements. 
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
-  
-  
-  
 
 ## Secrets
 
@@ -344,8 +341,6 @@ All tasks defined in the pod will have access to secret data. If the content of 
 The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
 
 For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
-
-
   
 ## Placement Constraints
 
@@ -462,15 +457,161 @@ Now that we have `elastic-prod-options.json`, we can install a service instance 
 $ dcos package install --options=elastic-prod-options.json elastic
 ```
 
-Once we know the configuration is good, we can add it to our source control for tracking.
+Once we know the configuration is good, it should be added to our source control for tracking.
 
 ## Updating service configuration
 
-**TODO: Sunil**
-
 Above, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.
 
-Configuration updates are performed by updating the process environment of the Scheduler. The Scheduler runs as a Marathon application, so we can perform the change there.
+Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in ][Reconfiguration](#Reconfiguration).
+
+### Enterprise DC/OS 1.10
+
+Enterprise DC/OS 1.10 introduces a convenient command line option that allows easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates and to restart or complete steps if necessary. 
+
+#### Prerequisites
+
++ Enterprise DC/OS 1.10 or newer.
++ A DC/OS SDK-based service with a version greater than 2.0.0-x
++ [The DC/OS CLI](https://docs.mesosphere.com/1.9/cli/install/) installed and available
++ The service's subcommand available and installed on your local machine.
+  + You can install just the subcommand CLI by running `dcos package install --cli <service-name>`.
+  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI:
+```bash
+dcos package uninstall --cli <service-name>
+dcos package install --cli <service-name>
+```
+
+#### Preparing configuration
+
+If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values were applied during installation). For example, for `dse`:
+
+```bash
+$ dcos dse describe > options.json
+```
+
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration). 
+
+Make any configuration changes to this `options.json` file. 
+
+<strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+
+##### Recreating `options.json` (optional)
+
+If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
+
+First, we'll fetch the default application's environment, current application's environment and the actual template that maps config values to the environment:
+
+1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
+1. Set the service name that you're using, in this example we'll use `dse`:
+```bash
+$ SERVICE_NAME=dse
+```
+1. Get the version of the package that is currently installed (replacing `dse` with the name of your service below):
+```bash
+$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
+```
+1. Then fetch and save the environment variables that have been set for the service:
+```bash
+$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
+```
+1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
+```bash
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
+```
+1. We'll also get the entire application template:
+```bash
+$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
+```
+
+Now that you have these files, we'll attempt to recreate the `options.json`.
+
+1. Use JQ and `diff` to compare the two:
+```bash
+$ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
+```
+1. Now compare these values to the values contained in the `env` section in application template:
+```bash
+$ less marathon.json.mustache
+```
+1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+
+#### Starting the update
+
+Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
+
+```bash
+$ dcos dse update start --options=options.json
+```
+
+You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
+
+#### Monitoring the update
+
+Once the Scheduler has been restarted, it will begin a new deployment plan as individual pods are restarted with the new configuration. Depending on the high availability characteristics of the service being updated, you may experience a service disruption.
+
+You can query the status of the update as follows:
+
+```bash
+$ dcos dse update status
+```
+
+If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also check the Services tab within the DC/OS UI to see what the status of the restart is.
+
+#### Advanced update actions
+
+There are several commands available to provide finer grained control of an update to a service.
+
+##### Pause
+
+To pause an ongoing update, simply issue a pause command:
+
+```bash
+$ dcos dse update pause
+```
+
+You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
+
+##### Resume
+
+If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
+
+```bash
+$ dcos dse update resume
+```
+
+You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
+
+##### Force Complete
+
+In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
+
+```bash
+$ dcos dse update force-complete dse-phase dse-0:[node]
+```
+
+##### Force Restart
+
+Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase or just for a specific step.
+
+To restart the entire plan:
+```bash
+$ dcos dse update force-restart
+```
+
+Or for all steps in a single phase:
+```bash
+$ dcos dse update force-restart dse-phase
+```
+
+Or for a specific step within a specific phase:
+```bash
+$ dcos dse update force-restart dse-phase dse-0:[node]
+```
+
+### Other versions
+
+The Scheduler runs as a Marathon application, so we can perform the change there.
 
 First, we can go to `<dcos-url>/marathon` and find the Scheduler App in Marathon. In this case we'll use `dse`:
 
@@ -553,6 +694,13 @@ To see where this setting is passed when the Scheduler is first launched, we can
 ```
 
 This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
+
+## Updating service version
+
+TODO: Sunil
+
++ Documentation on how to update from one version of a service to the next
++ Include how to update CLI
 
 ## Restart a pod
 
@@ -638,7 +786,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 ### DC/OS 1.10
 
-If you are using DC/OS 1.10 and the installed service has a version greater than 2.0: 
+If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x: 
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
 
@@ -650,7 +798,7 @@ dcos package uninstall --app-id=kafka-dev confluent-kafka
 
 ### Older versions
 
-If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0, follow these steps:
+If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
 
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
    For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
@@ -1007,7 +1155,7 @@ A common user mistake is to remove the Scheduler task from Marathon, which doesn
 
 ### Uninstall the rest of the service
 
-If you really wanted to uninstall the service, you just need to complete the normal `package uninstall` + `janitor.py` steps described under [Uninstall](#uninstall).
+If you really wanted to uninstall the service, you just need to complete the normal `package uninstall` steps described under [Uninstall](#uninstall).
 
 ### Recover the Scheduler
 
