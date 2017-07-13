@@ -41,6 +41,7 @@ public class DcosCertInstallerTest {
         cleanup();
         Files.createDirectories(Paths.get(".ssl"));
         Files.createFile(Paths.get(".ssl", "ca.crt"));
+        Files.createFile(Paths.get(".ssl", "ca-bundle.crt"));
         Files.createDirectories(Paths.get(jrePath));
         Files.createDirectories(Paths.get(jrePath, "bin"));
         Files.createDirectories(Paths.get(jrePath, "lib", "security"));
@@ -54,7 +55,19 @@ public class DcosCertInstallerTest {
     }
 
     @Test
-    public void testInstallCertificateIdeal() throws Exception {
+    public void testInstallCertificateIdeal110() throws Exception {
+        final Path path = Paths.get(jrePath, "bin", "keytool");
+        Files.write(path, keytool.getBytes("UTF-8"));
+        Files.setPosixFilePermissions(path, keytoolPermissions);
+        when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
+        Assert.assertTrue(DcosCertInstaller.installCertificate(jrePath, mockProcessRunner));
+    }
+
+    @Test
+    public void testInstallCertificateIdeal19() throws Exception {
+        // Remove the post 1.10 file
+        Files.delete(Paths.get(".ssl", "ca-bundle.crt"));
+
         final Path path = Paths.get(jrePath, "bin", "keytool");
         Files.write(path, keytool.getBytes("UTF-8"));
         Files.setPosixFilePermissions(path, keytoolPermissions);

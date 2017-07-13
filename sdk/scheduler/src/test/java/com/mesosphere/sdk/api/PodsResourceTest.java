@@ -3,7 +3,7 @@ package com.mesosphere.sdk.api;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -59,7 +59,7 @@ public class PodsResourceTest {
     static {
         // pod 0
         TaskInfo.Builder infoBuilder = NO_POD_TASK.toBuilder();
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder)
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder)
                 .setType("test")
                 .setIndex(0)
                 .toProto());
@@ -76,7 +76,7 @@ public class PodsResourceTest {
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(1).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(1).toProto());
         POD_1_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
@@ -85,7 +85,7 @@ public class PodsResourceTest {
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setIndex(2).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(2).toProto());
         POD_2_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }

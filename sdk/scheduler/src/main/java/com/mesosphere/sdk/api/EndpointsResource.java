@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.logging.log4j.util.Strings;
@@ -135,7 +135,7 @@ public class EndpointsResource {
             // Autoip hostname:
             String autoIpTaskName = discoveryInfo.hasName() ? discoveryInfo.getName() : taskInfo.getName();
             // Hostname of agent at offer time:
-            String nativeHost = new SchedulerLabelReader(taskInfo).getHostname();
+            String nativeHost = new TaskLabelReader(taskInfo).getHostname();
             // get IP address(es) from container status on the TaskStatus, gives overlay
             // network IP (IP-per-container) or host iff on host network.
             List<String> ipAddresses = new ArrayList<>();

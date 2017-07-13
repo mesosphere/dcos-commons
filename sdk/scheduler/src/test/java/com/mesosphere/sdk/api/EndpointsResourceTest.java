@@ -3,7 +3,7 @@ package com.mesosphere.sdk.api;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -41,7 +41,7 @@ public class EndpointsResourceTest {
     private static final String EXPECTED_DNS_TLD = "." + Constants.DNS_TLD;
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder)
+        builder.setLabels(new TaskLabelWriter(builder)
                 .setHostname(OfferTestUtils.getOffer(Collections.emptyList()))
                 .setType("some-task-type")
                 .toProto());

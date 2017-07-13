@@ -84,11 +84,15 @@ public class AgentRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         if (offer.getSlaveId().getValue().equals(agentId)) {
-            return EvaluationOutcome.pass(this, null, "Offer matches required Agent ID '%s'", agentId);
+            return EvaluationOutcome.pass(this, "Offer matches required Agent ID '%s'", agentId).build();
         } else {
             // agent mismatch: return empty offer
-            return EvaluationOutcome.fail(this, "Offer lacks required Agent ID. Wanted: '%s' Got: '%s'",
-                    agentId, offer.getSlaveId().getValue());
+            return EvaluationOutcome.fail(
+                    this,
+                    "Offer lacks required Agent ID. Wanted: '%s' Got: '%s'",
+                    agentId,
+                    offer.getSlaveId().getValue())
+                    .build();
         }
     }
 

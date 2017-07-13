@@ -124,8 +124,8 @@ def test_config_update_then_kill_task_in_node():
 def test_config_update_then_kill_all_task_in_node():
     #  kill both world tasks
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
     hosts = shakedown.get_service_ips(PACKAGE_NAME)
+    bump_world_cpus()
     [tasks.kill_task_with_pattern('world', h) for h in hosts]
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
@@ -153,8 +153,8 @@ def test_config_update_then_executor_killed():
 @pytest.mark.recovery
 def test_config_updates_then_all_executors_killed():
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
     hosts = shakedown.get_service_ips(PACKAGE_NAME)
+    bump_world_cpus()
     [tasks.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()

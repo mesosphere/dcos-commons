@@ -5,7 +5,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -65,15 +65,16 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                         selectDynamicPort(mesosResourcePool, podInfoBuilder) :
                         selectOverlayPort(podInfoBuilder);
                 if (!dynamicPort.isPresent()) {
-                    return EvaluationOutcome.fail(this,
+                    return EvaluationOutcome.fail(
+                            this,
                             "No ports were available for dynamic claim in offer," +
                                     " and no %s envvar was present in prior %s: %s %s",
                             getPortEnvironmentVariable(portSpec),
                             getTaskName().isPresent() ? "task " + getTaskName().get() : "executor",
                             TextFormat.shortDebugString(mesosResourcePool.getOffer()),
-                            podInfoBuilder.toString());
+                            podInfoBuilder.toString())
+                            .build();
                 }
-
                 assignedPort = dynamicPort.get();
             }
         }
@@ -98,20 +99,20 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
-                    evaluationOutcome.getMesosResource().get(),
                     evaluationOutcome.getOfferRecommendations(),
                     "Offer contains required %sport: '%s' with resourceId: '%s'",
                     resourceId.isPresent() ? "previously reserved " : "",
                     portSpec.getPortName(),
-                    resourceId);
+                    resourceId)
+                    .mesosResource(evaluationOutcome.getMesosResource().get())
+                    .build();
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
-                    null,
-                    Collections.emptyList(),
                     "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",
-                    portSpec.getPortName(), assignedPort);
+                    portSpec.getPortName(), assignedPort)
+                    .build();
         }
     }
 
@@ -148,7 +149,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
             // Add port to the readiness check environment (if a readiness check is defined):
             try {
-                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
                         .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
                         .toProto());
             } catch (TaskException e) {

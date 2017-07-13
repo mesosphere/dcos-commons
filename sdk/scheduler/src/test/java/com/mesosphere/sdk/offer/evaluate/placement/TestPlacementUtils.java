@@ -70,7 +70,7 @@ public class TestPlacementUtils {
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, null, "test pass");
+            return EvaluationOutcome.pass(this, "test pass").build();
         }
 
         @Override
@@ -86,7 +86,7 @@ public class TestPlacementUtils {
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.fail(this, "test fail");
+            return EvaluationOutcome.fail(this, "test fail").build();
         }
 
         @Override

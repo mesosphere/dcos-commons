@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -105,7 +105,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         }
         if (offerAttributeStrings.isEmpty()) {
             // shortcut: offer has no attributes to enforce. offer accepted!
-            return EvaluationOutcome.pass(this, null, "Offer has no attributes to enforce");
+            return EvaluationOutcome.pass(this, "Offer has no attributes to enforce").build();
         }
 
         // map: enforced attribute in offer => # other tasks which were launched against attribute
@@ -121,7 +121,7 @@ public class MaxPerAttributeRule implements PlacementRule {
                 // redeploying a given task with a new configuration (old data not deleted yet).
                 continue;
             }
-            for (String taskAttributeString : new SchedulerLabelReader(task).getOfferAttributeStrings()) {
+            for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
                 // only tally attribute values that are actually present in the offer
                 if (!offerAttributeStrings.contains(taskAttributeString)) {
                     continue;
@@ -139,9 +139,14 @@ public class MaxPerAttributeRule implements PlacementRule {
                 if (val >= maxTasksPerSelectedAttribute) {
                     // this attribute value's usage meets or exceeds the limit, and it is
                     // present in this offer per the earlier check. offer denied!
-                    return EvaluationOutcome.fail(this,
+                    return EvaluationOutcome.fail(
+                            this,
                             "Reached %d/%d tasks matching filter '%s' on this agent with attribute: %s",
-                            val, maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
+                            val,
+                            maxTasksPerSelectedAttribute,
+                            taskFilter.toString(),
+                            attributeMatcher.toString())
+                            .build();
                 }
                 offerAttrTaskCounts.put(taskAttributeString, val);
             }
@@ -150,9 +155,9 @@ public class MaxPerAttributeRule implements PlacementRule {
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
-                null,
                 "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
-                maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
+                maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString())
+                .build();
     }
 
     @JsonProperty("max")

@@ -10,8 +10,8 @@ import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -190,7 +190,7 @@ public class PodInfoBuilder {
         }
 
         // create default labels:
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfigurationId)
                 .setGoalState(taskSpec.getGoal())
                 .setType(podInstance.getPod().getType())
@@ -405,7 +405,7 @@ public class PodInfoBuilder {
                     getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
         }
 
-        taskInfoBuilder.setLabels(new SchedulerLabelWriter(taskInfoBuilder)
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setReadinessCheck(builder.build())
                 .toProto());
     }
@@ -559,7 +559,7 @@ public class PodInfoBuilder {
                             + "Use ExecutorRequirement for any Executor requirements: %s", builder));
         }
 
-        SchedulerLabelReader labels = new SchedulerLabelReader(builder);
+        TaskLabelReader labels = new TaskLabelReader(builder);
 
         try {
             labels.getType();
