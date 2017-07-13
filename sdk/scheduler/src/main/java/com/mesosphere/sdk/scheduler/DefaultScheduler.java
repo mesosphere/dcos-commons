@@ -572,7 +572,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 errors);
 
         updatedPlans.add(deployPlan);
-        plans.stream().filter(plan -> !plan.isDeployPlan()).map(updatedPlans::add);
+        for (Plan plan : plans) {
+            if (!plan.isDeployPlan()) {
+                updatedPlans.add(plan);
+            }
+        }
 
         return updatedPlans;
     }
