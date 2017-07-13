@@ -97,5 +97,5 @@ def test_endpoints_on_overlay():
                           "master")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 4)
+        specific_endpoint = networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 3)
         networks.check_endpoints_on_overlay(specific_endpoint)
