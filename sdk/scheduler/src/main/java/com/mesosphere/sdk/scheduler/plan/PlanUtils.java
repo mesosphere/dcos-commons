@@ -33,7 +33,7 @@ public class PlanUtils {
      * elements are not complete, it has operations.
      */
     public static boolean hasOperations(Plan plan) {
-        return !allHaveStatus(Status.COMPLETE, plan.getChildren());
+        return !allHaveStatus(Status.COMPLETE, plan.getChildren()) && !plan.isInterrupted();
     }
 
     /**
