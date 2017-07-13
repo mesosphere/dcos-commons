@@ -122,7 +122,7 @@ public class EndpointsResource {
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
     private Map<String, JSONObject> getDiscoveryEndpoints() throws TaskException {
-        Map<String, JSONObject> endpointsByName = new HashMap<>();
+        Map<String, JSONObject> endpointsByName = new TreeMap<>();
         for (TaskInfo taskInfo : stateStore.fetchTasks()) {
             if (!taskInfo.hasDiscovery()) {
                 LOGGER.info("Task lacks any discovery information, no endpoints to report: {}",

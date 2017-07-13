@@ -121,18 +121,10 @@ public class YAMLToInternalMappers {
     private static DiscoverySpec from(RawDiscovery rawDiscovery) {
         Protos.DiscoveryInfo.Visibility visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
         if (rawDiscovery.getVisibility() != null) {
-            switch (rawDiscovery.getVisibility()) {
-                case "FRAMEWORK":
-                    visibility = Protos.DiscoveryInfo.Visibility.FRAMEWORK;
-                    break;
-                case "CLUSTER":
-                    visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
-                    break;
-                case "EXTERNAL":
-                    visibility = Protos.DiscoveryInfo.Visibility.EXTERNAL;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Visibility must be one of: {FRAMEWORK, CLUSTER, EXTERNAL}");
+            visibility = Protos.DiscoveryInfo.Visibility.valueOf(rawDiscovery.getVisibility());
+            if (visibility == null) {
+                throw new IllegalArgumentException(String.format(
+                        "Visibility must be one of: %s", Arrays.asList(Protos.DiscoveryInfo.Visibility.values())));
             }
         }
 
@@ -508,7 +500,7 @@ public class YAMLToInternalMappers {
             String preReservedRole,
             String principal,
             WriteOnceLinkedHashMap<String, RawPort> rawPorts,
-                                     Collection<String> networkNames) {
+            Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
         String envKey = null;
@@ -527,6 +519,19 @@ public class YAMLToInternalMappers {
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
+                // Check that VIP names dont conflict with other port names. In practice this is only an issue when a
+                // custom prefix/name is defined for the VIP as uniqueness is already enforced for port names.
+                final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
+                RawPort matchingRawPort = rawPorts.get(vipName);
+                if (matchingRawPort != null && matchingRawPort != rawPort) {
+                    throw new IllegalArgumentException(String.format(
+                            "Provided VIP prefix '%s' in port '%s' conflicts with other port also named '%s'. " +
+                            "Expected VIP prefix to not collide with other ports' names.",
+                            vipName, name, vipName));
+                }
+                //TODO(nickbp): Ideally we would also check here that multiple VIPs don't share names with each other.
+                //              However elastic currently does this. Not sure why.
+
                 NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,

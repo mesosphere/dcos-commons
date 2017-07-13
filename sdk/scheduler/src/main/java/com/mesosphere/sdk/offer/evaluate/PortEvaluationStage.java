@@ -88,28 +88,21 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                    OfferEvaluationUtils.evaluateSimpleResource(
-                            this,
-                            portSpec,
-                            resourceId,
-                            mesosResourcePool);
+                    OfferEvaluationUtils.evaluateSimpleResource(this, portSpec, resourceId, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
-
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
 
-            String detailsClause = resourceId.isPresent() ? "previously reserved " : "";
             resourceId = reserveEvaluationOutcome.getResourceId();
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
                     evaluationOutcome.getMesosResource().get(),
                     evaluationOutcome.getOfferRecommendations(),
-                    "Offer contains sufficient %s'%s': for resource: '%s' with resourceId: '%s'",
-                    detailsClause,
-                    portSpec.getName(),
-                    portSpec,
+                    "Offer contains required %sport: '%s' with resourceId: '%s'",
+                    resourceId.isPresent() ? "previously reserved " : "",
+                    portSpec.getPortName(),
                     resourceId);
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(portSpec, resourceId).build());
@@ -117,8 +110,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     this,
                     null,
                     Collections.emptyList(),
-                    "Not using host ports: ignoring port resource requirements, using port %s",
-                    assignedPort);
+                    "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",
+                    portSpec.getPortName(), assignedPort);
         }
     }
 

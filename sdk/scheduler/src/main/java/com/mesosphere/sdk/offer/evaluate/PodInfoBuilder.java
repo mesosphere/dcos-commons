@@ -42,6 +42,7 @@ public class PodInfoBuilder {
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
+    // TODO(nickbp): Remove this env storage after October 2017 when it's no longer used as a fallback for dynamic ports
     private final Map<String, Map<String, String>> lastTaskEnvs;
     private final Map<String, Map<String, Long>> lastTaskPorts;
 
@@ -92,8 +93,7 @@ public class PodInfoBuilder {
                 }
             }
             this.lastTaskPorts.put(currentTask.getName(), taskPorts);
-            this.lastTaskEnvs.put(
-                    currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
+            this.lastTaskEnvs.put(currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {

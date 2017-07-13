@@ -18,9 +18,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
     private final NamedVIPSpec namedVIPSpec;
 
-    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
-                                   String taskName,
-                                   Optional<String> resourceId) {
+    public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec, String taskName, Optional<String> resourceId) {
         super(namedVIPSpec, taskName, resourceId);
         this.namedVIPSpec = namedVIPSpec;
     }
@@ -29,7 +27,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         super.setProtos(podInfoBuilder, resource);
 
-        // Find the port entry which was created above, and add VIP metadata to it.
+        // Find the port entry which was created above, and append VIP metadata to it.
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
         List<Protos.Port.Builder> portBuilders =
                 taskBuilder.getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList().stream()
@@ -37,7 +35,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                         .collect(Collectors.toList());
         if (portBuilders.size() != 1) {
             throw new IllegalStateException(String.format(
-                    "Multiple port entries have name %s: %s", portSpec.getPortName(), portBuilders.toString()));
+                    "Expected one port entry with name %s: %s", portSpec.getPortName(), portBuilders.toString()));
         }
         portBuilders.get(0)
                 .setProtocol(namedVIPSpec.getProtocol())
