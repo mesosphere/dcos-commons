@@ -915,9 +915,10 @@ different node.  This is called <em>replacing</em> the task.</p>
 it for debugging, we may need to restart the task manually on the same
 node.</p>
 
-<p>You can perform both actions using the same endpoint:</p>
+<p>You can perform both actions using the following endpoints:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>POST /v1/tasks/restart/&lt;task-name&gt;?replace={true|false}
+<div class="highlighter-rouge"><pre class="highlight"><code>POST /v1/pods/&lt;task-name&gt;/restart
+POST /v1/pods/&lt;task-name&gt;/replace
 </code></pre>
 </div>
 
@@ -1079,21 +1080,29 @@ these port(s) in order to establish a connection.  We can fetch these
 port(s) along with the DNS entry for a task via the following
 endpoint:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>GET /v1/tasks/connection/<span class="o">{</span>task-name<span class="o">}</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>GET /v1/endpoints/<span class="o">{</span>endpoint-name<span class="o">}</span>
 </code></pre>
 </div>
 
 <p>This HTTP request returns:</p>
 
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="nt">"dns"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data-0.data-store.mesos"</span><span class="p">,</span><span class="w">
-  </span><span class="nt">"ports"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4388"</span><span class="w">
+  </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"10.0.1.161:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"10.0.1.6:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"10.0.3.205:1025"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"dns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"data-2-node.data-store.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data-0-node.data-store.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data-1-node.data-store.autoip.dcos.thisdcos.directory:1025"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"vips"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"data.data-store.l4lb.thisdcos.directory:9092"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
-
-<p>If the task has multiple ports reserved, they will be displayed as a
-comma-delimited sequence of ranges. e.g. <code class="highlighter-rouge">"8080,2000-3000"</code>.</p>
 
 <h1 id="secrets-management">Secrets Management</h1>
 

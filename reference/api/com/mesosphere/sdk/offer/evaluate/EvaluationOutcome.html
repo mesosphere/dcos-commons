@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":9,"i9":9,"i10":10};
+var methods = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":9,"i8":9,"i9":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/DestroyEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" target="_top">Frames</a></li>
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -118,6 +118,27 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!--   -->
+</a>
+<h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></span></code>
+<div class="block">Builder for constructor <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> instances.</div>
+</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -131,78 +152,63 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#create-boolean-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.util.Collection-java.util.Collection-java.lang.String-java.lang.Object...-">create</a></span>(boolean&nbsp;isPassing,
-      java.lang.Object&nbsp;source,
-      <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
-      java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations,
-      java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&gt;&nbsp;children,
-      java.lang.String&nbsp;reasonFormat,
-      java.lang.Object...&nbsp;reasonArgs)</code>
-<div class="block">Returns a new outcome object with the provided outcome type, offer recommendation, descriptive reason, and child
- outcomes.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#fail-java.lang.Object-java.lang.String-java.lang.Object...-">fail</a></span>(java.lang.Object&nbsp;source,
     java.lang.String&nbsp;reasonFormat,
     java.lang.Object...&nbsp;reasonArgs)</code>
 <div class="block">Returns a new failing outcome object with the provided descriptive reason.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getChildren--">getChildren</a></span>()</code>
 <div class="block">Returns any nested outcomes which resulted in this decision.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getMesosResource--">getMesosResource</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getOfferRecommendations--">getOfferRecommendations</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getReason--">getReason</a></span>()</code>
 <div class="block">Returns the reason that this response is passing or failing.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getSource--">getSource</a></span>()</code>
 <div class="block">Returns the name of the object which produced this response.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#isPassing--">isPassing</a></span>()</code>
 <div class="block">Returns whether this outcome was passing (<code>true</code>) or failing (<code>false</code>).</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#pass-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.util.Collection-java.lang.String-java.lang.Object...-">pass</a></span>(java.lang.Object&nbsp;source,
-    <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#pass-java.lang.Object-java.util.Collection-java.lang.String-java.lang.Object...-">pass</a></span>(java.lang.Object&nbsp;source,
     java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations,
     java.lang.String&nbsp;reasonFormat,
     java.lang.Object...&nbsp;reasonArgs)</code>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#pass-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.lang.String-java.lang.Object...-">pass</a></span>(java.lang.Object&nbsp;source,
-    <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#pass-java.lang.Object-java.lang.String-java.lang.Object...-">pass</a></span>(java.lang.Object&nbsp;source,
     java.lang.String&nbsp;reasonFormat,
     java.lang.Object...&nbsp;reasonArgs)</code>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -228,16 +234,15 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="pass-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.lang.String-java.lang.Object...-">
+<a name="pass-java.lang.Object-java.lang.String-java.lang.Object...-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>pass</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;pass(java.lang.Object&nbsp;source,
-                                     <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
-                                     java.lang.String&nbsp;reasonFormat,
-                                     java.lang.Object...&nbsp;reasonArgs)</pre>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a>&nbsp;pass(java.lang.Object&nbsp;source,
+                                             java.lang.String&nbsp;reasonFormat,
+                                             java.lang.Object...&nbsp;reasonArgs)</pre>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -247,17 +252,16 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="pass-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.util.Collection-java.lang.String-java.lang.Object...-">
+<a name="pass-java.lang.Object-java.util.Collection-java.lang.String-java.lang.Object...-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>pass</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;pass(java.lang.Object&nbsp;source,
-                                     <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
-                                     java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations,
-                                     java.lang.String&nbsp;reasonFormat,
-                                     java.lang.Object...&nbsp;reasonArgs)</pre>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a>&nbsp;pass(java.lang.Object&nbsp;source,
+                                             java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations,
+                                             java.lang.String&nbsp;reasonFormat,
+                                             java.lang.Object...&nbsp;reasonArgs)</pre>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -274,9 +278,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fail</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;fail(java.lang.Object&nbsp;source,
-                                     java.lang.String&nbsp;reasonFormat,
-                                     java.lang.Object...&nbsp;reasonArgs)</pre>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a>&nbsp;fail(java.lang.Object&nbsp;source,
+                                             java.lang.String&nbsp;reasonFormat,
+                                             java.lang.Object...&nbsp;reasonArgs)</pre>
 <div class="block">Returns a new failing outcome object with the provided descriptive reason.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -284,23 +288,6 @@ extends java.lang.Object</pre>
 <dd><code>reasonFormat</code> - <code>String.format(String, Object...)</code> compatible format string describing the fail reason</dd>
 <dd><code>reasonArgs</code> - format arguments, if any, to apply against <code>reasonFormat</code></dd>
 </dl>
-</li>
-</ul>
-<a name="create-boolean-java.lang.Object-com.mesosphere.sdk.offer.MesosResource-java.util.Collection-java.util.Collection-java.lang.String-java.lang.Object...-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>create</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;create(boolean&nbsp;isPassing,
-                                       java.lang.Object&nbsp;source,
-                                       <a href="../../../../../com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a>&nbsp;mesosResource,
-                                       java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations,
-                                       java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&gt;&nbsp;children,
-                                       java.lang.String&nbsp;reasonFormat,
-                                       java.lang.Object...&nbsp;reasonArgs)</pre>
-<div class="block">Returns a new outcome object with the provided outcome type, offer recommendation, descriptive reason, and child
- outcomes.</div>
 </li>
 </ul>
 <a name="isPassing--">
@@ -402,7 +389,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/DestroyEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" target="_top">Frames</a></li>
@@ -426,7 +413,7 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>

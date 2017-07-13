@@ -41,7 +41,7 @@
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -126,20 +126,32 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#BOOLEAN_LABEL_TRUE_VALUE">BOOLEAN_LABEL_TRUE_VALUE</a></span></code>
+<div class="block">Value for boolean labels which indicates that the label applies.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#GOAL_STATE_LABEL">GOAL_STATE_LABEL</a></span></code>
 <div class="block">Identifies the goal state of this task, e.g.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_ATTRIBUTES_LABEL">OFFER_ATTRIBUTES_LABEL</a></span></code>
 <div class="block">Storage of the original Offer's attributes (in a string representation), for use in placement constraints.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_HOSTNAME_LABEL">OFFER_HOSTNAME_LABEL</a></span></code>
 <div class="block">Storage of the original Offer's hostname, for use in placement constraints.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#PERMANENTLY_FAILED_LABEL">PERMANENTLY_FAILED_LABEL</a></span></code>
+<div class="block">Label for tracking in the state store whether a task failed.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -156,29 +168,23 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#READINESS_CHECK_PASSED_LABEL_VALUE">READINESS_CHECK_PASSED_LABEL_VALUE</a></span></code>
-<div class="block">Value for <code>READINESS_CHECK_PASSED_LABEL</code> which indicates that the check passed.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TARGET_CONFIGURATION_LABEL">TARGET_CONFIGURATION_LABEL</a></span></code>
 <div class="block">Identifies the target configuration UUID used by a given task.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TASK_INDEX_LABEL">TASK_INDEX_LABEL</a></span></code>
 <div class="block">Label against which the Task/Pod index (starting at 0) is stored.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TASK_TYPE_LABEL">TASK_TYPE_LABEL</a></span></code>
 <div class="block">Label against which the Task/Pod Type is stored.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TRANSIENT_FLAG_LABEL">TRANSIENT_FLAG_LABEL</a></span></code>
 <div class="block">Identifies a 'task' which isn't actually launched, but is instead created to fill reserved resources.</div>
@@ -312,20 +318,6 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="READINESS_CHECK_PASSED_LABEL_VALUE">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>READINESS_CHECK_PASSED_LABEL_VALUE</h4>
-<pre>static final&nbsp;java.lang.String READINESS_CHECK_PASSED_LABEL_VALUE</pre>
-<div class="block">Value for <code>READINESS_CHECK_PASSED_LABEL</code> which indicates that the check passed.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
 <a name="TASK_TYPE_LABEL">
 <!--   -->
 </a>
@@ -343,7 +335,7 @@ extends java.lang.Object</pre>
 <a name="TASK_INDEX_LABEL">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>TASK_INDEX_LABEL</h4>
 <pre>static final&nbsp;java.lang.String TASK_INDEX_LABEL</pre>
@@ -351,6 +343,35 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.LabelConstants.TASK_INDEX_LABEL">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="PERMANENTLY_FAILED_LABEL">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>PERMANENTLY_FAILED_LABEL</h4>
+<pre>static final&nbsp;java.lang.String PERMANENTLY_FAILED_LABEL</pre>
+<div class="block">Label for tracking in the state store whether a task failed. Not passed to Mesos itself.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.LabelConstants.PERMANENTLY_FAILED_LABEL">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="BOOLEAN_LABEL_TRUE_VALUE">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>BOOLEAN_LABEL_TRUE_VALUE</h4>
+<pre>static final&nbsp;java.lang.String BOOLEAN_LABEL_TRUE_VALUE</pre>
+<div class="block">Value for boolean labels which indicates that the label applies.
+ In practice this value doesn't need to be compared, users can instead just check for label presence.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.LabelConstants.BOOLEAN_LABEL_TRUE_VALUE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -381,7 +402,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

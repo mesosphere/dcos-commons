@@ -105,17 +105,13 @@ var activeTableTab = "activeTableTab";
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>Direct Known Subclasses:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">ExecutorLabelReader</a>, <a href="../../../../../com/mesosphere/sdk/offer/taskdata/SchedulerLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">SchedulerLabelReader</a></dd>
-</dl>
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">LabelReader</span>
+<pre>class <span class="typeNameLabel">LabelReader</span>
 extends java.lang.Object</pre>
 <div class="block">Implements common logic for read access to a task's Labels. Any access to component-specific values is provided by
- <a href="../../../../../com/mesosphere/sdk/offer/taskdata/ExecutorLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><code>ExecutorLabelReader</code></a> and
- <a href="../../../../../com/mesosphere/sdk/offer/taskdata/SchedulerLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><code>SchedulerLabelReader</code></a>.</div>
+ <code>com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader</code> and
+ <code>com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader</code>.</div>
 </li>
 </ul>
 </div>
@@ -131,19 +127,12 @@ extends java.lang.Object</pre>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
 <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
-<th class="colFirst" scope="col">Modifier</th>
-<th class="colLast" scope="col">Constructor and Description</th>
+<th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html#LabelReader-TaskInfo.Builder-">LabelReader</a></span>(TaskInfo.Builder&nbsp;taskInfoBuilder)</code>
-<div class="block">Creates a new instance for reading the provided task builder's labels.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html#LabelReader-TaskInfo-">LabelReader</a></span>(TaskInfo&nbsp;taskInfo)</code>
-<div class="block">Creates a new instance for reading the provided task's labels.</div>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html#LabelReader-java.lang.String-Labels-">LabelReader</a></span>(java.lang.String&nbsp;taskName,
+           Labels&nbsp;labels)</code>
+<div class="block">Creates a new instance.</div>
 </td>
 </tr>
 </table>
@@ -195,24 +184,20 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="LabelReader-TaskInfo-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>LabelReader</h4>
-<pre>protected&nbsp;LabelReader(TaskInfo&nbsp;taskInfo)</pre>
-<div class="block">Creates a new instance for reading the provided task's labels.</div>
-</li>
-</ul>
-<a name="LabelReader-TaskInfo.Builder-">
+<a name="LabelReader-java.lang.String-Labels-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>LabelReader</h4>
-<pre>protected&nbsp;LabelReader(TaskInfo.Builder&nbsp;taskInfoBuilder)</pre>
-<div class="block">Creates a new instance for reading the provided task builder's labels.</div>
+<pre>LabelReader(java.lang.String&nbsp;taskName,
+            Labels&nbsp;labels)</pre>
+<div class="block">Creates a new instance.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>taskName</code> - the name of the task, only used in error messages if there are problems with the label content</dd>
+<dd><code>labels</code> - the labels to be read from</dd>
+</dl>
 </li>
 </ul>
 </li>
