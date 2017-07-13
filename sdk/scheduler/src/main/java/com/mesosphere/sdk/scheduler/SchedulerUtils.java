@@ -120,7 +120,7 @@ public class SchedulerUtils {
     /**
      * Returns the configured user to use for running the scheduler.
      */
-    public static String getUser(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
+    public static String getUser(RawServiceSpec rawServiceSpec) {
         // If the svc.yml explicitly provided a service user, use that
         if (rawServiceSpec.getScheduler() != null && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getUser())) {
             return rawServiceSpec.getScheduler().getUser();

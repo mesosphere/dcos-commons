@@ -123,6 +123,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.webUrl = copy.webUrl;
         builder.pods = copy.pods;
         builder.replacementFailurePolicy = copy.replacementFailurePolicy;
+        builder.user = copy.user;
         return builder;
     }
 
