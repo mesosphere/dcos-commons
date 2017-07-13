@@ -5,10 +5,9 @@ by the DC/OS metrics component.
 
 import shakedown
 
-import sdk_hosts as hosts
 import sdk_utils as utils
+import sdk_cmd as cmd
 import json
-import ast
 
 def get_metrics(service_name, task_name):
     """Return a list of metrics datapoints.
@@ -17,27 +16,36 @@ def get_metrics(service_name, task_name):
     service_name -- the name of the service to get metrics for
     task_name -- the name of the task whose agent to run metrics commands from
     """
-    host = hosts.system_host(service_name, task_name)
-    auth_token, _, _ = shakedown.run_dcos_command('config show core.dcos_acs_token')
-    auth_token = auth_token.strip()
+    tasks = shakedown.get_service_tasks(service_name)
+    for task in tasks:
+        if task['name'] == task_name:
+            task_to_check = task
 
-    service_containers_cmd = """curl --header "Authorization: token={}"
-        -s http://localhost:61001/system/v1/metrics/v0/containers""".format(auth_token).replace("\n", "")
-    _, output = shakedown.run_command_on_agent(host, service_containers_cmd)
-    # We need at least one container whose metrics we can return
-    if output == "[]":
-        return []
+    if task_to_check is None:
+        raise Exception("Could not find task")
 
-    # Sanitize output as it's a string-represented list i.e. '["bc005e73...","2ef32c62..."]'
-    containers = ast.literal_eval(output)
-    # Need just one container to probe so just get the first one
-    container_id = containers[0]
-    metrics_cmd = """curl --header "Authorization: token={}"
-        -s http://localhost:61001/system/v1/metrics/v0/containers/{}/app""".format(auth_token, container_id).replace("\n","")
-    _, output = shakedown.run_command_on_agent(host, metrics_cmd)
+    agent_id = task_to_check['slave_id']
+    executor_id = task_to_check['executor_id']
 
-    metrics = json.loads(output)
-    return metrics["datapoints"]
+    # Fetch the list of containers for the agent
+    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
+    containers_response = cmd.request("GET", containers_url, retry=False)
+    if containers_response.ok is None:
+        utils.out("Unable to fetch containers list")
+        raise Exception("Unable to fetch containers list: {}".format(containers_url))
+
+    for container in json.loads(containers_response.text):
+        app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(shakedown.dcos_url(), agent_id, container)
+        app_response = cmd.request("GET", app_url, retry=False)
+        if app_response.ok is None:
+            continue
+
+        app_json = json.loads(app_response.text)
+        if app_json['dimensions']['executor_id'] == executor_id:
+            return app_json['datapoints']
+
+    raise Exception("No metrics found")
+
 
 def wait_for_any_metrics(service_name, task_name, timeout):
     def metrics_exist():
