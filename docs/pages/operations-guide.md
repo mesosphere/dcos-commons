@@ -461,13 +461,13 @@ Once we know the configuration is good, it should be added to our source control
 
 ## Updating service configuration
 
-Above, we described how a configuration update is handled. Now we will quickly show the steps to perform such an update.
+Above, we described how a configuration update (including updating the version of the service) is handled. Now we will quickly show the steps to perform such an update.
 
 Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in ][Reconfiguration](#Reconfiguration).
 
 ### Enterprise DC/OS 1.10
 
-Enterprise DC/OS 1.10 introduces a convenient command line option that allows easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates and to restart or complete steps if necessary. 
+Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates and to restart or complete steps if necessary. 
 
 #### Prerequisites
 
@@ -482,7 +482,43 @@ dcos package uninstall --cli <service-name>
 dcos package install --cli <service-name>
 ```
 
-#### Preparing configuration
+#### Updating package version
+
+The instructions below show how you can safely update one version of a package to the next.
+
+##### Viewing available versions
+
+The `update package-versions` command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).
+
+For example, for `dse`, run:
+```bash
+$ dcos dse update package-versions
+```
+
+##### Upgrading or downgrading a service
+
+1. Before updating the service itself, update its CLI subcommand to the new version:
+```bash
+$ dcos package uninstall --cli dse
+$ dcos package install --cli dse --package-version="1.1.6-5.0.7"
+```
+1. Once the CLI subcommand has been updated, simply call the update start command, passing in the version. For example, to update `dse` to version `1.1.6-5.0.7`:
+```bash
+$ dcos dse update start --package-version="1.1.6-5.0.7"
+```
+
+If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration) below):
+```bash
+$ dcos dse update start --options=options.json --package-version="1.1.6-5.0.7"
+```
+
+See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
+
+#### Updating configuration
+
+The instructions below describe how you can update the configuration for a running DC/OS service.
+
+##### Preparing configuration
 
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values were applied during installation). For example, for `dse`:
 
@@ -490,13 +526,13 @@ If you installed this service with Enterprise DC/OS 1.10, you can fetch the full
 $ dcos dse describe > options.json
 ```
 
-If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration). 
-
 Make any configuration changes to this `options.json` file. 
+
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration). 
 
 <strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
-##### Recreating `options.json` (optional)
+###### Recreating `options.json` (optional)
 
 If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
 
@@ -536,7 +572,7 @@ $ less marathon.json.mustache
 ```
 1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
-#### Starting the update
+##### Starting the update
 
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
@@ -546,7 +582,13 @@ $ dcos dse update start --options=options.json
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
 
-#### Monitoring the update
+See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
+
+#### Advanced update actions
+
+The following sections describe advanced commands that be used to interact with an update in progress.
+
+##### Monitoring the update
 
 Once the Scheduler has been restarted, it will begin a new deployment plan as individual pods are restarted with the new configuration. Depending on the high availability characteristics of the service being updated, you may experience a service disruption.
 
@@ -557,10 +599,6 @@ $ dcos dse update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also check the Services tab within the DC/OS UI to see what the status of the restart is.
-
-#### Advanced update actions
-
-There are several commands available to provide finer grained control of an update to a service.
 
 ##### Pause
 
@@ -694,13 +732,6 @@ To see where this setting is passed when the Scheduler is first launched, we can
 ```
 
 This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
-
-## Updating service version
-
-TODO: Sunil
-
-+ Documentation on how to update from one version of a service to the next
-+ Include how to update CLI
 
 ## Restart a pod
 
