@@ -55,6 +55,11 @@
           "description": "Enable DC/OS Virtual Networking",
           "type": "boolean",
           "default": false
+        },
+        "log_level": {
+          "description": "The log level for the DC/OS service.",
+          "type": "string",
+          "default": "INFO"
         }
       },
       "required": [

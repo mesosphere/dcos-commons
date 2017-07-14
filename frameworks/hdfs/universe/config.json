@@ -47,6 +47,11 @@
           "default": "serial",
           "enum" : ["parallel", "serial"]
         },
+        "log_level": {
+          "description": "The log level for the DC/OS service.",
+          "type": "string",
+          "default": "INFO"
+        },
         "tls": {
           "type": "object",
           "description": "TLS configuration properties.",
