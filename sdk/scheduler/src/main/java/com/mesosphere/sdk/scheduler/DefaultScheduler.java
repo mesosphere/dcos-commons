@@ -717,7 +717,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+        schedulerApiServer = new SchedulerApiServer(
+                schedulerFlags.getApiServerPort(),
+                resources,
                 schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }

@@ -90,19 +90,6 @@ public class SchedulerUtils {
     }
 
     /**
-     * Returns the configured API port to use for serving requests at the scheduler.
-     */
-    public static Integer getApiPort(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
-        // If the svc.yml explicitly provided an api port, use that
-        if (rawServiceSpec.getScheduler() != null
-                && rawServiceSpec.getScheduler().getApiPort() != null) {
-            return rawServiceSpec.getScheduler().getApiPort();
-        }
-        // Fallback: Use api port provided (by Marathon) in scheduler env, or throw if it's missing
-        return schedulerFlags.getApiServerPort();
-    }
-
-    /**
      * Returns the configured {@code hostname:port} to use for state storage at the scheduler.
      */
     public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {

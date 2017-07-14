@@ -99,7 +99,7 @@ public class DefaultService implements Service {
 
             LOGGER.info("Launching UninstallScheduler...");
             this.scheduler = new UninstallScheduler(
-                    schedulerBuilder.getServiceSpec().getApiPort(),
+                    schedulerBuilder.getSchedulerFlags().getApiServerPort(),
                     schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
                     stateStore,
                     schedulerBuilder.getConfigStore());

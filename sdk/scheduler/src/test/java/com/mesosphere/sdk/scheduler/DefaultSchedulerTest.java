@@ -163,7 +163,6 @@ public class DefaultSchedulerTest {
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("badhost-shouldbeignored:2181")
                 .pods(Arrays.asList(pods))
                 .build();

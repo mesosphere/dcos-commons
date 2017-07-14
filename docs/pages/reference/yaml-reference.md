@@ -28,10 +28,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     The Mesos Principal to register as. Default is `<name>-principal`.
 
-  * `api-port`
-
-    The port at which the scheduler should serve its API endpoints. Defaults to a random port value provided to the scheduler by Marathon.
-
   * `zookeeper`
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.

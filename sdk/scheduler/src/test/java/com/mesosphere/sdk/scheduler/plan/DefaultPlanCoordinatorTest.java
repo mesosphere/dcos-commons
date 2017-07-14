@@ -95,7 +95,6 @@ public class DefaultPlanCoordinatorTest {
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
@@ -117,7 +116,6 @@ public class DefaultPlanCoordinatorTest {
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podB))
                 .build();
