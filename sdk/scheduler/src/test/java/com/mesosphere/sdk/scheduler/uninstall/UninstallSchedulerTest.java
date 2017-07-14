@@ -26,7 +26,7 @@ import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class UninstallSchedulerTest {
+public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     private static final String RESERVED_RESOURCE_1_ID = "reserved-resource-id";
     private static final String RESERVED_RESOURCE_2_ID = "reserved-volume-id";

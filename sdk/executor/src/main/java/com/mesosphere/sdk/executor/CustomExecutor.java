@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.executor;
 
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader;
+import com.mesosphere.sdk.offer.taskdata.ExecutorTaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 
 import org.apache.mesos.Executor;
@@ -111,7 +111,7 @@ public class CustomExecutor implements Executor {
 
         Optional<Protos.HealthCheck> readinessCheckOptional = Optional.empty();
         try {
-            readinessCheckOptional = new ExecutorLabelReader(taskInfo).getReadinessCheck();
+            readinessCheckOptional = new ExecutorTaskLabelReader(taskInfo).getReadinessCheck();
         } catch (TaskException e) {
             LOGGER.error("Failed to extract readiness check.", e);
             return;

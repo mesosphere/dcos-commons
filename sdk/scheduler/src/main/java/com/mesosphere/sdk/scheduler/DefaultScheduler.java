@@ -714,7 +714,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             resources.add(new PodsResource(taskKiller, stateStore));
         }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
     }
 
     private void initializeApiServer() {

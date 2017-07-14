@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -24,7 +24,7 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
 
         TaskInfo.Builder taskBuilder = originalTaskInfo.toBuilder();
         if (!shouldLaunch) {
-            new SchedulerLabelWriter(taskBuilder).setTransient();
+            new TaskLabelWriter(taskBuilder).setTransient();
             taskBuilder.getTaskIdBuilder().setValue("");
         }
 

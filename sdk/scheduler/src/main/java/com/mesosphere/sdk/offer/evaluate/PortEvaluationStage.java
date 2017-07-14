@@ -5,7 +5,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -190,7 +190,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
             // Add port to the readiness check (if a readiness check is defined)
             try {
-                taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+                taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
                         .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
                         .toProto());
             } catch (TaskException e) {

@@ -16,20 +16,22 @@ import com.mesosphere.sdk.offer.TaskException;
 /**
  * Provides read access to task labels which are (only) read by the Scheduler.
  */
-public class SchedulerLabelReader extends LabelReader {
+public class TaskLabelReader {
+
+    private final LabelReader reader;
 
     /**
      * @see LabelReader#LabelReader(TaskInfo)
      */
-    public SchedulerLabelReader(TaskInfo taskInfo) {
-        super(taskInfo);
+    public TaskLabelReader(TaskInfo taskInfo) {
+        reader = new LabelReader(String.format("Task %s", taskInfo.getName()), taskInfo.getLabels());
     }
 
     /**
      * @see LabelReader#LabelReader(org.apache.mesos.Protos.TaskInfo.Builder)
      */
-    public SchedulerLabelReader(TaskInfo.Builder taskInfoBuilder) {
-        super(taskInfoBuilder);
+    public TaskLabelReader(TaskInfo.Builder taskInfoBuilder) {
+        reader = new LabelReader(String.format("Task %s", taskInfoBuilder.getName()), taskInfoBuilder.getLabels());
     }
 
     /**
@@ -38,7 +40,7 @@ public class SchedulerLabelReader extends LabelReader {
      * @throws TaskException if the type could not be found.
      */
     public String getType() throws TaskException {
-        return getOrThrow(LabelConstants.TASK_TYPE_LABEL);
+        return reader.getOrThrow(LabelConstants.TASK_TYPE_LABEL);
     }
 
     /**
@@ -48,14 +50,14 @@ public class SchedulerLabelReader extends LabelReader {
      * @throws NumberFormatException if parsing the index as an integer failed
      */
     public int getIndex() throws TaskException, NumberFormatException {
-        return Integer.parseInt(getOrThrow(LabelConstants.TASK_INDEX_LABEL));
+        return Integer.parseInt(reader.getOrThrow(LabelConstants.TASK_INDEX_LABEL));
     }
 
     /**
      * Returns the string representations of any {@link Offer} {@link Attribute}s which were embedded in the task.
      */
     public List<String> getOfferAttributeStrings() {
-        Optional<String> joinedAttributes = getOptional(LabelConstants.OFFER_ATTRIBUTES_LABEL);
+        Optional<String> joinedAttributes = reader.getOptional(LabelConstants.OFFER_ATTRIBUTES_LABEL);
         if (!joinedAttributes.isPresent()) {
             return new ArrayList<>();
         }
@@ -66,7 +68,7 @@ public class SchedulerLabelReader extends LabelReader {
      * Returns the hostname of the agent machine running the task.
      */
     public String getHostname() throws TaskException {
-        return getOrThrow(LabelConstants.OFFER_HOSTNAME_LABEL);
+        return reader.getOrThrow(LabelConstants.OFFER_HOSTNAME_LABEL);
     }
 
     /**
@@ -77,7 +79,7 @@ public class SchedulerLabelReader extends LabelReader {
      *                       an indicated target configuration
      */
     public UUID getTargetConfiguration() throws TaskException {
-        return UUID.fromString(getOrThrow(LabelConstants.TARGET_CONFIGURATION_LABEL));
+        return UUID.fromString(reader.getOrThrow(LabelConstants.TARGET_CONFIGURATION_LABEL));
     }
 
     /**
@@ -91,7 +93,7 @@ public class SchedulerLabelReader extends LabelReader {
      * @return the result of a readiness check for the indicated TaskStatus
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
-        Optional<String> readinessCheckOptional = getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> readinessCheckOptional = reader.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!readinessCheckOptional.isPresent()) {
             // check not applicable: PASS
             return true;
@@ -101,7 +103,7 @@ public class SchedulerLabelReader extends LabelReader {
         // not in TaskInfo like other labels
         for (Label statusLabel : taskStatus.getLabels().getLabelsList()) {
             if (statusLabel.getKey().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL)) {
-                return statusLabel.getValue().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL_VALUE);
+                return statusLabel.getValue().equals(LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
             }
         }
         return false;
@@ -113,6 +115,14 @@ public class SchedulerLabelReader extends LabelReader {
      */
     public boolean isTransient() {
         // null is false
-        return Boolean.valueOf(getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+        return Boolean.valueOf(reader.getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task is marked as permanently failed.
+     */
+    public boolean isPermanentlyFailed() {
+        // null is false
+        return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
     }
 }

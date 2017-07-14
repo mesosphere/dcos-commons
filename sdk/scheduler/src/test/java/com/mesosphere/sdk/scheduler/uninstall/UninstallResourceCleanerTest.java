@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceCleaner;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -17,7 +18,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class UninstallResourceCleanerTest {
+public class UninstallResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
     private static final String RESERVED_RESOURCE_1_ID = "reserved-resource-id";
     private static final String RESERVED_RESOURCE_2_ID = "reserved-volume-id";

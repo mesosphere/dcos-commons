@@ -26,10 +26,14 @@ class LabelConstants {
     static final String READINESS_CHECK_LABEL = "readiness_check";
     /** Label used to find the result of a readiness check in a TaskStatus label. */
     static final String READINESS_CHECK_PASSED_LABEL = "readiness_check_passed";
-    /** Value for {@link READINESS_CHECK_PASSED_LABEL} which indicates that the check passed. */
-    static final String READINESS_CHECK_PASSED_LABEL_VALUE = "true";
     /** Label against which the Task/Pod Type is stored. */
     static final String TASK_TYPE_LABEL = "task_type";
     /** Label against which the Task/Pod index (starting at 0) is stored. */
     static final String TASK_INDEX_LABEL = "index";
+    /** Label for tracking in the state store whether a task failed. Not passed to Mesos itself. */
+    static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
+
+    /** Value for boolean labels which indicates that the label applies.
+     * In practice this value doesn't need to be compared, users can instead just check for label presence. */
+    static final String BOOLEAN_LABEL_TRUE_VALUE = "true";
 }

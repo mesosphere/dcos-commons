@@ -30,6 +30,10 @@ def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
     return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
 
 
+def wait_for_in_progress_recovery(service_name, timeout_seconds=15 * 60):
+    return wait_for_in_progress_plan(service_name, 'recovery', timeout_seconds)
+
+
 def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
     return wait_for_completed_plan(service_name, 'deploy', timeout_seconds)
 
@@ -44,6 +48,10 @@ def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_second
 
 def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=15 * 60):
     return wait_for_step_status(service_name, plan_name, phase_name, step_name, 'COMPLETE', timeout_seconds)
+
+
+def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=15 * 60):
+    return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):

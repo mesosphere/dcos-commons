@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 /**
  * Implementation of {@link TaskTypeConverter} which expects a Label which provides the task type.
@@ -19,7 +19,7 @@ public class TaskTypeLabelConverter implements TaskTypeConverter {
     @Override
     public String getTaskType(TaskInfo taskInfo) {
         try {
-            return new SchedulerLabelReader(taskInfo).getType();
+            return new TaskLabelReader(taskInfo).getType();
         } catch (TaskException e) {
             throw new IllegalArgumentException(String.format(
                     "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);
