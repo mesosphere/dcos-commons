@@ -109,9 +109,9 @@ public class TaskTypeRule implements PlacementRule {
                 // (A avoids B + B avoids A)
                 return EvaluationOutcome.pass(
                         this,
-                        null,
                         "No tasks of avoided type '%s' are currently running.",
-                        typeToFind);
+                        typeToFind)
+                        .build();
             } else {
                 return filterAvoid(offer, podInstance, matchingTasks);
             }
@@ -122,9 +122,9 @@ public class TaskTypeRule implements PlacementRule {
                 // (A colocates with B + B colocates with A)
                 return EvaluationOutcome.pass(
                         this,
-                        null,
                         "No tasks of colocated type '%s' are currently running.",
-                        typeToFind);
+                        typeToFind)
+                        .build();
             } else {
                 return filterColocate(offer, podInstance, matchingTasks);
             }
@@ -153,12 +153,14 @@ public class TaskTypeRule implements PlacementRule {
             }
             if (taskToAvoid.getSlaveId().equals(offer.getSlaveId())) {
                 // The offer is for an agent which has a task to be avoided. Denied!
-                return EvaluationOutcome.fail(this,
-                        "Found a task matching avoided type '%s' on this agent.", typeToFind);
+                return EvaluationOutcome.fail(
+                        this,
+                        "Found a task matching avoided type '%s' on this agent.", typeToFind)
+                        .build();
             }
         }
         // The offer doesn't match any tasks to avoid. Approved!
-        return EvaluationOutcome.pass(this, null, "No tasks of avoided type '%s' found on this agent.", typeToFind);
+        return EvaluationOutcome.pass(this, "No tasks of avoided type '%s' found on this agent.", typeToFind).build();
     }
 
     /**
@@ -183,14 +185,16 @@ public class TaskTypeRule implements PlacementRule {
                 // The offer is for an agent which has a task to colocate with. Approved!
                 return EvaluationOutcome.pass(
                         this,
-                        null,
                         "Found a task matching colocated type '%s' on this agent.",
-                        typeToFind);
+                        typeToFind)
+                        .build();
             }
         }
         // The offer doesn't match any tasks to colocate with. Denied!
-        return EvaluationOutcome.fail(this,
-                "Didn't find a task matching colocated type '%s' on this agent.", typeToFind);
+        return EvaluationOutcome.fail(
+                this,
+                "Didn't find a task matching colocated type '%s' on this agent.", typeToFind)
+                .build();
     }
 
     @JsonProperty("type")

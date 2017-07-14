@@ -49,7 +49,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
         final String offerValue = getValue(offer);
         if (offerValue == null) {
             // offer doesn't have the required attribute at all. denied.
-            return EvaluationOutcome.fail(this, "Offer lacks required round robin value");
+            return EvaluationOutcome.fail(this, "Offer lacks required round robin value").build();
         }
 
         // search across tasks, keeping value counts on a per-value basis.
@@ -105,32 +105,31 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 // than some other value in the system.
                 return EvaluationOutcome.pass(
                         this,
-                        null,
                         "Distinct value count is unspecified, and '%s' has %d instances while others have%d to %d",
-                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
+                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount).build();
             } else if (valueCounts.size() >= distinctValueCount.get()) {
                 // no values are missing from our counts, and this value has fewer instances than some other value in
                 // the system.
                 return EvaluationOutcome.pass(
                         this,
-                        null,
                         "All distinct values are found, and '%s' has %d instances while others have %d to %d",
-                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
+                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount).build();
             }
             // we know that there are other attribute values out there which have nothing on them at all.
             // only launch here if this value also has nothing on it.
             if (offerValueCount == 0) {
                 return EvaluationOutcome.pass(
-                        this, null, "Other values have zero usage, but so does value '%s'", offerValue);
+                        this, "Other values have zero usage, but so does value '%s'", offerValue).build();
             } else {
                 return EvaluationOutcome.fail(
-                        this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount);
+                        this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount)
+                        .build();
 
             }
         } else {
             // this attribute value is full at the current level, but other (known) values are not full yet.
             return EvaluationOutcome.fail(
-                    this, "Value '%s' is already full, and others are known to not be full", offerValue);
+                    this, "Value '%s' is already full, and others are known to not be full", offerValue).build();
         }
     }
 }

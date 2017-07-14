@@ -4,8 +4,8 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -41,7 +41,7 @@ public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
                 .setTaskId(CommonIdUtils.toTaskId(name));
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
         return infoBuilder.build();
     }
 
@@ -61,7 +61,7 @@ public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
 
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
-            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            TaskLabelReader labels = new TaskLabelReader(taskInfo);
             ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
             PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
                     resourceSet,

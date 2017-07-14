@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -92,7 +92,7 @@ public class MaxPerHostnameRule implements PlacementRule {
             }
             final String taskHostname;
             try {
-                taskHostname = new SchedulerLabelReader(task).getHostname();
+                taskHostname = new TaskLabelReader(task).getHostname();
             } catch (TaskException e) {
                 LOGGER.warn("Unable to extract hostname from task for filtering", e);
                 continue;
@@ -103,17 +103,22 @@ public class MaxPerHostnameRule implements PlacementRule {
             ++offerHostnameTaskCounts;
             if (offerHostnameTaskCounts >= maxTasksPerHostname) {
                 // the hostname for this offer meets or exceeds the limit. offer denied!
-                return EvaluationOutcome.fail(this, "%d/%d tasks matching filter '%s' are already present on this host",
-                        offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
+                return EvaluationOutcome.fail(
+                        this,
+                        "%d/%d tasks matching filter '%s' are already present on this host",
+                        offerHostnameTaskCounts,
+                        maxTasksPerHostname,
+                        taskFilter.toString())
+                        .build();
             }
         }
         // after scanning all the tasks for usage of attributes present in this offer, nothing
         // hit or exceeded the limit. offer accepted!
         return EvaluationOutcome.pass(
                 this,
-                null,
                 "%d/%d tasks matching filter '%s' are present on this host",
-                offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
+                offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString())
+                .build();
     }
 
     @JsonProperty("max")

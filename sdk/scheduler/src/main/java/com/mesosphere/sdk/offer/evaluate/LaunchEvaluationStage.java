@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+        taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
             .setOfferAttributes(offer)
             .setType(podInfoBuilder.getType())
             .setIndex(podInfoBuilder.getIndex())
@@ -48,9 +48,9 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                null,
                 Arrays.asList(new LaunchOfferRecommendation(
                         offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
-                "Added launch information to offer requirement");
+                "Added launch information to offer requirement")
+                .build();
     }
 }

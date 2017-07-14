@@ -101,11 +101,18 @@ public class AttributeRule implements PlacementRule {
             String attributeString = AttributeStringUtils.toString(attributeProto);
             if (matcher.matches(attributeString)) {
                 return EvaluationOutcome.pass(
-                        this, null, "Match found for attribute pattern: '%s'", matcher.toString());
+                        this,
+                        "Match found for attribute pattern: '%s'", matcher.toString())
+                        .build();
             }
         }
-        return EvaluationOutcome.fail(this, "None of %d attributes matched pattern: '%s'",
-                offer.getAttributesCount(), matcher.toString());
+
+        return EvaluationOutcome.fail(
+                this,
+                "None of %d attributes matched pattern: '%s'",
+                offer.getAttributesCount(),
+                matcher.toString())
+                .build();
     }
 
     @JsonProperty("matcher")

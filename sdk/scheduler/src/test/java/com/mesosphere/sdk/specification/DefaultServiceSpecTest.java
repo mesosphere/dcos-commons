@@ -163,6 +163,14 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidDuplicatePorts() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+    }
+
     @Test
     public void validReadinessCheck() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();

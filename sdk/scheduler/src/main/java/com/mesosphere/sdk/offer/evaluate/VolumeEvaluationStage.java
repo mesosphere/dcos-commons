@@ -103,7 +103,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             }
 
             if (!mesosResourceOptional.isPresent()) {
-                return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec);
+                return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec).build();
             }
 
             mesosResource = mesosResourceOptional.get();
@@ -140,13 +140,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                mesosResource,
                 offerRecommendations,
                 "Offer contains sufficient %s'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
                 detailsClause,
                 volumeSpec,
                 resourceId,
-                persistenceId);
+                persistenceId)
+                .mesosResource(mesosResource)
+                .build();
     }
 
     private Optional<String> getTaskName() {

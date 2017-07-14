@@ -2,8 +2,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.*;
@@ -70,7 +70,7 @@ public class MaxPerAttributeRuleTest {
 
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
-            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            TaskLabelReader labels = new TaskLabelReader(taskInfo);
             ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
             PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
                     resourceSet,
@@ -92,7 +92,7 @@ public class MaxPerAttributeRuleTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder).setOfferAttributes(offer).toProto());
+        taskBuilder.setLabels(new TaskLabelWriter(taskBuilder).setOfferAttributes(offer).toProto());
         return taskBuilder.build();
     }
 

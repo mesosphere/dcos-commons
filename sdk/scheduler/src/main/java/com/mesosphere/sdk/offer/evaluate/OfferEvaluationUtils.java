@@ -58,7 +58,8 @@ class OfferEvaluationUtils {
                             offerEvaluationStage,
                             "Offer failed to satisfy: %s with resourceId: %s",
                             resourceSpec,
-                            resourceId),
+                            resourceId)
+                            .build(),
                     null);
         }
 
@@ -81,24 +82,26 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
-                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Offer contains sufficient '%s': for resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
                                 resourceSpec,
-                                resourceId),
+                                resourceId)
+                                .mesosResource(mesosResource)
+                                .build(),
                         ResourceUtils.getResourceId(resource).get());
             } else {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
-                                mesosResource,
                                 Collections.emptyList(),
                                 "Offer contains sufficient previously reserved '%s':" +
                                         " for resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
                                 resourceSpec,
-                                resourceId),
+                                resourceId)
+                                .mesosResource(mesosResource)
+                                .build(),
                         resourceId.get());
             }
         } else {
@@ -122,7 +125,8 @@ class OfferEvaluationUtils {
                             fail(offerEvaluationStage,
                                     "Insufficient resources to increase reservation of resource '%s' with resourceId",
                                     resourceSpec,
-                                    resourceId),
+                                    resourceId)
+                                    .build(),
                             null);
                 }
 
@@ -137,12 +141,13 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
-                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Offer contains sufficient '%s': for increasing resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
                                 resourceSpec,
-                                resourceId),
+                                resourceId)
+                                .mesosResource(mesosResource)
+                                .build(),
                         ResourceUtils.getResourceId(resource).get());
             } else {
                 LOGGER.info("    Reservation for resource '%s' needs decreasing from current %s to required {}",
@@ -161,12 +166,13 @@ class OfferEvaluationUtils {
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
-                                mesosResource,
                                 Arrays.asList(offerRecommendation),
                                 "Decreased '%s': for resource: '%s' with resourceId: '%s'",
                                 resourceSpec.getName(),
                                 resourceSpec,
-                                resourceId),
+                                resourceId)
+                                .mesosResource(mesosResource)
+                                .build(),
                         ResourceUtils.getResourceId(resource).get());
             }
         }

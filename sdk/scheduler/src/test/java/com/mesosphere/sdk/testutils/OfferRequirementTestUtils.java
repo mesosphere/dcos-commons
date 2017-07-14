@@ -4,8 +4,8 @@ import com.mesosphere.sdk.offer.TaskException;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
 import com.mesosphere.sdk.dcos.DcosCluster;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
@@ -38,7 +38,7 @@ public class OfferRequirementTestUtils {
     }
 
     public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
-        return new SchedulerLabelWriter(taskInfo) {
+        return new TaskLabelWriter(taskInfo) {
             @Override
             public Optional<HealthCheck> getReadinessCheck() throws TaskException {
                 return super.getReadinessCheck();
