@@ -183,7 +183,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         public ConfigStore<ServiceSpec> getConfigStore() {
             if (!configStoreOptional.isPresent()) {
                 try {
-                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList()));
+                    setConfigStore(createConfigStore(serviceSpec, getSchedulerFlags(), Collections.emptyList()));
                 } catch (ConfigStoreException e) {
                     throw new IllegalStateException("Failed to create default config store", e);
                 }
@@ -481,10 +481,19 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
      *                              unrecognized deserialization type
      */
     public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
-        // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
-        return createConfigStore(
-                serviceSpec, customDeserializationSubtypes, CuratorPersister.newBuilder(serviceSpec).build());
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
+            Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
+        Persister persister = CuratorPersister.newBuilder(serviceSpec).build();
+        if (schedulerFlags.isStateCacheEnabled()) {
+            // Wrap persister with a cache, so that we aren't constantly hitting ZK for state queries:
+            try {
+                persister = new PersisterCache(persister);
+            } catch (PersisterException e) {
+                throw new ConfigStoreException(e);
+            }
+        }
+        return createConfigStore(serviceSpec, customDeserializationSubtypes, persister);
     }
 
     /**
