@@ -35,6 +35,8 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DNS = "dns";
     private static final String RESPONSE_KEY_ADDRESS = "address";
+    // TODO(nickbp): Remove 'vips' and switch 'vip' to an array value.
+    private static final String RESPONSE_KEY_VIP = "vip";
     private static final String RESPONSE_KEY_VIPS = "vips";
 
     private final StateStore stateStore;
@@ -167,9 +169,9 @@ public class EndpointsResource {
                     break;
                 }
                 addPortToEndpoints(
-                        serviceName,
                         endpointsByName,
-                        taskInfo,
+                        serviceName,
+                        taskInfo.getName(),
                         port,
                         EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
                         EndpointUtils.toEndpoint(hostIpString, port.getNumber()));
@@ -183,25 +185,25 @@ public class EndpointsResource {
      * will be added for any VIPs listed against the {@link Port}'s labels, or if no VIPs are found,
      * the information will be added against the task type.
      *
-     * @param serviceName the name of the parent service
      * @param endpointsByName the map to write to
-     * @param taskInfo the task which has the port in question
+     * @param serviceName the name of the parent service
+     * @param taskName the name of the task which has the port in question
+     * @param taskInfoPort the port being added (from the task's DiscoveryInfo)
      * @param autoipHostPort the host:port value to advertise for connecting to the task over DNS
      * @param ipHostPort the host:port value to advertise for connecting to the task's IP
-     * @param portLabels list of any {@link Label}s which were present in the {@link Port}
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */
     private static void addPortToEndpoints(
-            String serviceName,
             Map<String, JSONObject> endpointsByName,
-            TaskInfo taskInfo,
+            String serviceName,
+            String taskName,
             Port taskInfoPort,
             String autoipHostPort,
             String ipHostPort) throws TaskException {
         // Search for any VIPs to list the port against:
         boolean foundAnyVips = false;
         for (Label label : taskInfoPort.getLabels().getLabelsList()) {
-            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskInfo.getName(), label);
+            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskName, label);
             if (!vipInfo.isPresent()) {
                 // Label doesn't appear to be for a VIP
                 continue;
@@ -209,42 +211,63 @@ public class EndpointsResource {
 
             // VIP found. file host:port against the VIP name (note: NOT necessarily the same as the port name).
             foundAnyVips = true;
-
-            JSONObject vipEndpoint = endpointsByName.get(vipInfo.get().getVipName());
-            if (vipEndpoint == null) {
-                vipEndpoint = new JSONObject();
-                endpointsByName.put(vipInfo.get().getVipName(), vipEndpoint);
-            }
-
-            // append entry to 'dns' and 'address' arrays for this task:
-            vipEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
-            vipEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
-
-            // append entry to 'vips' for this task, if entry is not already present from a different task:
-            String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo.get());
-            boolean foundVip = false;
-            if (vipEndpoint.has(RESPONSE_KEY_VIPS)) {
-                for (Object existingVip : vipEndpoint.getJSONArray(RESPONSE_KEY_VIPS)) {
-                    if (vipHostPort.equals(existingVip)) {
-                        foundVip = true;
-                        break;
-                    }
-                }
-            }
-            if (!foundVip) {
-                vipEndpoint.append(RESPONSE_KEY_VIPS, vipHostPort);
-            }
+            addVipPortToEndpoints(endpointsByName, serviceName, vipInfo.get(), autoipHostPort, ipHostPort);
         }
 
         // If no VIPs were found, list the port against the port name:
         if (!foundAnyVips && !Strings.isEmpty(taskInfoPort.getName())) {
-            JSONObject portEndpoint = endpointsByName.get(taskInfoPort.getName());
-            if (portEndpoint == null) {
-                portEndpoint = new JSONObject();
-                endpointsByName.put(taskInfoPort.getName(), portEndpoint);
-            }
-            portEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
-            portEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
+            addPortToEndpoints(endpointsByName, taskInfoPort.getName(), autoipHostPort, ipHostPort);
         }
+    }
+
+    private static void addVipPortToEndpoints(
+            Map<String, JSONObject> endpointsByName,
+            String serviceName,
+            EndpointUtils.VipInfo vipInfo,
+            String autoipHostPort,
+            String ipHostPort) {
+        JSONObject vipEndpoint = getOrCreate(endpointsByName, vipInfo.getVipName());
+
+        // append entry to 'dns' and 'address' arrays for this task:
+        vipEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
+        vipEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
+
+        // append entry to 'vips' for this task, if entry is not already present from a different task:
+        // TODO(nickbp): Switch from 'vips' to 'vip' here.
+        String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo);
+        addToArrayIfMissing(vipEndpoint, RESPONSE_KEY_VIPS, vipHostPort);
+
+        // TODO(nickbp): Remove this once 'vips' is renamed to 'vip'.
+        vipEndpoint.put(RESPONSE_KEY_VIP, vipHostPort);
+    }
+
+    private static void addPortToEndpoints(
+            Map<String, JSONObject> endpointsByName,
+            String portName,
+            String autoipHostPort,
+            String ipHostPort) {
+        JSONObject portEndpoint = getOrCreate(endpointsByName, portName);
+        portEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
+        portEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
+    }
+
+    private static JSONObject getOrCreate(Map<String, JSONObject> endpoints, String name) {
+        JSONObject portEndpoint = endpoints.get(name);
+        if (portEndpoint == null) {
+            portEndpoint = new JSONObject();
+            endpoints.put(name, portEndpoint);
+        }
+        return portEndpoint;
+    }
+
+    private static void addToArrayIfMissing(JSONObject parent, String key, String value) {
+        if (parent.has(key)) {
+            for (Object existingValue : parent.getJSONArray(key)) {
+                if (value.equals(existingValue)) {
+                    return; // already present
+                }
+            }
+        }
+        parent.append(key, value); // creates new array if missing
     }
 }

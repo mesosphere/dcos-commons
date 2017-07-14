@@ -91,9 +91,7 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
         "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
         "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
       ],
-      "vips": [
-        "node.cassandra.l4lb.thisdcos.directory:9042"
-      ]
+      "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
     }
     ```
 1. Write some data to your cluster:
@@ -427,9 +425,7 @@ The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint ty
     "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
     "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"
   ],
-  "vips": [
-    "node.cassandra.l4lb.thisdcos.directory:9042"
-  ]
+  "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
 }
 ```
 

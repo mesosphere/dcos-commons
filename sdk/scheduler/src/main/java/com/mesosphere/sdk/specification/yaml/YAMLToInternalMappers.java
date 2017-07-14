@@ -536,8 +536,8 @@ public class YAMLToInternalMappers {
                             "Expected VIP prefix to not collide with other ports' names.",
                             vipName, name, vipName));
                 }
-                //TODO(nickbp): Ideally we would also check here that multiple VIPs don't share names with each other.
-                //              However elastic currently does this. Not sure why.
+                // Note: Multiple VIPs may share prefixes with each other. For example if one wants the VIP hostnames,
+                // across multiple ports, to reflect the host that's serving the port.
 
                 NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
@@ -563,7 +563,7 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
-                        Constants.HIDDEN_PORT_VISIBILITY,
+                        Constants.OMITTED_PORT_VISIBILITY,
                         networkNames));
             }
         }

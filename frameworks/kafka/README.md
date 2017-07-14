@@ -59,9 +59,7 @@ dcos kafka endpoints _ENDPOINT_
     "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
     "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
   ],
-  "vips": [
-    "broker.kafka.l4lb.thisdcos.directory:9092"
-  ]
+  "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
 }
 ```
 

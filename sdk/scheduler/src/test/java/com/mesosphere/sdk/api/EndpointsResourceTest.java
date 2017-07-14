@@ -192,7 +192,8 @@ public class EndpointsResourceTest {
         Response response = resource.getEndpoint("vip1");
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 3, json.length());
+        assertEquals(json.toString(), 4, json.length());
+        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
         JSONArray dns = json.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -232,8 +233,9 @@ public class EndpointsResourceTest {
 
         // 'vip1' is also listed across the two 'vips-' tasks
         JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1").getEntity());
-        assertEquals(3, vip1.length());
+        assertEquals(4, vip1.length());
         assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
+        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
         JSONArray dns = vip1.getJSONArray("dns");
         assertEquals(2, dns.length());
         assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD +":2345", dns.get(0));
@@ -245,8 +247,9 @@ public class EndpointsResourceTest {
 
         // 'vip2' is also listed across the two 'vips-' tasks
         JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2").getEntity());
-        assertEquals(3, vip2.length());
+        assertEquals(4, vip2.length());
         assertEquals("vip2." + serviceNetworkName + ".l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
+        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
         dns = vip2.getJSONArray("dns");
         assertEquals(2, dns.length());
         assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":2346", dns.get(0));

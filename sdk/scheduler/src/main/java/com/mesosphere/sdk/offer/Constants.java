@@ -64,7 +64,7 @@ public class Constants {
      * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
      * they will be made visible by default.
      */
-    public static final DiscoveryInfo.Visibility HIDDEN_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+    public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
 
     /**
      * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
