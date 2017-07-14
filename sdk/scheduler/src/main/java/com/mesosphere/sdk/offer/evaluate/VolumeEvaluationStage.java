@@ -70,7 +70,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     "Satisfied requirements for %s volume '%s'",
                     volumeSpec,
                     resourceId,
-                    persistenceId);
+                    persistenceId).build();
         }
 
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {

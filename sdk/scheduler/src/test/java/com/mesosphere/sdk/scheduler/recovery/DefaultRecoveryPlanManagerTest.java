@@ -52,7 +52,7 @@ import static org.mockito.Mockito.*;
  * <li>When a failed task launches, it no longer shows up as failed</li>
  * </ul>
  */
-public class DefaultRecoveryPlanManagerTest {
+public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final List<Resource> resources = Arrays.asList(

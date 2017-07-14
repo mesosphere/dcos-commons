@@ -10,6 +10,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.spy;
 /**
  * Tests for {@code DefaultPlanCoordinator}.
  */
-public class DefaultPlanCoordinatorTest {
+public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
