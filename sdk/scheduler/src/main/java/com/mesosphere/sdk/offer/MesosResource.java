@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;

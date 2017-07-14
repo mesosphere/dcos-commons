@@ -41,6 +41,5 @@ public class Constants {
      */
     public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
 
-    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
+
 }

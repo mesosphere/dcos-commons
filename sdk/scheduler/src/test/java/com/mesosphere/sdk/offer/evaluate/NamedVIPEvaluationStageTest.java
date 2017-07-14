@@ -87,8 +87,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
 
         vipLabel = port.getLabels().getLabels(1);
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+        Assert.assertEquals(DcosConstants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
+        Assert.assertEquals(DcosConstants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
     }
 
     @Test
@@ -126,8 +126,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
 
         vipLabel = port.getLabels().getLabels(1);
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+        Assert.assertEquals(DcosConstants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
+        Assert.assertEquals(DcosConstants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
     }
 
 

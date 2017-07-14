@@ -23,7 +23,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
     private final long vipPort;
-    private final boolean onNamedNetwork;
 
     public NamedVIPEvaluationStage(NamedVIPSpec namedVIPSpec,
                                    String taskName,
@@ -35,7 +34,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         this.visibility = namedVIPSpec.getVisibility();
         this.vipName = namedVIPSpec.getVipName();
         this.vipPort = namedVIPSpec.getVipPort();
-        this.onNamedNetwork = !namedVIPSpec.getNetworkNames().isEmpty();
     }
 
     @Override
@@ -67,7 +65,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 portBuilder.setVisibility(visibility)
                         .setProtocol(protocol)
                         .getLabelsBuilder()
-                            .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, onNamedNetwork));
+                            .addAllLabels(EndpointUtils.createVipLabels(vipName, vipPort, portSpec.getNetworkNames()));
             } else {
                 throw new IllegalStateException(String.format("TaskBuilder missing DiscoveryInfo for port" +
                         "%s, TaskBuilder: %s", getPortName(), taskBuilder.toString()));

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.api;
 
 import java.util.*;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;
@@ -98,16 +99,23 @@ public class EndpointUtils {
      * Returns a collection of {@link Label} which can be included in the {@code org.apache.mesos.Protos.DiscoveryInfo}
      * for a VIP. This is the inverse of {@link #parseVipLabel(String, Label)}
      */
-    public static Collection<Label> createVipLabels(String vipName, long vipPort, boolean onNamedNetwork) {
+    public static Collection<Label> createVipLabels(String vipName, long vipPort, Collection<String> networkNames) {
         List<Label> labels = new ArrayList<>();
         labels.add(Label.newBuilder()
                 .setKey(String.format("%s%s", Constants.VIP_PREFIX, UUID.randomUUID().toString()))
                 .setValue(String.format("%s:%d", vipName, vipPort))
                 .build());
-        if (onNamedNetwork) {
+        boolean usingSupportedNetwork = networkNames.stream()
+                .filter(DcosConstants::isSupportedNetwork)
+                .count() > 0;
+        if (usingSupportedNetwork) {
+            boolean useHostIp = networkNames.stream()
+                    .filter(DcosConstants::networkSupportsPortMapping)
+                    .count() > 0;
             labels.add(Label.newBuilder()
-                    .setKey(String.format("%s", Constants.VIP_OVERLAY_FLAG_KEY))
-                    .setValue(String.format("%s", Constants.VIP_OVERLAY_FLAG_VALUE))
+                    .setKey(String.format("%s", DcosConstants.VIP_OVERLAY_FLAG_KEY))
+                    .setValue(String.format("%s",
+                            (useHostIp ? DcosConstants.BRIDGE_FLAG_VALUE : DcosConstants.VIP_OVERLAY_FLAG_VALUE)))
                     .build());
         }
         return labels;
