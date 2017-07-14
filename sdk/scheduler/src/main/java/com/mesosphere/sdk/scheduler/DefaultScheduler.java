@@ -42,7 +42,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +60,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    protected final ExecutorService executor = Executors.newFixedThreadPool(1);
+    /**
+     * 1 Thread for processing offers off the queue in {@link #processOffers()}
+     * 1 Thread for handling status update in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}
+     */
+    protected final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
@@ -81,6 +84,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     protected PlanCoordinator planCoordinator;
     protected Collection<Object> resources;
     private SchedulerApiServer schedulerApiServer;
+    private List<Protos.OfferID> offersInProgress = new ArrayList<>();
 
     /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
@@ -605,12 +609,22 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
+        processOffers();
     }
 
     @VisibleForTesting
-    void awaitTermination() throws InterruptedException {
-        executor.shutdown();
-        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    void awaitOffersProcessed() throws InterruptedException {
+        while (!offerQueue.isEmpty()) {
+            LOGGER.warn("Queue is NOT empty");
+            Thread.sleep(1000);
+        }
+
+        while (!offersInProgress.isEmpty()) {
+            LOGGER.warn("Offers being processed.");
+            Thread.sleep(1000);
+        }
+
+        LOGGER.info("All offers processed.");
     }
 
     protected void initialize(SchedulerDriver driver) throws InterruptedException {
@@ -767,57 +781,76 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
+    private void processOffers() {
         executor.execute(() -> {
-            if (!apiServerReady()) {
-                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                OfferUtils.declineOffers(driver, offersToProcess);
-                return;
+            while (true) {
+                offersInProgress.clear();
+
+                // This is a blocking call which pulls as many elements from the offer queue as possible.
+                List<Protos.Offer> offers = offerQueue.takeAll();
+
+                LOGGER.info("Processing {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+                for (int i = 0; i < offers.size(); ++i) {
+                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+                }
+                offersInProgress = offers.stream()
+                        .map(offer -> offer.getId())
+                        .collect(Collectors.toList());
+
+                // Coordinate amongst all the plans via PlanCoordinator.
+                final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+                acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
+
+                List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+                offers.clear();
+                offers.addAll(unusedOffers);
+
+                // Resource Cleaning:
+                // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
+                // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
+                // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
+                // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
+                // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+                // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
+                // offer cycle.
+                final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
+                cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
+                        resourceCleanerScheduler.resourceOffers(driver, offers)));
+
+                unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+
+                // Decline remaining offers.
+                OfferUtils.declineOffers(driver, unusedOffers);
             }
-
-            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-            }
-
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                OfferUtils.declineOffers(driver, offers);
-                return;
-            }
-
-            // Coordinate amongst all the plans via PlanCoordinator.
-            final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-            acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
-
-            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-            offers.clear();
-            offers.addAll(unusedOffers);
-
-            // Resource Cleaning:
-            // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
-            // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
-            // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
-            // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
-            // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
-            // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
-            // offer cycle.
-            final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-            cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
-                    resourceCleanerScheduler.resourceOffers(driver, offers)));
-
-            unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-
-            // Decline remaining offers.
-            OfferUtils.declineOffers(driver, unusedOffers);
         });
+    }
+
+    @Override
+    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+        if (!apiServerReady()) {
+            LOGGER.info("Waiting for API Server to start ...");
+            OfferUtils.declineOffers(driver, offers);
+            return;
+        }
+
+        // Task Reconciliation:
+        // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+        // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+        // http://mesos.apache.org/documentation/latest/reconciliation/
+        reconciler.reconcile(driver);
+        if (!reconciler.isReconciled()) {
+            LOGGER.info("Waiting for task reconciliation to complete...");
+            OfferUtils.declineOffers(driver, offers);
+            return;
+        }
+
+        for (Protos.Offer offer : offers) {
+            boolean queued = offerQueue.offer(offer);
+            if (!queued) {
+                LOGGER.warn(String.format("Failed to enqueue offer: '%s'", offer.getId().getValue()));
+                OfferUtils.declineOffers(driver, Arrays.asList(offer));
+            }
+        }
     }
 
     public boolean apiServerReady() {
