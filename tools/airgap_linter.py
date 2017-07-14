@@ -23,6 +23,9 @@ def extract_uris(file_name):
         # Do not grab comments
         if line.startswith("*") or line.startswith("#") or line.startswith("//"):
             continue
+        # Do not grab "id" lines
+        if "\"id\":" in line:
+            continue
 
         match = matcher.match(line)
         if match:
