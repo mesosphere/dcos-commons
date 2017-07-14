@@ -16,10 +16,13 @@ ccm_token = os.environ['CCM_TOKEN']
 # Get all the clusters
 headers = {'Authorization': 'Token {}'.format(ccm_token)}
 
+# Determine the cluster id of the cluster
 all_clusters = json.loads(requests.get(base_url+'/api/cluster/active/all', headers=headers).text)
 for cluster in all_clusters:
     if cluster['name'] == cluster_name:
         cluster_id = cluster['id']
 
+# This API call increases the cluster length by an additional 4 hours.
+# See: https://ccm.mesosphere.com/api-docs/#!/cluster/Cluster_Detail_PUT
 response = requests.put(base_url+'/api/cluster/{}/'.format(cluster_id), data = {'time':'240'}, headers=headers)
 print(response.text)
