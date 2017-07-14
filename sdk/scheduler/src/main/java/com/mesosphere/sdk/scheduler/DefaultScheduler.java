@@ -856,7 +856,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         for (Protos.Offer offer : offers) {
             boolean queued = offerQueue.offer(offer);
             if (!queued) {
-                LOGGER.warn(String.format("Failed to enqueue offer: '%s'", offer.getId().getValue()));
+                LOGGER.warn("Failed to enqueue offer: '{}'", offer.getId().getValue());
                 OfferUtils.declineOffers(driver, Arrays.asList(offer));
             }
         }
