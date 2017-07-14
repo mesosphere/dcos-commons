@@ -2,6 +2,7 @@ import json
 import re
 
 import dcos.marathon
+import os
 import pytest
 import shakedown
 
@@ -48,6 +49,24 @@ def close_enough(val0, val1):
 @pytest.mark.smoke
 def test_install():
     check_running(FOLDERED_SERVICE_NAME)
+
+
+# Note: presently the mesos v1 api does _not_ work in strict mode.
+# As such, we expect this test to fail until it does in fact work in strict mode.
+@pytest.mark.sanity
+@pytest.mark.skipif(os.environ.get("SECURITY") != "strict")
+def test_mesos_v1_api():
+    # Install Hello World using the v1 api.
+    # Then, clean up afterwards.
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    install.install(
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=FOLDERED_SERVICE_NAME,
+        additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
+    )
+    check_running(FOLDERED_SERVICE_NAME)
+    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 @pytest.mark.sanity
