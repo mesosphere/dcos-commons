@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 7/13/17.
+ * This class acts as a buffer of Offers from Mesos.  By default it holds a maximum of 100 Offers.
  */
 public class OfferQueue {
     public static final int DEFAULT_CAPACITY = 100;
@@ -28,6 +28,10 @@ public class OfferQueue {
         this.queue = new LinkedBlockingQueue<>(capacity);
     }
 
+    /**
+     * Calling this method is a blocking Operation. It returns all Offers currently in the queue. It always returns at
+     * least one Offer.
+     */
     public List<Protos.Offer> takeAll() {
         List<Protos.Offer> offers = new LinkedList<>();
         try {
@@ -40,10 +44,17 @@ public class OfferQueue {
         return offers;
     }
 
+    /**
+     * This method enqueues an Offer from Mesos if their is capacity.
+     * @return true if the Offer was successfully put in the queue, false otherwise
+     */
     public boolean offer(Protos.Offer offer) {
         return queue.offer(offer);
     }
 
+    /**
+     * This method removes an offer from the queue based on its OfferID.
+     */
     public void remove(Protos.OfferID offerID) {
         Collection<Protos.Offer> offers = queue.parallelStream()
                 .filter(offer -> offer.getId().equals(offerID))
@@ -60,6 +71,9 @@ public class OfferQueue {
         }
     }
 
+    /**
+     * This method specifies whether any offers are in the queue.
+     */
     public boolean isEmpty() {
         return queue.isEmpty();
     }
