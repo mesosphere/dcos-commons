@@ -11,7 +11,7 @@
     </Appenders>
 
     <Loggers>
-        <Root level="${env:FRAMEWORK_LOG_LEVEL}">
+        <Root level="${env:FRAMEWORK_LOG_LEVEL:-INFO}">
             <AppenderRef ref="STDOUT"/>
         </Root>
     </Loggers>
