@@ -6,13 +6,26 @@ import dcos
 import pytest
 import shakedown
 
-from tests.config import *
-import sdk_api as api
 import sdk_hosts as hosts
 import sdk_jobs as jobs
 import sdk_plan as plan
 import sdk_test_upgrade
 import sdk_utils as utils
+import sdk_networks as networks
+
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT,
+    DEFAULT_NODE_TASKS,
+    DEFAULT_NODE_ADDRESS,
+    DEFAULT_NODE_PORT,
+    get_write_data_job,
+    get_verify_data_job,
+    get_delete_data_job,
+    get_verify_deletion_job,
+    run_backup_and_restore,
+)
 
 
 @pytest.mark.soak_backup
@@ -123,3 +136,40 @@ def test_cassandra_migration():
             restore_service_name, 'restore-s3', parameters=plan_parameters
         )
         plan.wait_for_completed_plan(restore_service_name, 'restore-s3')
+
+
+@pytest.mark.soak_overlay
+@utils.dcos_1_9_or_higher
+def test_overlay_deploy():
+    overlay_package_name = "sdk-cassandra-overlay"
+    node_address = os.getenv('CASSANDRA_NODE_ADDRESS', hosts.autoip_host(overlay_package_name, 'node-0-server'))
+    print(node_address)
+    shakedown.service_healthy(overlay_package_name)
+
+    # check that the tasks are on the overlay network
+    for task in DEFAULT_NODE_TASKS:
+        networks.check_task_network(task)
+
+    parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+
+    # check functionality of the framework
+
+    WRITE_DATA_JOB = get_write_data_job(node_address=node_address)
+    VERIFY_DATA_JOB = get_verify_data_job(node_address=node_address)
+    DELETE_DATA_JOB = get_delete_data_job(node_address=node_address)
+    VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=node_address)
+
+    install_job_context = jobs.InstallJobContext([WRITE_DATA_JOB,
+                                                  VERIFY_DATA_JOB,
+                                                  DELETE_DATA_JOB,
+                                                  VERIFY_DELETION_JOB])
+    run_job_context = jobs.RunJobContext(before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
+                                         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB])
+
+    with install_job_context, run_job_context:
+        plan.start_plan(overlay_package_name, 'cleanup', parameters=parameters)
+        plan.wait_for_completed_plan(overlay_package_name, 'cleanup')
+
+        plan.start_plan(overlay_package_name, 'repair', parameters=parameters)
+        plan.wait_for_completed_plan(overlay_package_name, 'repair')
+

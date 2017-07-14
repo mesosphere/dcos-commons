@@ -4,15 +4,21 @@ import pytest
 
 import shakedown
 
-# Do not use import *; it makes it harder to determine the origin of config
-# items
-from tests.config import *
-
 import sdk_install as install
 import sdk_plan as plan
 import sdk_jobs as jobs
 import sdk_utils as utils
 import sdk_networks as networks
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT,
+    DEFAULT_NODE_TASKS,
+    get_write_data_job,
+    get_verify_data_job,
+    get_delete_data_job,
+    get_verify_deletion_job
+)
 
 
 WRITE_DATA_JOB = get_write_data_job()
@@ -23,6 +29,7 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
+
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
@@ -52,12 +59,7 @@ def teardown_module(module):
 @utils.dcos_1_9_or_higher
 def test_service_overlay_health():
     shakedown.service_healthy(PACKAGE_NAME)
-    node_tasks = (
-        "node-0-server",
-        "node-1-server",
-        "node-2-server",
-    )
-    for task in node_tasks:
+    for task in DEFAULT_NODE_TASKS:
         networks.check_task_network(task)
 
 

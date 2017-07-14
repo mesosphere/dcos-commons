@@ -17,6 +17,12 @@ DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', hosts.autoip_host(PAC
 FOLDERED_NODE_ADDRESS = hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server')
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
+DEFAULT_NODE_TASKS = (
+    "node-0-server",
+    "node-1-server",
+    "node-2-server",
+)
+
 
 def _get_test_job(name, cmd, restart_policy='NEVER'):
     return {
