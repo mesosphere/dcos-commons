@@ -77,4 +77,18 @@ public class OfferQueue {
     public boolean isEmpty() {
         return queue.isEmpty();
     }
+
+    /**
+     * This method returns the number of elements in the queue.
+     */
+    public int getSize() {
+        return queue.size();
+    }
+
+    /**
+     * This method returns the remaining capacity in the queue.
+     */
+    public int getRemainingCapacity() {
+        return queue.remainingCapacity();
+    }
 }
