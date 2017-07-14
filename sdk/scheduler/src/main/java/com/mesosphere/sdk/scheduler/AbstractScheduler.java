@@ -23,6 +23,7 @@ public abstract class AbstractScheduler implements Scheduler {
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
+    protected final OfferQueue offerQueue;
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
 
@@ -31,6 +32,7 @@ public abstract class AbstractScheduler implements Scheduler {
      */
     protected AbstractScheduler(StateStore stateStore) {
         this.stateStore = stateStore;
+        this.offerQueue = new OfferQueue();
     }
 
     @Override
@@ -73,7 +75,8 @@ public abstract class AbstractScheduler implements Scheduler {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.warn("Ignoring rescinded Offer: {}.", offerId.getValue());
+        LOGGER.info("Rescinding offer: {}.", offerId.getValue());
+        offerQueue.remove(offerId);
     }
 
     @Override
