@@ -315,4 +315,30 @@ public class UserCannotChangeTest {
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
+
+    @Test
+    public void testMoreNewPodsThanOldPods() {
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec2.getUser()).thenReturn(Optional.of(USER_B));
+
+        ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockOldPodSpec))
+                .apiPort(TestConstants.PORT_API_VALUE)
+                .build();
+
+        ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
+                .apiPort(TestConstants.PORT_API_VALUE)
+                .build();
+
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+    }
 }

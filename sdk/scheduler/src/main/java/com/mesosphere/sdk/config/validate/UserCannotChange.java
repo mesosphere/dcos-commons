@@ -45,13 +45,9 @@ public class UserCannotChange implements ConfigValidator<ServiceSpec> {
                 checkForUserEquality(oldPod, newPod, errors);
             }
         }
-
-        // The new config might have increased the number of pods but the user must remain the same
-        // in these new pods
-        while (newPods.hasNext()) {
-            newPod = newPods.next();
-            checkForUserEquality(oldPod, newPod, errors);
-        }
+        // If the new config has more pods than the previous config than the new pods can set the user
+        // however the developer intends to. We're only concerned about not updating the user for existing pods
+        // in this validation.
 
         return errors;
     }
