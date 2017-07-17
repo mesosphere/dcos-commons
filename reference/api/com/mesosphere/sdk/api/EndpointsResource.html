@@ -151,15 +151,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/EndpointsResource.html#getEndpoint-java.lang.String-java.lang.String-">getEndpoint</a></span>(java.lang.String&nbsp;name,
-           java.lang.String&nbsp;deprecatedFormat)</code>
-<div class="block">Produces the content of the specified endpoint, with an optional format argument.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/EndpointsResource.html#getEndpoint-java.lang.String-">getEndpoint</a></span>(java.lang.String&nbsp;name)</code>
+<div class="block">Produces the content of the specified endpoint.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/EndpointsResource.html#getEndpoints-java.lang.String-">getEndpoints</a></span>(java.lang.String&nbsp;deprecatedFormat)</code>
-<div class="block">Produces a listing of all endpoints, with an optional format argument.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/EndpointsResource.html#getEndpoints--">getEndpoints</a></span>()</code>
+<div class="block">Produces a listing of all endpoint names.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -238,35 +237,27 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getEndpoints-java.lang.String-">
+<a name="getEndpoints--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getEndpoints</h4>
-<pre>public&nbsp;Response&nbsp;getEndpoints(@Deprecated
-                             java.lang.String&nbsp;deprecatedFormat)</pre>
-<div class="block">Produces a listing of all endpoints, with an optional format argument.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>deprecatedFormat</code> - (DEPRECATED: REMOVE AFTER APRIL 2017)</dd>
-</dl>
+<pre>public&nbsp;Response&nbsp;getEndpoints()</pre>
+<div class="block">Produces a listing of all endpoint names.</div>
 </li>
 </ul>
-<a name="getEndpoint-java.lang.String-java.lang.String-">
+<a name="getEndpoint-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getEndpoint</h4>
-<pre>public&nbsp;Response&nbsp;getEndpoint(java.lang.String&nbsp;name,
-                            @Deprecated
-                            java.lang.String&nbsp;deprecatedFormat)</pre>
-<div class="block">Produces the content of the specified endpoint, with an optional format argument.</div>
+<pre>public&nbsp;Response&nbsp;getEndpoint(java.lang.String&nbsp;name)</pre>
+<div class="block">Produces the content of the specified endpoint.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>name</code> - the name of the endpoint whose content should be included</dd>
-<dd><code>deprecatedFormat</code> - (DEPRECATED: REMOVE AFTER APRIL 2017)</dd>
 </dl>
 </li>
 </ul>

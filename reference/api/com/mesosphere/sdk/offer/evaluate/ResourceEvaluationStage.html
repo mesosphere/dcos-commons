@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -123,33 +123,6 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>protected java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceId">resourceId</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#resourceSpec">resourceSpec</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>protected java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#taskName">taskName</a></span></code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -163,8 +136,10 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.lang.String-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
-                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                       java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
+                       java.lang.String&nbsp;taskName)</code>
+<div class="block">Creates a new instance for basic resource evaluation.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -205,41 +180,6 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="taskName">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>taskName</h4>
-<pre>protected final&nbsp;java.lang.String taskName</pre>
-</li>
-</ul>
-<a name="resourceId">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>resourceId</h4>
-<pre>protected&nbsp;java.util.Optional&lt;java.lang.String&gt; resourceId</pre>
-</li>
-</ul>
-<a name="resourceSpec">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>resourceSpec</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a> resourceSpec</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
@@ -253,8 +193,15 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <li class="blockList">
 <h4>ResourceEvaluationStage</h4>
 <pre>public&nbsp;ResourceEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
-                               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
                                java.lang.String&nbsp;taskName)</pre>
+<div class="block">Creates a new instance for basic resource evaluation.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>resourceSpec</code> - the resource spec to be evaluated</dd>
+<dd><code>requiredResourceId</code> - any previously reserved resource ID to be required, or empty for a new reservation</dd>
+<dd><code>taskName</code> - the name of the task which will use this resource</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -340,13 +287,13 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
