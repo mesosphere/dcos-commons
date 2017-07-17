@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import org.apache.mesos.Protos.DiscoveryInfo;
+
 /**
  * This class encapsulates constants of relevance to SDK Scheduler internals.
  *
@@ -34,13 +36,41 @@ public class Constants {
     /** TLD to be used for VIP-based hostnames. */
     public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
-    /** TLD for navstar-based DNS, resolves to the IP of the host iff the container
-     * if on the host network and the IP of the container iff the container is on the
-     * overlay network. If the container is on muliple virtual networks or experimenting with
-     * different DNS providers this TLD may have unexpected behavior.
+    /**
+     * TLD for navstar-based DNS. Resolves to the IP of the host iff the container if on the host network and the IP of
+     * the container iff the container is on the overlay network. If the container is on multiple virtual networks or
+     * experimenting with different DNS providers this TLD may have unexpected behavior.
      */
     public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
 
     public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
     public static final String VIP_OVERLAY_FLAG_VALUE = "container";
+
+
+    /**
+     * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
+     * default.
+     *
+     * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
+     * {@link com.mesosphere.sdk.specification.PortSpec}.
+     *
+     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.api.EndpointsResource} for determining
+     * what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't advertise.
+     * According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
+     */
+    public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+
+    /**
+     * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
+     * they will be made visible by default.
+     */
+    public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+
+    /**
+     * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
+     *
+     * According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
+     * by the SDK.
+     */
+    public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
 }

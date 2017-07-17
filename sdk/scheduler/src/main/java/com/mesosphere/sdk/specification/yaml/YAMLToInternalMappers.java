@@ -17,7 +17,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.DiscoveryInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +33,6 @@ import java.util.stream.IntStream;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-    private static final String DEFAULT_VIP_PROTOCOL = "tcp";
-
-    public static final DiscoveryInfo.Visibility PUBLIC_VIP_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
@@ -126,18 +121,10 @@ public class YAMLToInternalMappers {
     private static DiscoverySpec from(RawDiscovery rawDiscovery) {
         Protos.DiscoveryInfo.Visibility visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
         if (rawDiscovery.getVisibility() != null) {
-            switch (rawDiscovery.getVisibility()) {
-                case "FRAMEWORK":
-                    visibility = Protos.DiscoveryInfo.Visibility.FRAMEWORK;
-                    break;
-                case "CLUSTER":
-                    visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
-                    break;
-                case "EXTERNAL":
-                    visibility = Protos.DiscoveryInfo.Visibility.EXTERNAL;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Visibility must be one of: {FRAMEWORK, CLUSTER, EXTERNAL}");
+            visibility = Protos.DiscoveryInfo.Visibility.valueOf(rawDiscovery.getVisibility());
+            if (visibility == null) {
+                throw new IllegalArgumentException(String.format(
+                        "Visibility must be one of: %s", Arrays.asList(Protos.DiscoveryInfo.Visibility.values())));
             }
         }
 
@@ -513,7 +500,7 @@ public class YAMLToInternalMappers {
             String preReservedRole,
             String principal,
             WriteOnceLinkedHashMap<String, RawPort> rawPorts,
-                                     Collection<String> networkNames) {
+            Collection<String> networkNames) {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Set<Integer> ports = new HashSet<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
@@ -539,9 +526,19 @@ public class YAMLToInternalMappers {
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
-                final String protocol =
-                        StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
+                // Check that VIP names dont conflict with other port names. In practice this is only an issue when a
+                // custom prefix/name is defined for the VIP as uniqueness is already enforced for port names.
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
+                RawPort matchingRawPort = rawPorts.get(vipName);
+                if (matchingRawPort != null && matchingRawPort != rawPort) {
+                    throw new IllegalArgumentException(String.format(
+                            "Provided VIP prefix '%s' in port '%s' conflicts with other port also named '%s'. " +
+                            "Expected VIP prefix to not collide with other ports' names.",
+                            vipName, name, vipName));
+                }
+                // Note: Multiple VIPs may share prefixes with each other. For example if one wants the VIP hostnames,
+                // across multiple ports, to reflect the host that's serving the port.
+
                 NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
                         portValueBuilder.build(),
                         role,
@@ -549,13 +546,16 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
-                        protocol,
-                        toVisibility(rawVip.isAdvertised()),
-                        vipName,
+                        DcosConstants.DEFAULT_IP_PROTOCOL,
+                        Constants.DISPLAYED_PORT_VISIBILITY,
+                        StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix(),
                         rawVip.getPort(),
                         networkNames);
                 portSpecs.add(namedVIPSpec);
             } else {
+                // For now, ports without VIPs are omitted in EndpointsResource. To include them, set the visibility
+                // to Constants.DISPLAYED_PORT_VISIBILITY. Services may manually enable this by manually building their
+                // PortSpec objects in Java.
                 portSpecs.add(new PortSpec(
                         portValueBuilder.build(),
                         role,
@@ -563,21 +563,11 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
+                        Constants.OMITTED_PORT_VISIBILITY,
                         networkNames));
             }
         }
         return new PortsSpec(
                 Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
-    }
-
-    /**
-     * This visibility information isn't currently used by DC/OS Service Discovery. At the moment it's only enforced in
-     * our own {@link com.mesosphere.sdk.api.EndpointsResource}.
-     */
-    private static DiscoveryInfo.Visibility toVisibility(Boolean rawIsVisible) {
-        if (rawIsVisible == null) {
-            return PUBLIC_VIP_VISIBILITY;
-        }
-        return rawIsVisible ? DiscoveryInfo.Visibility.EXTERNAL : DiscoveryInfo.Visibility.CLUSTER;
     }
 }

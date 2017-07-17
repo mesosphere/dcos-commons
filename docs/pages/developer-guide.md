@@ -851,7 +851,6 @@ pods:
                 vip:
                     prefix: server-lb
                     port: 80
-                    advertise: true
 ```
 
 Defining a VIP is additional information that can be applied to a port. VIPs are defined by a prefix, an internal port, and an external port. The internal port in this example is 8080 and the external port is 80. The prefix is automatically expanded to become an address of the form:
