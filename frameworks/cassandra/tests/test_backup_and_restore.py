@@ -5,7 +5,6 @@ import tempfile
 import uuid
 
 from tests.config import *
-import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
