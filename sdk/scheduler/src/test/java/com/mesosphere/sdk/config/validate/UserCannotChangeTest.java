@@ -16,9 +16,8 @@ import static org.mockito.Mockito.when;
 public class UserCannotChangeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new UserCannotChange();
     private static final String USER_A = TestConstants.SERVICE_USER + "-A";
-    private static final String POD_TYPE_A = TestConstants.POD_TYPE + "-A";
+    private static final String POD_TYPE = TestConstants.POD_TYPE;
     private static final String USER_B = TestConstants.SERVICE_USER + "-B";
-    private static final String POD_TYPE_B = TestConstants.POD_TYPE + "-B";
 
     @Mock
     private PodSpec mockOldPodSpec, mockNewPodSpec;
@@ -30,11 +29,11 @@ public class UserCannotChangeTest {
         MockitoAnnotations.initMocks(this);
         when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A));
 
-        when(mockOldPodSpec.getType()).thenReturn(POD_TYPE_A + "-1");
-        when(mockOldPodSpec2.getType()).thenReturn(POD_TYPE_A + "-2");
+        when(mockOldPodSpec.getType()).thenReturn(POD_TYPE + "-1");
+        when(mockOldPodSpec2.getType()).thenReturn(POD_TYPE + "-2");
 
-        when(mockNewPodSpec.getType()).thenReturn(POD_TYPE_B + "-1");
-        when(mockNewPodSpec2.getType()).thenReturn(POD_TYPE_A + "-2");
+        when(mockNewPodSpec.getType()).thenReturn(POD_TYPE + "-1");
+        when(mockNewPodSpec2.getType()).thenReturn(POD_TYPE + "-2");
     }
 
     @Test
@@ -259,7 +258,7 @@ public class UserCannotChangeTest {
                 .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -286,7 +285,7 @@ public class UserCannotChangeTest {
                 .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test

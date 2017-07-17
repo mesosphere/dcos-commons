@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class UserCannotChange implements ConfigValidator<ServiceSpec> {
     private static final String USER_CHANGED_ERROR_MESSAGE =
-            "User for old pod type %s must remain the same across deployments. Expected: '%s', given: '%s'";
+            "User for old pod type %s must remain the same across deployments.";
 
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
@@ -24,74 +24,30 @@ public class UserCannotChange implements ConfigValidator<ServiceSpec> {
         }
 
         List<ConfigValidationError> errors = new ArrayList<>();
+        // We can't rely on the order of pods to test new pods against olds ones.
+        Map<String, PodSpec> oldPods = new HashMap<>();
+        for (PodSpec oldPod : oldConfig.get().getPods()) {
+            oldPods.put(oldPod.getType(), oldPod);
+        }
 
-        // The corresponding old and new pods must have the same user.
-        Iterator<PodSpec> oldPods = oldConfig.get().getPods().iterator();
-        Iterator<PodSpec> newPods = newConfig.getPods().iterator();
-        PodSpec oldPod = null, newPod;
-        String oldUser = "", newUser;
-
-        while (oldPods.hasNext() && newPods.hasNext()) {
-            oldPod = oldPods.next();
-            newPod = newPods.next();
-
-            // in case old user is set but not new user or reverse
-            if (!userStatesMatch(oldPod, newPod, errors)) {
-               return errors;
-            }
-
-            // if old pod user is present then so is new pod user according to the check above
-            if (oldPod.getUser().isPresent()) {
-                checkForUserEquality(oldPod, newPod, errors);
+        for (PodSpec newPod : newConfig.getPods()) {
+            // If a new pod type is introduced, we don't validate how its user is set as we're only concerned
+            // about not updating the user for existing pods in this validation.
+            if (oldPods.containsKey(newPod.getType())) {
+                checkForUserEquality(oldPods.get(newPod.getType()), newPod, errors);
             }
         }
-        // If the new config has more pods than the previous config than the new pods can set the user
-        // however the developer intends to. We're only concerned about not updating the user for existing pods
-        // in this validation.
 
         return errors;
     }
 
-    private boolean userStatesMatch(PodSpec oldPod, PodSpec newPod, List<ConfigValidationError> errors) {
-        if (!oldPod.getUser().isPresent() && newPod.getUser().isPresent()) {
-            errors.add(
-                    ConfigValidationError.transitionError(
-                    "user",
-                    null,
-                    newPod.getUser().get(),
-                    String.format(USER_CHANGED_ERROR_MESSAGE,
-                            oldPod.getType(),
-                            null,
-                            newPod.getUser().get())
-            ));
-            return false;
-        } else if (oldPod.getUser().isPresent() && !newPod.getUser().isPresent()) {
-            errors.add(
-                    ConfigValidationError.transitionError(
-                            "user",
-                            oldPod.getUser().get(),
-                            null,
-                            String.format(USER_CHANGED_ERROR_MESSAGE,
-                                    oldPod.getType(),
-                                    oldPod.getUser().get(),
-                                    null)
-                    ));
-            return false;
-        }
-
-        return true;
-    }
-
     private void checkForUserEquality(PodSpec oldPod, PodSpec newPod, List<ConfigValidationError> errors) {
-        String oldUser = oldPod.getUser().get();
-        String newUser = newPod.getUser().get();
-
-        if (!oldUser.equals(newUser)) {
+        if (!oldPod.getUser().equals(newPod.getUser())) {
             errors.add(ConfigValidationError.transitionError(
                     "user",
-                    oldUser,
-                    newUser,
-                    String.format(USER_CHANGED_ERROR_MESSAGE, oldPod.getType(), oldUser, newUser)
+                    oldPod.getUser().isPresent() ? oldPod.getUser().get() : null,
+                    newPod.getUser().isPresent() ? newPod.getUser().get() : null,
+                    String.format(USER_CHANGED_ERROR_MESSAGE, oldPod.getType())
             ));
         }
     }
