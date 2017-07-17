@@ -51,6 +51,12 @@
           "enum": ["serial", "parallel"],
           "default": "serial"
         },
+        "update_strategy": {
+          "description": "Strategy to use for rolling out updates {serial, serial-canary}",
+          "type": "string",
+          "enum": ["serial", "serial-canary"],
+          "default": "serial"
+        },
         "virtual_networks": {
           "description": "Enable DC/OS Virtual Networking",
           "type": "boolean",

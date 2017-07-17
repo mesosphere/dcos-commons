@@ -152,15 +152,20 @@ pods:
         resource-set: sidecar-resources
 plans:
   deploy:
-    strategy: serial
     phases:
       node-deploy:
         strategy: serial
         pod: node
         steps:
           - default: [[server]]
+  update:
+    phases:
+      node-deploy:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[server]]
   replace:
-    strategy: serial
     phases:
       node-deploy:
         strategy: serial
@@ -168,7 +173,6 @@ plans:
         steps:
           - default: [[server]]
   repair:
-    strategy: serial
     phases:
       repair-deploy:
         strategy: serial
@@ -176,7 +180,6 @@ plans:
         steps:
           - default: [[repair]]
   cleanup:
-    strategy: serial
     phases:
       cleanup-deploy:
         strategy: serial
@@ -184,7 +187,6 @@ plans:
         steps:
           - default: [[cleanup]]
   backup-s3:
-    strategy: serial
     phases:
       backup-schema:
         strategy: serial
@@ -207,7 +209,6 @@ plans:
         steps:
           - default: [[cleanup-snapshot]]
   restore-s3:
-    strategy: serial
     phases:
       fetch-s3:
         strategy: {{BACKUP_RESTORE_STRATEGY}}
@@ -225,7 +226,6 @@ plans:
         steps:
           - default: [[restore-snapshot]]
   backup-azure:
-    strategy: serial
     phases:
       backup-schema:
         strategy: serial
@@ -248,7 +248,6 @@ plans:
         steps:
           - default: [[cleanup-snapshot]]
   restore-azure:
-    strategy: serial
     phases:
       fetch-azure:
         strategy: {{BACKUP_RESTORE_STRATEGY}}
