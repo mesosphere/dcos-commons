@@ -2,13 +2,13 @@ import pytest
 
 import shakedown
 
-import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
 import sdk_tasks
 import sdk_test_upgrade
+import sdk_cmd
 import sdk_utils
 from tests.config import *
 
@@ -53,7 +53,7 @@ def test_service_health():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in ENDPOINT_TYPES:
-        endpoints = json.loads(cmd.run_cli('elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, endpoint)))
+        endpoints = json.loads(sdk_cmd.run_cli('elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, endpoint)))
         host = endpoint.split('-')[0] # 'coordinator-http' => 'coordinator'
         assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, host + '-0-node'))
         assert endpoints['vip'].startswith(sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, host))
@@ -147,7 +147,7 @@ def test_master_reelection():
 def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
-    cmd.run_cli('elastic --name={} pods replace master-0'.format(FOLDERED_SERVICE_NAME))
+    sdk_cmd.run_cli('elastic --name={} pods replace master-0'.format(FOLDERED_SERVICE_NAME))
     # setup_function will verify that the cluster becomes healthy again.
 
 
@@ -187,4 +187,3 @@ def test_bump_node_counts():
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
-

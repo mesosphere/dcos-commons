@@ -15,6 +15,7 @@ TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sor
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
+DEFAULT_HDFS_DEPLOYMENT_TIMEOUT = 25 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
@@ -75,6 +76,6 @@ def run_hdfs_command(svc_name, command):
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=DEFAULT_HDFS_DEPLOYMENT_TIMEOUT)
+    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=DEFAULT_HDFS_DEPLOYMENT_TIMEOUT)
     sdk_tasks.check_running(PACKAGE_NAME, count)
