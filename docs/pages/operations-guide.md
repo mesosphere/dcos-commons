@@ -647,15 +647,17 @@ Or for a specific step within a specific phase:
 $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
-### Other versions
-<!-- check these steps and add screen shots -->
-The Scheduler runs as a Marathon application. We can perform the change from the DC/OS GUI.
+### DC/OS 1.9 and Earlier
 
-1. Go to the **Services** tab of the DC/OS GUI and find the Scheduler you wish to edit.
+The CLI commands above are not available for DC/OS 1.9 and earlier. If you are using DC/OS 1.9 or earlier, you can perform changes from the DC/OS GUI.
 
-1. Click the three dots on the right hand side of the entry for your Scheduler, then choose **Edit**.
+1. Go to the **Services** tab of the DC/OS GUI and click the name of the Scheduler you wish to edit.
 
-1. In the window that appears, click the **Environment Variables** tab to show a list of the Scheduler's environment variables. For the sake of this demo ,we will increase an `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
+1. Click the three dots on the right hand side of the page for your Scheduler, then choose **Edit**.
+
+[<img src="img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](img/ops-guide-edit-scheduler.png)
+
+1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
 
 1. After you click `Change and deploy`, the following will happen:
    - Marathon will restart the Scheduler so that it picks up our change.
