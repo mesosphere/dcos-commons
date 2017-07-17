@@ -65,6 +65,13 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
     sdk_cmd.run_cli('job run {}'.format(job_name))
+
+    def wait_for_run_id():
+        runs = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))
+        if len(runs) < 1:
+            return False
+        return True
+    shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=60, ignore_exceptions=False)
     run_id = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))[0]['id']
 
     def fun():
