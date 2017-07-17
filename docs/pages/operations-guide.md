@@ -110,7 +110,7 @@ This is the flow for reconfiguring a DC/OS service either in order to update spe
 
 #### Steps handled by the DC/OS cluster
 
-1. The user edits the Scheduler's environment variables either using the Scheduler CLI's `update` command or via Marathon directly (at `<dcos-url>/marathon`).
+1. The user edits the Scheduler's environment variables either using the Scheduler CLI's `update` command or via the DC/OS GUI.
 1. The DC/OS package manager instructs Marathon to kill the current Scheduler and launch a new Scheduler with the updated environment variables.
 
 #### Steps handled by the Scheduler
@@ -145,9 +145,9 @@ This is the flow for uninstalling a DC/OS service.
 
 #### Steps handled by the Scheduler
 
-When started in uninstall mode, the Scheduler performs the current actions:
-- Any Mesos resources reservations are unreserved.
-  - **Note**: any data stored in reserved disk resources will be irretrievably lost.
+When started in uninstall mode, the Scheduler performs the following actions:
+- Any Mesos resource reservations are unreserved.
+  - **Warning**: Any data stored in reserved disk resources will be irretrievably lost.
 - Preexisting state in ZooKeeper is deleted.
 
 ## Offer Cycle
@@ -296,9 +296,9 @@ When a pod is on the `dcos` overlay network:
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
 Specifying that pod join the `dcos` overlay network has the following indirect effects:
-  * The `ports` resource requirements in the service spec will ignored as resource requirements. 
+  * The `ports` resource requirements in the service spec will ignored as resource requirements.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa. 
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
 
 ## Secrets
 
@@ -332,7 +332,7 @@ pods:
 
 All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 
-`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos if it referenced in pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both. 
+`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos if it referenced in pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
@@ -341,7 +341,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
 
 For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
-  
+
 ## Placement Constraints
 
 Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
@@ -389,7 +389,7 @@ This guide has so far focused on describing the components, how they work, and h
 
 ## Initial service configuration
 
-The DC/OS package format allows packages to define user-visible install options. To ensure consistent installs, we recommend exporting the options you use into an `options.json` file, which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.
+The DC/OS package format allows packages to define user-visible installation options. To ensure consistent installations, we recommend exporting the options you use into an `options.json` file, which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.
 
 Use this CLI command to see what options are available for a given package:
 
@@ -467,24 +467,24 @@ Configuration updates are performed by updating the process environment of the S
 
 ### Enterprise DC/OS 1.10
 
-Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates and to restart or complete steps if necessary. 
+Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.
 
 #### Prerequisites
 
 + Enterprise DC/OS 1.10 or newer.
-+ A DC/OS SDK-based service with a version greater than 2.0.0-x
-+ [The DC/OS CLI](https://docs.mesosphere.com/1.9/cli/install/) installed and available
++ A DC/OS SDK-based service with a version greater than 2.0.0-x.
++ [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
   + You can install just the subcommand CLI by running `dcos package install --cli <service-name>`.
-  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI:
-```bash
-dcos package uninstall --cli <service-name>
-dcos package install --cli <service-name>
-```
+  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
+    ```bash
+    dcos package uninstall --cli <service-name>
+    dcos package install --cli <service-name>
+    ```
 
 #### Updating package version
 
-The instructions below show how you can safely update one version of a package to the next.
+The instructions below show how to safely update one version of a package to the next.
 
 ##### Viewing available versions
 
@@ -502,7 +502,7 @@ $ dcos dse update package-versions
 $ dcos package uninstall --cli dse
 $ dcos package install --cli dse --package-version="1.1.6-5.0.7"
 ```
-1. Once the CLI subcommand has been updated, simply call the update start command, passing in the version. For example, to update `dse` to version `1.1.6-5.0.7`:
+1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update `dse` to version `1.1.6-5.0.7`:
 ```bash
 $ dcos dse update start --package-version="1.1.6-5.0.7"
 ```
@@ -516,19 +516,19 @@ See [Advanced update actions](#advanced-update-actions) for commands you can use
 
 #### Updating configuration
 
-The instructions below describe how you can update the configuration for a running DC/OS service.
+The instructions below describe how to update the configuration for a running DC/OS service.
 
 ##### Preparing configuration
 
-If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values were applied during installation). For example, for `dse`:
+If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example, for `dse`:
 
 ```bash
 $ dcos dse describe > options.json
 ```
 
-Make any configuration changes to this `options.json` file. 
+Make any configuration changes to this `options.json` file.
 
-If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration). 
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
 <strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
@@ -536,14 +536,14 @@ If you installed this service with a prior version of DC/OS, this configuration 
 
 If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
 
-First, we'll fetch the default application's environment, current application's environment and the actual template that maps config values to the environment:
+First, we'll fetch the default application's environment, current application's environment, and the actual template that maps config values to the environment:
 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, in this example we'll use `dse`:
 ```bash
 $ SERVICE_NAME=dse
 ```
-1. Get the version of the package that is currently installed (replacing `dse` with the name of your service below):
+1. Get the version of the package that is currently installed:
 ```bash
 $ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
 ```
@@ -598,7 +598,7 @@ You can query the status of the update as follows:
 $ dcos dse update status
 ```
 
-If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also check the Services tab within the DC/OS UI to see what the status of the restart is.
+If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
 
 ##### Pause
 
@@ -630,7 +630,7 @@ $ dcos dse update force-complete dse-phase dse-0:[node]
 
 ##### Force Restart
 
-Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase or just for a specific step.
+Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.
 
 To restart the entire plan:
 ```bash
@@ -648,30 +648,24 @@ $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
 ### Other versions
+<!-- check these steps and add screen shots -->
+The Scheduler runs as a Marathon application. We can perform the change from the DC/OS GUI.
 
-The Scheduler runs as a Marathon application, so we can perform the change there.
+1. Go to the **Services** tab of the DC/OS GUI and find the Scheduler you wish to edit.
 
-First, we can go to `<dcos-url>/marathon` and find the Scheduler App in Marathon. In this case we'll use `dse`:
+1. Click the three dots on the right hand side of the entry for your Scheduler, then choose **Edit**.
 
-[<img src="img/ops-guide-marathon-app-list.png" alt="list of Marathon apps" width="400"/>](img/ops-guide-marathon-app-list.png)
+1. In the window that appears, click the **Environment Variables** tab to show a list of the Scheduler's environment variables. For the sake of this demo ,we will increase an `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
 
-Click on the `dse` app and then the `Configuration` tab. Here, we see an `Edit` button on the right hand side of the screen:
+1. After you click `Change and deploy`, the following will happen:
+   - Marathon will restart the Scheduler so that it picks up our change.
+   - The Scheduler will detect that the OpsCenter task's configuration has changed. The OpsCenter task will be restarted with the change applied. In this case, with allocated RAM increased from 4000 to 5000 MB.
 
-[<img src="img/ops-guide-marathon-config-section.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-section.png)
-
-Clicking that button brings up a popup window. In the window, go to the `Environment Variables` section in the left menu. Here we see a list of the Scheduler's environment variables. For the sake of this demo we will increase an `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
-
-[<img src="img/ops-guide-marathon-config-env.png" alt="dse app configuration in Marathon" width="400"/>](img/ops-guide-marathon-config-env.png)
-
-After clicking `Change and deploy`, the following will happen:
-- Marathon will restart the Scheduler so that it picks up our change.
-- The Scheduler will detect that the OpsCenter task's configuration has changed. The OpsCenter task will be restarted with the change applied. In this case, with allocated RAM increased from 4000 to 5000 MB.
-
-We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
+1. We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
 
 [<img src="img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](img/ops-guide-mesos-tasks-reconfigured.png)
 
-If we look at the Scheduler logs, we can even see where it detected the change. The `api-port` value is random on each Scheduler restart, so it tends to always display as 'different' in this log:
+   If we look at the Scheduler logs, we can even see where it detected the change. The `api-port` value is random on each Scheduler restart, so it tends to always display as 'different' in this log:
 
 ```
 INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurationUpdater:printConfigDiff(215): Difference between configs:
@@ -817,11 +811,11 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 ### DC/OS 1.10
 
-If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x: 
+If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
 
-For example, to uninstall a Confluence Kafka instance named `kafka-dev`, run:
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
 
 ```bash
 dcos package uninstall --app-id=kafka-dev confluent-kafka
@@ -852,7 +846,7 @@ DC/OS clusters provide several tools for diagnosing problems with services runni
 
 ## Logging
 
-The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which Task logs are relevant.
+The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which task logs are relevant.
 
 As of this writing, the best and fastest way to view and download logs is via the Mesos UI at `<dcos-url>/mesos`. On the Mesos front page you will see two lists: A list of currently running tasks, followed by a list of completed tasks (whether successful or failed).
 
@@ -886,11 +880,11 @@ For a good example of the kind of diagnosis you can perform using SDK Scheduler 
 
 ### Task logs
 
-When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore we should pick `<service-name>` from this list to view a list of tasks specific to that service.
+When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore, we should pick `<service-name>` from this list to view a list of tasks specific to that service.
 
 [<img src="img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400"/>](img/ops-guide-framework-tasks-service.png)
 
-In the above list we see separate lists of Active and Completed tasks:
+In the above list, we see separate lists of Active and Completed tasks:
 - Active tasks are still running. These give a picture of the current activity of the service.
 - Completed tasks have exited for some reason, whether successfully or due to a failure. These give a picture of recent activity of the service. **Note:** Older completed tasks will be automatically garbage collected and their data may no longer be available here.
 
@@ -1178,7 +1172,7 @@ In this case, we see that none of the ports our DSE task needs are available on 
 
 We're seeing that none of the remaining agents in the cluster have room to fit our `dsenode-2`. To resolve this, we need to either add more agents to the DC/OS cluster or we need to reduce the requirements of our service to make it fit. In the latter case, be aware of any performance issues that may result if resource usage is reduced too far. Insufficient CPU quota will result in throttled tasks, and insufficient RAM quota will result in OOMed tasks.
 
-This is a good example of the kind of diagnosis you can perform by simply skimming the SDK Scheduler logs.
+This is a good example of the kind of diagnosis you can perform by skimming the SDK Scheduler logs.
 
 ## Accidentially deleted Marathon task but not service
 
