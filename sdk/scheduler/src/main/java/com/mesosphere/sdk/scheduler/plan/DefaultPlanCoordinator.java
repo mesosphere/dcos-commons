@@ -105,7 +105,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             LOGGER.debug("Plan: name={} status={}",
                     planManager.getPlan().getName(),
                     planManager.getPlan().getStatus());
-            ret = ret || planManager.getPlan().isRunning();
+            ret = ret || PlanUtils.hasOperations(planManager.getPlan());
         }
         return ret;
     }

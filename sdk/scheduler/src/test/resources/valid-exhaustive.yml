@@ -30,8 +30,6 @@ pods:
             env-key: HTTP_PORT
             vip:
               port: 80
-              protocol: sctp
-              advertise: false
         volumes:
           index:
             path: "index-container-path"

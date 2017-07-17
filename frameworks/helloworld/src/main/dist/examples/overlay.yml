@@ -22,7 +22,6 @@ pods:
             vip:
               prefix: overlay-vip
               port: 80
-              advertise: true
     tasks:
       server:
         goal: RUNNING
@@ -67,7 +66,6 @@ pods:
             vip:
               prefix: host-vip
               port: 80
-              advertise: true
     tasks:
       server:
         goal: RUNNING

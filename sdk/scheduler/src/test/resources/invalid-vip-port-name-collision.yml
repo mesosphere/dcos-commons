@@ -1,0 +1,20 @@
+name: "data-store"
+pods:
+  meta-data:
+    count: 2
+    resource-sets:
+      meta-data-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          http:
+            port: 8080
+          http-other:
+            port: 8080
+            vip:
+              port: 80
+              prefix: http
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo hello"

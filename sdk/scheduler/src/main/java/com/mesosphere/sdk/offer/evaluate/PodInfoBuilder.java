@@ -18,6 +18,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,9 @@ public class PodInfoBuilder {
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
+    // TODO(nickbp): Remove this env storage after October 2017 when it's no longer used as a fallback for dynamic ports
     private final Map<String, Map<String, String>> lastTaskEnvs;
+    private final Map<String, Map<String, Long>> lastTaskPorts;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
@@ -51,14 +54,16 @@ public class PodInfoBuilder {
             Collection<Protos.TaskInfo> currentPodTasks)
                     throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
+
+        // Generate new TaskInfos based on the task spec. To keep things consistent, we always generate new TaskInfos
+        // from scratch, with the only carry-over being the prior task environment.
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-            Protos.TaskInfo.Builder taskInfoBuilder =
-                    getTaskInfo(
-                            podInstance,
-                            taskSpec,
-                            podInstanceRequirement.getEnvironment(),
-                            serviceName,
-                            targetConfigId).toBuilder();
+            Protos.TaskInfo.Builder taskInfoBuilder = createTaskInfo(
+                    podInstance,
+                    taskSpec,
+                    podInstanceRequirement.getEnvironment(),
+                    serviceName,
+                    targetConfigId);
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -75,13 +80,20 @@ public class PodInfoBuilder {
 
         this.podInstance = podInstance;
 
+        this.lastTaskPorts = new HashMap<>();
         this.lastTaskEnvs = new HashMap<>();
         for (Protos.TaskInfo currentTask : currentPodTasks) {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            this.lastTaskEnvs.put(
-                    currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
+            Map<String, Long> taskPorts = new HashMap<>();
+            for (Protos.Port port : currentTask.getDiscovery().getPorts().getPortsList()) {
+                if (!Strings.isEmpty(port.getName())) {
+                    taskPorts.put(port.getName(), (long) port.getNumber());
+                }
+            }
+            this.lastTaskPorts.put(currentTask.getName(), taskPorts);
+            this.lastTaskEnvs.put(currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -105,11 +117,35 @@ public class PodInfoBuilder {
         this.executorBuilder = executorBuilder;
     }
 
-    public Optional<String> getLastTaskEnv(String taskSpecName, String envName) {
+    /**
+     * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
+     * it on task relaunch.
+     */
+    public Optional<Long> lookupPriorTaskPortValue(String taskSpecName, String portName, String portEnvName) {
+        Map<String, Long> taskPorts = lastTaskPorts.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+        if (taskPorts != null) {
+            Long lastPort = taskPorts.get(portName);
+            if (lastPort != null) {
+                return Optional.of(lastPort);
+            }
+        }
+
+        // Fall back to searching the task environment.
+        // Tasks launched in older SDK releases may omit the port names in the DiscoveryInfo.
+        // TODO(nickbp): Remove this fallback after October 2017
         Map<String, String> env = lastTaskEnvs.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
-        return (env == null)
-            ? Optional.empty()
-            : Optional.ofNullable(env.get(envName));
+        if (env != null) {
+            try {
+                return Optional.ofNullable(Long.parseLong(env.get(portEnvName)));
+            } catch (NumberFormatException e) {
+                // We're just making a best-effort attempt to recover the port value, so give up if this happens.
+                LOGGER.warn(String.format("Failed to recover port %s from task %s environment variable %s",
+                        portName, portEnvName, taskSpecName), e);
+            }
+        }
+
+        // Port not found.
+        return Optional.empty();
     }
 
     public Collection<Protos.Resource.Builder> getTaskResourceBuilders() {
@@ -136,7 +172,7 @@ public class PodInfoBuilder {
         return assignedOverlayPorts;
     }
 
-    private static Protos.TaskInfo getTaskInfo(
+    private static Protos.TaskInfo.Builder createTaskInfo(
             PodInstance podInstance,
             TaskSpec taskSpec,
             Map<String, String> environment,
@@ -177,7 +213,7 @@ public class PodInfoBuilder {
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
-        return taskInfoBuilder.build();
+        return taskInfoBuilder;
     }
 
     private static Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
@@ -309,7 +345,7 @@ public class PodInfoBuilder {
         if (discoverySpec.getVisibility().isPresent()) {
             builder.setVisibility(discoverySpec.getVisibility().get());
         } else {
-            builder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
+            builder.setVisibility(Constants.DEFAULT_TASK_DISCOVERY_VISIBILITY);
         }
 
         return builder.build();
