@@ -1,9 +1,9 @@
 import os
 import pytest
 
-import sdk_install as install
-import sdk_utils as utils
-import sdk_networks as networks
+import sdk_install
+import sdk_utils
+import sdk_networks
 
 import shakedown
 
@@ -17,19 +17,19 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_utils.gc_frameworks()
+    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_install():
-    networks.check_task_network("template-0-node")
+    sdk_networks.check_task_network("template-0-node")

@@ -2,8 +2,8 @@ import pytest
 import shakedown
 
 import sdk_cmd as cmd
-import sdk_install as install
-import sdk_marathon as marathon
+import sdk_install
+import sdk_marathon
 import sdk_utils
 
 from tests.config import (
@@ -13,21 +13,21 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    options = install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
+    sdk_install.uninstall(PACKAGE_NAME)
+    options = sdk_install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
     # don't wait for install to complete successfully:
     shakedown.install_package(PACKAGE_NAME, options_json=options)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 def test_deploy():
     wait_time = 30
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
-    # marathon.json.mustache. verify that tasks are failing for 30s before continuing.
+    # sdk_marathon.json.mustache. verify that tasks are failing for 30s before continuing.
     sdk_utils.out('Checking that tasks are failing to launch for at least {}s'.format(wait_time))
 
     # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
@@ -50,11 +50,11 @@ def test_deploy():
         sdk_utils.out('Timeout reached as expected')
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
-    config = marathon.get_config(PACKAGE_NAME)
+    config = sdk_marathon.get_config(PACKAGE_NAME)
     env = config['env']
     del env['SLEEP_DURATION']
     env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
     env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
-    marathon.update_app(PACKAGE_NAME, config)
+    sdk_marathon.update_app(PACKAGE_NAME, config)
 
     check_running()
