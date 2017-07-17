@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Cassandra: Managing</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../..">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../..">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="../../operations-guide.html">SDK Operations Guide</a></li>
+      
+      
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+      <li><a href="../../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
+      
+      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Reference</span>
+    <ul>
+      
+      <li><a href="../../reference/api">Javadoc Reference</a></li>
+      <li><a href="../../reference/swagger-api">REST APIs</a></li>
+      <li><a href="../../reference/yaml-reference.html">YAML Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/quick-start.html">Usage Example</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Cassandra: Managing</h1>
+<div id="content">
+<h1 id="updating-configuration">Updating Configuration</h1>
+
+<p>Edit the runtime environment of the scheduler to make configuration changes. After making a change, the scheduler will be restarted, and it will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to the <code class="highlighter-rouge">node-0</code> pod, then <code class="highlighter-rouge">node-1</code>, and so on.</p>
+
+<p>Nodes are configured with a “Readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
+
+<p>Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See <a href="#limitations">Limitations</a>.</p>
+
+<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-cassandra</code> in the CLI, or browse the DC/OS Apache Cassandra Service install dialog in the DC/OS Dashboard.</p>
+
+<h2 id="adding-a-node">Adding a Node</h2>
+
+<p>The service deploys 3 nodes by default. This may be customized at initial deployment or after the cluster is already running via the <code class="highlighter-rouge">NODES</code> environment variable. Shrinking the cluster is not supported. If you decrease this value, the scheduler will complain about the configuration change until it’s reverted back to its original value or a larger one.</p>
+
+<h2 id="resizing-a-node">Resizing a Node</h2>
+
+<p>The CPU and Memory requirements of each node may be increased or decreased as follows:</p>
+<ul>
+  <li>CPU (1.0 = 1 core): <code class="highlighter-rouge">CASSANDRA_CPUS</code></li>
+  <li>Memory (in MB): <code class="highlighter-rouge">CASSANDRA_MEMORY_MB</code>. To prevent out of memory errors, you must ensure that the <code class="highlighter-rouge">TASKCFG_ALL_CASSANDRA_HEAP_SIZE</code> environment variable is less than <code class="highlighter-rouge">$CASSANDRA_MEMORY_MB</code>.</li>
+</ul>
+
+<p>Note: volume requirements (type and/or size) can not be changed after initial deployment.</p>
+
+<h2 id="updating-placement-constraints">Updating Placement Constraints</h2>
+
+<p>Placement constraints may be updated after initial deployment using the following procedure. See <a href="#service-settings">Service Settings</a> above for more information on placement constraints.</p>
+
+<p>Let’s say we have the following deployment of our nodes</p>
+
+<ul>
+  <li>Placement constraint of: <code class="highlighter-rouge">hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84</code></li>
+  <li>Tasks:
+    <div class="highlighter-rouge"><pre class="highlight"><code>10.0.10.3: node-0
+10.0.10.8: node-1
+10.0.10.26: node-2
+10.0.10.28: empty
+10.0.10.84: empty
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<p><code class="highlighter-rouge">10.0.10.8</code> is being decommissioned and we should move away from it. Steps:</p>
+
+<ol>
+  <li>
+    <p>Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing <code class="highlighter-rouge">PLACEMENT_CONSTRAINT</code>:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code> hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+</code></pre>
+    </div>
+  </li>
+  <li>Redeploy <code class="highlighter-rouge">node-1</code> from the decommissioned node to somewhere within the new whitelist: <code class="highlighter-rouge">dcos beta-cassandra pods replace node-1</code></li>
+  <li>Wait for <code class="highlighter-rouge">node-1</code> to be up and healthy before continuing with any other replacement operations.</li>
+</ol>
+
+<h1 id="restarting-a-node">Restarting a Node</h1>
+
+<p>This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.</p>
+
+<ol>
+  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pods restart node-&lt;NUM&gt;</code>, e.g. <code class="highlighter-rouge">node-2</code>.</li>
+</ol>
+
+<h1 id="replacing-a-node">Replacing a Node</h1>
+
+<p>This operation will move a node to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined.</p>
+
+<p><strong>Note:</strong> Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.</p>
+
+<ol>
+  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pods replace node-&lt;NUM&gt;</code> to halt the current instance with id <code class="highlighter-rouge">&lt;NUM&gt;</code> (if still running) and launch a new instance elsewhere.</li>
+</ol>
+
+<p>For example, let’s say <code class="highlighter-rouge">node-2</code>’s host system has died and <code class="highlighter-rouge">node-2</code> needs to be moved.</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra pods replace node-2
+</code></pre>
+</div>
+
+<h1 id="configuring-multi-data-center-deployments">Configuring Multi-data-center Deployments</h1>
+
+<p>To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here’s what starting a multi-data-center Apache Cassandra deployment would like, running inside of a single DC/OS cluster.</p>
+
+<p>Launch the first cluster with the default configuration:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install beta-cassandra
+</code></pre>
+</div>
+
+<p>Create an <code class="highlighter-rouge">options.json</code> file for the second cluster that specifies a different service name and data center name:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cassandra2"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"data_center"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dc2"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Launch the second cluster with these custom options:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install beta-cassandra --options=&lt;options&gt;.json
+</code></pre>
+</div>
+
+<p>Get the list of seed node addresses for the first cluster from the scheduler HTTP API:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="err">DCOS_AUTH_TOKEN=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_acs_token)</span><span class="w">
+</span><span class="err">DCOS_URL=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_url)</span><span class="w">
+</span><span class="err">curl</span><span class="w"> </span><span class="err">-H</span><span class="w"> </span><span class="s2">"authorization:token=$DCOS_AUTH_TOKEN"</span><span class="w"> </span><span class="err">$DCOS_URL/service/cassandra/v</span><span class="mi">1</span><span class="err">/seeds</span><span class="w">
+</span><span class="p">{</span><span class="nt">"seeds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"10.0.0.1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"10.0.0.2"</span><span class="p">]}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>In the DC/OS UI, go to the configuration dialog for the second cluster (whose service name is <code class="highlighter-rouge">cassandra2</code>) and update the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable to <code class="highlighter-rouge">10.0.0.1,10.0.0.2</code>. This environment variable may not already be present in a fresh install. To add it, click the plus sign at the bottom of the list of environment variables, and then fill in its name and value in the new row that appears.</p>
+
+<p>Get the seed node addresses for the second cluster the same way:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra2/v1/seeds
+{"seeds": ["10.0.0.3", "10.0.0.4"]}
+</code></pre>
+</div>
+
+<p>In the DC/OS UI, go to the configuration dialog for the first cluster (whose service name is <code class="highlighter-rouge">cassandra</code>) and update the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable to <code class="highlighter-rouge">10.0.0.3,10.0.0.4</code>, again adding the variable with the plus sign if it’s not already present.</p>
+
+<p>Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add, appending a comma-separated list of that cluster’s seeds to the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable for each existing cluster, and adding a comma-separated list of each existing cluster’s seeds to the newly-added cluster’s <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable.</p>
+
+</div>
+</div>
+</body>
+
+</html>

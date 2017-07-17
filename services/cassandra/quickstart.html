@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Managing</title>
+<title>Cassandra: Quick Start</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -313,41 +313,49 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Managing</h1>
+<h1>Cassandra: Quick Start</h1>
 <div id="content">
-<h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
-<p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
-
-<h2 id="node-info">Node Info</h2>
-
-<p>Comprehensive information is available about every node.  To list all nodes:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods list
+<ol>
+  <li>Install DC/OS on your cluster. See <a href="https://docs.mesosphere.com/latest/administration/installing/">the documentation</a> for instructions.</li>
+  <li>If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
+    <div class="highlighter-rouge"><pre class="highlight"><code> dcos package install beta-cassandra
 </code></pre>
-</div>
-
-<p>To view information about a node, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
+    </div>
+    <p>You can also install DC/OS Apache Cassandra from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+  </li>
+  <li>The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.</li>
+  <li>Connect a client to the DC/OS Apache Cassandra service.
+    <div class="highlighter-rouge"><pre class="highlight"><code> dcos beta-cassandra endpoints
+ ["node"]
+ dcos beta-cassandra endpoints node
+ {
+   "address": [
+     "10.0.1.125:9042",
+     "10.0.2.152:9042",
+     "10.0.1.22:9042"
+   ],
+   "dns": [
+     "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+     "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+     "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
+   ],
+   "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
+ }
 </code></pre>
-</div>
-
-<p>For example:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info master-0
+    </div>
+  </li>
+  <li>Write some data to your cluster:
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos node ssh --master-proxy --leader
+core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+&gt; CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
+&gt; USE space1;
+&gt; CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));
+&gt; INSERT INTO space1.testtable1(key, value) VALUES('testkey1', 'testvalue1');
+&gt; SELECT * FROM testtable1;
 </code></pre>
-</div>
-
-<h2 id="node-status">Node Status</h2>
-<p>Similarly, the status for any node may also be queried.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
-</code></pre>
-</div>
-
-<p>For example:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info data-0
-</code></pre>
-</div>
+    </div>
+  </li>
+</ol>
 
 </div>
 </div>

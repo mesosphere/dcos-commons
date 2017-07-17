@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Managing</title>
+<title>Cassandra: Service Settings</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -313,41 +313,55 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Managing</h1>
+<h1>Cassandra: Service Settings</h1>
 <div id="content">
-<h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
-<p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
+<h1 id="service-name">Service Name</h1>
 
-<h2 id="node-info">Node Info</h2>
+<p>You must configure each instance of DC/OS Apache Cassandra in a given DC/OS cluster with a different service name. You can configure the service name in the <strong>service</strong> section of the advanced installation section of the DC/OS web interface. The default service name (used in many examples here) is <code class="highlighter-rouge">cassandra</code>.</p>
 
-<p>Comprehensive information is available about every node.  To list all nodes:</p>
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">name</code>: string (default: <code class="highlighter-rouge">cassandra</code>)</li>
+  <li><strong>DC/OS web interface</strong>: The service name cannot be changed after the cluster has started.</li>
+</ul>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods list
-</code></pre>
-</div>
+<h1 id="data-center">Data Center</h1>
 
-<p>To view information about a node, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
-</code></pre>
-</div>
+<p>You can configure the name of the logical data center that this Cassandra cluster runs in. This sets the <code class="highlighter-rouge">dc</code> property in the <code class="highlighter-rouge">cassandra-rackdc.properties</code> file.</p>
 
-<p>For example:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info master-0
-</code></pre>
-</div>
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">data_center</code>: string (default: <code class="highlighter-rouge">dc1</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">CASSANDRA_LOCATION_DATA_CENTER</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
 
-<h2 id="node-status">Node Status</h2>
-<p>Similarly, the status for any node may also be queried.</p>
+<h1 id="rack">Rack</h1>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
-</code></pre>
-</div>
+<p>You can configure the name of the rack that this Cassandra cluster runs in. This sets the <code class="highlighter-rouge">rack</code> property in the <code class="highlighter-rouge">cassandra-rackdc.properties</code> file.</p>
 
-<p>For example:</p>
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">rack</code>: string (default: <code class="highlighter-rouge">rac1</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">CASSANDRA_LOCATION_RACK</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info data-0
-</code></pre>
-</div>
+<h1 id="remote-seeds">Remote Seeds</h1>
+
+<p>You can configure the remote seeds from another Cassandra cluster that this cluster should communicate with to establish cross-data-center replication. This should be a comma-separated list of node hostnames, such as <code class="highlighter-rouge">node-0-server.cassandra.autoip.dcos.thisdcos.directory,node-1-server.cassandra.autoip.dcos.thisdcos.directory</code>. For more information on multi-data-center configuration, see <a href="#configuring-multi-data-center-deployments">Configuring Multi-data-center Deployments</a>.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">remote_seeds</code>: string (default: <code class="highlighter-rouge">""</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="backuprestore-strategy">Backup/Restore Strategy</h1>
+
+<p>You can configure whether the creation, transfer, and restoration of backups occurs in serial or in parallel across nodes. This option must be set to either <code class="highlighter-rouge">serial</code> or <code class="highlighter-rouge">parallel</code>. Running backups and restores in parallel has the potential to saturate your network. For this reason, we recommend that you use the default configuration for backup strategy.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">backup_restore_strategy</code>: string (default: <code class="highlighter-rouge">"serial"</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BACKUP_RESTORE_STRATEGY</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="overlay-networks">Overlay networks</h1>
+<p>The Cassandra service can be run on the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. For the Cassandra service, using the overlay network means that nodes no longer use reserved port resources on the mesos agents.  This means that nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarentee that the ports on the agents containing the reserved resources for Cassandra will be avialable, therefore we do not allow a service to change from the overlay network to the host network. <strong>Once the service is deployed on the overlay network it must remain on the overlay network</strong>. The only way to move your data to Cassandra on the host network is through a migration.</p>
 
 </div>
 </div>

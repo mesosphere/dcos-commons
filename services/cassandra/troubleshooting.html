@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Managing</title>
+<title>Cassandra: Troubleshooting</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -313,41 +313,35 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Managing</h1>
+<h1>Cassandra: Troubleshooting</h1>
 <div id="content">
-<h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
-<p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
+<h1 id="accessing-logs">Accessing Logs</h1>
 
-<h2 id="node-info">Node Info</h2>
+<p>Logs for the scheduler and all service nodes can be viewed from the DC/OS web interface.</p>
 
-<p>Comprehensive information is available about every node.  To list all nodes:</p>
+<ul>
+  <li>Scheduler logs are useful for determining why a node isn’t being launched (this is under the purview of the Scheduler).</li>
+  <li>Node logs are useful for examining problems in the service itself.</li>
+</ul>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods list
-</code></pre>
-</div>
+<p>In all cases, logs are generally piped to files named <code class="highlighter-rouge">stdout</code> and/or <code class="highlighter-rouge">stderr</code>.</p>
 
-<p>To view information about a node, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
-</code></pre>
-</div>
+<p>To view logs for a given node, perform the following steps:</p>
+<ol>
+  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be examined (default <code class="highlighter-rouge">cassandra</code>).</li>
+  <li>In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each <code class="highlighter-rouge">node-&lt;NUM&gt;-server</code>).</li>
+  <li>In the task details, click on the <code class="highlighter-rouge">Logs</code> tab to go into the log viewer. By default, you will see <code class="highlighter-rouge">stdout</code>, but <code class="highlighter-rouge">stderr</code> is also useful. Use the pull-down in the upper right to select the file to be examined.</li>
+</ol>
 
-<p>For example:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info master-0
-</code></pre>
-</div>
-
-<h2 id="node-status">Node Status</h2>
-<p>Similarly, the status for any node may also be queried.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pods info &lt;node-id&gt;
-</code></pre>
-</div>
-
-<p>For example:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pods info data-0
-</code></pre>
-</div>
+<p>You can also access the logs via the Mesos UI:</p>
+<ol>
+  <li>Visit <dcos-url>/mesos to view the Mesos UI.</dcos-url></li>
+  <li>Click the <code class="highlighter-rouge">Frameworks</code> tab in the upper left to get a list of services running in the cluster.</li>
+  <li>Navigate into the correct framework for your needs. The scheduler runs under <code class="highlighter-rouge">marathon</code> with a task name matching the service name (default <em><code class="highlighter-rouge">PKGNAME</code></em>). Service nodes run under a framework whose name matches the service name (default <em><code class="highlighter-rouge">PKGNAME</code></em>).</li>
+  <li>You should now see two lists of tasks. <code class="highlighter-rouge">Active Tasks</code> are tasks currently running, and <code class="highlighter-rouge">Completed Tasks</code> are tasks that have exited. Click the <code class="highlighter-rouge">Sandbox</code> link for the task you wish to examine.</li>
+  <li>The <code class="highlighter-rouge">Sandbox</code> view will list files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. Click the file names to view the files in the browser, or click <code class="highlighter-rouge">Download</code> to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.</li>
+</ol>
 
 </div>
 </div>
