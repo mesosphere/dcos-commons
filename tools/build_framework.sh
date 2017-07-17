@@ -92,7 +92,7 @@ then
 fi
 
 # Ensure executor build up to date
-${ROOT_DIR}/gradlew distZip -p ${ROOT_DIR}/sdk/executor
+${REPO_ROOT_DIR}/gradlew distZip -p ${REPO_ROOT_DIR}/sdk/executor
 
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
