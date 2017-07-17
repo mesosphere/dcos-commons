@@ -73,8 +73,12 @@ pods:
           timeout: 10
 plans:
   deploy:
-    strategy: serial
     phases:
       Deployment:
         strategy: {{DEPLOY_STRATEGY}}
+        pod: kafka
+  update:
+    phases:
+      Deployment:
+        strategy: {{UPDATE_STRATEGY}}
         pod: kafka
