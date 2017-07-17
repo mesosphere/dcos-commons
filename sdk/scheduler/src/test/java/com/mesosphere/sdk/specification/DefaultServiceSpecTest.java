@@ -300,7 +300,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags)
+        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags, new MemPersister())
             .setConfigStore(mockConfigStore)
             .setStateStore(mockStateStore)
             .setPlansFrom(rawSpec)
@@ -592,7 +592,7 @@ public class DefaultServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, flags)
+        DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
