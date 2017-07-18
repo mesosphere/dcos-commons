@@ -1,7 +1,7 @@
 import pytest
 
-import sdk_install as install
-import sdk_utils as utils
+import sdk_install
+import sdk_utils
 import shakedown
 from tests.config import (
     check_running,
@@ -10,8 +10,8 @@ from tests.config import (
 )
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    install.install(
+    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.install(
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
         service_name=PACKAGE_NAME,
@@ -19,11 +19,11 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@utils.dcos_1_10_or_higher
+@sdk_utils.dcos_1_10_or_higher
 def test_install():
     check_running(PACKAGE_NAME)

@@ -1,11 +1,11 @@
 import os
 import pytest
 
-import sdk_install as install
-import sdk_tasks as tasks
-import sdk_plan as plan
-import sdk_networks as networks
-import sdk_utils as utils
+import sdk_install
+import sdk_tasks
+import sdk_plan
+import sdk_networks
+import sdk_utils
 
 
 from tests.test_utils import  *
@@ -14,26 +14,26 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
 def setup_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    utils.gc_frameworks()
+    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_utils.gc_frameworks()
 
-    install.install(
+    sdk_install.install(
         PACKAGE_NAME,
         DEFAULT_BROKER_COUNT,
         service_name=SERVICE_NAME,
-        additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.overlay
 @pytest.mark.smoke
 @pytest.mark.sanity
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
@@ -45,22 +45,22 @@ def test_service_overlay_health():
         "kafka-2-broker"
     )
     for task in broker_tasks:
-        networks.check_task_network(task)
+        sdk_networks.check_task_network(task)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_overlay_network_deployment_and_endpoints():
     # double check
-    tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-    endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
+    sdk_tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
+    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     assert "broker" in endpoints, "broker is missing from endpoints {}".format(endpoints)
     assert "zookeeper" in endpoints, "zookeeper missing from endpoints {}".format(endpoints)
-    broker_endpoints = networks.get_and_test_endpoints("broker", PACKAGE_NAME, 4)
-    networks.check_endpoints_on_overlay(broker_endpoints)
+    broker_endpoints = sdk_networks.get_and_test_endpoints("broker", PACKAGE_NAME, 4)
+    sdk_networks.check_endpoints_on_overlay(broker_endpoints)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)
     assert zookeeper.rstrip() == 'master.mesos:2181/dcos-service-{}'.format(PACKAGE_NAME)
@@ -69,7 +69,7 @@ def test_overlay_network_deployment_and_endpoints():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_pods_restart_on_overlay():
     restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
@@ -78,7 +78,7 @@ def test_pods_restart_on_overlay():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_pods_replace_on_overlay():
     replace_broker_pod()
     test_overlay_network_deployment_and_endpoints()
@@ -87,7 +87,7 @@ def test_pods_replace_on_overlay():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_topic_create_overlay():
     create_topic()
 
@@ -95,6 +95,6 @@ def test_topic_create_overlay():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_topic_delete_overlay():
     delete_topic()

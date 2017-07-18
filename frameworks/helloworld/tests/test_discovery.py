@@ -2,8 +2,8 @@ import dcos
 import pytest
 import shakedown
 
-import sdk_install as install
-import sdk_plan as plan
+import sdk_install
+import sdk_plan
 
 from tests.config import (
     PACKAGE_NAME
@@ -11,18 +11,18 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/discovery.yml"
         }
     }
 
-    install.install(PACKAGE_NAME, 1, additional_options=options)
+    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -34,4 +34,4 @@ def test_task_dns_prefix_points_to_all_tasks():
     # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))
     # Assert that the hello-0.hello-world.mesos DNS entry points to the right IP.
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
