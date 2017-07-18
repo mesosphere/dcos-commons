@@ -4,7 +4,6 @@
         <Property name="PATTERN">%-5level %d [%t] %c:%M(%L): %m%n</Property>
     </Properties>
 
-
     <Appenders>
         <Console name="STDOUT" target="SYSTEM_OUT">
             <PatternLayout pattern="${PATTERN}"/>
@@ -12,7 +11,7 @@
     </Appenders>
 
     <Loggers>
-        <Root level="INFO">
+        <Root level="${env:FRAMEWORK_LOG_LEVEL:-INFO}">
             <AppenderRef ref="STDOUT"/>
         </Root>
     </Loggers>
