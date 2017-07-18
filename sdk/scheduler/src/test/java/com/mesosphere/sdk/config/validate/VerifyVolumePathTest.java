@@ -55,13 +55,13 @@ public class VerifyVolumePathTest {
 
 
     @Test(expected = Exception.class)
-    public void testVolumePathCorrect1() {
+    public void testVolumePathSlash1() {
         new DefaultVolumeSpec(
                 DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path/path", "role", "*", "principal", "VOLUME");
     }
 
     @Test(expected = Exception.class)
-    public void testVolumePathCorrect2() {
+    public void testVolumePathSlash2() {
         new DefaultVolumeSpec(
                 DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0/1-path", "role", "*", "principal", "VOLUME");
     }
