@@ -296,7 +296,7 @@ When a pod is on the `dcos` overlay network:
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
 Specifying that pod join the `dcos` overlay network has the following indirect effects:
-  * The `ports` resource requirements in the service spec will ignored as resource requirements.
+  * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
 
@@ -305,7 +305,6 @@ Specifying that pod join the `dcos` overlay network has the following indirect e
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
-
 
 The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
@@ -328,11 +327,11 @@ pods:
         env-key: Secret_Environment_Key2
     tasks:
       ....
-```      
+```
 
 All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 
-`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when executor exits. Secret content is copied securely by Mesos if it referenced in pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
+`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
@@ -602,7 +601,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 
 ##### Pause
 
-To pause an ongoing update, simply issue a pause command:
+To pause an ongoing update, issue a pause command:
 
 ```bash
 $ dcos dse update pause
