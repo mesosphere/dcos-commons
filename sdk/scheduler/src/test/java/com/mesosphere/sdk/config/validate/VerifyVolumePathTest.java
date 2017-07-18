@@ -42,19 +42,25 @@ public class VerifyVolumePathTest {
     }
 
     @Test
+    public void testVolumePathNumber() {
+        new DefaultVolumeSpec(
+                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0_1-path", "role", "*", "principal", "VOLUME");
+    }
+
+    @Test
     public void testVolumePathCorrect0() {
         new DefaultVolumeSpec(
                 DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path", "role", "*", "principal", "VOLUME");
     }
 
 
-    @Test
+    @Test(expected = Exception.class)
     public void testVolumePathCorrect1() {
         new DefaultVolumeSpec(
                 DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path/path", "role", "*", "principal", "VOLUME");
     }
 
-    @Test
+    @Test(expected = Exception.class)
     public void testVolumePathCorrect2() {
         new DefaultVolumeSpec(
                 DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0/1-path", "role", "*", "principal", "VOLUME");
