@@ -764,7 +764,7 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
              "ranges" : null,
 ```
 
-The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy after being relaunched with the new configuration. Some services may have defined a custom `update` plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom `update` plan was defined, is to use the `deploy` plan.
+The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom `update` plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom `update` plan was defined, is to use the `deploy` plan.
 
 ### Add a node
 

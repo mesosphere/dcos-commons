@@ -379,7 +379,7 @@ plans:
 
 This plan would result in steps generating the following tasks:
 
-1. `hello-0-init
+1. `hello-0-init`
 1. `hello-0-main`
 1. `hello-1-main`
 
