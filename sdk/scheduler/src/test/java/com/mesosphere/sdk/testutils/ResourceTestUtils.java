@@ -15,7 +15,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value.Range;
 
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
 import java.util.Arrays;
 import java.util.List;
@@ -150,7 +150,7 @@ public class ResourceTestUtils {
 
     public static Resource setResourceId(Resource resource, String resourceId) {
         Resource.Builder resourceBuilder = resource.toBuilder();
-        OtherLabelAccess.setResourceId(resourceBuilder.getReservationBuilder(), resourceId);
+        AuxLabelAccess.setResourceId(resourceBuilder.getReservationBuilder(), resourceId);
         return resourceBuilder.build();
     }
 
@@ -281,12 +281,12 @@ public class ResourceTestUtils {
             Resource.ReservationInfo.Builder reservationBuilder = builder.addReservationsBuilder()
                     .setRole(role)
                     .setPrincipal(principal);
-            OtherLabelAccess.setResourceId(reservationBuilder, resourceId);
+            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         } else {
             builder.setRole(role);
             Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
                     .setPrincipal(principal);
-            OtherLabelAccess.setResourceId(reservationBuilder, resourceId);
+            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         }
 
         return  builder;

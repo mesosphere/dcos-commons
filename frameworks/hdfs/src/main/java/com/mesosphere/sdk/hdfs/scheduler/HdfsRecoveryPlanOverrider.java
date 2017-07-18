@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
+import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +22,15 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String NN_PHASE_NAME = "permanent-nn-failure-recovery";
     private final StateStore stateStore;
+    private final ConfigStore<ServiceSpec> configStore;
     private final Plan replaceNameNodePlan;
 
-    public HdfsRecoveryPlanOverrider(StateStore stateStore, Plan replaceNameNodePlan) {
+    public HdfsRecoveryPlanOverrider(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            Plan replaceNameNodePlan) {
         this.stateStore = stateStore;
+        this.configStore = configStore;
         this.replaceNameNodePlan = replaceNameNodePlan;
     }
 
@@ -35,6 +42,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
             return Optional.empty();
         }
 
+        Phase nnPhase = null;
         switch (stoppedPod.getPodInstance().getIndex()) {
             case 0:
                 logger.info("Returning replacement plan for namenode 0.");

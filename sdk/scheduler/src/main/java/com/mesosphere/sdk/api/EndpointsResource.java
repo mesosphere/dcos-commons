@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -201,7 +201,7 @@ public class EndpointsResource {
             String autoipHostPort,
             String ipHostPort) throws TaskException {
         // Search for any VIPs to list the port against:
-        Collection<EndpointUtils.VipInfo> vips = OtherLabelAccess.getVIPsFromLabels(taskName, taskInfoPort);
+        Collection<EndpointUtils.VipInfo> vips = AuxLabelAccess.getVIPsFromLabels(taskName, taskInfoPort);
 
         for (EndpointUtils.VipInfo vip : vips) {
             // File host:port against the VIP name (note: NOT necessarily the same as the port name).

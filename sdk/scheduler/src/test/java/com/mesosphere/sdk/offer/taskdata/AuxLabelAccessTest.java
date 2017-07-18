@@ -18,14 +18,14 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
- * Tests for {@link OtherLabelAccess}.
+ * Tests for {@link AuxLabelAccess}.
  */
-public class OtherLabelAccessTest {
+public class AuxLabelAccessTest {
 
     @Test
     public void testCreateVipLabel() {
         Protos.Port.Builder portBuilder = newPortBuilder();
-        OtherLabelAccess.setVIPLabels(portBuilder, newVIPSpec("vip", 5));
+        AuxLabelAccess.setVIPLabels(portBuilder, newVIPSpec("vip", 5));
         Collection<Protos.Label> labels = portBuilder.getLabels().getLabelsList();
         assertEquals(1, labels.size());
         Label label = labels.iterator().next();
@@ -33,7 +33,7 @@ public class OtherLabelAccessTest {
         assertEquals("vip:5", label.getValue());
 
         Collection<EndpointUtils.VipInfo> vips =
-                OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, portBuilder.build());
+                AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, portBuilder.build());
         assertEquals(1, vips.size());
         EndpointUtils.VipInfo vip = vips.iterator().next();
         assertEquals("vip", vip.getVipName());
@@ -43,19 +43,19 @@ public class OtherLabelAccessTest {
     @Test
     public void testCreateVipLabelOnOverlay() {
         Protos.Port.Builder portBuilder = newPortBuilder();
-        OtherLabelAccess.setVIPLabels(portBuilder, newVIPSpec("vip", 5, "dcos"));
+        AuxLabelAccess.setVIPLabels(portBuilder, newVIPSpec("vip", 5, "dcos"));
         Collection<Protos.Label> labels = portBuilder.getLabels().getLabelsList();
         assertEquals(2, labels.size());
         assertEquals(1, labels.stream()
                 .filter(label -> label.getKey().startsWith("VIP_") && label.getValue().equals("vip:5"))
                 .collect(Collectors.toList()).size());
         assertEquals(1, labels.stream()
-                .filter(label -> label.getKey().equals(OtherLabelAccess.VIP_OVERLAY_FLAG_KEY) &&
-                        label.getValue().equals(OtherLabelAccess.VIP_OVERLAY_FLAG_VALUE))
+                .filter(label -> label.getKey().equals(LabelConstants.VIP_OVERLAY_FLAG_KEY) &&
+                        label.getValue().equals(LabelConstants.VIP_OVERLAY_FLAG_VALUE))
                 .collect(Collectors.toList()).size());
 
         Collection<EndpointUtils.VipInfo> vips =
-                OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, portBuilder.build());
+                AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, portBuilder.build());
         assertEquals(1, vips.size());
         EndpointUtils.VipInfo vip = vips.iterator().next();
         assertEquals("vip", vip.getVipName());
@@ -64,12 +64,12 @@ public class OtherLabelAccessTest {
 
     @Test
     public void testParseVipLabel() {
-        assertEquals(0, OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("", "")).size());
-        assertEquals(0, OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("asdf", "ara")).size());
-        assertEquals(0, OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "ara")).size());
-        assertEquals(0, OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "ara:rar")).size());
+        assertEquals(0, AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("", "")).size());
+        assertEquals(0, AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("asdf", "ara")).size());
+        assertEquals(0, AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "ara")).size());
+        assertEquals(0, AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "ara:rar")).size());
 
-        VipInfo info = OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "myvip:321")).iterator().next();
+        VipInfo info = AuxLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, withLabel("VIP_0000", "myvip:321")).iterator().next();
         assertEquals("myvip", info.getVipName());
         assertEquals(321, info.getVipPort());
     }

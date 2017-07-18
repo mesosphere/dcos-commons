@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -260,14 +260,14 @@ public class ResourceBuilder {
                 .setRole(role)
                 .setType(Resource.ReservationInfo.Type.DYNAMIC)
                 .setPrincipal(principal.get());
-        OtherLabelAccess.setResourceId(reservationBuilder, resId);
+        AuxLabelAccess.setResourceId(reservationBuilder, resId);
         return reservationBuilder.build();
     }
 
     private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
         Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
                 .setPrincipal(principal.get());
-        OtherLabelAccess.setResourceId(reservationBuilder, resId);
+        AuxLabelAccess.setResourceId(reservationBuilder, resId);
         return reservationBuilder.build();
     }
 

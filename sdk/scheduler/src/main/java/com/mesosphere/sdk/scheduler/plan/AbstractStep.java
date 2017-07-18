@@ -61,15 +61,13 @@ public abstract class AbstractStep extends DefaultObservable implements Step {
      * @param newStatus the new status to be set
      */
     protected void setStatus(Status newStatus) {
-        synchronized (statusLock) {
-            Status oldStatus = status;
-            status = newStatus;
-            logger.info("{}: changed status from: {} to: {} (interrupted={})",
-                    getName(), oldStatus, newStatus, interrupted);
+        Status oldStatus = status;
+        status = newStatus;
+        logger.info("{}: changed status from: {} to: {} (interrupted={})",
+                getName(), oldStatus, newStatus, interrupted);
 
-            if (!Objects.equals(oldStatus, newStatus)) {
-                notifyObservers();
-            }
+        if (!Objects.equals(oldStatus, newStatus)) {
+            notifyObservers();
         }
     }
 

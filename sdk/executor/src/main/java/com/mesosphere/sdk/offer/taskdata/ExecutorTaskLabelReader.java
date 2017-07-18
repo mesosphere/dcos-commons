@@ -30,7 +30,7 @@ public class ExecutorTaskLabelReader {
      * Returns the Task's {@link GoalState}, e.g. RUNNING or FINISHED.
      */
     public GoalState getGoalState() throws TaskException {
-        String goalStateString = reader.getOrThrow(TaskLabelConstants.GOAL_STATE_LABEL);
+        String goalStateString = reader.getOrThrow(LabelConstants.GOAL_STATE_LABEL);
         if (!VALID_GOAL_STATES.contains(goalStateString)) {
             throw new TaskException("Unexpected goal state encountered: " + goalStateString);
         }
@@ -42,7 +42,7 @@ public class ExecutorTaskLabelReader {
      * Returns the readiness check to be run by the Executor on task startup.
      */
     public Optional<HealthCheck> getReadinessCheck() throws TaskException {
-        Optional<String> readinessCheckStrOptional = reader.getOptional(TaskLabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> readinessCheckStrOptional = reader.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!readinessCheckStrOptional.isPresent()) {
             return Optional.empty();
         }

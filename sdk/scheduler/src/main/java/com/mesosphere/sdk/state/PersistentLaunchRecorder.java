@@ -3,13 +3,10 @@ package com.mesosphere.sdk.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +35,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) offerRecommendation).getTaskInfo();
 
         Protos.TaskStatus taskStatus = null;
-        String taskStatusLogDetails = "";
         if (!taskInfo.getTaskId().getValue().equals("")) {
-            taskStatusLogDetails += " with STAGING status";
             // Record initial TaskStatus of STAGING:
             Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                     .setTaskId(taskInfo.getTaskId())
@@ -53,36 +48,15 @@ public class PersistentLaunchRecorder implements OperationRecorder {
             taskStatus = taskStatusBuilder.build();
         }
 
-        // If this task is brand new (hasn't been launched on this agent before), we include a 'first_launch' label.
-        // This allows us to give up on this agent if it's no good.
-        if (isFirstLaunchOnAgent(stateStore.fetchTask(taskInfo.getName()))) {
-            taskStatusLogDetails += " and initial launch flag";
-            taskInfo = taskInfo.toBuilder()
-                    .setLabels(new TaskLabelWriter(taskInfo).setInitialLaunch().toProto())
-                    .build();
-        }
+        logger.info("Persisting launch operation{}: {}",
+                taskStatus != null ? " with STAGING status" : "",
+                TextFormat.shortDebugString(taskInfo));
 
-        logger.info("Persisting launch operation{}: {}", taskStatusLogDetails, TextFormat.shortDebugString(taskInfo));
-
-        updateResourcesWithinResourceSet(taskInfo);
+        updateTaskResourcesWithinResourceSet(taskInfo);
         stateStore.storeTasks(Collections.singletonList(taskInfo));
         if (taskStatus != null) {
             stateStore.storeStatus(taskStatus);
         }
-    }
-
-    private static boolean isFirstLaunchOnAgent(Optional<TaskInfo> priorTaskInfo) {
-        if (!priorTaskInfo.isPresent()) {
-            // This task has never been launched anywhere
-            return true;
-        }
-
-        if (new TaskLabelReader(priorTaskInfo.get()).isPermanentlyFailed()) {
-            // This task had been launched somewhere before, but now it's being launched again in a new location
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -92,7 +66,7 @@ public class PersistentLaunchRecorder implements OperationRecorder {
      * @throws TaskException is thrown on a failure to read meta-data from the TaskInfo
      */
     @VisibleForTesting
-    void updateResourcesWithinResourceSet(Protos.TaskInfo taskInfo) throws TaskException {
+    void updateTaskResourcesWithinResourceSet(Protos.TaskInfo taskInfo) throws TaskException {
         // Find the PodSpec + TaskSpec for this TaskInfo
         Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
         if (!podSpecOptional.isPresent()) {
@@ -125,7 +99,6 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 .filter(taskSpec -> taskSpec.getResourceSet().equals(sourceTaskSpec.getResourceSet()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
-        logger.info("Updating resources for tasks: {}", taskNamesToUpdate);
 
         // Fetch any existing matching TaskInfos from the state store
         List<Protos.TaskInfo> taskInfosToUpdate = taskNamesToUpdate.stream()
@@ -133,10 +106,13 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
                 .collect(Collectors.toList());
+
         List<String> taskIds = taskInfosToUpdate.stream()
                 .map(taskInfoToUpdate -> taskInfoToUpdate.getTaskId().getValue())
                 .collect(Collectors.toList());
-        logger.info("Updating resources in TaskInfos: {}", taskIds);
+        logger.info("Updating resources for other tasks sharing resource set '{}': names={} => ids={}",
+                sourceTaskSpec.getResourceSet().getId(), taskNamesToUpdate, taskIds);
+
         return taskInfosToUpdate;
     }
 

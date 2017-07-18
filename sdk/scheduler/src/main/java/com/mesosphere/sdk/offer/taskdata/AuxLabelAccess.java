@@ -12,7 +12,6 @@ import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.api.EndpointUtils.VipInfo;
@@ -23,56 +22,42 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
  *
  * If you're editing {@link Protos.TaskInfos}, you should be using {@link TaskLabelReader}/{@link TaskLabelWriter}.
  */
-public class OtherLabelAccess {
+public class AuxLabelAccess {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OtherLabelAccess.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuxLabelAccess.class);
 
-    /**
-     * Label used in {@link Protos.Resource.ReservationInfo} to uniquely map tasks to reserved resources.
-     */
-    private static final String RESOURCE_ID_RESERVATION_LABEL = "resource_id";
-
-    /**
-     * Label used in {@link Protos.ExecutorInfo}s to indicate the "DC/OS Space"
-     */
-    private static final String DCOS_SPACE_EXECUTORINFO_LABEL = "DCOS_SPACE";
-
-    /**
-     * Prefix to use for VIP labels in {@link Protos.DiscoveryInfo}s.
-     */
-    private static final String VIP_LABEL_PREFIX = "VIP_";
-
-    /**
-     * Label key/value to be applied to {@link Protos.Port}s when an overlay network is configured.
-     */
-    @VisibleForTesting
-    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    @VisibleForTesting
-    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
-
-    private OtherLabelAccess() {
+    private AuxLabelAccess() {
         // do not instantiate
     }
 
+    // Resource ID
+
     public static void setResourceId(Protos.Resource.ReservationInfo.Builder reservationBuilder, String resourceId) {
         reservationBuilder.setLabels(
-                withLabel(reservationBuilder.getLabels(), RESOURCE_ID_RESERVATION_LABEL, resourceId));
+                withLabel(reservationBuilder.getLabels(), LabelConstants.RESOURCE_ID_RESERVATION_LABEL, resourceId));
     }
 
     public static Optional<String> getResourceId(Protos.Resource.ReservationInfo reservation) {
-        return Optional.ofNullable(LabelUtils.toMap(reservation.getLabels()).get(RESOURCE_ID_RESERVATION_LABEL));
+        return Optional.ofNullable(
+                LabelUtils.toMap(reservation.getLabels()).get(LabelConstants.RESOURCE_ID_RESERVATION_LABEL));
     }
+
+    // DC/OS Space
 
     public static void setDcosSpace(Protos.ExecutorInfo.Builder executorInfoBuilder, String dcosSpace) {
         executorInfoBuilder.setLabels(
-                withLabel(executorInfoBuilder.getLabels(), DCOS_SPACE_EXECUTORINFO_LABEL, dcosSpace));
+                withLabel(executorInfoBuilder.getLabels(), LabelConstants.DCOS_SPACE_EXECUTORINFO_LABEL, dcosSpace));
     }
+
+    // Network label passthrough
 
     public static void setNetworkLabels(Protos.NetworkInfo.Builder networkInfoBuilder, Map<String, String> labels) {
         Map<String, String> map = LabelUtils.toMap(networkInfoBuilder.getLabels());
         map.putAll(labels);
         networkInfoBuilder.setLabels(LabelUtils.toProto(map));
     }
+
+    // VIPs
 
     /**
      * Updates the provided {@link Protos.Port} to contain the provided VIP information.
@@ -81,11 +66,11 @@ public class OtherLabelAccess {
     public static void setVIPLabels(Protos.Port.Builder portBuilder, NamedVIPSpec namedVIPSpec) {
         Map<String, String> map = LabelUtils.toMap(portBuilder.getLabels());
         map.put(
-                String.format("%s%s", VIP_LABEL_PREFIX, UUID.randomUUID().toString()),
+                String.format("%s%s", LabelConstants.VIP_LABEL_PREFIX, UUID.randomUUID().toString()),
                 String.format("%s:%d", namedVIPSpec.getVipName(), namedVIPSpec.getVipPort()));
         if (!namedVIPSpec.getNetworkNames().isEmpty()) {
             // On named network
-            map.put(VIP_OVERLAY_FLAG_KEY, VIP_OVERLAY_FLAG_VALUE);
+            map.put(LabelConstants.VIP_OVERLAY_FLAG_KEY, LabelConstants.VIP_OVERLAY_FLAG_VALUE);
         }
         portBuilder.setLabels(LabelUtils.toProto(map));
     }
@@ -115,7 +100,7 @@ public class OtherLabelAccess {
      * @return the VIP information or an empty Optional if the provided label is invalid or inapplicable
      */
     private static Optional<VipInfo> parseVipLabel(String taskName, Label label) {
-        if (!label.getKey().startsWith(VIP_LABEL_PREFIX)) {
+        if (!label.getKey().startsWith(LabelConstants.VIP_LABEL_PREFIX)) {
             return Optional.empty();
         }
 

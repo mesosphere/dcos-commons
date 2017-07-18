@@ -696,7 +696,10 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
             LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(
+                    stateStore,
+                    configStore,
+                    plans));
         }
 
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(

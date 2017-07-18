@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +39,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
         }
         Protos.Port.Builder portBuilder = portBuilders.get(0);
         portBuilder.setProtocol(namedVIPSpec.getProtocol());
-        OtherLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
+        AuxLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
     }
 }

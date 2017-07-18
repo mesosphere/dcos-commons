@@ -5,11 +5,17 @@ package com.mesosphere.sdk.offer.taskdata;
  * launched tasks. These are accessible to the Scheduler, and/or to custom Executors which we are moving away from ASAP.
  * These are different from environment variables as they are not directly accessible to the running task itself.
  */
-class TaskLabelConstants {
+class LabelConstants {
 
-    private TaskLabelConstants() {
+    private LabelConstants() {
         // do not instantiate
     }
+
+    /** Value for boolean labels which indicates that the label applies.
+     * In practice this value doesn't need to be compared, users can instead just check for label presence. */
+    static final String BOOLEAN_LABEL_TRUE_VALUE = "true";
+
+    // TaskInfo
 
     /** Identifies the goal state of this task, e.g. TASK_RUNNING or TASK_FINISHED */
     static final String GOAL_STATE_LABEL = "goal_state";
@@ -24,8 +30,6 @@ class TaskLabelConstants {
     static final String OFFER_HOSTNAME_LABEL = "offer_hostname";
     /** Label against which the readiness check (if present) is stored. */
     static final String READINESS_CHECK_LABEL = "readiness_check";
-    /** Label used to find the result of a readiness check in a TaskStatus label. */
-    static final String READINESS_CHECK_PASSED_LABEL = "readiness_check_passed";
     /** Label against which the Task/Pod Type is stored. */
     static final String TASK_TYPE_LABEL = "task_type";
     /** Label against which the Task/Pod index (starting at 0) is stored. */
@@ -33,10 +37,28 @@ class TaskLabelConstants {
 
     /** Label for tracking in the state store whether a task failed. Not passed to Mesos itself. */
     static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
-    /** Label for tracking in the state store whether this is the first launch of this task at its current location. */
-    static final String INITIAL_LAUNCH_LABEL = "initial_launch";
 
-    /** Value for boolean labels which indicates that the label applies.
-     * In practice this value doesn't need to be compared, users can instead just check for label presence. */
-    static final String BOOLEAN_LABEL_TRUE_VALUE = "true";
+    // TaskStatus
+
+    /** Label used to find the result of a readiness check in a TaskStatus label. */
+    static final String READINESS_CHECK_PASSED_LABEL = "readiness_check_passed";
+
+    // ReservationInfo
+
+    /** Label used to uniquely map tasks to reserved resources. */
+    static final String RESOURCE_ID_RESERVATION_LABEL = "resource_id";
+
+    // ExecutorInfo
+
+    /** Label used to indicate the "DC/OS Space" */
+    static final String DCOS_SPACE_EXECUTORINFO_LABEL = "DCOS_SPACE";
+
+    // DiscoveryInfo => Port
+
+    /** Prefix to use for VIP labels. */
+    static final String VIP_LABEL_PREFIX = "VIP_";
+
+    /** Label key/value to populate when an overlay network is configured. */
+    static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
+    static final String VIP_OVERLAY_FLAG_VALUE = "container";
 }

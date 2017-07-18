@@ -4,7 +4,7 @@ import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 
-import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -99,7 +99,7 @@ public class ResourceUtils {
         if (!reservationInfo.isPresent()) {
             return Optional.empty();
         }
-        return OtherLabelAccess.getResourceId(reservationInfo.get());
+        return AuxLabelAccess.getResourceId(reservationInfo.get());
     }
 
     public static boolean hasResourceId(Resource resource) {

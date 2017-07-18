@@ -44,7 +44,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
     @Test(expected=TaskException.class)
     public void testUpdateResourcesMissingTypeLabel() throws TaskException {
-        persistentLaunchRecorder.updateResourcesWithinResourceSet(baseTaskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(baseTaskInfo);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
         builder.setLabels(new TaskLabelWriter(builder)
                 .setType(TestConstants.TASK_TYPE)
                 .toProto());
-        persistentLaunchRecorder.updateResourcesWithinResourceSet(builder.build());
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(builder.build());
     }
 
     @Test
@@ -77,7 +77,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
         stateStore.storeTasks(Arrays.asList(taskInfo));
         Assert.assertEquals(1, stateStore.fetchTaskNames().size());
 
-        persistentLaunchRecorder.updateResourcesWithinResourceSet(taskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(taskInfo);
         Assert.assertEquals(1, stateStore.fetchTaskNames().size());
         Assert.assertEquals(targetResource, stateStore.fetchTask(taskName).get().getResources(0));
     }
@@ -123,7 +123,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 stateStore.fetchTask(initTaskName).get().getResources(0).equals(
                 stateStore.fetchTask(serverTaskName).get().getResources(0)));
 
-        persistentLaunchRecorder.updateResourcesWithinResourceSet(serverTaskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(serverTaskInfo);
         Assert.assertEquals(2, stateStore.fetchTaskNames().size());
         Assert.assertEquals(targetResource, stateStore.fetchTask(initTaskName).get().getResources(0));
         Assert.assertEquals(targetResource, stateStore.fetchTask(serverTaskName).get().getResources(0));

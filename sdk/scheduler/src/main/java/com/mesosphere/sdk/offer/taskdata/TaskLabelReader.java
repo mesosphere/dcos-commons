@@ -40,7 +40,7 @@ public class TaskLabelReader {
      * @throws TaskException if the type could not be found.
      */
     public String getType() throws TaskException {
-        return reader.getOrThrow(TaskLabelConstants.TASK_TYPE_LABEL);
+        return reader.getOrThrow(LabelConstants.TASK_TYPE_LABEL);
     }
 
     /**
@@ -50,14 +50,14 @@ public class TaskLabelReader {
      * @throws NumberFormatException if parsing the index as an integer failed
      */
     public int getIndex() throws TaskException, NumberFormatException {
-        return Integer.parseInt(reader.getOrThrow(TaskLabelConstants.TASK_INDEX_LABEL));
+        return Integer.parseInt(reader.getOrThrow(LabelConstants.TASK_INDEX_LABEL));
     }
 
     /**
      * Returns the string representations of any {@link Offer} {@link Attribute}s which were embedded in the task.
      */
     public List<String> getOfferAttributeStrings() {
-        Optional<String> joinedAttributes = reader.getOptional(TaskLabelConstants.OFFER_ATTRIBUTES_LABEL);
+        Optional<String> joinedAttributes = reader.getOptional(LabelConstants.OFFER_ATTRIBUTES_LABEL);
         if (!joinedAttributes.isPresent()) {
             return new ArrayList<>();
         }
@@ -68,7 +68,7 @@ public class TaskLabelReader {
      * Returns the hostname of the agent machine running the task.
      */
     public String getHostname() throws TaskException {
-        return reader.getOrThrow(TaskLabelConstants.OFFER_HOSTNAME_LABEL);
+        return reader.getOrThrow(LabelConstants.OFFER_HOSTNAME_LABEL);
     }
 
     /**
@@ -79,7 +79,7 @@ public class TaskLabelReader {
      *                       an indicated target configuration
      */
     public UUID getTargetConfiguration() throws TaskException {
-        return UUID.fromString(reader.getOrThrow(TaskLabelConstants.TARGET_CONFIGURATION_LABEL));
+        return UUID.fromString(reader.getOrThrow(LabelConstants.TARGET_CONFIGURATION_LABEL));
     }
 
     /**
@@ -93,7 +93,7 @@ public class TaskLabelReader {
      * @return the result of a readiness check for the indicated TaskStatus
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
-        Optional<String> readinessCheckOptional = reader.getOptional(TaskLabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> readinessCheckOptional = reader.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         if (!readinessCheckOptional.isPresent()) {
             // check not applicable: PASS
             return true;
@@ -102,8 +102,8 @@ public class TaskLabelReader {
         // Special case: the 'readiness check passed' bit is set in TaskStatus (by the executor),
         // not in TaskInfo like other labels
         for (Label statusLabel : taskStatus.getLabels().getLabelsList()) {
-            if (statusLabel.getKey().equals(TaskLabelConstants.READINESS_CHECK_PASSED_LABEL)) {
-                return statusLabel.getValue().equals(TaskLabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+            if (statusLabel.getKey().equals(LabelConstants.READINESS_CHECK_PASSED_LABEL)) {
+                return statusLabel.getValue().equals(LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
             }
         }
         return false;
@@ -115,7 +115,7 @@ public class TaskLabelReader {
      */
     public boolean isTransient() {
         // null is false
-        return Boolean.valueOf(reader.getOptional(TaskLabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
+        return Boolean.valueOf(reader.getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
     }
 
     /**
@@ -123,14 +123,6 @@ public class TaskLabelReader {
      */
     public boolean isPermanentlyFailed() {
         // null is false
-        return Boolean.valueOf(reader.getOptional(TaskLabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
-    }
-
-    /**
-     * Returns whether the task is marked as being launched for the first time at its current location.
-     */
-    public boolean isInitialLaunch() {
-        // null is false
-        return Boolean.valueOf(reader.getOptional(TaskLabelConstants.INITIAL_LAUNCH_LABEL).orElse(null));
+        return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
     }
 }
