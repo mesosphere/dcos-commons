@@ -10,14 +10,17 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
+import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -140,14 +143,7 @@ public class EndpointsResource {
             String nativeHost = new TaskLabelReader(taskInfo).getHostname();
             // get IP address(es) from container status on the TaskStatus, gives overlay
             // network IP (IP-per-container) or host iff on host network.
-            List<String> ipAddresses = new ArrayList<>();
-            Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).orElse(null);
-            if (taskStatus != null && taskStatus.hasContainerStatus() &&
-                    taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
-                taskStatus.getContainerStatus().getNetworkInfosList()
-                        .forEach(networkInfo -> networkInfo.getIpAddressesList()
-                                .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
-            }
+            List<String> ipAddresses = reconcileIpAddresses(taskInfo.getName());
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != Constants.DISPLAYED_PORT_VISIBILITY) {
                     LOGGER.info(
@@ -178,6 +174,26 @@ public class EndpointsResource {
             }
         }
         return endpointsByName;
+    }
+
+    private static List<String> getIpAddresses(Protos.TaskStatus taskStatus) {
+        List<String> ipAddresses = new ArrayList<>();
+        if (taskStatus != null && taskStatus.hasContainerStatus() &&
+                taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+            taskStatus.getContainerStatus().getNetworkInfosList()
+                    .forEach(networkInfo -> networkInfo.getIpAddressesList()
+                            .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
+        }
+        return ipAddresses;
+    }
+
+    private List<String> reconcileIpAddresses(String taskName) {
+        TaskStatus currentTaskStatus = stateStore.fetchStatus(taskName).orElse(null);
+        TaskStatus savedTaskStatus = StateStoreUtils.getTaskStatusFromProperty(stateStore, taskName)
+                .orElse(null);
+        List<String> currentIpAddresses = getIpAddresses(currentTaskStatus);
+        return currentIpAddresses.isEmpty() ?
+                getIpAddresses(savedTaskStatus) : currentIpAddresses;
     }
 
     /**
