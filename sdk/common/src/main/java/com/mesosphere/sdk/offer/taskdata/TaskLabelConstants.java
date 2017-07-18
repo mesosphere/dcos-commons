@@ -5,9 +5,9 @@ package com.mesosphere.sdk.offer.taskdata;
  * launched tasks. These are accessible to the Scheduler, and/or to custom Executors which we are moving away from ASAP.
  * These are different from environment variables as they are not directly accessible to the running task itself.
  */
-class LabelConstants {
+class TaskLabelConstants {
 
-    private LabelConstants() {
+    private TaskLabelConstants() {
         // do not instantiate
     }
 
@@ -30,8 +30,11 @@ class LabelConstants {
     static final String TASK_TYPE_LABEL = "task_type";
     /** Label against which the Task/Pod index (starting at 0) is stored. */
     static final String TASK_INDEX_LABEL = "index";
+
     /** Label for tracking in the state store whether a task failed. Not passed to Mesos itself. */
     static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
+    /** Label for tracking in the state store whether this is the first launch of this task at its current location. */
+    static final String INITIAL_LAUNCH_LABEL = "initial_launch";
 
     /** Value for boolean labels which indicates that the label applies.
      * In practice this value doesn't need to be compared, users can instead just check for label presence. */

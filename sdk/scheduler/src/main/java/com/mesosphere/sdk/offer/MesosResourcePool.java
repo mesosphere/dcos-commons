@@ -290,20 +290,6 @@ public class MesosResourcePool {
         return podRole.get().equals(allocationRole);
     }
 
-    private static Map<String, MesosResource> getReservedPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
-
-        for (MesosResource mesResource : mesosResources) {
-            Optional<String> resourceId = mesResource.getResourceId();
-            if (resourceId.isPresent()) {
-                reservedPool.put(resourceId.get(), mesResource);
-            }
-        }
-
-        return reservedPool;
-    }
-
     private static Map<String, List<MesosResource>> getUnreservedAtomicPool(
             Collection<MesosResource> mesosResources) {
         Map<String, List<MesosResource>> pool = new HashMap<String, List<MesosResource>>();
@@ -375,32 +361,9 @@ public class MesosResourcePool {
         return pool;
     }
 
-    private static Map<String, Value> getUnreservedMergedPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, Value> pool = new HashMap<String, Value>();
-
-        for (MesosResource mesosResource : getUnreservedMergedResources(mesosResources)) {
-            String name = mesosResource.getName();
-            Value currValue = pool.get(name);
-
-            if (currValue == null) {
-                currValue = ValueUtils.getZero(mesosResource.getType());
-            }
-
-            pool.put(name, ValueUtils.add(currValue, mesosResource.getValue()));
-        }
-
-        return pool;
-    }
-
     private static Collection<MesosResource> getUnreservedAtomicResources(
             Collection<MesosResource> mesosResources) {
         return getUnreservedResources(getAtomicResources(mesosResources));
-    }
-
-    private static Collection<MesosResource> getUnreservedMergedResources(
-            Collection<MesosResource> mesosResources) {
-        return getUnreservedResources(getMergedResources(mesosResources));
     }
 
     private static Collection<MesosResource> getUnreservedResources(

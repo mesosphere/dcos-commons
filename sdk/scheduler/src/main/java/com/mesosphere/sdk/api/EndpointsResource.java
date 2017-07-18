@@ -9,13 +9,13 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
 import org.json.JSONArray;
@@ -201,21 +201,15 @@ public class EndpointsResource {
             String autoipHostPort,
             String ipHostPort) throws TaskException {
         // Search for any VIPs to list the port against:
-        boolean foundAnyVips = false;
-        for (Label label : taskInfoPort.getLabels().getLabelsList()) {
-            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskName, label);
-            if (!vipInfo.isPresent()) {
-                // Label doesn't appear to be for a VIP
-                continue;
-            }
+        Collection<EndpointUtils.VipInfo> vips = OtherLabelAccess.getVIPsFromLabels(taskName, taskInfoPort);
 
-            // VIP found. file host:port against the VIP name (note: NOT necessarily the same as the port name).
-            foundAnyVips = true;
-            addVipPortToEndpoints(endpointsByName, serviceName, vipInfo.get(), autoipHostPort, ipHostPort);
+        for (EndpointUtils.VipInfo vip : vips) {
+            // File host:port against the VIP name (note: NOT necessarily the same as the port name).
+            addVipPortToEndpoints(endpointsByName, serviceName, vip, autoipHostPort, ipHostPort);
         }
 
         // If no VIPs were found, list the port against the port name:
-        if (!foundAnyVips && !Strings.isEmpty(taskInfoPort.getName())) {
+        if (vips.isEmpty() && !Strings.isEmpty(taskInfoPort.getName())) {
             addPortToEndpoints(endpointsByName, taskInfoPort.getName(), autoipHostPort, ipHostPort);
         }
     }

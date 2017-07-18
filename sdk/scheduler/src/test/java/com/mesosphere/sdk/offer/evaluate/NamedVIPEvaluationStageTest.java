@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -81,13 +83,15 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         Assert.assertEquals(2, port.getLabels().getLabelsCount());
 
-        Protos.Label vipLabel = port.getLabels().getLabels(0);
-        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
-        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+        Collection<EndpointUtils.VipInfo> vips = OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, port);
+        Assert.assertEquals(1, vips.size());
+        EndpointUtils.VipInfo vip = vips.iterator().next();
+        Assert.assertEquals("test-vip", vip.getVipName());
+        Assert.assertEquals(80, vip.getVipPort());
 
-        vipLabel = port.getLabels().getLabels(1);
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+        Protos.Label overlayLabel = port.getLabels().getLabels(1);
+        Assert.assertEquals(OtherLabelAccess.VIP_OVERLAY_FLAG_KEY, overlayLabel.getKey());
+        Assert.assertEquals(OtherLabelAccess.VIP_OVERLAY_FLAG_VALUE, overlayLabel.getValue());
     }
 
     @Test
@@ -120,13 +124,15 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         Assert.assertEquals(2, port.getLabels().getLabelsCount());
 
-        Protos.Label vipLabel = port.getLabels().getLabels(0);
-        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
-        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+        Collection<EndpointUtils.VipInfo> vips = OtherLabelAccess.getVIPsFromLabels(TestConstants.TASK_NAME, port);
+        Assert.assertEquals(1, vips.size());
+        EndpointUtils.VipInfo vip = vips.iterator().next();
+        Assert.assertEquals("test-vip", vip.getVipName());
+        Assert.assertEquals(80, vip.getVipPort());
 
-        vipLabel = port.getLabels().getLabels(1);
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_KEY, vipLabel.getKey());
-        Assert.assertEquals(Constants.VIP_OVERLAY_FLAG_VALUE, vipLabel.getValue());
+        Protos.Label overlayLabel = port.getLabels().getLabels(1);
+        Assert.assertEquals(OtherLabelAccess.VIP_OVERLAY_FLAG_KEY, overlayLabel.getKey());
+        Assert.assertEquals(OtherLabelAccess.VIP_OVERLAY_FLAG_VALUE, overlayLabel.getValue());
     }
 
     private NamedVIPEvaluationStage getEvaluationStage(int taskPort, Optional<String> resourceId, boolean onOverlay) {

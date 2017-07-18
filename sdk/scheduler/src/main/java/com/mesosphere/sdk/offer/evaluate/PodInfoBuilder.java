@@ -8,6 +8,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -225,6 +226,7 @@ public class PodInfoBuilder {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+        OtherLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
         // Populate ContainerInfo with the appropriate information from PodSpec.
         // This includes networks, rlimits, secret volumes...
         Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
@@ -280,10 +282,6 @@ public class PodInfoBuilder {
                         .setExtract(false);
             }
         }
-
-        executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
-                .setKey("DCOS_SPACE")
-                .setValue(getDcosSpaceLabel());
 
         return executorInfoBuilder;
     }
@@ -480,10 +478,7 @@ public class PodInfoBuilder {
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            List<Protos.Label> labelList = networkSpec.getLabels().entrySet().stream()
-                    .map(e -> Protos.Label.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build())
-                    .collect(Collectors.toList());
-            netInfoBuilder.setLabels(Protos.Labels.newBuilder().addAllLabels(labelList).build());
+            OtherLabelAccess.setNetworkLabels(netInfoBuilder, networkSpec.getLabels());
         }
 
         return netInfoBuilder.build();
@@ -597,17 +592,6 @@ public class PodInfoBuilder {
             }
         }
         return volumes;
-    }
-
-    private static String getDcosSpaceLabel() {
-        String labelString = System.getenv("DCOS_SPACE");
-        if (labelString == null) {
-            labelString = System.getenv("MARATHON_APP_ID");
-        }
-        if (labelString == null) {
-            return "/"; // No Authorization for this framework
-        }
-        return labelString;
     }
 
     @Override

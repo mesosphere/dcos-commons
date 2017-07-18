@@ -65,7 +65,7 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
     public void beforeEach() throws Exception {
         super.beforeEach();
         stateStore = new DefaultStateStore(new MemPersister());
-        ConfigStore configStore = new DefaultConfigStore<ServiceSpec>(
+        ConfigStore<ServiceSpec> configStore = new DefaultConfigStore<ServiceSpec>(
                 DefaultServiceSpec.getConfigurationFactory(getServiceSpec()),
                 new MemPersister());
         UUID targetConfig = configStore.store(getServiceSpec());
@@ -160,7 +160,7 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
                 .build();
     }
 
-    private Plan getReplacePlan(StateStore stateStore, ConfigStore configStore) throws Exception {
+    private Plan getReplacePlan(StateStore stateStore, ConfigStore<ServiceSpec> configStore) throws Exception {
         final String REPLACE_PLAN_NAME = "replace";
         return new DefaultPlanGenerator(configStore, stateStore).generate(
                 getRawServiceSpec().getPlans().get(REPLACE_PLAN_NAME),

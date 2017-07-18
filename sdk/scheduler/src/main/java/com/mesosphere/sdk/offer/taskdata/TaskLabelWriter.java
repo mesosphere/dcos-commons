@@ -39,7 +39,7 @@ public class TaskLabelWriter {
      * Ensures that the task is identified as a transient task.
      */
     public TaskLabelWriter setTransient() {
-        writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+        writer.put(TaskLabelConstants.TRANSIENT_FLAG_LABEL, TaskLabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
         return this;
     }
 
@@ -47,7 +47,7 @@ public class TaskLabelWriter {
      * Ensures that the task is not identified as a transient task.
      */
     public TaskLabelWriter clearTransient() {
-        writer.remove(LabelConstants.TRANSIENT_FLAG_LABEL);
+        writer.remove(TaskLabelConstants.TRANSIENT_FLAG_LABEL);
         return this;
     }
 
@@ -55,7 +55,7 @@ public class TaskLabelWriter {
      * Ensures that the task is identified as permanently failed.
      */
     public TaskLabelWriter setPermanentlyFailed() {
-        writer.put(LabelConstants.PERMANENTLY_FAILED_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+        writer.put(TaskLabelConstants.PERMANENTLY_FAILED_LABEL, TaskLabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
         return this;
     }
 
@@ -63,7 +63,23 @@ public class TaskLabelWriter {
      * Ensures that the task is not identified as permanently failed.
      */
     public TaskLabelWriter clearPermanentlyFailed() {
-        writer.remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
+        writer.remove(TaskLabelConstants.PERMANENTLY_FAILED_LABEL);
+        return this;
+    }
+
+    /**
+     * Ensures that the task is identified as being launched for the first time at its current location.
+     */
+    public TaskLabelWriter setInitialLaunch() {
+        writer.put(TaskLabelConstants.INITIAL_LAUNCH_LABEL, TaskLabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+        return this;
+    }
+
+    /**
+     * Ensures that the task is not identified as being launched for the first time at its current location.
+     */
+    public TaskLabelWriter clearInitialLaunch() {
+        writer.remove(TaskLabelConstants.INITIAL_LAUNCH_LABEL);
         return this;
     }
 
@@ -71,7 +87,7 @@ public class TaskLabelWriter {
      * Stores the provided task type string. Any existing task type is overwritten.
      */
     public TaskLabelWriter setType(String taskType) {
-        writer.put(LabelConstants.TASK_TYPE_LABEL, taskType);
+        writer.put(TaskLabelConstants.TASK_TYPE_LABEL, taskType);
         return this;
     }
 
@@ -80,7 +96,7 @@ public class TaskLabelWriter {
      * Assigns the pod instance index to the provided task. Any existing index is overwritten.
      */
     public TaskLabelWriter setIndex(int index) {
-        writer.put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(index));
+        writer.put(TaskLabelConstants.TASK_INDEX_LABEL, String.valueOf(index));
         return this;
     }
 
@@ -89,7 +105,7 @@ public class TaskLabelWriter {
      * Any existing stored attributes are overwritten.
      */
     public TaskLabelWriter setOfferAttributes(Offer launchOffer) {
-        writer.put(LabelConstants.OFFER_ATTRIBUTES_LABEL,
+        writer.put(TaskLabelConstants.OFFER_ATTRIBUTES_LABEL,
                 AttributeStringUtils.toString(launchOffer.getAttributesList()));
         return this;
     }
@@ -99,7 +115,7 @@ public class TaskLabelWriter {
      * Any existing stored hostname is overwritten.
      */
     public TaskLabelWriter setHostname(Offer launchOffer) {
-        writer.put(LabelConstants.OFFER_HOSTNAME_LABEL, launchOffer.getHostname());
+        writer.put(TaskLabelConstants.OFFER_HOSTNAME_LABEL, launchOffer.getHostname());
         return this;
     }
 
@@ -107,7 +123,7 @@ public class TaskLabelWriter {
      * Sets a label on a TaskInfo indicating the Task's {@link GoalState}, e.g. RUNNING or FINISHED.
      */
     public TaskLabelWriter setGoalState(GoalState goalState) {
-        writer.put(LabelConstants.GOAL_STATE_LABEL, goalState.name());
+        writer.put(TaskLabelConstants.GOAL_STATE_LABEL, goalState.name());
         return this;
     }
 
@@ -117,7 +133,7 @@ public class TaskLabelWriter {
      * @param targetConfigurationId ID referencing a particular Configuration in the {@link ConfigStore}
      */
     public TaskLabelWriter setTargetConfiguration(UUID targetConfigurationId) {
-        writer.put(LabelConstants.TARGET_CONFIGURATION_LABEL, targetConfigurationId.toString());
+        writer.put(TaskLabelConstants.TARGET_CONFIGURATION_LABEL, targetConfigurationId.toString());
         return this;
     }
 
@@ -126,7 +142,7 @@ public class TaskLabelWriter {
      * Any existing stored readiness check is overwritten.
      */
     public TaskLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
-        writer.put(LabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
+        writer.put(TaskLabelConstants.READINESS_CHECK_LABEL, LabelUtils.encodeHealthCheck(readinessCheck));
         return this;
     }
 
@@ -159,7 +175,7 @@ public class TaskLabelWriter {
      */
     @VisibleForTesting
     protected Optional<HealthCheck> getReadinessCheck() throws TaskException {
-        Optional<String> encodedReadinessCheck = writer.getOptional(LabelConstants.READINESS_CHECK_LABEL);
+        Optional<String> encodedReadinessCheck = writer.getOptional(TaskLabelConstants.READINESS_CHECK_LABEL);
         return (encodedReadinessCheck.isPresent())
                 ? Optional.of(LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
                 : Optional.empty();

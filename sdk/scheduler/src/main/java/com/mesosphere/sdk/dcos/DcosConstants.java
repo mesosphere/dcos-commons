@@ -14,7 +14,9 @@ public class DcosConstants {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
     public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
-    public static final Boolean DEFAULT_GPU_POLICY = true;
+
+    public static final boolean DEFAULT_GPU_POLICY = true;
+
     public static final String DEFAULT_IP_PROTOCOL = "tcp";
     public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
     public static final String DEFAULT_BRIDGE_NETWORK = "mesos-bridge";

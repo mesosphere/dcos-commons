@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.api.EndpointUtils;
+import com.mesosphere.sdk.offer.taskdata.OtherLabelAccess;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,11 +37,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             throw new IllegalStateException(String.format(
                     "Expected one port entry with name %s: %s", portSpec.getPortName(), portBuilders.toString()));
         }
-        portBuilders.get(0)
-                .setProtocol(namedVIPSpec.getProtocol())
-                .getLabelsBuilder().addAllLabels(EndpointUtils.createVipLabels(
-                        namedVIPSpec.getVipName(),
-                        namedVIPSpec.getVipPort(),
-                        !namedVIPSpec.getNetworkNames().isEmpty()));
+        Protos.Port.Builder portBuilder = portBuilders.get(0);
+        portBuilder.setProtocol(namedVIPSpec.getProtocol());
+        OtherLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
     }
 }

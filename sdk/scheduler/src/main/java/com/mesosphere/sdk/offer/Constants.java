@@ -31,8 +31,6 @@ public class Constants {
     /** The string prepended to reserved resources to indicate that they are uninstalled. */
     public static final String TOMBSTONE_MARKER = "uninstalled_";
 
-    /** Prefix to use for VIP labels in DiscoveryInfos. */
-    public static final String VIP_PREFIX = "VIP_";
     /** TLD to be used for VIP-based hostnames. */
     public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
@@ -42,10 +40,6 @@ public class Constants {
      * experimenting with different DNS providers this TLD may have unexpected behavior.
      */
     public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
-
-    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
-
 
     /**
      * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
