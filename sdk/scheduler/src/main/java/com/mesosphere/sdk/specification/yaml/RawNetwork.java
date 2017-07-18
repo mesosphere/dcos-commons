@@ -53,7 +53,7 @@ public class RawNetwork {
         return labelsCsv;
     }
 
-    public List<String[]> getValidadedLabels() throws IllegalArgumentException {
+    public List<String[]> getValidatedLabels() throws IllegalArgumentException {
         List<String[]> kvs = Arrays.stream(labelsCsv.split(","))
                 .map(s -> s.split(":"))
                 .collect(Collectors.toList());
