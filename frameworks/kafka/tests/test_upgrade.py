@@ -1,7 +1,7 @@
 import pytest
-import sdk_install as install
+import sdk_install
 import sdk_test_upgrade
-import sdk_utils as utils
+import sdk_utils
 
 from tests.test_utils import (
     PACKAGE_NAME,
@@ -11,12 +11,12 @@ from tests.test_utils import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_utils.gc_frameworks()
 
 
 def teardown_module(module):
-    install.uninstall(SERVICE_NAME)
+    sdk_install.uninstall(SERVICE_NAME)
 
 
 @pytest.mark.upgrade

@@ -16,7 +16,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     @NotNull
     private String command;
 
-    @NotNull
     @Min(0)
     private Integer delay;
 

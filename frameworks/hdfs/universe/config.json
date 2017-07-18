@@ -47,6 +47,12 @@
           "default": "serial",
           "enum" : ["parallel", "serial"]
         },
+        "log_level": {
+          "description": "The log level for the DC/OS service.",
+          "type": "string",
+          "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
+          "default": "INFO"
+        },
         "tls": {
           "type": "object",
           "description": "TLS configuration properties.",
@@ -128,6 +134,11 @@
           "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
           "type": "string",
           "default": ""
+        },
+        "enable_readiness_check": {
+          "description": "Determines whether to enable readiness checks for Journal Nodes.",
+          "type": "boolean",
+          "default": true
         }
       },
       "required":[

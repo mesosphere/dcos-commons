@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Tests for {@link SchedulerLabelReader} and {@link SchedulerLabelWriter}.
+ * Tests for both {@link TaskLabelReader} and {@link TaskLabelWriter}.
  */
-public class SchedulerLabelReaderWriterTest {
+public class TaskLabelReaderWriterTest {
     private static final String testTaskName = "test-task-name";
     private static final String testTaskId = "test-task-id";
     private static final String testAgentId = "test-agent-id";
@@ -22,16 +22,16 @@ public class SchedulerLabelReaderWriterTest {
 
     @Test(expected = TaskException.class)
     public void testGetTargetConfigurationFailure() throws Exception {
-        new SchedulerLabelReader(getTestTaskInfo()).getTargetConfiguration();
+        new TaskLabelReader(getTestTaskInfo()).getTargetConfiguration();
     }
 
     @Test
     public void testSetTargetConfiguration() throws Exception {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        taskBuilder.setLabels(new SchedulerLabelWriter(taskBuilder)
+        taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
                 .setTargetConfiguration(testTargetConfigurationId)
                 .toProto());
-        Assert.assertEquals(testTargetConfigurationId, new SchedulerLabelReader(taskBuilder).getTargetConfiguration());
+        Assert.assertEquals(testTargetConfigurationId, new TaskLabelReader(taskBuilder).getTargetConfiguration());
     }
 
     @Test
@@ -53,35 +53,35 @@ public class SchedulerLabelReaderWriterTest {
         attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(7).setEnd(8);
         attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
 
-        Assert.assertTrue(new SchedulerLabelReader(getTestTaskInfo()).getOfferAttributeStrings().isEmpty());
+        Assert.assertTrue(new TaskLabelReader(getTestTaskInfo()).getOfferAttributeStrings().isEmpty());
 
         Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
-        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.build()).toProto());
+        tb.setLabels(new TaskLabelWriter(tb).setOfferAttributes(offerBuilder.build()).toProto());
         List<String> expectedStrings = new ArrayList<>();
         expectedStrings.add("1:[5-6,10-12]");
         expectedStrings.add("2:123.457");
         expectedStrings.add("3:{foo,bar,baz}");
         expectedStrings.add("4:[7-8,10-12]");
-        Assert.assertEquals(expectedStrings, new SchedulerLabelReader(tb).getOfferAttributeStrings());
+        Assert.assertEquals(expectedStrings, new TaskLabelReader(tb).getOfferAttributeStrings());
 
-        tb.setLabels(new SchedulerLabelWriter(tb).setOfferAttributes(offerBuilder.clearAttributes().build()).toProto());
-        Assert.assertTrue(new SchedulerLabelReader(tb.build()).getOfferAttributeStrings().isEmpty());
+        tb.setLabels(new TaskLabelWriter(tb).setOfferAttributes(offerBuilder.clearAttributes().build()).toProto());
+        Assert.assertTrue(new TaskLabelReader(tb.build()).getOfferAttributeStrings().isEmpty());
     }
 
     @Test(expected = TaskException.class)
     public void testGetMissingTaskTypeFails() throws TaskException {
-        new SchedulerLabelReader(getTestTaskInfo()).getType();
+        new TaskLabelReader(getTestTaskInfo()).getType();
     }
 
     @Test
     public void testSetGetTaskType() throws TaskException {
         Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder).setType("foo").toProto());
-        Assert.assertEquals("foo", new SchedulerLabelReader(builder).getType());
+        builder.setLabels(new TaskLabelWriter(builder).setType("foo").toProto());
+        Assert.assertEquals("foo", new TaskLabelReader(builder).getType());
 
         builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder).setType("").toProto());
-        Assert.assertEquals("", new SchedulerLabelReader(builder).getType());
+        builder.setLabels(new TaskLabelWriter(builder).setType("").toProto());
+        Assert.assertEquals("", new TaskLabelReader(builder).getType());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class SchedulerLabelReaderWriterTest {
                 .setDelaySeconds(1.0)
                 .build();
         Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder)
+        builder.setLabels(new TaskLabelWriter(builder)
                 .setReadinessCheck(inReadinessCheck)
                 .toProto());
         Protos.HealthCheck outReadinessCheck = OfferRequirementTestUtils.getReadinessCheck(builder.build()).get();

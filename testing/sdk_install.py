@@ -118,6 +118,8 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
 
         except (dcos.errors.DCOSException, ValueError) as e:
             sdk_utils.out('Got exception when uninstalling package: {}'.format(e))
+        finally:
+            sdk_utils.list_reserved_resources()
 
 
 def get_package_options(additional_options={}):

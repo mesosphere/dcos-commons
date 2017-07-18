@@ -2,7 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluatorTestBase;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -50,7 +50,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
     @Test
     public void testUpdateResourcesNoHarmForAcceptableTaskInfo() throws TaskException {
         Protos.TaskInfo.Builder builder = baseTaskInfo.toBuilder();
-        builder.setLabels(new SchedulerLabelWriter(builder)
+        builder.setLabels(new TaskLabelWriter(builder)
                 .setType(TestConstants.TASK_TYPE)
                 .toProto());
         persistentLaunchRecorder.updateResources(builder.build());
@@ -66,7 +66,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
         String taskName = "pod-0-init";
         Protos.TaskInfo taskInfo = baseTaskInfo.toBuilder()
-                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                .setLabels(new TaskLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
                         .toProto())
@@ -98,7 +98,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
         String initTaskName = "pod-0-init";
         Protos.TaskInfo initTaskInfo = baseTaskInfo.toBuilder()
-                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                .setLabels(new TaskLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
                         .toProto())
@@ -108,7 +108,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
         String serverTaskName = "pod-0-server";
         Protos.TaskInfo serverTaskInfo = baseTaskInfo.toBuilder()
-                .setLabels(new SchedulerLabelWriter(baseTaskInfo)
+                .setLabels(new TaskLabelWriter(baseTaskInfo)
                         .setType("pod")
                         .setIndex(0)
                         .toProto())

@@ -6,12 +6,12 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.DefaultConfigStore;
 import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ public class BaseServiceSpecTest {
     private SchedulerFlags mockFlags;
 
     @Before
-    public void beforeEach() {
+    public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         when(mockFlags.getApiServerPort()).thenReturn(8080);
@@ -58,7 +58,7 @@ public class BaseServiceSpecTest {
         }
     }
 
-    protected void testYaml(String fileName) throws Exception {
+    protected RawServiceSpec getRawServiceSpec(String fileName) throws Exception {
         File yamlFile = new File(System.getProperty("user.dir") + "/src/main/dist/" + fileName);
         File file;
         try {
@@ -73,9 +73,18 @@ public class BaseServiceSpecTest {
         envVars.put("CONFIG_TEMPLATE_PATH", new File(yamlFile.getPath()).getParent());
         logger.info("Configured environment:\n{}", Joiner.on('\n').join(envVars.entrySet()));
 
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).setEnv(envVars).build();
-        DefaultServiceSpec serviceSpec =
-                DefaultServiceSpec.newGenerator(rawServiceSpec, mockFlags, new TaskEnvRouter(envVars)).build();
+        return RawServiceSpec.newBuilder(file).setEnv(envVars).build();
+    }
+
+    protected ServiceSpec getServiceSpec(String fileName) throws Exception {
+        return DefaultServiceSpec.newGenerator(
+                getRawServiceSpec(fileName),
+                mockFlags,
+                new TaskEnvRouter(envVars)).build();
+    }
+
+    protected void testYaml(String fileName) throws Exception {
+        ServiceSpec serviceSpec = getServiceSpec(fileName);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);
@@ -94,7 +103,7 @@ public class BaseServiceSpecTest {
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
-                .setPlansFrom(rawServiceSpec)
+                .setPlansFrom(getRawServiceSpec(fileName))
                 .build();
     }
 }

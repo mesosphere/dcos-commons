@@ -24,7 +24,7 @@ def get_config(app_name):
     return config
 
 
-def update_app(app_name, config):
+def update_app(app_name, config, timeout=600):
     if "env" in config:
         sdk_utils.out("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
@@ -34,7 +34,7 @@ def update_app(app_name, config):
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
 
     sdk_utils.out("Waiting for Marathon deployment of {} to complete...".format(app_name))
-    shakedown.deployment_wait(app_id=app_name, timeout=600)
+    shakedown.deployment_wait(app_id=app_name, timeout=timeout)
 
 
 def destroy_app(app_name):

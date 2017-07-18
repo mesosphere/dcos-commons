@@ -4,17 +4,17 @@ from functools import wraps
 import shakedown
 
 import sdk_cmd
-import sdk_hosts as hosts
-import sdk_marathon as marathon
+import sdk_hosts
+import sdk_marathon
 import sdk_plan
-import sdk_tasks as tasks
+import sdk_tasks
 import sdk_utils
 
 PACKAGE_NAME = 'elastic'
 
 DEFAULT_TASK_COUNT = 7
-WAIT_TIME_IN_SECONDS = 10 * 60
-KIBANA_WAIT_TIME_IN_SECONDS = 30 * 60
+DEFAULT_ELASTIC_TIMEOUT = 10 * 60
+DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
@@ -53,7 +53,7 @@ def check_kibana_adminrouter_integration(path):
         exit_status, output = shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
 
-    return shakedown.wait_for(fun, timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS, noisy=True)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_KIBANA_TIMEOUT, noisy=True)
 
 
 def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAME):
@@ -62,7 +62,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAM
         result = _get_elasticsearch_index_health(curl_api, index_name)
         return result and result["status"] == color
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
@@ -75,7 +75,7 @@ def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
         sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
         return node_count == DEFAULT_TASK_COUNT
 
-    return shakedown.wait_for(expected_nodes, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
@@ -84,7 +84,7 @@ def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and len(result) == DEFAULT_TASK_COUNT
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def check_plugin_uninstalled(plugin_name, service_name=PACKAGE_NAME):
@@ -93,7 +93,7 @@ def check_plugin_uninstalled(plugin_name, service_name=PACKAGE_NAME):
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and result == []
 
-    return shakedown.wait_for(fun, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
 def _get_hosts_with_plugin(curl_api, plugin_name):
@@ -154,11 +154,11 @@ def disable_xpack(service_name=PACKAGE_NAME):
 
 
 def _set_xpack(service_name, is_enabled):
-    config = marathon.get_config(service_name)
+    config = sdk_marathon.get_config(service_name)
     config['env']['TASKCFG_ALL_XPACK_ENABLED'] = is_enabled
-    marathon.update_app(service_name, config)
+    sdk_marathon.update_app(service_name, config)
     sdk_plan.wait_for_completed_deployment(service_name)
-    tasks.check_running(service_name, DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(service_name, DEFAULT_TASK_COUNT)
 
 
 def verify_xpack_license(service_name=PACKAGE_NAME):
@@ -229,7 +229,7 @@ def get_document(index_name, index_type, doc_id, service_name=PACKAGE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    host = "http://" + hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    host = "http://" + sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
     return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 

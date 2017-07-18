@@ -272,14 +272,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
           The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. As this implies, VIP names are on a per-service bases, not per-podtype.
 
-        * `protocol`
-
-          TODO(nickbp): This field should probably be removed in favor of just assuming `tcp`. IIRC we don't support UDP via VIPs anyway.
-
-        * `advertise`
-
-          TODO(nickbp): This field should be removed.
-
     * `health-check`
 
       Health checks are additional validation that your task is healthy, in addition to just the fact that its process is still running. This is an extra convenience for sitations where a service can enter a zombie state from which it can never return. For example, it might query an HTTP endpoint to validate that an HTTP service is still responding.

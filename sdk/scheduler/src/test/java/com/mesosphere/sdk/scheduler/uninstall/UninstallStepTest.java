@@ -4,6 +4,7 @@ import com.mesosphere.sdk.offer.CreateOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Before;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-public class UninstallStepTest {
+public class UninstallStepTest extends DefaultCapabilitiesTestSuite {
     private static final String RESOURCE_ID = "resource id";
     private static final String DIFFERENT_RESOURCE_ID = "nope";
     private UninstallStep uninstallStep;

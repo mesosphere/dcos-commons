@@ -4,7 +4,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -104,6 +103,7 @@ public class PodInstanceRequirementTestUtils {
                     TestConstants.PRINCIPAL,
                     envPort.getKey(),
                     String.format("test-port-%s", envPort.getKey()),
+                    TestConstants.PORT_VISIBILITY,
                     Collections.emptyList()));
         }
         return builder.build();
@@ -128,7 +128,7 @@ public class PodInstanceRequirementTestUtils {
                     TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
                     TestConstants.VIP_NAME + "-" + taskPort,
                     "tcp",
-                    DiscoveryInfo.Visibility.EXTERNAL,
+                    TestConstants.PORT_VISIBILITY,
                     TestConstants.VIP_NAME + "-" + taskPort,
                     entry.getKey(),
                     Collections.emptyList()));

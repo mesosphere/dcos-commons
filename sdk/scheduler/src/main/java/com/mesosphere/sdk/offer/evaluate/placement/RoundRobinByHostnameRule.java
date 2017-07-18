@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -68,7 +68,7 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
      */
     protected String getValue(TaskInfo task) {
         try {
-            return new SchedulerLabelReader(task).getHostname();
+            return new TaskLabelReader(task).getHostname();
         } catch (TaskException e) {
             LOGGER.warn("Unable to extract hostname from task for filtering", e);
             return null;

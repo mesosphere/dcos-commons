@@ -9,18 +9,25 @@ public class RawVip {
 
     private final int port;
     private final String prefix;
-    private final String protocol;
-    private final Boolean advertise;
 
+    /**
+     * TODO(nickbp): {@code protocol} and {@code advertise} are no longer used. Remove entirely after September 2017.
+     */
     private RawVip(
             @JsonProperty("port") int port,
             @JsonProperty("prefix") String prefix,
-            @JsonProperty("protocol") String protocol,
-            @JsonProperty("advertise") Boolean advertise) {
+            @Deprecated @JsonProperty("protocol") String protocol,
+            @Deprecated @JsonProperty("advertise") Boolean advertise) {
         this.port = port;
         this.prefix = prefix;
-        this.protocol = protocol;
-        this.advertise = advertise;
+        if (protocol != null) {
+            throw new IllegalArgumentException(
+                    "VIP 'protocol' field is no longer supported. Remove the 'protocol' setting from your YAML.");
+        }
+        if (advertise != null) {
+            throw new IllegalArgumentException(
+                    "VIP 'advertise' field is no longer supported. Remove the 'advertise' setting from your YAML.");
+        }
     }
 
     public int getPort() {
@@ -29,13 +36,5 @@ public class RawVip {
 
     public String getPrefix() {
         return prefix;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public Boolean isAdvertised() {
-        return advertise;
     }
 }

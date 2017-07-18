@@ -1,27 +1,29 @@
 import shakedown
 
-import sdk_plan as plan
-import sdk_utils as utils
-import sdk_tasks as tasks
+import sdk_plan
+import sdk_utils
+import sdk_tasks
 
 PACKAGE_NAME = 'hdfs'
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
+ZK_SERVICE_PATH = sdk_utils.get_zk_path(PACKAGE_NAME)
 TEST_CONTENT_SMALL = "This is some test data"
 # use long-read alignments to human chromosome 1 as large file input (11GB)
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
+DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
 def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):
@@ -77,11 +79,11 @@ def find_java_home(host):
     rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
     assert rc
     java_home = output.rstrip()
-    utils.out("java_home: {}".format(java_home))
+    sdk_utils.out("java_home: {}".format(java_home))
     return java_home
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):
-    plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=20 * 60)
-    plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=20 * 60)
-    tasks.check_running(PACKAGE_NAME, count)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
+    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
+    sdk_tasks.check_running(PACKAGE_NAME, count)

@@ -4,10 +4,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -114,6 +111,30 @@ public class TestPodFactory {
                 .memory(mem)
                 .addVolume(VolumeSpec.Type.ROOT.toString(), disk, TestConstants.CONTAINER_PATH)
                 .build();
+    }
+
+    public static PodSpec getMultiTaskPodSpec(
+            String type,
+            String resourceSetId,
+            String taskName,
+            String cmd,
+            int podCount,
+            double cpu,
+            double mem,
+            double disk,
+            int taskCount) {
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (int i = 0; i < taskCount; ++i) {
+            taskSpecs.add(getTaskSpec(
+                    taskName + i,
+                    cmd,
+                    resourceSetId,
+                    null,
+                    cpu,
+                    mem,
+                    disk));
+        }
+        return getPodSpec(type, podCount, taskSpecs);
     }
 
     public static PodSpec getPodSpec(
