@@ -12,6 +12,8 @@ import java.util.UUID;
  * This class tests the {@link OfferQueue}.
  */
 public class OfferQueueTest {
+    private static final int TEST_CAPACITY = 10;
+
     @Test
     public void testEmptyQueue() {
         OfferQueue offerQueue = new OfferQueue();
@@ -20,10 +22,10 @@ public class OfferQueueTest {
 
     @Test
     public void testEnqueueOffer() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         offerQueue.offer(getOffer());
         Assert.assertEquals(1, offerQueue.getSize());
-        Assert.assertEquals(OfferQueue.DEFAULT_CAPACITY - 1, offerQueue.getRemainingCapacity());
+        Assert.assertEquals(TEST_CAPACITY - 1, offerQueue.getRemainingCapacity());
     }
 
     @Test
@@ -40,16 +42,16 @@ public class OfferQueueTest {
 
     @Test
     public void testTakeOne() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         offerQueue.offer(getOffer());
         List<Protos.Offer> offers = offerQueue.takeAll();
         Assert.assertEquals(1, offers.size());
-        Assert.assertEquals(OfferQueue.DEFAULT_CAPACITY, offerQueue.getRemainingCapacity());
+        Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }
 
     @Test
     public void testTakeMultiple() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         int halfCapacity = offerQueue.getRemainingCapacity() / 2;
         for (int i = 0; i < halfCapacity; i++) {
             offerQueue.offer(getOffer());
@@ -57,12 +59,12 @@ public class OfferQueueTest {
 
         List<Protos.Offer> offers = offerQueue.takeAll();
         Assert.assertEquals(halfCapacity, offers.size());
-        Assert.assertEquals(OfferQueue.DEFAULT_CAPACITY, offerQueue.getRemainingCapacity());
+        Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }
 
     @Test
     public void testTakeFull() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         int capacity = offerQueue.getRemainingCapacity();
         for (int i = 0; i < capacity; i++) {
             offerQueue.offer(getOffer());
@@ -70,7 +72,7 @@ public class OfferQueueTest {
 
         List<Protos.Offer> offers = offerQueue.takeAll();
         Assert.assertEquals(capacity, offers.size());
-        Assert.assertEquals(OfferQueue.DEFAULT_CAPACITY, offerQueue.getRemainingCapacity());
+        Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }
 
     @Test

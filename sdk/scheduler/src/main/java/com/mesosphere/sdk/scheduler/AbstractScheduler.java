@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -12,7 +12,10 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +35,8 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
+
+    private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     /**
@@ -42,8 +47,7 @@ public abstract class AbstractScheduler implements Scheduler {
     /**
      * Executor for processing offers off the queue in {@code processOffers()}.
      */
-    protected final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
-
+    private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Creates a new AbstractScheduler given a {@link StateStore}.
@@ -89,10 +93,14 @@ public abstract class AbstractScheduler implements Scheduler {
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 processOfferSet(offers);
-                offersInProgress.removeAll(
-                        offers.stream()
-                                .map(offer -> offer.getId())
-                                .collect(Collectors.toList()));
+                synchronized (inProgressLock) {
+                    offersInProgress.removeAll(
+                            offers.stream()
+                                    .map(offer -> offer.getId())
+                                    .collect(Collectors.toList()));
+
+                    LOGGER.info("Offers in progress: {}", offersInProgress.stream().collect(Collectors.toList()));
+                }
             }
         });
     }
@@ -118,15 +126,19 @@ public abstract class AbstractScheduler implements Scheduler {
             return;
         }
 
-        offersInProgress.addAll(
-                offers.stream()
-                        .map(offer -> offer.getId())
-                        .collect(Collectors.toList()));
+        synchronized (inProgressLock) {
+            offersInProgress.addAll(
+                    offers.stream()
+                            .map(offer -> offer.getId())
+                            .collect(Collectors.toList()));
+        }
 
         for (Protos.Offer offer : offers) {
             boolean queued = offerQueue.offer(offer);
             if (!queued) {
-                LOGGER.warn("Failed to enqueue offer: '{}'", offer.getId().getValue());
+                LOGGER.warn(
+                        "Failed to enqueue offer. Offer queue is full. Declining offer: '{}'",
+                        offer.getId().getValue());
                 OfferUtils.declineOffers(driver, Arrays.asList(offer));
             }
         }
@@ -137,17 +149,23 @@ public abstract class AbstractScheduler implements Scheduler {
     protected abstract boolean apiServerReady();
 
     /**
-     * All offers must have been presented to resourceOffers() before calling this.
+     * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
+     * offers have been processed.
      * @throws InterruptedException
      */
     @VisibleForTesting
     public void awaitOffersProcessed() throws InterruptedException {
-        while (!offersInProgress.isEmpty()) {
-            LOGGER.warn("Offers to be processed {} is non empty, sleeping for 1s ...", offersInProgress);
-            Thread.sleep(1000);
-        }
+        while (true) {
+            synchronized (inProgressLock) {
+                if (offersInProgress.isEmpty()) {
+                    LOGGER.info("All offers processed.");
+                    return;
+                }
+            }
 
-        LOGGER.info("All offers processed.");
+            LOGGER.warn("Offers to be processed {} is non empty, sleeping for 500ms ...", offersInProgress);
+            Thread.sleep(500);
+        }
     }
 
     @Override
@@ -158,7 +176,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.info("Rescinding offer: {}.", offerId.getValue());
+        LOGGER.info("Rescinding offer: {}", offerId.getValue());
         offerQueue.remove(offerId);
     }
 

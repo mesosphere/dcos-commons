@@ -16,9 +16,7 @@ import java.util.stream.Collectors;
  * This class acts as a buffer of Offers from Mesos.  By default it holds a maximum of 100 Offers.
  */
 public class OfferQueue {
-    @VisibleForTesting
-    static final int DEFAULT_CAPACITY = 100;
-
+    private static final int DEFAULT_CAPACITY = 100;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
 
