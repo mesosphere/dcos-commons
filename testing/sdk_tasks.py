@@ -6,7 +6,7 @@ import sdk_utils
 import shakedown
 
 
-def check_running(service_name, expected_task_count, timeout_seconds=15 * 60):
+def check_running(service_name, expected_task_count, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     def fn():
         try:
             tasks = shakedown.get_service_tasks(service_name)
@@ -36,7 +36,7 @@ def get_task_ids(service_name, task_prefix):
     return [t['id'] for t in matching_tasks]
 
 
-def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=15 * 60):
+def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     def fn():
         try:
             task_ids = get_task_ids(service_name, prefix)
