@@ -4,6 +4,8 @@ import dcos
 import shakedown
 import pytest
 
+DEFAULT_TIMEOUT = 15 * 60
+
 def out(msg):
     '''Emit an informational message on test progress during test runs'''
     print(msg, file=sys.stderr)

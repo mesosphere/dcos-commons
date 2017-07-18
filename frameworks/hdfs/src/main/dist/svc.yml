@@ -57,16 +57,17 @@ pods:
         env:
           JOURNALNODE: true
         {{#JOURNAL_READINESS_CHECK_ENABLED}}
-        # We hit the JMX endpoint here as it includes a field called "RpcDetailedActivityForPort8485". The "JournalNumOps"
-        # inside of it is indicative of Journal Node operations being performed in coherence with the other HDFS
-        # components since the field is monitoring RPC traffic, hence signaling that the Journal Node is ready.
+        # We hit the JMX endpoint here as it includes a field called "RpcDetailedActivityForPort8485". 
+        # The "RpcProcessingTimeNumOps" inside of it is indicative of Journal Node operations being 
+        # performed in coherence with the other HDFS components since the field is monitoring RPC traffic,
+        # hence signaling that the Journal Node is ready.
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
               exit 0
             else
-              curl http://journal-$POD_INSTANCE_INDEX-node.hdfs.autoip.dcos.thisdcos.directory:{{TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT}}/jmx > tmpJmx.json &&
-              export JOURNAL_NUM_OPS=$(grep "JournalNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
+              export JOURNAL_NUM_OPS=$(grep "RpcProcessingTimeNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               [[ $JOURNAL_NUM_OPS -gt 0 ]]
             fi
           delay: 60
