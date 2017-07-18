@@ -2,6 +2,8 @@ package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
 
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -23,8 +25,11 @@ public class TaskTestUtils {
                 .setName(TestConstants.TASK_NAME)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setCommand(TestConstants.COMMAND_INFO)
-                .setContainer(TestConstants.CONTAINER_INFO)
-                .setLabels(TestConstants.getRequiredTaskLabels(index));
+                .setContainer(TestConstants.CONTAINER_INFO);
+        builder.setLabels(new TaskLabelWriter(builder)
+                .setType(TestConstants.TASK_TYPE)
+                .setIndex(index)
+                .toProto());
         for (Protos.Resource r : resources) {
             String resourceId = "";
             String dynamicPortAssignment = null;
@@ -76,21 +81,11 @@ public class TaskTestUtils {
         return getTaskInfo(resources, Math.abs(random.nextInt()));
     }
 
-    public static List<Protos.TaskInfo> getPodTaskInfos(
-            List<Protos.Resource> resources0,
-            List<Protos.Resource> resources1) {
-
-        Protos.TaskInfo taskInfo0 = getTaskInfo(resources0);
-        Protos.TaskInfo taskInfo1 = getTaskInfo(resources1);
-
-        return Arrays.asList(taskInfo0, taskInfo1);
-    }
-
     public static Protos.ExecutorInfo getExecutorInfo(Protos.Resource resource) {
         return getExecutorInfo(Arrays.asList(resource));
     }
 
-    public static Protos.ExecutorInfo getExecutorInfo(List<Protos.Resource> resources) {
+    private static Protos.ExecutorInfo getExecutorInfo(List<Protos.Resource> resources) {
         return getExecutorInfoBuilder().addAllResources(resources).build();
     }
 
@@ -99,10 +94,6 @@ public class TaskTestUtils {
                 .addResources(resource)
                 .setExecutorId(TestConstants.EXECUTOR_ID)
                 .build();
-    }
-
-    public static Protos.Environment.Variable createEnvironmentVariable(String key, String value) {
-        return Protos.Environment.Variable.newBuilder().setName(key).setValue(value).build();
     }
 
     private static Protos.ExecutorInfo.Builder getExecutorInfoBuilder() {
