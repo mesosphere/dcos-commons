@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
@@ -10,7 +12,11 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Abstract {@link Scheduler} that provides some default behaviors around Mesos lifecycle events such as
@@ -26,12 +32,25 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
+    private Set<Protos.OfferID> offersInProgress = new HashSet<>();
+
+    /**
+     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
+     */
+    protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * Executor for processing offers off the queue in {@code processOffers()}.
+     */
+    protected final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
+
 
     /**
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
     protected AbstractScheduler(StateStore stateStore) {
         this.stateStore = stateStore;
+        processOffers();
     }
 
     @Override
@@ -64,7 +83,72 @@ public abstract class AbstractScheduler implements Scheduler {
         postRegister();
     }
 
+    private void processOffers() {
+        offerExecutor.execute(() -> {
+            while (true) {
+                // This is a blocking call which pulls as many elements from the offer queue as possible.
+                List<Protos.Offer> offers = offerQueue.takeAll();
+                processOfferSet(offers);
+                offersInProgress.removeAll(
+                        offers.stream()
+                                .map(offer -> offer.getId())
+                                .collect(Collectors.toList()));
+            }
+        });
+    }
+
+    protected abstract void processOfferSet(List<Protos.Offer> offers);
+
+    @Override
+    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+        if (!apiServerReady()) {
+            LOGGER.info("Waiting for API Server to start ...");
+            OfferUtils.declineOffers(driver, offers);
+            return;
+        }
+
+        // Task Reconciliation:
+        // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+        // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+        // http://mesos.apache.org/documentation/latest/reconciliation/
+        reconciler.reconcile(driver);
+        if (!reconciler.isReconciled()) {
+            LOGGER.info("Waiting for task reconciliation to complete...");
+            OfferUtils.declineOffers(driver, offers);
+            return;
+        }
+
+        offersInProgress.addAll(
+                offers.stream()
+                        .map(offer -> offer.getId())
+                        .collect(Collectors.toList()));
+
+        for (Protos.Offer offer : offers) {
+            boolean queued = offerQueue.offer(offer);
+            if (!queued) {
+                LOGGER.warn("Failed to enqueue offer: '{}'", offer.getId().getValue());
+                OfferUtils.declineOffers(driver, Arrays.asList(offer));
+            }
+        }
+    }
+
     protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
+
+    protected abstract boolean apiServerReady();
+
+    /**
+     * All offers must have been presented to resourceOffers() before calling this.
+     * @throws InterruptedException
+     */
+    @VisibleForTesting
+    public void awaitOffersProcessed() throws InterruptedException {
+        while (!offersInProgress.isEmpty()) {
+            LOGGER.warn("Offers to be processed {} is non empty, sleeping for 1s ...", offersInProgress);
+            Thread.sleep(1000);
+        }
+
+        LOGGER.info("All offers processed.");
+    }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
