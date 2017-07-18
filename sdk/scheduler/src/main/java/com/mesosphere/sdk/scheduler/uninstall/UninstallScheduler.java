@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.*;
@@ -116,27 +115,13 @@ public class UninstallScheduler extends AbstractScheduler {
         offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
     }
 
+    public boolean apiServerReady() {
+        return schedulerApiServer.ready();
+    }
+
     @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
-        if (!apiServerReady()) {
-            LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-            OfferUtils.declineOffers(driver, offersToProcess);
-            return;
-        }
-
-        LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < offers.size(); ++i) {
-            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-        }
-
-        reconciler.reconcile(driver);
-        if (!reconciler.isReconciled()) {
-            LOGGER.info("Reconciliation is still in progress, declining all offers.");
-            OfferUtils.declineOffers(driver, offers);
-            return;
-        }
-
+    protected void processOfferSet(List<Protos.Offer> offers) {
+        List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
         if (!candidateSteps.isEmpty()) {
@@ -150,33 +135,32 @@ public class UninstallScheduler extends AbstractScheduler {
 
         offersWithReservedResources.addAll(
                 new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                        .resourceOffers(driver, offers));
+                        .resourceOffers(driver, localOffers));
 
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(
+                localOffers,
+                offersWithReservedResources);
 
         // Decline remaining offers.
         OfferUtils.declineOffers(driver, unusedOffers);
-
-    }
-
-    public boolean apiServerReady() {
-        return schedulerApiServer.ready();
     }
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message='{}'",
-                status.getTaskId().getValue(),
-                status.getState().toString(),
-                status.getMessage());
+        statusExecutor.execute(() -> {
+            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+                    status.getTaskId().getValue(),
+                    status.getState().toString(),
+                    status.getMessage());
 
-        try {
-            stateStore.storeStatus(status);
-            reconciler.update(status);
-        } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
-        }
+            try {
+                stateStore.storeStatus(status);
+                reconciler.update(status);
+            } catch (Exception e) {
+                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                        + "This may be expected if Mesos sent stale status information: " + status, e);
+            }
+        });
     }
 
     @Override

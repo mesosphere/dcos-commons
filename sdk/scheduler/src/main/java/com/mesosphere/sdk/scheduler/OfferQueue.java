@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +16,13 @@ import java.util.stream.Collectors;
  * This class acts as a buffer of Offers from Mesos.  By default it holds a maximum of 100 Offers.
  */
 public class OfferQueue {
-    public static final int DEFAULT_CAPACITY = 100;
+    @VisibleForTesting
+    static final int DEFAULT_CAPACITY = 100;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
 
-    public OfferQueue () {
+    public OfferQueue() {
         this(DEFAULT_CAPACITY);
     }
 
@@ -35,6 +37,8 @@ public class OfferQueue {
     public List<Protos.Offer> takeAll() {
         List<Protos.Offer> offers = new LinkedList<>();
         try {
+            // The take() call is blocking, so waits for at least one Offer is returned.  The following drainTo() call
+            // will pull the remainder of Offers (including zero Offers) off the queue and return.
             offers.add(queue.take());
             queue.drainTo(offers);
         } catch (InterruptedException e) {
@@ -45,7 +49,8 @@ public class OfferQueue {
     }
 
     /**
-     * This method enqueues an Offer from Mesos if their is capacity.
+     * This method enqueues an Offer from Mesos if there is capacity. If there is not capacity the Offer is not added
+     * to the queue.
      * @return true if the Offer was successfully put in the queue, false otherwise
      */
     public boolean offer(Protos.Offer offer) {
@@ -62,10 +67,7 @@ public class OfferQueue {
 
         boolean removed = queue.removeAll(offers);
         if (!removed) {
-            logger.warn(
-                    String.format(
-                            "Attempted to remove offer: '%s' but it was not present in the queue.",
-                            offerID.getValue()));
+            logger.warn("Attempted to remove offer: '{}' but it was not present in the queue.", offerID.getValue());
         } else {
             logger.info("Removed offer: {}", offerID.getValue());
         }
@@ -81,14 +83,16 @@ public class OfferQueue {
     /**
      * This method returns the number of elements in the queue.
      */
-    public int getSize() {
+    @VisibleForTesting
+    int getSize() {
         return queue.size();
     }
 
     /**
      * This method returns the remaining capacity in the queue.
      */
-    public int getRemainingCapacity() {
+    @VisibleForTesting
+    int getRemainingCapacity() {
         return queue.remainingCapacity();
     }
 }
