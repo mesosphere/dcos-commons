@@ -214,7 +214,13 @@ public class MemPersister implements Persister {
     }
 
     private static String getInfo(byte[] bytes) {
-        return bytes == null ? "NULL" : String.format("%d bytes", bytes.length);
+        if (bytes == null) {
+            return "NULL";
+        } else if (bytes.length == 1) {
+            return "1 byte";
+        } else {
+            return String.format("%d bytes", bytes.length);
+        }
     }
 
     private static Node getNode(Node root, String path, boolean createIfMissing) {

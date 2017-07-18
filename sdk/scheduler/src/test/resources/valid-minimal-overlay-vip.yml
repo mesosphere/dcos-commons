@@ -15,7 +15,6 @@ pods:
             vip:
               prefix: overlay-vip
               port: 80
-              #advertise: true
         memory: 512
         discovery:
           prefix: meta-data

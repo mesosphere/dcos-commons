@@ -109,16 +109,16 @@ public class DefaultServiceSpec implements ServiceSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultServiceSpec copy) {
+    public static Builder newBuilder(ServiceSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.role = copy.role;
-        builder.principal = copy.principal;
-        builder.apiPort = copy.apiPort;
-        builder.zookeeperConnection = copy.zookeeperConnection;
-        builder.webUrl = copy.webUrl;
-        builder.pods = copy.pods;
-        builder.replacementFailurePolicy = copy.replacementFailurePolicy;
+        builder.name = copy.getName();
+        builder.role = copy.getRole();
+        builder.principal = copy.getPrincipal();
+        builder.apiPort = copy.getApiPort();
+        builder.zookeeperConnection = copy.getZookeeperConnection();
+        builder.webUrl = copy.getWebUrl();
+        builder.pods = copy.getPods();
+        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
         return builder;
     }
 

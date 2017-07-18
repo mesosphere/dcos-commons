@@ -1,13 +1,13 @@
 import pytest
 import urllib
 
-import sdk_hosts as hosts
-import sdk_install as install
-import sdk_marathon as marathon
-import sdk_plan as plan
-import sdk_tasks as tasks
-import sdk_utils as utils
-import sdk_metrics as metrics
+import sdk_hosts
+import sdk_install
+import sdk_marathon
+import sdk_plan
+import sdk_tasks
+import sdk_utils
+import sdk_metrics
 import shakedown
 import dcos
 import dcos.config
@@ -19,23 +19,23 @@ from tests.config import *
 
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
-FOLDERED_SERVICE_NAME = utils.get_foldered_name(PACKAGE_NAME)
-ZK_SERVICE_PATH = utils.get_zk_path(PACKAGE_NAME)
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
+ZK_SERVICE_PATH = sdk_utils.get_zk_path(PACKAGE_NAME)
 
 
 def setup_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(
+    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    sdk_utils.gc_frameworks()
+    sdk_install.install(
         PACKAGE_NAME,
         DEFAULT_BROKER_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+    sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 # --------- Endpoints -------------
@@ -54,8 +54,8 @@ def test_endpoints_address():
     assert len(endpoints['address']) == DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
     for i in range(len(endpoints['dns'])):
-        assert hosts.autoip_host(FOLDERED_SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
-    assert endpoints['vips'][0] == hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
+        assert sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
+    assert endpoints['vips'][0] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
 
 
 @pytest.mark.smoke
@@ -68,7 +68,7 @@ def test_endpoints_zookeeper_default():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_custom_zookeeper():
-    broker_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
+    broker_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     # sanity check: brokers should be reinitialized:
     brokers = service_cli('broker list', service_name=FOLDERED_SERVICE_NAME)
@@ -78,7 +78,7 @@ def test_custom_zookeeper():
     service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME), service_name=FOLDERED_SERVICE_NAME)
     assert service_cli('topic list', service_name=FOLDERED_SERVICE_NAME) == [DEFAULT_TOPIC_NAME]
 
-    config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     # should be using default path when this envvar is empty/unset:
     assert config['env']['KAFKA_ZOOKEEPER_URI'] == ''
 
@@ -86,10 +86,10 @@ def test_custom_zookeeper():
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
     zk_path = 'master.mesos:2181/dcos-service-{}/CUSTOMPATH'.format(ZK_SERVICE_PATH)
     config['env']['KAFKA_ZOOKEEPER_URI'] = zk_path
-    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
-    plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
+    sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False, service_name=FOLDERED_SERVICE_NAME)
     assert zookeeper.rstrip('\n') == zk_path
@@ -279,9 +279,9 @@ def test_pods_cli():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker", DEFAULT_KAFKA_TIMEOUT)
+    sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker", DEFAULT_KAFKA_TIMEOUT)
 
 
 # --------- Suppressed -------------

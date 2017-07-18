@@ -4,10 +4,10 @@ from functools import wraps
 import shakedown
 
 import sdk_cmd
-import sdk_hosts as hosts
-import sdk_marathon as marathon
+import sdk_hosts
+import sdk_marathon
 import sdk_plan
-import sdk_tasks as tasks
+import sdk_tasks
 import sdk_utils
 
 PACKAGE_NAME = 'elastic'
@@ -154,11 +154,11 @@ def disable_xpack(service_name=PACKAGE_NAME):
 
 
 def _set_xpack(service_name, is_enabled):
-    config = marathon.get_config(service_name)
+    config = sdk_marathon.get_config(service_name)
     config['env']['TASKCFG_ALL_XPACK_ENABLED'] = is_enabled
-    marathon.update_app(service_name, config)
+    sdk_marathon.update_app(service_name, config)
     sdk_plan.wait_for_completed_deployment(service_name)
-    tasks.check_running(service_name, DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(service_name, DEFAULT_TASK_COUNT)
 
 
 def verify_xpack_license(service_name=PACKAGE_NAME):
@@ -229,7 +229,7 @@ def get_document(index_name, index_type, doc_id, service_name=PACKAGE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    host = "http://" + hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    host = "http://" + sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
     return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
