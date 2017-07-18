@@ -6,10 +6,10 @@ import traceback
 
 import shakedown
 import sdk_cmd as cmd
-import sdk_install as install
-import sdk_plan as plan
-import sdk_tasks as tasks
-import sdk_marathon as marathon
+import sdk_install
+import sdk_plan
+import sdk_tasks
+import sdk_marathon
 
 from tests.config import (
     PACKAGE_NAME
@@ -19,11 +19,11 @@ num_private_agents = len(shakedown.get_private_agents())
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.smoke
@@ -41,16 +41,16 @@ def test_rack_not_found():
         }
     }
 
-    install.install(PACKAGE_NAME, 0, additional_options=options, check_suppression=False)
+    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, check_suppression=False)
     try:
-        tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=60)
+        sdk_tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
     except AssertionError as arg:
         raise arg
     except:
         pass # expected to fail
 
-    pl = plan.get_deployment_plan(PACKAGE_NAME)
+    pl = sdk_plan.get_deployment_plan(PACKAGE_NAME)
 
     # check that everything is still stuck looking for a match:
     assert pl['status'] == 'IN_PROGRESS'
@@ -69,7 +69,7 @@ def test_rack_not_found():
     assert len(steps2) == 2
     assert steps2[0]['status'] == 'PENDING'
     assert steps2[1]['status'] == 'PENDING'
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -89,21 +89,21 @@ def test_hostname_unique():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options)
+    sdk_install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options)
     # hello deploys first. One "world" task should end up placed with each "hello" task.
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # ensure "hello" task can still be placed with "world" task
     cmd.run_cli('hello-world pods replace hello-0')
-    tasks.check_running(PACKAGE_NAME, num_private_agents * 2 - 1, timeout_seconds=10)
-    tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
+    sdk_tasks.check_running(PACKAGE_NAME, num_private_agents * 2 - 1, timeout_seconds=10)
+    sdk_tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_max_per_hostname():
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
@@ -118,15 +118,15 @@ def test_max_per_hostname():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents * 5, additional_options=options)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_install.install(PACKAGE_NAME, num_private_agents * 5, additional_options=options)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=2, world_count=3)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_rr_by_hostname():
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
@@ -141,15 +141,15 @@ def test_rr_by_hostname():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents * 4, additional_options=options)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_install.install(PACKAGE_NAME, num_private_agents * 4, additional_options=options)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=2, world_count=2)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_cluster():
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
     some_agent = shakedown.get_private_agents().pop()
     options = {
         "service": {
@@ -164,8 +164,8 @@ def test_cluster():
         }
     }
 
-    install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=num_private_agents, world_count=0)
 
 
@@ -190,14 +190,14 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Additionally, modify the task count to be higher.
-    config = marathon.get_config(PACKAGE_NAME)
+    config = sdk_marathon.get_config(PACKAGE_NAME)
     config['env']['HELLO_COUNT'] = '2'
-    marathon.update_app(PACKAGE_NAME, config)
+    sdk_marathon.update_app(PACKAGE_NAME, config)
 
     # Now, an additional hello-server task will launch
     # where the _new_ constraint will tell it to be.
-    tasks.check_running(PACKAGE_NAME, 2)
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_tasks.check_running(PACKAGE_NAME, 2)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     assert get_task_host('hello-0-server') == some_agent
     assert get_task_host('hello-1-server') == other_agent
@@ -208,7 +208,7 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
 def test_updated_placement_constraints_no_task_change():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
-    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', old_ids)
+    sdk_tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
 
@@ -220,7 +220,7 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
 
     # Restart the task, and verify it doesn't move hosts
     cmd.run_cli('hello-world pods restart hello-0')
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
+    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
 
@@ -232,13 +232,13 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
 
     # Replace the task, and verify it moves hosts
     cmd.run_cli('hello-world pods replace hello-0')
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
+    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == other_agent
 
 
 def setup_constraint_switch():
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
     agents = shakedown.get_private_agents()
     some_agent = agents[0]
@@ -258,16 +258,16 @@ def setup_constraint_switch():
             "count": 0
         }
     }
-    install.install(PACKAGE_NAME, 1, additional_options=options)
-    tasks.check_running(PACKAGE_NAME, 1)
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
+    sdk_tasks.check_running(PACKAGE_NAME, 1)
+    hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello')
 
     # Now, stick it to other_agent
-    config = marathon.get_config(PACKAGE_NAME)
+    config = sdk_marathon.get_config(PACKAGE_NAME)
     config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
-    marathon.update_app(PACKAGE_NAME, config)
+    sdk_marathon.update_app(PACKAGE_NAME, config)
     # Wait for the scheduler to be up and settled before advancing.
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     return some_agent, other_agent, hello_ids
 

@@ -1,8 +1,8 @@
 import pytest
 
 import shakedown
-import sdk_install as install
-import sdk_plan as plan
+import sdk_install
+import sdk_plan
 import sdk_utils
 
 from tests.config import (
@@ -11,24 +11,24 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/executor_volume.yml"
         }
     }
 
-    install.install(PACKAGE_NAME, 3, additional_options=options)
+    sdk_install.install(PACKAGE_NAME, 3, additional_options=options)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.executor_volumes
 def test_deploy():
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
+    deployment_plan = sdk_plan.get_deployment_plan(PACKAGE_NAME)
     sdk_utils.out("deployment plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 3)
@@ -43,12 +43,12 @@ def test_deploy():
 @pytest.mark.sanity
 @pytest.mark.executor_volumes
 def test_sidecar():
-    plan.start_plan(PACKAGE_NAME, 'sidecar')
+    sdk_plan.start_plan(PACKAGE_NAME, 'sidecar')
 
-    started_plan = plan.get_plan(PACKAGE_NAME, 'sidecar')
+    started_plan = sdk_plan.get_plan(PACKAGE_NAME, 'sidecar')
     sdk_utils.out("sidecar plan: " + str(started_plan))
     assert(len(started_plan['phases']) == 1)
     assert(started_plan['phases'][0]['name'] == 'sidecar-deploy')
     assert(len(started_plan['phases'][0]['steps']) == 2)
 
-    plan.wait_for_completed_plan(PACKAGE_NAME, 'sidecar')
+    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'sidecar')

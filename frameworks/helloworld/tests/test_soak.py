@@ -5,10 +5,10 @@ import json
 import os
 
 import sdk_cmd as cmd
-import sdk_install as install
-import sdk_plan as plan
-import sdk_tasks as tasks
-import sdk_marathon as marathon
+import sdk_install
+import sdk_plan
+import sdk_tasks
+import sdk_marathon
 import sdk_test_upgrade
 from tests.config import (
     PACKAGE_NAME,
@@ -45,8 +45,8 @@ def test_soak_secrets_update():
     test_soak_secrets_restart_hello0()
 
     # get new task ids - only first pod
-    hello_tasks = tasks.get_task_ids(FRAMEWORK_NAME, "hello-0")
-    world_tasks = tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
+    hello_tasks = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "hello-0")
+    world_tasks = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
 
     # make sure content is changed
     assert secret_content_alternative == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
@@ -69,25 +69,25 @@ def test_soak_secrets_update():
 @pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
 def test_soak_secrets_framework_alive():
 
-    plan.wait_for_completed_deployment(FRAMEWORK_NAME)
-    tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_plan.wait_for_completed_deployment(FRAMEWORK_NAME)
+    sdk_tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
 
 
 def test_soak_secrets_restart_hello0():
 
-    hello_tasks_old = tasks.get_task_ids(FRAMEWORK_NAME, "hello-0")
-    world_tasks_old = tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
+    hello_tasks_old = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "hello-0")
+    world_tasks_old = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
     cmd.run_cli('hello-world --name={} pods restart hello-0'.format(FRAMEWORK_NAME))
     cmd.run_cli('hello-world --name={} pods restart world-0'.format(FRAMEWORK_NAME))
 
     # wait pod restart to complete
-    tasks.check_tasks_updated(FRAMEWORK_NAME, "hello-0", hello_tasks_old)
-    tasks.check_tasks_updated(FRAMEWORK_NAME, 'world-0', world_tasks_old)
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, "hello-0", hello_tasks_old)
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'world-0', world_tasks_old)
 
     # wait till it all running
-    tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(FRAMEWORK_NAME, NUM_HELLO + NUM_WORLD)
 
 
 def task_exec(task_name, command):

@@ -3,9 +3,9 @@ import json
 
 import shakedown
 
-import sdk_tasks as tasks
-import sdk_install as install
-import sdk_utils as utils
+import sdk_tasks
+import sdk_install
+import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME,
@@ -16,19 +16,19 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_utils.gc_frameworks()
     options = {
         "service": {
             "spec_file": "examples/multistep_plan.yml"
         }
     }
 
-    install.install(PACKAGE_NAME, 1, additional_options=options)
+    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -42,12 +42,12 @@ def test_bump_hello_cpus():
         return diff < epsilon
 
     check_running(PACKAGE_NAME)
-    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    utils.out('hello ids: ' + str(hello_ids))
+    hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello')
+    sdk_utils.out('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus(PACKAGE_NAME)
 
-    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running(PACKAGE_NAME)
 
     all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
