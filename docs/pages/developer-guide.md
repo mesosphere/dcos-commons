@@ -1019,7 +1019,7 @@ name: "hello-world"
 pods:
   hello:
     count: 1
-    volumes:
+    volume:
       path: "shared-container-path"
       type: ROOT
       size: 50
