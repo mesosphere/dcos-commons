@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
@@ -13,7 +12,6 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultTaskSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
@@ -32,15 +30,10 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String RECOVERY_PHASE_NAME = "permanent-node-failure-recovery";
     private final StateStore stateStore;
-    private final ConfigStore<ServiceSpec> configStore;
     private final Plan replaceNodePlan;
 
-    public CassandraRecoveryPlanOverrider(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            Plan replaceNodePlan) {
+    public CassandraRecoveryPlanOverrider(StateStore stateStore, Plan replaceNodePlan) {
         this.stateStore = stateStore;
-        this.configStore = configStore;
         this.replaceNodePlan = replaceNodePlan;
     }
 
@@ -52,7 +45,6 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
             return Optional.empty();
         }
 
-        Phase nnPhase = null;
         int index = stoppedPod.getPodInstance().getIndex();
         logger.info(String.format("Returning replacement plan for node %d.", index));
         return Optional.ofNullable(getNodeRecoveryPhase(replaceNodePlan, index));
