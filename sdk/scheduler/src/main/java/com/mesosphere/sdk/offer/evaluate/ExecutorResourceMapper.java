@@ -163,7 +163,7 @@ public class ExecutorResourceMapper {
                     resourceLabels.getSourceRoot(),
                     useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, resourceId, null);
+            return new ResourceEvaluationStage(resourceSpec, resourceId, resourceLabels.getPersistenceId(), null);
         }
     }
 
@@ -171,7 +171,7 @@ public class ExecutorResourceMapper {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getNew((VolumeSpec) resourceSpec, null, useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), null);
+            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(), null);
         }
     }
 }

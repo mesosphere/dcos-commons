@@ -81,7 +81,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                    OfferEvaluationUtils.evaluateSimpleResource(this, updatedPortSpec, resourceId, mesosResourcePool);
+                    OfferEvaluationUtils.evaluateSimpleResource(this, updatedPortSpec, resourceId, Optional.empty(),
+                            mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;

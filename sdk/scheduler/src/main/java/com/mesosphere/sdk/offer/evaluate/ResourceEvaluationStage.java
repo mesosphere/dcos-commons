@@ -21,6 +21,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
     private final Optional<String> requiredResourceId;
     private final ResourceSpec resourceSpec;
+    private final Optional<String> persistenceId;
 
     /**
      * Creates a new instance for basic resource evaluation.
@@ -29,10 +30,12 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
      * @param requiredResourceId any previously reserved resource ID to be required, or empty for a new reservation
      * @param taskName the name of the task which will use this resource
      */
-    public ResourceEvaluationStage(ResourceSpec resourceSpec, Optional<String> requiredResourceId, String taskName) {
+    public ResourceEvaluationStage(ResourceSpec resourceSpec, Optional<String> requiredResourceId,
+            Optional<String> persistenceId, String taskName) {
         this.resourceSpec = resourceSpec;
         this.requiredResourceId = requiredResourceId;
         this.taskName = taskName;
+        this.persistenceId = persistenceId;
     }
 
     @Override
@@ -56,7 +59,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         }
 
         OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                OfferEvaluationUtils.evaluateSimpleResource(this, resourceSpec, requiredResourceId, mesosResourcePool);
+                OfferEvaluationUtils.evaluateSimpleResource(this, resourceSpec, requiredResourceId, persistenceId,
+                        mesosResourcePool);
 
         EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
         if (!evaluationOutcome.isPassing()) {

@@ -220,7 +220,7 @@ class TaskResourceMapper {
             return VolumeEvaluationStage.getExisting(
                     (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, sourceRoot, useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, resourceId, taskSpecName);
+            return new ResourceEvaluationStage(resourceSpec, resourceId, persistenceId, taskSpecName);
         }
     }
 }

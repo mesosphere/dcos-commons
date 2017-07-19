@@ -341,7 +341,8 @@ public class OfferEvaluator {
                 } else if (resourceSpec instanceof PortSpec) {
                     evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
                 } else {
-                    evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
+                    evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(),
+                                taskName));
                 }
 
                 if (preReservedRole == null && role == null && principal == null) {
@@ -358,7 +359,8 @@ public class OfferEvaluator {
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
                 for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
-                    evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), null));
+                    evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(),
+                                null));
                 }
                 shouldAddExecutorResources = false;
             }
