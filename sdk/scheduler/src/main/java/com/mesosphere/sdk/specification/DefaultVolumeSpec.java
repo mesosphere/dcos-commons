@@ -21,7 +21,15 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     /** Regexp in @Pattern will detect blank string. No need to use @NotEmpty or @NotBlank. */
     @NotNull
-    @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
+    /*  No Slash character is allowed in container-path if using Persistent Volume
+         Mesos isolator/containerizer silently ignores mount operation:
+            mesos: src/slave/containerizer/mesos/isolators/filesystem/linux.cpp#L628
+            mesos:/src/slave/containerizer/docker.cpp#L473
+      Previous pattern:
+           @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
+                someDir/anotherDir in SandBox is not a valid path
+     */
+    @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*")
     private final String containerPath;
 
     public DefaultVolumeSpec(
