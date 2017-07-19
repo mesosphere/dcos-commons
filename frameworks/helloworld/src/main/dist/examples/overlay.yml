@@ -1,4 +1,6 @@
 name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
 pods:
   hello-overlay-vip:
     count: 1
