@@ -506,7 +506,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange(),
                 new PodSpecsCannotChangeNetworkRegime(),
-                new PreReservationCannotChange());
+                new PreReservationCannotChange(),
+                new UserCannotChange());
     }
 
     /**
