@@ -28,7 +28,7 @@ public class SchedulerApiServerTest {
         SchedulerApiServer schedulerApiServer = new SchedulerApiServer(12345, Collections.emptyList(),
                 Duration.ofMillis(TIMEOUT_MILLIS));
         new Thread(schedulerApiServer).start();
-        Thread.sleep(TIMEOUT_MILLIS * 10);
+        Thread.sleep(TIMEOUT_MILLIS * 50);
         Assert.assertTrue(schedulerApiServer.ready());
     }
 
