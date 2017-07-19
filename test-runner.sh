@@ -31,6 +31,9 @@ if [ -n "$PYTEST_M" ]; then
     pytest_m="-m \"$PYTEST_M\""
 fi
 
+eval "$(ssh-agent -s)"
+ssh-add /ssh/key
+
 for framework in $FRAMEWORK_LIST; do
     echo "STARTING: $framework"
     FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}

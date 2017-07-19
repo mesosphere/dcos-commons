@@ -15,9 +15,10 @@ FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-s] all|<framework-name>"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"sanity and not azure\"]"
     echo "-k passed to pytest directly [default NONE]"
+    echo "-p PATH to cluster SSH key [default ~/.ssh/ccm.pem]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "AWS credentials must exist in the variables:"
@@ -58,9 +59,10 @@ fi
 security="permissive"
 pytest_m="sanity and not azure"
 pytest_k=""
+azure_args=""
+ssh_path="${HOME}/.ssh/ccm.pem"
 
 # If AZURE variables are given, change default -m and prepare args for docker
-azure_args=""
 if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
         -n "$AZURE_DEV_TENANT_ID" -a -n "$AZURE_DEV_STORAGE_ACCOUNT" -a \
         -n "$AZURE_DEV_STORAGE_KEY" ]; then
@@ -92,6 +94,10 @@ case $key in
     security="strict"
     shift # past argument
     ;;
+    -p)
+    ssh_path="$2"
+    shift # past argument
+    ;;
     *)
     usage
             # unknown option
@@ -106,7 +112,7 @@ if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
     exit 1
 fi
 
-docker run \
+docker run --rm \
     -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
     -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
     -e CLUSTER_URL=$CLUSTER_URL \
@@ -117,6 +123,7 @@ docker run \
     -e FRAMEWORK=$framework \
     -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
     -v $(pwd):/build \
+    -v $ssh_path:/ssh/key \
     -w /build \
     michaelellenburg/dcos-commons:v0 \
     bash test-runner.sh
