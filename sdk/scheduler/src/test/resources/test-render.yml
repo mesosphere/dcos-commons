@@ -1,0 +1,14 @@
+name: test-render
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: ./test-render
+        cpus: 1.0
+        memory: 256
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{VOL_SIZE}}

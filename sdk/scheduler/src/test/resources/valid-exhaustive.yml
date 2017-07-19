@@ -3,7 +3,6 @@ web-url: http://webui.data-store.mesos
 scheduler:
   principal: "some-other-principal"
   zookeeper: non-default-zk:2181
-  api-port: {{PORT_API}}
 pods:
   meta-data:
     placement: "hostname:UNIQUE"

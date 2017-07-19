@@ -362,11 +362,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
                         configUpdateResult.getTargetId(), configUpdateResult.getErrors());
                 try {
-                    // If the proposed configuration is rejected we must still use the latest API port.
-                    ServiceSpec originalTargetConfig = configStore.fetch(configStore.getTargetConfig());
-                    serviceSpec = DefaultServiceSpec.newBuilder(originalTargetConfig)
-                            .apiPort(serviceSpec.getApiPort())
-                            .build();
+                    // If there were errors maintain the last accepted target configuration.
+                    serviceSpec = configStore.fetch(configStore.getTargetConfig());
                 } catch (ConfigStoreException e) {
                     LOGGER.error("Failed to maintain pervious target configuration.");
                     throw new IllegalStateException(e);
@@ -737,7 +734,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+        schedulerApiServer = new SchedulerApiServer(
+                schedulerFlags.getApiServerPort(),
+                resources,
                 schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }

@@ -66,7 +66,6 @@ public class YAMLToInternalMappers {
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
-                .apiPort(SchedulerUtils.getApiPort(rawServiceSpec, schedulerFlags))
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
                 .webUrl(rawServiceSpec.getWebUrl());
 
