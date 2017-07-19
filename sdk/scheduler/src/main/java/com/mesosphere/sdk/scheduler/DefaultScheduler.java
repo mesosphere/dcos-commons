@@ -762,16 +762,19 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
         for (int i = 0; i < localOffers.size(); ++i) {
-            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(localOffers.get(i)));
+            LOGGER.info("  {}: {}",
+                    i + 1,
+                    TextFormat.shortDebugString(localOffers.get(i)));
         }
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
         acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
+        LOGGER.info(
+                "Offers accepted by plan coordinator: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
-        localOffers.clear();
-        localOffers.addAll(unusedOffers);
 
         // Resource Cleaning:
         // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
@@ -782,10 +785,20 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
         // offer cycle.
         final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-        cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
-                resourceCleanerScheduler.resourceOffers(driver, localOffers)));
+        if (cleanerScheduler.isPresent()) {
+            List<Protos.OfferID> cleanedOffers = cleanerScheduler.get().resourceOffers(driver, unusedOffers);
+            LOGGER.info("Offers accepted by resource cleaner: {}", cleanedOffers);
+            acceptedOffers.addAll(cleanedOffers);
+        }
+
+        LOGGER.info(
+                "Total accepted offers: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
         unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
+        LOGGER.info(
+                "Unused offers to be declined: {}",
+                unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
         // Decline remaining offers.
         OfferUtils.declineOffers(driver, unusedOffers);
