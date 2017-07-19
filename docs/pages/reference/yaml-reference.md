@@ -360,7 +360,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `plans`
 
-  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
+  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
 
   * `strategy`
 

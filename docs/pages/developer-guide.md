@@ -199,7 +199,9 @@ Since a single pod instance was requested via the *count* element, only a single
 
 ## Plans
 
-In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
+In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+
+### Default Deployment Plan
 
 The example below defines a service with two types of pods, each of which deploys two instances.
 
@@ -228,13 +230,10 @@ There are a number of possible deployment strategies: In parallel or serially, a
 
 By default, the SDK will deploy all instances of pods serially.  In the example above, the default deployment order would be:
 
-1. hello-pod-0-hello-task
-
-1. hello-pod-1-hello-task
-
-1. world-pod-0-world-task
-
-1. world-pod-1-world-task
+1. `hello-pod-0-hello-task`
+1. `hello-pod-1-hello-task`
+1. `world-pod-0-world-task`
+1. `world-pod-1-world-task`
 
 Each pod’s task must reach its goal of `RUNNING` before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
 
@@ -304,6 +303,8 @@ The strategy associated with the deployment plan as a whole is serial, so the ph
 
 The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
 
+### Custom Deployment Plan
+
 More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:
 
 ```yaml
@@ -333,6 +334,14 @@ pods:
 By default, the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
 
 ```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      init:
+        [...]
+      main:
+        [...]
 plans:
   deploy:
     strategy: serial
@@ -343,14 +352,22 @@ plans:
 
 This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
 
-1. hello-0-init
-1. hello-0-main
-1. hello-1-init
-1. hello-1-main
+1. `hello-0-init`
+1. `hello-0-main`
+1. `hello-1-init`
+1. `hello-1-main`
 
 Consider the case where the init task should only occur once for the first pod, and all subsequent pods should just launch their `main` task. Such a plan could be written as follows:
 
 ```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      init:
+        [...]
+      main:
+        [...]
 plans:
   deploy:
     strategy: serial
@@ -362,11 +379,72 @@ plans:
 
 This plan would result in steps generating the following tasks:
 
-1. hello-0-init
-1. hello-0-main
-1. hello-1-main
+1. `hello-0-init`
+1. `hello-0-main`
+1. `hello-1-main`
 
-You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+### Custom Update Plans
+
+When a configuration change is being rolled out, the Scheduler will by default use the current Deploy plan, whether that's a custom plan named `deploy` or the default deployment plan. Some services require additional logic when performing configuration or software updates, in which case a plan named `update` may be provided. The `update` plan, if defined, will be used instead of the `deploy` plan when rolling out a configuration change. It's otherwise functionally similar to the custom `deploy` logic described above.
+
+### Custom Auxiliary Plans
+
+Finally, you may define entirely custom plans which are meant to be invoked by operators. These may define the steps required to perform a backup or restore operation of the service. They may even take additional parameters as input. For example, here is an example plan which will back up a data store to S3:
+
+```yaml
+pods:
+  node:
+    [...]
+    tasks:
+      [...]
+      backup-schema:
+        [...]
+      snapshot:
+        [...]
+      upload-s3:
+        [...]
+      cleanup-snapshot:
+        [...]
+plans:
+  [...]
+  backup-s3:
+    strategy: serial
+    phases:
+      backup-schema:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[backup-schema]]
+      create-snapshots:
+        strategy: parallel
+        pod: node
+        steps:
+          - default: [[snapshot]]
+      upload-backups:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[upload-s3]]
+      cleanup-snapshots:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[cleanup-snapshot]]
+```
+
+In this example, four Tasks were defined in the `node` pod to perform the four steps necessary to back up this service. These tasks were named `backup-schema`, `snapshot`, `upload-s3`, and `cleanup-snapshot`. These Tasks are then listed in the `backup-s3` Plan as Steps. Each of the Tasks has a shell script which performs the work, optionally using environment variables provided by the operator. The operator invokes the `backup-s3` plan and provides any such parameters via repeated `-p` arguments:
+
+```
+$ dcos myservice plan start backup-s3 \
+    -p BACKUP_NAME=mybackup \
+    -p BACKUP_TABLES=criticaldata \
+    -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -p AWS_REGION=$AWS_REGION \
+    -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+```
+
+Any parameters passed via `-p` are automatically passed though to the invoked Tasks as environment variables. Service developers must separately document any such parameters so that users know what to provide.
 
 ## Packaging
 
@@ -416,19 +494,12 @@ All services written with the SDK determine what actions to take based on a targ
 The following events occur to select a target configuration and move a service from its current configuration to the target.
 
 1. Define a target configuration
-
     a. Deploy a Marathon application definition for your service’s scheduler.
-
     b. The scheduler renders the `ServiceSpec` and Plan definitions in the service’s YAML definition.
-
 1. Plan Execution
-
     a. The scheduler compares previous and current `ServiceSpec`s:
-
-       i. Validate the `ServiceSpec`.
-
-       ii. Determine scenario (install, update or no change).
-
+        i. Validate the `ServiceSpec`.
+        ii. Determine scenario (install, update or no change).
     b. The plan is chosen and executed.
 
 These steps are discussed in more detail below.
@@ -906,16 +977,16 @@ The most basic set of features present in the YAML representation of the `Servic
 
 ### Containers
 
-Each pod runs inside a single container. The `ServiceSpec` specifies the following: 
+Each pod runs inside a single container. The `ServiceSpec` specifies the following:
   * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
-  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.  
+  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.
   * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
 
-The example `ServiceSpec` below specifies: 
+The example `ServiceSpec` below specifies:
   * The `ubuntu` container image.
   * The soft limit for number of open file descriptors for any task in the `hello` pod as 1024, and the hard limit to 2048.
   * That the pod should join the `dcos` virtual network.
-  
+
 
 In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
 
@@ -926,7 +997,7 @@ pods:
     count: 1
     image: ubuntu
     networks:
-      dcos: 
+      dcos:
     rlimits:
       RLIMIT_NOFILE:
         soft: 1024
@@ -942,7 +1013,7 @@ pods:
 For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
 **Overlay networks**
-The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task. 
+The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
 
 ### Placement Rules
 
@@ -1473,7 +1544,7 @@ PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
                         TaskTypeRule.avoid("hello"),
                         TaskTypeRule.colocateWith("world")))
         .build();
-``` divided
+```
 
 In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. [A practical example is also available in the HDFS framework](https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69).
 
@@ -1527,7 +1598,6 @@ The state transitions of steps determine the overall progress of plans as they a
     <td>An error has occurred in construction or execution.</td>
   </tr>
 </table>
-
 
 Typically, a step transitions through states as follows: Pending → Prepared → Starting → Complete. There are no enforced restrictions on state transitions. However, there are conventional meanings to states that determine the behavior of plan execution. The most important concept here is the InProgress meta-state. By default, if a step is prepared or starting, it is determined to be InProgress. This state is the core of the anti-contention mechanism between plans. If a step is in progress, by default, no other plan will attempt to execute steps pertaining to the same pod instance
 
