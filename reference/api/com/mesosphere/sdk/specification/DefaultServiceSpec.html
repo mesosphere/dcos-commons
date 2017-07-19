@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":9,"i3":9,"i4":9,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":9,"i14":9,"i15":9,"i16":9};
+var methods = {"i0":10,"i1":9,"i2":9,"i3":9,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9,"i13":9,"i14":9,"i15":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -187,10 +187,9 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#DefaultServiceSpec-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.util.List-com.mesosphere.sdk.specification.ReplacementFailurePolicy-">DefaultServiceSpec</a></span>(java.lang.String&nbsp;name,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#DefaultServiceSpec-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.List-com.mesosphere.sdk.specification.ReplacementFailurePolicy-">DefaultServiceSpec</a></span>(java.lang.String&nbsp;name,
                   java.lang.String&nbsp;role,
                   java.lang.String&nbsp;principal,
-                  int&nbsp;apiPort,
                   java.lang.String&nbsp;webUrl,
                   java.lang.String&nbsp;zookeeperConnection,
                   java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;pods,
@@ -216,17 +215,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getApiPort--">getApiPort</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getComparatorInstance--">getComparatorInstance</a></span>()</code>
 <div class="block">Returns a <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config"><code>ConfigurationComparator</code></a> which may be used to compare
  <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-">getConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
@@ -234,7 +229,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
  consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">getConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                        java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;additionalSubtypesToRegister)</code>
@@ -243,52 +238,52 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
  consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getName--">getName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getPods--">getPods</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getPrincipal--">getPrincipal</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getReplacementFailurePolicy--">getReplacementFailurePolicy</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getRole--">getRole</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getWebUrl--">getWebUrl</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#getZookeeperConnection--">getZookeeperConnection</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
             <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-com.mesosphere.sdk.config.TaskEnvRouter-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
             <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
@@ -323,7 +318,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultServiceSpec-java.lang.String-java.lang.String-java.lang.String-int-java.lang.String-java.lang.String-java.util.List-com.mesosphere.sdk.specification.ReplacementFailurePolicy-">
+<a name="DefaultServiceSpec-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.util.List-com.mesosphere.sdk.specification.ReplacementFailurePolicy-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -332,7 +327,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <pre>public&nbsp;DefaultServiceSpec(java.lang.String&nbsp;name,
                           java.lang.String&nbsp;role,
                           java.lang.String&nbsp;principal,
-                          int&nbsp;apiPort,
                           java.lang.String&nbsp;webUrl,
                           java.lang.String&nbsp;zookeeperConnection,
                           java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;pods,
@@ -422,19 +416,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html#getPrincipal--">getPrincipal</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getApiPort--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getApiPort</h4>
-<pre>public&nbsp;int&nbsp;getApiPort()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html#getApiPort--">getApiPort</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></dd>
 </dl>
 </li>
 </ul>
