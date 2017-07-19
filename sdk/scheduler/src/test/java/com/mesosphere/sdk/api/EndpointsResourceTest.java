@@ -303,10 +303,39 @@ public class EndpointsResourceTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testOneOverlayEndpoint() throws ConfigStoreException {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        testEndpoint(TestConstants.HOSTNAME);  // confirm that we default to offer hostname
+
+        Protos.TaskStatus TASK_STATUS = createTaskStatus(TestConstants.OVERLAY_HOSTNAME);
+
+        for (TaskInfo taskInfo : TASK_INFOS) {
+            when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(TASK_STATUS));
+            when(mockStateStore.fetchProperty(taskInfo.getName() + ":task-status")).thenReturn(TASK_STATUS.toByteArray());
+        }
+
+        testEndpoint(TestConstants.OVERLAY_HOSTNAME);
+
+        Protos.TaskStatus TASK_STATUS_2 = createTaskStatus("otherHost");
+
+        for (TaskInfo taskInfo : TASK_INFOS) {
+            when(mockStateStore.fetchProperty(taskInfo.getName() + ":task-status"))
+                    .thenReturn(TASK_STATUS_2.toByteArray());
+        }
+
+        testEndpoint(TestConstants.OVERLAY_HOSTNAME);
+
+        for (TaskInfo taskInfo : TASK_INFOS) {
+            when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.empty());
+        }
+
+        testEndpoint("otherHost");
+    }
+
+    private Protos.TaskStatus createTaskStatus(String hostname) {
         // build mock stateStore from the inside out
         // IPAddress
         Protos.NetworkInfo.IPAddress.Builder ipAddressBuilder = Protos.NetworkInfo.IPAddress.newBuilder();
-        ipAddressBuilder.setIpAddress(TestConstants.OVERLAY_HOSTNAME);
+        ipAddressBuilder.setIpAddress(hostname);
         // NetworkInfo
         Protos.NetworkInfo.Builder networkInfoBuilder = Protos.NetworkInfo.newBuilder();
         networkInfoBuilder.addIpAddresses(ipAddressBuilder.build());
@@ -318,17 +347,7 @@ public class EndpointsResourceTest {
         taskStatusBuilder.setContainerStatus(containerStatusBuilder.build());
         taskStatusBuilder.setState(Protos.TaskState.TASK_RUNNING);
         taskStatusBuilder.setTaskId(TestConstants.TASK_ID);
-        Protos.TaskStatus TASK_STATUS = taskStatusBuilder.build();
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-
-        testEndpoint(TestConstants.HOSTNAME);
-
-        for (TaskInfo taskInfo : TASK_INFOS) {
-            when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(TASK_STATUS));
-        }
-
-        testEndpoint(TestConstants.OVERLAY_HOSTNAME);
-
+        return taskStatusBuilder.build();
     }
 
     @Test
