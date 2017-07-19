@@ -11,6 +11,11 @@
             "type": "string",
             "default": "portworx"
           },
+          "user": {
+            "description": "The user that runs the Portworx tasks.",
+            "type": "string",
+            "default": "root"
+          },
           "principal": {
             "title": "Custom principal (optional)",
             "description": "The principal for the service instance, or empty to use the default.",

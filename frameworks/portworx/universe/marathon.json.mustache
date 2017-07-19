@@ -2,6 +2,7 @@
   "id": "{{service.name}}",
   "cpus": 1.0,
   "mem": 1024,
+  "user":"{{service.user}}",
   "instances": 1,
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M\" &&  ./portworx-scheduler/bin/portworx ./portworx-scheduler/svc.yml",
   "labels": {
@@ -20,6 +21,8 @@
   },
   {{/service.secret_name}}
   "env": {
+    "SERVICE_NAME": "{{service.name}}",
+    "SERVICE_USER": "{{service.user}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
 

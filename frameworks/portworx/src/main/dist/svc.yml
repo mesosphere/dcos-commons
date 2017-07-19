@@ -1,9 +1,9 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
-  user: {{FRAMEWORK_USER}}
 pods:
   portworx:
+    user: {{SERVICE_USER}}
     count: {{NODE_COUNT}}
     resource-sets:
       px-resources:
@@ -29,12 +29,12 @@ pods:
                     authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
                     token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
                         -H "Accept:application/json" -H "Authorization:Basic $authkey" \
-                        http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
+                        http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
                 fi
 
                 chmod +x ${MESOS_SANDBOX}/jq-linux64
 
-                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.{{FRAMEWORK_NAME}}.mesos:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
+                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.${FRAMEWORK_HOST}:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".node" |\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".value"|\
                     ${MESOS_SANDBOX}/jq-linux64 -r ".token")
@@ -69,7 +69,7 @@ pods:
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
                           {{#LIGHTHOUSE_ENABLED}}
-                          -e API_SERVER=http://lighthouse-0-start.{{FRAMEWORK_NAME}}.mesos:{{LIGHTHOUSE_WEBUI_PORT}} \
+                          -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}
                           --name=%n \
                           {{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
@@ -89,6 +89,7 @@ pods:
                 systemctl start portworx
 
   etcd-cluster:
+    user: {{SERVICE_USER}}
     count: 3
     image: {{ETCD_IMAGE}}
     placement: {{ETCD_PLACEMENT}}
@@ -101,23 +102,24 @@ pods:
         cpus: {{ETCD_CPUS}}
         # etcd doesn't like space before flags, so need to put this all on one line
         cmd: >
-             ${MESOS_SANDBOX}/bootstrap && /work/bin/etcd --name etcd${POD_INSTANCE_INDEX} --advertise-client-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_ADVERTISE_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_NODE_ADVERTISE_PORT}} --initial-advertise-peer-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --listen-peer-urls http://0.0.0.0:{{ETCD_NODE_PEER_PORT}} --initial-cluster-token etcd-cluster-${FRAMEWORK_NAME} --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --initial-cluster-state new --data-dir $MESOS_SANDBOX/etcd-data
+             ${MESOS_SANDBOX}/bootstrap && /work/bin/etcd --name etcd${POD_INSTANCE_INDEX} --advertise-client-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{ETCD_NODE_ADVERTISE_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_NODE_ADVERTISE_PORT}} --initial-advertise-peer-urls http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}} --listen-peer-urls http://0.0.0.0:{{ETCD_NODE_PEER_PORT}} --initial-cluster-token etcd-cluster-${FRAMEWORK_NAME} --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}} --initial-cluster-state new --data-dir $MESOS_SANDBOX/etcd-data
         volume:
           path: "etcd-data"
           type: {{ETCD_DISK_TYPE}}
           size: {{ETCD_DISK_SIZE}}
         ports:
-          advertise:
+          node-advertise:
             port: {{ETCD_NODE_ADVERTISE_PORT}}
           peer:
             port: {{ETCD_NODE_PEER_PORT}}
         readiness-check:
-          cmd: /work/bin/etcdctl --endpoint http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_ADVERTISE_PORT}} cluster-health
+          cmd: /work/bin/etcdctl --endpoint http://etcd-cluster-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_HOST}:{{ETCD_NODE_ADVERTISE_PORT}} cluster-health
           interval: 5
           delay: 0
           timeout: 60
     
   etcd-proxy:
+    user: {{SERVICE_USER}}
     count: 1
     image: {{ETCD_IMAGE}}
     tasks:
@@ -125,9 +127,9 @@ pods:
         goal: RUNNING
         memory: 512
         cpus: 0.3
-        cmd: /work/bin/etcd --proxy=on --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_NAME}.mesos:{{ETCD_NODE_PEER_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_PROXY_ADVERTISE_PORT}}
+        cmd: /work/bin/etcd --proxy=on --initial-cluster etcd0=http://etcd-cluster-0-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}},etcd1=http://etcd-cluster-1-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}},etcd2=http://etcd-cluster-2-node.${FRAMEWORK_HOST}:{{ETCD_NODE_PEER_PORT}} --listen-client-urls http://0.0.0.0:{{ETCD_PROXY_ADVERTISE_PORT}}
         ports:
-          advertise:
+          proxy-advertise:
             port: {{ETCD_PROXY_ADVERTISE_PORT}}
         readiness-check:
           cmd: /work/bin/etcdctl cluster-health
@@ -135,6 +137,7 @@ pods:
           delay: 0
           timeout: 60
   influxdb:
+    user: {{SERVICE_USER}}
     count: 1
     image: {{INFLUXDB_IMAGE}}
     placement: {{INFLUXDB_PLACEMENT}}
@@ -153,11 +156,12 @@ pods:
           type: {{INFLUXDB_DISK_TYPE}}
           size: {{INFLUXDB_DISK_SIZE}}
         readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ping
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}:8086/ping
           interval: 5
           delay: 0
           timeout: 60
   lighthouse:
+    user: {{SERVICE_USER}}
     count: 1
     image: {{LIGHTHOUSE_IMAGE}}
     placement: {{LIGHTHOUSE_PLACEMENT}}
@@ -170,15 +174,15 @@ pods:
           http:
             port: {{LIGHTHOUSE_WEBUI_PORT}}
         cmd: >
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_NAME}.mesos:8086/ -k {{PORTWORX_KVDB}}
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
+            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:8086/ -k {{PORTWORX_KVDB}}
         env:
           PWX_LH_PORT: {{LIGHTHOUSE_WEBUI_PORT}}
           PWX_PX_PRECREATE_ADMIN: true
           PWX_PX_COMPANY_NAME: {{LIGHTHOUSE_COMPANY_NAME}}
           PWX_PX_ADMIN_EMAIL: {{{LIGHTHOUSE_ADMIN_EMAIL}}}
         readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X GET http://lighthouse-0-start.${FRAMEWORK_NAME}.mesos:{{LIGHTHOUSE_WEBUI_PORT}}/api/system | grep Lighthouse | grep 2
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X GET http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/system | grep Lighthouse | grep 2
           interval: 5
           delay: 0
           timeout: 60
