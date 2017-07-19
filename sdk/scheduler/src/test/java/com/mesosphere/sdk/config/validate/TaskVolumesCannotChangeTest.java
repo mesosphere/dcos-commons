@@ -89,7 +89,6 @@ public class TaskVolumesCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -97,7 +96,6 @@ public class TaskVolumesCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
 
@@ -119,21 +117,18 @@ public class TaskVolumesCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
         ServiceSpec serviceSpec3 = DefaultServiceSpec.newBuilder()
                 .name("svc3")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec3))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         when(mockTaskSpec2.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
@@ -154,14 +149,12 @@ public class TaskVolumesCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         when(mockTaskSpec2.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
