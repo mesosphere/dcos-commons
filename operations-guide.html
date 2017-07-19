@@ -176,8 +176,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -186,13 +184,11 @@
       
       
       
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
-      
       <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
       
       <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -285,9 +281,9 @@
         <ul>
           
           
-          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
-          
           <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -339,6 +335,7 @@
       </li>
       <li><a href="#offer-cycle" id="markdown-toc-offer-cycle">Offer Cycle</a></li>
       <li><a href="#plans" id="markdown-toc-plans">Plans</a>        <ul>
+          <li><a href="#custom-update-plan" id="markdown-toc-custom-update-plan">Custom Update Plan</a></li>
           <li><a href="#recovery-plan" id="markdown-toc-recovery-plan">Recovery Plan</a>            <ul>
               <li><a href="#permanent-and-temporary-recovery" id="markdown-toc-permanent-and-temporary-recovery">Permanent and temporary recovery</a></li>
             </ul>
@@ -617,6 +614,7 @@
         </ul>
       </li>
       <li><strong>Change deployment</strong>: The Scheduler produces a <code class="highlighter-rouge">diff</code> between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren’t affected by the configuration change will be left as-is.</li>
+      <li><strong>Custom update logic</strong>: Some services may have defined a <a href="#custom-update-plan">custom <code class="highlighter-rouge">update</code> Plan</a> in its <code class="highlighter-rouge">svc.yml</code>, in cases where different logic is needed for an update/upgrade than is needed for the initial deployment. When a custom <code class="highlighter-rouge">update</code> plan is defined, the Scheduler will automatically use this Plan, instead of the default <code class="highlighter-rouge">deploy</code> Plan, when rolling out an update to the service.</li>
     </ol>
   </li>
 </ol>
@@ -662,14 +660,14 @@
 
 <h2 id="plans">Plans</h2>
 
-<p>The Scheduler organizes its work into a list of Plans. Every SDK Scheduler has at least a Deployment Plan and a <a href="#recovery-plan">Recovery Plan</a>, but other Plans may also be added for things like Backup and Restore operations. The Deployment Plan is in charge of performing an initial deployment of the service, as well as redeploying the service after a configuration change (or in more abstract terms, handling the transition needed to get the service from some state to another state). The Recovery Plan is in charge of relaunching any exited tasks that should always be running.</p>
+<p>The Scheduler organizes its work into a list of Plans. Every SDK Scheduler has at least a Deployment Plan and a <a href="#recovery-plan">Recovery Plan</a>, but other Plans may also be added for things like custom Backup and Restore operations. The Deployment Plan is in charge of performing an initial deployment of the service. It is also used for rolling out configuration changes to the service (or in more abstract terms, handling the transition needed to get the service from some state to another state), unless the service developer provided a <a href="#custom-update-plan">custom <code class="highlighter-rouge">update</code> Plan</a>. The Recovery Plan is in charge of relaunching any exited tasks that should always be running.</p>
 
 <p>Plans have a fixed three-level hierarchy. Plans contain Phases, and Phases contain Steps.</p>
 
 <p>For example, let’s imagine a service with two <code class="highlighter-rouge">index</code> nodes and three <code class="highlighter-rouge">data</code> nodes. The Plan structure for a Scheduler in this configuration could look like this:</p>
 
 <ul>
-  <li>Deployment Plan
+  <li>Deployment Plan (<code class="highlighter-rouge">deploy</code>)
     <ul>
       <li>Index Node Phase
         <ul>
@@ -686,7 +684,12 @@
       </li>
     </ul>
   </li>
-  <li>Recovery Plan
+  <li>Custom Update Plan (<code class="highlighter-rouge">update</code>)
+    <ul>
+      <li><em>(custom logic, if any, for rolling out a config update or software upgrade)</em></li>
+    </ul>
+  </li>
+  <li>Recovery Plan (<code class="highlighter-rouge">recovery</code>)
     <ul>
       <li><em>(phases and steps are autogenerated as failures occur)</em></li>
     </ul>
@@ -720,9 +723,13 @@
   </li>
 </ul>
 
-<p>As you can see, in addition to the default Deployment and Recovery plans, this Scheduler also has auxiliary Plans that support custom behavior, specifically one Plan that handles backing up Index nodes, and another for that backs up Data nodes. In practice, there would likely also be Plans for restoring these backups. Those are omitted here for brevity.</p>
+<p>As you can see, in addition to the default Deployment and Recovery Plans, this Scheduler also has a custom Update Plan which provides custom logic for rolling out a change to the service. If a custom plan is not defined then the Deployment Plan is used for this scenario. In addition, the service defines auxiliary Plans that support other custom behavior, specifically one Plan that handles backing up Index nodes, and another for that backs up Data nodes. In practice, there would likely also be Plans for restoring these backups. These auxiliary Plans could all be invoked manually by an operator, and may include additional parameters such as credentials or a backup location. Those are omitted here for brevity.</p>
 
 <p>In short, Plans are the SDK’s abstraction for a sequence of tasks to be performed by the Scheduler. By default, these include deploying and maintaining the cluster, but additional maintenance operations may also be fit into this structure.</p>
+
+<h3 id="custom-update-plan">Custom Update Plan</h3>
+
+<p>By default, the service will use the Deployment Plan when rolling out a configuration change or software upgrade, but some services may need custom logic in this scenario, in which case the service developer may have defined a custom plan named <code class="highlighter-rouge">update</code>.</p>
 
 <h3 id="recovery-plan">Recovery Plan</h3>
 
@@ -1253,7 +1260,7 @@ dcos package install --cli &lt;service-name&gt;
 
 <p><a href="img/ops-guide-mesos-tasks-reconfigured.png"><img src="img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400" /></a></p>
 
-<p>If we look at the Scheduler logs, we can even see where it detected the change. The <code class="highlighter-rouge">api-port</code> value is random on each Scheduler restart, so it tends to always display as ‘different’ in this log:</p>
+<p>If we look at the Scheduler logs, we can even see where it detected the change. The <code class="highlighter-rouge">api-port</code> value is random on each Scheduler restart, so it tends to always display as ‘different’ in this log. Because of this, the Scheduler automatically ignores changes to <code class="highlighter-rouge">api-port</code>, and so the change can be ignored here:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurationUpdater:printConfigDiff(215): Difference between configs:
 --- ServiceSpec.old
@@ -1275,7 +1282,7 @@ dcos package install --cli &lt;service-name&gt;
 </code></pre>
 </div>
 
-<p>The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task <code class="highlighter-rouge">N+1</code> is only redeployed after task <code class="highlighter-rouge">N</code> appears to be healthy after being relaunched with the new configuration.</p>
+<p>The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task <code class="highlighter-rouge">N+1</code> is only redeployed after task <code class="highlighter-rouge">N</code> appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom <code class="highlighter-rouge">update</code> plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom <code class="highlighter-rouge">update</code> plan was defined, is to use the <code class="highlighter-rouge">deploy</code> plan.</p>
 
 <h3 id="add-a-node">Add a node</h3>
 

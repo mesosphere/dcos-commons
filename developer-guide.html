@@ -176,8 +176,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -186,13 +184,11 @@
       
       
       
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="./tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
-      
       <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
       
       <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -285,9 +281,9 @@
         <ul>
           
           
-          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
-          
           <li><a href="./services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="./services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="./services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -332,7 +328,13 @@
           <li><a href="#summary" id="markdown-toc-summary">Summary</a></li>
         </ul>
       </li>
-      <li><a href="#plans" id="markdown-toc-plans">Plans</a></li>
+      <li><a href="#plans" id="markdown-toc-plans">Plans</a>        <ul>
+          <li><a href="#default-deployment-plan" id="markdown-toc-default-deployment-plan">Default Deployment Plan</a></li>
+          <li><a href="#custom-deployment-plan" id="markdown-toc-custom-deployment-plan">Custom Deployment Plan</a></li>
+          <li><a href="#custom-update-plans" id="markdown-toc-custom-update-plans">Custom Update Plans</a></li>
+          <li><a href="#custom-auxiliary-plans" id="markdown-toc-custom-auxiliary-plans">Custom Auxiliary Plans</a></li>
+        </ul>
+      </li>
       <li><a href="#packaging" id="markdown-toc-packaging">Packaging</a>        <ul>
           <li><a href="#universe-package-files-at-a-glance" id="markdown-toc-universe-package-files-at-a-glance">Universe Package Files At-a-Glance</a></li>
         </ul>
@@ -390,6 +392,12 @@
       </li>
       <li><a href="#servicespec-java" id="markdown-toc-servicespec-java"><code class="highlighter-rouge">ServiceSpec</code> (Java)</a>        <ul>
           <li><a href="#placement-rules-1" id="markdown-toc-placement-rules-1">Placement Rules</a></li>
+        </ul>
+      </li>
+      <li><a href="#custom-plans-java" id="markdown-toc-custom-plans-java">Custom Plans (Java)</a>        <ul>
+          <li><a href="#internals" id="markdown-toc-internals">Internals</a></li>
+          <li><a href="#strategy" id="markdown-toc-strategy">Strategy</a></li>
+          <li><a href="#example" id="markdown-toc-example">Example</a></li>
         </ul>
       </li>
     </ul>
@@ -622,7 +630,9 @@ now, you must manually run the janitor script as shown above.</p>
 
 <h2 id="plans">Plans</h2>
 
-<p>In the simple example above, it is obvious <em>how</em> to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of <em>plans</em> to orchestrate the deployment of tasks.</p>
+<p>In the simple example above, it is obvious <em>how</em> to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of <em>plans</em> to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans <a href="#plan-execution">here</a> and <a href="#custom-plans-java">here</a>.</p>
+
+<h3 id="default-deployment-plan">Default Deployment Plan</h3>
 
 <p>The example below defines a service with two types of pods, each of which deploys two instances.</p>
 
@@ -652,18 +662,10 @@ now, you must manually run the janitor script as shown above.</p>
 <p>By default, the SDK will deploy all instances of pods serially.  In the example above, the default deployment order would be:</p>
 
 <ol>
-  <li>
-    <p>hello-pod-0-hello-task</p>
-  </li>
-  <li>
-    <p>hello-pod-1-hello-task</p>
-  </li>
-  <li>
-    <p>world-pod-0-world-task</p>
-  </li>
-  <li>
-    <p>world-pod-1-world-task</p>
-  </li>
+  <li><code class="highlighter-rouge">hello-pod-0-hello-task</code></li>
+  <li><code class="highlighter-rouge">hello-pod-1-hello-task</code></li>
+  <li><code class="highlighter-rouge">world-pod-0-world-task</code></li>
+  <li><code class="highlighter-rouge">world-pod-1-world-task</code></li>
 </ol>
 
 <p>Each pod’s task must reach its goal of <code class="highlighter-rouge">RUNNING</code> before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.</p>
@@ -734,6 +736,8 @@ now, you must manually run the janitor script as shown above.</p>
 
 <p>The dependency of the <code class="highlighter-rouge">world-pod</code> phase on the <code class="highlighter-rouge">hello-pod</code> phase serializes those two phases as described at the top level strategy element. Since both <code class="highlighter-rouge">hello</code> steps depend on a the<code class="highlighter-rouge"> hello-pod</code> phase, and not each other, they are executed in parallel. The second <code class="highlighter-rouge">world-pod</code> instance depends on the first, so they are launched serially.</p>
 
+<h3 id="custom-deployment-plan">Custom Deployment Plan</h3>
+
 <p>More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
@@ -762,7 +766,15 @@ now, you must manually run the janitor script as shown above.</p>
 
 <p>By default, the plan generated from such a service definition would only deploy the <code class="highlighter-rouge">main</code> task because when the <code class="highlighter-rouge">init</code> task should be run is undefined.  In order to run the init task and then the main task for each instance of the <code class="highlighter-rouge">hello</code> pod one could write a plan as follows:</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">init</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">main</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
     <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
     <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
@@ -774,15 +786,23 @@ now, you must manually run the janitor script as shown above.</p>
 <p>This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the <code class="highlighter-rouge">init</code> task and another representing the <code class="highlighter-rouge">main</code> task. The ServiceSpec indicates that two <code class="highlighter-rouge">hello</code> pods should be launched so the following tasks would be launched by steps serially:</p>
 
 <ol>
-  <li>hello-0-init</li>
-  <li>hello-0-main</li>
-  <li>hello-1-init</li>
-  <li>hello-1-main</li>
+  <li><code class="highlighter-rouge">hello-0-init</code></li>
+  <li><code class="highlighter-rouge">hello-0-main</code></li>
+  <li><code class="highlighter-rouge">hello-1-init</code></li>
+  <li><code class="highlighter-rouge">hello-1-main</code></li>
 </ol>
 
 <p>Consider the case where the init task should only occur once for the first pod, and all subsequent pods should just launch their <code class="highlighter-rouge">main</code> task. Such a plan could be written as follows:</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">init</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">main</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
     <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
     <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
@@ -795,12 +815,73 @@ now, you must manually run the janitor script as shown above.</p>
 <p>This plan would result in steps generating the following tasks:</p>
 
 <ol>
-  <li>hello-0-init</li>
-  <li>hello-0-main</li>
-  <li>hello-1-main</li>
+  <li><code class="highlighter-rouge">hello-0-init</code></li>
+  <li><code class="highlighter-rouge">hello-0-main</code></li>
+  <li><code class="highlighter-rouge">hello-1-main</code></li>
 </ol>
 
-<p>You can learn more about the full capabilities of plans <a href="#plan-execution">here</a> and <a href="#custom-plans-java">here</a>.</p>
+<h3 id="custom-update-plans">Custom Update Plans</h3>
+
+<p>When a configuration change is being rolled out, the Scheduler will by default use the current Deploy plan, whether that’s a custom plan named <code class="highlighter-rouge">deploy</code> or the default deployment plan. Some services require additional logic when performing configuration or software updates, in which case a plan named <code class="highlighter-rouge">update</code> may be provided. The <code class="highlighter-rouge">update</code> plan, if defined, will be used instead of the <code class="highlighter-rouge">deploy</code> plan when rolling out a configuration change. It’s otherwise functionally similar to the custom <code class="highlighter-rouge">deploy</code> logic described above.</p>
+
+<h3 id="custom-auxiliary-plans">Custom Auxiliary Plans</h3>
+
+<p>Finally, you may define entirely custom plans which are meant to be invoked by operators. These may define the steps required to perform a backup or restore operation of the service. They may even take additional parameters as input. For example, here is an example plan which will back up a data store to S3:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">node</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">backup-schema</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">snapshot</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">upload-s3</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">cleanup-snapshot</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+  <span class="s">backup-s3</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">backup-schema</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">node</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">backup-schema</span><span class="pi">]]</span>
+      <span class="s">create-snapshots</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">parallel</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">node</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">snapshot</span><span class="pi">]]</span>
+      <span class="s">upload-backups</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">node</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">upload-s3</span><span class="pi">]]</span>
+      <span class="s">cleanup-snapshots</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">node</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">cleanup-snapshot</span><span class="pi">]]</span>
+</code></pre>
+</div>
+
+<p>In this example, four Tasks were defined in the <code class="highlighter-rouge">node</code> pod to perform the four steps necessary to back up this service. These tasks were named <code class="highlighter-rouge">backup-schema</code>, <code class="highlighter-rouge">snapshot</code>, <code class="highlighter-rouge">upload-s3</code>, and <code class="highlighter-rouge">cleanup-snapshot</code>. These Tasks are then listed in the <code class="highlighter-rouge">backup-s3</code> Plan as Steps. Each of the Tasks has a shell script which performs the work, optionally using environment variables provided by the operator. The operator invokes the <code class="highlighter-rouge">backup-s3</code> plan and provides any such parameters via repeated <code class="highlighter-rouge">-p</code> arguments:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos myservice plan start backup-s3 \
+    -p BACKUP_NAME=mybackup \
+    -p BACKUP_TABLES=criticaldata \
+    -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -p AWS_REGION=$AWS_REGION \
+    -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+</code></pre>
+</div>
+
+<p>Any parameters passed via <code class="highlighter-rouge">-p</code> are automatically passed though to the invoked Tasks as environment variables. Service developers must separately document any such parameters so that users know what to provide.</p>
 
 <h2 id="packaging">Packaging</h2>
 
@@ -861,26 +942,14 @@ dcos package install --yes hello-world
 <p>The following events occur to select a target configuration and move a service from its current configuration to the target.</p>
 
 <ol>
-  <li>
-    <p>Define a target configuration</p>
-
-    <p>a. Deploy a Marathon application definition for your service’s scheduler.</p>
-
-    <p>b. The scheduler renders the <code class="highlighter-rouge">ServiceSpec</code> and Plan definitions in the service’s YAML definition.</p>
-  </li>
-  <li>
-    <p>Plan Execution</p>
-
-    <p>a. The scheduler compares previous and current <code class="highlighter-rouge">ServiceSpec</code>s:</p>
-
-    <div class="highlighter-rouge"><pre class="highlight"><code>i. Validate the `ServiceSpec`.
-
-ii. Determine scenario (install, update or no change).
-</code></pre>
-    </div>
-
-    <p>b. The plan is chosen and executed.</p>
-  </li>
+  <li>Define a target configuration
+ a. Deploy a Marathon application definition for your service’s scheduler.
+ b. The scheduler renders the <code class="highlighter-rouge">ServiceSpec</code> and Plan definitions in the service’s YAML definition.</li>
+  <li>Plan Execution
+ a. The scheduler compares previous and current <code class="highlighter-rouge">ServiceSpec</code>s:
+     i. Validate the <code class="highlighter-rouge">ServiceSpec</code>.
+     ii. Determine scenario (install, update or no change).
+ b. The plan is chosen and executed.</li>
 </ol>
 
 <p>These steps are discussed in more detail below.</p>
@@ -1385,7 +1454,7 @@ installed the
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
     <span class="s">image</span><span class="pi">:</span> <span class="s">ubuntu</span>
     <span class="s">networks</span><span class="pi">:</span>
-      <span class="s">dcos</span><span class="pi">:</span> 
+      <span class="s">dcos</span><span class="pi">:</span>
     <span class="s">rlimits</span><span class="pi">:</span>
       <span class="s">RLIMIT_NOFILE</span><span class="pi">:</span>
         <span class="s">soft</span><span class="pi">:</span> <span class="s">1024</span>
@@ -1940,78 +2009,77 @@ hello
                         <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">avoid</span><span class="o">(</span><span class="s">"hello"</span><span class="o">),</span>
                         <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">colocateWith</span><span class="o">(</span><span class="s">"world"</span><span class="o">)))</span>
         <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-<span class="err">```</span> <span class="n">divided</span>
+</code></pre>
+</div>
 
-<span class="n">In</span> <span class="n">addition</span> <span class="n">to</span> <span class="n">the</span> <span class="n">AndRule</span><span class="o">,</span> <span class="n">OrRule</span> <span class="n">and</span> <span class="n">NotRule</span> <span class="n">are</span> <span class="n">also</span> <span class="n">available</span> <span class="n">to</span> <span class="n">complete</span> <span class="n">the</span> <span class="n">necessary</span> <span class="n">suite</span> <span class="n">of</span> <span class="kt">boolean</span> <span class="n">operators</span><span class="o">.</span> <span class="n">Many</span> <span class="n">placement</span> <span class="n">rules</span> <span class="k">for</span> <span class="n">common</span> <span class="n">scenarios</span> <span class="n">are</span> <span class="n">already</span> <span class="n">provided</span> <span class="n">by</span> <span class="n">the</span> <span class="n">SDK</span><span class="o">.</span> <span class="n">Consult</span> <span class="n">the</span> <span class="n">com</span><span class="o">.</span><span class="na">mesosphere</span><span class="o">.</span><span class="na">sdk</span><span class="o">.</span><span class="na">offer</span><span class="o">.</span><span class="na">constrain</span> <span class="kn">package</span> <span class="n">to</span> <span class="n">find</span> <span class="n">the</span> <span class="n">list</span> <span class="n">of</span> <span class="n">placement</span> <span class="n">rules</span> <span class="n">currently</span> <span class="n">available</span><span class="o">.</span> <span class="o">[</span><span class="n">A</span> <span class="n">practical</span> <span class="n">example</span> <span class="n">is</span> <span class="n">also</span> <span class="n">available</span> <span class="n">in</span> <span class="n">the</span> <span class="n">HDFS</span> <span class="n">framework</span><span class="o">](</span><span class="nl">https:</span><span class="c1">//github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69).</span>
+<p>In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. <a href="https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69">A practical example is also available in the HDFS framework</a>.</p>
 
-<span class="err">##</span> <span class="n">Custom</span> <span class="nf">Plans</span> <span class="o">(</span><span class="n">Java</span><span class="o">)</span>
+<h2 id="custom-plans-java">Custom Plans (Java)</h2>
 
-<span class="n">The</span> <span class="n">YAML</span><span class="o">-</span><span class="n">based</span> <span class="n">definition</span> <span class="n">of</span> <span class="n">plans</span> <span class="n">is</span> <span class="n">limited</span> <span class="n">to</span> <span class="n">defining</span> <span class="n">custom</span> <span class="n">deployment</span> <span class="n">plans</span><span class="o">.</span> <span class="n">You</span> <span class="n">can</span> <span class="n">use</span> <span class="n">of</span> <span class="n">the</span> <span class="n">appropriate</span> <span class="o">[</span><span class="n">Java</span> <span class="n">plan</span> <span class="kd">interface</span><span class="err">](</span><span class="nc">https</span><span class="o">:</span><span class="c1">//github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java) for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by [s](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java). Default implementations of all interfaces are provided. [DefaultPlan](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java), [DefaultPhase](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java), and [DeploymentStep](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DeploymentStep.java) will be of interest to advanced service authors.</span>
+<p>The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java">Java plan interface</a> for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java">s</a>. Default implementations of all interfaces are provided. <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java">DefaultPlan</a>, <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java">DefaultPhase</a>, and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DeploymentStep.java">DeploymentStep</a> will be of interest to advanced service authors.</p>
 
-<span class="err">###</span> <span class="n">Internals</span>
+<h3 id="internals">Internals</h3>
 
-<span class="n">Understanding</span> <span class="n">plan</span> <span class="n">execution</span> <span class="n">can</span> <span class="n">help</span> <span class="n">you</span> <span class="n">take</span> <span class="n">advantage</span> <span class="n">of</span> <span class="n">the</span> <span class="n">full</span> <span class="n">capabilities</span> <span class="n">of</span> <span class="n">creating</span> <span class="n">custom</span> <span class="n">plans</span><span class="o">.</span>
+<p>Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.</p>
 
-<span class="o">![</span><span class="n">plans</span> <span class="n">and</span> <span class="n">the</span> <span class="n">offer</span> <span class="n">cycle</span><span class="o">](</span><span class="n">img</span><span class="o">/</span><span class="n">dev</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">plans</span><span class="o">-</span><span class="n">and</span><span class="o">-</span><span class="n">the</span><span class="o">-</span><span class="n">offer</span><span class="o">-</span><span class="n">cycle</span><span class="o">.</span><span class="na">png</span><span class="o">)</span>
+<p><img src="img/dev-guide-plans-and-the-offer-cycle.png" alt="plans and the offer cycle" /></p>
 
-<span class="n">There</span> <span class="n">are</span> <span class="n">at</span> <span class="n">least</span> <span class="n">two</span> <span class="n">plans</span> <span class="n">defined</span> <span class="n">at</span> <span class="n">any</span> <span class="n">given</span> <span class="n">time</span> <span class="k">for</span> <span class="n">a</span> <span class="nl">scheduler:</span> <span class="n">a</span> <span class="n">deploy</span> <span class="n">plan</span> <span class="n">and</span> <span class="n">a</span> <span class="n">recovery</span> <span class="n">plan</span><span class="o">.</span>
+<p>There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.</p>
 
-<span class="o">**</span><span class="n">Plan</span> <span class="n">Managers</span><span class="o">**</span> <span class="n">determine</span> <span class="n">what</span> <span class="n">steps</span> <span class="n">in</span> <span class="n">a</span> <span class="n">plan</span> <span class="n">should</span> <span class="n">be</span> <span class="n">executed</span><span class="o">.</span>
+<p><strong>Plan Managers</strong> determine what steps in a plan should be executed.</p>
 
-<span class="n">A</span> <span class="o">**</span><span class="n">Plan</span> <span class="n">Coordinator</span><span class="o">**</span> <span class="n">passes</span> <span class="n">relevant</span> <span class="n">information</span> <span class="n">between</span> <span class="n">plan</span> <span class="n">managers</span> <span class="n">so</span> <span class="n">they</span> <span class="n">understand</span> <span class="n">what</span> <span class="n">work</span> <span class="n">other</span> <span class="n">plan</span> <span class="n">managers</span> <span class="n">are</span> <span class="n">doing</span> <span class="n">to</span> <span class="n">avoid</span> <span class="n">contention</span><span class="o">.</span> <span class="n">The</span> <span class="n">output</span> <span class="n">of</span> <span class="n">the</span> <span class="n">plan</span> <span class="n">coordinator</span> <span class="n">is</span> <span class="n">a</span> <span class="n">set</span> <span class="n">of</span> <span class="n">steps</span> <span class="n">that</span> <span class="n">are</span> <span class="n">candidates</span> <span class="k">for</span> <span class="n">execution</span><span class="o">.</span>
+<p>A <strong>Plan Coordinator</strong> passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.</p>
 
-<span class="n">The</span> <span class="o">**</span><span class="n">Plan</span> <span class="n">Scheduler</span><span class="o">**</span> <span class="n">attempts</span> <span class="n">to</span> <span class="n">match</span> <span class="n">offers</span> <span class="n">from</span> <span class="n">Mesos</span> <span class="n">with</span> <span class="n">the</span> <span class="n">needs</span> <span class="n">of</span> <span class="n">each</span> <span class="n">candidate</span> <span class="n">step</span><span class="o">.</span> <span class="n">If</span> <span class="n">a</span> <span class="n">step</span><span class="err">’</span><span class="n">s</span> <span class="n">requirements</span> <span class="n">are</span> <span class="n">met</span><span class="o">,</span> <span class="n">Mesos</span> <span class="n">operations</span> <span class="n">are</span> <span class="n">performed</span><span class="o">.</span> <span class="n">The</span> <span class="n">operations</span> <span class="n">performed</span> <span class="n">are</span> <span class="n">also</span> <span class="n">reported</span> <span class="n">to</span> <span class="n">the</span> <span class="n">steps</span> <span class="n">so</span> <span class="n">they</span> <span class="n">can</span> <span class="n">determine</span> <span class="n">what</span> <span class="n">state</span> <span class="n">transitions</span> <span class="n">to</span> <span class="n">make</span><span class="o">.</span>
+<p>The <strong>Plan Scheduler</strong> attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.</p>
 
-<span class="n">The</span> <span class="n">state</span> <span class="n">transitions</span> <span class="n">of</span> <span class="n">steps</span> <span class="n">determine</span> <span class="n">the</span> <span class="n">overall</span> <span class="n">progress</span> <span class="n">of</span> <span class="n">plans</span> <span class="n">as</span> <span class="n">they</span> <span class="n">are</span> <span class="n">the</span> <span class="n">leaf</span> <span class="n">elements</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Plan</span> <span class="err">→</span> <span class="n">Phase</span> <span class="err">→</span> <span class="n">Step</span> <span class="n">hierarchy</span><span class="o">.</span>
+<p>The state transitions of steps determine the overall progress of plans as they are the leaf elements of the Plan → Phase → Step hierarchy.</p>
 
-<span class="o">&lt;</span><span class="n">table</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">State</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Meaning</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Pending</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">No</span> <span class="n">operations</span> <span class="n">have</span> <span class="n">been</span> <span class="n">performed</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Prepared</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Any</span> <span class="n">tasks</span><span class="o">/</span><span class="n">pods</span> <span class="n">that</span> <span class="n">needed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">killed</span> <span class="n">have</span> <span class="n">been</span> <span class="n">killed</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Starting</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Operations</span> <span class="n">have</span> <span class="n">been</span> <span class="n">performed</span><span class="o">,</span> <span class="n">but</span> <span class="n">their</span> <span class="n">status</span> <span class="n">has</span> <span class="n">not</span> <span class="n">yet</span> <span class="n">been</span> <span class="n">reported</span> <span class="n">by</span> <span class="n">Mesos</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Complete</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">The</span> <span class="n">desired</span> <span class="n">work</span> <span class="n">has</span> <span class="n">been</span> <span class="n">accomplished</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Waiting</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Outside</span> <span class="n">intervention</span> <span class="n">has</span> <span class="n">occurred</span> <span class="n">blocking</span> <span class="n">processing</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">Error</span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-    <span class="o">&lt;</span><span class="n">td</span><span class="o">&gt;</span><span class="n">An</span> <span class="n">error</span> <span class="n">has</span> <span class="n">occurred</span> <span class="n">in</span> <span class="n">construction</span> <span class="n">or</span> <span class="n">execution</span><span class="o">.&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
-  <span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">table</span><span class="o">&gt;</span>
+<table>
+  <tr>
+    <td>State</td>
+    <td>Meaning</td>
+  </tr>
+  <tr>
+    <td>Pending</td>
+    <td>No operations have been performed.</td>
+  </tr>
+  <tr>
+    <td>Prepared</td>
+    <td>Any tasks/pods that needed to be killed have been killed.</td>
+  </tr>
+  <tr>
+    <td>Starting</td>
+    <td>Operations have been performed, but their status has not yet been reported by Mesos.</td>
+  </tr>
+  <tr>
+    <td>Complete</td>
+    <td>The desired work has been accomplished.</td>
+  </tr>
+  <tr>
+    <td>Waiting</td>
+    <td>Outside intervention has occurred blocking processing.</td>
+  </tr>
+  <tr>
+    <td>Error</td>
+    <td>An error has occurred in construction or execution.</td>
+  </tr>
+</table>
 
+<p>Typically, a step transitions through states as follows: Pending → Prepared → Starting → Complete. There are no enforced restrictions on state transitions. However, there are conventional meanings to states that determine the behavior of plan execution. The most important concept here is the InProgress meta-state. By default, if a step is prepared or starting, it is determined to be InProgress. This state is the core of the anti-contention mechanism between plans. If a step is in progress, by default, no other plan will attempt to execute steps pertaining to the same pod instance</p>
 
-<span class="n">Typically</span><span class="o">,</span> <span class="n">a</span> <span class="n">step</span> <span class="n">transitions</span> <span class="n">through</span> <span class="n">states</span> <span class="n">as</span> <span class="nl">follows:</span> <span class="n">Pending</span> <span class="err">→</span> <span class="n">Prepared</span> <span class="err">→</span> <span class="n">Starting</span> <span class="err">→</span> <span class="n">Complete</span><span class="o">.</span> <span class="n">There</span> <span class="n">are</span> <span class="n">no</span> <span class="n">enforced</span> <span class="n">restrictions</span> <span class="n">on</span> <span class="n">state</span> <span class="n">transitions</span><span class="o">.</span> <span class="n">However</span><span class="o">,</span> <span class="n">there</span> <span class="n">are</span> <span class="n">conventional</span> <span class="n">meanings</span> <span class="n">to</span> <span class="n">states</span> <span class="n">that</span> <span class="n">determine</span> <span class="n">the</span> <span class="n">behavior</span> <span class="n">of</span> <span class="n">plan</span> <span class="n">execution</span><span class="o">.</span> <span class="n">The</span> <span class="n">most</span> <span class="n">important</span> <span class="n">concept</span> <span class="n">here</span> <span class="n">is</span> <span class="n">the</span> <span class="n">InProgress</span> <span class="n">meta</span><span class="o">-</span><span class="n">state</span><span class="o">.</span> <span class="n">By</span> <span class="k">default</span><span class="o">,</span> <span class="k">if</span> <span class="n">a</span> <span class="n">step</span> <span class="n">is</span> <span class="n">prepared</span> <span class="n">or</span> <span class="n">starting</span><span class="o">,</span> <span class="n">it</span> <span class="n">is</span> <span class="n">determined</span> <span class="n">to</span> <span class="n">be</span> <span class="n">InProgress</span><span class="o">.</span> <span class="n">This</span> <span class="n">state</span> <span class="n">is</span> <span class="n">the</span> <span class="n">core</span> <span class="n">of</span> <span class="n">the</span> <span class="n">anti</span><span class="o">-</span><span class="n">contention</span> <span class="n">mechanism</span> <span class="n">between</span> <span class="n">plans</span><span class="o">.</span> <span class="n">If</span> <span class="n">a</span> <span class="n">step</span> <span class="n">is</span> <span class="n">in</span> <span class="n">progress</span><span class="o">,</span> <span class="n">by</span> <span class="k">default</span><span class="o">,</span> <span class="n">no</span> <span class="n">other</span> <span class="n">plan</span> <span class="n">will</span> <span class="n">attempt</span> <span class="n">to</span> <span class="n">execute</span> <span class="n">steps</span> <span class="n">pertaining</span> <span class="n">to</span> <span class="n">the</span> <span class="n">same</span> <span class="n">pod</span> <span class="n">instance</span>
+<p>Steps in the pending or prepared states undergo offer evaluation. That is, matching against Mesos offers is attempted. There is no need for offer evaluation in any of the other states.</p>
 
-<span class="n">Steps</span> <span class="n">in</span> <span class="n">the</span> <span class="n">pending</span> <span class="n">or</span> <span class="n">prepared</span> <span class="n">states</span> <span class="n">undergo</span> <span class="n">offer</span> <span class="n">evaluation</span><span class="o">.</span> <span class="n">That</span> <span class="n">is</span><span class="o">,</span> <span class="n">matching</span> <span class="n">against</span> <span class="n">Mesos</span> <span class="n">offers</span> <span class="n">is</span> <span class="n">attempted</span><span class="o">.</span> <span class="n">There</span> <span class="n">is</span> <span class="n">no</span> <span class="n">need</span> <span class="k">for</span> <span class="n">offer</span> <span class="n">evaluation</span> <span class="n">in</span> <span class="n">any</span> <span class="n">of</span> <span class="n">the</span> <span class="n">other</span> <span class="n">states</span><span class="o">.</span>
+<h3 id="strategy">Strategy</h3>
 
-<span class="err">###</span> <span class="n">Strategy</span>
+<p>Fundamentally, the execution of a plan is the execution of steps in some order. The component that determines this ordering is a strategy. Every element of a plan has a strategy that determines the deployment order of its child elements. A plan has a strategy that determines the deployment order of phases. A phase, in turn, has has a strategy that determines the deployment order of steps.</p>
 
-<span class="n">Fundamentally</span><span class="o">,</span> <span class="n">the</span> <span class="n">execution</span> <span class="n">of</span> <span class="n">a</span> <span class="n">plan</span> <span class="n">is</span> <span class="n">the</span> <span class="n">execution</span> <span class="n">of</span> <span class="n">steps</span> <span class="n">in</span> <span class="n">some</span> <span class="n">order</span><span class="o">.</span> <span class="n">The</span> <span class="n">component</span> <span class="n">that</span> <span class="n">determines</span> <span class="k">this</span> <span class="n">ordering</span> <span class="n">is</span> <span class="n">a</span> <span class="n">strategy</span><span class="o">.</span> <span class="n">Every</span> <span class="n">element</span> <span class="n">of</span> <span class="n">a</span> <span class="n">plan</span> <span class="n">has</span> <span class="n">a</span> <span class="n">strategy</span> <span class="n">that</span> <span class="n">determines</span> <span class="n">the</span> <span class="n">deployment</span> <span class="n">order</span> <span class="n">of</span> <span class="n">its</span> <span class="n">child</span> <span class="n">elements</span><span class="o">.</span> <span class="n">A</span> <span class="n">plan</span> <span class="n">has</span> <span class="n">a</span> <span class="n">strategy</span> <span class="n">that</span> <span class="n">determines</span> <span class="n">the</span> <span class="n">deployment</span> <span class="n">order</span> <span class="n">of</span> <span class="n">phases</span><span class="o">.</span> <span class="n">A</span> <span class="n">phase</span><span class="o">,</span> <span class="n">in</span> <span class="n">turn</span><span class="o">,</span> <span class="n">has</span> <span class="n">has</span> <span class="n">a</span> <span class="n">strategy</span> <span class="n">that</span> <span class="n">determines</span> <span class="n">the</span> <span class="n">deployment</span> <span class="n">order</span> <span class="n">of</span> <span class="n">steps</span><span class="o">.</span>
+<h3 id="example">Example</h3>
 
-<span class="err">###</span> <span class="n">Example</span>
+<p>In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We recommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.</p>
 
-<span class="n">In</span> <span class="n">general</span><span class="o">,</span> <span class="n">a</span> <span class="n">step</span> <span class="n">encapsulates</span> <span class="n">an</span> <span class="n">instance</span> <span class="n">of</span> <span class="n">a</span> <span class="n">pod</span> <span class="n">and</span> <span class="n">the</span> <span class="n">tasks</span> <span class="n">to</span> <span class="n">be</span> <span class="n">launched</span> <span class="n">in</span> <span class="n">that</span> <span class="n">pod</span><span class="o">.</span>  <span class="n">We</span> <span class="n">recommend</span> <span class="n">using</span> <span class="n">the</span> <span class="n">DefaultStepFactory</span> <span class="n">to</span> <span class="n">generate</span> <span class="n">steps</span><span class="o">.</span> <span class="n">The</span> <span class="n">DefaultStepFactory</span> <span class="n">consults</span> <span class="n">the</span> <span class="n">ConfigStore</span> <span class="n">and</span> <span class="n">StateStore</span> <span class="n">and</span> <span class="n">creates</span> <span class="n">a</span> <span class="n">step</span> <span class="n">with</span> <span class="n">the</span> <span class="n">appropriate</span> <span class="n">initial</span> <span class="n">status</span><span class="o">.</span> <span class="n">For</span> <span class="n">example</span><span class="o">,</span> <span class="k">if</span> <span class="n">a</span> <span class="n">pod</span> <span class="n">instance</span> <span class="n">has</span> <span class="n">never</span> <span class="n">been</span> <span class="n">launched</span> <span class="n">before</span><span class="o">,</span> <span class="n">the</span> <span class="n">step</span> <span class="n">will</span> <span class="n">start</span> <span class="n">in</span> <span class="n">a</span> <span class="n">pending</span> <span class="n">state</span><span class="o">.</span> <span class="n">However</span><span class="o">,</span> <span class="k">if</span> <span class="n">a</span> <span class="n">pod</span> <span class="n">instance</span> <span class="n">is</span> <span class="n">already</span> <span class="n">running</span> <span class="n">and</span> <span class="n">its</span> <span class="n">goal</span> <span class="n">state</span> <span class="n">is</span> <span class="n">RUNNING</span><span class="o">,</span> <span class="n">its</span> <span class="n">initial</span> <span class="n">status</span> <span class="n">will</span> <span class="n">be</span> <span class="n">COMPLETE</span><span class="o">.</span>
+<p>You could generate three steps in the following way:</p>
 
-<span class="n">You</span> <span class="n">could</span> <span class="n">generate</span> <span class="n">three</span> <span class="n">steps</span> <span class="n">in</span> <span class="n">the</span> <span class="n">following</span> <span class="nl">way:</span>
-
-<span class="err">```</span><span class="n">java</span>
-<span class="n">StepFactory</span> <span class="n">stepFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultStepFactory</span><span class="o">(</span><span class="n">configStore</span><span class="o">,</span> <span class="n">stateStore</span><span class="o">);</span>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">StepFactory</span> <span class="n">stepFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultStepFactory</span><span class="o">(</span><span class="n">configStore</span><span class="o">,</span> <span class="n">stateStore</span><span class="o">);</span>
 
 <span class="n">List</span><span class="o">&lt;</span><span class="n">Step</span><span class="o">&gt;</span> <span class="n">steps</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
 <span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance0</span><span class="o">,</span> <span class="n">tasksToLaunch0</span><span class="o">));</span>

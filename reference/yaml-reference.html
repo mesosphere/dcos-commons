@@ -176,8 +176,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -186,13 +184,11 @@
       
       
       
-      <li><a href="../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../tutorials/data-store-tutorial.html">Data Store Tutorial</a></li>
-      
       <li><a href="../tutorials/automatic-repair.html">Automatic Repair</a></li>
       
       <li><a href="../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -285,9 +281,9 @@
         <ul>
           
           
-          <li><a href="../services/kafka/quick-start.html">Quick Start</a></li>
-          
           <li><a href="../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../services/kafka/uninstall.html">Uninstall</a></li>
           
@@ -770,7 +766,7 @@ Note that to avoid name collisions, different pods are not allowed to share the 
   <li>
     <p><code class="highlighter-rouge">plans</code></p>
 
-    <p>This section allows specifying custom deployment behavior, either by replacing the default <code class="highlighter-rouge">deploy</code> plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the <a href="developer-guide.html#plans">SDK Developer Guide</a> for some examples and additional information on customizing Plans.</p>
+    <p>This section allows specifying custom deployment behavior, either by replacing the default <code class="highlighter-rouge">deploy</code> plan, replacing the default <code class="highlighter-rouge">update</code> plan (otherwise <code class="highlighter-rouge">deploy</code> is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the <a href="developer-guide.html#plans">SDK Developer Guide</a> for some examples and additional information on customizing Plans.</p>
 
     <ul>
       <li>
