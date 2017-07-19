@@ -4,13 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.mesos.Protos.Label;
 import org.junit.Test;
 
 import com.mesosphere.sdk.api.EndpointUtils.VipInfo;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +56,7 @@ public class EndpointUtilsTest {
 
     @Test
     public void testCreateVipLabel() {
-        Collection<Label> labels = EndpointUtils.createVipLabels("vip", 5, false);
+        Collection<Label> labels = EndpointUtils.createVipLabels("vip", 5, Collections.emptyList());
         assertEquals(1, labels.size());
         Label label = labels.iterator().next();
         assertTrue(label.getKey().startsWith("VIP_"));
@@ -63,14 +65,15 @@ public class EndpointUtilsTest {
 
     @Test
     public void testCreateVipLabelOnOverlay() {
-        Collection<Label> labels = EndpointUtils.createVipLabels("vip", 5, true);
+        Collection<Label> labels = EndpointUtils.createVipLabels("vip", 5,
+                Arrays.asList(DcosConstants.DEFAULT_OVERLAY_NETWORK));
         assertEquals(2, labels.size());
         assertEquals(1, labels.stream()
                 .filter(label -> label.getKey().startsWith("VIP_") && label.getValue().equals("vip:5"))
                 .collect(Collectors.toList()).size());
         assertEquals(1, labels.stream()
-                .filter(label -> label.getKey().equals(Constants.VIP_OVERLAY_FLAG_KEY) &&
-                        label.getValue().equals(Constants.VIP_OVERLAY_FLAG_VALUE))
+                .filter(label -> label.getKey().equals(DcosConstants.VIP_OVERLAY_FLAG_KEY) &&
+                        label.getValue().equals(DcosConstants.VIP_OVERLAY_FLAG_VALUE))
                 .collect(Collectors.toList()).size());
     }
 

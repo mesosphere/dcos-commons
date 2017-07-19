@@ -42,6 +42,6 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 .getLabelsBuilder().addAllLabels(EndpointUtils.createVipLabels(
                         namedVIPSpec.getVipName(),
                         namedVIPSpec.getVipPort(),
-                        !namedVIPSpec.getNetworkNames().isEmpty()));
+                        namedVIPSpec.getNetworkNames()));
     }
 }

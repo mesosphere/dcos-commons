@@ -465,7 +465,7 @@ public class YAMLToInternalMappers {
         }
 
         if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
-            builder.networkLabels(rawNetwork.getValidadedLabels()
+            builder.networkLabels(rawNetwork.getValidatedLabels()
                     .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
         } else {
             builder.networkLabels(Collections.emptyMap());

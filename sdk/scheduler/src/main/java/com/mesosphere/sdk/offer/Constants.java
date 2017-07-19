@@ -43,10 +43,6 @@ public class Constants {
      */
     public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
 
-    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
-
-
     /**
      * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
      * default.
