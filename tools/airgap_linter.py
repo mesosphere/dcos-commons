@@ -54,12 +54,17 @@ def is_bad_uri(uri, file_name):
         "$MESOS_CONTAINER_IP",
         "{{FRAMEWORK_HOST}}",
         "$FRAMEWORK_HOST",
+        "${FRAMEWORK_HOST}"
     ]
 
     # Are any of the exceptions present?
     for exception in exceptions:
         if exception in uri:
             return False
+
+    # Ignore common local IPs
+    if uri.startswith("localhost") or uri.startswith("127.0.0.1") or uri.startswith("0.0.0.0"):
+        return False
 
     print("Found a bad URI:", uri, "in:", file_name,
                 "Export URIs to resource.json to allow packaging for airgapped clusters.")
