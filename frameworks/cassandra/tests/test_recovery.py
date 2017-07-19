@@ -16,17 +16,17 @@ import sdk_utils
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
-        utils.gc_frameworks()
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
 
         # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
 
-        plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

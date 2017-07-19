@@ -18,7 +18,7 @@ from tests.config import (
 def configure_package(configure_universe):
     try:
         install.uninstall(PACKAGE_NAME)
-        utils.gc_frameworks()
+        sdk_utils.gc_frameworks()
         # due to canary: no tasks should launch, and suppressed shouldn't be set
         install.install(
             PACKAGE_NAME,

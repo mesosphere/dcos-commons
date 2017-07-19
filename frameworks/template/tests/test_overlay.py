@@ -16,27 +16,16 @@ from tests.config import (
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
-<<<<<<< HEAD
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
-        utils.gc_frameworks()
-        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
-=======
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
->>>>>>> master
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

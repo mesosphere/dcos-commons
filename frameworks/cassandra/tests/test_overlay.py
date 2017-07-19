@@ -28,23 +28,23 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
-        utils.gc_frameworks()
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
 
         # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
-                        additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
+                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in TEST_JOBS:
-            jobs.install_job(job, tmp_dir=tmp_dir)
+            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
         for job in TEST_JOBS:
-            jobs.remove_job(job)
+            sdk_jobs.remove_job(job)
 
 
 @pytest.mark.sanity

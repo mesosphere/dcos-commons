@@ -28,14 +28,14 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
-        utils.gc_frameworks()
-        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                        additional_options=networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
