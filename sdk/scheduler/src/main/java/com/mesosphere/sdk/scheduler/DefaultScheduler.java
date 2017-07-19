@@ -86,7 +86,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     public static class Builder {
-        private final ServiceSpec serviceSpec;
+        private ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
 
         // When these optionals are unset, we use default values:
@@ -277,8 +277,10 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             LOGGER.info("Getting plans");
             Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
+                LOGGER.info("Using manual plans");
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
+                LOGGER.info("Using YAML plans");
                 // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
                 // may look at the old config and mistakenly think they're COMPLETE.
                 DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
@@ -286,6 +288,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
+                LOGGER.info("Generating plans");
                 try {
                     if (!configStore.list().isEmpty()) {
                         LOGGER.info("Generating default deploy plan.");
@@ -302,6 +305,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     throw new IllegalStateException(e);
                 }
             }
+
+            LOGGER.info("Got plans: {}", plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
             return plans;
         }
 
@@ -352,9 +357,17 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             final ConfigurationUpdater.UpdateResult configUpdateResult =
                     updateConfig(serviceSpec, stateStore, configStore, configValidators);
+
             if (!configUpdateResult.getErrors().isEmpty()) {
                 LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
                         configUpdateResult.getTargetId(), configUpdateResult.getErrors());
+                try {
+                    // If there were errors maintain the last accepted target configuration.
+                    serviceSpec = configStore.fetch(configStore.getTargetConfig());
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to maintain pervious target configuration.");
+                    throw new IllegalStateException(e);
+                }
             }
 
             Collection<Plan> plans = getPlans(stateStore, configStore);
@@ -556,7 +569,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 errors);
 
         updatedPlans.add(deployPlan);
-        plans.stream().filter(plan -> !plan.isDeployPlan()).map(updatedPlans::add);
+        for (Plan plan : plans) {
+            if (!plan.isDeployPlan()) {
+                updatedPlans.add(plan);
+            }
+        }
 
         return updatedPlans;
     }
@@ -717,7 +734,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+        schedulerApiServer = new SchedulerApiServer(
+                schedulerFlags.getApiServerPort(),
+                resources,
                 schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }

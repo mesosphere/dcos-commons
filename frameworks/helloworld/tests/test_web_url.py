@@ -1,7 +1,7 @@
 import pytest
 
 import sdk_install as install
-import sdk_plan as plan
+import sdk_plan
 import sdk_utils
 
 from tests.config import (
@@ -29,8 +29,8 @@ def configure_package(configure_universe):
 
 @pytest.mark.sanity
 def test_deploy():
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
-    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    deployment_plan = sdk_plan.get_deployment_plan(PACKAGE_NAME)
     sdk_utils.out("deployment_plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 1)

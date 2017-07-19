@@ -8,11 +8,11 @@ import shakedown
 # items
 from tests.config import *
 
-import sdk_install as install
-import sdk_plan as plan
-import sdk_jobs as jobs
-import sdk_utils as utils
-import sdk_networks as networks
+import sdk_install
+import sdk_plan
+import sdk_jobs
+import sdk_utils
+import sdk_networks
 
 
 WRITE_DATA_JOB = get_write_data_job()
@@ -23,6 +23,7 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -50,7 +51,7 @@ def configure_package(configure_universe):
 @pytest.mark.smoke
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
     shakedown.service_healthy(PACKAGE_NAME)
     node_tasks = (
@@ -59,36 +60,36 @@ def test_service_overlay_health():
         "node-2-server",
     )
     for task in node_tasks:
-        networks.check_task_network(task)
+        sdk_networks.check_task_network(task)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
     # populate 'testspace1' for test, then delete afterwards:
-    with jobs.RunJobContext(
+    with sdk_jobs.RunJobContext(
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
 
-        plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=parameters)
-        plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
+        sdk_plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
 
-        plan.start_plan(PACKAGE_NAME, 'repair', parameters=parameters)
-        plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
+        sdk_plan.start_plan(PACKAGE_NAME, 'repair', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
-@utils.dcos_1_9_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_endpoints():
-    endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
+    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
-    endpoints = networks.get_and_test_endpoints("node", PACKAGE_NAME, 4)
+    endpoints = sdk_networks.get_and_test_endpoints("node", PACKAGE_NAME, 4)
     assert "address" in endpoints, "Endpoints missing address key"
-    networks.check_endpoints_on_overlay(endpoints)
+    sdk_networks.check_endpoints_on_overlay(endpoints)

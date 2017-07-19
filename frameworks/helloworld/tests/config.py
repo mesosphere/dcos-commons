@@ -1,5 +1,5 @@
-import sdk_marathon as marathon
-import sdk_tasks as tasks
+import sdk_marathon
+import sdk_tasks
 
 PACKAGE_NAME = 'hello-world'
 DEFAULT_TASK_COUNT = 3
@@ -18,16 +18,16 @@ def world_task_count(service_name=PACKAGE_NAME):
 
 
 def task_count(key_name, service_name=PACKAGE_NAME):
-    return int(marathon.get_config(service_name)['env'][key_name])
+    return int(sdk_marathon.get_config(service_name)['env'][key_name])
 
 
 def check_running(service_name=PACKAGE_NAME):
-    tasks.check_running(service_name, configured_task_count(service_name))
+    sdk_tasks.check_running(service_name, configured_task_count(service_name))
 
 
 def bump_hello_cpus(service_name=PACKAGE_NAME):
-    return marathon.bump_cpu_count_config(service_name, 'HELLO_CPUS')
+    return sdk_marathon.bump_cpu_count_config(service_name, 'HELLO_CPUS')
 
 
 def bump_world_cpus(service_name=PACKAGE_NAME):
-    return marathon.bump_cpu_count_config(service_name, 'WORLD_CPUS')
+    return sdk_marathon.bump_cpu_count_config(service_name, 'WORLD_CPUS')

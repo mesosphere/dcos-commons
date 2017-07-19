@@ -36,7 +36,7 @@ public class TestConstants {
     public static final String VIP_NAME = "testvip";
     public static final int VIP_PORT = 1111;
     public static final String VIP_PROTOCOL = "tcp";
-    public static final Protos.DiscoveryInfo.Visibility VIP_VISIBILITY = Protos.DiscoveryInfo.Visibility.EXTERNAL;
+    public static final Protos.DiscoveryInfo.Visibility PORT_VISIBILITY = Protos.DiscoveryInfo.Visibility.EXTERNAL;
     public static final Integer PORT_API_VALUE = 8080;
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";

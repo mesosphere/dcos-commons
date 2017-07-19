@@ -28,10 +28,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     The Mesos Principal to register as. Default is `<name>-principal`.
 
-  * `api-port`
-
-    The port at which the scheduler should serve its API endpoints. Defaults to a random port value provided to the scheduler by Marathon.
-
   * `zookeeper`
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.
@@ -272,14 +268,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
           The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. As this implies, VIP names are on a per-service bases, not per-podtype.
 
-        * `protocol`
-
-          TODO(nickbp): This field should probably be removed in favor of just assuming `tcp`. IIRC we don't support UDP via VIPs anyway.
-
-        * `advertise`
-
-          TODO(nickbp): This field should be removed.
-
     * `health-check`
 
       Health checks are additional validation that your task is healthy, in addition to just the fact that its process is still running. This is an extra convenience for sitations where a service can enter a zombie state from which it can never return. For example, it might query an HTTP endpoint to validate that an HTTP service is still responding.
@@ -372,7 +360,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `plans`
 
-  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
+  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
 
   * `strategy`
 

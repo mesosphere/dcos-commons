@@ -87,7 +87,6 @@ public class ConfigurationUpdaterTest {
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA, podB))
                 .build();

@@ -6,11 +6,11 @@ import uuid
 
 from tests.config import *
 import sdk_cmd as cmd
-import sdk_hosts as hosts
-import sdk_install as install
-import sdk_jobs as jobs
-import sdk_plan as plan
-import sdk_utils as utils
+import sdk_hosts
+import sdk_install
+import sdk_jobs
+import sdk_plan
+import sdk_utils
 
 WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
 VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)

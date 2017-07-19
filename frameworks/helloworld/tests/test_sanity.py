@@ -7,8 +7,8 @@ import shakedown
 
 import sdk_cmd as cmd
 import sdk_install as install
-import sdk_marathon as marathon
-import sdk_tasks as tasks
+import sdk_marathon
+import sdk_tasks
 import sdk_test_upgrade
 import sdk_utils
 from tests.config import (
@@ -54,12 +54,12 @@ def test_install():
 @pytest.mark.smoke
 def test_bump_hello_cpus():
     check_running(FOLDERED_SERVICE_NAME)
-    hello_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
+    hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
     sdk_utils.out('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus(FOLDERED_SERVICE_NAME)
 
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
     check_running(FOLDERED_SERVICE_NAME)
 
     all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
@@ -73,12 +73,12 @@ def test_bump_hello_cpus():
 @pytest.mark.smoke
 def test_bump_world_cpus():
     check_running(FOLDERED_SERVICE_NAME)
-    world_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'world')
+    world_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'world')
     sdk_utils.out('world ids: ' + str(world_ids))
 
     updated_cpus = bump_world_cpus(FOLDERED_SERVICE_NAME)
 
-    tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'world', world_ids)
     check_running(FOLDERED_SERVICE_NAME)
 
     all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
@@ -93,13 +93,13 @@ def test_bump_world_cpus():
 def test_bump_hello_nodes():
     check_running(FOLDERED_SERVICE_NAME)
 
-    hello_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
+    hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
     sdk_utils.out('hello ids: ' + str(hello_ids))
 
-    marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'HELLO_COUNT')
+    sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'HELLO_COUNT')
 
     check_running(FOLDERED_SERVICE_NAME)
-    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
 
 
 @pytest.mark.sanity
@@ -188,17 +188,17 @@ def test_state_properties_get():
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     check_running(FOLDERED_SERVICE_NAME)
-    task_ids = tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
+    task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
 
     # caching enabled by default:
     stdout = cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
     assert "Received cmd: refresh" in stdout
 
-    config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
-    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
-    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
     check_running(FOLDERED_SERVICE_NAME)
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
@@ -212,11 +212,11 @@ def test_state_refresh_disable_cache():
 
     shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
-    config = marathon.get_config(FOLDERED_SERVICE_NAME)
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     del config['env']['DISABLE_STATE_CACHE']
-    marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
 
-    tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
     check_running(FOLDERED_SERVICE_NAME)
     shakedown.deployment_wait() # ensure marathon thinks the deployment is complete too
 

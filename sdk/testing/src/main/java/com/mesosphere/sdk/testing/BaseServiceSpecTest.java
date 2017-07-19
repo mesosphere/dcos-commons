@@ -85,7 +85,6 @@ public class BaseServiceSpecTest {
 
     protected void testYaml(String fileName) throws Exception {
         ServiceSpec serviceSpec = getServiceSpec(fileName);
-        Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);

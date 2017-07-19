@@ -189,9 +189,9 @@ func HandleUpdateSection(app *kingpin.Application) {
 
 	update.Command("package-versions", "View a list of available package versions to downgrade or upgrade to").Action(cmd.ViewPackageVersions)
 
-	update.Command("pause", "Pause update plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(planCmd.handlePause)
+	update.Command("pause", "Pause update plan").Alias("interrupt").Action(planCmd.handlePause)
 
-	update.Command("resume", "Resume update plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(planCmd.handleResume)
+	update.Command("resume", "Resume update plan").Alias("continue").Action(planCmd.handleResume)
 
 	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)

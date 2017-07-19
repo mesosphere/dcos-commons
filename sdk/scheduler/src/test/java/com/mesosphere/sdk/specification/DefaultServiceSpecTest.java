@@ -517,6 +517,13 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void vipPortNameCollision() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-vip-port-name-collision.yml").getFile());
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+    }
+
     @Test
     public void invalidTaskSpecNoResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
