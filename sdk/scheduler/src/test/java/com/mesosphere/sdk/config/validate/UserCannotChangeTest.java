@@ -45,7 +45,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -53,7 +52,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -68,7 +66,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -76,7 +73,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -91,7 +87,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -99,7 +94,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -115,7 +109,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -123,7 +116,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -139,7 +131,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -147,7 +138,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -166,7 +156,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -174,7 +163,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -193,7 +181,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -201,7 +188,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -220,7 +206,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -228,7 +213,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -247,7 +231,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -255,7 +238,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -274,7 +256,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -282,7 +263,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -301,7 +281,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec, mockOldPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -309,7 +288,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -327,7 +305,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -335,7 +312,6 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
-                .apiPort(TestConstants.PORT_API_VALUE)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
