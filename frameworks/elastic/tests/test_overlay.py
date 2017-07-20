@@ -90,12 +90,13 @@ def test_tasks_on_overlay():
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 4)
-    expected_endpoints = ("coordinator",
-                          "data",
-                          "ingest",
-                          "master")
+    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 8)
+    expected_endpoints = (
+        'coordinator-http', 'coordinator-transport',
+        'data-http', 'data-transport',
+        'ingest-http', 'ingest-transport',
+        'master-http', 'master-transport')
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 4)
+        specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 3)
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)

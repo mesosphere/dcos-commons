@@ -163,12 +163,28 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void invalidDuplicatePorts() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("Task has multiple ports with value 8080"));
+        }
+    }
+
+    @Test
+    public void invalidDuplicatePortNames() throws Exception {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("invalid-duplicate-port-names.yml").getFile());
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("Duplicate port/endpoint names across different tasks: [http]"));
+        }
     }
 
     @Test

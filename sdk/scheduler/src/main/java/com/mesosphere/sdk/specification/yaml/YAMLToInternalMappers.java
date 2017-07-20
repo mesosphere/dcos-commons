@@ -52,12 +52,13 @@ public class YAMLToInternalMappers {
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
-    public static DefaultServiceSpec from(
+    public static DefaultServiceSpec convertServiceSpec(
             RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
             TaskEnvRouter taskEnvRouter,
             FileReader fileReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
+        verifyDistinctPortNames(rawServiceSpec.getPods().values());
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
@@ -73,7 +74,7 @@ public class YAMLToInternalMappers {
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
-            pods.add(from(
+            pods.add(convertPod(
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
@@ -88,8 +89,10 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
+    /**
+     * Verifies that tasks in separate pods don't share a discovery prefix.
+     */
     private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
-        // Verify that tasks in separate pods don't share a discovery prefix.
         Map<String, Long> dnsPrefixCounts = rawPods.stream()
                 .flatMap(p -> p.getTasks().values().stream()
                         .map(t -> t.getDiscovery())
@@ -108,7 +111,29 @@ public class YAMLToInternalMappers {
         }
     }
 
-    private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
+    /**
+     * Verifies that tasks in separate pods don't share advertised port names.
+     * Otherwise the 'endpoints' command will have them jumbled together.
+     */
+    private static void verifyDistinctPortNames(Collection<RawPod> rawPods) {
+        Map<String, Long> portNameCounts = rawPods.stream()
+                .flatMap(pod -> pod.getTasks().values().stream()
+                        .map(t -> t.getPorts())
+                        .filter(map -> map != null)
+                        .flatMap(p -> p.keySet().stream()))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        List<String> portNameDuplicates = portNameCounts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey())
+                .collect(Collectors.toList());
+        if (!portNameDuplicates.isEmpty()) {
+            //TODO(nickbp): Only check this when ports are flagged with 'advertise: true' (the current default)
+            throw new IllegalArgumentException(String.format(
+                    "Duplicate port/endpoint names across different tasks: %s", portNameDuplicates));
+        }
+    }
+
+    private static ReadinessCheckSpec convertReadinessCheck(RawReadinessCheck rawReadinessCheck) {
         return DefaultReadinessCheckSpec.newBuilder()
                 .command(rawReadinessCheck.getCmd())
                 .delay(rawReadinessCheck.getDelay() == null ? Integer.valueOf(0) : rawReadinessCheck.getDelay())
@@ -117,7 +142,7 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DiscoverySpec from(RawDiscovery rawDiscovery) {
+    private static DiscoverySpec convertDiscovery(RawDiscovery rawDiscovery) {
         Protos.DiscoveryInfo.Visibility visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
         if (rawDiscovery.getVisibility() != null) {
             visibility = Protos.DiscoveryInfo.Visibility.valueOf(rawDiscovery.getVisibility());
@@ -130,7 +155,7 @@ public class YAMLToInternalMappers {
         return new DefaultDiscoverySpec(rawDiscovery.getPrefix(), visibility);
     }
 
-    private static PodSpec from(
+    private static PodSpec convertPod(
             RawPod rawPod,
             FileReader fileReader,
             String podName,
@@ -177,7 +202,7 @@ public class YAMLToInternalMappers {
                             }
                             networkNames.add(networkName);
                             RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            return from(networkName, rawNetwork, collatePorts(rawPod));
+                            return convertNetwork(networkName, rawNetwork, collatePorts(rawPod));
                         })
                         .collect(Collectors.toList()));
             }
@@ -196,7 +221,7 @@ public class YAMLToInternalMappers {
                     .map(rawResourceSetEntry -> {
                         String rawResourceSetName = rawResourceSetEntry.getKey();
                         RawResourceSet rawResourceSet = rawResourceSets.get(rawResourceSetName);
-                        return from(
+                        return convertResourceSet(
                                 rawResourceSetName,
                                 rawResourceSet.getCpus(),
                                 rawResourceSet.getGpus(),
@@ -215,7 +240,7 @@ public class YAMLToInternalMappers {
         if (!rawPod.getSecrets().isEmpty()) {
             Collection<SecretSpec> secretSpecs = new ArrayList<>();
             secretSpecs.addAll(rawPod.getSecrets().values().stream()
-                    .map(v -> from(v))
+                    .map(v -> convertSecret(v))
                     .collect(Collectors.toList()));
 
             builder.secrets(secretSpecs);
@@ -224,10 +249,10 @@ public class YAMLToInternalMappers {
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
                     Collections.emptyList() :
-                    Arrays.asList(from(rawPod.getVolume(), role, rawPod.getPreReservedRole(), principal)));
+                    Arrays.asList(convertVolume(rawPod.getVolume(), role, rawPod.getPreReservedRole(), principal)));
 
             volumeSpecs.addAll(rawPod.getVolumes().values().stream()
-                    .map(v -> from(v, role, rawPod.getPreReservedRole(), principal))
+                    .map(v -> convertVolume(v, role, rawPod.getPreReservedRole(), principal))
                     .collect(Collectors.toList()));
 
             builder.volumes(volumeSpecs);
@@ -236,7 +261,7 @@ public class YAMLToInternalMappers {
         // Parse the TaskSpecs
         List<TaskSpec> taskSpecs = new ArrayList<>();
         for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
-            taskSpecs.add(from(
+            taskSpecs.add(convertTask(
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
@@ -263,7 +288,7 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
-    private static TaskSpec from(
+    private static TaskSpec convertTask(
             RawTask rawTask,
             FileReader fileReader,
             String taskName,
@@ -303,12 +328,12 @@ public class YAMLToInternalMappers {
 
         ReadinessCheckSpec readinessCheckSpec = null;
         if (rawTask.getReadinessCheck() != null) {
-           readinessCheckSpec = from(rawTask.getReadinessCheck());
+           readinessCheckSpec = convertReadinessCheck(rawTask.getReadinessCheck());
         }
 
         DiscoverySpec discoverySpec = null;
         if (rawTask.getDiscovery() != null) {
-            discoverySpec = from(rawTask.getDiscovery());
+            discoverySpec = convertDiscovery(rawTask.getDiscovery());
         }
 
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
@@ -328,7 +353,7 @@ public class YAMLToInternalMappers {
                             .findFirst().get());
         } else {
             // Use task content:
-            builder.resourceSet(from(
+            builder.resourceSet(convertResourceSet(
                     taskName + "-resource-set",
                     rawTask.getCpus(),
                     rawTask.getGpus(),
@@ -345,7 +370,7 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
-    private static DefaultResourceSet from(
+    private static DefaultResourceSet convertResourceSet(
             String id,
             Double cpus,
             Double gpus,
@@ -393,7 +418,7 @@ public class YAMLToInternalMappers {
         }
 
         if (rawPorts != null) {
-            from(role, preReservedRole, principal, rawPorts, networkNames).getPortSpecs()
+            convertPorts(role, preReservedRole, principal, rawPorts, networkNames).getPortSpecs()
                     .forEach(resourceSetBuilder::addResource);
         }
 
@@ -402,7 +427,8 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultSecretSpec from(RawSecret rawSecret) {
+    private static DefaultSecretSpec convertSecret(
+            RawSecret rawSecret) {
         String filePath =  (rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null) ?
                 rawSecret.getSecretPath() : rawSecret.getFilePath();
 
@@ -412,7 +438,8 @@ public class YAMLToInternalMappers {
                 filePath);
     }
 
-    private static DefaultVolumeSpec from(RawVolume rawVolume, String role, String preReservedRole, String principal) {
+    private static DefaultVolumeSpec convertVolume(
+            RawVolume rawVolume, String role, String preReservedRole, String principal) {
         VolumeSpec.Type volumeTypeEnum;
         try {
             volumeTypeEnum = VolumeSpec.Type.valueOf(rawVolume.getType());
@@ -432,7 +459,7 @@ public class YAMLToInternalMappers {
                 "DISK_SIZE");
     }
 
-    private static DefaultNetworkSpec from(
+    private static DefaultNetworkSpec convertNetwork(
             String networkName,
             RawNetwork rawNetwork,
             Collection<Integer> ports) throws IllegalArgumentException {
@@ -494,7 +521,7 @@ public class YAMLToInternalMappers {
         return ports;
     }
 
-    private static PortsSpec from(
+    private static PortsSpec convertPorts(
             String role,
             String preReservedRole,
             String principal,
@@ -510,8 +537,8 @@ public class YAMLToInternalMappers {
             RawPort rawPort = portEntry.getValue();
             boolean ok = ports.add(rawPort.getPort());
             if (!ok && rawPort.getPort() > 0) {
-                throw new IllegalArgumentException(String.format("Cannot have duplicate ports, your spec has " +
-                        "duplicate port requests for port %d with name %s", rawPort.getPort(), name));
+                throw new IllegalArgumentException(String.format("Cannot have duplicate port values: Task has " +
+                        "multiple ports with value %d", rawPort.getPort()));
             }
             Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                     .setType(Protos.Value.Type.RANGES);
