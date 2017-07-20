@@ -288,7 +288,7 @@ public class DefaultSchedulerTest {
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(stepTaskA0.isPending());
 
-        // Offer sufficient Resource and wait for its acceptance
+        // Offer insufficient Resource and wait for step state transition
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitOffersProcessed();
