@@ -1,32 +1,39 @@
 import pytest
 
+import shakedown
+
 import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
 import sdk_test_upgrade
 import sdk_utils
 import sdk_metrics
+import sdk_tasks
+import sdk_marathon
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
-def setup_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist(service_name=FOLDERED_SERVICE_NAME)
-
-
-def teardown_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 @pytest.fixture

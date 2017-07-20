@@ -1,7 +1,8 @@
 import os
 import pytest
+import shakedown
 
-import sdk_install
+import sdk_install as install
 import sdk_tasks
 import sdk_plan
 import sdk_networks
@@ -13,20 +14,22 @@ from tests.test_utils import  *
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
-def setup_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
 
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=SERVICE_NAME,
-        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_BROKER_COUNT,
+            service_name=SERVICE_NAME,
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.overlay

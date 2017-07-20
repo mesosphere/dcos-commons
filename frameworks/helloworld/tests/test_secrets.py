@@ -55,19 +55,21 @@ options_dcos_space_test = {
 }
 
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    cmd.run_cli("package install --cli dcos-enterprise-cli")
-    delete_secrets_all("{}/".format(PACKAGE_NAME))
-    delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
-    delete_secrets_all()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        cmd.run_cli("package install --cli dcos-enterprise-cli")
+        delete_secrets_all("{}/".format(PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        delete_secrets_all()
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    delete_secrets_all("{}/".format(PACKAGE_NAME))
-    delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
-    delete_secrets_all()
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
+        delete_secrets_all("{}/".format(PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        delete_secrets_all()
 
 
 @pytest.mark.sanity

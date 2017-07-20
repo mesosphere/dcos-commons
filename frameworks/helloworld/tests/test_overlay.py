@@ -5,7 +5,7 @@ import os
 import shakedown
 
 import sdk_hosts
-import sdk_install
+import sdk_install as install
 import sdk_plan
 import sdk_utils
 import sdk_networks
@@ -20,20 +20,22 @@ from tests.config import (
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    options = {
-        "service": {
-            "spec_file": "examples/overlay.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        options = {
+            "service": {
+                "spec_file": "examples/overlay.yml"
+            }
         }
-    }
 
-    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
+        install.install(PACKAGE_NAME, 1, additional_options=options)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 # test suite constants
