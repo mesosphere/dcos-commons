@@ -105,6 +105,10 @@ esac
 shift # past argument or value
 done
 
+if [ -z "$1" ]; then
+    usage
+fi
+
 framework=$1
 if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
     echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"

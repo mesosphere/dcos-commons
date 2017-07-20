@@ -21,14 +21,14 @@ fi
 
 echo "Beginning integration tests at "`date`
 
-pytest_k=""
+pytest_args=()
+
 if [ -n "$PYTEST_K" ]; then
-    pytest_k=(-k "$PYTEST_K")
+    pytest_args+=(-k "$PYTEST_K")
 fi
 
-pytest_m=""
 if [ -n "$PYTEST_M" ]; then
-    pytest_m=(-m "$PYTEST_M")
+    pytest_args+=(-m "$PYTEST_M")
 fi
 
 eval "$(ssh-agent -s)"
@@ -58,7 +58,7 @@ for framework in $FRAMEWORK_LIST; do
     /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`
-    py.test -vv -s "${pytest_k[@]}" "${pytest_m[@]}" ${FRAMEWORK_DIR}/tests
+    py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
     echo "Finished test for $framework at "`date`
 done
 
