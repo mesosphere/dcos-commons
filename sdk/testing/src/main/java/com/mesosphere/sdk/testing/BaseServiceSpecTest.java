@@ -8,8 +8,8 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import org.junit.Assert;
@@ -99,9 +99,9 @@ public class BaseServiceSpecTest {
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, mockFlags)
-                .setStateStore(new DefaultStateStore(persister))
+                .setStateStore(new StateStore(persister))
                 .setConfigStore(
-                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                        new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(getRawServiceSpec(fileName))
                 .build();
     }

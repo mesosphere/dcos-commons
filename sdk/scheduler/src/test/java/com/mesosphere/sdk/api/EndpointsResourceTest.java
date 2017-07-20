@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
