@@ -2,14 +2,14 @@ package commands
 
 import (
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type endpointsHandler struct {
 	Name string
 }
 
-func (cmd *endpointsHandler) handleEndpoints(c *kingpin.ParseContext) error {
+func (cmd *endpointsHandler) handleEndpoints(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	path := "v1/endpoints"
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
