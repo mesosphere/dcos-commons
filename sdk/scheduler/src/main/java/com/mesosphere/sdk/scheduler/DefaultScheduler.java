@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -66,7 +65,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
     protected Map<String, EndpointProducer> customEndpointProducers;
-    protected Optional<RestartHook> customRestartHook;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
@@ -87,7 +85,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
-        private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
         private final List<Plan> manualPlans = new ArrayList<>();
@@ -197,16 +194,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public Builder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
             this.customConfigValidators = customConfigValidators;
-            return this;
-        }
-
-        /**
-         * Specifies a custom {@link RestartHook} to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.
-         * This may be used to define any custom teardown behavior which should be invoked before a task is restarted
-         * and/or replaced.
-         */
-        public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -385,7 +372,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    restartHookOptional,
                     Optional.ofNullable(recoveryPlanOverriderFactory),
                     configUpdateResult);
         }
@@ -586,7 +572,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
         super(stateStore);
@@ -597,7 +582,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.plans = plans;
         this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
-        this.customRestartHook = restartHookOptional;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
@@ -714,11 +698,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        if (customRestartHook.isPresent()) {
-            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
-        } else {
-            resources.add(new PodsResource(taskKiller, stateStore));
-        }
+        resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 

@@ -936,7 +936,6 @@ public class DefaultSchedulerTest {
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
                     defaultScheduler.customEndpointProducers,
-                    defaultScheduler.customRestartHook,
                     defaultScheduler.recoveryPlanOverriderFactory,
                     new ConfigurationUpdater.UpdateResult(
                             UUID.randomUUID(),
