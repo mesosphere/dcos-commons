@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 /**
- * This class provides a default implementation of the TaskFailureListener interface.
+ * This class provides a default implementation of the {@link TaskFailureListener} interface.
  */
 public class DefaultTaskFailureListener implements TaskFailureListener {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -32,7 +32,7 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
             Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
             if (optionalTaskInfo.isPresent()) {
                 PodInstance podInstance = TaskUtils.getPodInstance(configStore, optionalTaskInfo.get());
-                FailureUtils.markFailed(podInstance, stateStore);
+                FailureUtils.markFailed(stateStore, podInstance);
             } else {
                 logger.error("TaskInfo for TaskID was not present in the StateStore: " + taskId);
             }

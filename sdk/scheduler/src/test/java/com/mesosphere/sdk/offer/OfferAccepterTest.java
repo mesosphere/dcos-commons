@@ -55,31 +55,6 @@ public class OfferAccepterTest {
                 anyObject());
     }
 
-    @Test
-    public void testClearTransient() {
-        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-        Offer offer = OfferTestUtils.getOffer(resource);
-        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
-
-        TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
-        Assert.assertEquals(1, recorder.getLaunches().size());
-        verify(driver, times(0)).acceptOffers(
-                anyCollectionOf(OfferID.class),
-                anyCollectionOf(Operation.class),
-                anyObject());
-
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).clearTransient().toProto());
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), true)));
-        Assert.assertEquals(2, recorder.getLaunches().size());
-        verify(driver, times(1)).acceptOffers(
-                anyCollectionOf(OfferID.class),
-                anyCollectionOf(Operation.class),
-                anyObject());
-    }
-
     public static class TestOperationRecorder implements OperationRecorder {
         private List<Operation> reserves = new ArrayList<>();
         private List<Operation> unreserves = new ArrayList<>();

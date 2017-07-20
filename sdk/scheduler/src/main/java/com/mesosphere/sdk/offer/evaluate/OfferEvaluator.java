@@ -141,7 +141,7 @@ public class OfferEvaluator {
                 .count() == 0;
 
         boolean podHasFailed = podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)
-                || FailureUtils.isLabeledAsFailed(podInstance, stateStore);
+                || FailureUtils.isAllMarkedFailed(stateStore, podInstance);
 
         final String description;
         final boolean shouldGetNewRequirement;

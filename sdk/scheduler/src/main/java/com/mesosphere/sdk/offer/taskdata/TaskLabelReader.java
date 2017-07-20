@@ -119,10 +119,19 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns whether the task is marked as permanently failed.
+     * Returns whether the task is marked as permanently failed. This is intentionally stored in the TaskInfo as it will
+     * be automatically overwritten when the TaskInfo is replaced.
      */
     public boolean isPermanentlyFailed() {
         // null is false
         return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task is marked as being launched for the first time at its current location.
+     */
+    public boolean isInitialLaunch() {
+        // null is false
+        return Boolean.valueOf(reader.getOptional(LabelConstants.INITIAL_LAUNCH_LABEL).orElse(null));
     }
 }

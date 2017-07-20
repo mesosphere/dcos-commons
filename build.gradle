@@ -14,7 +14,7 @@ plugins {
 }
 
 // Importing org.fusesource.jansi.AnsiConsole is not enough to avoid aforementioned failure
-org.fusesource.jansi.AnsiConsole.out.print('init workaround')
+org.fusesource.jansi.AnsiConsole.out.print('')
 
 allprojects {
     apply plugin: 'java'

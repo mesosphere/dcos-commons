@@ -3,10 +3,8 @@ package com.mesosphere.sdk.state;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -97,24 +95,23 @@ public class StateStoreUtils {
         return results;
     }
 
-    public static Collection<TaskInfo> fetchTasksFromPod(StateStore stateStore, String pod) throws StateStoreException {
-        Collection<TaskInfo> allInfos = stateStore.fetchTasks();
+    /**
+     * Returns all {@link TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none were
+     * found.
+     *
+     * @throws StateStoreException in the event of an IO error other than missing tasks
+     */
+    public static Collection<TaskInfo> fetchPodTasks(StateStore stateStore, PodInstance podInstance)
+            throws StateStoreException {
+        Collection<String> taskInfoNames = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
 
-        List<TaskInfo> results = new ArrayList<>();
-        for (TaskInfo info : allInfos) {
-            String taskPod;
-            try {
-                taskPod = new TaskLabelReader(info).getType();
-            } catch (TaskException e) {
-                continue;
-            }
-
-            if (pod.equals(taskPod)) {
-                results.add(info);
-            }
-        }
-
-        return results;
+        return taskInfoNames.stream()
+                .map(name -> stateStore.fetchTask(name))
+                .filter(taskInfo -> taskInfo.isPresent())
+                .map(taskInfo -> taskInfo.get())
+                .collect(Collectors.toList());
     }
 
 
@@ -184,62 +181,6 @@ public class StateStoreUtils {
             throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Property value length %d exceeds limit of %d bytes.",
                     value.length, MAX_VALUE_LENGTH_BYTES));
-        }
-    }
-
-    public static Collection<Protos.Resource> getReservedResources(Collection<Protos.Resource> resources) {
-        Collection<Protos.Resource> reservedResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            MesosResource mesosResource = new MesosResource(resource);
-            if (mesosResource.getResourceId().isPresent()) {
-                reservedResources.add(resource);
-            }
-        }
-
-        return reservedResources;
-    }
-
-    public static Collection<Protos.Resource> getResources(
-            StateStore stateStore,
-            PodInstance podInstance,
-            TaskSpec taskSpec) {
-        String resourceSetName = taskSpec.getResourceSet().getId();
-
-        Collection<String> tasksWithResourceSet = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec1 -> resourceSetName.equals(taskSpec1.getResourceSet().getId()))
-                .map(taskSpec1 -> TaskSpec.getInstanceName(podInstance, taskSpec1))
-                .distinct()
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks with resource set: {}, {}", resourceSetName, tasksWithResourceSet);
-
-        Collection<TaskInfo> taskInfosForPod = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> {
-                    try {
-                        return TaskUtils.isSamePodInstance(taskInfo, podInstance);
-                    } catch (TaskException e) {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks for pod: {}",
-                taskInfosForPod.stream()
-                        .map(TaskInfo::getName)
-                        .collect(Collectors.toList()));
-
-        Optional<TaskInfo> taskInfoOptional = taskInfosForPod.stream()
-                .filter(taskInfo -> tasksWithResourceSet.contains(taskInfo.getName()))
-                .findFirst();
-
-        if (taskInfoOptional.isPresent()) {
-            LOGGER.info("Found Task with resource set: {}, {}",
-                    resourceSetName,
-                    TextFormat.shortDebugString(taskInfoOptional.get()));
-            return taskInfoOptional.get().getResourcesList();
-        } else {
-            LOGGER.error("Failed to find a Task with resource set: {}", resourceSetName);
-            return Collections.emptyList();
         }
     }
 

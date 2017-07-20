@@ -14,6 +14,7 @@ import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -838,6 +839,12 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
                 reconciler.update(status);
 
+                Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
+                if (TaskUtils.isRecoveryNeeded(status) && new TaskLabelReader(taskInfo).isInitialLaunch()) {
+                    // The initial launch of this task failed. Give up and try again with a clean slate.
+                    taskKiller.killTask(taskInfo.getTaskId(), true);
+                }
+
                 if (StateStoreUtils.isSuppressed(stateStore)
                         && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
                     revive();
@@ -854,7 +861,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
                     // TaskInfo exists.
                     try {
-                        Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
                         StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
                     } catch (StateStoreException e) {
                         LOGGER.warn("Unable to store network info for status update: " + status, e);

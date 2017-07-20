@@ -36,7 +36,8 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is identified as a transient task.
+     * Ensures that the task is identified as a transient task. This is a "task" which is never launched, only sent to
+     * Mesos as a way to capture some resources.
      */
     public TaskLabelWriter setTransient() {
         writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
@@ -44,15 +45,9 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is not identified as a transient task.
-     */
-    public TaskLabelWriter clearTransient() {
-        writer.remove(LabelConstants.TRANSIENT_FLAG_LABEL);
-        return this;
-    }
-
-    /**
-     * Ensures that the task is identified as permanently failed.
+     * Ensures that the task is identified as permanently failed. This is intentionally stored in the TaskInfo as it
+     * will be automatically overwritten when the TaskInfo is replaced. As such it will automatically be "cleared" when
+     * the TaskInfo is regenerated in the offer cycle.
      */
     public TaskLabelWriter setPermanentlyFailed() {
         writer.put(LabelConstants.PERMANENTLY_FAILED_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
@@ -60,10 +55,12 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is not identified as permanently failed.
+     * Ensures that the task is identified as being launched for the first time at its current location. This is
+     * intentionally stored in the TaskInfo as it will be automatically overwritten when the TaskInfo is rebuilt in a
+     * new launch. As such it will automatically be "cleared" when the TaskInfo is regenerated in the offer cycle.
      */
-    public TaskLabelWriter clearPermanentlyFailed() {
-        writer.remove(LabelConstants.PERMANENTLY_FAILED_LABEL);
+    public TaskLabelWriter setInitialLaunch() {
+        writer.put(LabelConstants.INITIAL_LAUNCH_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
         return this;
     }
 

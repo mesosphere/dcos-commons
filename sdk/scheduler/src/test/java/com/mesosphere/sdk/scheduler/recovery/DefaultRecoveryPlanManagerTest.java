@@ -217,7 +217,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void stoppedTaskTransitionsToFailed() throws Exception {
-        final List<TaskInfo> infos = Collections.singletonList(FailureUtils.markFailed(taskInfo));
+        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.withFailedFlag(taskInfo));
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(infos.get(0));
@@ -317,7 +317,7 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
+        final TaskInfo failedTaskInfo = TaskTestUtils.withFailedFlag(taskInfo);
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
@@ -447,8 +447,8 @@ public class DefaultRecoveryPlanManagerTest {
                 .build();
         stateStore.storeTasks(Arrays.asList(taskInfo0, taskInfo1));
 
-        FailureUtils.markFailed(podInstance, stateStore);
-        assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
+        FailureUtils.markFailed(stateStore, podInstance);
+        assertTrue(FailureUtils.isAllMarkedFailed(stateStore, podInstance));
 
         // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
         // of its permanent failure mark
@@ -464,6 +464,6 @@ public class DefaultRecoveryPlanManagerTest {
                 stateStore);
 
         recoveryManager.update(step);
-        assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
+        assertFalse(FailureUtils.isAllMarkedFailed(stateStore, podInstance));
     }
 }
