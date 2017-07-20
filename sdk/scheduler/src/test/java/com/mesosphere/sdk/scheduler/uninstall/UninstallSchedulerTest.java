@@ -150,6 +150,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        uninstallScheduler.awaitOffersProcessed();
 
         // Turn the crank once to start the first Step (the DeleteServiceRootPathStep) in the serial misc-phase
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
