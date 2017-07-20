@@ -3,8 +3,39 @@
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
 
+usage() {
+    echo "Syntax: $0 [--cli-only] <framework-name> </path/to/framework> [local|aws]"
+}
+
+cli_only=
+
+while :; do
+    case $1 in
+        --help|-h|-\?)
+            usage
+            exit
+            ;;
+        --cli-only)
+            cli_only="true"
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "unknown option $1" >&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+
+    shift
+done
+
+
 if [ $# -lt 2 ]; then
-    echo "Syntax: $0 <framework-name> </path/to/framework> [local|aws]"
     exit 1
 fi
 
@@ -15,6 +46,7 @@ shift
 FRAMEWORK_DIR=$1
 shift
 ARTIFACT_FILES=$@
+
 
 echo PUBLISH_STEP=$PUBLISH_STEP
 echo FRAMEWORK_NAME=$FRAMEWORK_NAME
@@ -34,6 +66,23 @@ _notify_github() {
     GIT_REPOSITORY_ROOT=$REPO_ROOT_DIR ${TOOLS_DIR}/github_update.py $1 build:${FRAMEWORK_NAME} $2
 }
 
+# Used below in-order, but here for cli-only
+build_cli() {
+    # CLI (Go):
+    # /home/user/dcos-commons/frameworks/helloworld/cli => frameworks/helloworld/cli
+    REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
+    ${TOOLS_DIR}/build_cli.sh ${CLI_EXE_NAME} ${CLI_DIR} ${REPO_CLI_RELATIVE_PATH}
+    if [ $? -ne 0 ]; then
+        _notify_github failure "CLI build failed"
+        exit 1
+    fi
+}
+
+if [ x"$cli_only" = xtrue ]; then
+    build_cli
+    exit
+fi
+
 _notify_github pending "Build running"
 
 # Verify airgap (except for hello world)
@@ -41,6 +90,9 @@ if [ $FRAMEWORK_NAME != "hello-world" ];
 then
     ${TOOLS_DIR}/airgap_linter.py ${FRAMEWORK_DIR}
 fi
+
+# Ensure executor build up to date
+${REPO_ROOT_DIR}/gradlew distZip -p ${REPO_ROOT_DIR}/sdk/executor
 
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
@@ -61,14 +113,7 @@ if [ "$BUILD_BOOTSTRAP" == "yes" ]; then
     INCLUDE_BOOTSTRAP="${BOOTSTRAP_DIR}/bootstrap.zip"
 fi
 
-# CLI (Go):
-# /home/user/dcos-commons/frameworks/helloworld/cli => frameworks/helloworld/cli
-REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
-${TOOLS_DIR}/build_cli.sh ${CLI_EXE_NAME} ${CLI_DIR} ${REPO_CLI_RELATIVE_PATH}
-if [ $? -ne 0 ]; then
-    _notify_github failure "CLI build failed"
-    exit 1
-fi
+build_cli
 
 _notify_github success "Build succeeded"
 

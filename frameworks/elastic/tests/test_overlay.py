@@ -39,7 +39,7 @@ def configure_package(configure_universe):
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist()
 
 

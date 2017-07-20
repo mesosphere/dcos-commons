@@ -113,6 +113,7 @@ def test_secrets_basic():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_verify():
@@ -167,6 +168,7 @@ def test_secrets_verify():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_update():
@@ -229,6 +231,7 @@ def test_secrets_update():
 
 @pytest.mark.sanity
 @pytest.mark.secrets
+@pytest.mark.smoke
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
@@ -304,8 +307,8 @@ def test_secrets_config_update():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
-@pytest.mark.skip(reason="DCOS_SPACE authorization is not working in testing/master. Enable this test later.")
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...

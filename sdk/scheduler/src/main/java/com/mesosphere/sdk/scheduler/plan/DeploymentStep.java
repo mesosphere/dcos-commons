@@ -104,7 +104,7 @@ public class DeploymentStep extends AbstractStep {
      */
     @Override
     public synchronized void update(Protos.TaskStatus status) {
-        logger.info("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
+        logger.debug("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
 
         if (!tasks.containsKey(status.getTaskId())) {
             logger.debug("Step {} ignoring irrelevant TaskStatus: {}",

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,15 +44,7 @@ public class CustomExecutorTest {
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
-                .setData(Protos.CommandInfo
-                        .newBuilder()
-                        .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
-                        .build()
-                        .toByteString())
+                .setData(createCommandInfo().toByteString())
                 .build();
 
 
@@ -72,15 +63,7 @@ public class CustomExecutorTest {
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
-                .setData(Protos.CommandInfo
-                        .newBuilder()
-                        .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
-                        .build()
-                        .toByteString())
+                .setData(createCommandInfo().toByteString())
                 .build();
 
 
@@ -127,15 +110,7 @@ public class CustomExecutorTest {
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
-                .setData(Protos.CommandInfo
-                        .newBuilder()
-                        .setValue("date")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
-                        .build()
-                        .toByteString())
+                .setData(createCommandInfo().toByteString())
                 .build();
 
 
@@ -144,7 +119,14 @@ public class CustomExecutorTest {
         customExecutor.shutdown(mockExecutorDriver);
     }
 
-    private Protos.ExecutorInfo getTestExecutorInfo() {
+    private static Protos.CommandInfo createCommandInfo() {
+        Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
+                .setValue("date");
+        commandInfoBuilder.getEnvironmentBuilder().addVariablesBuilder().setName(TASK_TYPE).setValue(TEST);
+        return commandInfoBuilder.build();
+    }
+
+    private static Protos.ExecutorInfo getTestExecutorInfo() {
         return Protos.ExecutorInfo
                 .newBuilder()
                 .setName("TEST_EXECUTOR")
@@ -153,7 +135,7 @@ public class CustomExecutorTest {
                 .build();
     }
 
-    private CustomExecutor getTestExecutor() {
+    private static CustomExecutor getTestExecutor() {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
         return new CustomExecutor(executorService, testExecutorTaskFactory);

@@ -103,6 +103,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
+            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -113,6 +114,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
+            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -123,6 +125,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
+            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             UPDATED_TASK_A_CPU,
             TASK_A_MEM,
@@ -133,6 +136,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
+            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             UPDATED_TASK_B_MEM,
@@ -143,6 +147,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
+            TestConstants.SERVICE_USER,
             TASK_B_COUNT - 1,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -153,6 +158,7 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
+            TestConstants.SERVICE_USER,
             TASK_A_COUNT + 1,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -282,10 +288,10 @@ public class DefaultSchedulerTest {
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(stepTaskA0.isPending());
 
-        // Offer sufficient Resource and wait for its acceptance
+        // Offer insufficient Resource and wait for step state transition
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
         Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING),
                 PlanTestUtils.getStepStatuses(plan));
     }
@@ -294,7 +300,7 @@ public class DefaultSchedulerTest {
     public void updatePerTaskASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags)
                 .setStateStore(stateStore)
@@ -311,7 +317,7 @@ public class DefaultSchedulerTest {
     public void updatePerTaskBSpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags)
                 .setStateStore(stateStore)
@@ -328,7 +334,7 @@ public class DefaultSchedulerTest {
     public void updateTaskTypeASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
 
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags)
@@ -357,6 +363,7 @@ public class DefaultSchedulerTest {
                 collectionThat(contains(offer1.getId())),
                 operationsCaptor.capture(),
                 any());
+        defaultScheduler.awaitOffersProcessed();
 
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
         Protos.TaskID launchedTaskId = getTaskId(operations);
@@ -406,7 +413,7 @@ public class DefaultSchedulerTest {
                 .build();
 
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offerA, offerB, offerC));
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
 
         // Verify that acceptOffer is called thrice, once each for recovery, launch, and cleanup.
         // Use a separate captor as the other one was already used against an acceptOffers call in this test case.
@@ -549,7 +556,7 @@ public class DefaultSchedulerTest {
     public void testInvalidConfigurationUpdate() throws Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitTermination();
+        defaultScheduler.awaitOffersProcessed();
 
         // Get initial target config UUID
         UUID targetConfigId = configStore.getTargetConfig();
@@ -582,12 +589,12 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testSuppress() {
+    public void testSuppress() throws InterruptedException {
         install();
     }
 
     @Test
-    public void testRevive() {
+    public void testRevive() throws InterruptedException {
         List<Protos.TaskID> taskIds = install();
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
@@ -602,7 +609,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsStoredOnInstall() {
+    public void testTaskIpIsStoredOnInstall() throws InterruptedException {
         install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
@@ -613,7 +620,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsUpdatedOnStatusUpdate() {
+    public void testTaskIpIsUpdatedOnStatusUpdate() throws InterruptedException {
         List<Protos.TaskID> taskIds = install();
         String updateIp = "1.1.1.1";
 
@@ -647,7 +654,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() {
+    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() throws InterruptedException {
         List<Protos.TaskID> taskIds = install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
@@ -863,20 +870,16 @@ public class DefaultSchedulerTest {
     }
 
     //Installs the service.
-    private List<Protos.TaskID> install() {
+    private List<Protos.TaskID> install() throws InterruptedException {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
+        defaultScheduler.awaitOffersProcessed();
 
-        while (!defaultScheduler.deploymentPlanManager.getPlan().isComplete()) {
-            try {
-                Thread.sleep(100);
-            } catch (Exception e) {}
-        }
-
+        Assert.assertTrue(defaultScheduler.deploymentPlanManager.getPlan().isComplete());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 PlanTestUtils.getStepStatuses(plan));
         Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
