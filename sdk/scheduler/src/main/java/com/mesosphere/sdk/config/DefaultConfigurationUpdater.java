@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -30,6 +31,7 @@ import java.util.*;
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationUpdater.class);
+    private static final String USER = "root";
 
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
@@ -91,6 +93,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
+        targetConfig = fixLastDeploymentUser(targetConfig);
+
         // Check for any validation errors (including against the prior config, if one is available)
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
@@ -140,6 +144,28 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         UpdateResult.DeploymentType.UPDATE;
 
         return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
+    }
+
+    /**
+     * Detects whether the previous {@code ServiceSpec} set the user. If it didn't, we set it to "root"
+     * as Mesos treats a non-set user as "root".
+     *
+     * @param targetConfig The previous service spec config
+     */
+    private Optional<ServiceSpec> fixLastDeploymentUser(Optional<ServiceSpec> targetConfig) {
+        if (!targetConfig.isPresent()) {
+            return Optional.empty();
+        }
+
+        if (targetConfig.get().getUser() != null) {
+            return targetConfig;
+        }
+
+        ServiceSpec ServiceSpecWithUser = DefaultServiceSpec.newBuilder(targetConfig.get())
+                .user(USER)
+                .build();
+
+        return Optional.of(ServiceSpecWithUser);
     }
 
     /**
