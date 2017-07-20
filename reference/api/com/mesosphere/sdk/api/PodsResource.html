@@ -135,17 +135,7 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodsResource.html#PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">PodsResource</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller,
             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks, but with no <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be called before those
- restart/replace operations.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodsResource.html#PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.RestartHook-">PodsResource</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller,
-            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-            <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a>&nbsp;restartHook)</code>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks.</div>
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
 </table>
@@ -231,28 +221,12 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <a name="PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
-<ul class="blockList">
-<li class="blockList">
-<h4>PodsResource</h4>
-<pre>public&nbsp;PodsResource(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller,
-                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks, but with no <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be called before those
- restart/replace operations.</div>
-</li>
-</ul>
-<a name="PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.RestartHook-">
-<!--   -->
-</a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>PodsResource</h4>
 <pre>public&nbsp;PodsResource(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller,
-                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                    <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a>&nbsp;restartHook)</pre>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks. Additionally, the provided <a href="../../../../com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> is invoked
- before tasks are restarted or replaced.</div>
+                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
 </ul>
 </li>

@@ -889,8 +889,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#CustomExecutor-java.util.concurrent.ExecutorService-com.mesosphere.sdk.executor.ExecutorTaskFactory-">CustomExecutor(ExecutorService, ExecutorTaskFactory)</a></span> - Constructor for class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#customRestartHook">customRestartHook</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>&nbsp;</dd>
 </dl>
 <a name="I:D">
 <!--   -->
@@ -1184,7 +1182,7 @@
 <div class="block">This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
  when possible.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Map-java.util.Optional-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RestartHook&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Map-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
@@ -3921,9 +3919,9 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#killTask-ExecutorDriver-Protos.TaskID-">killTask(ExecutorDriver, Protos.TaskID)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#killTask-TaskID-boolean-">killTask(TaskID, boolean)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler">DefaultTaskKiller</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">killTask(TaskID, RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler">DefaultTaskKiller</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-boolean-">killTask(TaskID, boolean)</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">killTask(TaskID, RecoveryType)</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
 <dd>
 <div class="block">This method should accept Tasks which the caller wishes to kill.</div>
 </dd>
@@ -4331,10 +4329,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.html#notFound-java.lang.String-">notFound(String)</a></span> - Static method in exception com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags.FlagException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/RestartHook.html#notify-java.util.Collection-boolean-">notify(Collection&lt;TaskInfoAndStatus&gt;, boolean)</a></span> - Method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types">RestartHook</a></dt>
-<dd>
-<div class="block">Notifies the hook that the provided <code>tasks</code> are about to be restarted or replaced.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultObservable.html#notifyObservers--">notifyObservers()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">DefaultObservable</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Observable.html#notifyObservers--">notifyObservers()</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></dt>
@@ -4740,14 +4734,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">PodsResource(TaskKiller, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
 <dd>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks, but with no <a href="com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be called before those
- restart/replace operations.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.RestartHook-">PodsResource(TaskKiller, StateStore, RestartHook)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
-<dd>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, and which uses the
- provided <a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> to restart/replace tasks.</div>
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#port">port</a></span> - Variable in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
@@ -5288,10 +5275,6 @@
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">RestartHook</span></a> - Interface in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
-<dd>
-<div class="block">Callback for notifying the service that a task restart or task replace is about to be performed.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#restartPod-java.lang.String-">restartPod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
 <dd>
 <div class="block">Restarts a pod instance in-place.</div>
@@ -5641,10 +5624,6 @@
 <dd>
 <div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
  runs.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setRestartHook-com.mesosphere.sdk.api.types.RestartHook-">setRestartHook(RestartHook)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
-<dd>
-<div class="block">Specifies a custom <a href="com/mesosphere/sdk/api/types/RestartHook.html" title="interface in com.mesosphere.sdk.api.types"><code>RestartHook</code></a> to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setRetryPolicy-RetryPolicy-">setRetryPolicy(RetryPolicy)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
 <dd>

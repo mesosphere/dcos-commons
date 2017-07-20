@@ -153,8 +153,8 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#killTask-TaskID-boolean-">killTask</a></span>(TaskID&nbsp;taskId,
-        boolean&nbsp;destructive)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">killTask</a></span>(TaskID&nbsp;taskId,
+        <a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a>&nbsp;recoveryType)</code>
 <div class="block">This method should accept Tasks which the caller wishes to kill.</div>
 </td>
 </tr>
@@ -198,26 +198,25 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="killTask-TaskID-boolean-">
+<a name="killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>killTask</h4>
 <pre>public&nbsp;void&nbsp;killTask(TaskID&nbsp;taskId,
-                     boolean&nbsp;destructive)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-boolean-">TaskKiller</a></code></span></div>
+                     <a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a>&nbsp;recoveryType)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">TaskKiller</a></code></span></div>
 <div class="block">This method should accept Tasks which the caller wishes to kill.  The kill may be destructive (for restarting at
  a new location) or it may be killed with the intention of later being restarted (for in-place restart).  This
  method does not synchronously kill the Task.  Mesos will periodically provide a SchedulerDriver which may be used
  to process requested Task kills.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-boolean-">killTask</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">killTask</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>taskId</code> - ID of the task to be restarted</dd>
-<dd><code>destructive</code> - A flag indicating whether the Task should be killed permanently and destructively or
-     anticipates a future restart</dd>
+<dd><code>recoveryType</code> - A flag indicating the type of kill to perform, <code>TRANSIENT</code> or <code>PERMANENT</code></dd>
 </dl>
 </li>
 </ul>

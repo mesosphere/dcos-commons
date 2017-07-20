@@ -138,13 +138,19 @@ extends java.lang.Enum&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/r
 <th class="colOne" scope="col">Enum Constant and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#NONE">NONE</a></span></code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#NONE">NONE</a></span></code>
+<div class="block">No action is needed.</div>
+</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#PERMANENT">PERMANENT</a></span></code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#PERMANENT">PERMANENT</a></span></code>
+<div class="block">Permanent failure (e.g.</div>
+</td>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#TRANSIENT">TRANSIENT</a></span></code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html#TRANSIENT">TRANSIENT</a></span></code>
+<div class="block">Transient failure (e.g.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -210,6 +216,7 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>NONE</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a> NONE</pre>
+<div class="block">No action is needed. No-op.</div>
 </li>
 </ul>
 <a name="TRANSIENT">
@@ -219,6 +226,8 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>TRANSIENT</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a> TRANSIENT</pre>
+<div class="block">Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=FINISHED, or 'pod restart' cmd),
+ relaunch the task in-place without modifying its persistent volumes.</div>
 </li>
 </ul>
 <a name="PERMANENT">
@@ -228,6 +237,8 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>PERMANENT</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a> PERMANENT</pre>
+<div class="block">Permanent failure (e.g. bad machine or 'pod replace' cmd), destroy the current task's state and relaunch it
+ elsewhere from scratch.</div>
 </li>
 </ul>
 </li>
