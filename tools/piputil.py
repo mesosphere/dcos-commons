@@ -53,10 +53,6 @@ def pip_install_dir(path, requirements_filepath):
                '--target', path,
                '-r', requirements_filepath,
                ]
-    # --system is a workaround for debian brain damage
-    if os.path.exists("/etc/debian_version"):
-        pip_cmd.append('--system')
-
     subprocess.check_call(pip_cmd)
 
 def create_requirementsfile(filename, req_text=None):
