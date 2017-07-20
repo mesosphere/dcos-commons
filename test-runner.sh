@@ -23,12 +23,12 @@ echo "Beginning integration tests at "`date`
 
 pytest_k=""
 if [ -n "$PYTEST_K" ]; then
-    pytest_k="-k \"$PYTEST_K\""
+    pytest_k=(-k "$PYTEST_K")
 fi
 
 pytest_m=""
 if [ -n "$PYTEST_M" ]; then
-    pytest_m="-m \"$PYTEST_M\""
+    pytest_m=(-m "$PYTEST_M")
 fi
 
 eval "$(ssh-agent -s)"
@@ -52,8 +52,17 @@ for framework in $FRAMEWORK_LIST; do
         echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
 
+    echo "Configuring dcoscli for cluster: $CLUSTER_URL"
+    dcos config set core.dcos_url $CLUSTER_URL
+    dcos config set core.ssl_verify false
+    /build/tools/dcos_login.py
+
     echo "Starting test for $framework at "`date`
-    py.test -vv -s $pytest_k $pytest_m ${FRAMEWORK_DIR}/tests
+    # py.test -vv -s $pytest_k $pytest_m ${FRAMEWORK_DIR}/tests
+    set -x
+    py.test -vv -s "${pytest_k[@]}" "${pytest_m[@]}" ${FRAMEWORK_DIR}/tests/test_sanity.py
+    set +x
+    # py.test -vv -s -m "sanity and not azure" ${FRAMEWORK_DIR}/tests/test_sanity.py
     echo "Finished test for $framework at "`date`
 done
 

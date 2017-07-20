@@ -92,7 +92,6 @@ case $key in
     ;;
     -s)
     security="strict"
-    shift # past argument
     ;;
     -p)
     ssh_path="$2"
