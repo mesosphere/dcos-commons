@@ -58,11 +58,7 @@ for framework in $FRAMEWORK_LIST; do
     /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`
-    # py.test -vv -s $pytest_k $pytest_m ${FRAMEWORK_DIR}/tests
-    set -x
-    py.test -vv -s "${pytest_k[@]}" "${pytest_m[@]}" ${FRAMEWORK_DIR}/tests/test_sanity.py
-    set +x
-    # py.test -vv -s -m "sanity and not azure" ${FRAMEWORK_DIR}/tests/test_sanity.py
+    py.test -vv -s "${pytest_k[@]}" "${pytest_m[@]}" ${FRAMEWORK_DIR}/tests
     echo "Finished test for $framework at "`date`
 done
 
