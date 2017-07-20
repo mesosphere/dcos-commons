@@ -41,9 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -61,8 +58,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
-
-    protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
@@ -87,7 +82,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     public static class Builder {
-        private final ServiceSpec serviceSpec;
+        private ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
 
         // When these optionals are unset, we use default values:
@@ -278,8 +273,10 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             LOGGER.info("Getting plans");
             Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
+                LOGGER.info("Using manual plans");
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
+                LOGGER.info("Using YAML plans");
                 // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
                 // may look at the old config and mistakenly think they're COMPLETE.
                 DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
@@ -287,6 +284,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
+                LOGGER.info("Generating plans");
                 try {
                     if (!configStore.list().isEmpty()) {
                         LOGGER.info("Generating default deploy plan.");
@@ -303,6 +301,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     throw new IllegalStateException(e);
                 }
             }
+
+            LOGGER.info("Got plans: {}", plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
             return plans;
         }
 
@@ -353,9 +353,17 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             final ConfigurationUpdater.UpdateResult configUpdateResult =
                     updateConfig(serviceSpec, stateStore, configStore, configValidators);
+
             if (!configUpdateResult.getErrors().isEmpty()) {
                 LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
                         configUpdateResult.getTargetId(), configUpdateResult.getErrors());
+                try {
+                    // If there were errors maintain the last accepted target configuration.
+                    serviceSpec = configStore.fetch(configStore.getTargetConfig());
+                } catch (ConfigStoreException e) {
+                    LOGGER.error("Failed to maintain pervious target configuration.");
+                    throw new IllegalStateException(e);
+                }
             }
 
             Collection<Plan> plans = getPlans(stateStore, configStore);
@@ -468,7 +476,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
         return createConfigStore(
-                serviceSpec, customDeserializationSubtypes, CuratorPersister.newBuilder(serviceSpec).build());
+                serviceSpec, customDeserializationSubtypes,
+                CuratorPersister.newBuilder(serviceSpec).build());
     }
 
     /**
@@ -494,7 +503,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange(),
                 new PodSpecsCannotChangeNetworkRegime(),
-                new PreReservationCannotChange());
+                new PreReservationCannotChange(),
+                new UserCannotChange());
     }
 
     /**
@@ -557,7 +567,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 errors);
 
         updatedPlans.add(deployPlan);
-        plans.stream().filter(plan -> !plan.isDeployPlan()).map(updatedPlans::add);
+        for (Plan plan : plans) {
+            if (!plan.isDeployPlan()) {
+                updatedPlans.add(plan);
+            }
+        }
 
         return updatedPlans;
     }
@@ -590,11 +604,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.updateResult = updateResult;
     }
 
-    @VisibleForTesting
-    void awaitTermination() throws InterruptedException {
-        executor.shutdown();
-        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    }
 
     protected void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
@@ -679,10 +688,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
             LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(
-                    stateStore,
-                    configStore,
-                    plans));
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
         }
 
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
@@ -720,7 +726,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(serviceSpec.getApiPort(), resources,
+        schedulerApiServer = new SchedulerApiServer(
+                schedulerFlags.getApiServerPort(),
+                resources,
                 schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }
@@ -753,57 +761,50 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
-        executor.execute(() -> {
-            if (!apiServerReady()) {
-                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                OfferUtils.declineOffers(driver, offersToProcess);
-                return;
-            }
+    protected void processOfferSet(List<Protos.Offer> offers) {
+        List<Protos.Offer> localOffers = new ArrayList<>(offers);
+        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
+        for (int i = 0; i < localOffers.size(); ++i) {
+            LOGGER.info("  {}: {}",
+                    i + 1,
+                    TextFormat.shortDebugString(localOffers.get(i)));
+        }
 
-            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-            }
+        // Coordinate amongst all the plans via PlanCoordinator.
+        final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+        acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
+        LOGGER.info(
+                "Offers accepted by plan coordinator: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                OfferUtils.declineOffers(driver, offers);
-                return;
-            }
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
 
-            // Coordinate amongst all the plans via PlanCoordinator.
-            final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-            acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
+        // Resource Cleaning:
+        // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
+        // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
+        // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
+        // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
+        // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+        // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
+        // offer cycle.
+        final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
+        if (cleanerScheduler.isPresent()) {
+            List<Protos.OfferID> cleanedOffers = cleanerScheduler.get().resourceOffers(driver, unusedOffers);
+            LOGGER.info("Offers accepted by resource cleaner: {}", cleanedOffers);
+            acceptedOffers.addAll(cleanedOffers);
+        }
 
-            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-            offers.clear();
-            offers.addAll(unusedOffers);
+        LOGGER.info(
+                "Total accepted offers: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
-            // Resource Cleaning:
-            // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
-            // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
-            // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
-            // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
-            // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
-            // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
-            // offer cycle.
-            final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-            cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
-                    resourceCleanerScheduler.resourceOffers(driver, offers)));
+        unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
+        LOGGER.info(
+                "Unused offers to be declined: {}",
+                unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
-            unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-
-            // Decline remaining offers.
-            OfferUtils.declineOffers(driver, unusedOffers);
-        });
+        // Decline remaining offers.
+        OfferUtils.declineOffers(driver, unusedOffers);
     }
 
     public boolean apiServerReady() {
@@ -812,7 +813,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        executor.execute(() -> {
+        statusExecutor.execute(() -> {
             LOGGER.info("Received status update for taskId={} state={} message='{}'",
                     status.getTaskId().getValue(),
                     status.getState().toString(),

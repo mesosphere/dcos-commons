@@ -24,7 +24,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -45,9 +44,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     private String principal;
     private String user;
 
-    @NotNull
-    @Min(value = 0, message = "API port value should be >= 0")
-    private Integer apiPort;
     private String webUrl;
     private String zookeeperConnection;
 
@@ -65,7 +61,6 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("api-port") int apiPort,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
@@ -74,7 +69,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.name = name;
         this.role = role;
         this.principal = principal;
-        this.apiPort = apiPort;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
@@ -90,7 +84,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.name,
                 builder.role,
                 builder.principal,
-                builder.apiPort,
                 builder.webUrl,
                 builder.zookeeperConnection,
                 builder.pods,
@@ -113,17 +106,16 @@ public class DefaultServiceSpec implements ServiceSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultServiceSpec copy) {
+    public static Builder newBuilder(ServiceSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.role = copy.role;
-        builder.principal = copy.principal;
-        builder.apiPort = copy.apiPort;
-        builder.zookeeperConnection = copy.zookeeperConnection;
-        builder.webUrl = copy.webUrl;
-        builder.pods = copy.pods;
-        builder.replacementFailurePolicy = copy.replacementFailurePolicy;
-        builder.user = copy.user;
+        builder.name = copy.getName();
+        builder.role = copy.getRole();
+        builder.principal = copy.getPrincipal();
+        builder.zookeeperConnection = copy.getZookeeperConnection();
+        builder.webUrl = copy.getWebUrl();
+        builder.pods = copy.getPods();
+        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
+        builder.user = copy.getUser();
         return builder;
     }
 
@@ -140,11 +132,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public String getPrincipal() {
         return principal;
-    }
-
-    @Override
-    public int getApiPort() {
-        return apiPort;
     }
 
     @Override
@@ -378,7 +365,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String name;
         private String role;
         private String principal;
-        private Integer apiPort;
         private String webUrl;
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
@@ -423,29 +409,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param user the {@code principal} to set
-         * @return a reference to this Builder
-         */
-        public Builder user(String user) {
-            this.user = user;
-            return this;
-        }
-
-        /**
-         * Sets the {@code apiPort} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param apiPort the {@code apiPort} to set
-         * @return a reference to this Builder
-         */
-        public Builder apiPort(Integer apiPort) {
-            this.apiPort = apiPort;
-            return this;
-        }
-
-        /**
          * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
          * can be chained together.
          *
@@ -454,6 +417,18 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder webUrl(String webUrl) {
             this.webUrl = webUrl;
+            return this;
+        }
+
+        /**
+         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param user the {@code principal} to set
+         * @return a reference to this Builder
+         */
+        public Builder user(String user) {
+            this.user = user;
             return this;
         }
 

@@ -64,7 +64,6 @@ public class DefaultStepFactoryTest {
                         .name(TestConstants.SERVICE_NAME)
                         .role(TestConstants.ROLE)
                         .principal(TestConstants.PRINCIPAL)
-                        .apiPort(0)
                         .zookeeperConnection("foo.bar.com")
                         .pods(Arrays.asList(podSpec))
                         .build();
@@ -99,7 +98,6 @@ public class DefaultStepFactoryTest {
                         .name(TestConstants.SERVICE_NAME)
                         .role(TestConstants.ROLE)
                         .principal(TestConstants.PRINCIPAL)
-                        .apiPort(0)
                         .zookeeperConnection("foo.bar.com")
                         .pods(Arrays.asList(podSpec))
                         .build();

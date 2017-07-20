@@ -59,6 +59,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
+            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -69,6 +70,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
+            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -96,7 +98,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
@@ -120,7 +121,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podB))
                 .build();
@@ -174,6 +174,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
+                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -184,6 +185,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
+                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -194,6 +196,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 "AA",
                 TASK_A_CMD,
+                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -204,6 +207,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
+                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,

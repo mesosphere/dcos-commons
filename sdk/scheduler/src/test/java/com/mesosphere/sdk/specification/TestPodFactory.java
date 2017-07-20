@@ -118,6 +118,7 @@ public class TestPodFactory {
             String resourceSetId,
             String taskName,
             String cmd,
+            String user,
             int podCount,
             double cpu,
             double mem,
@@ -134,7 +135,7 @@ public class TestPodFactory {
                     mem,
                     disk));
         }
-        return getPodSpec(type, podCount, taskSpecs);
+        return getPodSpec(type, user, podCount, taskSpecs);
     }
 
     public static PodSpec getPodSpec(
@@ -142,17 +143,19 @@ public class TestPodFactory {
             String resourceSetId,
             String taskName,
             String cmd,
+            String user,
             int count,
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(type, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
+        return getPodSpec(type, user, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
     }
 
-    public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
+    public static PodSpec getPodSpec(String type, String user, int count, List<TaskSpec> taskSpecs) {
         return DefaultPodSpec.newBuilder("test-executor")
                 .type(type)
                 .count(count)
+                .user(user)
                 .tasks(taskSpecs)
                 .build();
     }

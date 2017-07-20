@@ -23,7 +23,7 @@
   {{/service.secret_name}}
   "env": {
     "ELASTIC_VERSION": "{{elastic-version}}",
-    "STATSD_PLUGIN": "{{resource.assets.uris.statsd-plugin-zip}}",
+    "STATSD_URI": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "ELASTICSEARCH_JAVA_URI" : "{{resource.assets.uris.elasticsearch-jre-tar-gz}}",
     "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
@@ -36,6 +36,7 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
+    "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },

@@ -22,9 +22,6 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("pod-specs")
     List<PodSpec> getPods();
 
-    @JsonProperty("api-port")
-    int getApiPort();
-
     @JsonProperty("web-url")
     String getWebUrl();
 

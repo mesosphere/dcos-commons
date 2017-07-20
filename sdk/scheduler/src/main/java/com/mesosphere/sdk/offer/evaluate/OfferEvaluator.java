@@ -113,8 +113,12 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("Offer {}: failed {} of {} evaluation stages:\n{}",
-                        i + 1, failedOutcomeCount, evaluationStages.size(), outcomeDetails.toString());
+                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                        i + 1,
+                        offer.getId().getValue(),
+                        failedOutcomeCount,
+                        evaluationStages.size(),
+                        outcomeDetails.toString());
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
@@ -269,16 +273,15 @@ public class OfferEvaluator {
                 if (resourceSpec instanceof NamedVIPSpec) {
                     NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
                     evaluationStages.add(
-                            new NamedVIPEvaluationStage(
-                                    namedVIPSpec,
-                                    taskName,
-                                    Optional.empty(),
-                                    namedVIPSpec.getPortName(),
-                                    useDefaultExecutor));
+                            new NamedVIPEvaluationStage(namedVIPSpec, taskName, Optional.empty(), useDefaultExecutor));
                 } else if (resourceSpec instanceof PortSpec) {
                     PortSpec portSpec = (PortSpec) resourceSpec;
-                    evaluationStages.add(new PortEvaluationStage(
-                            portSpec, taskName, Optional.empty(), portSpec.getPortName(), useDefaultExecutor));
+                    evaluationStages.add(
+                            new PortEvaluationStage(
+                                    portSpec,
+                                    taskName,
+                                    Optional.empty(),
+                                    useDefaultExecutor));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }

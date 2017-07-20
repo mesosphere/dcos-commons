@@ -83,14 +83,12 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(oldPodSpecs)
-                .apiPort(8080)
                 .build();
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(newPodSpecs)
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(expectedHeteroTransitionErrors, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());

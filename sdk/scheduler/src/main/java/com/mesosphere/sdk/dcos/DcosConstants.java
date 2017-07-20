@@ -29,6 +29,9 @@ public class DcosConstants {
     // that a pod will ever exceed 1000 ports.
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
+    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
+    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
+    public static final String BRIDGE_FLAG_VALUE = "host";
 
     public static boolean networkSupportsPortMapping(String networkName) {
         boolean supportsPortMapping;

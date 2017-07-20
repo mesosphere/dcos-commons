@@ -233,12 +233,10 @@ class TaskResourceMapper {
             Optional<String> persistenceId) {
         if (resourceSpec instanceof NamedVIPSpec) {
             NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
-            return new NamedVIPEvaluationStage(
-                    namedVIPSpec, taskSpecName, resourceId, namedVIPSpec.getPortName(), useDefaultExecutor);
+            return new NamedVIPEvaluationStage(namedVIPSpec, taskSpecName, resourceId, useDefaultExecutor);
         } else if (resourceSpec instanceof PortSpec) {
             PortSpec portSpec = (PortSpec) resourceSpec;
-            return new PortEvaluationStage(
-                    portSpec, taskSpecName, resourceId, portSpec.getPortName(), useDefaultExecutor);
+            return new PortEvaluationStage(portSpec, taskSpecName, resourceId, useDefaultExecutor);
         } else if (resourceSpec instanceof VolumeSpec) {
             return new VolumeEvaluationStage(
                     (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, useDefaultExecutor);
