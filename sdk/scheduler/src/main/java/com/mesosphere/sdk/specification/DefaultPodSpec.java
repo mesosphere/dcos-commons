@@ -25,7 +25,7 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Size(min = 1)
     private final String type;
-    private final String user;
+    private String user;
     @NotNull
     @Min(0)
     private final Integer count;
@@ -125,6 +125,11 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Optional<String> getUser() {
         return Optional.ofNullable(user);
+    }
+
+    @Override
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override

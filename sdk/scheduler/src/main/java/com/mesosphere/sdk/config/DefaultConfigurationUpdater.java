@@ -30,6 +30,7 @@ import java.util.*;
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationUpdater.class);
+    private static final String USER = "root";
 
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
@@ -91,6 +92,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
+        fixLastDeploymentUser(targetConfig);
+
         // Check for any validation errors (including against the prior config, if one is available)
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
@@ -141,6 +144,25 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
+
+    /**
+     * Detects whether the previous deployment set the user at pod level. If it didn't, we set it to "root"
+     * as Mesos treats a non-set user as "root".
+     *
+     * @param targetConfig The previous service spec config
+     */
+    private void fixLastDeploymentUser(Optional<ServiceSpec> targetConfig) {
+        if (!targetConfig.isPresent()) {
+            return;
+        }
+
+        for (PodSpec pod : targetConfig.get().getPods()) {
+            if (!pod.getUser().isPresent()) {
+                pod.setUser(USER);
+            }
+        }
+    }
+
 
     /**
      * Searches for any task configurations which are already identical to the target configuration
