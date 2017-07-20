@@ -1,7 +1,7 @@
 import pytest
 import sdk_install
-import sdk_test_upgrade
 import sdk_utils
+import sdk_versions
 
 from tests.test_utils import (
     PACKAGE_NAME,
@@ -29,7 +29,7 @@ def test_upgrade_downgrade():
             "user":"root"
         }
     }
-    sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME),
+    sdk_versions.upgrade_downgrade("beta-{}".format(PACKAGE_NAME),
                                        PACKAGE_NAME, DEFAULT_BROKER_COUNT,
                                        additional_options=options)
 

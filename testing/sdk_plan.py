@@ -26,35 +26,35 @@ def start_plan(service_name, plan, parameters=None):
         json=parameters if parameters is not None else {})
 
 
-def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
+def wait_for_completed_recovery(service_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_in_progress_recovery(service_name, timeout_seconds=15 * 60):
+def wait_for_in_progress_recovery(service_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_in_progress_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
+def wait_for_completed_deployment(service_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_completed_plan(service_name, 'deploy', timeout_seconds)
 
 
-def wait_for_completed_plan(service_name, plan_name, timeout_seconds=15 * 60):
+def wait_for_completed_plan(service_name, plan_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=15 * 60):
+def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_phase_status(service_name, plan_name, phase_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=15 * 60):
+def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_step_status(service_name, plan_name, phase_name, step_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=15 * 60):
+def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
-def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
+def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     def fn():
         plan = get_plan(service_name, plan_name)
         sdk_utils.out('Waiting for {} plan to have {} status:\n{}'.format(
@@ -66,7 +66,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 6
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=15 * 60):
+def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     def fn():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
@@ -79,7 +79,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=15 * 60):
+def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=sdk_utils.DEFAULT_TIMEOUT):
     def fn():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)

@@ -5,8 +5,8 @@ by the DC/OS metrics component.
 
 import shakedown
 
-import sdk_utils as utils
-import sdk_cmd as cmd
+import sdk_utils
+import sdk_cmd
 import json
 
 def get_metrics(service_name, task_name):
@@ -29,14 +29,14 @@ def get_metrics(service_name, task_name):
 
     # Fetch the list of containers for the agent
     containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
-    containers_response = cmd.request("GET", containers_url, retry=False)
+    containers_response = sdk_cmd.request("GET", containers_url, retry=False)
     if containers_response.ok is None:
-        utils.out("Unable to fetch containers list")
+        sdk_utils.out("Unable to fetch containers list")
         raise Exception("Unable to fetch containers list: {}".format(containers_url))
 
     for container in json.loads(containers_response.text):
         app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(shakedown.dcos_url(), agent_id, container)
-        app_response = cmd.request("GET", app_url, retry=False)
+        app_response = sdk_cmd.request("GET", app_url, retry=False)
         if app_response.ok is None:
             continue
 
@@ -49,7 +49,7 @@ def get_metrics(service_name, task_name):
 
 def wait_for_any_metrics(service_name, task_name, timeout):
     def metrics_exist():
-        utils.out("verifying metrics exist for {}".format(service_name))
+        sdk_utils.out("verifying metrics exist for {}".format(service_name))
         service_metrics = get_metrics(service_name, task_name)
         return len(service_metrics) != 0
 
