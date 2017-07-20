@@ -1,9 +1,19 @@
 package com.mesosphere.sdk.config.validate;
 
+import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.testutils.TestConstants;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.mockito.Mockito.when;
 
 public class TaskVolumesCannotChangeTest {
     private static final int DISK_SIZE_MB = 1000;
@@ -12,73 +22,89 @@ public class TaskVolumesCannotChangeTest {
 
     // slight differences between volumes:
     private static final VolumeSpec VOLUME1 = new DefaultVolumeSpec(
-            DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "/path/to/volume", "role", "*", "principal", "VOLUME");
+            DISK_SIZE_MB,
+            VolumeSpec.Type.MOUNT,
+            "some_path",
+            "role",
+            "*",
+            "principal",
+            "VOLUME");
     private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
-            DISK_SIZE_MB + 3, VolumeSpec.Type.MOUNT, "/path/to/volume", "role", "*", "principal", "VOLUME");
+            DISK_SIZE_MB + 3,
+            VolumeSpec.Type.MOUNT,
+            "some_path",
+            "role",
+            "*",
+            "principal",
+            "VOLUME");
     private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
-            DISK_SIZE_MB, VolumeSpec.Type.ROOT, "/path/to/volume", "role", "*", "principal", "VOLUME");
+            DISK_SIZE_MB,
+            VolumeSpec.Type.ROOT,
+            "some_path",
+            "role",
+            "*",
+            "principal",
+            "VOLUME");
 
     @Mock private PodSpec mockPodSpec1;
     @Mock private PodSpec mockPodSpec2;
+    @Mock private PodSpec mockPodSpec3;
+    @Mock private TaskSpec mockTaskSpec1;
+    @Mock private TaskSpec mockTaskSpec2;
+    @Mock private TaskSpec mockTaskSpec3;
+    @Mock private ResourceSet mockResourceSet1;
+    @Mock private ResourceSet mockResourceSet2;
+    @Mock private ResourceSet mockResourceSet3;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+
+        // Task volume validation is based on podType-taskName names
+        // so to simulate the same config with changing task volumes
+        // we keep the pod type uniform across the pods.
+        when(mockPodSpec1.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(mockPodSpec2.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(mockPodSpec3.getType()).thenReturn(TestConstants.POD_TYPE);
+
+        when(mockTaskSpec1.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
+
+        when(mockResourceSet1.getVolumes()).thenReturn(Arrays.asList(VOLUME1));
+        when(mockResourceSet2.getVolumes()).thenReturn(Arrays.asList(VOLUME2, VOLUME3));
+        when(mockResourceSet3.getVolumes()).thenReturn(Collections.emptyList());
+
+        when(mockTaskSpec1.getResourceSet()).thenReturn(mockResourceSet1);
+        when(mockTaskSpec2.getResourceSet()).thenReturn(mockResourceSet2);
+        when(mockTaskSpec3.getResourceSet()).thenReturn(mockResourceSet3);
+
+        when(mockPodSpec1.getTasks()).thenReturn(Arrays.asList(mockTaskSpec1));
+        when(mockPodSpec2.getTasks()).thenReturn(Arrays.asList(mockTaskSpec2));
+        when(mockPodSpec3.getTasks()).thenReturn(Arrays.asList(mockTaskSpec3));
     }
 
-    /*
     @Test
     public void testUnchangedVolumes() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .pods(Arrays.asList(mockPodSpec2))
                 .build();
 
-        ServiceSpecification serviceSpec3 = new DefaultServiceSpecification(
-                "svc3",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec1, mockPodSpec2)),
-                        DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec3))));
-        ServiceSpecification serviceSpec4 = new DefaultServiceSpecification(
-                "svc4",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec1)),
-                        DefaultTaskSet.create("set2", Arrays.asList(mockPodSpec2, mockTaskSpec3))));
 
-        when(mockPodSpec1.getName()).thenReturn("task1");
-        when(mockPodSpec2.getName()).thenReturn("task2");
-        when(mockTaskSpec3.getName()).thenReturn("task3");
-        when(mockPodSpec1.getVolumes()).thenReturn(Arrays.asList(VOLUME1));
-        when(mockPodSpec2.getVolumes()).thenReturn(Arrays.asList(VOLUME2, VOLUME3));
-        when(mockTaskSpec3.getVolumes()).thenReturn(Collections.emptyList());
-
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec1, serviceSpec1).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec2, serviceSpec2).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec3, serviceSpec3).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec4, serviceSpec4).isEmpty());
+        Assert.assertTrue(VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).isEmpty());
+        Assert.assertTrue(VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).isEmpty());
 
         // the tasks are reshuffled, but each task's volumes don't change!:
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec1, serviceSpec2).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec1, serviceSpec3).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec1, serviceSpec4).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec2, serviceSpec1).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec2, serviceSpec3).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec2, serviceSpec4).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec3, serviceSpec1).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec3, serviceSpec2).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec3, serviceSpec4).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec4, serviceSpec1).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec4, serviceSpec2).isEmpty());
-        Assert.assertTrue(VALIDATOR.validate(serviceSpec4, serviceSpec3).isEmpty());
+        Assert.assertTrue(VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).isEmpty());
+        Assert.assertTrue(VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).isEmpty());
     }
 
     @Test
@@ -86,58 +112,54 @@ public class TaskVolumesCannotChangeTest {
 
         // "Change" only detected when mockPodSpec1 AND mockPodSpec2 are compared.
 
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
-                "svc1",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec1))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
-                "svc2",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec2))));
-        ServiceSpecification serviceSpec13 = new DefaultServiceSpecification(
-                "svc3",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec1)),
-                        DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec3))));
-        ServiceSpecification serviceSpec23 = new DefaultServiceSpecification(
-                "svc4",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec2)),
-                        DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec3))));
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
+                .name("svc1")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec1))
+                .build();
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
+                .name("svc2")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec2))
+                .build();
+        ServiceSpec serviceSpec3 = DefaultServiceSpec.newBuilder()
+                .name("svc3")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec3))
+                .build();
 
-        when(mockPodSpec1.getName()).thenReturn("task1");
-        when(mockPodSpec2.getName()).thenReturn("task1");
-        when(mockTaskSpec3.getName()).thenReturn("task2");
-        when(mockPodSpec1.getVolumes()).thenReturn(Arrays.asList(VOLUME1));
-        when(mockPodSpec2.getVolumes()).thenReturn(Arrays.asList(VOLUME2, VOLUME3));
-        when(mockTaskSpec3.getVolumes()).thenReturn(Collections.emptyList());
+        when(mockTaskSpec2.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
+        when(mockTaskSpec3.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
 
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec13).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec23).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec13).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec23).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec13, serviceSpec1).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec13, serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec13, serviceSpec23).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec23, serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec23, serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec23, serviceSpec13).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec3).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec3).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec3), serviceSpec1).size());
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec3), serviceSpec2).size());
     }
 
     @Test
     public void testDuplicateTasksInService() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
-                "svc1",
-                Arrays.asList(
-                        DefaultTaskSet.create("set1", Arrays.asList(mockPodSpec1, mockPodSpec2))));
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
+                .name("svc1")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec1))
+                .build();
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
+                .name("svc2")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec2))
+                .build();
 
-        when(mockPodSpec1.getName()).thenReturn("task1");
-        when(mockPodSpec2.getName()).thenReturn("task1");
+        when(mockTaskSpec2.getName()).thenReturn(TestConstants.TASK_NAME + "-1");
+        when(mockPodSpec2.getTasks()).thenReturn(Arrays.asList(mockTaskSpec1, mockTaskSpec2));
 
-        // error hit twice, once in 'each' servicespec:
-        Assert.assertEquals(2, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
     }
-    */
 }
