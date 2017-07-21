@@ -619,7 +619,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-            List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
+            List<String> tasksToLaunch = Arrays.asList("test-task");
             PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch)
                     .build();
 
@@ -697,7 +697,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-            List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
+            List<String> tasksToLaunch = Arrays.asList("test-task");
             PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch)
                     .build();
 

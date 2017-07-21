@@ -155,7 +155,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
 
             // Add port to the readiness check environment (if a readiness check is defined):
-            addReadinessCheckPort(taskBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
+            if (taskBuilder.hasCheck()) {
+                addReadinessCheckPort(taskBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
+            }
 
             if (useHostPorts) { // we only use the resource if we're using the host ports
                 taskBuilder.addResources(resource);
