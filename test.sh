@@ -1,80 +1,132 @@
 #!/usr/bin/env bash
+# Verifies environment and launches docker to execute test-runner.sh
 
-# This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds each framework, packages and uploads it, then runs its
-# integration tests against a newly-launched cluster.
+# 1. I can pick up a brand new laptop, and as long as I have docker installed, everything will just work if I do ./test.sh <fw>
+# 2. I want test.sh to default to running _all_ tests for that framework.
+# 3. I want to be able to pass -m or -k to pytest
+# 4. If I pass `all` instead of a fw name, it will run all frameworks
+# 5. test.sh should validate i have the AWS keys, and a CLUSTER_URL set, but it need not verify the azure keys / security / etc
 
-# Exit immediately on errors -- the helper scripts all emit github statuses internally
+# Exit immediately on errors
 set -e
 
-function run_framework_tests {
-    framework=$1
-    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
+REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
 
-    # Build/upload framework scheduler artifact if one is not directly provided:
-    if [ -z "${!STUB_UNIVERSE_URL}" ]; then
-        STUB_UNIVERSE_URL=$(echo "${framework}_STUB_UNIVERSE_URL" | awk '{print toupper($0)}')
-        # Build/upload framework scheduler:
-        UNIVERSE_URL_PATH=$FRAMEWORK_DIR/${framework}-universe-url
-        UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${FRAMEWORK_DIR}/build.sh aws
-
-        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-            exit 1
-        fi
-        export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
-        rm -f $UNIVERSE_URL_PATH
-        echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
-    else
-        echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
-    fi
-
-    echo Security: $SECURITY
-    if [ "$SECURITY" = "strict" ]; then
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
-        # include foldered roles (tests exercise with /test/integration/svcname):
-        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root test__integration__${framework}-role
-    fi
-
-    # Run shakedown tests in framework directory:
-    TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
+function usage()
+{
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
+    echo "-m passed to pytest directly [default -m \"sanity and not azure\"]"
+    echo "-k passed to pytest directly [default NONE]"
+    echo "-p PATH to cluster SSH key [default ~/.ssh/ccm.pem]"
+    echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
+    echo "Cluster must be created and \$CLUSTER_URL set"
+    echo "AWS credentials must exist in the variables:"
+    echo "      \$AWS_ACCESS_KEY_ID"
+    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "Azure tests will run if thses variables are set:"
+    echo "      \$AWS_ACCESS_KEY_ID"
+    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "      \$AZURE_CLIENT_ID"
+    echo "      \$AZURE_CLIENT_SECRET"
+    echo "      \$AZURE_TENANT_ID"
+    echo "      \$AZURE_STORAGE_ACCOUNT"
+    echo "      \$AZURE_STORAGE_KEY"
+    echo "  (changes the -m default to \"sanity\")"
+    echo "Set \$STUB_UNIVERSE_URL to bypass build"
+    echo "  (invalid when building all frameworks)"
+    echo "Current frameworks:"
+    for framework in $FRAMEWORK_LIST; do
+        echo "       $framework"
+    done
+    exit 1
 }
 
-echo "Beginning integration tests at "`date`
+if [ "$#" -eq "0" ]; then
+    usage
+fi
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-cd $REPO_ROOT_DIR
-
-# Get a CCM cluster if not already configured (see available settings in dcos-commons/tools/README.md):
 if [ -z "$CLUSTER_URL" ]; then
-    echo "CLUSTER_URL is empty/unset, launching new cluster."
-    export CCM_AGENTS=6
-    CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
-    echo "Launched cluster: ${CLUSTER_INFO}"
-    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
-    export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
-    CLUSTER_CREATED="true"
-else
-    echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
-    CLUSTER_CREATED=""
+    echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
+    exit 1
 fi
 
-# A specific framework can be specified to run its tests
-# Otherwise all tests are run in random framework order
-if [ -n "$1" ]; then
-    run_framework_tests $1
-else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
-        echo "Starting shakedown tests for $framework at "`date`
-        run_framework_tests $framework
-    done
+if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
+    exit 1
 fi
 
-# Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
-# Don't wait for the cluster to complete teardown.
-if [ -n "${CLUSTER_CREATED}" ]; then
-    ${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py trigger-stop ${CLUSTER_ID}
+security="permissive"
+pytest_m="sanity and not azure"
+pytest_k=""
+azure_args=""
+ssh_path="${HOME}/.ssh/ccm.pem"
+
+# If AZURE variables are given, change default -m and prepare args for docker
+if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
+        -n "$AZURE_DEV_TENANT_ID" -a -n "$AZURE_DEV_STORAGE_ACCOUNT" -a \
+        -n "$AZURE_DEV_STORAGE_KEY" ]; then
+azure_args=$(cat<<EOFF
+    -e AZURE_CLIENT_ID=$AZURE_DEV_CLIENT_ID \
+    -e AZURE_CLIENT_SECRET=$AZURE_DEV_CLIENT_SECRET \
+    -e AZURE_TENANT_ID=$AZURE_DEV_TENANT_ID \
+    -e AZURE_STORAGE_ACCOUNT=$AZURE_DEV_STORAGE_ACCOUNT \
+    -e AZURE_STORAGE_KEY=$AZURE_DEV_STORAGE_KEY
+EOFF
+)
+    pytest_m="sanity"
 fi
+
+while [[ $# -gt 1 ]]
+do
+key="$1"
+
+case $key in
+    -m)
+    pytest_m="$2"
+    shift # past argument
+    ;;
+    -k)
+    pytest_k="$2"
+    shift # past argument
+    ;;
+    -s)
+    security="strict"
+    ;;
+    -p)
+    ssh_path="$2"
+    shift # past argument
+    ;;
+    *)
+    usage
+            # unknown option
+    ;;
+esac
+shift # past argument or value
+done
+
+if [ -z "$1" ]; then
+    usage
+fi
+
+framework=$1
+if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
+    echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"
+    exit 1
+fi
+
+docker run --rm \
+    -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -e CLUSTER_URL=$CLUSTER_URL \
+    $azure_args \
+    -e SECURITY=$security \
+    -e "PYTEST_K=$pytest_k" \
+    -e "PYTEST_M=$pytest_m" \
+    -e FRAMEWORK=$framework \
+    -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
+    -v $(pwd):/build \
+    -v $ssh_path:/ssh/key \
+    -w /build \
+    michaelellenburg/dcos-commons:v0 \
+    bash test-runner.sh
