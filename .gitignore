@@ -47,6 +47,7 @@ sdk/core/build
 sdk/executor/build
 frameworks/*/build
 frameworks/*/dcos-commons-tools/
+frameworks/*/*-universe-url*
 
 # vim swap files
 *.swp

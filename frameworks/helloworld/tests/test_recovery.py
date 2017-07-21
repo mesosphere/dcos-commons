@@ -4,7 +4,7 @@ import pytest
 import shakedown
 
 import sdk_cmd as cmd
-import sdk_install
+import sdk_install as install
 import sdk_marathon
 import sdk_tasks
 from tests.config import (
@@ -16,13 +16,15 @@ from tests.config import (
 )
 
 
-def setup_module():
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -176,4 +178,3 @@ def test_config_update_then_zk_killed():
     sdk_tasks.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
-
