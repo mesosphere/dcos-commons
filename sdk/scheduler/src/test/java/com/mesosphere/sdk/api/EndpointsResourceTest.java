@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 public class EndpointsResourceTest {
 
+    private static final String CUSTOM_KEY = "custom";
     private static final TaskInfo TASK_EMPTY = TaskTestUtils.getTaskInfo(Collections.emptyList());
     private static final TaskInfo TASK_WITH_METADATA;
     private static final TaskInfo TASK_WITH_PORTS_1;
@@ -97,27 +98,21 @@ public class EndpointsResourceTest {
                 .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .getPortsBuilder();
         portsBuilder.addPortsBuilder()
-                .setName("porta-ignored")
+                .setName("porta")
                 .setNumber(2345)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_abc").setValue("vip1:5432");
-        portsBuilder.addPortsBuilder()
-                .setName("portb-ignored")
-                .setNumber(2346)
-                .setProtocol("tcp")
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
-                .getLabelsBuilder().addLabelsBuilder().setKey("VIP_def").setValue("vip2:6432");
         // overridden by 'custom' endpoint added below:
         portsBuilder.addPortsBuilder()
-                .setName("portc-ignored")
+                .setName(CUSTOM_KEY)
                 .setNumber(2347)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_ghi").setValue("custom:6432");
         // VIP ignored (filed against task type instead):
         portsBuilder.addPortsBuilder()
-                .setName("portd")
+                .setName("novip")
                 .setNumber(2348)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
@@ -129,27 +124,27 @@ public class EndpointsResourceTest {
                 .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .getPortsBuilder();
         portsBuilder.addPortsBuilder()
-                .setName("porta-ignored")
+                .setName("porta")
                 .setNumber(3456)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_abc").setValue("vip1:5432");
         portsBuilder.addPortsBuilder()
-                .setName("portb-ignored")
+                .setName("portb")
                 .setNumber(3457)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_def").setValue("vip2:6432");
         // overridden by 'custom' endpoint added below:
         portsBuilder.addPortsBuilder()
-                .setName("portc-ignored")
+                .setName(CUSTOM_KEY)
                 .setNumber(3458)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_ghi").setValue("custom:6432");
         // VIP ignored (filed against task type instead):
         portsBuilder.addPortsBuilder()
-                .setName("portd")
+                .setName("novip")
                 .setNumber(3459)
                 .setProtocol("tcp")
                 .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
@@ -164,7 +159,6 @@ public class EndpointsResourceTest {
             TASK_WITH_HIDDEN_DISCOVERY,
             TASK_WITH_VIPS_1,
             TASK_WITH_VIPS_2);
-    private static final String CUSTOM_KEY = "custom";
     private static final String CUSTOM_VALUE = "hi\nhey\nhello";
 
     @Mock private StateStore mockStateStore;
@@ -189,20 +183,23 @@ public class EndpointsResourceTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void testEndpoint(String expectedHostname) throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("vip1");
+        Response response = resource.getEndpoint("porta");
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 4, json.length());
+        assertEquals(json.toString(), 3, json.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.getJSONArray("vips").get(0));
         JSONArray dns = json.getJSONArray("dns");
-        assertEquals(2, dns.length());
-        assertEquals(String.format("vips-1.svc-name%s:2345", EXPECTED_DNS_TLD), dns.get(0));
-        assertEquals(String.format("vips-2.svc-name%s:3456", EXPECTED_DNS_TLD), dns.get(1));
+        assertEquals(4, dns.length());
+        assertEquals(String.format("ports-1.svc-name%s:1234", EXPECTED_DNS_TLD), dns.get(0));
+        assertEquals(String.format("ports-2.svc-name%s:1243", EXPECTED_DNS_TLD), dns.get(1));
+        assertEquals(String.format("vips-1.svc-name%s:2345", EXPECTED_DNS_TLD), dns.get(2));
+        assertEquals(String.format("vips-2.svc-name%s:3456", EXPECTED_DNS_TLD), dns.get(3));
         JSONArray address = json.getJSONArray("address");
-        assertEquals(2, address.length());
-        assertEquals(expectedHostname + ":2345", address.get(0));
-        assertEquals(expectedHostname + ":3456", address.get(1));
+        assertEquals(4, address.length());
+        assertEquals(expectedHostname + ":1234", address.get(0));
+        assertEquals(expectedHostname + ":1243", address.get(1));
+        assertEquals(expectedHostname + ":2345", address.get(2));
+        assertEquals(expectedHostname + ":3456", address.get(3));
     }
 
     @Test
@@ -222,76 +219,55 @@ public class EndpointsResourceTest {
         Response response = resource.getEndpoints();
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
-        assertEquals(json.toString(), 6, json.length());
+        assertEquals(json.toString(), 4, json.length());
 
         assertEquals(CUSTOM_KEY, json.get(0));
-        assertEquals("porta", json.get(1));
-        assertEquals("portb", json.get(2));
-        assertEquals("portd", json.get(3));
-        assertEquals("vip1", json.get(4));
-        assertEquals("vip2", json.get(5));
+        assertEquals("novip", json.get(1));
+        assertEquals("porta", json.get(2));
+        assertEquals("portb", json.get(3));
 
-        // 'vip1' is also listed across the two 'vips-' tasks
-        JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1").getEntity());
-        assertEquals(4, vip1.length());
-        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.getJSONArray("vips").get(0));
-        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
-        JSONArray dns = vip1.getJSONArray("dns");
+        assertEquals(CUSTOM_VALUE, resource.getEndpoint(CUSTOM_KEY).getEntity());
+
+        // 'novip' port is listed across the two 'vips-' tasks
+        JSONObject endpointNoVip = new JSONObject((String) resource.getEndpoint("novip").getEntity());
+        assertEquals(2, endpointNoVip.length());
+        JSONArray dns = endpointNoVip.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD +":2345", dns.get(0));
-        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3456", dns.get(1));
-        JSONArray address = vip1.getJSONArray("address");
-        assertEquals(2, address.length());
-        assertEquals(TestConstants.HOSTNAME + ":2345", address.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3456", address.get(1));
-
-        // 'vip2' is also listed across the two 'vips-' tasks
-        JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2").getEntity());
-        assertEquals(4, vip2.length());
-        assertEquals("vip2." + serviceNetworkName + ".l4lb.thisdcos.directory:6432", vip2.getJSONArray("vips").get(0));
-        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", vip1.get("vip"));
-        dns = vip2.getJSONArray("dns");
-        assertEquals(2, dns.length());
-        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":2346", dns.get(0));
-        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3457", dns.get(1));
-        address = vip2.getJSONArray("address");
-        assertEquals(2, address.length());
-        assertEquals(TestConstants.HOSTNAME + ":2346", address.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3457", address.get(1));
-
-        // 'porta' is listed across the two 'ports-' tasks
-        JSONObject porta = new JSONObject((String) resource.getEndpoint("porta").getEntity());
-        assertEquals(2, porta.length());
-        dns = porta.getJSONArray("dns");
-        assertEquals(2, dns.length());
-        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1234", dns.get(0));
-        assertEquals("ports-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":1243", dns.get(1));
-        address = porta.getJSONArray("address");
-        assertEquals(2, address.length());
-        assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":1243", address.get(1));
-
-        // 'portb' is just listed in the 'ports-1' task
-        JSONObject portb = new JSONObject((String) resource.getEndpoint("portb").getEntity());
-        assertEquals(2, portb.length());
-        dns = portb.getJSONArray("dns");
-        assertEquals(1, dns.length());
-        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1235", dns.get(0));
-        address = portb.getJSONArray("address");
-        assertEquals(address.toString(), 1, address.length());
-        assertEquals(TestConstants.HOSTNAME + ":1235", address.get(0));
-
-        // 'portd' is listed in the two 'vips-' tasks, it has labels but they aren't VIP labels
-        JSONObject portd = new JSONObject((String) resource.getEndpoint("portd").getEntity());
-        assertEquals(2, portd.length());
-        dns = portd.getJSONArray("dns");
-        assertEquals(2, dns.length());
-        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":2348", dns.get(0));
+        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD +":2348", dns.get(0));
         assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3459", dns.get(1));
-        address = portd.getJSONArray("address");
+        JSONArray address = endpointNoVip.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2348", address.get(0));
         assertEquals(TestConstants.HOSTNAME + ":3459", address.get(1));
+
+        // 'porta' is listed across the two 'ports-' tasks and the two 'vips-' tasks
+        JSONObject endpointPortA = new JSONObject((String) resource.getEndpoint("porta").getEntity());
+        assertEquals(3, endpointPortA.length());
+        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", endpointPortA.get("vip"));
+        dns = endpointPortA.getJSONArray("dns");
+        assertEquals(4, dns.length());
+        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1234", dns.get(0));
+        assertEquals("ports-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":1243", dns.get(1));
+        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":2345", dns.get(2));
+        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3456", dns.get(3));
+        address = endpointPortA.getJSONArray("address");
+        assertEquals(4, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":1243", address.get(1));
+        assertEquals(TestConstants.HOSTNAME + ":2345", address.get(2));
+        assertEquals(TestConstants.HOSTNAME + ":3456", address.get(3));
+
+        // 'portb' is just listed in the 'ports-1' and 'vips-2' tasks
+        JSONObject endpointPortB = new JSONObject((String) resource.getEndpoint("portb").getEntity());
+        assertEquals(3, endpointPortB.length());
+        dns = endpointPortB.getJSONArray("dns");
+        assertEquals(2, dns.length());
+        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1235", dns.get(0));
+        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3457", dns.get(1));
+        address = endpointPortB.getJSONArray("address");
+        assertEquals(2, address.length());
+        assertEquals(TestConstants.HOSTNAME + ":1235", address.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3457", address.get(1));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -353,7 +329,7 @@ public class EndpointsResourceTest {
     @Test
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("custom");
+        Response response = resource.getEndpoint(CUSTOM_KEY);
         assertEquals(200, response.getStatus());
         assertEquals(CUSTOM_VALUE, response.getEntity());
     }

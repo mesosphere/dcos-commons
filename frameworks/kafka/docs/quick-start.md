@@ -32,9 +32,7 @@ enterprise: 'no'
             "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000",
             "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000"
           ],
-          "vips": [
-            "broker.kafka.l4lb.thisdcos.directory:9092"
-          ]
+          "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
         }
 
 1. Produce and consume data.

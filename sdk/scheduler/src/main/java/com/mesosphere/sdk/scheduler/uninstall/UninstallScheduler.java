@@ -11,8 +11,10 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -174,8 +176,8 @@ public class UninstallScheduler extends AbstractScheduler {
         Collection<String> taskNames = stateStore.fetchTaskNames();
         LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
         for (String taskName : taskNames) {
-            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-            taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
+            stateStore.fetchTask(taskName)
+                    .ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT));
         }
     }
 }

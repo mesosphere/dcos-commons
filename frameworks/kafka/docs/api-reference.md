@@ -38,9 +38,7 @@ Kafka comes with many useful tools of its own that often require either Zookeepe
     GET /service/kafka/v1/connection HTTP/1.1
 
     {
-      "vips": [
-        "broker.kafka.l4lb.thisdcos.directory:9092"
-      ],
+      "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
       "address": [
         "10.0.0.35:1028",
         "10.0.1.249:1030"
@@ -55,9 +53,7 @@ The same information can be retrieved through the DC/OS CLI:
 
     $ dcos kafka endpoints broker
     {
-      "vips": [
-        "broker.kafka.l4lb.thisdcos.directory:9092"
-      ],
+      "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
       "address": [
         "10.0.0.35:1028",
         "10.0.1.249:1030"

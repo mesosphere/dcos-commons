@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -67,7 +66,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
     protected Map<String, EndpointProducer> customEndpointProducers;
-    protected Optional<RestartHook> customRestartHook;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
@@ -84,11 +82,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     public static class Builder {
         private ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
+        private final Persister persister;
 
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
-        private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
         private final List<Plan> manualPlans = new ArrayList<>();
@@ -98,9 +96,19 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+            this(
+                    serviceSpec,
+                    schedulerFlags,
+                    schedulerFlags.isStateCacheEnabled() ?
+                            new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+                            CuratorPersister.newBuilder(serviceSpec).build());
+        }
+
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
             this.serviceSpec = serviceSpec;
             this.schedulerFlags = schedulerFlags;
+            this.persister = persister;
         }
 
         /**
@@ -144,7 +152,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public StateStore getStateStore() {
             if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
+                setStateStore(new DefaultStateStore(persister));
             }
             return stateStoreOptional.get();
         }
@@ -175,7 +183,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         public ConfigStore<ServiceSpec> getConfigStore() {
             if (!configStoreOptional.isPresent()) {
                 try {
-                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList()));
+                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList(), persister));
                 } catch (ConfigStoreException e) {
                     throw new IllegalStateException("Failed to create default config store", e);
                 }
@@ -198,16 +206,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public Builder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
             this.customConfigValidators = customConfigValidators;
-            return this;
-        }
-
-        /**
-         * Specifies a custom {@link RestartHook} to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.
-         * This may be used to define any custom teardown behavior which should be invoked before a task is restarted
-         * and/or replaced.
-         */
-        public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -386,7 +384,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    restartHookOptional,
                     Optional.ofNullable(recoveryPlanOverriderFactory),
                     configUpdateResult);
         }
@@ -431,53 +428,26 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
+    /**
+     * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
+     * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
+     * should be organized.
+     */
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+        return new Builder(serviceSpec, schedulerFlags);
+    }
 
     /**
      * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return new Builder(serviceSpec, schedulerFlags);
-    }
-
-    /**
-     * Creates and returns a new default {@link StateStore} suitable for passing to {@link DefaultScheduler.Builder}.
-     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
-     * Scheduler has registered with Mesos, as signified by a call to
-     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
-     */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        Persister persister = CuratorPersister.newBuilder(serviceSpec).build();
-        if (schedulerFlags.isStateCacheEnabled()) {
-            // Wrap persister with a cache, so that we aren't constantly hitting ZK for state queries:
-            try {
-                persister = new PersisterCache(persister);
-            } catch (PersisterException e) {
-                throw new StateStoreException(e);
-            }
-        }
-        return new DefaultStateStore(persister);
-    }
-
-    /**
-     * Creates and returns a new default {@link ConfigStore} suitable for passing to {@link DefaultScheduler.Builder}.
-     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
-     * Scheduler has registered with Mesos, as signified by a call to
-     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
-     *
-     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
-     *     {@link DefaultServiceSpec}, mainly useful for deserializing custom implementations of
-     *     {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}s
-     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
-     *                              unrecognized deserialization type
-     */
-    public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
-        // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
-        return createConfigStore(
-                serviceSpec, customDeserializationSubtypes,
-                CuratorPersister.newBuilder(serviceSpec).build());
+    @VisibleForTesting
+    public static Builder newBuilder(
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
+            Persister persister) throws PersisterException {
+        return new Builder(serviceSpec, schedulerFlags, persister);
     }
 
     /**
@@ -489,7 +459,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
                     throws ConfigStoreException {
         return new DefaultConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes), persister);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
+                persister);
     }
 
     /**
@@ -587,7 +558,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
         super(stateStore);
@@ -598,7 +568,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.plans = plans;
         this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
-        this.customRestartHook = restartHookOptional;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
@@ -717,11 +686,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        if (customRestartHook.isPresent()) {
-            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
-        } else {
-            resources.add(new PodsResource(taskKiller, stateStore));
-        }
+        resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 

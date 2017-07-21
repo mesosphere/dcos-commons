@@ -2,6 +2,8 @@ package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.TaskID;
 
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+
 /**
  * This interface should be implemented to allow components to request the killing of Mesos Tasks.  This is a normal
  * part of restarting a Task, which is a normal part of updating the Configuration of a Task.  This is also useful for
@@ -17,8 +19,7 @@ public interface TaskKiller {
      * to process requested Task kills.
      *
      * @param taskId ID of the task to be restarted
-     * @param destructive A flag indicating whether the Task should be killed permanently and destructively or
-     *     anticipates a future restart
+     * @param recoveryType A flag indicating the type of kill to perform, {@code TRANSIENT} or {@code PERMANENT}
      */
-    void killTask(TaskID taskId, boolean destructive);
+    void killTask(TaskID taskId, RecoveryType recoveryType);
 }

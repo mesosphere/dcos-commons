@@ -1,0 +1,51 @@
+name: "data-store"
+pods:
+  pod-type:
+    count: 1
+    resource-sets:
+      a-resource-set:
+        cpus: 0.1
+        memory: 512
+        ports:
+          in-resource-set:
+            port: 8081
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        ports:
+          across-pods:
+            port: 8081
+          in-resource-set:
+            port: 8082
+      resource-set-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        resource-set: a-resource-set
+  meta-data:
+    count: 2
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 512
+        ports:
+          across-tasks:
+            port: 8080
+          across-pods:
+            port: 8081
+          notadupe1:
+            port: 8082
+      data-store-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 512
+        ports:
+          across-tasks:
+            port: 8080
+          notadupe2:
+            port: 8081

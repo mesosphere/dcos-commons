@@ -62,7 +62,7 @@ def test_overlay_network_deployment_and_endpoints():
     endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     assert "broker" in endpoints, "broker is missing from endpoints {}".format(endpoints)
     assert "zookeeper" in endpoints, "zookeeper missing from endpoints {}".format(endpoints)
-    broker_endpoints = sdk_networks.get_and_test_endpoints("broker", PACKAGE_NAME, 4)
+    broker_endpoints = sdk_networks.get_and_test_endpoints("broker", PACKAGE_NAME, 3)
     sdk_networks.check_endpoints_on_overlay(broker_endpoints)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)
