@@ -68,7 +68,7 @@ def create_requirementsfile(filename, req_text=None):
 requests==2.10.0
 dcoscli==0.4.16
 dcos==0.4.16
-dcos-shakedown
+dcos-shakedown==1.4.4
 ''')
     with open(filename, 'w') as reqfile:
         reqfile.write(req_text)

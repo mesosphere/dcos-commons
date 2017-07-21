@@ -25,11 +25,7 @@ def configure_package(configure_universe):
     try:
         install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
-        options = {
-            "service": {
-                "spec_file": "examples/overlay.yml"
-            }
-        }
+        options = { "service": { "spec_file": "examples/overlay.yml" } }
 
         install.install(PACKAGE_NAME, 1, additional_options=options)
 
@@ -39,14 +35,15 @@ def configure_package(configure_universe):
 
 
 # test suite constants
-EXPECTED_TASKS = ['getter-0-get-host',
-                  'getter-0-get-overlay',
-                  'getter-0-get-overlay-vip',
-                  'getter-0-get-host-vip',
-                  'hello-host-vip-0-server',
-                  'hello-overlay-vip-0-server',
-                  'hello-host-0-server',
-                  'hello-overlay-0-server']
+EXPECTED_TASKS = [
+    'getter-0-get-host',
+    'getter-0-get-overlay',
+    'getter-0-get-overlay-vip',
+    'getter-0-get-host-vip',
+    'hello-host-vip-0-server',
+    'hello-overlay-vip-0-server',
+    'hello-host-0-server',
+    'hello-overlay-0-server']
 
 
 TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
@@ -147,19 +144,30 @@ def test_port_names():
         else:
             check_task_ports(task, 1, ["test"])
 
+
 @pytest.mark.sanity
 @pytest.mark.overlay
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_srv_records():
+    def check_port_record(task_records, task_name, record_name):
+        record_name_prefix = "_{}.".format(record_name)
+        matching_records = [r for r in task_records if r["name"].startswith(record_name_prefix)]
+        assert len(matching_records) == 1, \
+            "Missing SRV record for {} (prefix={}) in task {}:\nmatching={}\nall={}".format(
+                record_name, record_name_prefix, task_name, matching_records, task_records)
+
     fmk_srvs = sdk_networks.get_framework_srv_records(PACKAGE_NAME)
     for task in TASKS_WITH_PORTS:
         task_records = sdk_networks.get_task_record(task, fmk_srvs)
         if task == "hello-overlay-0-server":
-            assert len([r for r in task_records if "dummy" in r["name"]]) == 1, "Missing SRV record for dummy and "\
-                "task {}".format(task)
-            assert len([r for r in task_records if "dynport" in r["name"]]) == 1, "Missing SRV record for dynport "\
-                "task {}".format(task)
+            check_port_record(task_records, task, "overlay-dummy")
+            check_port_record(task_records, task, "overlay-dynport")
+        elif task == "hello-host-vip-0-server":
+            check_port_record(task_records, task, "host-vip")
+        elif task == "hello-overlay-vip-0-server":
+            check_port_record(task_records, task, "overlay-vip")
+        elif task == "hello-host-0-server":
+            check_port_record(task_records, task, "host-port")
         else:
-            assert len([r for r in task_records if "test" in r["name"]]) == 1, "Missing SRV record for test and task"\
-                "{}".format(task)
+            assert False, "Unknown task {}".format(task)
