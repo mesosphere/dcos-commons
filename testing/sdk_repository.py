@@ -26,7 +26,7 @@ def add_universe_repos():
     # prepare needed universe repositories
     stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL')
     if not stub_universe_urls:
-        return
+        return stub_urls
     for url in stub_universe_urls.split():
         print('url: {}'.format(url))
         package_name = 'testpkg-'

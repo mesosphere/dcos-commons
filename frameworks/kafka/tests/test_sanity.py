@@ -57,7 +57,7 @@ def test_endpoints_address():
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
     for i in range(len(endpoints['dns'])):
         assert sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
-    assert endpoints['vips'][0] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
+    assert endpoints['vip'] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
 
 
 @pytest.mark.smoke

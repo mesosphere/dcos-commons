@@ -26,7 +26,7 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          data-store-http:
             port: 8080
         volume:
           path: "data-store-container-path"
@@ -43,7 +43,7 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          meta-data-http:
             port: 8081
         volume:
           path: "meta-data-container-path"
@@ -62,9 +62,9 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          port-mapping-http:
             port: 4040
-          another:
+          port-mapping-another:
             port: 4041
         volume:
           path: "meta-data-container-path"
