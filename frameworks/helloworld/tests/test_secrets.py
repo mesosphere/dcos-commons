@@ -100,8 +100,8 @@ def test_secrets_basic():
     world_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "word-0")
 
     # ensure that secrets work after replace
-    cmd.run_cli('hello-world pods replace hello-0')
-    cmd.run_cli('hello-world pods replace world-0')
+    cmd.run_cli('hello-world pod replace hello-0')
+    cmd.run_cli('hello-world pod replace world-0')
 
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_0)
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_0)
@@ -204,8 +204,8 @@ def test_secrets_update():
     world_tasks_old = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
-    cmd.run_cli('hello-world pods restart hello-0')
-    cmd.run_cli('hello-world pods restart world-0')
+    cmd.run_cli('hello-world pod restart hello-0')
+    cmd.run_cli('hello-world pod restart world-0')
 
     # wait pod restart to complete
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_old)
@@ -256,7 +256,7 @@ def test_secrets_config_update():
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content, one from each pod type
-    # get tasks ids - only first pods
+    # get tasks ids - only first pod
     hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 

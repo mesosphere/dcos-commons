@@ -8,7 +8,7 @@ enterprise: 'no'
 * Seed Node Replace
 
 While the Cassandra service supports a node replace operation via the command
-`dcos cassandra pods replace ≤node_id≥`, the node replace operation performs a
+`dcos cassandra pod replace ≤node_id≥`, the node replace operation performs a
 `replace_address`, which is sufficient for non-seed nodes, but is insufficient
 with regard to a seed node.
 
@@ -39,7 +39,7 @@ cassandra_cli_install () {
 
 cassandra_nodes_list () {
     if [ -z "$CASSANDRA_NODES" ]; then
-        CASSANDRA_NODES=$(dcos cassandra pods list \
+        CASSANDRA_NODES=$(dcos cassandra pod list \
             | jq 'map(.) | join(" ")' \
             | sed 's/\"//g')
     fi
@@ -56,13 +56,13 @@ cassandra_nodes_seed_get () {
 
 cassandra_nodes_node_ip_get () {
     node=$1
-    dcos cassandra pods info $node \
+    dcos cassandra pod info $node \
         |awk '/\"ipAddress\":/{i=$2; gsub("\"", "", i); gsub(",", "", i); print i}'
 }
 
 cassandra_nodes_node_taskstate_get () {
     node=$1
-    dcos cassandra pods status $node \
+    dcos cassandra pod status $node \
         |awk '/\"state\":.*\"TASK_/ { print }' \
         |awk -F':' '{s=$2; gsub("\"", "", s); gsub(/^ /, "", s); gsub(/ $/, "", s); print s}'
 }
@@ -86,12 +86,12 @@ cassandra_nodes_node_wait_for_taskstate () {
 
 cassandra_nodes_node_restart () {
     node=$1
-    dcos cassandra pods restart $node
+    dcos cassandra pod restart $node
 }
 
 cassandra_nodes_node_replace () {
     node=$1
-    dcos cassandra pods replace $node
+    dcos cassandra pod replace $node
 }
 
 cassandra_nodes_node_taskid_get () {
@@ -179,14 +179,14 @@ following commands:
 
 ```shell
 SEED_NODE=$( \
-dcos cassandra pods list \
+dcos cassandra pod list \
     |jq 'map(.) |join(" ")' |awk '{gsub("\"", "", $1); print $1}' \
 )
 
 1.b.
 
 SEED_IP=$( \
-dcos cassandra pods info $SEED_NODE \
+dcos cassandra pod info $SEED_NODE \
     |awk '/\"ipAddress\":/{i=$2; gsub("\"", "", i); gsub(",", "", i); print i}'
 )
 ```
@@ -194,7 +194,7 @@ dcos cassandra pods info $SEED_NODE \
 2. In order to replace a seed node, issue the following command:
 
 ```shell
-dcos cassandra pods replace $SEED_NODE
+dcos cassandra pod replace $SEED_NODE
 ```
 
 3. Wait until the seed node has been successfully replaced. Watch for the task
@@ -207,7 +207,7 @@ seed node:
 # create a function to generalize obtaining a task state
 cassandra_task_state () {
     node=$1
-    dcos cassandra pods status ${node} \
+    dcos cassandra pod status ${node} \
         |awk '/\"state\":.*\"TASK_/ { print }' \
         |awk -F':' '{s=$2; gsub("\"", "", s); gsub(/^ /, "", s); gsub(/ $/, "", s); print s}'
 }
@@ -272,11 +272,11 @@ nodetool_ $SEED_NODE removenode ${cassandra_id}
 by issuing the following commands:
 
 ```shell
-for node in $(dcos cassandra pods list \
+for node in $(dcos cassandra pod list \
     |jq 'map(.) |join(" ")' |awk '{gsub("\"", "", $0); print $0}' \
 ); do
     if [ "x${node} != "x$SEED_NODE" ]; then
-        dcos cassandra pods restart ${node}
+        dcos cassandra pod restart ${node}
         cassandra_waitfor_task_state $SEED_NODE TASK_STAGING
         cassandra_waitfor_task_state $SEED_NODE TASK_RUNNING
     fi

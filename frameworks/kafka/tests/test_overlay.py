@@ -83,7 +83,7 @@ def test_pods_restart_on_overlay():
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_pods_replace_on_overlay():
-    replace_broker_pod()
+    replace_broker_pods()
     test_overlay_network_deployment_and_endpoints()
 
 

@@ -103,8 +103,8 @@ def test_bump_hello_nodes():
 
 
 @pytest.mark.sanity
-def test_pods_list():
-    stdout = cmd.run_cli('hello-world --name={} pods list'.format(FOLDERED_SERVICE_NAME))
+def test_pod_list():
+    stdout = cmd.run_cli('hello-world --name={} pod list'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == configured_task_count(FOLDERED_SERVICE_NAME)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
@@ -122,8 +122,8 @@ def test_pods_list():
 
 
 @pytest.mark.sanity
-def test_pods_status_all():
-    stdout = cmd.run_cli('hello-world --name={} pods status'.format(FOLDERED_SERVICE_NAME))
+def test_pod_status_all():
+    stdout = cmd.run_cli('hello-world --name={} pod status'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == configured_task_count(FOLDERED_SERVICE_NAME)
     for k, v in jsonobj.items():
@@ -137,8 +137,8 @@ def test_pods_status_all():
 
 
 @pytest.mark.sanity
-def test_pods_status_one():
-    stdout = cmd.run_cli('hello-world --name={} pods status hello-0'.format(FOLDERED_SERVICE_NAME))
+def test_pod_status_one():
+    stdout = cmd.run_cli('hello-world --name={} pod status hello-0'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
@@ -149,8 +149,8 @@ def test_pods_status_one():
 
 
 @pytest.mark.sanity
-def test_pods_info():
-    stdout = cmd.run_cli('hello-world --name={} pods info world-1'.format(FOLDERED_SERVICE_NAME))
+def test_pod_info():
+    stdout = cmd.run_cli('hello-world --name={} pod info world-1'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]

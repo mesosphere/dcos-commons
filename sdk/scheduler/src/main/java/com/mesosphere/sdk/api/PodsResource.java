@@ -41,7 +41,7 @@ import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
-@Path("/v1/pods")
+@Path("/v1/pod")
 public class PodsResource extends PrettyJsonResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodsResource.class);
 

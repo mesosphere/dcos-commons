@@ -39,7 +39,7 @@ def configure_package(configure_universe):
 @pytest.mark.sanity
 def test_canary_init():
     def fn():
-        return cmd.run_cli('hello-world pods list')
+        return cmd.run_cli('hello-world pod list')
     assert json.loads(shakedown.wait_for(fn, noisy=True)) == []
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'WAITING')
@@ -75,7 +75,7 @@ def test_canary_first():
 
     expected_tasks = ['hello-0']
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     # do not use service_plan always
     # when here, plan should always return properly
@@ -122,7 +122,7 @@ def test_canary_plan_continue_noop():
         pass # expected
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
 
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
 
 @pytest.mark.smoke
@@ -143,7 +143,7 @@ def test_canary_second():
         pass # expected
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
 
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.get_deployment_plan(PACKAGE_NAME)
     sdk_utils.out(pl)
@@ -180,7 +180,7 @@ def test_canary_third():
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0']
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_phase(PACKAGE_NAME, 'deploy', 'hello-deploy')
     sdk_utils.out(pl)
@@ -217,7 +217,7 @@ def test_canary_fourth():
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'deploy')
     sdk_utils.out(pl)
@@ -261,7 +261,7 @@ def test_increase_count():
     except:
         pass # expected to fail
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'WAITING')
     sdk_utils.out(pl)
@@ -295,7 +295,7 @@ def test_increase_count():
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'COMPLETE')
     sdk_utils.out(pl)
@@ -361,7 +361,7 @@ def test_increase_cpu():
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(cmd.run_cli('hello-world pods list')) == expected_tasks
+    assert json.loads(cmd.run_cli('hello-world pod list')) == expected_tasks
     assert hello_0_ids == sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0-server')
 
     cmd.run_cli('hello-world plan continue deploy hello-deploy')
