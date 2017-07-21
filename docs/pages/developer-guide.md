@@ -179,7 +179,7 @@ For a full listing of available fields and what they mean, see the [YAML Referen
 
 A set of pods defines *what* your service is. Pods are composed of task definitions.
 
-In the example, we have only defined types of pod and tasks. When the service is deployed and instantiated into instances of these types, we get a Mesos task like the following:
+In the example, we have only defined types of pods and tasks. When the service is deployed and instantiated into instances of these types, we get a Mesos task like the following:
 
 <table>
   <tr>
@@ -309,7 +309,7 @@ More powerful custom plans can also be written. Consider the case in which a pod
 
 ```yaml
 name: "hello-world"
-pod:
+pods:
   hello:
     count: 2
     resource-sets:
@@ -334,7 +334,7 @@ pod:
 By default, the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
 
 ```yaml
-pod:
+pods:
   hello:
     [...]
     tasks:
@@ -601,7 +601,7 @@ Once Marathon deploys your scheduler, the service’s YAML specification can be 
 
 ```yaml
 // ...
-pod:
+pods:
     hello:
         count: {{HELLO_COUNT}}
         tasks:
@@ -618,7 +618,7 @@ The final rendered `ServiceSpec` is:
 
 ```yaml
 name: "hello-world"
-pod:
+pods:
   hello:
     count: 1
     tasks:
@@ -1083,7 +1083,7 @@ pods:
 
 In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.
 
-Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pod based on [Mesos Task Groups](https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md). Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:
+Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on [Mesos Task Groups](https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md). Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:
 
 ```yaml
 name: "hello-world"
@@ -1533,7 +1533,7 @@ PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
         .build();
 ```
 
-This is equivalent to specifying a "hostname:UNIQUE" Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pod of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:
+This is equivalent to specifying a "hostname:UNIQUE" Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pods of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:
 
 
 ```java

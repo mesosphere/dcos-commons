@@ -32,7 +32,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.
 
-* `pod`
+* `pods`
 
   This section contains a listing of all pod types managed by the service.
 

@@ -280,7 +280,7 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Overlay networks
 
-The SDK allows a `pod` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
 
 ```yaml
 pods:
@@ -379,7 +379,7 @@ You must include spare capacity in this list, so that if one of the whitelisted 
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
 - Update the placement constraint definition at the Scheduler.
-- For each pod, _one at a time_, perform a `pod replace` for any pod that need to be moved to reflect the change.
+- For each pod, _one at a time_, perform a `pod replace` for any pods that need to be moved to reflect the change.
 
 For example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
 
@@ -755,7 +755,7 @@ This method can be used mapping any configuration setting (applicable during ini
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
-Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pod, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
+Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
 Via the CLI:
 
