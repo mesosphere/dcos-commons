@@ -17,7 +17,7 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          test:
+          overlay-vip:
             port: 4044
             vip:
               prefix: overlay-vip
@@ -41,14 +41,14 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          dummy:
+          overlay-dummy:
             port: 1025
-          dynport:
+          overlay-dynport:
             port: 0
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py $PORT_DYNPORT hello from the overlay network!"
+        cmd: "python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
   hello-host-vip:
     count: 1
@@ -61,7 +61,7 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          test:
+          host-vip:
             port: 4044
             vip:
               prefix: host-vip
@@ -82,7 +82,7 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
-          test:
+          host-port:
             port: 4044
     tasks:
       server:

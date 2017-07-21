@@ -1,6 +1,6 @@
 import pytest
 
-import sdk_install
+import sdk_install as install
 import sdk_plan
 import sdk_utils
 
@@ -9,20 +9,22 @@ from tests.config import (
 )
 
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    options = {
-        "service": {
-            "spec_file": "examples/sidecar.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        options = {
+            "service": {
+                "spec_file": "examples/sidecar.yml"
+            }
         }
-    }
 
-    # this yml has 2 hello's + 0 world's:
-    sdk_install.install(PACKAGE_NAME, 2, additional_options=options)
+        # this yml has 2 hello's + 0 world's:
+        install.install(PACKAGE_NAME, 2, additional_options=options)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

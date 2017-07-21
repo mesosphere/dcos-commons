@@ -14,7 +14,7 @@ plugins {
 }
 
 // Importing org.fusesource.jansi.AnsiConsole is not enough to avoid aforementioned failure
-org.fusesource.jansi.AnsiConsole.out.print('init workaround')
+org.fusesource.jansi.AnsiConsole.out.print('')
 
 allprojects {
     apply plugin: 'java'
@@ -67,6 +67,22 @@ allprojects {
 
     task wrapper(type: Wrapper) {
         gradleVersion = '3.2'
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+        javadoc.failOnError = false
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
     }
 
     idea {

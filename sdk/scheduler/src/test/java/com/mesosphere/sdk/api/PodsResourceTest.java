@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.api;
 
-import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -110,14 +110,13 @@ public class PodsResourceTest {
 
     @Mock private TaskKiller mockTaskKiller;
     @Mock private StateStore mockStateStore;
-    @Mock private RestartHook mockRestartHook;
 
     private PodsResource resource;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new PodsResource(mockTaskKiller, mockStateStore, mockRestartHook);
+        resource = new PodsResource(mockTaskKiller, mockStateStore);
     }
 
     @Test
@@ -271,11 +270,6 @@ public class PodsResourceTest {
     public void testRestartPodManyRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_0_TASK_A, Optional.of(POD_0_STATUS_A)),
-                TaskInfoAndStatus.create(POD_0_TASK_B, Optional.of(POD_0_STATUS_B)),
-                TaskInfoAndStatus.create(POD_0_TASK_C, Optional.of(POD_0_STATUS_C)),
-                TaskInfoAndStatus.create(POD_0_TASK_D, Optional.empty())), false)).thenReturn(true);
 
         Response response = resource.restartPod("test-0");
         assertEquals(200, response.getStatus());
@@ -288,10 +282,10 @@ public class PodsResourceTest {
         assertEquals("c", json.getJSONArray("tasks").get(2));
         assertEquals("d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), false);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), false);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), false);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), false);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.TRANSIENT);
         verifyNoMoreInteractions(mockTaskKiller);
     }
 
@@ -299,9 +293,6 @@ public class PodsResourceTest {
     public void testRestartPodOneRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_1_TASK_A, Optional.of(POD_1_STATUS_A)),
-                TaskInfoAndStatus.create(POD_1_TASK_B, Optional.of(POD_1_STATUS_B))), false)).thenReturn(true);
 
         Response response = resource.restartPod("test-1");
         assertEquals(200, response.getStatus());
@@ -312,24 +303,9 @@ public class PodsResourceTest {
         assertEquals("a", json.getJSONArray("tasks").get(0));
         assertEquals("b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), false);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), false);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
         verifyNoMoreInteractions(mockTaskKiller);
-    }
-
-    @Test
-    public void testRestartPodHookRejected() {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_1_TASK_A, Optional.of(POD_1_STATUS_A)),
-                TaskInfoAndStatus.create(POD_1_TASK_B, Optional.of(POD_1_STATUS_B))), false)).thenReturn(false);
-
-        Response response = resource.restartPod("test-1");
-        assertEquals(409, response.getStatus());
-
-        verifyZeroInteractions(mockTaskKiller);
-        verify(mockRestartHook).notify(anyCollectionOf(TaskInfoAndStatus.class), anyBoolean());
     }
 
     // replace
@@ -346,11 +322,6 @@ public class PodsResourceTest {
     public void testReplacePodManyRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_0_TASK_A, Optional.of(POD_0_STATUS_A)),
-                TaskInfoAndStatus.create(POD_0_TASK_B, Optional.of(POD_0_STATUS_B)),
-                TaskInfoAndStatus.create(POD_0_TASK_C, Optional.of(POD_0_STATUS_C)),
-                TaskInfoAndStatus.create(POD_0_TASK_D, Optional.empty())), true)).thenReturn(true);
 
         Response response = resource.replacePod("test-0");
         assertEquals(200, response.getStatus());
@@ -363,10 +334,10 @@ public class PodsResourceTest {
         assertEquals("c", json.getJSONArray("tasks").get(2));
         assertEquals("d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), true);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), true);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), true);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), true);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.PERMANENT);
         verifyNoMoreInteractions(mockTaskKiller);
     }
 
@@ -374,9 +345,6 @@ public class PodsResourceTest {
     public void testReplacePodOneRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_1_TASK_A, Optional.of(POD_1_STATUS_A)),
-                TaskInfoAndStatus.create(POD_1_TASK_B, Optional.of(POD_1_STATUS_B))), true)).thenReturn(true);
 
         Response response = resource.replacePod("test-1");
         assertEquals(200, response.getStatus());
@@ -387,23 +355,8 @@ public class PodsResourceTest {
         assertEquals("a", json.getJSONArray("tasks").get(0));
         assertEquals("b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), true);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), true);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.PERMANENT);
         verifyNoMoreInteractions(mockTaskKiller);
-    }
-
-    @Test
-    public void testReplacePodHookRejected() {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        when(mockRestartHook.notify(Arrays.asList(
-                TaskInfoAndStatus.create(POD_1_TASK_A, Optional.of(POD_1_STATUS_A)),
-                TaskInfoAndStatus.create(POD_1_TASK_B, Optional.of(POD_1_STATUS_B))), true)).thenReturn(false);
-
-        Response response = resource.replacePod("test-1");
-        assertEquals(409, response.getStatus());
-
-        verifyZeroInteractions(mockTaskKiller);
-        verify(mockRestartHook).notify(anyCollectionOf(TaskInfoAndStatus.class), anyBoolean());
     }
 }

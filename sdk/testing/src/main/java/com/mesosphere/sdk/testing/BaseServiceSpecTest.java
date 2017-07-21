@@ -98,10 +98,9 @@ public class BaseServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, mockFlags)
+        DefaultScheduler.newBuilder(serviceSpec, mockFlags, new MemPersister())
                 .setStateStore(new StateStore(persister))
-                .setConfigStore(
-                        new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(getRawServiceSpec(fileName))
                 .build();
     }

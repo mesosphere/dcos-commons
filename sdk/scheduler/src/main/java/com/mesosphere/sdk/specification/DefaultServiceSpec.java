@@ -343,7 +343,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         public DefaultServiceSpec build() throws Exception {
-            return YAMLToInternalMappers.from(rawServiceSpec, schedulerFlags, taskEnvRouter, fileReader);
+            return YAMLToInternalMappers.convertServiceSpec(rawServiceSpec, schedulerFlags, taskEnvRouter, fileReader);
         }
     }
 

@@ -1,7 +1,8 @@
 import os
 import pytest
+import shakedown
 
-import sdk_install
+import sdk_install as install
 import sdk_tasks
 import sdk_plan
 import sdk_networks
@@ -13,20 +14,22 @@ from tests.test_utils import  *
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
-def setup_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
 
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=SERVICE_NAME,
-        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_BROKER_COUNT,
+            service_name=SERVICE_NAME,
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.overlay
@@ -59,7 +62,7 @@ def test_overlay_network_deployment_and_endpoints():
     endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     assert "broker" in endpoints, "broker is missing from endpoints {}".format(endpoints)
     assert "zookeeper" in endpoints, "zookeeper missing from endpoints {}".format(endpoints)
-    broker_endpoints = sdk_networks.get_and_test_endpoints("broker", PACKAGE_NAME, 4)
+    broker_endpoints = sdk_networks.get_and_test_endpoints("broker", PACKAGE_NAME, 3)
     sdk_networks.check_endpoints_on_overlay(broker_endpoints)
 
     zookeeper = service_cli('endpoints zookeeper', get_json=False)

@@ -10,25 +10,31 @@ from tests.config import *
 import sdk_install
 import sdk_networks
 import sdk_utils
+import sdk_plan
+
+import shakedown
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                    additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     check_healthy()
-
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

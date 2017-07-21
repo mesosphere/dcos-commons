@@ -458,7 +458,10 @@ public class TaskUtils {
      * @return true if recovery is needed, false otherwise.
      */
     public static boolean needsRecovery(TaskSpec taskSpec, TaskStatus taskStatus) {
-        if (taskSpec.getGoal() == GoalState.FINISHED && taskStatus.getState() == TaskState.TASK_FINISHED) {
+        // Tasks with a goal state of finished should never leave the purview of their original
+        // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
+        // which reached their goal state of RUNNING and then later failed.
+        if (taskSpec.getGoal() == GoalState.FINISHED) {
             return false;
         } else {
             return isRecoveryNeeded(taskStatus);

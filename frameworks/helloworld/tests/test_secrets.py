@@ -55,19 +55,21 @@ options_dcos_space_test = {
 }
 
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    cmd.run_cli("package install --cli dcos-enterprise-cli")
-    delete_secrets_all("{}/".format(PACKAGE_NAME))
-    delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
-    delete_secrets_all()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        cmd.run_cli("package install --cli dcos-enterprise-cli")
+        delete_secrets_all("{}/".format(PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        delete_secrets_all()
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    delete_secrets_all("{}/".format(PACKAGE_NAME))
-    delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
-    delete_secrets_all()
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
+        delete_secrets_all("{}/".format(PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        delete_secrets_all()
 
 
 @pytest.mark.sanity
@@ -111,6 +113,7 @@ def test_secrets_basic():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_verify():
@@ -165,6 +168,7 @@ def test_secrets_verify():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_update():
@@ -227,6 +231,7 @@ def test_secrets_update():
 
 @pytest.mark.sanity
 @pytest.mark.secrets
+@pytest.mark.smoke
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
@@ -302,8 +307,8 @@ def test_secrets_config_update():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.secrets
-@pytest.mark.skip(reason="DCOS_SPACE authorization is not working in testing/master. Enable this test later.")
 @sdk_utils.dcos_1_10_or_higher
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...

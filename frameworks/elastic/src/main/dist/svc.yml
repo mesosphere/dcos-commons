@@ -28,13 +28,15 @@ pods:
         cpus: {{MASTER_NODE_CPUS}}
         memory: {{MASTER_NODE_MEM}}
         ports:
-          http:
+          master-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: master
               port: 9200
-          transport:
+          master-transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
+            env-key: PORT_TRANSPORT
             vip:
               prefix: master
               port: 9300
@@ -92,13 +94,15 @@ pods:
         cpus: {{DATA_NODE_CPUS}}
         memory: {{DATA_NODE_MEM}}
         ports:
-          http:
+          data-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: data
               port: 9200
-          transport:
+          data-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: data
               port: 9300
@@ -156,13 +160,15 @@ pods:
         cpus: {{INGEST_NODE_CPUS}}
         memory: {{INGEST_NODE_MEM}}
         ports:
-          http:
+          ingest-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: ingest
               port: 9200
-          transport:
+          ingest-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: ingest
               port: 9300
@@ -220,13 +226,15 @@ pods:
         cpus: {{COORDINATOR_NODE_CPUS}}
         memory: {{COORDINATOR_NODE_MEM}}
         ports:
-          http:
+          coordinator-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: coordinator
               port: 9200
-          transport:
+          coordinator-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: coordinator
               port: 9300

@@ -109,8 +109,12 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("Offer {}: failed {} of {} evaluation stages:\n{}",
-                        i + 1, failedOutcomeCount, evaluationStages.size(), outcomeDetails.toString());
+                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                        i + 1,
+                        offer.getId().getValue(),
+                        failedOutcomeCount,
+                        evaluationStages.size(),
+                        outcomeDetails.toString());
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())

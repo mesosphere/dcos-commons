@@ -230,7 +230,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `ports`
 
-      The ports which your service will be using to accept incoming connections. Each port is given a unique name as follows:
+      The ports which your service will be using to accept incoming connections. Each port is given a unique name across the service, and this name is what's used to advertise that port in the `endpoints` listing. Ports may be defined a task as follows:
 
       ```
       ports:

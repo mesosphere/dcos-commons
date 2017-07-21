@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -11,9 +10,11 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -116,27 +117,13 @@ public class UninstallScheduler extends AbstractScheduler {
         offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
     }
 
+    public boolean apiServerReady() {
+        return schedulerApiServer.ready();
+    }
+
     @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
-        if (!apiServerReady()) {
-            LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-            OfferUtils.declineOffers(driver, offersToProcess);
-            return;
-        }
-
-        LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < offers.size(); ++i) {
-            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-        }
-
-        reconciler.reconcile(driver);
-        if (!reconciler.isReconciled()) {
-            LOGGER.info("Reconciliation is still in progress, declining all offers.");
-            OfferUtils.declineOffers(driver, offers);
-            return;
-        }
-
+    protected void processOfferSet(List<Protos.Offer> offers) {
+        List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
         if (!candidateSteps.isEmpty()) {
@@ -150,33 +137,32 @@ public class UninstallScheduler extends AbstractScheduler {
 
         offersWithReservedResources.addAll(
                 new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                        .resourceOffers(driver, offers));
+                        .resourceOffers(driver, localOffers));
 
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, offersWithReservedResources);
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(
+                localOffers,
+                offersWithReservedResources);
 
         // Decline remaining offers.
         OfferUtils.declineOffers(driver, unusedOffers);
-
-    }
-
-    public boolean apiServerReady() {
-        return schedulerApiServer.ready();
     }
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message='{}'",
-                status.getTaskId().getValue(),
-                status.getState().toString(),
-                status.getMessage());
+        statusExecutor.execute(() -> {
+            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+                    status.getTaskId().getValue(),
+                    status.getState().toString(),
+                    status.getMessage());
 
-        try {
-            stateStore.storeStatus(status);
-            reconciler.update(status);
-        } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
-        }
+            try {
+                stateStore.storeStatus(status);
+                reconciler.update(status);
+            } catch (Exception e) {
+                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                        + "This may be expected if Mesos sent stale status information: " + status, e);
+            }
+        });
     }
 
     @Override
@@ -190,8 +176,8 @@ public class UninstallScheduler extends AbstractScheduler {
         Collection<String> taskNames = stateStore.fetchTaskNames();
         LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
         for (String taskName : taskNames) {
-            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-            taskInfoOptional.ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), false));
+            stateStore.fetchTask(taskName)
+                    .ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT));
         }
     }
 }
