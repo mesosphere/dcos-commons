@@ -97,7 +97,7 @@
               "description": "The Kerberos realm used to render the principal of HDFS tasks.",
               "default": "LOCAL"
             }
-          }
+          },
           "default": "serial"
         }
       }
