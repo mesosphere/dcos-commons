@@ -36,9 +36,6 @@ public class DefaultResourceCleaner implements ResourceCleaner {
         Collection<Resource> expectedResources = getExpectedResources(stateStore);
         this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
         this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
-        logger.info("MRB: Got resources {}", expectedResources);
-        logger.info("With PVIDs {}", expectedPersistentVolumeIds);
-        logger.info("And resource ids {}", expectedReservedResourceIds);
     }
 
     /**
@@ -49,7 +46,6 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<? extends Resource> getReservedResourcesToBeUnreserved(Offer offer) {
-        logger.info("MRB: Resource ids in offer include {}", getReservedResourcesById(offer).keySet());
         return selectUnexpectedResources(expectedReservedResourceIds, getReservedResourcesById(offer));
     }
 
