@@ -821,13 +821,9 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html#createAttribute-java.lang.String-java.lang.String-">createAttribute(String, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegexMatcher</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">createConfigStore(ServiceSpec, Collection&lt;Class&lt;?&gt;&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>
-<div class="block">Creates and returns a new default <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> suitable for passing to <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a>.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.storage.Persister-">createConfigStore(ServiceSpec, Collection&lt;Class&lt;?&gt;&gt;, Persister)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
-<div class="block">Version of <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-"><code>DefaultScheduler.createConfigStore(ServiceSpec, Collection)</code></a> which allows passing a custom <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>
+<div class="block">Version of <code>#createConfigStore(ServiceSpec, Collection)</code> which allows passing a custom <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>
  object.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-">createInternal(Scheduler, FrameworkInfo, String, Credential)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.scheduler">SchedulerDriverFactory</a></dt>
@@ -842,10 +838,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#createPhases-java.util.Collection-">createPhases(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">createStateStore(ServiceSpec, SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>
-<div class="block">Creates and returns a new default <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> suitable for passing to <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a>.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#createStep-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">createStep(PodInstanceRequirement)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/DefaultExecutorTaskFactory.html#createTask-Protos.TaskInfo-ExecutorDriver-">createTask(Protos.TaskInfo, ExecutorDriver)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/DefaultExecutorTaskFactory.html" title="class in com.mesosphere.sdk.executor">DefaultExecutorTaskFactory</a></dt>
@@ -2140,7 +2132,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getConfigStore--">getConfigStore()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.config.ConfigStore-"><code>DefaultScheduler.Builder.setConfigStore(ConfigStore)</code></a>, or a reasonable default
- created via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-"><code>DefaultScheduler.createConfigStore(ServiceSpec, Collection)</code></a>.</div>
+ created via <code>DefaultScheduler#createConfigStore(ServiceSpec, Collection)</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getConfiguration-java.lang.String-">getConfiguration(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
 <dd>
@@ -3095,7 +3087,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--">getStateStore()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>DefaultScheduler.Builder.setStateStore(StateStore)</code></a>, or a reasonable default
- created via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-"><code>DefaultScheduler.createStateStore(ServiceSpec, SchedulerFlags)</code></a>.</div>
+ created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchedulerState.html#getStateStore--">getStateStore()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state">SchedulerState</a></dt>
 <dd>&nbsp;</dd>
@@ -4262,6 +4254,12 @@
 <div class="block">Creates a new <a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">newBuilder(ServiceSpec, SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>
+<div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a> based on the provided <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> describing the service, including
+ details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
+ should be organized.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-com.mesosphere.sdk.storage.Persister-">newBuilder(ServiceSpec, SchedulerFlags, Persister)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler.Builder</code></a> based on the provided <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> describing the service, including
  details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
@@ -5640,7 +5638,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore(StateStore)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
- <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#createStateStore-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-"><code>DefaultScheduler.createStateStore(ServiceSpec, SchedulerFlags)</code></a> will be used.</div>
+ <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code> will be used.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus(Status)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>
