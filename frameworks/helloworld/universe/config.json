@@ -30,6 +30,11 @@
             "type":"string",
             "default":""
           },
+	 "some_testt_name": {
+            "description":"None",
+            "type":"string",
+            "default":""
+          },
           "user": {
             "description": "The user that the service will run as.",
             "type": "string",
