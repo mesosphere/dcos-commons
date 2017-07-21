@@ -4,10 +4,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -116,22 +113,49 @@ public class TestPodFactory {
                 .build();
     }
 
+    public static PodSpec getMultiTaskPodSpec(
+            String type,
+            String resourceSetId,
+            String taskName,
+            String cmd,
+            String user,
+            int podCount,
+            double cpu,
+            double mem,
+            double disk,
+            int taskCount) {
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (int i = 0; i < taskCount; ++i) {
+            taskSpecs.add(getTaskSpec(
+                    taskName + i,
+                    cmd,
+                    resourceSetId,
+                    null,
+                    cpu,
+                    mem,
+                    disk));
+        }
+        return getPodSpec(type, user, podCount, taskSpecs);
+    }
+
     public static PodSpec getPodSpec(
             String type,
             String resourceSetId,
             String taskName,
             String cmd,
+            String user,
             int count,
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(type, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
+        return getPodSpec(type, user, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
     }
 
-    public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
+    public static PodSpec getPodSpec(String type, String user, int count, List<TaskSpec> taskSpecs) {
         return DefaultPodSpec.newBuilder("test-executor")
                 .type(type)
                 .count(count)
+                .user(user)
                 .tasks(taskSpecs)
                 .build();
     }

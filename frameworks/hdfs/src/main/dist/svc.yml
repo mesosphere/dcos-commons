@@ -4,15 +4,18 @@ scheduler:
 pods:
   journal:
     count: 3
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-{{#ENABLE_VIRTUAL_NETWORK}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
-{{/ENABLE_VIRTUAL_NETWORK}}
+      {{VIRTUAL_NETWORK_NAME_JOURNAL}}:
+        labels: {{CNI_PLUGIN_LABELS_JOURNAL}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#SECURITY_ENABLED}}
+    {{#SECURITY_ENABLED}}
     secrets:
       keytab:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
@@ -23,8 +26,7 @@ pods:
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/SECURITY_ENABLED}}
-
+    {{/SECURITY_ENABLED}}
     tasks:
       node:
         goal: RUNNING
@@ -50,7 +52,7 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-{{#SECURITY_ENABLED}}
+          {{#SECURITY_ENABLED}}
           krb5-conf:
             template: {{MESOS_SANDBOX}}/krb5.conf
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
@@ -60,21 +62,41 @@ pods:
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-{{/SECURITY_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           JOURNALNODE: true
+        # The absence of journal-data/hdfs/current/committed-txid indicates HDFS is about to be deployed for the first time.
+        # Its existence is used during an update plan to check that the given Journal Node has in fact started and by writing
+        # to the committed-txid file, hence updating the file's last modified timestamp within the last 12 seconds, signals that
+        # the Journal Node is newly running as part of the update plan.
+        {{#JOURNAL_READINESS_CHECK_ENABLED}}
+        readiness-check:
+          cmd: >
+            if [ ! -d journal-data/hdfs ]; then
+              exit 0
+            else
+              export COMMITTED_ID_TIME=$(ls -l --time-style='+%Y-%m-%d %H:%M:%S' journal-data/hdfs/current/committed-txid | awk '{print $6 FS $7}') &&
+              export CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S') &&
+              export TIME_DIFF=$(( ( $(date -ud "$CURRENT_TIME" +'%s') - $(date -ud "$COMMITTED_ID_TIME" +'%s') ) )) &&
+              [[ $TIME_DIFF -le 12 ]]
+            fi
+          delay: 60
+          interval: 3
+          timeout: 1
+        {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-
-{{#ENABLE_VIRTUAL_NETWORK}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
-{{/ENABLE_VIRTUAL_NETWORK}}
+      {{VIRTUAL_NETWORK_NAME_NAME}}:
+        labels: {{CNI_PLUGIN_LABELS_NAME}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#SECURITY_ENABLED}}
+    {{#SECURITY_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
@@ -85,7 +107,7 @@ pods:
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/SECURITY_ENABLED}}
+    {{/SECURITY_ENABLED}}
 
     resource-sets:
       name-resources:
@@ -126,7 +148,7 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-{{#SECURITY_ENABLED}}
+          {{#SECURITY_ENABLED}}
           krb5-conf:
             template: {{MESOS_SANDBOX}}/krb5.conf
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
@@ -136,7 +158,7 @@ pods:
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-{{/SECURITY_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       format:
@@ -150,7 +172,7 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-{{#SECURITY_ENABLED}}
+          {{#SECURITY_ENABLED}}
           krb5-conf:
             template: {{MESOS_SANDBOX}}/krb5.conf
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
@@ -160,7 +182,7 @@ pods:
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-{{/SECURITY_ENABLED}}
+        {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       bootstrap:
@@ -174,7 +196,7 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-{{#SECURITY_ENABLED}}
+          {{#SECURITY_ENABLED}}
           krb5-conf:
             template: {{MESOS_SANDBOX}}/krb5.conf
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
@@ -184,7 +206,7 @@ pods:
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-{{/SECURITY_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           NAMENODE: true
       zkfc:
@@ -237,16 +259,17 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
-
-{{#ENABLE_VIRTUAL_NETWORK}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      dcos:
-{{/ENABLE_VIRTUAL_NETWORK}}
+      {{VIRTUAL_NETWORK_NAME_DATA}}:
+        labels: {{CNI_PLUGIN_LABELS_DATA}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
 
-{{#SECURITY_ENABLED}}
+    {{#SECURITY_ENABLED}}
     secrets:
       s1:
         secret: {{KERBEROS_KEYTAB_SECRET_PATH}}
@@ -257,7 +280,7 @@ pods:
       key-store:
         secret: {{TLS_KEY_STORE_SECRET_PATH}}
         file: server.jks.base64
-{{/SECURITY_ENABLED}}
+    {{/SECURITY_ENABLED}}
 
     tasks:
       node:
@@ -293,7 +316,7 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-{{#SECURITY_ENABLED}}
+          {{#SECURITY_ENABLED}}
           krb5-conf:
              template: {{MESOS_SANDBOX}}/krb5.conf
              dest: {{JRE_VERSION}}/lib/security/krb5.conf
@@ -303,11 +326,10 @@ pods:
           ssl-client:
             template: {{CONFIG_TEMPLATE_PATH}}/ssl-client.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-client.xml
-{{/SECURITY_ENABLED}}
+          {{/SECURITY_ENABLED}}
         env:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
-        # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
         readiness-check:
           cmd: KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t ${MESOS_SANDBOX}/hdfs.keytab ${KERBEROS_PRIMARY}/data-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory@${KERBEROS_REALM} && export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
           interval: 10

@@ -25,15 +25,27 @@
           "type": "string",
           "default": ""
         },
-        "virtual_network": {
-          "description": "Enable DC/OS Virtual Network",
+        "virtual_networks": {
+          "description": "Enable DC/OS Virtual Networking",
           "type": "boolean",
           "default": false
         },
         "deploy_strategy": {
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
           "type": "string",
-          "default": "parallel"
+          "default": "parallel",
+          "enum" : ["parallel", "serial"]
+        },
+        "mesos_api_version": {
+          "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
+          "type": "string",
+          "default": "V0"
+        },
+        "log_level": {
+          "description": "The log level for the DC/OS service.",
+          "type": "string",
+          "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
+          "default": "INFO"
         }
       },
       "required": [
@@ -116,6 +128,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -173,6 +190,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -230,6 +252,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [
@@ -287,6 +314,11 @@
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
+        },
+        "virtual_network": {
+          "description": "Name of virtual network to join",
+          "type": "string",
+          "default": "dcos"
         }
       },
       "required": [

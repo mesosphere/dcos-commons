@@ -1,7 +1,8 @@
 import sys
+
+import dcos
 import shakedown
-import time
-import traceback
+import pytest
 
 def out(msg):
     '''Emit an informational message on test progress during test runs'''
@@ -35,13 +36,37 @@ def gc_frameworks():
         shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
 
 
-def try_throws_n_times(predicate, attempts=1, sleep_seconds=0):
-    for index in range(attempts):
-        try:
-            return predicate()
-        except:
-            if index == attempts-1:
-                raise
-            out("Encountered an exception: {}".format(traceback.format_exc()))
+def list_reserved_resources():
+    '''Displays the currently reserved resources on all agents via state.json;
+       Currently for INFINITY-1881 where we believe uninstall may not be
+       always doing its job correctly.'''
+    state_json_slaveinfo = dcos.mesos.DCOSClient().get_state_summary()['slaves']
 
-        time.sleep(sleep_seconds)
+    for slave in state_json_slaveinfo:
+        reserved_resources = slave['reserved_resources']
+        if reserved_resources == {}:
+            continue
+        msg = "on slaveid=%s hostname=%s reserved resources: %s"
+        out(msg % (slave['id'], slave['hostname'], reserved_resources))
+
+
+def get_foldered_name(service_name):
+    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
+    # group names
+    if shakedown.dcos_version_less_than("1.10"):
+        return service_name
+    return "/test/integration/" + service_name
+
+def get_zk_path(service_name):
+    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
+    # group names
+    if shakedown.dcos_version_less_than("1.10"):
+        return service_name
+    return "test__integration__" + service_name
+
+
+dcos_1_9_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.9")',
+                                        reason="Feature only supported in DC/OS 1.9 and up")
+dcos_1_10_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")',
+                                         reason="Feature only supported in DC/OS 1.10 and up")
+

@@ -163,6 +163,14 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidDuplicatePorts() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+    }
+
     @Test
     public void validReadinessCheck() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -185,7 +193,7 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void validOverlayNetworkWithPortForwarding() throws Exception {
+    public void validBridgeNetworkWithPortForwarding() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-automatic-cni-port-forwarding.yml").getFile());
         // load the raw service spec and check that it parsed correctly
@@ -292,7 +300,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags)
+        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags, new MemPersister())
             .setConfigStore(mockConfigStore)
             .setStateStore(mockStateStore)
             .setPlansFrom(rawSpec)
@@ -367,15 +375,21 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
+        PodSpec podSpec = defaultServiceSpec.getPods().get(0);
+        Assert.assertEquals("dcos", Iterables.get(podSpec.getNetworks(), 0)
                 .getName());
-        // check that the port resources are ignored
         List<ResourceSpec> portsResources = defaultServiceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
                 .stream()
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
         Assert.assertEquals(2, portsResources.size());
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
+                .get("key1").equals("val1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key2"));
+        Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
+                .get("key2").equals("val2"));
     }
 
     @Test
@@ -503,6 +517,13 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void vipPortNameCollision() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-vip-port-name-collision.yml").getFile());
+        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+    }
+
     @Test
     public void invalidTaskSpecNoResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -571,7 +592,7 @@ public class DefaultServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, flags)
+        DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))

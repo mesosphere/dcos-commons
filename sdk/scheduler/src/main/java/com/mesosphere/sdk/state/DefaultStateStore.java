@@ -153,7 +153,7 @@ public class DefaultStateStore implements StateStore {
         }
 
         String path = getTaskStatusPath(taskName);
-        logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
+        logger.debug("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
             persister.set(path, status.toByteArray());
@@ -240,7 +240,7 @@ public class DefaultStateStore implements StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
+                logger.debug("No TaskInfo found for the requested name: {} at: {}", taskName, path);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e, String.format("Failed to retrieve task named %s", taskName));
@@ -285,7 +285,7 @@ public class DefaultStateStore implements StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
+                logger.debug("No TaskStatus found for the requested name: {} at: {}", taskName, path);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e);

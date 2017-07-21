@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -28,13 +26,12 @@ public class NotRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         EvaluationOutcome child = rule.filter(offer, podInstance, tasks);
-        return EvaluationOutcome.create(
-                !child.isPassing(),
-                this,
-                null,
-                Collections.emptyList(),
-                Arrays.asList(child),
-                "Returning opposite of child rule:");
+        String reason = "Returning opposite of child rule";
+        if (child.isPassing()) {
+            return EvaluationOutcome.fail(this, reason).build();
+        } else {
+            return EvaluationOutcome.pass(this, reason).addChild(child).build();
+        }
     }
 
     @JsonProperty("rule")

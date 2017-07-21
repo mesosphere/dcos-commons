@@ -15,6 +15,12 @@ tools/cluster-*.properties
 tools/*.pem
 tools/dcostests_env/
 tools/shakedown_env/
+tools/cassandra
+tools/hdfs
+tools/kafka
+tools/elastic
+tools/helloworld
+tools/template
 
 # idea
 *.i??
@@ -29,6 +35,9 @@ classes/
 .settings/
 bin/
 
+# vscode
+.vscode
+
 # gradle
 .gradle
 build/
@@ -38,6 +47,7 @@ sdk/core/build
 sdk/executor/build
 frameworks/*/build
 frameworks/*/dcos-commons-tools/
+frameworks/*/*-universe-url*
 
 # vim swap files
 *.swp

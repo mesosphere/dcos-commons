@@ -10,13 +10,15 @@ from tests.test_utils import (
 )
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(PACKAGE_NAME)
+        utils.gc_frameworks()
 
-
-def teardown_module(module):
-    install.uninstall(SERVICE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(SERVICE_NAME)
 
 
 @pytest.mark.upgrade
@@ -25,7 +27,8 @@ def teardown_module(module):
 def test_upgrade_downgrade():
     options = {
         "service": {
-            "beta-optin": True
+            "beta-optin": True,
+            "user":"root"
         }
     }
     sdk_test_upgrade.upgrade_downgrade("beta-{}".format(PACKAGE_NAME),

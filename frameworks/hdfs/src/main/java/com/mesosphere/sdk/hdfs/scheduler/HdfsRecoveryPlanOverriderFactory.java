@@ -1,10 +1,8 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 
 import java.util.Collection;
@@ -17,14 +15,8 @@ public class HdfsRecoveryPlanOverriderFactory implements RecoveryPlanOverriderFa
     private static final String REPLACE_PLAN_NAME = "replace";
 
     @Override
-    public RecoveryPlanOverrider create(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            Collection<Plan> plans) {
-        return new HdfsRecoveryPlanOverrider(
-                stateStore,
-                configStore,
-                getNameNodeReplacementPlan(plans));
+    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+        return new HdfsRecoveryPlanOverrider(stateStore, getNameNodeReplacementPlan(plans));
     }
 
     private Plan getNameNodeReplacementPlan(Collection<Plan> plans) {

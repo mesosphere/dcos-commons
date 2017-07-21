@@ -188,21 +188,29 @@ public class ResourceBuilder {
     }
 
     public Resource build() {
+        // Note:
+        // In the pre-resource-refinment world (< 1.9), Mesos will expect
+        // reserved Resources to have role and reservation set.
+        //
+        // In the post-resource-refinement world (1.10+), Mesos will expect
+        // reserved Resources to have reservations (and ONLY reservations) set.
         Resource.Builder builder =
                 mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
         builder.setName(resourceName)
                 .setRole(Constants.ANY_ROLE)
                 .setType(value.getType());
 
-        if (role.isPresent() && !Capabilities.getInstance().supportsPreReservedResources()) {
-            builder.setRole(role.get());
-        }
+        boolean preReservedSupported = Capabilities.getInstance().supportsPreReservedResources();
 
+        // Set the reservation (<1.9) or reservations (1.10+) for Resources that do not
+        // already have a resource id.
+        // todo (bwood): @gabriel, why do we not just re-run if resource id is already set?
+        // is the reservation setting destructive / non-repeatable?
         if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
             String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
             Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
 
-            if (Capabilities.getInstance().supportsPreReservedResources()) {
+            if (preReservedSupported) {
                 if (!preReservedRole.equals(Constants.ANY_ROLE) && mesosResource == null) {
                     builder.addReservations(
                             Resource.ReservationInfo.newBuilder()
@@ -210,10 +218,16 @@ public class ResourceBuilder {
                             .setType(Resource.ReservationInfo.Type.STATIC));
                 }
                 builder.addReservations(reservationInfo);
-                builder.clearRole();
             } else {
                 builder.setReservation(reservationInfo);
             }
+        }
+
+        // Set the role (<1.9) or clear it (1.10+) for reserved resources.
+        if (role.isPresent() && !preReservedSupported) {
+            builder.setRole(role.get());
+        } else if (preReservedSupported && builder.getReservationsCount() > 0) {
+            builder.clearRole();
         }
 
         if (diskContainerPath.isPresent()) {

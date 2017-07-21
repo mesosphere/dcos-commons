@@ -3,6 +3,7 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
+  "user":"{{service.user}}",
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./kafka-scheduler/bin/kafka ./kafka-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
@@ -24,6 +25,7 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
     "FRAMEWORK_USER": "{{service.user}}",
+    "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "CMD_PREFIX": "{{service.cmd_prefix}}",
     "SECRET_NAME": "{{service.secret_name}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -52,9 +54,11 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.virtual_network}}
+    {{#service.virtual_networks}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    {{/service.virtual_network}}
+    "VIRTUAL_NETWORK_NAME": "{{brokers.virtual_network}}",
+    "CNI_PLUGIN_LABELS": "{{brokers.cni_plugin_labels}}",
+    {{/service.virtual_networks}}
 
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.2.1",

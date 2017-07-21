@@ -28,6 +28,15 @@ public class PlanUtils {
     }
 
     /**
+     * Indicates whether a plan has any work left to do.  A plan can be in ERROR state because of a rejected
+     * target configuration, but still have work to do reaching it's target configuration.  If all of a plan's
+     * elements are not complete, it has operations.
+     */
+    public static boolean hasOperations(Plan plan) {
+        return !allHaveStatus(Status.COMPLETE, plan.getChildren()) && !plan.isInterrupted();
+    }
+
+    /**
      * Determines whether the specified asset refers to the same pod instance and tasks other assets.
      * @param asset The asset of interest.
      * @param dirtyAssets Other assets which may conflict with the {@code asset}

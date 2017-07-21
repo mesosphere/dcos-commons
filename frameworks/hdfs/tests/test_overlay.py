@@ -1,45 +1,60 @@
-import time
+import os
 import pytest
+import time
 
 from xml.etree import ElementTree
+# Do not use import *; it makes it harder to determine the origin of config
+# items
 from tests.config import *
 
-import sdk_install as install
-import sdk_networks as networks
+import sdk_install
+import sdk_networks
+import sdk_utils
+import sdk_plan
+
+import shakedown
+
+overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+    reason="overlay tests currently broken in strict")
 
 
-OVERLAY_OPTIONS = {'service':{'virtual_network':True}}
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
-def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
-    utils.gc_frameworks()
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                    additional_options=OVERLAY_OPTIONS)
-
-
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     check_healthy()
-
-
-def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@overlay_nostrict
+@sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(PACKAGE_NAME)
     assert len(hdfs_tasks) == DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
         "should be {} got {}".format(len(hdfs_tasks), DEFAULT_TASK_COUNT)
     for task in hdfs_tasks:
-        networks.check_task_network(task)
+        sdk_networks.check_task_network(task)
 
 
 @pytest.mark.overlay
 @pytest.mark.sanity
+@overlay_nostrict
+@sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
-    observed_endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
+    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
@@ -50,18 +65,17 @@ def test_endpoints_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@pytest.mark.skip("HDFS-451, not working on jenkins")
-def test_read_and_write_data_on_overlay():
+@pytest.mark.data_integrity
+@overlay_nostrict
+@sdk_utils.dcos_1_9_or_higher
+def test_write_and_read_data_on_overlay():
     # use mesos DNS here because we want the host IP to run the command
     shakedown.wait_for(
         lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
-
-    # gives chance for write to succeed and replication to occur
-    time.sleep(9)
+        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
     shakedown.wait_for(
         lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=HDFS_CMD_TIMEOUT_SEC)
+        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
     check_healthy()

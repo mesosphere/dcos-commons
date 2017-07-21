@@ -4,13 +4,14 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.mesos.Protos;
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for {@link RoundRobinByHostnameRule}.
  */
-public class RoundRobinByHostnameRuleTest {
+public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static PodInstance POD;
 
@@ -40,7 +41,7 @@ public class RoundRobinByHostnameRuleTest {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
                 .setTaskId(CommonIdUtils.toTaskId(name));
-        infoBuilder.setLabels(new SchedulerLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
         return infoBuilder.build();
     }
 
@@ -60,7 +61,7 @@ public class RoundRobinByHostnameRuleTest {
 
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
-            SchedulerLabelReader labels = new SchedulerLabelReader(taskInfo);
+            TaskLabelReader labels = new TaskLabelReader(taskInfo);
             ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
             PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
                     resourceSet,

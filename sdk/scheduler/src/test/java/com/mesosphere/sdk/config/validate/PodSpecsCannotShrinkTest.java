@@ -52,7 +52,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -60,7 +59,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
@@ -76,7 +74,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -84,7 +81,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
@@ -100,7 +96,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec11))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -108,7 +103,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
@@ -124,7 +118,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -132,7 +125,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
@@ -149,7 +141,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -157,7 +148,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec22))
-                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
@@ -174,7 +164,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
@@ -182,7 +171,6 @@ public class PodSpecsCannotShrinkTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
-                .apiPort(8080)
                 .build();
 
         // only checked against new config

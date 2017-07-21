@@ -28,7 +28,6 @@ public class Main {
                     .name("hello-world")
                     .principal("hello-world-principal")
                     .zookeeperConnection("master.mesos:2181")
-                    .apiPort(8080)
                     .addPod(DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
                             .count(COUNT)
                             .type(POD_TYPE)

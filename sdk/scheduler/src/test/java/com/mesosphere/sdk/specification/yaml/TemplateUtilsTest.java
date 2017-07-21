@@ -11,7 +11,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.github.mustachejava.MustacheException;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
  * Tests for {@link TemplateUtils}.
@@ -31,18 +30,18 @@ public class TemplateUtilsTest {
 
     @Test
     public void testApplyEnvToExhaustiveMustache() throws IOException {
-        String filename = "valid-exhaustive.yml";
+        String filename = "test-render.yml";
         File file = new File(getClass().getClassLoader().getResource(filename).getFile());
         String yaml = FileUtils.readFileToString(file);
-        Assert.assertTrue(yaml.contains("api-port: {{PORT_API}}"));
+        Assert.assertTrue(yaml.contains("size: {{VOL_SIZE}}"));
         Assert.assertFalse(yaml, TemplateUtils.isMustacheFullyRendered(yaml));
 
         Map<String, String> envMap = new HashMap<>();
-        envMap.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        envMap.put("VOL_SIZE", String.valueOf(1024));
         String renderedYaml = TemplateUtils.applyEnvToMustache(
                 filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
 
-        Assert.assertTrue(renderedYaml.contains(String.format("api-port: %d", TestConstants.PORT_API_VALUE)));
+        Assert.assertTrue(renderedYaml.contains(String.format("size: %d", 1024)));
 
         // No other template params to populate:
         Assert.assertTrue(TemplateUtils.isMustacheFullyRendered(renderedYaml));

@@ -3,6 +3,7 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
+  "user": "{{service.user}}",
   "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
@@ -22,6 +23,7 @@
   {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
+    "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.11.0",
     "JRE_VERSION": "jre1.8.0_131",
     "TASKCFG_ALL_JRE_VERSION": "jre1.8.0_131",
@@ -49,9 +51,15 @@
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
 
-    {{#service.virtual_network}}
+    {{#service.virtual_networks}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    {{/service.virtual_network}}
+    "VIRTUAL_NETWORK_NAME_JOURNAL": "{{journal_node.virtual_network}}",
+    "CNI_PLUGIN_LABELS_JOURNAL": "{{journal_node.cni_plugin_labels}}",
+    "VIRTUAL_NETWORK_NAME_NAME": "{{name_node.virtual_network}}",
+    "CNI_PLUGIN_LABELS_NAME": "{{name_node.cni_plugin_labels}}",
+    "VIRTUAL_NETWORK_NAME_DATA": "{{data_node.virtual_network}}",
+    "CNI_PLUGIN_LABELS_DATA": "{{data_node.cni_plugin_labels}}",
+    {{/service.virtual_networks}}
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
@@ -73,6 +81,20 @@
     "TASKCFG_ALL_KERBEROS_REALM": "{{hdfs.security.kerberos.realm}}",
     {{/hdfs.security.enabled}}
 
+    {{#journal_node.enable_readiness_check}}
+    "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
+    "TASKCFG_ALL_JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
+    {{/journal_node.enable_readiness_check}}
+
+
+    {{#service.kerberos.enabled}}
+    "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
+    "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
+    "TASKCFG_ALL_SECURE_MODE": "{{service.kerberos.enabled}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
+    "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
+    {{/service.kerberos.enabled}}
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
@@ -91,9 +113,10 @@
     "TASKCFG_ALL_IMAGE_COMPRESS":"{{hdfs.compress_image}}",
     "TASKCFG_ALL_IMAGE_COMPRESSION_CODEC":"{{hdfs.image_compression_codec}}",
     "TASKCFG_ALL_NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION":"0.95",
+    "TASKCFG_ALL_NAME_NODE_REPLICATION_MIN":"3",
     "TASKCFG_ALL_NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION":"4",
     "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT":"true",
-    "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_PATH":"/var/lib/hadoop-hdfs/dn_socket",
+    "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_PATH":"dn_socket",
     "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE":"1000",
     "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS":"1000",
     "TASKCFG_ALL_NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK": "false",

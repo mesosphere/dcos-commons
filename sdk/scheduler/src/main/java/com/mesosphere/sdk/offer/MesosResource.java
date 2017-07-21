@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
@@ -56,27 +55,19 @@ public class MesosResource {
     }
 
     public String getRole() {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
+        if (resource.getReservationsCount() > 0) {
             return getRefinedRole();
         } else {
-            return getLegacyRole();
+            return Constants.ANY_ROLE;
         }
     }
 
     private String getRefinedRole() {
-        if (resource.getReservationsCount() > 0) {
-            return resource.getReservations(resource.getReservationsCount() - 1).getRole();
-        }
-
-        return Constants.ANY_ROLE;
-    }
-
-    private String getLegacyRole() {
-        return resource.getRole();
+        return resource.getReservations(resource.getReservationsCount() - 1).getRole();
     }
 
     public String getPreviousRole() {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
+        if (resource.getReservationsCount() > 0) {
             return getRefinedPreviousRole();
         } else {
             return getLegacyPreviousRole();

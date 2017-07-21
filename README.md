@@ -5,7 +5,7 @@
 [__Quick Start__](README.md#quick-start) |
 [__Developer Guide__](https://mesosphere.github.io/dcos-commons/developer-guide.html) |
 [__FAQ__](docs/pages/faq.md) |
-[__Javadocs__](https://mesosphere.github.io/dcos-commons/api/) |
+[__Javadocs__](https://mesosphere.github.io/dcos-commons/reference/api/) |
 [__Contributing__](CONTRIBUTING.md) |
 [__Slack__](http://chat.dcos.io)
 
@@ -117,7 +117,7 @@ volume:
 ### References
 * [Quick Start Guide - Java](https://mesosphere.github.io/dcos-commons/tutorials/quick-start-java.html)
 * [Developer Guide](https://mesosphere.github.io/dcos-commons/developer-guide.html)
-* [Javadocs](https://mesosphere.github.io/dcos-commons/api/)
+* [Javadocs](https://mesosphere.github.io/dcos-commons/reference/api/)
 
 ---
 ### Contributions

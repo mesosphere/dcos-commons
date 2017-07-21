@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
-import com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -69,7 +69,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
 
     @Override
     protected String getValue(TaskInfo task) {
-        for (String taskAttributeString : new SchedulerLabelReader(task).getOfferAttributeStrings()) {
+        for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
             AttributeStringUtils.NameValue taskAttributeNameValue =
                     AttributeStringUtils.split(taskAttributeString);
             if (taskAttributeNameValue.name.equalsIgnoreCase(attributeName)) {

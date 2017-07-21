@@ -109,8 +109,12 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("Offer {}: failed {} of {} evaluation stages:\n{}",
-                        i + 1, failedOutcomeCount, evaluationStages.size(), outcomeDetails.toString());
+                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                        i + 1,
+                        offer.getId().getValue(),
+                        failedOutcomeCount,
+                        evaluationStages.size(),
+                        outcomeDetails.toString());
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
@@ -155,7 +159,7 @@ public class OfferEvaluator {
             description = "existing";
             shouldGetNewRequirement = false;
         }
-        logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
+        logger.info("Generating requirement for {} pod '{}' containing tasks: {}.",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
 
         evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
@@ -257,10 +261,12 @@ public class OfferEvaluator {
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
+                    NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
                     evaluationStages.add(
-                            new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskName, Optional.empty()));
+                            new NamedVIPEvaluationStage(namedVIPSpec, taskName, Optional.empty()));
                 } else if (resourceSpec instanceof PortSpec) {
-                    evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
+                    PortSpec portSpec = (PortSpec) resourceSpec;
+                    evaluationStages.add(new PortEvaluationStage(portSpec, taskName, Optional.empty()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }

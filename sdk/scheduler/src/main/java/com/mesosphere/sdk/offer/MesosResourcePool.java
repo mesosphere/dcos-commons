@@ -201,6 +201,7 @@ public class MesosResourcePool {
     }
 
     public void free(MesosResource mesosResource) {
+        logger.info("Freeing resource: {}",  mesosResource.toString());
         if (mesosResource.isAtomic()) {
             freeAtomicResource(mesosResource);
             return;
@@ -213,12 +214,17 @@ public class MesosResourcePool {
     private void freeMergedResource(MesosResource mesosResource) {
         if (mesosResource.getResourceId().isPresent()) {
             dynamicallyReservedPoolByResourceId.remove(mesosResource.getResourceId().get());
+            logger.info("Freed resource: {}", !dynamicallyReservedPoolByResourceId
+                    .containsKey(mesosResource.getResourceId().get()));
         }
 
         String previousRole = mesosResource.getPreviousRole();
         Map<String, Value> pool = reservableMergedPoolByRole.get(previousRole);
-        Value currValue = pool.get(mesosResource.getName());
+        if (pool == null) {
+            pool = new HashMap<>();
+        }
 
+        Value currValue = pool.get(mesosResource.getName());
         if (currValue == null) {
             currValue = ValueUtils.getZero(mesosResource.getType());
         }
@@ -282,20 +288,6 @@ public class MesosResourcePool {
 
         String allocationRole = resource.getAllocationInfo().getRole();
         return podRole.get().equals(allocationRole);
-    }
-
-    private static Map<String, MesosResource> getReservedPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
-
-        for (MesosResource mesResource : mesosResources) {
-            Optional<String> resourceId = mesResource.getResourceId();
-            if (resourceId.isPresent()) {
-                reservedPool.put(resourceId.get(), mesResource);
-            }
-        }
-
-        return reservedPool;
     }
 
     private static Map<String, List<MesosResource>> getUnreservedAtomicPool(
@@ -369,32 +361,9 @@ public class MesosResourcePool {
         return pool;
     }
 
-    private static Map<String, Value> getUnreservedMergedPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, Value> pool = new HashMap<String, Value>();
-
-        for (MesosResource mesosResource : getUnreservedMergedResources(mesosResources)) {
-            String name = mesosResource.getName();
-            Value currValue = pool.get(name);
-
-            if (currValue == null) {
-                currValue = ValueUtils.getZero(mesosResource.getType());
-            }
-
-            pool.put(name, ValueUtils.add(currValue, mesosResource.getValue()));
-        }
-
-        return pool;
-    }
-
     private static Collection<MesosResource> getUnreservedAtomicResources(
             Collection<MesosResource> mesosResources) {
         return getUnreservedResources(getAtomicResources(mesosResources));
-    }
-
-    private static Collection<MesosResource> getUnreservedMergedResources(
-            Collection<MesosResource> mesosResources) {
-        return getUnreservedResources(getMergedResources(mesosResources));
     }
 
     private static Collection<MesosResource> getUnreservedResources(

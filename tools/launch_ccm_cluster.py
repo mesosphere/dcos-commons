@@ -345,7 +345,7 @@ class StartConfig(object):
             ccm_channel = 'testing/master',
             cf_template = 'ee.single-master.cloudformation.json',
             start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,
-            public_agents = 0,
+            public_agents = 1,
             private_agents = 1,
             aws_region = 'us-west-2',
             admin_location = '0.0.0.0/0',
