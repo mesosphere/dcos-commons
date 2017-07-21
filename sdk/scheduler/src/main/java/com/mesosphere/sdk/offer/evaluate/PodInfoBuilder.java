@@ -7,6 +7,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
+import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -187,6 +188,29 @@ public class PodInfoBuilder {
             }
             builder.addVolumes(getVolume(volumeSpec));
         }
+    }
+
+    public static Protos.Resource getExistingExecutorVolume(
+            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
+        return Protos.Resource.newBuilder()
+                .setName("disk")
+                .setType(Protos.Value.Type.SCALAR)
+                .setScalar(volumeSpec.getValue().getScalar())
+                .setDisk(Protos.Resource.DiskInfo.newBuilder()
+                        .setPersistence(Protos.Resource.DiskInfo.Persistence.newBuilder()
+                                .setId(persistenceId)
+                                .setPrincipal(volumeSpec.getPrincipal()))
+                        .setVolume(Protos.Volume.newBuilder()
+                                .setContainerPath(volumeSpec.getContainerPath())
+                                .setMode(Protos.Volume.Mode.RW)))
+                .addReservations(Protos.Resource.ReservationInfo.newBuilder()
+                    .setPrincipal(volumeSpec.getPrincipal())
+                    .setRole(volumeSpec.getRole())
+                    .setLabels(Protos.Labels.newBuilder().addLabels(
+                            Protos.Label.newBuilder()
+                                    .setKey(MesosResource.RESOURCE_ID_KEY)
+                                    .setValue(resourceId))))
+                .build();
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {

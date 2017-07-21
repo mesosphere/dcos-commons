@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +38,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         this.resourceId = resourceId;
         this.persistenceId = persistenceId;
         this.useDefaultExecutor = useDefaultExecutor;
-        if (taskName == null && !useDefaultExecutor && resourceId.isPresent()) {
-            try {
-                throw new Exception("wtf");
-            } catch (Exception e) {
-                logger.info("WTF: {}", e);
-            }
-        }
     }
 
     private boolean createsVolume() {
@@ -58,16 +52,24 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         Resource resource;
         final MesosResource mesosResource;
 
-        if (taskName == null && useDefaultExecutor && resourceId.isPresent()) {
+        boolean isRunningDefaultExecutor = useDefaultExecutor && (podInfoBuilder.getExecutorBuilder().isPresent() ?
+                isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer()) :
+                false);
+        if (taskName == null && isRunningDefaultExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo as well as whatever task is being launched.
             podInfoBuilder.setExecutorVolume(volumeSpec);
+            mesosResource = new MesosResource(
+                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get()));
 
             return pass(
                     this,
+                    Collections.emptyList(),
                     "Offer contains executor with existing volume with resourceId: '%s' and persistenceId: '%s'",
                     resourceId,
-                    persistenceId).build();
+                    persistenceId)
+                    .mesosResource(mesosResource)
+                    .build();
         }
 
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
@@ -125,15 +127,15 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         if (createsVolume()) {
             logger.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
-
-            if (taskName == null) {
-                podInfoBuilder.setExecutorVolume(volumeSpec);
-            }
         }
 
         logger.info("  Generated '{}' resource for task: [{}]",
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
         OfferEvaluationUtils.setProtos(podInfoBuilder, resource, getTaskName());
+
+        if (taskName == null && useDefaultExecutor) {
+            podInfoBuilder.setExecutorVolume(volumeSpec);
+        }
 
         return pass(
                 this,
@@ -149,5 +151,15 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private Optional<String> getTaskName() {
         return Optional.ofNullable(taskName);
+    }
+
+    private static boolean isRunningExecutor(Protos.ExecutorInfo executorInfo, Protos.Offer offer) {
+        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+            if (execId.equals(executorInfo.getExecutorId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

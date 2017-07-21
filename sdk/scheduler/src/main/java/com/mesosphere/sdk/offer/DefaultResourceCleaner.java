@@ -5,6 +5,7 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class DefaultResourceCleaner implements ResourceCleaner {
         Collection<Resource> expectedResources = getExpectedResources(stateStore);
         this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
         this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
+        logger.info("MRB: Got resources {}", expectedResources);
+        logger.info("With PVIDs {}", expectedPersistentVolumeIds);
+        logger.info("And resource ids {}", expectedReservedResourceIds);
     }
 
     /**
@@ -46,6 +50,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<? extends Resource> getReservedResourcesToBeUnreserved(Offer offer) {
+        logger.info("MRB: Resource ids in offer include {}", getReservedResourcesById(offer).keySet());
         return selectUnexpectedResources(expectedReservedResourceIds, getReservedResourcesById(offer));
     }
 
