@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         options = {
@@ -56,4 +56,3 @@ def test_bump_hello_cpus():
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
-

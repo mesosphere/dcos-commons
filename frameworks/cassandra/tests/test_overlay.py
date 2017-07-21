@@ -22,7 +22,7 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     successfully_installed = False
     try:
         sdk_install.uninstall(PACKAGE_NAME)

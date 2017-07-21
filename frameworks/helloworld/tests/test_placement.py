@@ -20,7 +20,7 @@ num_private_agents = len(shakedown.get_private_agents())
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
 

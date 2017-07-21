@@ -25,7 +25,7 @@ ZK_SERVICE_PATH = sdk_utils.get_zk_path(PACKAGE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
