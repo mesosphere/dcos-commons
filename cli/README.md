@@ -12,7 +12,7 @@ The following functionality is provided to cover the needs of most 'thin clients
 - Making HTTP GET/PUT/POST/DELETE calls to services
 - Pretty-printing JSON responses
 
-While the main DC/OS CLI is written in Python (and then compiled into a standalone binary), the CLI Modules developed using these tools are instead written directly in Go 1.5+. This is chosen to greatly simplify cross-compilation compared to Python. See the [example build-cli.sh](../frameworks/helloworld/cli/build-cli.sh) for an example which cross compiles Linux/Mac/Win binaries in a single script.
+While the main DC/OS CLI is written in Python (and then compiled into a standalone binary), the CLI Modules developed using these tools are instead written directly in Go 1.5+. This is chosen to greatly simplify cross-compilation compared to Python.
 
 ## Build
 
