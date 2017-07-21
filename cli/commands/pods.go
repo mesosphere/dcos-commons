@@ -74,7 +74,7 @@ func HandlePodsSection(app *kingpin.Application) {
 
 	pod.Command("list", "Display the list of known pod instances").Action(cmd.handleList)
 
-	status := pod.Command("status", "Display the status for tasks in one pod or all pod").Action(cmd.handleStatus)
+	status := pod.Command("status", "Display the status for tasks in one pod or all pods").Action(cmd.handleStatus)
 	status.Arg("pod", "Name of a specific pod instance to display").StringVar(&cmd.PodName)
 
 	info := pod.Command("info", "Display the full state information for tasks in a pod").Action(cmd.handleInfo)

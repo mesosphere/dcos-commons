@@ -1513,7 +1513,7 @@ DefaultServiceSpec.newBuilder()
     .role(ROLE)
     .principal(PRINCIPAL)
     .zookeeperConnection("foo.bar.com")
-    .pod(Arrays.asList(pod))
+    .pods(Arrays.asList(pods))
     .build();
 ```
 
