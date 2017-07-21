@@ -65,10 +65,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
             return pass(
                     this,
-                    null,
-                    Collections.emptyList(),
-                    "Satisfied requirements for %s volume '%s'",
-                    volumeSpec,
+                    "Offer contains executor with existing volume with resourceId: '%s' and persistenceId: '%s'",
                     resourceId,
                     persistenceId).build();
         }

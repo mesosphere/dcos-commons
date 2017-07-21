@@ -8,6 +8,7 @@ pods:
     user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
@@ -19,7 +20,9 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -77,6 +80,8 @@ pods:
     user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -84,14 +89,14 @@ pods:
       {{VIRTUAL_NETWORK_NAME_NAME}}:
         labels: {{CNI_PLUGIN_LABELS_NAME}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    volume:
-      path: name-data
-      size: {{NAME_DISK}}
-      type: {{NAME_DISK_TYPE}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
+        volume:
+          path: name-data
+          size: {{NAME_DISK}}
+          type: {{NAME_DISK_TYPE}}
         ports:
           name-rpc:
             port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
@@ -106,7 +111,9 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
           cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
@@ -137,7 +144,9 @@ pods:
           NAMENODE: true
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -160,7 +169,9 @@ pods:
           NAMENODE: true
       bootstrap:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -183,7 +194,9 @@ pods:
           NAMENODE: true
       zkfc:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -206,7 +219,9 @@ pods:
           ZKFC: true
       zkfc-format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -232,6 +247,8 @@ pods:
     user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -242,7 +259,9 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
+        cmd: >
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
