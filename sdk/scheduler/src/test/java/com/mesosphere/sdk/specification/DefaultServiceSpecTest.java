@@ -171,7 +171,7 @@ public class DefaultServiceSpecTest {
             DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
-            Assert.assertTrue(e.getMessage().contains("Task has multiple ports with value 8080"));
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("Task has multiple ports with value 8080"));
         }
     }
 
@@ -183,7 +183,8 @@ public class DefaultServiceSpecTest {
             DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
-            Assert.assertTrue(e.getMessage().contains("Duplicate port/endpoint names across different tasks: [http]"));
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains(
+                    "Duplicate port/endpoint names across different tasks: [across-pods, across-tasks, in-resource-set]"));
         }
     }
 

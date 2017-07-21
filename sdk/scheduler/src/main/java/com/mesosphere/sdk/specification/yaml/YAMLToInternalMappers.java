@@ -116,20 +116,34 @@ public class YAMLToInternalMappers {
      * Otherwise the 'endpoints' command will have them jumbled together.
      */
     private static void verifyDistinctPortNames(Collection<RawPod> rawPods) {
-        Map<String, Long> portNameCounts = rawPods.stream()
-                .flatMap(pod -> pod.getTasks().values().stream()
-                        .map(t -> t.getPorts())
-                        .filter(map -> map != null)
-                        .flatMap(p -> p.keySet().stream()))
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        List<String> portNameDuplicates = portNameCounts.entrySet().stream()
-                .filter(e -> e.getValue() > 1)
-                .map(e -> e.getKey())
-                .collect(Collectors.toList());
+        Set<String> portNames = new HashSet<>();
+        Set<String> portNameDuplicates = new TreeSet<>();
+        for (RawPod pod : rawPods) {
+            // Check across both task ports, and resource set ports:
+            for (RawTask task : pod.getTasks().values()) {
+                collectKeys(task.getPorts(), portNames, portNameDuplicates);
+            }
+            if (pod.getResourceSets() != null) {
+                for (RawResourceSet resourceSet : pod.getResourceSets().values()) {
+                    collectKeys(resourceSet.getPorts(), portNames, portNameDuplicates);
+                }
+            }
+        }
         if (!portNameDuplicates.isEmpty()) {
             //TODO(nickbp): Only check this when ports are flagged with 'advertise: true' (the current default)
             throw new IllegalArgumentException(String.format(
                     "Duplicate port/endpoint names across different tasks: %s", portNameDuplicates));
+        }
+    }
+
+    private static <T> void collectKeys(Map<String, T> map, Set<String> seenNames, Set<String> duplicates) {
+        if (map == null) {
+            return;
+        }
+        for (String portName : map.keySet()) {
+            if (!seenNames.add(portName)) {
+                duplicates.add(portName);
+            }
         }
     }
 
