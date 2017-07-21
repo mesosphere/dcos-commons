@@ -14,9 +14,11 @@ REALM="LOCAL"
 LINUX_USER="core"
 KEYTAB_FILE="hdfs.keytab"
 
+
+# TODO check if there are other containers (eg Spark) running on the cluster (will make this fail)
 function add_kdc() {
     echo "Adding kdc marathon app..."
-    # dcos marathon app add kdc.json
+    dcos marathon app add kdc.json
 
     echo "Waiting for app to run..."
     while true; do
@@ -25,8 +27,8 @@ function add_kdc() {
             break
         fi
     done
-
-    sleep 10
+    # flaky here, sometimes the container ID is not present yet
+    sleep 20
 
     SLAVE_ID=$(dcos task --json | jq -r ".[0].slave_id")
     MASTER_PUBLIC_IP=$(curl --header "Authorization: token=$(dcos config show core.dcos_acs_token)" $(dcos config show core.dcos_url)/metadata | jq -r ".PUBLIC_IPV4")
@@ -130,10 +132,10 @@ EOF
     dcos package install --yes hdfs --options=/tmp/hdfs-kerberos-options.json
 }
 
-add_kdc
-add_kerberos_principals
-create_keytab_file
-upload_krb5_conf
-create_tls_artifacts
-create_secrets
+#add_kdc
+#add_kerberos_principals
+#create_keytab_file
+#upload_krb5_conf
+#create_tls_artifacts
+#create_secrets
 install_hdfs
