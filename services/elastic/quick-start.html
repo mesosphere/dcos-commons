@@ -333,12 +333,9 @@
   <li>
     <p>Retrieve client endpoint information by running the <code class="highlighter-rouge">endpoints</code> command:</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos elastic endpoints coordinator
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos elastic endpoints coordinator-http
  {
-     "vips": [
-         "coordinator.elastic.l4lb.thisdcos.directory:9200",
-         "coordinator.elastic.l4lb.thisdcos.directory:9300"
-     ],
+     "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200",
      "address": [
          "10.0.2.88:1026",
          "10.0.2.88:1027"
