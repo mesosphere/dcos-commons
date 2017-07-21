@@ -105,9 +105,17 @@ public class PersistentLaunchRecorder implements OperationRecorder {
 
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
         for (Protos.TaskInfo taskInfoToUpdate : targets) {
+            Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfoToUpdate);
+            if (source.hasExecutor()) {
+                Protos.ExecutorInfo updatedExecutorInfo = Protos.ExecutorInfo.newBuilder(taskInfoToUpdate.getExecutor())
+                        .clearResources()
+                        .addAllResources(source.getExecutor().getResourcesList())
+                        .build();
+                taskBuilder.setExecutor(updatedExecutorInfo);
+            }
+
             updatedTaskInfos.add(
-                    Protos.TaskInfo.newBuilder(taskInfoToUpdate)
-                            .clearResources()
+                    taskBuilder.clearResources()
                             .addAllResources(source.getResourcesList())
                             .build());
         }
