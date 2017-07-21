@@ -347,7 +347,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       * `prefix`
 
         A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pod with discovery names of `foo-0`, `foo-1`, and so on.
-        This value may be used to have pods whose hostname in Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
+        This value may be used to have pods whose hostnames are Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
         Note that to avoid name collisions, different pods are not allowed to share the same prefix value.
 
       * `visibility`

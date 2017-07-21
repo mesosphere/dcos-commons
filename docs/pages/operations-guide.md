@@ -280,7 +280,7 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Overlay networks
 
-The SDK allows `pods` to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
 
 ```yaml
 pods:

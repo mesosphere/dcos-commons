@@ -66,8 +66,8 @@ func (cmd *podHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseEle
 	return nil
 }
 
-// HandlePodsSection adds pod subcommands to the passed in kingpin.Application.
-func HandlePodsSection(app *kingpin.Application) {
+// HandlePodSection adds pod subcommands to the passed in kingpin.Application.
+func HandlePodSection(app *kingpin.Application) {
 	// pod[s] [status [name], info <name>, restart <name>, replace <name>]
 	cmd := &podHandler{}
 	pod := app.Command("pod", "View Pod/Task state")

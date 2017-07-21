@@ -52,7 +52,7 @@ def restart_broker_pods(service_name=SERVICE_NAME):
         assert restart_info['tasks'][0] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
 
 
-def replace_broker_pods(service_name=SERVICE_NAME):
+def replace_broker_pod(service_name=SERVICE_NAME):
     broker_0_id = sdk_tasks.get_task_ids(service_name, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME))
     service_cli('pod replace {}-0'.format(DEFAULT_POD_TYPE), service_name=service_name)
     sdk_tasks.check_tasks_updated(service_name, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_0_id)
