@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   master:
     count: 3
@@ -11,8 +12,10 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
@@ -77,6 +80,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
@@ -143,6 +147,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
@@ -209,6 +214,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}

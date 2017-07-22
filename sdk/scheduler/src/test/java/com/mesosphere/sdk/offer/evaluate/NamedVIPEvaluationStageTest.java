@@ -54,7 +54,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     public void testDiscoveryInfoWhenOnOverlay() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-        
+
         Integer containerPort = 80;  // non-offered port
 
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderOnOverlay(containerPort, Collections.emptyList());
@@ -163,20 +163,29 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     private NamedVIPEvaluationStage getEvaluationStageOnHost(int taskPort, Optional<String> resourceId) {
         List<String> networkNames = Collections.emptyList();
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networkNames), TestConstants.TASK_NAME,
-                resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networkNames),
+                TestConstants.TASK_NAME,
+                resourceId,
+                true);
     }
 
     private NamedVIPEvaluationStage getEvaluationStageOnOverlay(int taskPort, Optional<String> resourceId) {
         List<String> networkNames = new ArrayList<>(Arrays.asList(DcosConstants.DEFAULT_OVERLAY_NETWORK));
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networkNames), TestConstants.TASK_NAME,
-                resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networkNames),
+                TestConstants.TASK_NAME,
+                resourceId,
+                true);
     }
 
     private NamedVIPEvaluationStage getEvaluationStageOnBridgeNetwork(int taskPort, Optional<String> resourceId) {
         List<String> networkNames = new ArrayList<>(Arrays.asList(DcosConstants.DEFAULT_BRIDGE_NETWORK));
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networkNames), TestConstants.TASK_NAME,
-                resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networkNames),
+                TestConstants.TASK_NAME,
+                resourceId,
+                true);
     }
 
     private NamedVIPSpec getNamedVIPSpec(int taskPort, List<String> networkNames) {
@@ -234,7 +243,9 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos);
+                taskInfos,
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 
     private PodInfoBuilder getPodInfoBuilderOnOverlay(int taskPort, Collection<Protos.TaskInfo> taskInfos)
@@ -244,7 +255,9 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos);
+                taskInfos,
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 
     private PodInfoBuilder getPodInfoBuilderOnHost(int taskPort, Collection<Protos.TaskInfo> taskInfos)
@@ -254,7 +267,9 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos);
+                taskInfos,
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 
     private PodInfoBuilder getPodInfoBuilderOnBridgeNetwork(int taskPort, Collection<Protos.TaskInfo> taskInfos)
@@ -264,6 +279,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos);
+                taskInfos,
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 }

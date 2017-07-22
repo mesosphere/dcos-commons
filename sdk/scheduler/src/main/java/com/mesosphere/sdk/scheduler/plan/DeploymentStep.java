@@ -186,7 +186,7 @@ public class DeploymentStep extends AbstractStep {
             logger.info("TaskId: {} has status: {}", taskId, status);
             if (!status.equals(Status.COMPLETE)) {
                 // Keep and log current status
-                return status;
+                return getStatus();
             }
         }
 

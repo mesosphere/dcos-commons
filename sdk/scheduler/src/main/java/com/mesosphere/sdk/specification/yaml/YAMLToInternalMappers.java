@@ -62,13 +62,15 @@ public class YAMLToInternalMappers {
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
+        String user = SchedulerUtils.getUser(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
-                .webUrl(rawServiceSpec.getWebUrl());
+                .webUrl(rawServiceSpec.getWebUrl())
+                .user(user);
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();

@@ -5,6 +5,7 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "kafka-tgz": "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.2.1.tgz",
+      "kafka-jre-tar-gz": "{{jre-url}}",
       "kafka-scheduler-zip": "{{artifact-dir}}/kafka-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "kafka-statsd-jar": "http://downloads.mesosphere.com/kafka/assets/kafka-statsd-metrics2-0.5.3.jar",

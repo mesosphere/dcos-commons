@@ -11,6 +11,7 @@ import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Environment.Variable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,16 +30,22 @@ import java.util.stream.IntStream;
 public class PortEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
     private final boolean useHostPorts;
+    private final boolean useDefaultExecutor;
 
     protected PortSpec portSpec;
     private final String taskName;
     private Optional<String> resourceId;
 
-    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
+    public PortEvaluationStage(
+            PortSpec portSpec,
+            String taskName,
+            Optional<String> resourceId,
+            boolean useDefaultExecutor) {
         this.portSpec = portSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     protected long getPort() {
@@ -148,12 +155,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
 
             // Add port to the readiness check environment (if a readiness check is defined):
-            try {
-                taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
-                        .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), Long.toString(port))
-                        .toProto());
-            } catch (TaskException e) {
-                LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+            if (taskBuilder.hasCheck()) {
+                addReadinessCheckPort(taskBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
             }
 
             if (useHostPorts) { // we only use the resource if we're using the host ports
@@ -166,6 +169,36 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             if (useHostPorts) {
                 executorBuilder.addResources(resource);
             }
+
+        }
+    }
+
+    private void addReadinessCheckPort(Protos.TaskInfo.Builder taskBuilder, String name, String value) {
+        if (useDefaultExecutor) {
+            Protos.Environment.Builder envBuilder = taskBuilder.getCheckBuilder()
+                    .getCommandBuilder().getCommandBuilder().getEnvironmentBuilder();
+            boolean foundName = false;
+
+            for (Variable.Builder b : envBuilder.getVariablesBuilderList()) {
+                if (b.getName().equals(name)) {
+                    b.setValue(value);
+                    foundName = true;
+                }
+            }
+
+            if (!foundName) {
+                envBuilder.addVariablesBuilder().setName(name).setValue(value);
+            }
+
+            return;
+        }
+
+        try {
+            taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
+                    .setReadinessCheckEnvvar(getPortEnvironmentVariable(portSpec), value)
+                    .toProto());
+        } catch (TaskException e) {
+            LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
         }
     }
 
