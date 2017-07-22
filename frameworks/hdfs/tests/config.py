@@ -53,17 +53,9 @@ def write_lots_of_data_to_hdfs(data_node_host, filename):
 
 def run_hdfs_command(host, command):
     """
-    Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
+    Execute the command using the Docker client
     """
-    java_home = find_java_home(host)
-
-    # Find hdfs home directory by looking up the Data Node process.
-    # Hdfs directory is found in an arg to the java command.
-    hdfs_dir_cmd = """ps -ef | grep hdfs | grep DataNode \
-        | awk 'BEGIN {RS=" "}; /-Dhadoop.home.dir/' | sed s/-Dhadoop.home.dir=//"""
-    full_command = """cd $({}) &&
-        export JAVA_HOME={} &&
-        {}""".format(hdfs_dir_cmd, java_home, command)
+    full_command = 'docker run -e HDFS_SERVICE_NAME=hdfs mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(command)
 
     rc, output = shakedown.run_command_on_agent(host, full_command)
     return rc, output
