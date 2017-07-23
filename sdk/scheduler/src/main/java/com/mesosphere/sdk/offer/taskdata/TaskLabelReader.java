@@ -99,7 +99,8 @@ public class TaskLabelReader {
             // check not applicable: PASS
             return true;
         } else if (taskStatus.hasCheckStatus()) {
-            return taskStatus.getCheckStatus().getCommand().getExitCode() == 0;
+            return taskStatus.getCheckStatus().getCommand().hasExitCode() &&
+                    taskStatus.getCheckStatus().getCommand().getExitCode() == 0;
         }
 
         // Special case: the 'readiness check passed' bit is set in TaskStatus (by the executor),

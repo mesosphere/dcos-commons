@@ -779,10 +779,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
         statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+            LOGGER.info("Received status update for taskId={} state={} message='{}': {}",
                     status.getTaskId().getValue(),
                     status.getState().toString(),
-                    status.getMessage());
+                    status.getMessage(),
+                    TextFormat.shortDebugString(status));
 
             // Store status, then pass status to PlanManager => Plan => Steps
             try {
