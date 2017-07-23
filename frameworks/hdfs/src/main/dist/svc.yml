@@ -21,6 +21,7 @@ pods:
       node:
         goal: RUNNING
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
@@ -112,11 +113,12 @@ pods:
       node:
         goal: RUNNING
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
-          cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
+          cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
           interval: 5
           delay: 0
           timeout: 60
@@ -145,6 +147,7 @@ pods:
       format:
         goal: FINISHED
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
@@ -170,6 +173,7 @@ pods:
       bootstrap:
         goal: FINISHED
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
@@ -195,6 +199,7 @@ pods:
       zkfc:
         goal: RUNNING
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
@@ -220,6 +225,7 @@ pods:
       zkfc-format:
         goal: FINISHED
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
@@ -260,6 +266,7 @@ pods:
       node:
         goal: RUNNING
         cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
               ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
@@ -300,7 +307,7 @@ pods:
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
+          cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
           interval: 10
           delay: 120
           timeout: 60
