@@ -39,6 +39,7 @@ public class PodInfoBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
+    private static final String DCOS_SPACE_LABEL = "DCOS_SPACE";
     private Set<Long> assignedOverlayPorts = new HashSet<>();
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
@@ -326,7 +327,7 @@ public class PodInfoBuilder {
         Protos.ContainerInfo.Builder containerBuilder = getContainerInfo(podSpec, true, false).toBuilder();
 
         executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
-                .setKey("DCOS_SPACE")
+                .setKey(DCOS_SPACE_LABEL)
                 .setValue(getDcosSpaceLabel());
 
         if (useDefaultExecutor) {
@@ -728,7 +729,7 @@ public class PodInfoBuilder {
     }
 
     private static String getDcosSpaceLabel() {
-        String labelString = System.getenv("DCOS_SPACE");
+        String labelString = System.getenv(DCOS_SPACE_LABEL);
         if (labelString == null) {
             labelString = System.getenv("MARATHON_APP_ID");
         }
