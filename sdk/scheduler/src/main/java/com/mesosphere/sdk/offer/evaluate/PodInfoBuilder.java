@@ -540,6 +540,15 @@ public class PodInfoBuilder {
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
     }
 
+    /**
+     * Get the ContainerInfo for either an Executor or a Task. Since we support both default and custom executors at
+     * the moment, there is some conditional logic in here -- with the default executor, things like rlimits and images
+     * must be specified at the task level only, while secrets volumes must be specified at the executor level.
+     * @param podSpec The Spec for the task or executor that this container is being attached to
+     * @param addExtraParameters Add rlimits and docker image (if task), or secrets volumes if executor
+     * @param isTaskContainer Whether this container is being attached to a TaskInfo rather than ExecutorInfo
+     * @return the ContainerInfo to be attached
+     */
     private Protos.ContainerInfo getContainerInfo(
             PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
