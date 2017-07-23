@@ -50,7 +50,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap && python3 http_py3responder.py $PORT_DYNPORT hello from the overlay network!"
+        cmd: "./bootstrap && python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
   hello-host-vip:
     count: 1
