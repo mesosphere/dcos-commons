@@ -56,6 +56,7 @@ def test_node_replace_replaces_node():
 
 @pytest.mark.sanity
 @sdk_utils.dcos_1_9_or_higher # dcos task exec not supported < 1.9
+@pytest.mark.skip(reason="CASSANDRA-636")
 def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
     pod_host = get_pod_host(pod_to_replace)
