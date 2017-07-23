@@ -175,20 +175,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     private void addReadinessCheckPort(Protos.TaskInfo.Builder taskBuilder, String name, String value) {
         if (useDefaultExecutor) {
-            Protos.Environment.Builder envBuilder = taskBuilder.getCheckBuilder()
-                    .getCommandBuilder().getCommandBuilder().getEnvironmentBuilder();
-            boolean foundName = false;
-
-            for (Variable.Builder b : envBuilder.getVariablesBuilderList()) {
-                if (b.getName().equals(name)) {
-                    b.setValue(value);
-                    foundName = true;
-                }
-            }
-
-            if (!foundName) {
-                envBuilder.addVariablesBuilder().setName(name).setValue(value);
-            }
+            Protos.CommandInfo.Builder commandBuilder = taskBuilder
+                    .getCheckBuilder().getCommandBuilder().getCommandBuilder();
+            commandBuilder.setEnvironment(EnvUtils.withEnvVar(commandBuilder.getEnvironment(), name, value));
 
             return;
         }
