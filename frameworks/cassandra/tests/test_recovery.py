@@ -47,12 +47,6 @@ def test_node_replace_replaces_node():
     cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
-    # get an exact task id to run 'task exec' against... just in case there's multiple cassandras
-    # Recovery will have completed after the line above so the task id will be stable.
-    pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
-    task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
-    wait_for_all_up_and_normal(pod_host, task_id)
-
 
 @pytest.mark.sanity
 @sdk_utils.dcos_1_9_or_higher # dcos task exec not supported < 1.9
@@ -64,12 +58,6 @@ def test_node_replace_replaces_seed_node():
     cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
-
-    # Get an exact task id to run 'task exec' against... just in case there's multiple cassandras
-    # Recovery will have completed after the line above so the task id will be stable.
-    pod_statuses = json.loads(cmd.run_cli('cassandra pods status node-0'))
-    task_id = [task['id'] for task in pod_statuses if task['name'] == 'node-0-server'][0]
-    wait_for_all_up_and_normal(pod_host, task_id)
 
 
 @pytest.mark.sanity
