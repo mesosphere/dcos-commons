@@ -116,27 +116,3 @@ def get_pod_host(pod_name):
             return labels[i]['value']
     return None
 
-def wait_for_all_up_and_normal(pod_host_to_replace, task_exec_task_id):
-    # In DC/OS 1.9, task exec does not run in $MESOS_SANDBOX AND does not have access to the envvar.
-    if shakedown.dcos_version_less_than('1.10'):
-        mesos_sandbox = '/mnt/mesos/sandbox'
-    else:
-        mesos_sandbox = '$MESOS_SANDBOX'
-
-    # wait for 'nodetool status' to reflect the replacement:
-    def fun():
-        stdout = cmd.run_cli(
-            'task exec {} /bin/bash -c "cd {} && JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool -p 7199 status"'.format(task_exec_task_id, mesos_sandbox))
-        up_ips = []
-        for line in stdout.split('\n'):
-            words = list(filter(None, line.split()))
-            if len(words) < 2:
-                continue
-            if not 'UN' == words[0]:
-                continue
-            up_ips.append(words[1])
-        sdk_utils.out('UN nodes (want {} entries without {}): {}'.format(DEFAULT_TASK_COUNT, pod_host_to_replace, up_ips))
-        return len(up_ips) == DEFAULT_TASK_COUNT and not pod_host_to_replace in up_ips
-    # observed to take 2-3mins in practice:
-    shakedown.wait_for(lambda: fun(), timeout_seconds=DEFAULT_CASSANDRA_TIMEOUT, sleep_seconds=15, noisy=True)
-
