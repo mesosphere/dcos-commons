@@ -779,7 +779,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
         statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}': {}",
+            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                     status.getTaskId().getValue(),
                     status.getState().toString(),
                     status.getMessage(),
