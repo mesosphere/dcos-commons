@@ -68,7 +68,6 @@ def test_service_overlay_health():
 @pytest.mark.overlay
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
-@pytest.mark.skip(reason="CASSANDRA-635")
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
