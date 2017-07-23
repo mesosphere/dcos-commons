@@ -29,6 +29,7 @@ def configure_package(configure_universe):
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.skip(reason="INFINITY-2024")
 def test_kill_hello_node():
     hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0')
     sdk_tasks.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
