@@ -328,9 +328,11 @@ def test_secrets_dcos_space():
     create_secrets("{}/somePath/".format(PACKAGE_NAME))
 
     try:
-        sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=options_dcos_space_test)
-
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(
+            PACKAGE_NAME,
+            NUM_HELLO + NUM_WORLD,
+            additional_options=options_dcos_space_test,
+            timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
 
         assert False, "Should have failed to install"
 
