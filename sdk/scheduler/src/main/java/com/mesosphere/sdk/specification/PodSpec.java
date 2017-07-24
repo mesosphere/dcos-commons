@@ -34,9 +34,6 @@ public interface PodSpec {
     @JsonProperty("uris")
     Collection<URI> getUris();
 
-    @JsonProperty("user")
-    Optional<String> getUser();
-
     @JsonProperty("task-specs")
     List<TaskSpec> getTasks();
 

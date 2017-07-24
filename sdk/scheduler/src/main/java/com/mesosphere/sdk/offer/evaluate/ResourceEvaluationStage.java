@@ -43,7 +43,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         OfferEvaluationUtils.setProtos(
                 podInfoBuilder,
                 ResourceBuilder.fromSpec(resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
-                Optional.of(taskName));
+                Optional.ofNullable(taskName));
 
         return evaluationOutcome;
     }

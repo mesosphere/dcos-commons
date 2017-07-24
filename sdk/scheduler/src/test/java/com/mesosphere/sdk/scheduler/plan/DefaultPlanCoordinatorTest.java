@@ -55,7 +55,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -66,7 +65,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -98,6 +96,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .pods(Arrays.asList(podA))
                 .build();
         stateStore = new DefaultStateStore(new MemPersister());
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
@@ -108,7 +107,8 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         stateStore,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        true),
                 stateStore,
                 taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
@@ -122,12 +122,12 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
         final ArrayList<Protos.Offer> offers = new ArrayList<>();
-        offers.addAll(OfferTestUtils.getOffers(
+        offers.addAll(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
                         ResourceTestUtils.getUnreservedDisk(disk))));
-        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getOffers(
+        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
@@ -168,7 +168,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
-                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -179,7 +178,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
-                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -190,7 +188,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 "AA",
                 TASK_A_CMD,
-                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,
@@ -201,7 +198,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.RESOURCE_SET_ID + "-A",
                 TASK_A_NAME,
                 TASK_A_CMD,
-                TestConstants.SERVICE_USER,
                 TASK_A_COUNT,
                 TASK_A_CPU,
                 TASK_A_MEM,

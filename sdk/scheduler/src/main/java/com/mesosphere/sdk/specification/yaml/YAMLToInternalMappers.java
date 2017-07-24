@@ -62,13 +62,15 @@ public class YAMLToInternalMappers {
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
+        String user = SchedulerUtils.getUser(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
-                .webUrl(rawServiceSpec.getWebUrl());
+                .webUrl(rawServiceSpec.getWebUrl())
+                .user(user);
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
@@ -180,7 +182,6 @@ public class YAMLToInternalMappers {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
-                .user(rawPod.getUser())
                 .preReservedRole(rawPod.getPreReservedRole());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
