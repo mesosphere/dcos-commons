@@ -132,7 +132,7 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 
 func doUpdate(optionsFile, packageVersion string) {
 	// TODO: figure out KingPin's error handling
-	request := updateRequest{AppID: config.ServiceName, Replace: true}
+	request := updateRequest{AppID: config.ServiceName, Replace: false}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
 		return
