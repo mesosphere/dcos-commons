@@ -140,21 +140,41 @@ class UniversePackageBuilder(object):
         package_json['packagingVersion'] = '{}.0'.format(self._cosmos_packaging_version)
 
         command_json = package_files.get(_command_json_filename)
-        if command_json is not None:
-            package_json['command'] = json.loads(command_json, object_pairs_hook=collections.OrderedDict)
+        try:
+            if command_json is not None:
+                package_json['command'] = json.loads(command_json, object_pairs_hook=collections.OrderedDict)
+        except Exception :
+            print("Command json failed")
+            print(command_json)
+            exit(1)
 
         config_json = package_files.get(_config_json_filename)
-        if config_json is not None:
-            package_json['config'] = json.loads(config_json, object_pairs_hook=collections.OrderedDict)
+        try:
+            if config_json is not None:
+                package_json['config'] = json.loads(config_json, object_pairs_hook=collections.OrderedDict)
+        except Exception as E:
+            print("Config json failed, {}".format(E))
+            print(config_json)
+            exit(1)
 
         marathon_json = package_files.get(_marathon_json_filename)
-        if marathon_json is not None:
-            package_json['marathon'] = {
-                'v2AppMustacheTemplate': base64.standard_b64encode(bytearray(marathon_json, 'utf-8')).decode()}
+        try:
+            if marathon_json is not None:
+                package_json['marathon'] = {
+                    'v2AppMustacheTemplate': base64.standard_b64encode(bytearray(marathon_json, 'utf-8')).decode()}
+        except:
+            print("Marathon json failed")
+            print(marathon_json)
+            exit(1)
 
         resource_json = package_files.get(_resource_json_filename)
-        if resource_json is not None:
-            package_json['resource'] = json.loads(resource_json, object_pairs_hook=collections.OrderedDict)
+        try:
+            if resource_json is not None:
+                package_json['resource'] = json.loads(resource_json, object_pairs_hook=collections.OrderedDict)
+        except:
+            print("Resource json failed")
+            print(resource_json)
+            exit(1)
 
         return {'packages': [package_json]}
 

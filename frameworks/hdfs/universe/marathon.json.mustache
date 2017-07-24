@@ -67,10 +67,19 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.tls.enabled}}
-    "TLS_ENABLED": "{{service.tls.enabled}}",
-    "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
-    {{/service.tls.enabled}}
+    {{#hdfs.security.enabled}}
+    "SECURITY_ENABLED": "{{hdfs.security.enabled}}",
+    "TASKCFG_ALL_SECURITY_ENABLED": "{{hdfs.security.enabled}}",
+
+    "TLS_TRUST_STORE_SECRET_PATH": "{{hdfs.security.tls.trust_store_secret_path}}",
+    "TLS_KEY_STORE_SECRET_PATH": "{{hdfs.security.tls.key_store_secret_path}}",
+
+    "KERBEROS_KEYTAB_SECRET_PATH": "{{hdfs.security.kerberos.keytab_secret_path}}",
+    "KRB5_CONF_URI": "{{hdfs.security.kerberos.krb5_conf_uri}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{hdfs.security.kerberos.primary}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{hdfs.security.kerberos.primary_http}}",
+    "TASKCFG_ALL_KERBEROS_REALM": "{{hdfs.security.kerberos.realm}}",
+    {{/hdfs.security.enabled}}
 
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
@@ -78,14 +87,6 @@
     {{/journal_node.enable_readiness_check}}
 
 
-    {{#service.kerberos.enabled}}
-    "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
-    "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
-    "TASKCFG_ALL_SECURE_MODE": "{{service.kerberos.enabled}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
-    "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
-    {{/service.kerberos.enabled}}
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
@@ -127,9 +128,9 @@
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
-    {{#service.kerberos.enabled}}
-    "{{service.kerberos.krb5_conf_uri}}",
-    {{/service.kerberos.enabled}}
+    {{#hdfs.security.enabled}}
+    "{{hdfs.security.kerberos.krb5_conf_uri}}",
+    {{/hdfs.security.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{
