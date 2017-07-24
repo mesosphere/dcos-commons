@@ -52,10 +52,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         Resource resource;
         final MesosResource mesosResource;
 
-        boolean isRunningDefaultExecutor = useDefaultExecutor &&
-                podInfoBuilder.getExecutorBuilder().isPresent() &&
+        boolean isRunningExecutor = podInfoBuilder.getExecutorBuilder().isPresent() &&
                 isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer());
-        if (taskName == null && isRunningDefaultExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
+        if (taskName == null && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo as well as whatever task is being launched.
             podInfoBuilder.setExecutorVolume(volumeSpec);

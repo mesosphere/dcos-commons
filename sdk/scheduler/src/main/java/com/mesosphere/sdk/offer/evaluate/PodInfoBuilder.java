@@ -180,13 +180,15 @@ public class PodInfoBuilder {
 
     public void setExecutorVolume(VolumeSpec volumeSpec) {
         // Volumes on the executor must be declared in each TaskInfo.ContainerInfo to be shared among them.
-        for (Protos.TaskInfo.Builder t : getTaskBuilders()) {
-            Protos.ContainerInfo.Builder builder = t.getContainerBuilder();
+        if (useDefaultExecutor) {
+            for (Protos.TaskInfo.Builder t : getTaskBuilders()) {
+                Protos.ContainerInfo.Builder builder = t.getContainerBuilder();
 
-            if (!builder.hasType()) {
-                builder.setType(Protos.ContainerInfo.Type.MESOS);
+                if (!builder.hasType()) {
+                    builder.setType(Protos.ContainerInfo.Type.MESOS);
+                }
+                builder.addVolumes(getVolume(volumeSpec));
             }
-            builder.addVolumes(getVolume(volumeSpec));
         }
     }
 
