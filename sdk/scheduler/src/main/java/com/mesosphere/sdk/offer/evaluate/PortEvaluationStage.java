@@ -11,7 +11,6 @@ import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Environment.Variable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
