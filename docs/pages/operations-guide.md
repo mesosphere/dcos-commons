@@ -346,7 +346,8 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
+For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this secret, because they are under `secret-app`. 
+On the other hand, the secret with path `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ this secret's namespace. `secret-app/instance1/Secret_Path2` can be accessed by any application with ID under `secret-app/instance1`, for example `secret-app/instance1/application2` or `secret-app/instance1/someDir/application3`.
 
 ## Placement Constraints
 
