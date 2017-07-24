@@ -346,9 +346,9 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID under `/secret-app/`. Applications with IDs `/secret-app/app1` and `/secret-app/instance2/app2` all have access to this secret, because they are under `/secret-app/`.
+For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with an ID under `/secret-app/`. Applications with IDs `/secret-app/app1` and `/secret-app/instance2/app2` all have access to this secret, because they are under `/secret-app/`.
  
-On the other hand, the secret with path `secret-app/instance1/Secret_Path2` can not be accessed by an service with ID `/secret-app` because it is not _under_ this secret's namespace which is `/secret-app/insance1/`. `secret-app/instance1/Secret_Path2` can be accessed by any service with ID under `/secret-app/instance1/`, for example `/secret-app/instance1/app3` or `/secret-app/instance1/someDir/app4`.
+On the other hand, the secret with path `secret-app/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-app` because it is not _under_ this secret's namespace, which is `/secret-app/insance1/`. `secret-app/instance1/Secret_Path2` can be accessed by any service with ID under `/secret-app/instance1/`, for example `/secret-app/instance1/app3` or `/secret-app/instance1/someDir/app4`.
 
 
 | Secret                               | Service                             | Can service access secret? |
