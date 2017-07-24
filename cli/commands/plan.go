@@ -12,7 +12,7 @@ import (
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type planHandler struct {
@@ -116,7 +116,7 @@ func forceComplete(planName, phase, step string) {
 	}
 }
 
-func (cmd *planHandler) handleForceComplete(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleForceComplete(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	forceComplete(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
@@ -148,13 +148,13 @@ func restart(planName, phase, step string) {
 	}
 }
 
-func (cmd *planHandler) handleForceRestart(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleForceRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	restart(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
-func (cmd *planHandler) handleList(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	responseBytes, err := client.HTTPServiceGet("v1/plans")
 	if err != nil {
@@ -179,7 +179,7 @@ func pause(planName, phase string) error {
 	return nil
 }
 
-func (cmd *planHandler) handlePause(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handlePause(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	err := pause(cmd.getPlanName(), cmd.Phase)
 	if err != nil {
@@ -203,7 +203,7 @@ func resume(planName, phase string) error {
 	return nil
 }
 
-func (cmd *planHandler) handleResume(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleResume(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	err := resume(cmd.getPlanName(), cmd.Phase)
 	if err != nil {
@@ -212,7 +212,7 @@ func (cmd *planHandler) handleResume(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cmd *planHandler) handleStart(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	payload := "{}"
 	if len(cmd.Parameters) > 0 {
@@ -244,13 +244,13 @@ func printStatus(planName string, rawJSON bool) {
 	}
 }
 
-func (cmd *planHandler) handleStatus(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	printStatus(cmd.getPlanName(), cmd.RawJSON)
 	return nil
 }
 
-func (cmd *planHandler) handleStop(c *kingpin.ParseContext) error {
+func (cmd *planHandler) handleStop(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	client.SetCustomResponseCheck(checkPlansResponse)
 	responseBytes, err := client.HTTPServicePost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))

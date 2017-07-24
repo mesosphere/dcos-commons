@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type stateHandler struct {
 	PropertyName string
 }
 
-func (cmd *stateHandler) handleFrameworkID(c *kingpin.ParseContext) error {
+func (cmd *stateHandler) handleFrameworkID(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet("v1/state/frameworkId")
 	if err != nil {
@@ -20,7 +20,7 @@ func (cmd *stateHandler) handleFrameworkID(c *kingpin.ParseContext) error {
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *stateHandler) handleProperties(c *kingpin.ParseContext) error {
+func (cmd *stateHandler) handleProperties(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet("v1/state/properties")
 	if err != nil {
@@ -30,7 +30,7 @@ func (cmd *stateHandler) handleProperties(c *kingpin.ParseContext) error {
 
 	return nil
 }
-func (cmd *stateHandler) handleProperty(c *kingpin.ParseContext) error {
+func (cmd *stateHandler) handleProperty(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName))
 	if err != nil {
@@ -39,7 +39,7 @@ func (cmd *stateHandler) handleProperty(c *kingpin.ParseContext) error {
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *stateHandler) handleRefreshCache(c *kingpin.ParseContext) error {
+func (cmd *stateHandler) handleRefreshCache(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServicePut("v1/state/refresh")
 	if err != nil {
