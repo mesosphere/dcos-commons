@@ -52,8 +52,18 @@ if [ -z "$CLUSTER_URL" ]; then
 fi
 
 if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
-    exit 1
+    CREDENTIALS_FILE="$HOME/.aws/credentials"
+    if  [ -e "$CREDENTIALS_FILE" ]
+    then
+        echo "Checking $CREDENTIALS_FILE"
+        SED_ARGS='s/^.*=\s*//g'
+        AWS_ACCESS_KEY_ID=$( grep -oE "^aws_access_key_id\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+        AWS_SECRET_ACCESS_KEY=$( grep -oE "^aws_secret_access_key\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+    fi
+    if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
+        exit 1
+    fi
 fi
 
 security="permissive"
