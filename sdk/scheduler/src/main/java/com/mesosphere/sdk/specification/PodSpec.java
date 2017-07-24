@@ -37,6 +37,8 @@ public interface PodSpec {
     @JsonProperty("user")
     Optional<String> getUser();
 
+    void setUser(String user);
+
     @JsonProperty("task-specs")
     List<TaskSpec> getTasks();
 
