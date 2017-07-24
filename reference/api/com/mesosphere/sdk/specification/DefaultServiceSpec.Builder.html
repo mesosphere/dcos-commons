@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -178,12 +178,19 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#user-java.lang.String-">user</a></span>(java.lang.String&nbsp;user)</code>
+<div class="block">Sets the <code>user</code> and returns a reference to this Builder so that the methods can be chained
+ together.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#webUrl-java.lang.String-">webUrl</a></span>(java.lang.String&nbsp;webUrl)</code>
 <div class="block">Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
  can be chained together.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#zookeeperConnection-java.lang.String-">zookeeperConnection</a></span>(java.lang.String&nbsp;zookeeperConnection)</code>
 <div class="block">Sets the <code>zookeeperConnection</code> and returns a reference to this Builder so that the methods can be
@@ -273,6 +280,23 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>webUrl</code> - the web URL to set</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a reference to this Builder</dd>
+</dl>
+</li>
+</ul>
+<a name="user-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>user</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a>&nbsp;user(java.lang.String&nbsp;user)</pre>
+<div class="block">Sets the <code>user</code> and returns a reference to this Builder so that the methods can be chained
+ together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>user</code> - the <code>principal</code> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
 </dl>

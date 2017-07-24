@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -133,9 +133,11 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Offer-TaskInfo-boolean-">LaunchOfferRecommendation</a></span>(Offer&nbsp;offer,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Offer-TaskInfo-Protos.ExecutorInfo-boolean-boolean-">LaunchOfferRecommendation</a></span>(Offer&nbsp;offer,
                          TaskInfo&nbsp;originalTaskInfo,
-                         boolean&nbsp;shouldLaunch)</code>&nbsp;</td>
+                         Protos.ExecutorInfo&nbsp;executorInfo,
+                         boolean&nbsp;shouldLaunch,
+                         boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -153,30 +155,40 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>ExecutorInfo</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getExecutorInfo--">getExecutorInfo</a></span>()</code>
+<div class="block">Returns the <code>TaskInfo</code> to be launched.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>Offer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getOffer--">getOffer</a></span>()</code>
 <div class="block">Returns the Offer upon which the <code>Operation</code> returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--"><code>OfferRecommendation.getOperation()</code></a>
  should be performed.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>Operation</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getOperation--">getOperation</a></span>()</code>
 <div class="block">Returns the operation which should be performed in regards to the specified <code>Offer</code>
  returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--"><code>OfferRecommendation.getOffer()</code></a>.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>TaskInfo</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getStoreableTaskInfo--">getStoreableTaskInfo</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>TaskInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getTaskInfo--">getTaskInfo</a></span>()</code>
-<div class="block">Returns the original, unpacked <code>TaskInfo</code> to be launched.</div>
+<div class="block">Returns the <code>TaskInfo</code> to be launched.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#shouldLaunch--">shouldLaunch</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -202,7 +214,7 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="LaunchOfferRecommendation-Offer-TaskInfo-boolean-">
+<a name="LaunchOfferRecommendation-Offer-TaskInfo-Protos.ExecutorInfo-boolean-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -210,7 +222,9 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <h4>LaunchOfferRecommendation</h4>
 <pre>public&nbsp;LaunchOfferRecommendation(Offer&nbsp;offer,
                                  TaskInfo&nbsp;originalTaskInfo,
-                                 boolean&nbsp;shouldLaunch)</pre>
+                                 Protos.ExecutorInfo&nbsp;executorInfo,
+                                 boolean&nbsp;shouldLaunch,
+                                 boolean&nbsp;useDefaultExecutor)</pre>
 </li>
 </ul>
 </li>
@@ -269,8 +283,26 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <li class="blockList">
 <h4>getTaskInfo</h4>
 <pre>public&nbsp;TaskInfo&nbsp;getTaskInfo()</pre>
-<div class="block">Returns the original, unpacked <code>TaskInfo</code> to be launched. This varies from the <code>TaskInfo</code> stored
- within the <code>Operation</code>, which is packed.</div>
+<div class="block">Returns the <code>TaskInfo</code> to be launched.</div>
+</li>
+</ul>
+<a name="getStoreableTaskInfo--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getStoreableTaskInfo</h4>
+<pre>public&nbsp;TaskInfo&nbsp;getStoreableTaskInfo()</pre>
+</li>
+</ul>
+<a name="getExecutorInfo--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getExecutorInfo</h4>
+<pre>public&nbsp;ExecutorInfo&nbsp;getExecutorInfo()</pre>
+<div class="block">Returns the <code>TaskInfo</code> to be launched.</div>
 </li>
 </ul>
 <a name="toString--">

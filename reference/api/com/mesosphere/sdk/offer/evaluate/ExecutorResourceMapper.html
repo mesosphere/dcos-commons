@@ -129,8 +129,10 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html#ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-Protos.ExecutorInfo-">ExecutorResourceMapper</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec,
-                      Protos.ExecutorInfo&nbsp;executorInfo)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html#ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-java.util.Collection-Protos.ExecutorInfo-boolean-">ExecutorResourceMapper</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec,
+                      java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&gt;&nbsp;resourceSpecs,
+                      Protos.ExecutorInfo&nbsp;executorInfo,
+                      boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -177,14 +179,16 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-Protos.ExecutorInfo-">
+<a name="ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-java.util.Collection-Protos.ExecutorInfo-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ExecutorResourceMapper</h4>
 <pre>public&nbsp;ExecutorResourceMapper(<a href="../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec,
-                              Protos.ExecutorInfo&nbsp;executorInfo)</pre>
+                              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&gt;&nbsp;resourceSpecs,
+                              Protos.ExecutorInfo&nbsp;executorInfo,
+                              boolean&nbsp;useDefaultExecutor)</pre>
 </li>
 </ul>
 </li>
