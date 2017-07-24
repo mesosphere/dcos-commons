@@ -26,9 +26,11 @@ public class SchedulerApiServerTest {
     @Test
     public void testApiServerReady() throws Exception {
         SchedulerApiServer schedulerApiServer = new SchedulerApiServer(12345, Collections.emptyList(),
-                Duration.ofMillis(TIMEOUT_MILLIS));
+                Duration.ofSeconds(30));
         new Thread(schedulerApiServer).start();
-        Thread.sleep(TIMEOUT_MILLIS * 10);
+        while (!schedulerApiServer.ready()) {
+            Thread.sleep(TIMEOUT_MILLIS);
+        }
         Assert.assertTrue(schedulerApiServer.ready());
     }
 
