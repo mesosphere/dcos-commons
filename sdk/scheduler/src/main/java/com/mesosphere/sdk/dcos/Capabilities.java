@@ -32,8 +32,13 @@ public class Capabilities {
     }
 
     @VisibleForTesting
-    Capabilities(DcosCluster dcosCluster) {
+    public Capabilities(DcosCluster dcosCluster) {
         this.dcosCluster = dcosCluster;
+    }
+
+    public boolean supportsDefaultExecutor() {
+        // Use of the default executor is supported by DC/OS 1.10 upwards.
+        return hasOrExceedsVersion(1, 10);
     }
 
     public boolean supportsNamedVips() {

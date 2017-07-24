@@ -2,6 +2,7 @@ import pytest
 import json
 import os
 
+from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
 
 import sdk_hosts
@@ -70,6 +71,14 @@ def test_overlay_network():
     assert(len(deployment_plan["phases"][2]["steps"]) == 1)
     assert(len(deployment_plan["phases"][3]["steps"]) == 1)
     assert(len(deployment_plan["phases"][4]["steps"]) == 4)
+
+    # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
+    # we wait for them to redeploy, but if they don't fail we still want to proceed.
+    try:
+        sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
+        sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
+    except TimeoutExpired:
+        pass
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
