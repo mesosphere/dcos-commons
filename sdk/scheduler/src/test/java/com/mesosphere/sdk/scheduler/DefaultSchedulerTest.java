@@ -104,7 +104,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -115,7 +114,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -126,7 +124,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             UPDATED_TASK_A_CPU,
             TASK_A_MEM,
@@ -137,7 +134,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             UPDATED_TASK_B_MEM,
@@ -148,7 +144,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT - 1,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -159,7 +154,6 @@ public class DefaultSchedulerTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT + 1,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -172,6 +166,7 @@ public class DefaultSchedulerTest {
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("badhost-shouldbeignored:2181")
                 .pods(Arrays.asList(pods))
+                .user(TestConstants.SERVICE_USER)
                 .build();
     }
 

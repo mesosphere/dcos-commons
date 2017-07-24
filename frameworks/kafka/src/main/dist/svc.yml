@@ -6,7 +6,6 @@ pods:
   kafka:
     count: {{BROKER_COUNT}}
     placement: {{PLACEMENT_CONSTRAINTS}}
-    user: {{FRAMEWORK_USER}}
     uris:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}

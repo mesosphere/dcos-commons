@@ -5,7 +5,6 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    user: {{SERVICE_USER}}
     tasks:
       server:
         goal: RUNNING
@@ -24,7 +23,6 @@ pods:
 
   world:
     count: {{WORLD_COUNT}}
-    user: {{SERVICE_USER}}
     resource-sets:
       world-resource:
         cpus: {{WORLD_CPUS}}

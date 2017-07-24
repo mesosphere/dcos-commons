@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
 import java.util.*;
@@ -15,7 +14,7 @@ import java.util.*;
  */
 public class UserCannotChange implements ConfigValidator<ServiceSpec> {
     private static final String USER_CHANGED_ERROR_MESSAGE =
-            "User for old pod type %s must remain the same across deployments.";
+            "User for service must remain the same across deployments.";
 
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
@@ -23,34 +22,19 @@ public class UserCannotChange implements ConfigValidator<ServiceSpec> {
             return Collections.emptyList();
         }
 
-        // We can't rely on the order of pods to test new pods against olds ones.
-        Map<String, PodSpec> oldPods = new HashMap<>();
-        for (PodSpec oldPod : oldConfig.get().getPods()) {
-            oldPods.put(oldPod.getType(), oldPod);
-        }
-
-        return checkForUserEqualityAmongPods(oldPods, newConfig.getPods());
-    }
-
-    private List<ConfigValidationError> checkForUserEqualityAmongPods(
-            Map<String, PodSpec> oldPods, List<PodSpec> newPods) {
         List<ConfigValidationError> errors = new ArrayList<>();
-        PodSpec oldPod;
-        for (PodSpec newPod : newPods) {
-            // If a new pod type is introduced, we don't validate how its user is set as we're only concerned
-            // about not updating the user for existing pods in this validation.
-            if (oldPods.containsKey(newPod.getType())) {
-                oldPod = oldPods.get(newPod.getType());
-                if (!oldPod.getUser().equals(newPod.getUser())) {
-                    errors.add(ConfigValidationError.transitionError(
-                            "user",
-                            oldPod.getUser().isPresent() ? oldPod.getUser().get() : null,
-                            newPod.getUser().isPresent() ? newPod.getUser().get() : null,
-                            String.format(USER_CHANGED_ERROR_MESSAGE, oldPod.getType())
-                    ));
-                }
-            }
+
+        String oldUser = oldConfig.get().getUser();
+        String newUser = newConfig.getUser();
+        if (!oldUser.equals(newUser)) {
+            errors.add(ConfigValidationError.transitionError(
+                    "user",
+                    oldUser,
+                    newUser,
+                    USER_CHANGED_ERROR_MESSAGE
+            ));
         }
+
         return errors;
     }
 }

@@ -47,7 +47,6 @@ public class ConfigurationUpdaterTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             TASK_A_CPU,
             TASK_A_MEM,
@@ -58,7 +57,6 @@ public class ConfigurationUpdaterTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -69,7 +67,6 @@ public class ConfigurationUpdaterTest {
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
-            TestConstants.SERVICE_USER,
             TASK_A_COUNT,
             UPDATED_TASK_A_CPU,
             TASK_A_MEM,
@@ -80,7 +77,6 @@ public class ConfigurationUpdaterTest {
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
-            TestConstants.SERVICE_USER,
             TASK_B_COUNT - 1,
             TASK_B_CPU,
             TASK_B_MEM,
@@ -93,6 +89,7 @@ public class ConfigurationUpdaterTest {
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA, podB))
+                .user(TestConstants.SERVICE_USER)
                 .build();
     }
 

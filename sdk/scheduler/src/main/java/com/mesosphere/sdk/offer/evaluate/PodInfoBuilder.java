@@ -290,10 +290,6 @@ public class PodInfoBuilder {
                                 .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
                     }
                 }
-
-                if (podSpec.getUser().isPresent()) {
-                    commandBuilder.setUser(podSpec.getUser().get());
-                }
             }
         }
 
@@ -345,10 +341,6 @@ public class PodInfoBuilder {
                     // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
                     "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
                     "$MESOS_SANDBOX/executor/bin/executor");
-
-            if (podSpec.getUser().isPresent()) {
-                executorCommandBuilder.setUser(podSpec.getUser().get());
-            }
 
             // Required URIs from the scheduler environment:
             executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());

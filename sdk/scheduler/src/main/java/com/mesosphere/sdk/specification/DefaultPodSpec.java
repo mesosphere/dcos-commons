@@ -25,7 +25,6 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Size(min = 1)
     private final String type;
-    private final String user;
     @NotNull
     @Min(0)
     private final Integer count;
@@ -53,7 +52,6 @@ public class DefaultPodSpec implements PodSpec {
     @JsonCreator
     public DefaultPodSpec(
             @JsonProperty("type") String type,
-            @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
             @JsonProperty("image") String image,
             @JsonProperty("networks") Collection<NetworkSpec> networks,
@@ -67,7 +65,6 @@ public class DefaultPodSpec implements PodSpec {
         this(
                 new Builder(Optional.empty()) // Assume that Executor URI is already present
                         .type(type)
-                        .user(user)
                         .count(count)
                         .image(image)
                         .networks(networks)
@@ -91,7 +88,6 @@ public class DefaultPodSpec implements PodSpec {
         this.tasks = builder.tasks;
         this.type = builder.type;
         this.uris = builder.uris;
-        this.user = builder.user;
         this.volumes = builder.volumes;
         ValidationUtils.validate(this);
     }
@@ -112,7 +108,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = copy.getTasks();
         builder.type = copy.getType();
         builder.uris = copy.getUris();
-        builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         return builder;
     }
@@ -120,11 +115,6 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public String getType() {
         return type;
-    }
-
-    @Override
-    public Optional<String> getUser() {
-        return Optional.ofNullable(user);
     }
 
     @Override
@@ -199,7 +189,6 @@ public class DefaultPodSpec implements PodSpec {
         private final Optional<String> executorUri;
 
         private String type;
-        private String user;
         private Integer count;
         private String image;
         private PlacementRule placementRule;
@@ -223,17 +212,6 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder type(String type) {
             this.type = type;
-            return this;
-        }
-
-        /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param user the {@code user} to set
-         * @return a reference to this Builder
-         */
-        public Builder user(String user) {
-            this.user = user;
             return this;
         }
 
