@@ -2,6 +2,7 @@ import pytest
 import json
 import os
 
+from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
 
 import sdk_hosts
@@ -76,7 +77,7 @@ def test_overlay_network():
     try:
         sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
         sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
-    except AssertionError:
+    except TimeoutExpired:
         pass
 
     # test that the tasks are all up, which tests the overlay DNS
