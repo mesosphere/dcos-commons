@@ -8,7 +8,7 @@ import (
 
 	"github.com/mesosphere/dcos-commons/cli"
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 func main() {
@@ -26,7 +26,7 @@ type BrokerHandler struct {
 	broker string
 }
 
-func (cmd *BrokerHandler) runList(c *kingpin.ParseContext) error {
+func (cmd *BrokerHandler) runList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/brokers")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -35,7 +35,7 @@ func (cmd *BrokerHandler) runList(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *BrokerHandler) runView(c *kingpin.ParseContext) error {
+func (cmd *BrokerHandler) runView(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/brokers/%s", cmd.broker))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -68,7 +68,7 @@ type TopicHandler struct {
 	produceMessageCount int
 }
 
-func (cmd *TopicHandler) runList(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -77,7 +77,7 @@ func (cmd *TopicHandler) runList(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runDescribe(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runDescribe(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/topics/%s", cmd.topic))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -86,7 +86,7 @@ func (cmd *TopicHandler) runDescribe(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runCreate(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("partitions", strconv.FormatInt(int64(cmd.createPartitions), 10))
 	query.Set("replication", strconv.FormatInt(int64(cmd.createReplication), 10))
@@ -98,7 +98,7 @@ func (cmd *TopicHandler) runCreate(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runUnavailablePartitions(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runUnavailablePartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics/unavailable_partitions")
 	if err != nil {
 		client.PrintMessage(err.Error())
@@ -107,7 +107,7 @@ func (cmd *TopicHandler) runUnavailablePartitions(c *kingpin.ParseContext) error
 	}
 	return nil
 }
-func (cmd *TopicHandler) runUnderReplicatedPartitions(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runUnderReplicatedPartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics/under_replicated_partitions")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -116,7 +116,7 @@ func (cmd *TopicHandler) runUnderReplicatedPartitions(c *kingpin.ParseContext) e
 	}
 	return nil
 }
-func (cmd *TopicHandler) runPartitions(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runPartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.partitionCount), 10))
@@ -128,7 +128,7 @@ func (cmd *TopicHandler) runPartitions(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runProducerTest(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runProducerTest(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("messages", strconv.FormatInt(int64(cmd.produceMessageCount), 10))
 	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s/operation/producer-test", cmd.topic), query.Encode())
@@ -139,7 +139,7 @@ func (cmd *TopicHandler) runProducerTest(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runDelete(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runDelete(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceDelete(fmt.Sprintf("v1/topics/%s", cmd.topic))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -148,7 +148,7 @@ func (cmd *TopicHandler) runDelete(c *kingpin.ParseContext) error {
 	}
 	return nil
 }
-func (cmd *TopicHandler) runOffsets(c *kingpin.ParseContext) error {
+func (cmd *TopicHandler) runOffsets(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	var timeVal int64
 	var err error
 	switch cmd.offsetsTime {
@@ -181,8 +181,8 @@ func handleTopicSection(app *kingpin.Application) {
 		"create",
 		"Creates a new topic").Action(cmd.runCreate)
 	create.Arg("topic", "The topic to create").StringVar(&cmd.topic)
-	create.Flag("partitions", "Number of partitions").Short('p').Default("1").OverrideDefaultFromEnvar("KAFKA_DEFAULT_PARTITION_COUNT").IntVar(&cmd.createPartitions)
-	create.Flag("replication", "Replication factor").Short('r').Default("3").OverrideDefaultFromEnvar("KAFKA_DEFAULT_REPLICATION_FACTOR").IntVar(&cmd.createReplication)
+	create.Flag("partitions", "Number of partitions").Short('p').Default("1").Envar("KAFKA_DEFAULT_PARTITION_COUNT").IntVar(&cmd.createPartitions)
+	create.Flag("replication", "Replication factor").Short('r').Default("3").Envar("KAFKA_DEFAULT_REPLICATION_FACTOR").IntVar(&cmd.createReplication)
 
 	delete := topic.Command(
 		"delete",

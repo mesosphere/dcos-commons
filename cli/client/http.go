@@ -24,98 +24,99 @@ import (
 // HTTPServiceGet triggers a HTTP GET request to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceGet(urlPath string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("GET", urlPath)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPRequest("GET", urlPath)))
 }
 
 // HTTPServiceGetQuery triggers a HTTP GET request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
 func HTTPServiceGetQuery(urlPath, urlQuery string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPQueryRequest("GET", urlPath, urlQuery)))
 }
 
 // HTTPServiceGetData triggers a HTTP GET request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceGetData(urlPath, payload, contentType string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
 
 // HTTPServiceGetJSON triggers a HTTP GET request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceGetJSON(urlPath, jsonPayload string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPJSONRequest("GET", urlPath, jsonPayload)))
 }
 
 // HTTPServiceDelete triggers a HTTP DELETE request to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceDelete(urlPath string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("DELETE", urlPath)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPRequest("DELETE", urlPath)))
 }
 
 // HTTPServiceDeleteQuery triggers a HTTP DELETE request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>?<urlQuery>
 func HTTPServiceDeleteQuery(urlPath, urlQuery string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 
 // HTTPServiceDeleteData triggers a HTTP DELETE request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceDeleteData(urlPath, payload, contentType string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPDataRequest("DELETE", urlPath, payload, contentType)))
 }
 
 // HTTPServiceDeleteJSON triggers a HTTP DELETE request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServiceDeleteJSON(urlPath, jsonPayload string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPJSONRequest("DELETE", urlPath, jsonPayload)))
 }
 
 // HTTPServicePost triggers a HTTP POST request to: <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePost(urlPath string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("POST", urlPath)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPRequest("POST", urlPath)))
 }
 
 // HTTPServicePostQuery triggers a HTTP POST request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
 func HTTPServicePostQuery(urlPath, urlQuery string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPQueryRequest("POST", urlPath, urlQuery)))
 }
 
 // HTTPServicePostData triggers a HTTP POST request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePostData(urlPath, payload, contentType string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
 
 // HTTPServicePostJSON triggers a HTTP POST request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePostJSON(urlPath, jsonPayload string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 // HTTPServicePut triggers a HTTP PUT request to: <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePut(urlPath string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPRequest("PUT", urlPath)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPRequest("PUT", urlPath)))
 }
 
 // HTTPServicePutQuery triggers a HTTP PUT request with query parameters to:
 // <config.DcosURL>/service/<config.ServiceName><urlPath>?<urlQuery>
 func HTTPServicePutQuery(urlPath, urlQuery string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 
 // HTTPServicePutData triggers a HTTP PUT request with a payload of contentType to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePutData(urlPath, payload, contentType string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPDataRequest("PUT", urlPath, payload, contentType)))
 }
 
 // HTTPServicePutJSON triggers a HTTP PUT request containing jsonPayload to:
 // <config.DcosURL>/service/<config.ServiceName>/<urlPath>
 func HTTPServicePutJSON(urlPath, jsonPayload string) ([]byte, error) {
-	return checkHTTPResponse(httpQuery(createServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
-func httpQuery(request *http.Request) *http.Response {
+// HTTPQuery does a HTTP query
+func HTTPQuery(request *http.Request) *http.Response {
 	if config.TLSForceInsecure { // user override via '--force-insecure'
 		config.TLSCliSetting = config.TLSUnverified
 	}
@@ -183,30 +184,36 @@ func httpQuery(request *http.Request) *http.Response {
 	return response
 }
 
-func createServiceHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
-	return createServiceHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
+// CreateServiceHTTPJSONRequest creates a service HTTP JSON request
+func CreateServiceHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+	return CreateServiceHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
-func createServiceHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
-	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), jsonPayload, "", contentType)
+// CreateServiceHTTPDataRequest creates a service HTTP data request
+func CreateServiceHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
+	return CreateHTTPRawRequest(method, CreateServiceURL(urlPath, ""), jsonPayload, "", contentType)
 }
 
-func createServiceHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
-	return createHTTPRawRequest(method, createServiceURL(urlPath, urlQuery), "", "", "")
+// CreateServiceHTTPQueryRequest creates a service HTTP query request
+func CreateServiceHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
+	return CreateHTTPRawRequest(method, CreateServiceURL(urlPath, urlQuery), "", "", "")
 }
 
-func createServiceHTTPRequest(method, urlPath string) *http.Request {
-	return createHTTPRawRequest(method, createServiceURL(urlPath, ""), "", "", "")
+// CreateServiceHTTPRequest creates a service HTTP request
+func CreateServiceHTTPRequest(method, urlPath string) *http.Request {
+	return CreateHTTPRawRequest(method, CreateServiceURL(urlPath, ""), "", "", "")
 }
 
-func createHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
-	return createHTTPURLRequest(method, url, payload, accept, contentType)
+// CreateHTTPRawRequest creates a HTTP request
+func CreateHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
+	return CreateHTTPURLRequest(method, url, payload, accept, contentType)
 }
 
-func getDCOSURL() {
+// GetDCOSURL gets DC/OS URL
+func GetDCOSURL() {
 	// get data from CLI, if overrides were not provided by user:
 	if len(config.DcosURL) == 0 {
-		config.DcosURL = requiredCLIConfigValue(
+		config.DcosURL = RequiredCLIConfigValue(
 			"core.dcos_url",
 			"DC/OS Cluster URL",
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
@@ -215,13 +222,15 @@ func getDCOSURL() {
 	config.DcosURL = strings.TrimRight(config.DcosURL, "#/")
 }
 
-func createServiceURL(urlPath, urlQuery string) *url.URL {
-	getDCOSURL()
+// CreateServiceURL creates a service URL
+func CreateServiceURL(urlPath, urlQuery string) *url.URL {
+	GetDCOSURL()
 	joinedURLPath := path.Join("service", config.ServiceName, urlPath)
-	return createURL(config.DcosURL, joinedURLPath, urlQuery)
+	return CreateURL(config.DcosURL, joinedURLPath, urlQuery)
 }
 
-func createURL(baseURL, urlPath, urlQuery string) *url.URL {
+// CreateURL creates a URL
+func CreateURL(baseURL, urlPath, urlQuery string) *url.URL {
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
 		PrintMessageAndExit("Unable to parse DC/OS Cluster URL '%s': %s", config.DcosURL, err)
@@ -231,7 +240,8 @@ func createURL(baseURL, urlPath, urlQuery string) *url.URL {
 	return parsedURL
 }
 
-func createHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
+// CreateHTTPURLRequest creates a HTTP url request
+func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	if config.Verbose {
 		PrintMessage("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {

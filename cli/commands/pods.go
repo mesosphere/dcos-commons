@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type podsHandler struct {
 	PodName string
 }
 
-func (cmd *podsHandler) handleList(c *kingpin.ParseContext) error {
+func (cmd *podsHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet("v1/pods")
 	if err != nil {
@@ -20,7 +20,7 @@ func (cmd *podsHandler) handleList(c *kingpin.ParseContext) error {
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleStatus(c *kingpin.ParseContext) error {
+func (cmd *podsHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	endpointPath := "v1/pods/status"
 	if len(cmd.PodName) > 0 {
@@ -33,7 +33,7 @@ func (cmd *podsHandler) handleStatus(c *kingpin.ParseContext) error {
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleInfo(c *kingpin.ParseContext) error {
+func (cmd *podsHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName))
 	if err != nil {
@@ -42,7 +42,7 @@ func (cmd *podsHandler) handleInfo(c *kingpin.ParseContext) error {
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleRestart(c *kingpin.ParseContext) error {
+func (cmd *podsHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName))
 	if err != nil {
@@ -52,7 +52,7 @@ func (cmd *podsHandler) handleRestart(c *kingpin.ParseContext) error {
 
 	return nil
 }
-func (cmd *podsHandler) handleReplace(c *kingpin.ParseContext) error {
+func (cmd *podsHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName))
 	if err != nil {
