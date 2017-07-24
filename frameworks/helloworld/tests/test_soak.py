@@ -19,12 +19,13 @@ FRAMEWORK_NAME = "secrets/hello-world"
 NUM_HELLO = 2
 NUM_WORLD = 3
 
+# check environment first...
 if "FRAMEWORK_NAME" in os.environ:
-    FRAMEWORK_NAME = os.environ("FRAMEWORK_NAME")
+    FRAMEWORK_NAME = os.environ["FRAMEWORK_NAME"]
 if "NUM_HELLO" in os.environ:
-    NUM_HELLO = os.environ("NUM_HELLO")
+    NUM_HELLO = os.environ["NUM_HELLO"]
 if "NUM_WORLD" in os.environ:
-    NUM_WORLD = os.environ("NUM_WORLD")
+    NUM_WORLD = os.environ["NUM_WORLD"]
 
 
 @pytest.mark.soak_upgrade
