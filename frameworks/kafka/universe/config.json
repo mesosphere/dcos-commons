@@ -20,7 +20,7 @@
             "description": "The user that the service will run as.",
             "default": "nobody"
           },
-          "principal": {
+          "service-account": {
             "description": "The principal for the Kafka service instance.",
             "type": "string",
             "default": ""

@@ -15,7 +15,7 @@
           "type": "string",
           "default": ""
         },
-        "principal": {
+        "service-account": {
           "description": "The principal for the service instance.",
           "type": "string",
           "default": ""

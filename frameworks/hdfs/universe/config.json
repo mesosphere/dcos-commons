@@ -20,7 +20,7 @@
           "description": "The linux user used to run the scheduler and all executors.",
           "default": "nobody"
         },
-        "principal" : {
+        "service-account" : {
           "description":"The principal for the HDFS service instance.",
           "type":"string",
           "default":""

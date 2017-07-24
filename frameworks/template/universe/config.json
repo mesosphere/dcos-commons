@@ -22,7 +22,7 @@
             "type": "string",
             "default": "root"
           },
-          "principal": {
+          "service-account": {
             "title": "Custom principal (optional)",
             "description": "The principal for the service instance, or empty to use the default.",
             "type": "string",
