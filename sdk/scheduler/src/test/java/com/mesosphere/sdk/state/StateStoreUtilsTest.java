@@ -2,6 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import net.jcip.annotations.ThreadSafe;
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
@@ -40,5 +41,36 @@ public class StateStoreUtilsTest {
 
         assertThat(result, is("VALUE".getBytes()));
     }
+
+    @Test(expected = StateStoreException.class)
+    public void emptyStringIsIsInvalidKey() {
+        StateStoreUtils.validateKey("");
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void nullIsIsInvalidKey() {
+        StateStoreUtils.validateKey(null);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void blankStringIsInvaldiKey() {
+        StateStoreUtils.validateKey("    ");
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void stringWithLeadingSlashIsInvalidKey() {
+        StateStoreUtils.validateKey("/key");
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void stringWithTrailingSlashIsInvalidKey() {
+        StateStoreUtils.validateKey("key/");
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void stringWithEmbeddedSlashIsInvalidKey() {
+        StateStoreUtils.validateKey("key/value");
+    }
+
 
 }
