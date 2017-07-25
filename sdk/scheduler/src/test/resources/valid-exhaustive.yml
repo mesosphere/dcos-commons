@@ -3,7 +3,6 @@ web-url: http://webui.data-store.mesos
 scheduler:
   principal: "some-other-principal"
   zookeeper: non-default-zk:2181
-  api-port: {{PORT_API}}
 pods:
   meta-data:
     placement: "hostname:UNIQUE"
@@ -25,7 +24,7 @@ pods:
         gpus: 1.0
         memory: 512
         ports:
-          http:
+          meta-data-http:
             port: 8080
             env-key: HTTP_PORT
             vip:
@@ -72,7 +71,7 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          data-http:
             port: 8080
             vip:
               port: 80

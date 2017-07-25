@@ -1,11 +1,14 @@
 package com.mesosphere.sdk.api;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
@@ -13,11 +16,13 @@ import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 
+import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -35,9 +40,7 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DNS = "dns";
     private static final String RESPONSE_KEY_ADDRESS = "address";
-    // TODO(nickbp): Remove 'vips' and switch 'vip' to an array value.
     private static final String RESPONSE_KEY_VIP = "vip";
-    private static final String RESPONSE_KEY_VIPS = "vips";
 
     private final StateStore stateStore;
     private final String serviceName;
@@ -138,16 +141,9 @@ public class EndpointsResource {
             String autoIpTaskName = discoveryInfo.hasName() ? discoveryInfo.getName() : taskInfo.getName();
             // Hostname of agent at offer time:
             String nativeHost = new TaskLabelReader(taskInfo).getHostname();
-            // get IP address(es) from container status on the TaskStatus, gives overlay
-            // network IP (IP-per-container) or host iff on host network.
-            List<String> ipAddresses = new ArrayList<>();
-            Protos.TaskStatus taskStatus = stateStore.fetchStatus(taskInfo.getName()).orElse(null);
-            if (taskStatus != null && taskStatus.hasContainerStatus() &&
-                    taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
-                taskStatus.getContainerStatus().getNetworkInfosList()
-                        .forEach(networkInfo -> networkInfo.getIpAddressesList()
-                                .forEach(ipAddress -> ipAddresses.add(ipAddress.getIpAddress())));
-            }
+            // get IP address(es) from container status on the latest TaskStatus, if the latest TaskStatus has an IP
+            // otherwise use the lastest TaskStatus' IP stored in the stateStore
+            List<String> ipAddresses = reconcileIpAddresses(taskInfo.getName());
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != Constants.DISPLAYED_PORT_VISIBILITY) {
                     LOGGER.info(
@@ -180,6 +176,30 @@ public class EndpointsResource {
         return endpointsByName;
     }
 
+    private static List<String> getIpAddresses(Protos.TaskStatus taskStatus) {
+        if (taskStatus != null && taskStatus.hasContainerStatus() &&
+                taskStatus.getContainerStatus().getNetworkInfosCount() > 0) {
+            List<String> ipAddresses = taskStatus.getContainerStatus().getNetworkInfosList().stream()
+                    .flatMap(networkInfo -> networkInfo.getIpAddressesList().stream())
+                    .map(ipAddress -> ipAddress.getIpAddress())
+                    .collect(Collectors.toList());
+            return ipAddresses;
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> reconcileIpAddresses(String taskName) {
+        // get the IP addresses from the latest TaskStatus (currentTaskStatus), if that TaskStatus doesn't have an
+        // IP address (it's a TASK_KILLED, LOST, etc.) than use the last IP address recorded in the stateStore
+        // (this is better than nothing).
+        TaskStatus currentTaskStatus = stateStore.fetchStatus(taskName).orElse(null);
+        TaskStatus savedTaskStatus = StateStoreUtils.getTaskStatusFromProperty(stateStore, taskName)
+                .orElse(null);
+        List<String> currentIpAddresses = getIpAddresses(currentTaskStatus);
+        return currentIpAddresses.isEmpty() ?
+                getIpAddresses(savedTaskStatus) : currentIpAddresses;
+    }
+
     /**
      * Adds information about a {@link Port} to the provided {@code endpointsByName}. Information
      * will be added for any VIPs listed against the {@link Port}'s labels, or if no VIPs are found,
@@ -200,12 +220,23 @@ public class EndpointsResource {
             Port taskInfoPort,
             String autoipHostPort,
             String ipHostPort) throws TaskException {
+        if (Strings.isEmpty(taskInfoPort.getName())) {
+            // Older tasks may omit the port name in their DiscoveryInfo.
+            LOGGER.warn("Missing port name. Old task?: {}", TextFormat.shortDebugString(taskInfoPort));
+            return;
+        }
+
         // Search for any VIPs to list the port against:
         Collection<EndpointUtils.VipInfo> vips = AuxLabelAccess.getVIPsFromLabels(taskName, taskInfoPort);
 
         for (EndpointUtils.VipInfo vip : vips) {
-            // File host:port against the VIP name (note: NOT necessarily the same as the port name).
-            addVipPortToEndpoints(endpointsByName, serviceName, vip, autoipHostPort, ipHostPort);
+            // VIP found. file host:port against the PORT name.
+            addPortAndVipToEndpoints(
+                    endpointsByName,
+                    taskInfoPort.getName(),
+                    autoipHostPort,
+                    ipHostPort,
+                    EndpointUtils.toVipEndpoint(serviceName, vip));
         }
 
         // If no VIPs were found, list the port against the port name:
@@ -214,54 +245,28 @@ public class EndpointsResource {
         }
     }
 
-    private static void addVipPortToEndpoints(
+    private static void addPortAndVipToEndpoints(
             Map<String, JSONObject> endpointsByName,
-            String serviceName,
-            EndpointUtils.VipInfo vipInfo,
+            String portName,
             String autoipHostPort,
-            String ipHostPort) {
-        JSONObject vipEndpoint = getOrCreate(endpointsByName, vipInfo.getVipName());
-
-        // append entry to 'dns' and 'address' arrays for this task:
-        vipEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
-        vipEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
-
-        // append entry to 'vips' for this task, if entry is not already present from a different task:
-        // TODO(nickbp): Switch from 'vips' to 'vip' here.
-        String vipHostPort = EndpointUtils.toVipEndpoint(serviceName, vipInfo);
-        addToArrayIfMissing(vipEndpoint, RESPONSE_KEY_VIPS, vipHostPort);
-
-        // TODO(nickbp): Remove this once 'vips' is renamed to 'vip'.
+            String ipHostPort,
+            String vipHostPort) {
+        JSONObject vipEndpoint = addPortToEndpoints(endpointsByName, portName, autoipHostPort, ipHostPort);
         vipEndpoint.put(RESPONSE_KEY_VIP, vipHostPort);
     }
 
-    private static void addPortToEndpoints(
+    private static JSONObject addPortToEndpoints(
             Map<String, JSONObject> endpointsByName,
             String portName,
             String autoipHostPort,
             String ipHostPort) {
-        JSONObject portEndpoint = getOrCreate(endpointsByName, portName);
-        portEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
-        portEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
-    }
-
-    private static JSONObject getOrCreate(Map<String, JSONObject> endpoints, String name) {
-        JSONObject portEndpoint = endpoints.get(name);
+        JSONObject portEndpoint = endpointsByName.get(portName);
         if (portEndpoint == null) {
             portEndpoint = new JSONObject();
-            endpoints.put(name, portEndpoint);
+            endpointsByName.put(portName, portEndpoint);
         }
+        portEndpoint.append(RESPONSE_KEY_DNS, autoipHostPort);
+        portEndpoint.append(RESPONSE_KEY_ADDRESS, ipHostPort);
         return portEndpoint;
-    }
-
-    private static void addToArrayIfMissing(JSONObject parent, String key, String value) {
-        if (parent.has(key)) {
-            for (Object existingValue : parent.getJSONArray(key)) {
-                if (value.equals(existingValue)) {
-                    return; // already present
-                }
-            }
-        }
-        parent.append(key, value); // creates new array if missing
     }
 }

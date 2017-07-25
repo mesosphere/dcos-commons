@@ -7,7 +7,7 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: 256
         ports:
-          http:
+          hello-http:
             port: 8080
         volume:
           path: "hello-container-path"
@@ -49,7 +49,7 @@ pods:
         cpus: 1
         memory: 256
         ports:
-          http:
+          world-http:
             port: 8080
         volume:
           path: "world-container-path"

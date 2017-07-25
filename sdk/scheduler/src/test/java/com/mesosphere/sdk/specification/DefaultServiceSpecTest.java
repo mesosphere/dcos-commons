@@ -163,12 +163,29 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(8088, another.getRange(0).getBegin(), another.getRange(0).getEnd());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void invalidDuplicatePorts() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("Task has multiple ports with value 8080"));
+        }
+    }
+
+    @Test
+    public void invalidDuplicatePortNames() throws Exception {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("invalid-duplicate-port-names.yml").getFile());
+            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains(
+                    "Duplicate port/endpoint names across different tasks: [across-pods, across-tasks, in-resource-set]"));
+        }
     }
 
     @Test
@@ -300,7 +317,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags)
+        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags, new MemPersister())
             .setConfigStore(mockConfigStore)
             .setStateStore(mockStateStore)
             .setPlansFrom(rawSpec)
@@ -423,8 +440,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
-                .getName());
+        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -592,7 +608,7 @@ public class DefaultServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, flags)
+        DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))

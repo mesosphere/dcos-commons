@@ -139,7 +139,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        dcos hdfs endpoints hdfs-site.xml
+        dcos hdfs endpoints core-site.xml
         ```
 
         The output should resemble:

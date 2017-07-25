@@ -27,11 +27,10 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        boolean onOverlay = false;
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(10000, Collections.emptyList(), onOverlay);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderOnNetwork(10000, Collections.emptyList(), Optional.empty());
 
         // Evaluate stage
-        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(10000, Optional.empty(), onOverlay);
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(10000, Optional.empty(), Optional.empty());
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
@@ -58,13 +57,14 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        boolean onOverlay = true;
-
         Integer containerPort = 80;  // non-offered port
+        String overlayNetwork = "dcos";
 
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(containerPort, Collections.emptyList(), onOverlay);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderOnNetwork(
+                containerPort, Collections.emptyList(), Optional.of(overlayNetwork));
 
-        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(containerPort, Optional.empty(), onOverlay);
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(
+                containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
@@ -93,17 +93,56 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     }
 
     @Test
+    public void testDiscoveryInfoOnBridgeNetwork() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        Integer containerPort = 10000;  // non-offered port
+        String bridgeNetwork = "mesos-bridge";
+
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderOnNetwork(
+                containerPort, Collections.emptyList(), Optional.of(bridgeNetwork));
+
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(
+                containerPort, Optional.empty(), Optional.of(bridgeNetwork));
+
+        EvaluationOutcome outcome = vipEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        String expectedName = TestConstants.POD_TYPE + "-0-" + TestConstants.TASK_NAME;
+        String observedName = discoveryInfo.getName();
+        Assert.assertEquals(expectedName, observedName);
+        Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        Assert.assertEquals(1, taskBuilder.getResourcesCount());  // expect that bridge uses ports
+        Protos.Port port = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(port.getNumber(), containerPort.longValue());
+        Assert.assertEquals(port.getProtocol(), "sctp");
+
+        Assert.assertEquals(2, port.getLabels().getLabelsCount());
+
+        Protos.Label vipLabel = port.getLabels().getLabels(0);
+        Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
+        Assert.assertEquals(vipLabel.getValue(), "test-vip:80");
+
+        assertIsBridgeLabel(port.getLabels().getLabels(1));
+    }
+
+    @Test
     public void testDiscoveryInfoWhenOnOverlayWithDynamicPort() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        boolean onOverlay = true;
-
         Integer containerPort = 0;  // non-offered port
+        String overlayNetwork = "dcos";
 
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(containerPort, Collections.emptyList(), onOverlay);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderOnNetwork(
+                containerPort, Collections.emptyList(), Optional.of(overlayNetwork));
 
-        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStage(containerPort, Optional.empty(), onOverlay);
+        NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(
+                containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
@@ -131,19 +170,20 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         assertIsOverlayLabel(port.getLabels().getLabels(1));
     }
 
-    private static NamedVIPEvaluationStage getEvaluationStage(int taskPort, Optional<String> resourceId, boolean onOverlay) {
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, onOverlay), TestConstants.TASK_NAME, resourceId);
+    private static NamedVIPEvaluationStage getEvaluationStageOnNetwork(
+            int taskPort, Optional<String> resourceId, Optional<String> network) {
+        Collection<String> networks = network.isPresent()
+                ? Collections.singleton(network.get()) : Collections.emptyList();
+        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME,
+                resourceId);
     }
 
-    private static NamedVIPSpec getNamedVIPSpec(int taskPort, boolean onOverlay) {
+    private static NamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {
         Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
                 .setType(Protos.Value.Type.RANGES);
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(taskPort)
                 .setEnd(taskPort);
-
-        List<String> networkNames = onOverlay ? new ArrayList<>(Arrays.asList(DcosConstants.DEFAULT_OVERLAY_NETWORK)):
-                Collections.emptyList();
 
         return new NamedVIPSpec(
                 valueBuilder.build(),
@@ -159,12 +199,12 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 networkNames);
     }
 
-    private static PodInstanceRequirement getPodInstanceRequirement(int taskPort, boolean onOverlay) {
+    private static PodInstanceRequirement getPodInstanceRequirement(int taskPort, Collection<String> networkNames) {
         // Build Pod
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE,Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
-                .addResource(getNamedVIPSpec(taskPort, onOverlay))
+                .addResource(getNamedVIPSpec(taskPort, networkNames))
                 .build();
         CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
@@ -185,10 +225,13 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();
     }
 
-    private static PodInfoBuilder getPodInfoBuilder(int taskPort, Collection<Protos.TaskInfo> taskInfos, boolean onOverlay)
+    private static PodInfoBuilder getPodInfoBuilderOnNetwork(
+            int taskPort, Collection<Protos.TaskInfo> taskInfos, Optional<String> network)
             throws InvalidRequirementException {
+        Collection<String> networks = network.isPresent()
+                ? Collections.singleton(network.get()) : Collections.emptyList();
         return new PodInfoBuilder(
-                getPodInstanceRequirement(taskPort, onOverlay),
+                getPodInstanceRequirement(taskPort, networks),
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
@@ -198,5 +241,10 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     private static void assertIsOverlayLabel(Protos.Label label) {
         Assert.assertEquals("network-scope", label.getKey());
         Assert.assertEquals("container", label.getValue());
+    }
+
+    private static void assertIsBridgeLabel(Protos.Label label) {
+        Assert.assertEquals("network-scope", label.getKey());
+        Assert.assertEquals("host", label.getValue());
     }
 }

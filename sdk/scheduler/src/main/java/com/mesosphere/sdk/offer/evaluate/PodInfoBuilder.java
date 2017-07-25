@@ -460,11 +460,7 @@ public class PodInfoBuilder {
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
-
-        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
-            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
-                    "may experience unexpected behavior", networkSpec.getName()));
-        }
+        DcosConstants.warnIfUnsupportedNetwork(networkSpec.getName());
 
         if (!networkSpec.getPortMappings().isEmpty()) {
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {

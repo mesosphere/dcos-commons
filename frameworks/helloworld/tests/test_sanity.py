@@ -6,7 +6,7 @@ import pytest
 import shakedown
 
 import sdk_cmd as cmd
-import sdk_install
+import sdk_install as install
 import sdk_marathon
 import sdk_tasks
 import sdk_test_upgrade
@@ -24,17 +24,19 @@ from tests.config import (
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
 
-def setup_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
 
-
-def teardown_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 def close_enough(val0, val1):
@@ -261,8 +263,3 @@ def test_lock():
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
-
-@pytest.mark.upgrade
-@pytest.mark.sanity
-def test_upgrade_downgrade():
-    sdk_test_upgrade.upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)

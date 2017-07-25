@@ -58,7 +58,8 @@ class LabelConstants {
     /** Prefix to use for VIP labels. */
     static final String VIP_LABEL_PREFIX = "VIP_";
 
-    /** Label key/value to populate when an overlay network is configured. */
+    /** Label key/value to describe the type of networking to use. */
     static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    static final String VIP_OVERLAY_FLAG_VALUE = "container";
+    static final String VIP_OVERLAY_FLAG_VALUE = "container"; // overlay network
+    static final String VIP_BRIDGE_FLAG_VALUE = "host"; // host/native network
 }

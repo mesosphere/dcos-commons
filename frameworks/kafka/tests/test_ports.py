@@ -3,7 +3,7 @@ import pytest
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_utils
+import sdk_utils as utils
 from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
@@ -16,13 +16,15 @@ STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092}}
 DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 
 
-def setup_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        utils.gc_frameworks()
 
-
-def teardown_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.sanity

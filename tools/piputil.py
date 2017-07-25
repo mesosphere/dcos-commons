@@ -54,7 +54,10 @@ def pip_install_dir(path, requirements_filepath):
                '-r', requirements_filepath,
                ]
     # --system is a workaround for debian brain damage
-    if os.path.exists("/etc/debian_version"):
+    pip_version_cmd = [get_pip3_binary(), '--version']
+    output = subprocess.check_output(pip_version_cmd)
+    # dist-packages is the telltale of the debian patches
+    if b'dist-packages' in output:
         pip_cmd.append('--system')
 
     subprocess.check_call(pip_cmd)
@@ -65,7 +68,7 @@ def create_requirementsfile(filename, req_text=None):
 requests==2.10.0
 dcoscli==0.4.16
 dcos==0.4.16
-dcos-shakedown
+dcos-shakedown==1.4.4
 ''')
     with open(filename, 'w') as reqfile:
         reqfile.write(req_text)

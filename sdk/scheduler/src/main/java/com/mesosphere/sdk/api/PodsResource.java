@@ -20,10 +20,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
-import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -52,26 +52,13 @@ public class PodsResource extends PrettyJsonResource {
 
     private final TaskKiller taskKiller;
     private final StateStore stateStore;
-    private final RestartHook restartHook;
 
     /**
-     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}, and which uses the
-     * provided {@link TaskKiller} to restart/replace tasks, but with no {@link RestartHook} to be called before those
-     * restart/replace operations.
+     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
      */
     public PodsResource(TaskKiller taskKiller, StateStore stateStore) {
-        this(taskKiller, stateStore, null);
-    }
-
-    /**
-     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}, and which uses the
-     * provided {@link TaskKiller} to restart/replace tasks. Additionally, the provided {@link RestartHook} is invoked
-     * before tasks are restarted or replaced.
-     */
-    public PodsResource(TaskKiller taskKiller, StateStore stateStore, RestartHook restartHook) {
         this.taskKiller = taskKiller;
         this.stateStore = stateStore;
-        this.restartHook = restartHook;
     }
 
     /**
@@ -175,7 +162,7 @@ public class PodsResource extends PrettyJsonResource {
     @POST
     public Response restartPod(@PathParam("name") String name) {
         try {
-            return restartPod(name, false);
+            return restartPod(name, RecoveryType.TRANSIENT);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to restart pod '%s'", name), e);
             return Response.serverError().build();
@@ -189,34 +176,25 @@ public class PodsResource extends PrettyJsonResource {
     @POST
     public Response replacePod(@PathParam("name") String name) {
         try {
-            return restartPod(name, true);
+            return restartPod(name, RecoveryType.PERMANENT);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to replace pod '%s'", name), e);
             return Response.serverError().build();
         }
     }
 
-    private Response restartPod(String name, boolean destructive) {
+    private Response restartPod(String name, RecoveryType recoveryType) {
         // look up all tasks in the provided pod name:
         List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
         if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        final String operation = destructive ? "replace" : "restart";
-
-        // notify hook (if any) about *all* known tasks in the pod before the restart is finally issued:
-        if (restartHook != null && !restartHook.notify(podTasks, destructive)) {
-            // hook says to abort
-            LOGGER.error("Aborting {} of pod {}: Hook has rejected the operation", operation, name);
-            return Response.status(Response.Status.CONFLICT).build();
-        }
-
         final List<String> restartedTaskNames = new ArrayList<>();
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
-        LOGGER.info("Completing {} of pod {} by killing {} tasks:",
-                operation, name, podTasks.size());
+        LOGGER.info("Completing {} restart of pod {} by killing {} tasks:",
+                recoveryType, name, podTasks.size());
         for (TaskInfoAndStatus taskToKill : podTasks) {
             final TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
@@ -229,7 +207,7 @@ public class PodsResource extends PrettyJsonResource {
                         taskInfo.getName(),
                         taskInfo.getTaskId().getValue());
             }
-            taskKiller.killTask(taskInfo.getTaskId(), destructive);
+            taskKiller.killTask(taskInfo.getTaskId(), recoveryType);
             restartedTaskNames.add(taskInfo.getName());
         }
 

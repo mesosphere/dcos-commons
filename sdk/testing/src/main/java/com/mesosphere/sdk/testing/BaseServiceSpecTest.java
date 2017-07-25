@@ -85,7 +85,6 @@ public class BaseServiceSpecTest {
 
     protected void testYaml(String fileName) throws Exception {
         ServiceSpec serviceSpec = getServiceSpec(fileName);
-        Assert.assertEquals(8080, serviceSpec.getApiPort());
 
         Capabilities capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(true);
@@ -99,7 +98,7 @@ public class BaseServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, mockFlags)
+        DefaultScheduler.newBuilder(serviceSpec, mockFlags, new MemPersister())
                 .setStateStore(new DefaultStateStore(persister))
                 .setConfigStore(
                         new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))

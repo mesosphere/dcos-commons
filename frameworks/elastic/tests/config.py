@@ -20,6 +20,12 @@ DEFAULT_INDEX_TYPE = 'entry'
 
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
 
+ENDPOINT_TYPES = (
+    'coordinator-http', 'coordinator-transport',
+    'data-http', 'data-transport',
+    'ingest-http', 'ingest-transport',
+    'master-http', 'master-transport')
+
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -235,19 +241,14 @@ def _curl_api(service_name, method, role="master"):
 
 def _master_zero_http_port(service_name):
     dns = json.loads(sdk_cmd.run_cli(
-        '{} --name={} endpoints master'.format(PACKAGE_NAME, service_name),
+        '{} --name={} endpoints master-http'.format(PACKAGE_NAME, service_name),
         print_output=False))['dns']
-    # array will initially look something like this in CCM, with some 9300 ports and some lower ones [
-    #   "master-0-node.elastic.[...]:9300",
+    # 'dns' array will initially look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
-    #   "master-1-node.elastic.[...]:9300",
     #   "master-1-node.elastic.[...]:1025",
-    #   "master-2-node.elastic.[...]:9300",
     #   "master-2-node.elastic.[...]:1025"
     # ]
 
-    # sort will bubble up "master-0-node.elastic.[...]:1025", the HTTP server host:port
-    dns.sort()
     port = dns[0].split(':')[-1]
     sdk_utils.out("Extracted {} as port for {}".format(port, dns[0]))
     return port

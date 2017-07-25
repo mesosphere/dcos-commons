@@ -15,12 +15,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.api.EndpointUtils.VipInfo;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 
 /**
- * Utilities for adding labels to custom locations, other than {@link Protos.TaskInfo}s.
+ * Utilities for adding labels to Mesos protobufs other than {@link Protos.TaskInfo}.
  *
- * If you're editing {@link Protos.TaskInfos}, you should be using {@link TaskLabelReader}/{@link TaskLabelWriter}.
+ * If you're accessing labels in {@link Protos.TaskInfo}s, you should be using {@link TaskLabelReader} and/or
+ * {@link TaskLabelWriter}.
  */
 public class AuxLabelAccess {
 
@@ -65,13 +67,20 @@ public class AuxLabelAccess {
      */
     public static void setVIPLabels(Protos.Port.Builder portBuilder, NamedVIPSpec namedVIPSpec) {
         Map<String, String> map = LabelUtils.toMap(portBuilder.getLabels());
+
         map.put(
                 String.format("%s%s", LabelConstants.VIP_LABEL_PREFIX, UUID.randomUUID().toString()),
                 String.format("%s:%d", namedVIPSpec.getVipName(), namedVIPSpec.getVipPort()));
+
         if (!namedVIPSpec.getNetworkNames().isEmpty()) {
             // On named network
-            map.put(LabelConstants.VIP_OVERLAY_FLAG_KEY, LabelConstants.VIP_OVERLAY_FLAG_VALUE);
+            boolean useHostIp = namedVIPSpec.getNetworkNames().stream()
+                    .filter(DcosConstants::networkSupportsPortMapping)
+                    .count() > 0;
+            map.put(LabelConstants.VIP_OVERLAY_FLAG_KEY,
+                    useHostIp ? LabelConstants.VIP_BRIDGE_FLAG_VALUE : LabelConstants.VIP_OVERLAY_FLAG_VALUE);
         }
+
         portBuilder.setLabels(LabelUtils.toProto(map));
     }
 

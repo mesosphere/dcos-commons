@@ -27,7 +27,7 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_STORAGE_PORT}}
           ssl:
             port: {{TASKCFG_ALL_CASSANDRA_SSL_STORAGE_PORT}}
-          native:
+          node:
             port: {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
             vip:
               prefix: node
