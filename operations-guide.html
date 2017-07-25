@@ -347,6 +347,7 @@
       <li><a href="#overlay-networks" id="markdown-toc-overlay-networks">Overlay networks</a></li>
       <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a>        <ul>
           <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
+          <li><a href="#absolute-and-relative-file-paths-for-secrets" id="markdown-toc-absolute-and-relative-file-paths-for-secrets">Absolute and Relative File Paths for Secrets</a></li>
         </ul>
       </li>
       <li><a href="#placement-constraints" id="markdown-toc-placement-constraints">Placement Constraints</a>        <ul>
@@ -861,13 +862,22 @@ Agent 3: X B
 
 <p><strong>Note:</strong> The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). <a href="https://docs.mesosphere.com/1.9/security/secrets/">Learn more about the secrets store</a>.</p>
 
-<p>The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the sandbox will be created. Also, the value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code>, as shown below.</p>
+<p>The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.</p>
+
+<p>You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:</p>
+<ul>
+  <li>Kerberos keytabs or other credential files.</li>
+  <li>SSL certificates.</li>
+  <li>Configuration files with sensitive data.</li>
+</ul>
+
+<p>For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the sandbox will be created. Also, the value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code>, as shown below.</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-app/instance1</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">pod-with-secret</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
-    <span class="c1"># add secret values to pod's sandbox</span>
+    <span class="c1"># add secret file to pod's sandbox</span>
     <span class="s">secrets</span><span class="pi">:</span>
       <span class="s">secret_name1</span><span class="pi">:</span>
         <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path1</span>
@@ -949,6 +959,34 @@ Agent 3: X B
     </tr>
   </tbody>
 </table>
+
+<h3 id="absolute-and-relative-file-paths-for-secrets">Absolute and Relative File Paths for Secrets</h3>
+
+<p>If <code class="highlighter-rouge">file</code> is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an <code class="highlighter-rouge">image-name</code>.  <strong>Note:</strong> The<code class="highlighter-rouge">user</code> running the tasks must have permission to create the given absolute file path.</p>
+
+<p>Below is a valid secret definition with a Docker <code class="highlighter-rouge">image-name</code>. The <code class="highlighter-rouge">/etc/keys/keyset1</code> and <code class="highlighter-rouge">$MESOS_SANDBOX/data/keys/keyset2</code> directories will be created if they do not exist.</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-app/instance2</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">pod-with-image</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="s">container</span><span class="pi">:</span>
+      <span class="s">image-name</span><span class="pi">:</span> <span class="s">ubuntu:14.04</span>
+    <span class="s">user</span><span class="pi">:</span> <span class="s">root</span>
+    <span class="s">secrets</span><span class="pi">:</span>
+      <span class="c1"># absolute path</span>
+      <span class="s">secret_name4</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path1</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">/etc/keys/keyset1/Secret_FilePath1</span>
+      <span class="c1"># relative path in Sandbox</span>
+      <span class="s">secret_name5</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/instance1/Secret_Path2</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/keys/keyset2/Secret_FilePath2</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">....</span>
+</code></pre>
+</div>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
 
