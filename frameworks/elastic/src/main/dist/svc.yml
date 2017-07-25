@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   master:
     count: 3
@@ -11,8 +12,10 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
@@ -44,7 +47,7 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
@@ -77,6 +80,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
@@ -110,7 +114,7 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
@@ -143,6 +147,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
@@ -176,7 +181,7 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
@@ -209,6 +214,7 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
@@ -242,7 +248,7 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false

@@ -32,7 +32,8 @@ public class PersistentLaunchRecorder implements OperationRecorder {
             return;
         }
 
-        Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) offerRecommendation).getTaskInfo();
+        LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
+        Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
         Protos.TaskStatus taskStatus = null;
         if (!taskInfo.getTaskId().getValue().equals("")) {
@@ -84,7 +85,10 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         // Update any other TaskInfos in this resource set to have the same resources:
         Collection<Protos.TaskInfo> taskInfosWithSameResourceSet =
                 getOtherTasksInResourceSet(podInstance, taskSpecOptional.get());
-        stateStore.storeTasks(updateTasksWithResources(taskInfosWithSameResourceSet, taskInfo.getResourcesList()));
+        stateStore.storeTasks(updateTasksWithResources(
+                taskInfosWithSameResourceSet,
+                taskInfo.getResourcesList(),
+                taskInfo.hasExecutor() ? Optional.of(taskInfo.getExecutor().getResourcesList()) : Optional.empty()));
     }
 
     /**
@@ -121,14 +125,21 @@ public class PersistentLaunchRecorder implements OperationRecorder {
      * previous resource information.
      */
     private static Collection<Protos.TaskInfo> updateTasksWithResources(
-            Collection<Protos.TaskInfo> taskInfosToUpdate, Collection<Protos.Resource> resources) {
+            Collection<Protos.TaskInfo> taskInfosToUpdate,
+            Collection<Protos.Resource> taskResources,
+            Optional<Collection<Protos.Resource>> executorResources) {
         List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
         for (Protos.TaskInfo taskInfoToUpdate : taskInfosToUpdate) {
-            updatedTaskInfos.add(
-                    Protos.TaskInfo.newBuilder(taskInfoToUpdate)
-                            .clearResources()
-                            .addAllResources(resources)
-                            .build());
+            Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfoToUpdate);
+            taskBuilder
+                    .clearResources()
+                    .addAllResources(taskResources);
+            if (executorResources.isPresent()) {
+                taskBuilder.getExecutorBuilder()
+                        .clearResources()
+                        .addAllResources(executorResources.get());
+            }
+            updatedTaskInfos.add(taskBuilder.build());
         }
         return updatedTaskInfos;
     }

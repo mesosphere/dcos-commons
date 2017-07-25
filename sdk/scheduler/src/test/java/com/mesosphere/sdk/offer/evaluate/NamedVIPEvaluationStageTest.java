@@ -174,8 +174,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             int taskPort, Optional<String> resourceId, Optional<String> network) {
         Collection<String> networks = network.isPresent()
                 ? Collections.singleton(network.get()) : Collections.emptyList();
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME,
-                resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME, resourceId, true);
     }
 
     private static NamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {
@@ -235,7 +235,9 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
-                taskInfos);
+                taskInfos,
+                TestConstants.FRAMEWORK_ID,
+                true);
     }
 
     private static void assertIsOverlayLabel(Protos.Label label) {

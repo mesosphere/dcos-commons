@@ -7,6 +7,7 @@
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/elastic-scheduler.zip",
       "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-version}}.0/elasticsearch-statsd-{{elastic-version}}.0.zip",
+      "elasticsearch-jre-tar-gz": "{{jre-url}}",
       "elasticsearch-tar-gz": "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{elastic-version}}.tar.gz",
       "xpack-zip": "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{elastic-version}}.zip",
       "diagnostics-zip": "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{support-diagnostics-version}}/support-diagnostics-{{support-diagnostics-version}}-dist.zip"

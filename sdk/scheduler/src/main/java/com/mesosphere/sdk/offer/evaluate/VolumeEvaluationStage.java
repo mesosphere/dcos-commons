@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,16 +25,19 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final Optional<String> persistenceId;
     private final String taskName;
     private Optional<String> resourceId;
+    private final boolean useDefaultExecutor;
 
     public VolumeEvaluationStage(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
-            Optional<String> persistenceId) {
+            Optional<String> persistenceId,
+            boolean useDefaultExecutor) {
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.persistenceId = persistenceId;
+        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     private boolean createsVolume() {
@@ -47,6 +51,26 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Resource resource;
         final MesosResource mesosResource;
+
+        boolean isRunningExecutor = podInfoBuilder.getExecutorBuilder().isPresent() &&
+                isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer());
+        if (taskName == null && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
+            // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
+            // add it to the ExecutorInfo as well as whatever task is being launched.
+            podInfoBuilder.setExecutorVolume(volumeSpec);
+            mesosResource = new MesosResource(
+                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get()));
+
+            return pass(
+                    this,
+                    Collections.emptyList(),
+                    "Offer contains executor with existing volume with resourceId: '%s' and persistenceId: '%s'",
+                    resourceId,
+                    persistenceId)
+                    .mesosResource(mesosResource)
+                    .build();
+        }
+
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
@@ -67,7 +91,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     .setMesosResource(mesosResource)
                     .build();
         } else {
-            Optional<MesosResource> mesosResourceOptional = Optional.empty();
+            Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
                         mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
@@ -108,6 +132,10 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
         OfferEvaluationUtils.setProtos(podInfoBuilder, resource, getTaskName());
 
+        if (taskName == null && useDefaultExecutor) {
+            podInfoBuilder.setExecutorVolume(volumeSpec);
+        }
+
         return pass(
                 this,
                 offerRecommendations,
@@ -124,4 +152,13 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         return Optional.ofNullable(taskName);
     }
 
+    private static boolean isRunningExecutor(Protos.ExecutorInfo executorInfo, Protos.Offer offer) {
+        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+            if (execId.equals(executorInfo.getExecutorId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

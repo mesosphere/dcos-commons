@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
@@ -41,13 +43,44 @@ public class OfferAccepterTest {
     @Test
     public void testLaunchTransient() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Offer offer = OfferTestUtils.getCompleteOffer(resource);
+        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
+
+        TestOperationRecorder recorder = new TestOperationRecorder();
+        OfferAccepter accepter = new OfferAccepter(recorder);
+        accepter.accept(
+                driver,
+                Arrays.asList(new LaunchOfferRecommendation(
+                        offer,
+                        taskInfoBuilder.build(),
+                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                        false,
+                        true)));
+        Assert.assertEquals(1, recorder.getLaunches().size());
+        verify(driver, times(0)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
+    }
+
+    @Test
+    public void testLaunchTransientCustomExecutor() {
+        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
+        accepter.accept(
+                driver,
+                Arrays.asList(new LaunchOfferRecommendation(
+                        offer,
+                        taskInfoBuilder.build(),
+                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                        false,
+                        false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -58,13 +91,20 @@ public class OfferAccepterTest {
     @Test
     public void testClearTransient() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-        Offer offer = OfferTestUtils.getOffer(resource);
+        Offer offer = OfferTestUtils.getCompleteOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
+        accepter.accept(
+                driver,
+                Arrays.asList(new LaunchOfferRecommendation(
+                        offer,
+                        taskInfoBuilder.build(),
+                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                        false,
+                        true)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -72,7 +112,53 @@ public class OfferAccepterTest {
                 anyObject());
 
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).clearTransient().toProto());
-        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfoBuilder.build(), true)));
+        accepter.accept(
+                driver, Arrays.asList(
+                        new LaunchOfferRecommendation(
+                                offer,
+                                taskInfoBuilder.build(),
+                                Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                                true,
+                                true)));
+        Assert.assertEquals(2, recorder.getLaunches().size());
+        verify(driver, times(1)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
+    }
+
+    @Test
+    public void testClearTransientCustomExecutor() {
+        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Offer offer = OfferTestUtils.getOffer(resource);
+        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
+
+        TestOperationRecorder recorder = new TestOperationRecorder();
+        OfferAccepter accepter = new OfferAccepter(recorder);
+        accepter.accept(
+                driver,
+                Arrays.asList(new LaunchOfferRecommendation(
+                        offer,
+                        taskInfoBuilder.build(),
+                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                        false,
+                        false)));
+        Assert.assertEquals(1, recorder.getLaunches().size());
+        verify(driver, times(0)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
+
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).clearTransient().toProto());
+        accepter.accept(
+                driver, Arrays.asList(
+                        new LaunchOfferRecommendation(
+                                offer,
+                                taskInfoBuilder.build(),
+                                Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
+                                true,
+                                true)));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -101,6 +187,9 @@ public class OfferAccepterTest {
                     break;
                 case DESTROY:
                     destroys.add(operation);
+                    break;
+                case LAUNCH_GROUP:
+                    launches.add(operation);
                     break;
                 case LAUNCH:
                     launches.add(operation);

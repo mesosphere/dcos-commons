@@ -12,7 +12,7 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/commands"
 	"github.com/mesosphere/dcos-commons/cli/config"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 // GetModuleName returns the module name, if it was passed in, or an error otherwise.
@@ -55,12 +55,12 @@ func New() *kingpin.Application {
 	config.ModuleName = modName
 	app := kingpin.New(fmt.Sprintf("dcos %s", config.ModuleName), "")
 
-	app.HelpFlag.Short('h') // in addition to default '--help'
+	app.GetFlag("help").Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&config.Verbose)
 
 	// This fulfills an interface that's expected by the main DC/OS CLI:
 	// Prints a description of the module.
-	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.ParseContext) error {
+	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.Application, *kingpin.ParseElement, *kingpin.ParseContext) error {
 		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(config.ModuleName))
 		os.Exit(0)
 		return nil

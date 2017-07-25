@@ -20,7 +20,8 @@ func SetCustomResponseCheck(check responseCheck) {
 	customCheck = check
 }
 
-func checkHTTPResponse(response *http.Response) ([]byte, error) {
+// CheckHTTPResponse checks the HTTP response
+func CheckHTTPResponse(response *http.Response) ([]byte, error) {
 	body, err := getResponseBytes(response)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response data from %s %s query: %s",

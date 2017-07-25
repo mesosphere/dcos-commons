@@ -18,69 +18,60 @@ DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
-def write_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
-
-
-def read_some_data(data_node_host, file_name):
-    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
-
-
-def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):
+def write_data_to_hdfs(svc_name, filename, content_to_write=TEST_CONTENT_SMALL):
     write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
-    rc, _ = run_hdfs_command(data_node_host, write_command)
+    rc, _ = run_hdfs_command(svc_name, write_command)
     # rc being True is effectively it being 0...
     return rc
 
 
-def read_data_from_hdfs(data_node_host, filename):
+def read_data_from_hdfs(svc_name, filename):
     read_command = "./bin/hdfs dfs -cat /{}".format(filename)
-    rc, output = run_hdfs_command(data_node_host, read_command)
+    rc, output = run_hdfs_command(svc_name, read_command)
     return rc and output.rstrip() == TEST_CONTENT_SMALL
 
 
-def delete_data_from_hdfs(data_node_host, filename):
+def delete_data_from_hdfs(svc_name, filename):
     delete_command = "./bin/hdfs dfs -rm /{}".format(filename)
-    rc, output = run_hdfs_command(data_node_host, delete_command)
+    rc, output = run_hdfs_command(svc_name, delete_command)
     return rc
 
 
-def write_lots_of_data_to_hdfs(data_node_host, filename):
+def write_lots_of_data_to_hdfs(svc_name, filename):
     write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
-    rc, output = run_hdfs_command(data_node_host,write_command)
+    rc, output = run_hdfs_command(svc_name, write_command)
     return rc
 
+def get_active_name_node(svc_name):
+    name_node_0_status = get_name_node_status(svc_name, "name-0-node")
+    if name_node_0_status == "active":
+        return "name-0-node"
 
-def run_hdfs_command(host, command):
+    name_node_1_status = get_name_node_status(svc_name, "name-1-node")
+    if name_node_1_status == "active":
+        return "name-1-node"
+
+    raise Exception("Failed to determine active name node")
+
+def get_name_node_status(svc_name, name_node):
+    def get_status():
+        rc, output = run_hdfs_command(svc_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
+        if not rc:
+            return rc
+
+        return output.strip()
+
+    return shakedown.wait_for(lambda: get_status(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+
+
+def run_hdfs_command(svc_name, command):
     """
-    Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
+    Execute the command using the Docker client
     """
-    java_home = find_java_home(host)
+    full_command = 'docker run -e HDFS_SERVICE_NAME={} mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(svc_name, command)
 
-    # Find hdfs home directory by looking up the Data Node process.
-    # Hdfs directory is found in an arg to the java command.
-    hdfs_dir_cmd = """ps -ef | grep hdfs | grep DataNode \
-        | awk 'BEGIN {RS=" "}; /-Dhadoop.home.dir/' | sed s/-Dhadoop.home.dir=//"""
-    full_command = """cd $({}) &&
-        export JAVA_HOME={} &&
-        {}""".format(hdfs_dir_cmd, java_home, command)
-
-    rc, output = shakedown.run_command_on_agent(host, full_command)
+    rc, output = shakedown.run_command_on_master(full_command)
     return rc, output
-
-
-def find_java_home(host):
-    """
-    Find java home by looking up the Data Node process.
-    Java home is found in the process command.
-    """
-    java_home_cmd = """ps -ef | grep hdfs | grep DataNode | grep -v grep \
-        | awk '{print $8}' | sed s:/bin/java::"""
-    rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
-    assert rc
-    java_home = output.rstrip()
-    sdk_utils.out("java_home: {}".format(java_home))
-    return java_home
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):

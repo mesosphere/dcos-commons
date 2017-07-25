@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   kafka:
     count: {{BROKER_COUNT}}
@@ -8,6 +9,7 @@ pods:
     user: {{FRAMEWORK_USER}}
     uris:
       - {{KAFKA_URI}}
+      - {{KAFKA_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{EXECUTOR_URI}}
       - {{LIBMESOS_URI}}
@@ -38,6 +40,7 @@ pods:
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
         cmd: >
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
           ./bootstrap -resolve=false &&
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties

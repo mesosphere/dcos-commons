@@ -21,7 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Offer evaluation tests concerning volumes.
@@ -35,8 +37,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
-        Assert.assertEquals(4, recommendations.size()); // RESERVE, RESERVE, CREATE, LAUNCH
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+        Assert.assertEquals(7, recommendations.size()); // RESERVE, RESERVE, CREATE, RESERVE, RESERVE, RESERVE, LAUNCH
 
         // Validate CPU RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
@@ -76,10 +78,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();
-        Operation launchOperation = recommendations.get(3).getOperation();
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
+        Operation launchOperation = recommendations.get(6).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(1);
 
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
@@ -105,7 +107,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
 
         String cpuResourceId = ResourceTestUtils.getResourceId(
                 recommendations.get(0).getOperation().getReserve().getResources(0));
@@ -115,24 +117,41 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         String diskResourceId = ResourceTestUtils.getResourceId(createResource);
         String persistenceId = ResourceTestUtils.getPersistenceId(createResource);
 
+        String executorCpuResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(3).getOperation().getReserve().getResources(0));
+        String executorMemResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(4).getOperation().getReserve().getResources(0));
+        String executorDiskResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(5).getOperation().getReserve().getResources(0));
+
         Operation launchOperation = recommendations.get(recommendations.size()-1).getOperation();
-        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+        Protos.ExecutorInfo executorInfo = launchOperation.getLaunchGroup().getExecutor();
+        Collection<Protos.TaskInfo> taskInfos = launchOperation.getLaunchGroup().getTaskGroup().getTasksList().stream()
+                .map(t -> t.toBuilder().setExecutor(executorInfo).build())
+                .collect(Collectors.toList());
+        stateStore.storeTasks(taskInfos);
 
 
         // Launch again on expected resources.
         Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
         Resource expectedDisk = ResourceTestUtils.getExpectedRootVolume(1500, diskResourceId, persistenceId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuResourceId);
+        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemResourceId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskResourceId);
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedCpu, expectedDisk))));
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(
+                        expectedCpu, expectedDisk, expectedExecutorCpu, expectedExecutorMem, expectedExecutorDisk))));
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(recommendations.toString(), 2, launchOperation.getLaunch().getTaskInfos(0).getResourcesCount());
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
+        Protos.TaskInfo launchTask = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
+        Assert.assertEquals(recommendations.toString(), 2, launchTask.getResourcesCount());
+        Resource launchResource = launchTask.getResources(1);
 
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(launchResource).get();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+
         Assert.assertEquals(1500, launchResource.getScalar().getValue(), 0.0);
         OfferEvaluatorTest.validateRole(launchResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource));
@@ -159,8 +178,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500),
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredCpuResource, offeredDiskResource))));
-        Assert.assertEquals(4, recommendations.size()); // RESERVE, RESERVE, CREATE, LAUNCH
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredCpuResource, offeredDiskResource))));
+        Assert.assertEquals(7, recommendations.size()); // RESERVE, RESERVE, CREATE, RESERVE, RESERVE, RESERVE, LAUNCH
 
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(1).getOperation();
@@ -189,10 +208,10 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();
-        Operation launchOperation = recommendations.get(3).getOperation();
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
+        Operation launchOperation = recommendations.get(6).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(1);
 
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
@@ -210,10 +229,16 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredDiskResource, offeredCpuResource))));
 
         String cpuResourceId = ResourceTestUtils.getResourceId(
                 recommendations.get(0).getOperation().getReserve().getResources(0));
+        String executorCpuResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(3).getOperation().getReserve().getResources(0));
+        String executorMemResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(4).getOperation().getReserve().getResources(0));
+        String executorDiskResourceId = ResourceTestUtils.getResourceId(
+                recommendations.get(5).getOperation().getReserve().getResources(0));
 
         Operation createOperation = recommendations.get(2).getOperation();
         Resource createResource = createOperation.getCreate().getVolumes(0);
@@ -221,22 +246,31 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         String persistenceId = ResourceTestUtils.getPersistenceId(createResource);
 
         Operation launchOperation = recommendations.get(recommendations.size()-1).getOperation();
-        stateStore.storeTasks(launchOperation.getLaunch().getTaskInfosList());
+        Protos.ExecutorInfo executorInfo = launchOperation.getLaunchGroup().getExecutor();
+        Collection<Protos.TaskInfo> taskInfos = launchOperation.getLaunchGroup().getTaskGroup().getTasksList().stream()
+                .map(t -> t.toBuilder().setExecutor(executorInfo).build())
+                .collect(Collectors.toList());
+        stateStore.storeTasks(taskInfos);
 
 
         // Launch again on expected resources.
         Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
         Resource expectedDisk = ResourceTestUtils.getExpectedMountVolume(2000, diskResourceId, persistenceId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuResourceId);
+        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemResourceId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskResourceId);
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(expectedCpu, expectedDisk))));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(
+                        expectedCpu, expectedDisk, expectedExecutorCpu, expectedExecutorMem, expectedExecutorDisk))));
         Assert.assertEquals(1, recommendations.size());
 
         launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(recommendations.toString(), 2, launchOperation.getLaunch().getTaskInfos(0).getResourcesCount());
-        Resource launchResource = launchOperation.getLaunch().getTaskInfos(0).getResources(1);
+        Protos.TaskInfo launchTask = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
+        Assert.assertEquals(recommendations.toString(), 2, launchTask.getResourcesCount());
+        Resource launchResource = launchTask.getResources(1);
 
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
         OfferEvaluatorTest.validateRole(launchResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource));
@@ -276,30 +310,34 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource offeredDisk = ResourceTestUtils.getUnreservedDisk(3);
         Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
 
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredCpu, offeredDisk));
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredCpu, offeredDisk));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(offer));
-        Assert.assertEquals(6, recommendations.size());
+        Assert.assertEquals(9, recommendations.size());
 
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
         Assert.assertEquals(Operation.Type.CREATE, recommendations.get(2).getOperation().getType());
         Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(3).getOperation().getType());
         Assert.assertEquals(Operation.Type.CREATE, recommendations.get(4).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(5).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(8).getOperation().getType());
 
         // Validate Create Operation
         Operation createOperation = recommendations.get(2).getOperation();
-        Assert.assertEquals(TestConstants.CONTAINER_PATH + "-a", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+        Assert.assertEquals(
+                TestConstants.CONTAINER_PATH + "-a",
+                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
 
         // Validate Create Operation
         createOperation = recommendations.get(4).getOperation();
-        Assert.assertEquals(TestConstants.CONTAINER_PATH + "-b", createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+        Assert.assertEquals(
+                TestConstants.CONTAINER_PATH + "-b",
+                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
 
         // Validate Launch Operation
-        Operation launchOperation = recommendations.get(5).getOperation();
+        Operation launchOperation = recommendations.get(8).getOperation();
         for (Protos.TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
             for (Resource resource : taskInfo.getResourcesList()) {
                 Assert.assertFalse(getResourceId(resource).isEmpty());
@@ -318,7 +356,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(offeredResource));
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResource));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         Assert.assertEquals(0, recommendations.size());
@@ -330,17 +368,18 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
-                Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(offeredResource)));
         Assert.assertEquals(0, recommendations.size());
     }
 
     @Test
     public void testFailToCreateVolumeWithWrongResource() throws Exception {
         Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
-                Arrays.asList(OfferTestUtils.getOffer(wrongOfferedResource)));
+                Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(offeredCpu, wrongOfferedResource))));
         Assert.assertEquals(0, recommendations.size());
         Assert.assertEquals(0, recommendations.size());
     }
@@ -351,7 +390,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpu(1.0));
 
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredResources);
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
@@ -367,7 +406,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
-        Assert.assertEquals(4, recommendations.size());
+        Assert.assertEquals(7, recommendations.size());
 
         // Validate just the operations pertaining to the executor
         // Validate RESERVE Operation
@@ -411,7 +450,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpu(1.0));
 
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredResources);
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
@@ -427,7 +466,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
-        Assert.assertEquals(4, recommendations.size());
+        Assert.assertEquals(7, recommendations.size());
 
         // Validate RESERVE Operation
         Operation reserveOperation = recommendations.get(0).getOperation();
@@ -445,7 +484,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getExpectedMountVolume(2000, resourceId, persistenceId),
                 ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
 
-        offer = OfferTestUtils.getOffer(offeredResources);
+        offer = OfferTestUtils.getCompleteOffer(offeredResources);
 
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         Assert.assertEquals(0, recommendations.size());

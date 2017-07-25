@@ -15,6 +15,8 @@ public class SchedulerUtils {
     /** Reasonable zk host on DC/OS systems. */
     private static final String DEFAULT_ZK_HOST_PORT = "master.mesos:2181";
 
+    private static final String DEFAULT_SCHEDULER_USER = "root";
+
     /**
      * Escape sequence to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
      * confuse ZK with those.
@@ -100,6 +102,19 @@ public class SchedulerUtils {
         }
         // Fallback: Use the default host:port
         return DEFAULT_ZK_HOST_PORT;
+    }
+
+    /**
+     * Returns the configured user to use for running the scheduler.
+     */
+    public static String getUser(RawServiceSpec rawServiceSpec) {
+        // If the svc.yml explicitly provided a service user, use that
+        if (rawServiceSpec.getScheduler() != null && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getUser())) {
+            return rawServiceSpec.getScheduler().getUser();
+        }
+
+        // Fallback: Use the default scheduler user
+        return DEFAULT_SCHEDULER_USER;
     }
 
     /**
