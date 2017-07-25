@@ -361,7 +361,8 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
-                .name(taskName);
+                .name(taskName)
+                .taskKillGracePeriodSeconds(rawTask.getTaskKillGracePeriodSeconds());
 
         if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
             // Use resource set content:

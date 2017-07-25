@@ -26,6 +26,12 @@
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
+    {{#service.kill_grace_period}}
+    "TASKCFG_ALL_BROKER_KILL_GRACE_PERIOD": "{{service.kill_grace_period}}",
+    {{/service.kill_grace_period}}
+    {{#brokers.kill_grace_period}}
+    "TASKCFG_ALL_BROKER_KILL_GRACE_PERIOD": "{{brokers.kill_grace_period}}",
+    {{/brokers.kill_grace_period}}
     "CMD_PREFIX": "{{service.cmd_prefix}}",
     "SECRET_NAME": "{{service.secret_name}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",

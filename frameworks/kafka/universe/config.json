@@ -51,6 +51,11 @@
             "type": "string",
             "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
             "default": "INFO"
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `30`",
+            "type": "integer",
+            "default": 30
           }
         },
         "required":[
@@ -120,6 +125,11 @@
             "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
             "type": "string",
             "default": ""
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `30`",
+            "type": "integer",
+            "default": 30
           }
         },
         "required":[

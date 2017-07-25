@@ -35,6 +35,9 @@ public interface TaskSpec {
     @JsonProperty("discovery-spec")
     Optional<DiscoverySpec> getDiscovery();
 
+    @JsonProperty("task-kill-grace-period-seconds")
+    Integer getTaskKillGracePeriodSeconds();
+
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return getInstanceName(podInstance, taskSpec.getName());
     }
