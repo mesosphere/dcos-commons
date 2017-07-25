@@ -5,7 +5,6 @@ scheduler:
 pods:
   journal:
     count: 3
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{HDFS_BIN_URI}}
@@ -78,7 +77,6 @@ pods:
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{HDFS_BIN_URI}}
@@ -250,7 +248,6 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
       - {{HDFS_BIN_URI}}
