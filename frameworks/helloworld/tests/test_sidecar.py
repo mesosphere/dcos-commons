@@ -49,6 +49,14 @@ def test_sidecar():
 def test_sidecar_parameterized():
     run_plan('sidecar-parameterized', {'PLAN_PARAMETER': 'parameterized'})
 
+@pytest.mark.sanity
+def test_toxic_sidecar_doesnt_trigger_recovery():
+    # 1. Run the toxic sidecar plan that will never succeed.
+    # 2. Restart the scheduler.
+    # 3. Verify that its recovery plan is empty, as a failed FINISHED task should
+    # never trigger recovery
+    run_plan('sidecar-toxic')
+
 
 def run_plan(plan_name, params=None):
     sdk_plan.start_plan(PACKAGE_NAME, plan_name, params)

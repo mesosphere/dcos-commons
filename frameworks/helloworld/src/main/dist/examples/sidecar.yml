@@ -36,6 +36,10 @@ pods:
         goal: FINISHED
         cmd: "echo $PLAN_PARAMETER >> hello-container-path/output && grep parameterized < hello-container-path/output"
         resource-set: sidecar-resources
+      sidecar-toxic:
+        goal: FINISHED
+        cmd: "echo 'I'm addicted to you / Don't you know that you're toxic?' && exit 1"
+        resource-set: sidecar-resources
 plans:
   deploy:
     strategy: serial
@@ -66,3 +70,11 @@ plans:
         pod: hello
         steps:
           - default: [[sidecar-parameterized]]
+  sidecar-toxic:
+    strategy: serial
+    phases:
+      sidecar-toxic-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[sidecar-toxic]]
