@@ -42,6 +42,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     private String name;
     private String role;
     private String principal;
+    private String user;
 
     private String webUrl;
     private String zookeeperConnection;
@@ -63,7 +64,8 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
-            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
+            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
+            @JsonProperty("user") String user) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -73,6 +75,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
+        this.user = user;
         ValidationUtils.validate(this);
     }
 
@@ -84,7 +87,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.webUrl,
                 builder.zookeeperConnection,
                 builder.pods,
-                builder.replacementFailurePolicy);
+                builder.replacementFailurePolicy,
+                builder.user);
     }
 
 
@@ -111,6 +115,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.webUrl = copy.getWebUrl();
         builder.pods = copy.getPods();
         builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
+        builder.user = copy.getUser();
         return builder;
     }
 
@@ -165,6 +170,11 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
         return COMPARATOR;
+    }
+
+    @Override
+    public String getUser() {
+        return user;
     }
 
     /**
@@ -359,6 +369,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
+        private String user;
 
         private Builder() {
         }
@@ -406,6 +417,18 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder webUrl(String webUrl) {
             this.webUrl = webUrl;
+            return this;
+        }
+
+        /**
+         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param user the {@code principal} to set
+         * @return a reference to this Builder
+         */
+        public Builder user(String user) {
+            this.user = user;
             return this;
         }
 

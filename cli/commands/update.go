@@ -7,7 +7,7 @@ import (
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/config"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type describeHandler struct{}
@@ -50,7 +50,7 @@ func describe() {
 	}
 }
 
-func (cmd *describeHandler) handleDescribe(c *kingpin.ParseContext) error {
+func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	describe()
 	return nil
@@ -107,7 +107,7 @@ func printPackageVersions() {
 	}
 }
 
-func (cmd *updateHandler) ViewPackageVersions(c *kingpin.ParseContext) error {
+func (cmd *updateHandler) ViewPackageVersions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	printPackageVersions()
 	return nil
@@ -162,7 +162,7 @@ func doUpdate(optionsFile, packageVersion string) {
 	client.PrintMessage(fmt.Sprintf("Update started. Please use `dcos %s --name=%s update status` to view progress.", config.ModuleName, config.ServiceName))
 }
 
-func (cmd *updateHandler) UpdateConfiguration(c *kingpin.ParseContext) error {
+func (cmd *updateHandler) UpdateConfiguration(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
 	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
 	return nil

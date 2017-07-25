@@ -9,6 +9,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -592,6 +593,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
+
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         offerAccepter = new OfferAccepter(Collections.singletonList(new PersistentLaunchRecorder(stateStore,
@@ -602,7 +604,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         stateStore,
                         serviceSpec.getName(),
                         configStore.getTargetConfig(),
-                        schedulerFlags),
+                        schedulerFlags,
+                        Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore,
                 taskKiller);
     }
@@ -767,10 +770,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
         statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                     status.getTaskId().getValue(),
                     status.getState().toString(),
-                    status.getMessage());
+                    status.getMessage(),
+                    TextFormat.shortDebugString(status));
 
             // Store status, then pass status to PlanManager => Plan => Steps
             try {

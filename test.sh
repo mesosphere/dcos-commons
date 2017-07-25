@@ -128,5 +128,5 @@ docker run --rm \
     -v $(pwd):/build \
     -v $ssh_path:/ssh/key \
     -w /build \
-    michaelellenburg/dcos-commons:v0 \
+    michaelellenburg/dcos-commons:v3 \
     bash test-runner.sh

@@ -7,8 +7,8 @@ usage() {
 
 [[ -n "${HDFS_SERVICE_NAME}" ]] || usage
 
-API_PORT=$(dig _${HDFS_SERVICE_NAME}._tcp.marathon.mesos SRV +short | cut -d " " -f 3)
-wget "${HDFS_SERVICE_NAME}.marathon.mesos:${API_PORT}/v1/endpoints/core-site.xml"
-wget "${HDFS_SERVICE_NAME}.marathon.mesos:${API_PORT}/v1/endpoints/hdfs-site.xml"
-cp core-site.xml /hadoop-2.6.0-cdh5.9.1/etc/hadoop
-cp hdfs-site.xml /hadoop-2.6.0-cdh5.9.1/etc/hadoop
+cd /
+wget -P / "api.${HDFS_SERVICE_NAME}.marathon.l4lb.thisdcos.directory:80/v1/endpoints/core-site.xml" >>/configure-hdfs.log 2>&1
+wget -P / "api.${HDFS_SERVICE_NAME}.marathon.l4lb.thisdcos.directory:80/v1/endpoints/hdfs-site.xml" >>/configure-hdfs.log 2>&1
+cp /core-site.xml /hadoop-2.6.0-cdh5.9.1/etc/hadoop >>/configure-hdfs.log 2>&1
+cp /hdfs-site.xml /hadoop-2.6.0-cdh5.9.1/etc/hadoop >>/configure-hdfs.log 2>&1

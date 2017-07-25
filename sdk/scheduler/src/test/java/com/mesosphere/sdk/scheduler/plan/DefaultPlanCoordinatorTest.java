@@ -9,10 +9,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.*;
@@ -27,7 +24,7 @@ import static org.mockito.Mockito.spy;
 /**
  * Tests for {@code DefaultPlanCoordinator}.
  */
-public class DefaultPlanCoordinatorTest {
+public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
@@ -100,6 +97,7 @@ public class DefaultPlanCoordinatorTest {
                 .pods(Arrays.asList(podA))
                 .build();
         stateStore = new StateStore(new MemPersister());
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
@@ -110,7 +108,8 @@ public class DefaultPlanCoordinatorTest {
                         stateStore,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags()),
+                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        true),
                 stateStore,
                 taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
@@ -124,12 +123,12 @@ public class DefaultPlanCoordinatorTest {
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
         final ArrayList<Protos.Offer> offers = new ArrayList<>();
-        offers.addAll(OfferTestUtils.getOffers(
+        offers.addAll(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
                         ResourceTestUtils.getUnreservedDisk(disk))));
-        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getOffers(
+        offers.add(Protos.Offer.newBuilder(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),

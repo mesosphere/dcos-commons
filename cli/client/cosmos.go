@@ -30,7 +30,7 @@ const (
 // https://dcos.cluster/cosmos/service/<urlPath>
 func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
 	SetCustomResponseCheck(checkCosmosHTTPResponse)
-	return checkHTTPResponse(httpQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
+	return CheckHTTPResponse(HTTPQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
 
 type cosmosErrorInstance struct {
@@ -142,7 +142,7 @@ func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Requ
 	endpoint := strings.Replace(urlPath, "/", ".", -1)
 	acceptHeader := fmt.Sprintf("application/vnd.dcos.service.%s-response+json;charset=utf-8;version=v1", endpoint)
 	contentTypeHeader := fmt.Sprintf("application/vnd.dcos.service.%s-request+json;charset=utf-8;version=v1", endpoint)
-	return createHTTPRawRequest(method, createCosmosURL(urlPath), jsonPayload, acceptHeader, contentTypeHeader)
+	return CreateHTTPRawRequest(method, createCosmosURL(urlPath), jsonPayload, acceptHeader, contentTypeHeader)
 }
 
 func createCosmosURL(urlPath string) *url.URL {
@@ -154,9 +154,9 @@ func createCosmosURL(urlPath string) *url.URL {
 	// Use Cosmos URL if we have it specified
 	if len(config.CosmosURL) > 0 {
 		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
-		return createURL(config.CosmosURL, joinedURLPath, "")
+		return CreateURL(config.CosmosURL, joinedURLPath, "")
 	}
-	getDCOSURL()
+	GetDCOSURL()
 	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
-	return createURL(config.DcosURL, joinedURLPath, "")
+	return CreateURL(config.DcosURL, joinedURLPath, "")
 }
