@@ -1,19 +1,13 @@
 package com.mesosphere.sdk.offer.taskdata;
 
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.offer.TaskException;
+import org.apache.mesos.Protos.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.mesosphere.sdk.config.ConfigStore;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Label;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
-
-import com.mesosphere.sdk.offer.TaskException;
 
 /**
  * Provides read access to task labels which are (only) read by the Scheduler.
