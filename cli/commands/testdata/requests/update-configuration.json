@@ -25,5 +25,6 @@
             "mem": 512,
             "placement": "hostname:UNIQUE"
         }
-    }
+    },
+    "replace" : false
 }
