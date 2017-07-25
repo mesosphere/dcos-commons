@@ -75,7 +75,6 @@ def test_metrics():
 
 
 @pytest.mark.sanity
-@pytest.mark.skip(reason="ELASTIC-110")
 def test_xpack_toggle_with_kibana(default_populated_index):
     # Verify disabled by default
     verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
