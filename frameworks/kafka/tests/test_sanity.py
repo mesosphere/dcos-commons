@@ -274,10 +274,10 @@ def test_state_cli():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_pods_cli():
-    assert service_cli('pods list', service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
+def test_pod_cli():
+    assert service_cli('pod list', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pod status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pod info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
 
 @pytest.mark.sanity
 @pytest.mark.metrics

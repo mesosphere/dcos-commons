@@ -471,7 +471,7 @@ Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Con
 Comprehensive information is available about every node.  To list all nodes:
 
 ```bash
-dcos beta-hdfs --name=<service-name> pods list
+dcos beta-hdfs --name=<service-name> pod list
 ```
 
 Result:
@@ -492,12 +492,12 @@ Result:
 
 To view information about a node, run the following command from the CLI.
 ```bash
-$ dcos hdfs --name=<service-name> pods info <node-id>
+$ dcos hdfs --name=<service-name> pod info <node-id>
 ```
 
 For example:
 ```bash
-$ dcos beta-hdfs pods info journal-0
+$ dcos beta-hdfs pod info journal-0
 ```
 
 Result:
@@ -982,13 +982,13 @@ Result:
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos beta-hdfs --name=<service-name> pods info <node-id>
+$ dcos beta-hdfs --name=<service-name> pod info <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos beta-hdfs pods info journal-0
+$ dcos beta-hdfs pod info journal-0
 ```
 
 ```json

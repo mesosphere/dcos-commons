@@ -198,7 +198,7 @@ Each component's ports may be customized in the following configuration sections
 <a name="storage-volumes"></a>
 
 ### Networks
-You can specify that a pod should join the `dcos` overlay network, a [Virtual Network](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns) that supports having one IP address per pod.  When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining dcos we ignore the ports resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <task_name>.<framework_name>.autoip.dcos.thisdcos.directory. 
+You can specify that a pod should join the `dcos` overlay network, a [Virtual Network](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns) that supports having one IP address per pod.  When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining dcos we ignore the ports resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <task_name>.<framework_name>.autoip.dcos.thisdcos.directory.
 
 **Note** that this DNS will also work for pods on the host network. **Because the ports resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the dcos overlay to the host network or vice-versa.** This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
 
@@ -348,7 +348,7 @@ Let's say we have the following deployment of our nodes
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pods replace _NODEPOD_-1`
+1. Redeploy `_NODEPOD_-1` from the decommissioned node to somewhere within the new whitelist: `dcos _PKGNAME_ pod replace _NODEPOD_-1`
 1. Wait for `_NODEPOD_-1` to be up and healthy before continuing with any other replacement operations.
 
 ### _SERVICE-WIDE OPTIONS SPECIFIC TO YOUR PRODUCT INTEGRATION_
@@ -364,7 +364,7 @@ _ADD ONE OR MORE SECTIONS HERE TO DESCRIBE RE-CONFIGURATION OF HIGHLIGHTED NODE-
 
 This operation will restart a node while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
-1. Run `dcos _PKGNAME_ pods restart _NODEPOD_-<NUM>`, e.g. `_NODEPOD_-2`.
+1. Run `dcos _PKGNAME_ pod restart _NODEPOD_-<NUM>`, e.g. `_NODEPOD_-2`.
 
 <a name="replacing-a-node"></a>
 ## Replacing a Node
@@ -374,14 +374,14 @@ This operation will move a node to a new system and will discard the persistent 
 **Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.
 
 1. _ANY STEPS TO WIND DOWN A NODE BEFORE IT'S WIPED/DECOMMISSIONED GO HERE_
-1. Run `dcos _PKGNAME_ pods replace _NODEPOD_-<NUM>` to halt the current instance (if still running) and launch a new instance elsewhere.
+1. Run `dcos _PKGNAME_ pod replace _NODEPOD_-<NUM>` to halt the current instance (if still running) and launch a new instance elsewhere.
 
 For example, let's say `_NODEPOD_-3`'s host system has died and `_NODEPOD_-3` needs to be moved.
 
 1. _DETAILED INSTRUCTIONS FOR WINDING DOWN A NODE, IF NEEDED FOR YOUR SERVICE, GO HERE_
 1. _"NOW THAT THE NODE HAS BEEN DECOMMISSIONED," (IF NEEDED BY YOUR SERVICE)_ start `_NODEPOD_-3` at a new location in the cluster.
 	``` shell
-	$ dcos _PKGNAME_ pods replace _NODEPOD_-3
+	$ dcos _PKGNAME_ pod replace _NODEPOD_-3
 	```
 
 <a name="disaster-recovery"></a>
@@ -445,7 +445,7 @@ Neither volume type nor volume size requirements may be changed after initial de
 Rack placement and awareness are not supported at this time.
 
 ## Overlay network configuration updates
-When a pod from your service uses the overlay network, it does not use the port resources on the agent machine, and thus does not have them reserved. For this reason, we do not allow a pod deployed on the overlay network to be updated (moved) to the host network, because we cannot guarantee that the machine with the reserved volumes will have ports available. To make the reasoning simpler, we also do not allow for pods to be moved from the host network to the overlay. Once you pick a networking paradigm for your service the service is bound to that networking paradigm. 
+When a pod from your service uses the overlay network, it does not use the port resources on the agent machine, and thus does not have them reserved. For this reason, we do not allow a pod deployed on the overlay network to be updated (moved) to the host network, because we cannot guarantee that the machine with the reserved volumes will have ports available. To make the reasoning simpler, we also do not allow for pods to be moved from the host network to the overlay. Once you pick a networking paradigm for your service the service is bound to that networking paradigm.
 
 ## _OTHER CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION_
 

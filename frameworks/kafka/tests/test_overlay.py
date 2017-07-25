@@ -73,7 +73,7 @@ def test_overlay_network_deployment_and_endpoints():
 @pytest.mark.overlay
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
-def test_pods_restart_on_overlay():
+def test_pod_restart_on_overlay():
     restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
 
@@ -82,7 +82,7 @@ def test_pods_restart_on_overlay():
 @pytest.mark.overlay
 @overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
-def test_pods_replace_on_overlay():
+def test_pod_replace_on_overlay():
     replace_broker_pod()
     test_overlay_network_deployment_and_endpoints()
 

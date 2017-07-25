@@ -108,7 +108,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     <div class="noyaml"><ul>
     <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
-    <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.</li>
+    <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has its own IP address.</li>
     <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
     </ul></div>
 
@@ -346,8 +346,8 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `prefix`
 
-        A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pods with discovery names of `foo-0`, `foo-1`, and so on.
-        This value may be used to have pods whose hostname in Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
+        A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pod with discovery names of `foo-0`, `foo-1`, and so on.
+        This value may be used to have pods whose hostnames are Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
         Note that to avoid name collisions, different pods are not allowed to share the same prefix value.
 
       * `visibility`

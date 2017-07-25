@@ -32,7 +32,7 @@ def configure_package(configure_universe):
 def test_task_dns_prefix_points_to_all_tasks():
     pod_info = dcos.http.get(
         shakedown.dcos_service_url(PACKAGE_NAME) +
-        "/v1/pods/{}/info".format("hello-0")).json()
+        "/v1/pod/{}/info".format("hello-0")).json()
 
     # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))

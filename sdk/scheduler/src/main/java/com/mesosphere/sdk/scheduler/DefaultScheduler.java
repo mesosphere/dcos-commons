@@ -686,7 +686,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        resources.add(new PodsResource(taskKiller, stateStore));
+        resources.add(new PodResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 

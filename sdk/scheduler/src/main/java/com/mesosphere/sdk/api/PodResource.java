@@ -41,9 +41,9 @@ import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
-@Path("/v1/pods")
-public class PodsResource extends PrettyJsonResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PodsResource.class);
+@Path("/v1/pod")
+public class PodResource extends PrettyJsonResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PodResource.class);
 
     /**
      * Pod 'name' to use in responses for tasks which have no pod information.
@@ -56,7 +56,7 @@ public class PodsResource extends PrettyJsonResource {
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
      */
-    public PodsResource(TaskKiller taskKiller, StateStore stateStore) {
+    public PodResource(TaskKiller taskKiller, StateStore stateStore) {
         this.taskKiller = taskKiller;
         this.stateStore = stateStore;
     }

@@ -96,7 +96,7 @@ def test_hostname_unique():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # ensure "hello" task can still be placed with "world" task
-    cmd.run_cli('hello-world pods replace hello-0')
+    cmd.run_cli('hello-world pod replace hello-0')
     sdk_tasks.check_running(PACKAGE_NAME, num_private_agents * 2 - 1, timeout_seconds=10)
     sdk_tasks.check_running(PACKAGE_NAME, num_private_agents * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
@@ -221,7 +221,7 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Restart the task, and verify it doesn't move hosts
-    cmd.run_cli('hello-world pods restart hello-0')
+    cmd.run_cli('hello-world pod restart hello-0')
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
@@ -233,7 +233,7 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Replace the task, and verify it moves hosts
-    cmd.run_cli('hello-world pods replace hello-0')
+    cmd.run_cli('hello-world pod replace hello-0')
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == other_agent
