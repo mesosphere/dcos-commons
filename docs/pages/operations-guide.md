@@ -313,14 +313,14 @@ Enterprise DC/OS provides a secrets store to enable access to sensitive data suc
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the Sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
+The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
 ```yaml
 name: secret-app/instance1
 pods:
   pod-with-secret:
     count: {{COUNT}}
-    # add secret file to pod's Sandbox
+    # add secret file to pod's sandbox
     secrets:
       secret_name1:
         secret: secret-app/Secret_Path1
@@ -350,11 +350,10 @@ For the example given above, the secret with path `secret-app/Secret_Path1` can 
 
 ### Absolute and Relative File Paths for Secrets
 
- If `file` is a relative path, secret file is placed under the Sandbox. Absolute paths, with leading slash cahracter, are only allowed if the related pod definition contains an `image-name`.  Please note that `user` running the tasks should have permission to create the given absolute file path. 
+ If `file` is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an `image-name`.  **Note:** The`user` running the tasks must have permission to create the given absolute file path. 
  
- Please see below for a valid secret definition with a docker `image-name`. `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
- 
- 
+Below is a valid secret definition with a Docker `image-name`. The `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
+  
 ```yaml
 name: secret-app/instance2
 pods:
