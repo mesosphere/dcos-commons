@@ -6,7 +6,6 @@ pods:
   template:
     count: {{NODE_COUNT}}
     placement: {{NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:

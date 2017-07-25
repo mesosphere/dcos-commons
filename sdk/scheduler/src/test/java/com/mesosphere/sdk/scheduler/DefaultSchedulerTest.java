@@ -172,6 +172,7 @@ public class DefaultSchedulerTest {
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("badhost-shouldbeignored:2181")
                 .pods(Arrays.asList(pods))
+                .user(TestConstants.SERVICE_USER)
                 .build();
     }
 

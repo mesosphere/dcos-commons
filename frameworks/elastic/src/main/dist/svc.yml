@@ -24,7 +24,6 @@ pods:
         soft: 128000
         hard: 128000
     placement: {{MASTER_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
@@ -91,7 +90,6 @@ pods:
         soft: 128000
         hard: 128000
     placement: {{DATA_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
@@ -158,7 +156,6 @@ pods:
         soft: 128000
         hard: 128000
     placement: {{INGEST_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
@@ -225,7 +222,6 @@ pods:
         soft: 128000
         hard: 128000
     placement: {{COORDINATOR_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING

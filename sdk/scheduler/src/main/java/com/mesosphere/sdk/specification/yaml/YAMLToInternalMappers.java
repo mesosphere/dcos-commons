@@ -83,7 +83,8 @@ public class YAMLToInternalMappers {
                     taskEnvRouter.getConfig(entry.getKey()),
                     role,
                     principal,
-                    schedulerFlags.getExecutorURI()));
+                    schedulerFlags.getExecutorURI(),
+                    user));
 
         }
         builder.pods(pods);
@@ -178,11 +179,12 @@ public class YAMLToInternalMappers {
             Map<String, String> additionalEnv,
             String role,
             String principal,
-            String executorUri) throws Exception {
+            String executorUri,
+            String user) throws Exception {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
-                .user(rawPod.getUser())
+                .user(user)
                 .preReservedRole(rawPod.getPreReservedRole());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
