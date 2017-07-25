@@ -223,11 +223,11 @@ There are two types of recovery, permanent and temporary. The difference is main
     - Recovery involves relaunching the task on the same machine as before.
     - Recovery occurs automatically.
     - Any data in the task's persistent volumes survives the outage.
-    - May be manually triggered by a `pods restart` command.
+    - May be manually triggered by a `pod restart` command.
 - __Permanent__ recovery:
     - Permanent recovery can be requested when the host machine fails permanently or when the host machine is scheduled for downtime.
     - Recovery involves discarding any persistent volumes that the pod once had on the host machine.
-    - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
+    - Recovery only occurs in response to a manual `pod replace` command (or operators may build their own tooling to invoke the replace command).
 
 Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the pod being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
 
@@ -280,7 +280,7 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Overlay networks
 
-The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
 
 ```yaml
 pods:
@@ -302,7 +302,7 @@ When a pod is on the `dcos` overlay network:
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
-Specifying that pod join the `dcos` overlay network has the following indirect effects:
+Specifying that pods join the `dcos` overlay network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
@@ -373,13 +373,13 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 ```
 
-You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pods replace`](#replace-a-pod)) without requiring that system.
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
 ### Updating placement constraints
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
 - Update the placement constraint definition at the Scheduler.
-- For each pod, _one at a time_, perform a `pods replace` for any pods that need to be moved to reflect the change.
+- For each pod, _one at a time_, perform a `pod replace` for any pods that need to be moved to reflect the change.
 
 For example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
 
@@ -760,7 +760,7 @@ Restarting a pod can be done either via the CLI or via the underlying Scheduler 
 Via the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse pods list
+$ dcos beta-dse --name=dse pod list
 [
   "dse-0",
   "dse-1",
@@ -768,7 +768,7 @@ $ dcos beta-dse --name=dse pods list
   "opscenter-0",
   "studio-0"
 ]
-$ dcos beta-dse --name=dse pods restart dse-1
+$ dcos beta-dse --name=dse pod restart dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -781,7 +781,7 @@ $ dcos beta-dse --name=dse pods restart dse-1
 Via the HTTP API directly:
 
 ```bash
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
 [
   "dse-0",
   "dse-1",
@@ -789,7 +789,7 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
   "opscenter-0",
   "studio-0"
 ]
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods/dse-1/restart
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod/dse-1/restart
 {
   "pod": "dse-1",
   "tasks": [
@@ -810,7 +810,7 @@ Pod replacement is not currently done automatically by the SDK, as making the co
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
 ```bash
-$ dcos beta-dse --name=dse pods replace dse-1
+$ dcos beta-dse --name=dse pod replace dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -821,7 +821,7 @@ $ dcos beta-dse --name=dse pods replace dse-1
 ```
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pods/dse-1/replace
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pod/dse-1/replace
 {
   "pod": "dse-1",
   "tasks": [
@@ -1064,7 +1064,7 @@ These endpoints may also be conveniently accessed using the SDK CLI after instal
 For example, let's get a list of pods using the CLI, and then via the HTTP API:
 
 ```bash
-$ dcos beta-dse --name=dse pods list
+$ dcos beta-dse --name=dse pod list
 [
   "dse-0",
   "dse-1",
@@ -1072,7 +1072,7 @@ $ dcos beta-dse --name=dse pods list
   "opscenter-0",
   "studio-0"
 ]
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
 [
   "dse-0",
   "dse-1",
@@ -1085,9 +1085,9 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
 The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse -v pods list
+$ dcos beta-dse --name=dse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
-2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pods
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.ssl_verify
 [
@@ -1220,7 +1220,7 @@ Long story short, you forgot to run `janitor.py` the last time you ran the servi
 
 ## Stuck deployments
 
-You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and, for whatever reason, we don't have the time or the inclination to `pods replace` it and wait for it to come back.
+You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and, for whatever reason, we don't have the time or the inclination to `pod replace` it and wait for it to come back.
 
 In this case, we can use `plan` commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:
 
@@ -1316,7 +1316,7 @@ This example shows how steps in the deployment Plan (or any other Plan) can be m
 
 ## Deleting a task in ZooKeeper to forcibly wipe that task
 
-If the scheduler is still failing after `pods replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+If the scheduler is still failing after `pod replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 
@@ -1325,7 +1325,7 @@ If the scheduler is still failing after `pods replace <name>` to clear a task, a
 ## OOMed task
 
 Your tasks can be killed from an OOM if you didn't give them sufficient resources. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
-- Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pods status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
+- Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pod status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
 - Check [Agent logs](#mesos-agent-logs) directly for mention of the Mesos Agent killing a task due to excess memory usage.
 
 After you've been able to confirm that the problem is indeed an OOM, you can solve it by either [updating the service configuration](#updating-service-configuration) to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).

@@ -39,14 +39,14 @@ def test_kill_hello_node():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_pods_restart():
+def test_pod_restart():
     hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0')
 
     # get current agent id:
-    stdout = cmd.run_cli('hello-world pods info hello-0')
+    stdout = cmd.run_cli('hello-world pod info hello-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    stdout = cmd.run_cli('hello-world pods restart hello-0')
+    stdout = cmd.run_cli('hello-world pod restart hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
@@ -57,21 +57,21 @@ def test_pods_restart():
     check_running()
 
     # check agent didn't move:
-    stdout = cmd.run_cli('hello-world pods info hello-0')
+    stdout = cmd.run_cli('hello-world pod info hello-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     assert old_agent == new_agent
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_pods_replace():
+def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world-0')
 
     # get current agent id:
-    stdout = cmd.run_cli('hello-world pods info world-0')
+    stdout = cmd.run_cli('hello-world pod info world-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    jsonobj = json.loads(cmd.run_cli('hello-world pods replace world-0'))
+    jsonobj = json.loads(cmd.run_cli('hello-world pod replace world-0'))
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
     assert len(jsonobj['tasks']) == 1
@@ -81,7 +81,7 @@ def test_pods_replace():
     check_running()
 
     # check agent moved:
-    stdout = cmd.run_cli('hello-world pods info world-0')
+    stdout = cmd.run_cli('hello-world pod info world-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
     # assert old_agent != new_agent
