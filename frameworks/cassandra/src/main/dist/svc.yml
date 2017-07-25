@@ -21,7 +21,6 @@ pods:
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
-    user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}

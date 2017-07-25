@@ -19,7 +19,6 @@ public class RawPod implements RawContainerInfoProvider {
     private final String image;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
-    private final String user;
     private final Collection<String> uris;
     private final WriteOnceLinkedHashMap<String, RawTask> tasks;
     private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
@@ -38,7 +37,6 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-            @JsonProperty("user") String user,
             @JsonProperty("volume") RawVolume volume,
             @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
@@ -49,7 +47,6 @@ public class RawPod implements RawContainerInfoProvider {
         this.image = image;
         this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
         this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
-        this.user = user;
         this.uris = uris;
         this.tasks = tasks;
         this.resourceSets = resourceSets;
@@ -90,10 +87,6 @@ public class RawPod implements RawContainerInfoProvider {
 
     public Collection<String> getUris() {
         return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
-    }
-
-    public String getUser() {
-        return user;
     }
 
     public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {

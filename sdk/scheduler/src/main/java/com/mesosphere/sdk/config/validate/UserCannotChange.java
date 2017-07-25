@@ -23,13 +23,24 @@ public class UserCannotChange implements ConfigValidator<ServiceSpec> {
             return Collections.emptyList();
         }
 
+        List<ConfigValidationError> errors = new ArrayList<>();
+        if (oldConfig.get().getUser() != null && !oldConfig.get().getUser().equals(newConfig.getUser())) {
+            errors.add(ConfigValidationError.transitionError(
+                    "user",
+                    oldConfig.get().getUser(),
+                    newConfig.getUser(),
+                    "User for old service must remain the same across deployments."
+            ));
+        }
+
         // We can't rely on the order of pods to test new pods against olds ones.
         Map<String, PodSpec> oldPods = new HashMap<>();
         for (PodSpec oldPod : oldConfig.get().getPods()) {
             oldPods.put(oldPod.getType(), oldPod);
         }
+        errors.addAll(checkForUserEqualityAmongPods(oldPods, newConfig.getPods()));
 
-        return checkForUserEqualityAmongPods(oldPods, newConfig.getPods());
+        return errors;
     }
 
     private List<ConfigValidationError> checkForUserEqualityAmongPods(
