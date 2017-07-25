@@ -313,14 +313,14 @@ Enterprise DC/OS provides a secrets store to enable access to sensitive data suc
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
+The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the Sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
 ```yaml
 name: secret-app/instance1
 pods:
   pod-with-secret:
     count: {{COUNT}}
-    # add secret values to pod's sandbox
+    # add secret file to pod's Sandbox
     secrets:
       secret_name1:
         secret: secret-app/Secret_Path1
@@ -347,6 +347,36 @@ All tasks defined in the pod will have access to secret data. If the content of 
 The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
 
 For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
+
+### Absolute and Relative File Paths for Secrets
+
+ If `file` is a relative path, secret file is placed under the Sandbox. Absolute paths, with leading slash cahracter, are only allowed if the related pod definition contains an `image-name`.  Please note that `user` running the tasks should have permission to create the given absolute file path. 
+ 
+ Please see below for a valid secret definition with a docker `image-name`. `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
+ 
+ 
+```yaml
+name: secret-app/instance2
+pods:
+  pod-with-image:
+    count: {{COUNT}}
+    container:
+      image-name: ubuntu:14.04
+    user: root
+    secrets:
+      # absolute path
+      secret_name4:
+        secret: secret-app/Secret_Path1
+        env-key: Secret_Environment_Key
+        file: /etc/keys/keyset1/Secret_FilePath1
+      # relative path in Sandbox
+      secret_name5:
+        secret: secret-app/instance1/Secret_Path2
+        file: data/keys/keyset2/Secret_FilePath2
+    tasks:
+      ....
+```
+
 
 ## Placement Constraints
 
