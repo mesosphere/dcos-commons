@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.mesosphere.sdk.config.ConfigStore;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
@@ -128,5 +129,13 @@ public class TaskLabelReader {
     public boolean isPermanentlyFailed() {
         // null is false
         return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task has a readiness check label
+     */
+    public boolean hasReadinessCheckLabel() {
+        // null is false
+        return reader.getOptional(LabelConstants.READINESS_CHECK_LABEL).isPresent();
     }
 }
