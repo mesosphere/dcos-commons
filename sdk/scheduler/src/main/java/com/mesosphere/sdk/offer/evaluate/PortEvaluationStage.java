@@ -3,9 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.EnvConstants;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.*;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -154,7 +152,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
 
             // Add port to the readiness check environment (if a readiness check is defined):
-            if (taskBuilder.hasCheck()) {
+            if (taskBuilder.hasCheck() || new TaskLabelReader(taskBuilder).hasReadinessCheckLabel()) {
                 addReadinessCheckPort(taskBuilder, getPortEnvironmentVariable(portSpec), Long.toString(port));
             }
 
