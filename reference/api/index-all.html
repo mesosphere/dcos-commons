@@ -2746,7 +2746,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPhase.html#getPod--">getPod()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPhase.html" title="class in com.mesosphere.sdk.specification.yaml">RawPhase</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#getPodInfo-java.lang.String-">getPodInfo(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodInfo-java.lang.String-">getPodInfo(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Produces the full information for a single pod instance.</div>
 </dd>
@@ -2768,7 +2768,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-java.util.Collection-">getPodRequirements(ConfigStore&lt;ServiceSpec&gt;, Collection&lt;TaskInfo&gt;, Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Produces a listing of all pod instance names.</div>
 </dd>
@@ -2783,11 +2783,11 @@
 <div class="block">Returns the <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a> in the provided <a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>
  which matches the provided <code>TaskInfo</code>, or <code>null</code> if no match could be found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#getPodStatus-java.lang.String-">getPodStatus(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodStatus-java.lang.String-">getPodStatus(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Produces the summary status of a single pod instance.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#getPodStatuses--">getPodStatuses()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodStatuses--">getPodStatuses()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Produces the summary statuses of all pod instances.</div>
 </dd>
@@ -4724,6 +4724,14 @@
 <dd>
 <div class="block"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> builder static inner class.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PodResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dd>
+<div class="block">A read-only API for accessing information about how to connect to the service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">PodResource(TaskKiller, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dd>
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#pods-java.util.List-">pods(List&lt;PodSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>pods</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -4746,14 +4754,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html#PodSpecsCannotShrink--">PodSpecsCannotShrink()</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotShrink</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PodsResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
-<dd>
-<div class="block">A read-only API for accessing information about how to connect to the service.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#PodsResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">PodsResource(TaskKiller, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
-<dd>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#port">port</a></span> - Variable in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#PORT_API_VALUE">PORT_API_VALUE</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
@@ -5147,7 +5147,7 @@
 <dd>
 <div class="block"><code>ReplacementFailurePolicy</code> builder static inner class.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
 </dd>
@@ -5293,7 +5293,7 @@
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodsResource.html#restartPod-java.lang.String-">restartPod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodsResource.html" title="class in com.mesosphere.sdk.api">PodsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#restartPod-java.lang.String-">restartPod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Restarts a pod instance in-place.</div>
 </dd>

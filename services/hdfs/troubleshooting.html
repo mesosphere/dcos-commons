@@ -314,14 +314,14 @@
 <h1 id="replacing-a-permanently-failed-node">Replacing a Permanently Failed Node</h1>
 <p>The DC/OS Beta-HDFS Service is resilient to temporary node failures. However, if a DC/OS agent hosting a HDFS node is permanently lost, manual intervention is required to replace the failed node. The following command should be used to replace the node residing on the failed server.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pods replace &lt;node_id&gt;
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pod replace &lt;node_id&gt;
 </code></pre>
 </div>
 
 <h1 id="restarting-a-node">Restarting a Node</h1>
 <p>If you must forcibly restart a node, use the following command to restart the node on the same agent node where it currently resides. This will not result in an outage or loss of data.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pods restart &lt;node_id&gt;
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pod restart &lt;node_id&gt;
 </code></pre>
 </div>
 

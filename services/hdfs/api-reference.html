@@ -589,19 +589,19 @@
 
 <h1 id="nodes-api">Nodes API</h1>
 
-<p>The pods API provides endpoints for retrieving information about nodes, restarting them, and replacing them.</p>
+<p>The pod API provides endpoints for retrieving information about nodes, restarting them, and replacing them.</p>
 
 <h2 id="list-nodes">List Nodes</h2>
 
-<p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pods</code>:</p>
+<p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods list
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod list
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pod
 [
     "data-0",
     "data-1",
@@ -619,19 +619,19 @@
 
 <h2 id="node-info">Node Info</h2>
 
-<p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pods/&lt;node-id&gt;/info</code>:</p>
+<p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/info
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/info
 </code></pre>
 </div>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods info journal-0
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod info journal-0
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/journal-0/info
+<div class="highlighter-rouge"><pre class="highlight"><code>curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pod/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -1031,12 +1031,12 @@
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods replace &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod replace &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/replace
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/replace
 </code></pre>
 </div>
 
@@ -1047,12 +1047,12 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pods restart &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod restart &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pods/&lt;node-id&gt;/restart
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/restart
 </code></pre>
 </div>
 

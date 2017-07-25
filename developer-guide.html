@@ -424,7 +424,7 @@
 
 <p>If we consider Mesos to be DC/OS’ kernel, then Marathon is its init system. It launches and keeps up the software that should be running on the operating system.</p>
 
-<p>Marathon is itself a Mesos framework. Some of the tasks it launches are the schedulers written with the SDK described here. Use an application or pod definition to tell. Application and pods definitions are declarative JSON representations of a task or tasks that Marathon should run.To learn more, consult the <a href="https://mesosphere.github.io/marathon/">Marathon documentation</a>.</p>
+<p>Marathon is itself a Mesos framework. Some of the tasks it launches are the schedulers written with the SDK described here. Application and pod definitions are declarative JSON representations of a task or tasks that Marathon should run. To learn more, consult the <a href="https://mesosphere.github.io/marathon/">Marathon documentation</a>.</p>
 
 <h2 id="universe">Universe</h2>
 
@@ -1978,7 +1978,6 @@ hello
     <span class="o">.</span><span class="na">name</span><span class="o">(</span><span class="n">FRAMEWORK_NAME</span><span class="o">)</span>
     <span class="o">.</span><span class="na">role</span><span class="o">(</span><span class="n">ROLE</span><span class="o">)</span>
     <span class="o">.</span><span class="na">principal</span><span class="o">(</span><span class="n">PRINCIPAL</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">apiPort</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
     <span class="o">.</span><span class="na">zookeeperConnection</span><span class="o">(</span><span class="s">"foo.bar.com"</span><span class="o">)</span>
     <span class="o">.</span><span class="na">pods</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">pods</span><span class="o">))</span>
     <span class="o">.</span><span class="na">build</span><span class="o">();</span>

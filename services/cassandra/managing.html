@@ -364,7 +364,7 @@
 </code></pre>
     </div>
   </li>
-  <li>Redeploy <code class="highlighter-rouge">node-1</code> from the decommissioned node to somewhere within the new whitelist: <code class="highlighter-rouge">dcos beta-cassandra pods replace node-1</code></li>
+  <li>Redeploy <code class="highlighter-rouge">node-1</code> from the decommissioned node to somewhere within the new whitelist: <code class="highlighter-rouge">dcos beta-cassandra pod replace node-1</code></li>
   <li>Wait for <code class="highlighter-rouge">node-1</code> to be up and healthy before continuing with any other replacement operations.</li>
 </ol>
 
@@ -373,7 +373,7 @@
 <p>This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.</p>
 
 <ol>
-  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pods restart node-&lt;NUM&gt;</code>, e.g. <code class="highlighter-rouge">node-2</code>.</li>
+  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pod restart node-&lt;NUM&gt;</code>, e.g. <code class="highlighter-rouge">node-2</code>.</li>
 </ol>
 
 <h1 id="replacing-a-node">Replacing a Node</h1>
@@ -383,11 +383,11 @@
 <p><strong>Note:</strong> Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.</p>
 
 <ol>
-  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pods replace node-&lt;NUM&gt;</code> to halt the current instance with id <code class="highlighter-rouge">&lt;NUM&gt;</code> (if still running) and launch a new instance elsewhere.</li>
+  <li>Run <code class="highlighter-rouge">dcos beta-cassandra pod replace node-&lt;NUM&gt;</code> to halt the current instance with id <code class="highlighter-rouge">&lt;NUM&gt;</code> (if still running) and launch a new instance elsewhere.</li>
 </ol>
 
 <p>For example, let’s say <code class="highlighter-rouge">node-2</code>’s host system has died and <code class="highlighter-rouge">node-2</code> needs to be moved.</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra pods replace node-2
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra pod replace node-2
 </code></pre>
 </div>
 

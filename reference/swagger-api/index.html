@@ -223,14 +223,14 @@ font-style: italic;
   <li><a href="#plansStart"><code><span class="http-method">post</span> /plans/{name}/start</code></a></li>
   <li><a href="#plansStop"><code><span class="http-method">post</span> /plans/{name}/stop</code></a></li>
   </ul>
-  <h4><a href="#Pods">Pods</a></h4>
+  <h4><a href="#Pod">Pod</a></h4>
   <ul>
-  <li><a href="#podsGet"><code><span class="http-method">get</span> /pods/{name}/info</code></a></li>
-  <li><a href="#podsList"><code><span class="http-method">get</span> /pods</code></a></li>
-  <li><a href="#podsListStatus"><code><span class="http-method">get</span> /pods/status</code></a></li>
-  <li><a href="#podsReplace"><code><span class="http-method">post</span> /pods/{name}/replace</code></a></li>
-  <li><a href="#podsRestart"><code><span class="http-method">post</span> /pods/{name}/restart</code></a></li>
-  <li><a href="#podsStatus"><code><span class="http-method">get</span> /pods/{name}/status</code></a></li>
+  <li><a href="#podGet"><code><span class="http-method">get</span> /pod/{name}/info</code></a></li>
+  <li><a href="#podList"><code><span class="http-method">get</span> /pod</code></a></li>
+  <li><a href="#podListStatus"><code><span class="http-method">get</span> /pod/status</code></a></li>
+  <li><a href="#podReplace"><code><span class="http-method">post</span> /pod/{name}/replace</code></a></li>
+  <li><a href="#podRestart"><code><span class="http-method">post</span> /pod/{name}/restart</code></a></li>
+  <li><a href="#podStatus"><code><span class="http-method">get</span> /pod/{name}/status</code></a></li>
   </ul>
   <h4><a href="#State">State</a></h4>
   <ul>
@@ -884,12 +884,12 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <h1><a name="Pods">Pods</a></h1>
-  <div class="method"><a name="podsGet"/>
+  <h1><a name="Pod">Pod</a></h1>
+  <div class="method"><a name="podGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/{name}/info</code></pre></div>
-    <div class="method-summary">Returns information about the specified pod. (<span class="nickname">podsGet</span>)</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod/{name}/info</code></pre></div>
+    <div class="method-summary">Returns information about the specified pod. (<span class="nickname">podGet</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -927,11 +927,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsList"/>
+  <div class="method"><a name="podList"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods</code></pre></div>
-    <div class="method-summary">Produces a listing of the names of all pods. (<span class="nickname">podsList</span>)</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod</code></pre></div>
+    <div class="method-summary">Produces a listing of the names of all pods. (<span class="nickname">podList</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -960,11 +960,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsListStatus"/>
+  <div class="method"><a name="podListStatus"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/status</code></pre></div>
-    <div class="method-summary">Produces a summarized listing of all pod statuses. (<span class="nickname">podsListStatus</span>)</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod/status</code></pre></div>
+    <div class="method-summary">Produces a summarized listing of all pod statuses. (<span class="nickname">podListStatus</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -993,11 +993,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsReplace"/>
+  <div class="method"><a name="podReplace"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /pods/{name}/replace</code></pre></div>
-    <div class="method-summary">Restarts a pod and attempts to relaunch it on the next available cluster node. (<span class="nickname">podsReplace</span>)</div>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /pod/{name}/replace</code></pre></div>
+    <div class="method-summary">Restarts a pod and attempts to relaunch it on the next available cluster node. (<span class="nickname">podReplace</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -1032,11 +1032,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsRestart"/>
+  <div class="method"><a name="podRestart"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /pods/{name}/restart</code></pre></div>
-    <div class="method-summary">Restarts a pod and attempts to relaunch it on the same cluster node. (<span class="nickname">podsRestart</span>)</div>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /pod/{name}/restart</code></pre></div>
+    <div class="method-summary">Restarts a pod and attempts to relaunch it on the same cluster node. (<span class="nickname">podRestart</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -1071,11 +1071,11 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="podsStatus"/>
+  <div class="method"><a name="podStatus"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /pods/{name}/status</code></pre></div>
-    <div class="method-summary">Produces the status for the requested pod name. (<span class="nickname">podsStatus</span>)</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod/{name}/status</code></pre></div>
+    <div class="method-summary">Produces the status for the requested pod name. (<span class="nickname">podStatus</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>

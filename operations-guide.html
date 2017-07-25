@@ -750,14 +750,14 @@
       <li>Recovery involves relaunching the task on the same machine as before.</li>
       <li>Recovery occurs automatically.</li>
       <li>Any data in the task’s persistent volumes survives the outage.</li>
-      <li>May be manually triggered by a <code class="highlighter-rouge">pods restart</code> command.</li>
+      <li>May be manually triggered by a <code class="highlighter-rouge">pod restart</code> command.</li>
     </ul>
   </li>
   <li><strong>Permanent</strong> recovery:
     <ul>
       <li>Permanent recovery can be requested when the host machine fails permanently or when the host machine is scheduled for downtime.</li>
       <li>Recovery involves discarding any persistent volumes that the pod once had on the host machine.</li>
-      <li>Recovery only occurs in response to a manual <code class="highlighter-rouge">pods replace</code> command (or operators may build their own tooling to invoke the replace command).</li>
+      <li>Recovery only occurs in response to a manual <code class="highlighter-rouge">pod replace</code> command (or operators may build their own tooling to invoke the replace command).</li>
     </ul>
   </li>
 </ul>
@@ -821,7 +821,7 @@ Agent 3: X B
 
 <h2 id="overlay-networks">Overlay networks</h2>
 
-<p>The SDK allows <code class="highlighter-rouge">pods</code> to join the <code class="highlighter-rouge">dcos</code> overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:</p>
+<p>The SDK allows pods to join the <code class="highlighter-rouge">dcos</code> overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
   <span class="s">pod-on-overlay</span><span class="pi">:</span>
@@ -845,7 +845,7 @@ Agent 3: X B
   <li>Pod IP addresses can be resolved with the DNS: <code class="highlighter-rouge">&lt;task_name&gt;.&lt;service_name&gt;.autoip.dcos.thisdcos.directory</code>.</li>
 </ul>
 
-<p>Specifying that pod join the <code class="highlighter-rouge">dcos</code> overlay network has the following indirect effects:</p>
+<p>Specifying that pods join the <code class="highlighter-rouge">dcos</code> overlay network has the following indirect effects:</p>
 <ul>
   <li>The <code class="highlighter-rouge">ports</code> resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     <ul>
@@ -959,14 +959,14 @@ Agent 3: X B
 </code></pre>
 </div>
 
-<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pods replace</code></a>) without requiring that system.</p>
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
 <h3 id="updating-placement-constraints">Updating placement constraints</h3>
 
 <p>Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:</p>
 <ul>
   <li>Update the placement constraint definition at the Scheduler.</li>
-  <li>For each pod, <em>one at a time</em>, perform a <code class="highlighter-rouge">pods replace</code> for any pods that need to be moved to reflect the change.</li>
+  <li>For each pod, <em>one at a time</em>, perform a <code class="highlighter-rouge">pod replace</code> for any pods that need to be moved to reflect the change.</li>
 </ul>
 
 <p>For example, let’s say we have the following deployment of our imaginary <code class="highlighter-rouge">data</code> nodes, with manual IPs defined for placing the nodes in the cluster:</p>
@@ -1384,7 +1384,7 @@ dcos package install --cli &lt;service-name&gt;
 
 <p>Via the CLI:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod list
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -1392,7 +1392,7 @@ dcos package install --cli &lt;service-name&gt;
   <span class="s2">"opscenter-0"</span>,
   <span class="s2">"studio-0"</span>
 <span class="o">]</span>
-<span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods restart dse-1
+<span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod restart dse-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1405,7 +1405,7 @@ dcos package install --cli &lt;service-name&gt;
 
 <p>Via the HTTP API directly:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pods
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pod
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -1413,7 +1413,7 @@ dcos package install --cli &lt;service-name&gt;
   <span class="s2">"opscenter-0"</span>,
   <span class="s2">"studio-0"</span>
 <span class="o">]</span>
-<span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pods/dse-1/restart
+<span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pod/dse-1/restart
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1434,7 +1434,7 @@ dcos package install --cli &lt;service-name&gt;
 
 <p>As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods replace dse-1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod replace dse-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1445,7 +1445,7 @@ dcos package install --cli &lt;service-name&gt;
 </code></pre>
 </div>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> http://yourcluster.com/service/dse/v1/pods/dse-1/replace
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> http://yourcluster.com/service/dse/v1/pod/dse-1/replace
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1701,7 +1701,7 @@ broker-container#
 
 <p>For example, let’s get a list of pods using the CLI, and then via the HTTP API:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pods list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod list
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -1709,7 +1709,7 @@ broker-container#
   <span class="s2">"opscenter-0"</span>,
   <span class="s2">"studio-0"</span>
 <span class="o">]</span>
-<span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pods
+<span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pod
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -1722,9 +1722,9 @@ broker-container#
 
 <p>The <code class="highlighter-rouge">-v</code> (or <code class="highlighter-rouge">--verbose</code>) argument allows you to view and diagnose the underlying requests made by the CLI:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse -v pods list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_url
-2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pods
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_acs_token
 2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.ssl_verify
 <span class="o">[</span>
@@ -1860,7 +1860,7 @@ broker-container#
 
 <h2 id="stuck-deployments">Stuck deployments</h2>
 
-<p>You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it’s failing to come back, and, for whatever reason, we don’t have the time or the inclination to <code class="highlighter-rouge">pods replace</code> it and wait for it to come back.</p>
+<p>You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it’s failing to come back, and, for whatever reason, we don’t have the time or the inclination to <code class="highlighter-rouge">pod replace</code> it and wait for it to come back.</p>
 
 <p>In this case, we can use <code class="highlighter-rouge">plan</code> commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:</p>
 
@@ -1956,7 +1956,7 @@ broker-container#
 
 <h2 id="deleting-a-task-in-zookeeper-to-forcibly-wipe-that-task">Deleting a task in ZooKeeper to forcibly wipe that task</h2>
 
-<p>If the scheduler is still failing after <code class="highlighter-rouge">pods replace &lt;name&gt;</code> to clear a task, a last resort is to use <a href="#ZooKeeperexhibitor">Exhibitor</a> to delete the offending task from the Scheduler’s ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:</p>
+<p>If the scheduler is still failing after <code class="highlighter-rouge">pod replace &lt;name&gt;</code> to clear a task, a last resort is to use <a href="#ZooKeeperexhibitor">Exhibitor</a> to delete the offending task from the Scheduler’s ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:</p>
 <ul>
   <li>Automatically unreserve the task’s previous resources with Mesos because it doesn’t recognize them anymore (via the Resource Cleanup operation described earlier).</li>
   <li>Automatically redeploy the task on a new agent.</li>
@@ -1968,7 +1968,7 @@ broker-container#
 
 <p>Your tasks can be killed from an OOM if you didn’t give them sufficient resources. This will manifest as sudden <code class="highlighter-rouge">Killed</code> messages in <a href="#task-logs">Task logs</a>, sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:</p>
 <ul>
-  <li>Check <a href="#scheduler-logs">Scheduler logs</a> (or <code class="highlighter-rouge">dcos &lt;svcname&gt; pods status &lt;podname&gt;)</code> to see TaskStatus updates from mesos for a given failed pod.</li>
+  <li>Check <a href="#scheduler-logs">Scheduler logs</a> (or <code class="highlighter-rouge">dcos &lt;svcname&gt; pod status &lt;podname&gt;)</code> to see TaskStatus updates from mesos for a given failed pod.</li>
   <li>Check <a href="#mesos-agent-logs">Agent logs</a> directly for mention of the Mesos Agent killing a task due to excess memory usage.</li>
 </ul>
 
