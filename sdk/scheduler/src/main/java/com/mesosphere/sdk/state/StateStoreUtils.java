@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
@@ -39,6 +40,7 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
+    @VisibleForTesting
     protected static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
