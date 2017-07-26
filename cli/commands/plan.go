@@ -55,7 +55,9 @@ func (cmd *planHandler) getPlanName() string {
 	if len(cmd.PlanName) > 0 {
 		return cmd.PlanName
 	}
-	return "deploy"
+    // there is no (and should not be) a case where the plan name is requested here where it is not needed.
+    client.PrintMessageAndExit("Must specify a plan name")
+    return ""
 }
 
 type plansResponse struct {
@@ -280,11 +282,11 @@ func HandlePlanSection(app *kingpin.Application) {
 	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
 
 	pause := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.handlePause)
-	pause.Arg("plan", "Name of the plan to pause").StringVar(&cmd.PlanName)
+	pause.Arg("plan", "Name of the plan to pause").Required().StringVar(&cmd.PlanName)
 	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
 
 	resume := plan.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.handleResume)
-	resume.Arg("plan", "Name of the plan to resume").StringVar(&cmd.PlanName)
+	resume.Arg("plan", "Name of the plan to resume").Required().StringVar(&cmd.PlanName)
 	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
 	start := plan.Command("start", "Start the plan with the provided name and any arguments").Action(cmd.handleStart)
@@ -292,7 +294,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
 
 	status := plan.Command("status", "Display the deploy plan or the plan with the provided name").Alias("show").Action(cmd.handleStatus)
-	status.Arg("plan", "Name of the plan to show").StringVar(&cmd.PlanName)
+	status.Arg("plan", "Name of the plan to show").Required().StringVar(&cmd.PlanName)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
 
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.handleStop)
