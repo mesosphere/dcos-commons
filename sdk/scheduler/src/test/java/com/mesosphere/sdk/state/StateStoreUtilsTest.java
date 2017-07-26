@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -101,20 +102,16 @@ public class StateStoreUtilsTest {
     public void stateStoreWithSingleStateReturnsTaskInfo() {
         final StateStore stateStore = new DefaultStateStore(new MemPersister());
 
-        final String taskName = "test-task";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
+        TaskInfo taskInfo = newTaskInfoBuilder("test-task").build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder().setTaskId(taskID).setState(TaskState.TASK_UNKNOWN).build();
+        TaskStatus taskStatus = TaskStatus.newBuilder()
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_UNKNOWN)
+                .build();
 
         assertThat(StateStoreUtils.getTaskInfo(stateStore, taskStatus), is(taskInfo));
     }
@@ -124,28 +121,15 @@ public class StateStoreUtilsTest {
     public void stateStoreWithDuplicateIdsRaisesErrorOnStatus() {
         final StateStore stateStore = new DefaultStateStore(new MemPersister());
 
-        final String taskName = "test-task";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo firstTask = TaskInfo.newBuilder()
-                .setName(taskName + "1")
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
-
-        TaskInfo secondTask = TaskInfo.newBuilder()
-                .setName(taskName + "2")
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
-
+        TaskInfo firstTask = newTaskInfoBuilder("task_1").build();
+        TaskInfo secondTask = newTaskInfoBuilder("task_2", firstTask.getTaskId()).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(firstTask, secondTask));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
+                .setTaskId(firstTask.getTaskId())
                 .setState(TaskState.TASK_UNKNOWN)
                 .build();
 
@@ -158,14 +142,9 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(new MemPersister());
 
         final String taskName = "test-task";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
 
         // Create task info
-        TaskInfo firstTask = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
+        TaskInfo firstTask = newTaskInfoBuilder(taskName).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(firstTask));
@@ -175,6 +154,7 @@ public class StateStoreUtilsTest {
                 .setState(TaskState.TASK_UNKNOWN)
                 .build();
 
+        assertThat(firstTask.getTaskId(), is(not(taskStatus.getTaskId())));
         StateStoreUtils.getTaskInfo(stateStore, taskStatus);
     }
 
@@ -190,15 +170,8 @@ public class StateStoreUtilsTest {
     public void taskWithNoStatusDoesNotNeedRecovery() throws TaskException {
         final StateStore stateStore = new DefaultStateStore(new MemPersister());
 
-        final String taskName = "test-task";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
+        TaskInfo taskInfo = newTaskInfoBuilder().build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -216,16 +189,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-node";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-node");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -240,11 +205,10 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_RUNNING).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_RUNNING)
+                .build();
         stateStore.storeStatus(taskStatus);
-
-        configStore.getTargetConfig();
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore), is(empty()));
     }
@@ -257,16 +221,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-node";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-node");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -281,12 +237,10 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_FAILED).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_FAILED)
+                .build();
         stateStore.storeStatus(taskStatus);
-
-        configStore.getTargetConfig();
-
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(ImmutableList.of(taskInfo)));
@@ -301,16 +255,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-not-present";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-not-present");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -325,8 +271,9 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_RUNNING).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_RUNNING)
+                .build();
         stateStore.storeStatus(taskStatus);
 
         StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
@@ -340,16 +287,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-not-present";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-not-present");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -375,16 +314,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-format";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -399,12 +330,10 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_FAILED).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_FAILED)
+                .build();
         stateStore.storeStatus(taskStatus);
-
-        configStore.getTargetConfig();
-
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
@@ -418,16 +347,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-format";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -442,8 +363,9 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_FINISHED).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_FINISHED)
+                .build();
         stateStore.storeStatus(taskStatus);
 
         configStore.getTargetConfig();
@@ -461,16 +383,8 @@ public class StateStoreUtilsTest {
 
         final StateStore stateStore = new DefaultStateStore(persister);
 
-        //
-        final String taskName = "name-0-format";
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(taskID)
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                ;
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -485,8 +399,9 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(TaskState.TASK_RUNNING).build();
+                .setTaskId(taskInfo.getTaskId())
+                .setState(TaskState.TASK_RUNNING)
+                .build();
         stateStore.storeStatus(taskStatus);
 
         configStore.getTargetConfig();
@@ -494,6 +409,26 @@ public class StateStoreUtilsTest {
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
+    }
+
+
+    private static TaskInfo.Builder newTaskInfoBuilder() {
+        return newTaskInfoBuilder("test-task");
+    }
+
+    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName) {
+        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
+
+        return newTaskInfoBuilder(taskName, taskID);
+    }
+
+    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName, final TaskID taskID) {
+        return TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(taskID)
+                .setSlaveId(SlaveID.newBuilder()
+                        .setValue("ignored")// proto field required
+                );
     }
 
 
