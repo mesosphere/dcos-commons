@@ -28,7 +28,7 @@ def configure_package(configure_universe):
                 'hello': {'count': 4},
                 'world': {'count': 4}
             },
-            check_suppression=False)
+            wait_scheduler_idle=False)
 
         yield # let the test session execute
     finally:

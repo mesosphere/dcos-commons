@@ -22,7 +22,6 @@ def configure_package(configure_universe):
             DEFAULT_BROKER_COUNT,
             service_name=SERVICE_NAME,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
         yield # let the test session execute
     finally:

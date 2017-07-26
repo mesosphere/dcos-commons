@@ -16,12 +16,13 @@ def configure_package(configure_universe):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
+
+        # note: this package isn't released to universe, so there's nothing to test_upgrade() with
         sdk_install.install(
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
             additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-        sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
         yield # let the test session execute
     finally:

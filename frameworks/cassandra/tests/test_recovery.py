@@ -19,10 +19,7 @@ def configure_package(configure_universe):
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
-        # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
-
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
         yield # let the test session execute
     finally:

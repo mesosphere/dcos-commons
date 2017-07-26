@@ -1,0 +1,174 @@
+import json
+import re
+import shakedown
+
+import sdk_cmd as cmd
+import sdk_install as install
+import sdk_marathon as marathon
+import sdk_plan as plan
+import sdk_tasks as tasks
+import sdk_utils
+
+# Installs a universe version, then upgrades it to a test version
+#
+# (1) Installs Universe version of framework (after uninstalling any test version).
+# (2) Upgrades to test version of framework.
+#
+# With beta packages, the Universe package name is different from the test package name.
+# We install both with the same service name=test_package_name.
+def test_upgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={}):
+    if service_name is None:
+        service_name = test_package_name
+
+    install.uninstall(service_name, package_name=test_package_name)
+
+    test_version = _get_pkg_version(test_package_name)
+    sdk_utils.out('Found test version: {}'.format(test_version))
+
+    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
+    sdk_utils.out("Repositories: " + str(repositories))
+    universe_url = "fail"
+    for repo in repositories:
+        if repo['name'] == 'Universe':
+            universe_url = repo['uri']
+            break
+
+    assert "fail" != universe_url
+    sdk_utils.out("Universe URL: " + universe_url)
+
+    # Move the Universe repo to the top of the repo list
+    shakedown.remove_package_repo('Universe')
+    _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
+
+    universe_version = _get_pkg_version(universe_package_name)
+    sdk_utils.out('Found Universe version: {}'.format(universe_version))
+
+    sdk_utils.out('Installing Universe version')
+    # Keep the service name the same throughout the test
+    install.install(
+        universe_package_name,
+        running_task_count,
+        service_name=service_name,
+        additional_options=additional_options)
+
+    # Move the Universe repo to the bottom of the repo list
+    shakedown.remove_package_repo('Universe')
+    _add_last_repo('Universe', universe_url, universe_version, test_package_name)
+
+    sdk_utils.out('Upgrading to test version')
+    _upgrade_or_downgrade(test_package_name, service_name, running_task_count, additional_options)
+
+
+# Downgrades an installed test version back to a universe version
+#
+# (3) Downgrades to Universe version.
+# (4) Upgrades back to test version, as clean up (if reinstall_test_version == True).
+def test_downgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        reinstall_test_version=True):
+    if service_name is None:
+        service_name = test_package_name
+
+    # Move the Universe repo to the top of the repo list
+    shakedown.remove_package_repo('Universe')
+    _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
+
+    sdk_utils.out('Downgrading to Universe version')
+    _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, additional_options)
+
+    # Move the Universe repo to the bottom of the repo list
+    shakedown.remove_package_repo('Universe')
+    _add_last_repo('Universe', universe_url, universe_version, test_package_name)
+
+    if reinstall_test_version:
+        sdk_utils.out('Re-upgrading to test version before exiting')
+        _upgrade_or_downgrade(test_package_name, service_name, running_task_count, additional_options)
+    else:
+        sdk_utils.out('Skipping reinstall of test version, uninstalling universe version')
+        install.uninstall(service_name, package_name=universe_package_name)
+
+
+# (1) Installs Universe version of framework (after uninstalling any test version).
+# (2) Upgrades to test version of framework.
+# (3) Downgrades to Universe version.
+# (4) Upgrades back to test version, as clean up (if reinstall_test_version == True).
+#
+# With beta packages, the Universe package name is different from the test package name.
+# We install both with the same service name=test_package_name.
+def test_upgrade_downgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        service_name=None,
+        additional_options={},
+        reinstall_test_version=True):
+    upgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options)
+    downgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options, reinstall_test_version)
+
+
+# In the soak cluster, we assume that the Universe version of the framework is already installed.
+# Also, we assume that the Universe is the default repo (at --index=0) and the stub repos are already in place,
+# so we don't need to add or remove any repos.
+#
+# (1) Upgrades to test version of framework.
+# (2) Downgrades to Universe version.
+def soak_upgrade_downgrade(universe_package_name, test_package_name, service_name, running_task_count,
+                           install_options={}):
+    print('Upgrading to test version')
+    _upgrade_or_downgrade(test_package_name, service_name, running_task_count, install_options, 'stub-universe')
+
+    print('Downgrading to Universe version')
+    # Default Universe is at --index=0
+    _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, install_options)
+
+
+def _upgrade_or_downgrade(package_name, service_name, running_task_count, additional_options, package_version=None):
+    task_ids = tasks.get_task_ids(service_name, '')
+    marathon.destroy_app(service_name)
+    install.install(
+        package_name,
+        running_task_count,
+        service_name=service_name,
+        additional_options=additional_options,
+        package_version=package_version)
+    sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
+    plan.wait_for_completed_deployment(service_name)
+    sdk_utils.out('Checking that all tasks have restarted')
+    tasks.check_tasks_updated(service_name, '', task_ids)
+
+
+def _get_pkg_version(package_name):
+    return re.search(
+        r'"version": "(\S+)"',
+        sdk_cmd.run_cli('package describe {}'.format(package_name))).group(1)
+
+
+# Default repo is the one at index=0.
+def _add_repo(repo_name, repo_url, prev_version, index, default_repo_package_name):
+    assert shakedown.add_package_repo(
+        repo_name,
+        repo_url,
+        index)
+    # Make sure the new default repo packages are available
+    _wait_for_new_default_version(prev_version, default_repo_package_name)
+
+
+def _add_last_repo(repo_name, repo_url, prev_version, default_repo_package_name):
+    assert shakedown.add_package_repo(
+        repo_name,
+        repo_url)
+    # Make sure the new default repo packages are available
+    _wait_for_new_default_version(prev_version, default_repo_package_name)
+
+
+def _wait_for_new_default_version(prev_version, default_repo_package_name):
+    shakedown.wait_for(lambda: _get_pkg_version(default_repo_package_name) != prev_version, noisy=True)
