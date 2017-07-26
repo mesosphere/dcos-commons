@@ -873,21 +873,21 @@ Agent 3: X B
 
 <p>For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the sandbox will be created. Also, the value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-app/SecretPath1</code>, as shown below.</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-app/instance1</span>
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-svc/instance1</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">pod-with-secret</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
     <span class="c1"># add secret file to pod's sandbox</span>
     <span class="s">secrets</span><span class="pi">:</span>
       <span class="s">secret_name1</span><span class="pi">:</span>
-        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path1</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/Secret_Path1</span>
         <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key</span>
         <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath1</span>
       <span class="s">secret_name2</span><span class="pi">:</span>
-        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/instance1/Secret_Path2</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/instance1/Secret_Path2</span>
         <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath2</span>
       <span class="s">secret_name3</span><span class="pi">:</span>
-        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-app/Secret_Path3</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/Secret_Path3</span>
         <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key2</span>
     <span class="s">tasks</span><span class="pi">:</span>
       <span class="s">....</span>
@@ -904,57 +904,72 @@ Agent 3: X B
 
 <p>The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. <em>Only</em> services that are under the same namespace can read the content of the secret.</p>
 
-<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-app/Secret_Path1</code> can only be accessed by applications with an ID under <code class="highlighter-rouge">/secret-app/</code>. Applications with IDs <code class="highlighter-rouge">/secret-app/app1</code> and <code class="highlighter-rouge">/secret-app/instance2/app2</code> all have access to this secret, because they are under <code class="highlighter-rouge">/secret-app/</code>.</p>
+<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-svc/Secret_Path1</code> can only be accessed by a services with ID <code class="highlighter-rouge">/secret-svc</code> or any service with  ID under <code class="highlighter-rouge">/secret-svc/</code>. Servicess with IDs <code class="highlighter-rouge">/secret-serv/dev1</code> and <code class="highlighter-rouge">/secret-svc/instance2/dev2</code> all have access to this secret, because they are under <code class="highlighter-rouge">/secret-svc/</code>.</p>
 
-<p>On the other hand, the secret with path <code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code> cannot be accessed by a service with ID <code class="highlighter-rouge">/secret-app</code> because it is not <em>under</em> this secret’s namespace, which is <code class="highlighter-rouge">/secret-app/insance1/</code>. <code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code> can be accessed by any service with ID under <code class="highlighter-rouge">/secret-app/instance1/</code>, for example <code class="highlighter-rouge">/secret-app/instance1/app3</code> or <code class="highlighter-rouge">/secret-app/instance1/someDir/app4</code>.</p>
+<p>On the other hand, the secret with path <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> cannot be accessed by a service with ID <code class="highlighter-rouge">/secret-svc</code> because it is not <em>under</em> this secret’s namespace, which is <code class="highlighter-rouge">/secret-svc/instance1</code>. <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> can be accessed by a service with ID <code class="highlighter-rouge">/secret-svc/instance1</code> or any service with ID under <code class="highlighter-rouge">/secret-svc/instance1/</code>, for example <code class="highlighter-rouge">/secret-svc/instance1/dev3</code> and <code class="highlighter-rouge">/secret-svc/instance1/someDir/dev4</code>.</p>
 
 <table>
   <thead>
     <tr>
       <th>Secret</th>
-      <th>Service</th>
+      <th>Service ID</th>
       <th>Can service access secret?</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><code class="highlighter-rouge">secret-app/Secret_Path1</code></td>
-      <td><code class="highlighter-rouge">/user/app1</code></td>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/user</code></td>
       <td>No</td>
     </tr>
     <tr>
-      <td><code class="highlighter-rouge">secret-app/Secret_Path1</code></td>
-      <td><code class="highlighter-rouge">/secret-app/app1</code></td>
-      <td>Yes</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">secret-app/Secret_Path1</code></td>
-      <td><code class="highlighter-rouge">/secret-app/instance2/app2</code></td>
-      <td>Yes</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">secret-app/Secret_Path1</code></td>
-      <td><code class="highlighter-rouge">/secret-app/a/b/c/app3</code></td>
-      <td>Yes</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code></td>
-      <td><code class="highlighter-rouge">/secret-app/app1</code></td>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/user/dev1</code></td>
       <td>No</td>
     </tr>
     <tr>
-      <td><code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code></td>
-      <td><code class="highlighter-rouge">/secret-app/instance2/app3</code></td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code></td>
-      <td><code class="highlighter-rouge">/secret-app/instance1/app3</code></td>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc</code></td>
       <td>Yes</td>
     </tr>
     <tr>
-      <td><code class="highlighter-rouge">secret-app/instance1/Secret_Path2</code></td>
-      <td><code class="highlighter-rouge">/secret-app/instance1/someDir/app3</code></td>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/dev1</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance2/dev2</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/a/b/c/dev3</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/dev1</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance2/dev3</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1/dev3</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1/someDir/dev3</code></td>
       <td>Yes</td>
     </tr>
   </tbody>
