@@ -61,7 +61,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
     assert(len(recovery_plan['phases']) == 0)
     sdk_utils.out(recovery_plan)
-    run_plan('sidecar-toxic', wait_for_completion=False)
+    sdk_plan.start_plan(PACKAGE_NAME, 'sidecar-toxic')
     # Wait for the bad sidecar plan to be starting.
     sdk_plan.wait_for_starting_plan(PACKAGE_NAME, 'sidecar-toxic')
 
@@ -75,7 +75,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     assert(len(recovery_plan['phases']) == 0)
 
 
-def run_plan(plan_name, wait_for_completion=True, params=None):
+def run_plan(plan_name, params=None):
     sdk_plan.start_plan(PACKAGE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(PACKAGE_NAME, plan_name)
@@ -84,5 +84,4 @@ def run_plan(plan_name, wait_for_completion=True, params=None):
     assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
     assert(len(started_plan['phases'][0]['steps']) == 2)
 
-    if wait_for_completion:
-        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, plan_name)
+    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, plan_name)
