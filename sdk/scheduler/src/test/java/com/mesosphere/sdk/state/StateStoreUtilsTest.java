@@ -18,6 +18,7 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -33,10 +34,17 @@ import static org.junit.Assert.assertThat;
  */
 public class StateStoreUtilsTest {
 
+    private Persister persister;
+    private StateStore stateStore;
+
+    @Before
+    public void beforeEach() throws Exception {
+        this.persister = new MemPersister();
+        this.stateStore = new DefaultStateStore(this.persister);
+    }
+
     @Test
     public void emptyStateStoreReturnsEmptyArray() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "UNDEFINED");
 
         assertThat(result.length, is(0));
@@ -44,7 +52,6 @@ public class StateStoreUtilsTest {
 
     @Test
     public void unmatchedKeyReturnsEmptyArray() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
         stateStore.storeProperty("DEFINED", "VALUE".getBytes());
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "UNDEFINED");
@@ -54,7 +61,6 @@ public class StateStoreUtilsTest {
 
     @Test
     public void matchedKeyReturnsValue() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
         stateStore.storeProperty("DEFINED", "VALUE".getBytes());
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "DEFINED");
@@ -94,15 +100,11 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void emptyStateStoreRaisesErrorOnTaskInfo() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         StateStoreUtils.getTaskInfo(stateStore, null);
     }
 
     @Test
     public void stateStoreWithSingleStateReturnsTaskInfo() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("test-task").build();
 
@@ -117,8 +119,6 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void stateStoreWithDuplicateIdsRaisesErrorOnStatus() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("task_1").build();
         TaskInfo secondTask = newTaskInfoBuilder("task_2", taskInfo.getTaskId()).build();
@@ -134,8 +134,6 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void stateStoreWithMismatchedIdRaisesErrorOnStatus() {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         final String taskName = "test-task";
 
         // Create task info
@@ -153,15 +151,12 @@ public class StateStoreUtilsTest {
 
     @Test
     public void emptyStateStoreHasNoTasksNeedingRecovery() throws TaskException {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, null), is(empty()));
     }
 
 
     @Test
     public void taskWithNoStatusDoesNotNeedRecovery() throws TaskException {
-        final StateStore stateStore = new DefaultStateStore(new MemPersister());
-
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder().build();
 
@@ -175,11 +170,7 @@ public class StateStoreUtilsTest {
     @Test
     public void runningTaskDoesNotNeedRecoveryIfRunning() throws Exception {
 
-        final Persister persister = new MemPersister();
-
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
@@ -195,11 +186,8 @@ public class StateStoreUtilsTest {
 
     @Test
     public void runningTaskNeedsRecoveryIfFailed() throws Exception {
-        final Persister persister = new MemPersister();
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
@@ -217,11 +205,8 @@ public class StateStoreUtilsTest {
 
     @Test(expected = TaskException.class)
     public void nonPresentTaskRaisesError() throws Exception {
-        final Persister persister = new MemPersister();
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
@@ -237,11 +222,8 @@ public class StateStoreUtilsTest {
 
     @Test
     public void taskInfoWithNoStatusRequiresNoRecovery() throws Exception {
-        final Persister persister = new MemPersister();
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
@@ -255,11 +237,8 @@ public class StateStoreUtilsTest {
 
     @Test
     public void finishedTaskDoesNotNeedRecoveryIfFailed() throws Exception {
-        final Persister persister = new MemPersister();
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
@@ -276,11 +255,9 @@ public class StateStoreUtilsTest {
 
     @Test
     public void finishedTaskDoesNotNeedRecoveryIfFinished() throws Exception {
-        final Persister persister = new MemPersister();
+
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
@@ -291,20 +268,14 @@ public class StateStoreUtilsTest {
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FINISHED);
         stateStore.storeStatus(taskStatus);
 
-        configStore.getTargetConfig();
-
-
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
     }
 
     @Test
     public void finishedTaskDoesNotNeedRecoveryIfRunning() throws Exception {
-        final Persister persister = new MemPersister();
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
-
-        final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
