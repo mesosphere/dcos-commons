@@ -287,7 +287,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	resume.Arg("plan", "Name of the plan to resume").StringVar(&cmd.PlanName)
 	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
-	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.handleStart)
+	start := plan.Command("start", "Start the plan with the provided name and any arguments").Action(cmd.handleStart)
 	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
 	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
 
