@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -114,7 +115,7 @@ public class SchedulerUtils {
         }
 
         // Fallback: Use the default scheduler user
-        return DEFAULT_SCHEDULER_USER;
+        return DcosConstants.DEFAULT_SERVICE_USER;
     }
 
     /**

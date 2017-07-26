@@ -28,6 +28,8 @@ public class DcosConstants {
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
 
+    public static final String DEFAULT_SERVICE_USER = "root";
+
     // Network Names
 
     private static final String DEFAULT_OVERLAY_NETWORK = "dcos";

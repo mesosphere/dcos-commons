@@ -6,10 +6,10 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -161,14 +161,14 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(targetConfig.get());
 
         if (targetConfig.get().getUser() == null) {
-            serviceSpecWithUser.user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
+            serviceSpecWithUser.user(DcosConstants.DEFAULT_SERVICE_USER);
         }
 
         List<PodSpec> podsWithUser = new ArrayList<>();
         for (PodSpec podSpec : targetConfig.get().getPods()) {
             podsWithUser.add(
                     podSpec.getUser() != null && podSpec.getUser().isPresent() ? podSpec :
-                            DefaultPodSpec.newBuilder(podSpec).user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build()
+                            DefaultPodSpec.newBuilder(podSpec).user(DcosConstants.DEFAULT_SERVICE_USER).build()
             );
         }
         serviceSpecWithUser.pods(podsWithUser);

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.config;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -87,7 +87,7 @@ public class ConfigurationUpdaterTest {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
-                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER)
+                .user(DcosConstants.DEFAULT_SERVICE_USER)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA, podB))
@@ -99,7 +99,7 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpec BAD_UPDATED_SERVICE_SPECIFICATION = getServiceSpec(podA, badPodB);
     private static final ServiceSpec ORIGINAL_SERVICE_SPECIFICATION_WITH_USER =
             DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
-                    .user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build();
+                    .user(DcosConstants.DEFAULT_SERVICE_USER).build();
 
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
@@ -220,7 +220,7 @@ public class ConfigurationUpdaterTest {
                 mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
-                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
+                .user(DcosConstants.DEFAULT_SERVICE_USER);
         List<PodSpec> podsWithoutUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION.getPods()) {
             podsWithoutUsers.add(
@@ -245,7 +245,7 @@ public class ConfigurationUpdaterTest {
                 mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
-                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
+                .user(DcosConstants.DEFAULT_SERVICE_USER);
         List<PodSpec> podsWithoutUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION.getPods()) {
             podsWithoutUsers.add(
@@ -261,7 +261,7 @@ public class ConfigurationUpdaterTest {
         List<PodSpec> podsWithUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION_WITH_USER.getPods()) {
             podsWithUsers.add(
-                DefaultPodSpec.newBuilder(podSpec).user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build()
+                DefaultPodSpec.newBuilder(podSpec).user(DcosConstants.DEFAULT_SERVICE_USER).build()
             );
         }
         ServiceSpec SERVICE_SPECIFICATION_WITH_USER = DefaultServiceSpec
