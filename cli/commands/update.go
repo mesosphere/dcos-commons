@@ -59,7 +59,7 @@ func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.Pa
 // HandleDescribe adds the describe subcommand to the passed in kingpin.Application.
 func HandleDescribe(app *kingpin.Application) {
 	cmd := &describeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(cmd.handleDescribe)
+	app.Command("describe", "View the configuration for this service").Action(cmd.handleDescribe)
 }
 
 type updateHandler struct {
