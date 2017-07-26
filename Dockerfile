@@ -18,12 +18,15 @@ RUN add-apt-repository -y ppa:longsleep/golang-backports && apt-get update && ap
 # AWS CLI for uploading build artifacts
 RUN pip install awscli
 # Install python test dependencies
-RUN pip3 install requests==2.10.0 dcoscli==0.4.16 dcos==0.4.16 dcos-shakedown teamcity-messages
+RUN pip3 install requests==2.10.0 dcoscli==0.4.17 dcos==0.4.17 dcos-shakedown==1.4.4 teamcity-messages git+https://github.com/dcos/dcos-test-utils@924d84d8b79f39bf6a1cdd8043b0e65fe9171eec
 # Install dcos-launch to create clusters for integration testing
-RUN wget https://downloads.dcos.io/dcos-test-utils/bin/linux/dcos-launch -O /usr/bin/dcos-launch
+RUN wget https://downloads.dcos.io/dcos-launch/bin/linux/dcos-launch -O /usr/bin/dcos-launch
 RUN chmod +x /usr/bin/dcos-launch
 # shakedown and dcos-cli require this to output cleanly
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
 ENV GOPATH=/go-tmp
+# Add the default SSH key
+COPY aws_default_ssh_key /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
