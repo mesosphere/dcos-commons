@@ -23,6 +23,7 @@ headers = {'Authorization': 'Token {}'.format(ccm_token)}
 give_up_time = time.time() + 60 * 60
 
 while give_up_time > time.time():
+    print("Looking up cluster id.")
     # Get all the clusters
     all_clusters = json.loads(requests.get(base_url+'/api/cluster/active/all', headers=headers).text)
     for cluster in all_clusters:
@@ -30,8 +31,10 @@ while give_up_time > time.time():
             cluster_id = cluster['id']
 
     if cluster_id is not None:
+        print("Cluster id found!")
         break
 
+    print("Cluster id not found. Sleeping for 60 seconds...")
     time.sleep(60)
 
 if cluster_id is None:
