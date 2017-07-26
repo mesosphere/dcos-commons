@@ -18,7 +18,6 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.io.File;
 import java.util.UUID;
@@ -31,9 +30,6 @@ import static org.junit.Assert.assertThat;
  * Tests for {@link StateStoreUtils}.
  */
 public class StateStoreUtilsTest {
-
-    @Mock
-    private ServiceSpec mockServiceSpec;
 
     @Test
     public void emptyStateStoreReturnsEmptyArray() {
@@ -148,7 +144,10 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(firstTask, secondTask));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder().setTaskId(taskID).setState(TaskState.TASK_UNKNOWN).build();
+        TaskStatus taskStatus = TaskStatus.newBuilder()
+                .setTaskId(taskID)
+                .setState(TaskState.TASK_UNKNOWN)
+                .build();
 
         assertThat(stateStore.fetchTasks().size(), is(2));
         StateStoreUtils.getTaskInfo(stateStore, taskStatus);
@@ -171,7 +170,10 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(firstTask));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder().setTaskId(CommonIdUtils.toTaskId("not-" + taskName)).setState(TaskState.TASK_UNKNOWN).build();
+        TaskStatus taskStatus = TaskStatus.newBuilder()
+                .setTaskId(CommonIdUtils.toTaskId("not-" + taskName))
+                .setState(TaskState.TASK_UNKNOWN)
+                .build();
 
         StateStoreUtils.getTaskInfo(stateStore, taskStatus);
     }
@@ -500,10 +502,11 @@ public class StateStoreUtilsTest {
 
         ClassLoader classLoader = StateStoreUtilsTest.class.getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
                 .build();
 
-        DefaultConfigStore<ServiceSpec> configStore = new DefaultConfigStore(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        ConfigStore<ServiceSpec> configStore = new DefaultConfigStore(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         // At startup, the the service spec must be stored, and the target config must be set to the
         // stored spec.
         UUID targetConfig = configStore.store(serviceSpec);
