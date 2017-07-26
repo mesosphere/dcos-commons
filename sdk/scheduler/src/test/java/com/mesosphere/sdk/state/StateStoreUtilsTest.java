@@ -109,10 +109,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_UNKNOWN)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
 
         assertThat(StateStoreUtils.getTaskInfo(stateStore, taskStatus), is(taskInfo));
     }
@@ -123,16 +120,13 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(new MemPersister());
 
         // Create task info
-        TaskInfo firstTask = newTaskInfoBuilder("task_1").build();
-        TaskInfo secondTask = newTaskInfoBuilder("task_2", firstTask.getTaskId()).build();
+        TaskInfo taskInfo = newTaskInfoBuilder("task_1").build();
+        TaskInfo secondTask = newTaskInfoBuilder("task_2", taskInfo.getTaskId()).build();
 
         // Add a task to the state store
-        stateStore.storeTasks(ImmutableList.of(firstTask, secondTask));
+        stateStore.storeTasks(ImmutableList.of(taskInfo, secondTask));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(firstTask.getTaskId())
-                .setState(TaskState.TASK_UNKNOWN)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
 
         assertThat(stateStore.fetchTasks().size(), is(2));
         StateStoreUtils.getTaskInfo(stateStore, taskStatus);
@@ -145,17 +139,14 @@ public class StateStoreUtilsTest {
         final String taskName = "test-task";
 
         // Create task info
-        TaskInfo firstTask = newTaskInfoBuilder(taskName).build();
+        TaskInfo taskInfo = newTaskInfoBuilder(taskName).build();
 
         // Add a task to the state store
-        stateStore.storeTasks(ImmutableList.of(firstTask));
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(CommonIdUtils.toTaskId("not-" + taskName))
-                .setState(TaskState.TASK_UNKNOWN)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(CommonIdUtils.toTaskId("not-" + taskName), TaskState.TASK_UNKNOWN);
 
-        assertThat(firstTask.getTaskId(), is(not(taskStatus.getTaskId())));
+        assertThat(taskInfo.getTaskId(), is(not(taskStatus.getTaskId())));
         StateStoreUtils.getTaskInfo(stateStore, taskStatus);
     }
 
@@ -196,10 +187,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_RUNNING)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
         stateStore.storeStatus(taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore), is(empty()));
@@ -219,10 +207,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_FAILED)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FAILED);
         stateStore.storeStatus(taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
@@ -244,10 +229,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_RUNNING)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
         stateStore.storeStatus(taskStatus);
 
         StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
@@ -285,10 +267,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_FAILED)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FAILED);
         stateStore.storeStatus(taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
@@ -309,10 +288,7 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_FINISHED)
-                .build();
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FINISHED);
         stateStore.storeStatus(taskStatus);
 
         configStore.getTargetConfig();
@@ -336,14 +312,9 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        TaskStatus taskStatus = TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(TaskState.TASK_RUNNING)
-                .build();
+
+        TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
         stateStore.storeStatus(taskStatus);
-
-        configStore.getTargetConfig();
-
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
@@ -387,6 +358,18 @@ public class StateStoreUtilsTest {
                 .setSlaveId(SlaveID.newBuilder()
                         .setValue("proto-field-required")
                 );
+    }
+
+
+    private static TaskStatus newTaskStatus(final TaskInfo taskInfo, final TaskState taskState) {
+        return newTaskStatus(taskInfo.getTaskId(), taskState);
+    }
+
+    private static TaskStatus newTaskStatus(final TaskID taskID, final TaskState taskState) {
+        return TaskStatus.newBuilder()
+                .setTaskId(taskID)
+                .setState(taskState)
+                .build();
     }
 
 
