@@ -115,6 +115,11 @@ esac
 shift # past argument or value
 done
 
+if [ ! -f "$ssh_path" ]; then
+    echo "The specified CCM key ($ssh_path) does not exist or is not a file"
+    exit 1
+fi
+
 if [ -z "$1" ]; then
     usage
 fi
